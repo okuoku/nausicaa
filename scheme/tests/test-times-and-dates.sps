@@ -46,53 +46,53 @@
 ;;;; date stuff
 
 (check
-    (date? (current-date))
+    (<date>? (current-date))
   => #t)
 
 (check
-    (date? 123)
+    (<date>? 123)
   => #f)
 
 ;;; --------------------------------------------------------------------
 
 (check
     (let ((d (make-date 1 2 3 4 5 6 7 8)))
-      (date-nanosecond d))
+      (<date>-nanosecond d))
   => 1)
 
 (check
     (let ((d (make-date 1 2 3 4 5 6 7 8)))
-      (date-second d))
+      (<date>-second d))
   => 2)
 
 (check
     (let ((d (make-date 1 2 3 4 5 6 7 8)))
-      (date-minute d))
+      (<date>-minute d))
   => 3)
 
 (check
     (let ((d (make-date 1 2 3 4 5 6 7 8)))
-      (date-hour d))
+      (<date>-hour d))
   => 4)
 
 (check
     (let ((d (make-date 1 2 3 4 5 6 7 8)))
-      (date-day d))
+      (<date>-day d))
   => 5)
 
 (check
     (let ((d (make-date 1 2 3 4 5 6 7 8)))
-      (date-month d))
+      (<date>-month d))
   => 6)
 
 (check
     (let ((d (make-date 1 2 3 4 5 6 7 8)))
-      (date-year d))
+      (<date>-year d))
   => 7)
 
 (check
     (let ((d (make-date 1 2 3 4 5 6 7 8)))
-      (date-zone-offset d))
+      (<date>-zone-offset d))
   => 8)
 
 (check
@@ -113,7 +113,6 @@
       (date-week-number d 1))
   => 5)
 
-
 
 ;;;; time
 
@@ -123,6 +122,15 @@
 
 (check
     (time? (current-time time-utc))
+  => #t)
+
+(check
+    (time? (copy-time (current-time)))
+  => #t)
+
+(check
+    (let ((t (current-time)))
+      (time=? t (copy-time t)))
   => #t)
 
 (check
@@ -172,12 +180,12 @@
 
 ;;; --------------------------------------------------------------------
 
-(let ((t1 (make-time time-utc 0 1))
-      (t2 (make-time time-utc 0 1))
-      (t3 (make-time time-utc 0 2))
-      (t11 (make-time time-utc 1001 1))
-      (t12 (make-time time-utc 1001 1))
-      (t13 (make-time time-utc 1001 2)))
+(let ((t1 (make-time time-utc 1 0))
+      (t2 (make-time time-utc 1 0))
+      (t3 (make-time time-utc 2 0))
+      (t11 (make-time time-utc 1 1001))
+      (t12 (make-time time-utc 1 1001))
+      (t13 (make-time time-utc 2 1001)))
   (check
       (time=? t1 t2)
     => #t)
@@ -221,25 +229,22 @@
       (time<=? t12 t13)
     => #t))
 
-;;This  was reported  to the  SRFI-19  post-discuss list,  but with  the
-;;arguments to  MAKE-TIME given in the  wrong order.  This  test has the
-;;arguments in the correct order and it works.
 (check
-    (time=? (make-time time-monotonic (expt 10 9) 0)
-	    (make-time time-monotonic 0 1))
+    (time=? (make-time time-monotonic 0 (expt 10 9))
+	    (make-time time-monotonic 1 0))
   => #t)
 
 (check
-    (time=? (make-time time-monotonic (* 5 (expt 10 9)) 0)
-	    (make-time time-monotonic 0 5))
+    (time=? (make-time time-monotonic 0 (* 5 (expt 10 9)))
+	    (make-time time-monotonic 5 0))
   => #t)
 
 ;;; --------------------------------------------------------------------
 
-(let ((t1 (make-time time-utc 0 3000))
-      (t2 (make-time time-utc 0 1000))
-      (t3 (make-time time-duration 0 2000))
-      (t4 (make-time time-duration 0 -2000)))
+(let ((t1 (make-time time-utc 3000 0))
+      (t2 (make-time time-utc 1000 0))
+      (t3 (make-time time-duration  2000 0))
+      (t4 (make-time time-duration -2000 0)))
   (check
       (time=? t3 (time-difference t1 t2))
     => #t)
@@ -251,26 +256,26 @@
 
 (define (test-one-utc-tai-edge utc tai-diff tai-last-diff)
   (let* (;; right on the edge they should be the same
-	 (utc-basic (make-time time-utc 0 utc))
-	 (tai-basic (make-time time-tai 0 (+ utc tai-diff)))
+	 (utc-basic (make-time time-utc utc 0))
+	 (tai-basic (make-time time-tai (+ utc tai-diff) 0))
 	 (utc->tai-basic (time-utc->time-tai utc-basic))
 	 (tai->utc-basic (time-tai->time-utc tai-basic))
 	 ;; a second before they should be the old diff
-	 (utc-basic-1 (make-time time-utc 0 (- utc 1)))
-	 (tai-basic-1 (make-time time-tai 0 (- (+ utc tai-last-diff) 1)))
+	 (utc-basic-1 (make-time time-utc (- utc 1) 0))
+	 (tai-basic-1 (make-time time-tai (- (+ utc tai-last-diff) 1) 0))
 	 (utc->tai-basic-1 (time-utc->time-tai utc-basic-1))
 	 (tai->utc-basic-1 (time-tai->time-utc tai-basic-1))
 	 ;; a second later they should be the new diff
-	 (utc-basic+1 (make-time time-utc 0 (+ utc 1)))
-	 (tai-basic+1 (make-time time-tai 0 (+ (+ utc tai-diff) 1)))
+	 (utc-basic+1 (make-time time-utc (+ utc 1) 0))
+	 (tai-basic+1 (make-time time-tai (+ (+ utc tai-diff) 1) 0))
 	 (utc->tai-basic+1 (time-utc->time-tai utc-basic+1))
 	 (tai->utc-basic+1 (time-tai->time-utc tai-basic+1))
 	 ;; ok, let's move the clock half a month or so plus half a second
 	 (shy (* 15 24 60 60))
 	 (hs (/ (expt 10 9) 2))
 	 ;; a second later they should be the new diff
-	 (utc-basic+2 (make-time time-utc hs (+ utc shy)))
-	 (tai-basic+2 (make-time time-tai hs (+ (+ utc tai-diff) shy)))
+	 (utc-basic+2 (make-time time-utc (+ utc shy) hs))
+	 (tai-basic+2 (make-time time-tai (+ (+ utc tai-diff) shy) hs))
 	 (utc->tai-basic+2 (time-utc->time-tai utc-basic+2))
 	 (tai->utc-basic+2 (time-tai->time-utc tai-basic+2))
 	 )
@@ -369,59 +374,59 @@
 ;;; --------------------------------------------------------------------
 
 (define (tm:date= d1 d2)
-  (and (= (date-year d1) (date-year d2))
-       (= (date-month d1) (date-month d2))
-       (= (date-day d1) (date-day d2))
-       (= (date-hour d1) (date-hour d2))
-       (= (date-second d1) (date-second d2))
-       (= (date-nanosecond d1) (date-nanosecond d2))
-       (= (date-zone-offset d1) (date-zone-offset d2))))
+  (and (= (<date>-year d1) (<date>-year d2))
+       (= (<date>-month d1) (<date>-month d2))
+       (= (<date>-day d1) (<date>-day d2))
+       (= (<date>-hour d1) (<date>-hour d2))
+       (= (<date>-second d1) (<date>-second d2))
+       (= (<date>-nanosecond d1) (<date>-nanosecond d2))
+       (= (<date>-zone-offset d1) (<date>-zone-offset d2))))
 
 (check
-    (tm:date= (time-tai->date (make-time time-tai 0 (+ 915148800 29)) 0)
+    (tm:date= (time-tai->date (make-time time-tai (+ 915148800 29) 0) 0)
 	      (make-date 0 58 59 23 31 12 1998 0))
   => #t)
 (check
-    (tm:date= (time-tai->date (make-time time-tai 0 (+ 915148800 30)) 0)
+    (tm:date= (time-tai->date (make-time time-tai (+ 915148800 30) 0) 0)
 	      (make-date 0 59 59 23 31 12 1998 0))
   => #t)
 (check
-    (tm:date= (time-tai->date (make-time time-tai 0 (+ 915148800 31)) 0)
+    (tm:date= (time-tai->date (make-time time-tai (+ 915148800 31) 0) 0)
 	      (make-date 0 60 59 23 31 12 1998 0))
   => #t)
 (check
-    (tm:date= (time-tai->date (make-time time-tai 0 (+ 915148800 32)) 0)
+    (tm:date= (time-tai->date (make-time time-tai (+ 915148800 32) 0) 0)
 	      (make-date 0 0 0 0 1 1 1999 0))
   => #t)
 
 ;;; --------------------------------------------------------------------
 
 (check
-    (time=? (make-time time-utc 0 (- 915148800 2))
+    (time=? (make-time time-utc (- 915148800 2) 0)
 	    (date->time-utc (make-date 0 58 59 23 31 12 1998 0)))
   => #t)
 (check
-    (time=? (make-time time-utc 0 (- 915148800 1))
+    (time=? (make-time time-utc (- 915148800 1) 0)
 	    (date->time-utc (make-date 0 59 59 23 31 12 1998 0)))
   => #t)
 ;;; yes, I think this is acutally right.
 (check
-    (time=? (make-time time-utc 0 (- 915148800 0))
+    (time=? (make-time time-utc (- 915148800 0) 0)
 	    (date->time-utc (make-date 0 60 59 23 31 12 1998 0)))
   => #t)
 (check
-    (time=? (make-time time-utc 0 (- 915148800 0))
+    (time=? (make-time time-utc (- 915148800 0) 0)
 	    (date->time-utc (make-date 0 0 0 0 1 1 1999 0)))
   => #t)
 (check
-    (time=? (make-time time-utc 0 (+ 915148800 1))
+    (time=? (make-time time-utc (+ 915148800 1) 0)
 	    (date->time-utc (make-date 0 1 0 0 1 1 1999 0)))
   => #t)
 
 ;;; --------------------------------------------------------------------
 
-(let ((ct-utc (make-time time-utc 6320000 1045944859))
-      (ct-tai (make-time time-tai 6320000 1045944891))
+(let ((ct-utc (make-time time-utc 1045944859 6320000))
+      (ct-tai (make-time time-tai 1045944891 6320000))
       (cd (make-date 6320000 19 14 15 22 2 2003 -18000)))
   (and
    (check
@@ -798,7 +803,7 @@
 ;;to work now.
 (check
     (date->string
-     (time-monotonic->date (make-time time-monotonic 1 0))
+     (time-monotonic->date (make-time time-monotonic 0 1))
      "~f")
   => "00.000000001")
 
@@ -861,8 +866,6 @@
 ;;       "~I" "~j" "~k" "~l" "~m" "~M" "~n" "~N" "~p" "~r" "~s"
 ;;       "~S" "~t" "~T" "~U" "~V" "~w" "~W" "~x" "~X" "~y" "~Y"
 ;;       "~z" "~Z" "~1" "~2" "~3" "~4" "~5")))
-
-
 
 
 ;;;; done

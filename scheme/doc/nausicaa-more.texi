@@ -15765,8 +15765,6 @@ of days since 1858-11-17T00:00:00Z (November 17, 1858 at midnight, UTC).
 @section Constants
 
 
-The following constants are required:
-
 @deffn Variable time-duration
 Symbol representing @emph{Time} duration.
 @end deffn
@@ -15796,16 +15794,13 @@ Symbol representing time spent in current thread.
 Symbol representting @utc{} time.
 @end deffn
 
-
 @c page
 @node time current
 @section Current time and clock resolution
 
 
-The following procedures are required.
-
-
-@defun current-date [@var{tz-offset}]
+@defun current-date
+@defunx current-date @var{tz-offset}
 Return a @emph{Date} corresponding to the current @utc{} time.
 @end defun
 
@@ -15819,25 +15814,23 @@ Current Modified Julian Day.
 @end defun
 
 
-@defun current-time [@var{time-type}]
+@defun current-time
+@defunx current-time @var{time-type}
 Current time, of type @var{time-type} system, which defaults to
 @code{time-utc}.
 @end defun
 
 
-@defun time-resolution [@var{time-type}]
+@defun time-resolution
+@defunx time-resolution @var{time-type}
 Return an exact integer representing the clock resolution, in
 nanoseconds, of the system clock of type type @var{time-type} system,
 which defaults to @code{time-utc}.
 @end defun
 
-
 @c page
 @node time timeobj
 @section Time object and accessors
-
-
-The following procedures are required:
 
 
 @defun make-time @var{time-type} @var{nanosecond} @var{second}
@@ -15892,8 +15885,6 @@ Create a new time object, with the same @emph{Time type},
 @emph{nanosecond}, and @emph{Second} as @var{time}.
 @end defun
 
-
-
 @c page
 @node time timeobj compar
 @section Time object comparison procedures
@@ -15905,8 +15896,6 @@ of different types.  For the point--in--time measurements (e.g.
 @code{time-tai} and @code{time-utc}), the semantics are described in
 plain text.  For durations (e.g. @code{time-duration}, @code{time-cpu})
 the semantics are described in parentheses.
-
-The following procedures are required.
 
 
 @defun time<=? @var{time1} @var{time2}
@@ -15937,57 +15926,30 @@ otherwise.
 otherwise.
 @end defun
 
-
 @c page
 @node time timeobj arithm
 @section Time object arithmetic procedures
 
 
-The following procedures are required.
-
-
-@defun time-difference @var{time1} @var{time2}
-Return the time duration between @var{time1} and @var{time2}.  It is an
-error if @var{time1} and @var{time2} are of different time types.  A new
+@defun time-difference @vari{time} @varii{time}
+Return the time duration between @vari{time} and @varii{time}.  It is an
+error if @vari{time} and @varii{time} are of different time types.  A new
 time object is created.
 @end defun
 
 
-@defun time-difference! @var{time1} @var{time2}
-Return the time duration between @var{time1} and @var{time2}.  It is an
-error if @var{time1} and @var{time2} are of different time types.
-@var{time1} may be used to create the resulting @code{time-duration}
-object.
+@defun add-duration @var{time} @var{time-duration}
+Return the time resulting from adding @var{time-duration} to @var{time},
+which is a time object of the same time type as @var{time}.  A new time
+object is created.
 @end defun
 
 
-@defun add-duration @var{time1} @var{time-duration}
-Return the time resulting from adding @var{time-duration} to
-@var{time1}, which is a time object of the same time type as
-@var{time1}.  A new time object is created.
+@defun subtract-duration @var{time} @var{time-duration}
+Return the time resulting from subtracting @var{time-duration} from
+@var{time}, which is a time object of the same time type as @var{time}.
+A new time object is created.
 @end defun
-
-
-@defun add-duration! @var{time1} @var{time-duration}
-Return the time resulting from adding @var{time-duration} to
-@var{time1}, which is a time object of the same time type as
-@var{time1}.  @var{time1} may used to create the resulting time object.
-@end defun
-
-
-@defun subtract-duration @var{time1} @var{time-duration}
-Return the time resulting from subtracting @var{time-duration} to
-@var{time1}, which is a time object of the same time type as
-@var{time1}.  A new time object is created.
-@end defun
-
-
-@defun subtract-duration! @var{time1} @var{time-duration}
-The time resulting from subtracting @var{time-duration} to @var{time1},
-which is a time object of the same time type as @var{time1}.
-@var{time1} may used to create the resulting time object.
-@end defun
-
 
 @c page
 @node time dateobj
@@ -15997,8 +15959,6 @@ which is a time object of the same time type as @var{time1}.
 Date objects are immutable once created.  Notice that to do operations
 with date, like the arithmetic ones, we have to convert the date objects
 to time objects.
-
-The following procedures are required.
 
 
 @defun make-date @var{nanosecond} @var{second} @var{minute} @var{hour} @var{day} @var{month} @var{year} @var{zone-offset}
@@ -16073,9 +16033,6 @@ day of the week (Sunday=0, Monday=1, etc.).
 @c page
 @node time julian
 @section Time/Date/Julian Day/Modified Julian Day Converters
-
-
-The following conversion procedures are required.
 
 
 @defun date->julian-day @var{date}
@@ -16166,20 +16123,8 @@ Convert monotonic time to @tai{} time.
 @end defun
 
 
-@defun time-monotonic->time-tai! @var{time-monotonic}
-Convert monotonic time to @tai{} time.  The @emph{Time} structure may be
-reused.
-@end defun
-
-
 @defun time-monotonic->time-utc @var{time-monotonic}
 Convert monotonic time to @utc{} time.
-@end defun
-
-
-@defun time-monotonic->time-utc! @var{time-monotonic}
-Convert monotonic time to @utc{} time.  The @emph{Time} structure may be
-reused.
 @end defun
 
 
@@ -16204,20 +16149,8 @@ Convert @tai{} time to monotonic time.
 @end defun
 
 
-@defun time-tai->time-monotonic! @var{time-tai}
-Convert @tai{} time to monotonic time.  The @emph{Time} structure may be
-reused.
-@end defun
-
-
 @defun time-tai->time-utc @var{time-tai}
 Convert @tai{} time to monotonic time.
-@end defun
-
-
-@defun time-tai->time-utc! @var{time-tai}
-Convert @tai{} time to monotonic time.  The @emph{time} structure may be
-reused.
 @end defun
 
 
@@ -16242,22 +16175,9 @@ Convert @utc{} time to monotonic time.
 @end defun
 
 
-@defun time-utc->time-monotonic! @var{time-utc}
-Convert @utc{} time to monotonic time.  The @emph{Time} structure may be
-reused.
-@end defun
-
-
 @defun time-utc->time-tai @var{time-utc}
 Convert @utc{} time to @tai{} time.
 @end defun
-
-
-@defun time-utc->time-tai! @var{time-utc}
-Convert @utc{} time to @tai{} time.  The @emph{Time} structure may be
-reused.
-@end defun
-
 
 @c page
 @node time string
