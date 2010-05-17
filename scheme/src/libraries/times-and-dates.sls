@@ -147,16 +147,6 @@
 ;;
 
 
-;;; helpers
-
-(define-syntax read-line
-  (syntax-rules ()
-    ((_)
-     (get-line (current-input-port)))
-    ((_ ?port)
-     (get-line ?port))))
-
-
 ;;;; global variables and constants
 
 (define-enumeration enum-time-type
@@ -290,6 +280,13 @@
 ;;second table.
 ;;
 ;; (set! $leap-second-table (tm:read-tai-utc-data "tai-utc.dat"))
+;;
+;; (define-syntax read-line
+;;   (syntax-rules ()
+;;     ((_)
+;;      (get-line (current-input-port)))
+;;     ((_ ?port)
+;;      (get-line ?port))))
 ;;
 ;; (define (tm:read-tai-utc-data filename)
 ;;   (define (convert-jd jd)
@@ -1020,7 +1017,188 @@
   (time-utc->modified-julian-day (current-time time-utc)))
 
 
-;;;; string conversion stuff
+;;;; string/date conversion stuff
+
+(define-constant $escape-char #\~)
+
+(define (%get-formatter char)
+  (let ((associated (assoc char $directives)))
+    (if associated (cdr associated) #f)))
+
+(define-constant $directives
+  ;;A table  of output formatting  directives.  The cars are  the format
+  ;;directive characters, the cdrs are  procedures that take the date, a
+  ;;padding character (which might be #f), and the output port.
+  ;;
+  `((#\~ . ,(lambda (date pad-char port) (display #\~ port)))
+
+    (#\a . ,(lambda (date pad-char port)
+	      (display (%locale-abbr-weekday (date-week-day date)) port)))
+    (#\A . ,(lambda (date pad-char port)
+	      (display (%locale-long-weekday (date-week-day date)) port)))
+    (#\b . ,(lambda (date pad-char port)
+	      (display (%locale-abbr-month (<date>-month date)) port)))
+    (#\B . ,(lambda (date pad-char port)
+	      (display (%locale-long-month (<date>-month date)) port)))
+    (#\c . ,(lambda (date pad-char port)
+	      (display (date->string date $locale-date-time-format) port)))
+    (#\d . ,(lambda (date pad-char port)
+	      (display (%padding (<date>-day date) #\0 2) port)))
+    (#\D . ,(lambda (date pad-char port)
+	      (display (date->string date "~m/~d/~y") port)))
+    (#\e . ,(lambda (date pad-char port)
+	      (display (%padding (<date>-day date) #\space 2) port)))
+    (#\f . ,(lambda ((D <date>) pad-char port)
+	      (display (%padding (if (< $number-of-nanoseconds-in-a-second D.nanosecond)
+				     (+ 1 D.second)
+				   D.second)
+				 pad-char 2)
+		       port)
+	      (display $locale-number-separator port)
+	      (display (%string-fractional-part (/ D.nanosecond $number-of-nanoseconds-in-a-second))
+		       port)))
+    (#\h . ,(lambda (date pad-char port)
+	      (display (date->string date "~b") port)))
+    (#\H . ,(lambda (date pad-char port)
+	      (display (%padding (<date>-hour date) pad-char 2) port)))
+    (#\I . ,(lambda (date pad-char port)
+	      (let ((hr (<date>-hour date)))
+		(display (if (> hr 12)
+			     (%padding (- hr 12) pad-char 2)
+			   (%padding hr pad-char 2))
+			 port))))
+    (#\j . ,(lambda (date pad-char port)
+	      (display (%padding (date-year-day date) pad-char 3) port)))
+    (#\k . ,(lambda (date pad-char port)
+	      (display (%padding (<date>-hour date) #\space 2) port)))
+    (#\l . ,(lambda (date pad-char port)
+	      (let ((hr (if (> (<date>-hour date) 12)
+			    (- (<date>-hour date) 12)
+			  (<date>-hour date))))
+		(display (%padding hr #\space 2) port))))
+    (#\m . ,(lambda (date pad-char port)
+	      (display (%padding (<date>-month date) pad-char 2) port)))
+    (#\M . ,(lambda (date pad-char port)
+	      (display (%padding (<date>-minute date) pad-char 2) port)))
+    (#\n . ,(lambda (date pad-char port)
+	      (newline port)))
+    (#\N . ,(lambda (date pad-char port)
+	      (display (%padding (<date>-nanosecond date) pad-char 9) port)))
+    (#\p . ,(lambda (date pad-char port)
+	      (display (%locale-am/pm (<date>-hour date)) port)))
+    (#\r . ,(lambda (date pad-char port)
+	      (display (date->string date "~I:~M:~S ~p") port)))
+    (#\s . ,(lambda (date pad-char port)
+	      (display (time-second (date->time-utc date)) port)))
+    (#\S . ,(lambda ((D <date>) pad-char port)
+	      (display (%padding (if (> D.nanosecond $number-of-nanoseconds-in-a-second)
+				     (+ 1 D.second)
+				   D.second)
+				 pad-char 2)
+		       port)))
+    (#\t . ,(lambda (date pad-char port)
+	      (display (integer->char 9) port)))
+    (#\T . ,(lambda (date pad-char port)
+	      (display (date->string date "~H:~M:~S") port)))
+    (#\U . ,(lambda ((D <date>) pad-char port)
+	      (display (let ((week-number (date-week-number D 0)))
+			 (%padding (if (> (%days-before-first-week D 0) 0)
+				       (+ week-number 1)
+				     week-number)
+				   #\0 2))
+		       port)))
+    (#\V . ,(lambda (date pad-char port)
+	      (display (%padding (date-week-number date 1) #\0 2) port)))
+    (#\w . ,(lambda (date pad-char port)
+	      (display (date-week-day date) port)))
+    (#\x . ,(lambda (date pad-char port)
+	      (display (date->string date $locale-short-date-format) port)))
+    (#\X . ,(lambda (date pad-char port)
+	      (display (date->string date $locale-time-format) port)))
+;;; ------------------------------------------------------------
+    (#\W . ,(lambda (date pad-char port)
+	      (display
+	       (if (> (%days-before-first-week date 1) 0)
+		   (%padding (+ (date-week-number date 1) 1) #\0 2)
+		 (%padding (date-week-number date 1) #\0 2))
+	       port)))
+    (#\y . ,(lambda (date pad-char port)
+	      (display (%padding (%last-n-digits
+				  (<date>-year date) 2)
+				 pad-char
+				 2)
+		       port)))
+    (#\Y . ,(lambda (date pad-char port)
+	      (display (<date>-year date) port)))
+    (#\z . ,(lambda (date pad-char port)
+	      (%tz-printer (<date>-zone-offset date) port)))
+    (#\Z . ,(lambda (date pad-char port)
+	      (%locale-print-time-zone date port)))
+    (#\1 . ,(lambda (date pad-char port)
+	      (display (date->string date "~Y-~m-~d") port)))
+    (#\2 . ,(lambda (date pad-char port)
+	      (display (date->string date "~H:~M:~S~z") port)))
+    (#\3 . ,(lambda (date pad-char port)
+	      (display (date->string date "~H:~M:~S") port)))
+    (#\4 . ,(lambda (date pad-char port)
+	      (display (date->string date "~Y-~m-~dT~H:~M:~S~z") port)))
+    (#\5 . ,(lambda (date pad-char port)
+	      (display (date->string date "~Y-~m-~dT~H:~M:~S") port)))
+    ))
+
+
+;;;; date to string string conversion
+
+(define date->string
+  (case-lambda
+   ((date)
+    (date->string date "~c"))
+   ((date (format <string>))
+    (receive (port getter)
+	(open-string-output-port)
+      (%date-printer date 0 format format.length port)
+      (getter)))))
+
+(define (%date-printer date index format format.length port)
+  (if (>= index format.length)
+      (values)
+    (let ((current-char (string-ref format index)))
+      (if (not (char=? current-char $escape-char))
+	  (begin
+	    (display current-char port)
+	    (%date-printer date (+ index 1) format format.length port))
+	(if (= (+ index 1) format.length) ; bad format string.
+	    (error 'date->string "date template string cannot end with escape character" format)
+	  (let ((pad-char? (string-ref format (+ index 1))))
+	    (cond ((char=? pad-char? #\-)
+		   (if (= (+ index 2) format.length) ; bad format string.
+		       (%time-error '%date-printer 'bad-date-format format)
+		     (let ((formatter (%get-formatter (string-ref format (+ index 2)))))
+		       (if (not formatter)
+			   (%time-error '%date-printer 'bad-date-format format)
+			 (begin
+			   (formatter date #f port)
+			   (%date-printer date (+ index 3) format format.length port))))))
+
+		  ((char=? pad-char? #\_)
+		   (if (= (+ index 2) format.length) ; bad format string.
+		       (%time-error '%date-printer 'bad-date-format format)
+		     (let ((formatter (%get-formatter (string-ref format (+ index 2)))))
+		       (if (not formatter)
+			   (%time-error '%date-printer 'bad-date-format format)
+			 (begin
+			   (formatter date #\space port)
+			   (%date-printer date (+ index 3) format format.length port))))))
+		  (else
+		   (let ((formatter (%get-formatter (string-ref format (+ index 1)))))
+		     (if (not formatter)
+			 (%time-error '%date-printer 'bad-date-format format)
+		       (begin
+			 (formatter date #\0 port)
+			 (%date-printer date (+ index 2) format format.length port))))))))))))
+
+
+;;;; string to date conversion
 
 (define (%padding n pad-char requested-length)
   ;;Return   a   string  representation   of   number   N,  of   minimum
@@ -1095,223 +1273,6 @@
 	(display (%padding hours   #\0 2) port)
 	(display (%padding minutes #\0 2) port))))
 
-;;A  table of  output formatting  directives.  The  cars are  the format
-;;char, the cdrs are procedures  that take the date, a padding character
-;;(which might be #f), and the output port.
-(define %directives
-  (list
-   (cons #\~ (lambda (date pad-with port) (display #\~ port)))
-
-   (cons #\a (lambda (date pad-with port)
-	       (display (%locale-abbr-weekday (date-week-day date))
-			port)))
-   (cons #\A (lambda (date pad-with port)
-	       (display (%locale-long-weekday (date-week-day date))
-			port)))
-   (cons #\b (lambda (date pad-with port)
-	       (display (%locale-abbr-month (<date>-month date))
-			port)))
-   (cons #\B (lambda (date pad-with port)
-	       (display (%locale-long-month (<date>-month date))
-			port)))
-   (cons #\c (lambda (date pad-with port)
-	       (display (date->string date $locale-date-time-format) port)))
-   (cons #\d (lambda (date pad-with port)
-	       (display (%padding (<date>-day date)
-				    #\0 2)
-			port)))
-   (cons #\D (lambda (date pad-with port)
-	       (display (date->string date "~m/~d/~y") port)))
-   (cons #\e (lambda (date pad-with port)
-	       (display (%padding (<date>-day date)
-				    #\space 2)
-			port)))
-   (cons #\f (lambda (date pad-with port)
-	       (let ((secs	(<date>-second date))
-		     (nanosecs	(<date>-nanosecond date)))
-		 (display
-		  (%padding (if (< $number-of-nanoseconds-in-a-second nanosecs)
-				  (+ secs 1)
-				secs)
-			      pad-with 2)
-		  port)
-		 (display $locale-number-separator port)
-		 (display (%string-fractional-part (/ nanosecs $number-of-nanoseconds-in-a-second)) port)
-		 )))
-   (cons #\h (lambda (date pad-with port)
-	       (display (date->string date "~b") port)))
-   (cons #\H (lambda (date pad-with port)
-	       (display (%padding (<date>-hour date)
-				    pad-with 2)
-			port)))
-   (cons #\I (lambda (date pad-with port)
-	       (let ((hr (<date>-hour date)))
-		 (display
-		  (if (> hr 12)
-		      (%padding (- hr 12) pad-with 2)
-		    (%padding hr pad-with 2))
-		  port))))
-   (cons #\j (lambda (date pad-with port)
-	       (display (%padding (date-year-day date)
-				    pad-with 3)
-			port)))
-   (cons #\k (lambda (date pad-with port)
-	       (display (%padding (<date>-hour date)
-				    #\space 2)
-			port)))
-   (cons #\l (lambda (date pad-with port)
-	       (let ((hr (if (> (<date>-hour date) 12)
-			     (- (<date>-hour date) 12) (<date>-hour date))))
-		 (display (%padding hr  #\space 2)
-			  port))))
-   (cons #\m (lambda (date pad-with port)
-	       (display (%padding (<date>-month date)
-				    pad-with 2)
-			port)))
-   (cons #\M (lambda (date pad-with port)
-	       (display (%padding (<date>-minute date)
-				    pad-with 2)
-			port)))
-   (cons #\n (lambda (date pad-with port)
-	       (newline port)))
-   (cons #\N (lambda (date pad-with port)
-	       (display (%padding (<date>-nanosecond date)
-				    pad-with 9)
-			port)))
-   (cons #\p (lambda (date pad-with port)
-	       (display (%locale-am/pm (<date>-hour date)) port)))
-   (cons #\r (lambda (date pad-with port)
-	       (display (date->string date "~I:~M:~S ~p") port)))
-   (cons #\s (lambda (date pad-with port)
-	       (display (time-second (date->time-utc date)) port)))
-   (cons #\S (lambda (date pad-with port)
-	       (if (> (<date>-nanosecond date)
-		      $number-of-nanoseconds-in-a-second)
-		   (display (%padding (+ (<date>-second date) 1)
-					pad-with 2)
-			    port)
-		 (display (%padding (<date>-second date)
-				      pad-with 2)
-			  port))))
-   (cons #\t (lambda (date pad-with port)
-	       (display (integer->char 9) port)))
-   (cons #\T (lambda (date pad-with port)
-	       (display (date->string date "~H:~M:~S") port)))
-   (cons #\U (lambda (date pad-with port)
-	       (display
-		(if (> (%days-before-first-week date 0) 0)
-		    (%padding (+ (date-week-number date 0) 1) #\0 2)
-		  (%padding (date-week-number date 0) #\0 2))
-		port)))
-   (cons #\V (lambda (date pad-with port)
-	       (display (%padding (date-week-number date 1)
-				    #\0 2) port)))
-   (cons #\w (lambda (date pad-with port)
-	       (display (date-week-day date) port)))
-   (cons #\x (lambda (date pad-with port)
-	       (display (date->string date $locale-short-date-format) port)))
-   (cons #\X (lambda (date pad-with port)
-	       (display (date->string date $locale-time-format) port)))
-   (cons #\W (lambda (date pad-with port)
-	       (display
-		(if (> (%days-before-first-week date 1) 0)
-		    (%padding (+ (date-week-number date 1) 1) #\0 2)
-		  (%padding (date-week-number date 1) #\0 2))
-		port)))
-   (cons #\y (lambda (date pad-with port)
-	       (display (%padding (%last-n-digits
-				     (<date>-year date) 2)
-				    pad-with
-				    2)
-			port)))
-   (cons #\Y (lambda (date pad-with port)
-	       (display (<date>-year date) port)))
-   (cons #\z (lambda (date pad-with port)
-	       (%tz-printer (<date>-zone-offset date) port)))
-   (cons #\Z (lambda (date pad-with port)
-	       (%locale-print-time-zone date port)))
-   (cons #\1 (lambda (date pad-with port)
-	       (display (date->string date "~Y-~m-~d") port)))
-   (cons #\2 (lambda (date pad-with port)
-	       (display (date->string date "~H:~M:~S~z") port)))
-   (cons #\3 (lambda (date pad-with port)
-	       (display (date->string date "~H:~M:~S") port)))
-   (cons #\4 (lambda (date pad-with port)
-	       (display (date->string date "~Y-~m-~dT~H:~M:~S~z") port)))
-   (cons #\5 (lambda (date pad-with port)
-	       (display (date->string date "~Y-~m-~dT~H:~M:~S") port)))
-   ))
-
-(define (%get-formatter char)
-  (let ( (associated (assoc char %directives)) )
-    (if associated (cdr associated) #f)))
-
-(define (%date-printer date index format-string str-len port)
-  (if (>= index str-len)
-      (values)
-    (let ( (current-char (string-ref format-string index)) )
-      (if (not (char=? current-char #\~))
-	  (begin
-	    (display current-char port)
-	    (%date-printer date (+ index 1) format-string str-len port))
-
-	(if (= (+ index 1) str-len) ; bad format string.
-	    (%time-error '%date-printer 'bad-date-format-string
-			   format-string)
-	  (let ( (pad-char? (string-ref format-string (+ index 1))) )
-	    (cond
-	     ((char=? pad-char? #\-)
-	      (if (= (+ index 2) str-len) ; bad format string.
-		  (%time-error '%date-printer 'bad-date-format-string
-				 format-string)
-		(let ( (formatter (%get-formatter
-				   (string-ref format-string
-					       (+ index 2)))) )
-		  (if (not formatter)
-		      (%time-error '%date-printer 'bad-date-format-string
-				     format-string)
-		    (begin
-		      (formatter date #f port)
-		      (%date-printer date (+ index 3)
-				       format-string str-len port))))))
-
-	     ((char=? pad-char? #\_)
-	      (if (= (+ index 2) str-len) ; bad format string.
-		  (%time-error '%date-printer 'bad-date-format-string
-				 format-string)
-		(let ( (formatter (%get-formatter
-				   (string-ref format-string
-					       (+ index 2)))) )
-		  (if (not formatter)
-		      (%time-error '%date-printer 'bad-date-format-string
-				     format-string)
-		    (begin
-		      (formatter date #\space port)
-		      (%date-printer date (+ index 3)
-				       format-string str-len port))))))
-	     (else
-	      (let ( (formatter (%get-formatter
-				 (string-ref format-string
-					     (+ index 1)))) )
-		(if (not formatter)
-		    (%time-error '%date-printer 'bad-date-format-string
-				   format-string)
-		  (begin
-		    (formatter date #\0 port)
-		    (%date-printer date (+ index 2)
-				     format-string str-len port))))))))))))
-
-
-(define date->string
-  (case-lambda
-   ((date)
-    (date->string date "~c"))
-   ((date format-string)
-    (receive (port getter)
-	(open-string-output-port)
-      (%date-printer date 0 format-string (string-length format-string) port)
-      (getter)))))
-
 (define (%char->int ch)
   (cond
    ((char=? ch #\0) 0)
@@ -1365,7 +1326,7 @@
 
 ;; read *exactly* n characters and convert to integer; could be padded
 (define (%integer-reader-exact n port)
-  (let ( (padding-ok #t) )
+  (let ((padding-ok #t))
     (define (accum-int port accum nchars)
       (let ((ch (peek-char port)))
 	(cond
@@ -1392,9 +1353,9 @@
     (%integer-reader-exact n port)))
 
 (define (%zone-reader port)
-  (let ( (offset 0)
-	 (positive? #f) )
-    (let ( (ch (read-char port)) )
+  (let ((offset 0)
+	 (positive? #f))
+    (let ((ch (read-char port)))
       (if (eof-object? ch)
 	  (%time-error 'string->date 'bad-date-template-string
 			 (list "Invalid time zone +/-" ch)))
@@ -1443,8 +1404,8 @@
 	    (begin (write-char (read-char port) string-port)
 		   (read-char-string))
 	  (get-output-string))))
-    (let* ( (str (read-char-string))
-	    (index (indexer str)) )
+    (let* ((str (read-char-string))
+	    (index (indexer str)))
       (if index index (%time-error 'string->date
 				     'bad-date-template-string
 				     (list "Invalid string for " indexer))))))
@@ -1461,128 +1422,137 @@
 		     'bad-date-template-string
 		     "Invalid character match."))))
 
-;; A List of formatted read directives.
-;; Each entry is a list.
-;; 1. the character directive;
-;; a procedure, which takes a character as input & returns
-;; 2. #t as soon as a character on the input port is acceptable
-;; for input,
-;; 3. a port reader procedure that knows how to read the current port
-;; for a value. Its one parameter is the port.
-;; 4. a action procedure, that takes the value (from 3.) and some
-;; object (here, always the date) and (probably) side-effects it.
-;; In some cases (e.g., ~A) the action is to do nothing
+;; (define-class <format-directive>
+;;   (fields (immutable escape-char)
+;; 	  (immutable port-reader)
+;; 	  (immutable value-reader)
+;; 	  (immutable store))
+;;   (nongenerative nausicaa:times-and-dates:<format-directive>))
 
-(define %read-directives
+;; (define-constant $tilde-directive
+;;   (make <format-directive>
+;;     #\~ char-fail (%make-char-id-reader #\~) do-nothing))
+
+(define-constant $read-directives
+  ;;A List of formatted read directives.  Each entry is a list.
+  ;;
+  ;;1. The character directive.
+  ;;
+  ;;2. A  procedure, which takes  a character as  input & returns  #t as
+  ;;   soon as a character on the input port is acceptable for input.
+  ;;
+  ;;3. A port  reader procedure that knows how to  read the current port
+  ;;   for a value.  Its parameter is the port.
+  ;;
+  ;;4. An action  procedure, that  takes the  value (from  3.)  and some
+  ;;   object  (here, always the  date) and (probably)  side-effects it.
+  ;;   In some cases (e.g., ~A) the action is to do nothing.
+  ;;
   (let ((ireader4 (%make-integer-reader 4))
 	(ireader2 (%make-integer-reader 2))
 	(fireader9 (%make-fractional-integer-reader 9))
 	(ireaderf (%make-integer-reader #f))
 	(eireader2 (%make-integer-exact-reader 2))
 	(eireader4 (%make-integer-exact-reader 4))
-	(locale-reader-abbr-weekday (%make-locale-reader
-				     %locale-abbr-weekday->index))
-	(locale-reader-long-weekday (%make-locale-reader
-				     %locale-long-weekday->index))
-	(locale-reader-abbr-month   (%make-locale-reader
-				     %locale-abbr-month->index))
-	(locale-reader-long-month   (%make-locale-reader
-				     %locale-long-month->index))
+	(locale-reader-abbr-weekday (%make-locale-reader %locale-abbr-weekday->index))
+	(locale-reader-long-weekday (%make-locale-reader %locale-long-weekday->index))
+	(locale-reader-abbr-month   (%make-locale-reader %locale-abbr-month->index))
+	(locale-reader-long-month   (%make-locale-reader %locale-long-month->index))
 	(char-fail (lambda (ch) #t))
 	(do-nothing (lambda (val object) (values))))
-
-    (list
-     (list #\~ char-fail (%make-char-id-reader #\~) do-nothing)
-     (list #\a char-alphabetic? locale-reader-abbr-weekday do-nothing)
-     (list #\A char-alphabetic? locale-reader-long-weekday do-nothing)
-     (list #\b char-alphabetic? locale-reader-abbr-month
-	   (lambda (val object)
-	     (<date>-month-set! object val)))
-     (list #\B char-alphabetic? locale-reader-long-month
-	   (lambda (val object)
-	     (<date>-month-set! object val)))
-     (list #\d char-numeric? ireader2 (lambda (val object)
-					(<date>-day-set!
-					 object val)))
-     (list #\e char-fail eireader2 (lambda (val object)
-				     (<date>-day-set! object val)))
-     (list #\h char-alphabetic? locale-reader-abbr-month
-	   (lambda (val object)
-	     (<date>-month-set! object val)))
-     (list #\H char-numeric? ireader2 (lambda (val object)
-					(<date>-hour-set! object val)))
-     (list #\k char-fail eireader2 (lambda (val object)
-				     (<date>-hour-set! object val)))
-     (list #\m char-numeric? ireader2 (lambda (val object)
-					(<date>-month-set! object val)))
-     (list #\M char-numeric? ireader2 (lambda (val object)
-					(<date>-minute-set!
-					 object val)))
-     (list #\N char-numeric? fireader9 (lambda (val object)
-					 (<date>-nanosecond-set! object val)))
-     (list #\S char-numeric? ireader2 (lambda (val object)
-					(<date>-second-set! object val)))
-     (list #\y char-fail eireader2
-	   (lambda (val object)
-	     (<date>-year-set! object (%natural-year val))))
-     (list #\Y char-numeric? ireader4 (lambda (val object)
-					(<date>-year-set! object val)))
-     (list #\z (lambda (c)
-		 (or (char=? c #\Z)
-		     (char=? c #\z)
-		     (char=? c #\+)
-		     (char=? c #\-)))
-	   %zone-reader (lambda (val object)
+    `(,(list #\~ char-fail (%make-char-id-reader #\~) do-nothing)
+      ,(list #\a char-alphabetic? locale-reader-abbr-weekday do-nothing)
+      ,(list #\A char-alphabetic? locale-reader-long-weekday do-nothing)
+      ,(list #\b char-alphabetic? locale-reader-abbr-month (lambda (val object)
+							     (<date>-month-set! object val)))
+      ,(list #\B char-alphabetic? locale-reader-long-month (lambda (val object)
+							     (<date>-month-set! object val)))
+      ,(list #\d char-numeric? ireader2 (lambda (val object)
+					  (<date>-day-set! object val)))
+      ,(list #\e char-fail eireader2 (lambda (val object)
+				       (<date>-day-set! object val)))
+      ,(list #\h char-alphabetic? locale-reader-abbr-month (lambda (val object)
+							     (<date>-month-set! object val)))
+      ,(list #\H char-numeric? ireader2 (lambda (val object)
+					  (<date>-hour-set! object val)))
+      ,(list #\k char-fail eireader2 (lambda (val object)
+				       (<date>-hour-set! object val)))
+      ,(list #\m char-numeric? ireader2 (lambda (val object)
+					  (<date>-month-set! object val)))
+      ,(list #\M char-numeric? ireader2 (lambda (val object)
+					  (<date>-minute-set! object val)))
+      ,(list #\N char-numeric? fireader9 (lambda (val object)
+					   (<date>-nanosecond-set! object val)))
+      ,(list #\S char-numeric? ireader2 (lambda (val object)
+					  (<date>-second-set! object val)))
+      ,(list #\y char-fail eireader2 (lambda (val object)
+				       (<date>-year-set! object (%natural-year val))))
+      ,(list #\Y char-numeric? ireader4 (lambda (val object)
+					  (<date>-year-set! object val)))
+      ,(list #\z (lambda (c)
+		   (or (char=? c #\Z)
+		       (char=? c #\z)
+		       (char=? c #\+)
+		       (char=? c #\-)))
+	     %zone-reader (lambda (val object)
 			    (<date>-zone-offset-set! object val)))
-     )))
+      )))
 
 (define (%string->date date index format-string str-len port template-string)
-  (define (skip-until port skipper)
+  (define who 'string->date)
+  (define (%skip-until port skipper)
+    ;;Consume chars from PORT until  SKIPPER returns true on a char; the
+    ;;"true char" is not discarded.
+    ;;
     (let ((ch (peek-char port)))
-      (if (eof-object? ch)
-	  (%time-error 'string->date 'bad-date-format-string template-string)
-	(if (not (skipper ch))
-	    (begin (read-char port) (skip-until port skipper))))))
+      (cond ((eof-object? ch)
+	     (%time-error who 'bad-date-format-string template-string))
+	    ((not (skipper ch))
+	     (read-char port)	;discard char
+	     (%skip-until port skipper)))))
+  (define-inline (%escape-char? ?char)
+    (char=? $escape-char ?char))
   (if (>= index str-len)
-      (begin
-	(values))
-    (let ( (current-char (string-ref format-string index)) )
-      (if (not (char=? current-char #\~))
-	  (let ((port-char (read-char port)))
-	    (if (or (eof-object? port-char)
-		    (not (char=? current-char port-char)))
-		(%time-error 'string->date 'bad-date-format-string template-string))
-	    (%string->date date (+ index 1) format-string str-len port template-string))
-	;; otherwise, it's an escape, we hope
-	(if (> (+ index 1) str-len)
-	    (%time-error 'string->date 'bad-date-format-string template-string)
-	  (let* ( (format-char (string-ref format-string (+ index 1)))
-		  (format-info (assoc format-char %read-directives)) )
-	    (if (not format-info)
-		(%time-error 'string->date 'bad-date-format-string template-string)
-	      (begin
-		(let ((skipper (cadr format-info))
-		      (reader  (caddr format-info))
-		      (actor   (cadddr format-info)))
-		  (skip-until port skipper)
-		  (let ((val (reader port)))
-		    (if (eof-object? val)
-			(%time-error 'string->date 'bad-date-format-string template-string)
-		      (actor val date)))
-		  (%string->date date (+ index 2)
-				   format-string str-len port
-				   template-string))))))))))
+      (values)
+    (let ((template-char (string-ref format-string index)))
+      (if (%escape-char? template-char)
+	  (let ((index (+ 1 index)))
+	    (if (> index str-len)
+		(error who
+		  "end of date template string while looking for escape sequence char"
+		  template-string)
+	      (let* ((format-char (string-ref format-string index))
+		     (format-info (assv format-char $read-directives)))
+		(if (not format-info)
+		    (error who
+		      "unknown escape sequence in date template string"
+		      template-string (string $escape-char format-char))
+		  (begin
+		    (let ((skipper (cadr format-info))
+			  (reader  (caddr format-info))
+			  (actor   (cadddr format-info)))
+		      (%skip-until port skipper)
+		      (let ((val (reader port)))
+			(if (eof-object? val)
+			    (%time-error who 'bad-date-format-string template-string)
+			  (actor val date)))
+		      (%string->date date (+ 1 index) format-string str-len port template-string)))))))
+	(let ((in-char (read-char port)))
+	  (cond ((eof-object? in-char)
+		 (error who
+		   "date template string shorter than date input string"
+		   template-string))
+		((not (char=? template-char in-char))
+		 (error who
+		   (string-append "mismatch between template char "
+				  (string template-char)
+				  " (offset " (number->string index) ") and input char"
+				  (string in-char))
+		   template-char))
+		(else
+		 (%string->date date (+ index 1) format-string str-len port template-string))))))))
 
 (define (string->date input-string template-string)
-  (define (%date-ok? date)
-    (and (<date>-nanosecond date)
-	 (<date>-second date)
-	 (<date>-minute date)
-	 (<date>-hour date)
-	 (<date>-day date)
-	 (<date>-month date)
-	 (<date>-year date)
-	 (<date>-zone-offset date)))
   (let ((newdate (make-from-fields <date> 0 0 0 0 #f #f #f (%local-tz-offset))))
     (%string->date newdate
 		   0
@@ -1590,7 +1560,14 @@
 		   (string-length template-string)
 		   (open-string-input-port input-string)
 		   template-string)
-    (if (%date-ok? newdate)
+    (if (and (<date>-nanosecond newdate)
+	     (<date>-second newdate)
+	     (<date>-minute newdate)
+	     (<date>-hour newdate)
+	     (<date>-day newdate)
+	     (<date>-month newdate)
+	     (<date>-year newdate)
+	     (<date>-zone-offset newdate))
 	newdate
       (error 'string->date
 	"bad date format string, incomplete date read"
@@ -1602,3 +1579,6 @@
 )
 
 ;;; end of file
+;;Local Variables:
+;;coding: utf-8-unix
+;;End:
