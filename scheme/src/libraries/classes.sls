@@ -3017,7 +3017,7 @@
 			      ?inherit-virtual-fields
 			      ?inherit-methods
 			      ?inherit-setter-and-getter)
-			     ?arg (... ...))
+			     ?variable-name ?arg (... ...))
 			  (for-all boolean? (syntax->datum #'(?inherit-concrete-fields
 							      ?inherit-virtual-fields
 							      ?inherit-methods
@@ -3027,7 +3027,7 @@
 			      ?inherit-virtual-fields
 			      ?inherit-methods
 			      ?inherit-setter-and-getter)
-			     ?arg (... ...)))
+			     ?variable-name ?arg (... ...)))
 
 			 ((_ ?keyword . ?rest)
 			  (syntax-violation '?class-name
@@ -4174,7 +4174,7 @@
 			      ?inherit-virtual-fields
 			      ?inherit-methods
 			      ?inherit-setter-and-getter)
-			     ?arg (... ...))
+			     ?variable-name ?arg (... ...))
 			  (for-all boolean? (syntax->datum #'(?inherit-concrete-fields
 							      ?inherit-virtual-fields
 							      ?inherit-methods
@@ -4183,7 +4183,7 @@
 			     (?inherit-virtual-fields
 			      ?inherit-methods
 			      ?inherit-setter-and-getter)
-			     ?arg (... ...)))
+			     ?variable-name ?arg (... ...)))
 
 			 ((_ ?keyword . ?rest)
 			  (syntax-violation '?label-name
@@ -4265,8 +4265,8 @@
 	    (identifier? #'?accessor)
 	    (identifier? #'?mutator))
        #`(with-accessor-and-mutator ((#,(syntax-dot-notation-name #'?variable-name #'?field)
-				      ?variable-name ?accessor ?mutator))
-				    (%with-class-fields ?variable-name (?clause ...) . ?body)))
+       				      ?variable-name ?accessor ?mutator))
+       				    (%with-class-fields ?variable-name (?clause ...) . ?body)))
 
       ;;Process a field clause with accessor only.
       ((_ ?variable-name ((immutable ?field ?accessor) ?clause ...) . ?body)
@@ -4390,7 +4390,7 @@
       ;;If the  class is "<top>" skip  it, because "<top>"  has no class
       ;;bindings.
       ((_ ((?var ?class0 ?class ...) ?clause ...) ?body0 ?body ...)
-       (and (identifier? #'?var) (free-identifier=? #'?class0 #'<top>))
+       (and (identifier? #'?var) (identifier? #'?class0) (free-identifier=? #'?class0 #'<top>))
        #'(%with-class-bindings ((?var ?class ...) ?clause ...) ?body0 ?body ...))
 
       ;;Process the next class in the clause.
@@ -4648,7 +4648,7 @@
 
     ;;Matches two cases: (1) when  all the arguments have been processed
     ;;and only  the rest argument is  there; (2) when the  formals is an
-    ;;identifier (lambda args ---).
+    ;;identifier, example: (lambda args ---).
     ((_ #f ?rest ((?collected-cls ...) ...) (?collected-arg ...) . ?body)
      (lambda (?collected-arg ... . ?rest)
        (with-class ((?collected-arg ?collected-cls ...) ...) . ?body)))
@@ -4829,48 +4829,49 @@
   (nongenerative nausicaa:builtin:<top>))
 
 (define-syntax <top>-superclass
-  (syntax-rules (class-record-type-descriptor
-		 class-type-uid
-		 class-uid-list
-		 public-constructor-descriptor
-		 superclass-constructor-descriptor
-		 from-fields-constructor-descriptor
-		 parent-rtd-list
-		 make make-from-fields is-a?
-		 with-class-bindings-of)
+  (lambda (stx)
+    (syntax-case stx (class-record-type-descriptor
+		      class-type-uid
+		      class-uid-list
+		      public-constructor-descriptor
+		      superclass-constructor-descriptor
+		      from-fields-constructor-descriptor
+		      parent-rtd-list
+		      make make-from-fields is-a?
+		      with-class-bindings-of)
 
-    ((_ class-record-type-descriptor)
-     (record-type-descriptor <top>))
+      ((_ class-record-type-descriptor)
+       #'(record-type-descriptor <top>))
 
-    ((_ class-type-uid)
-     (quote nausicaa:builtin:<top>))
+      ((_ class-type-uid)
+       #'(quote nausicaa:builtin:<top>))
 
-    ((_ class-uid-list)
-     '(nausicaa:builtin:<top>))
+      ((_ class-uid-list)
+       #'(quote (nausicaa:builtin:<top>)))
 
-    ((_ public-constructor-descriptor)
-     (record-constructor-descriptor <top>))
+      ((_ public-constructor-descriptor)
+       #'(record-constructor-descriptor <top>))
 
-    ((_ superclass-constructor-descriptor)
-     (record-constructor-descriptor <top>))
+      ((_ superclass-constructor-descriptor)
+       #'(record-constructor-descriptor <top>))
 
-    ((_ from-fields-constructor-descriptor)
-     (record-constructor-descriptor <top>))
+      ((_ from-fields-constructor-descriptor)
+       #'(record-constructor-descriptor <top>))
 
-    ((_ parent-rtd-list)
-     (list (record-type-descriptor <top>)))
+      ((_ parent-rtd-list)
+       #'(list (record-type-descriptor <top>)))
 
-    ((_ is-a? ?arg)
-     (<top>? ?arg))
+      ((_ is-a? ?arg)
+       #'(<top>? ?arg))
 
-    ((_ with-class-bindings-of ?inherit-options . ?body)
-     (begin . ?body))
+      ((_ with-class-bindings-of ?inherit-options ?variable-name ?body0 ?body ...)
+       #'(begin ?body0 ?body ...))
 
-    ((_ ?keyword . ?rest)
-     (syntax-violation '<top>
-       "invalid class internal keyword"
-       (syntax->datum #'(<top> ?keyword . ?rest))
-       (syntax->datum #'?keyword)))))
+      ((_ ?keyword . ?rest)
+       (syntax-violation '<top>
+	 "invalid class internal keyword"
+	 (syntax->datum #'(<top> ?keyword . ?rest))
+	 (syntax->datum #'?keyword))))))
 
 (define-syntax <top>-label
   (syntax-rules (is-a? with-class-bindings-of)
@@ -4878,7 +4879,7 @@
     ((_ is-a? ?arg)
      #t)
 
-    ((_ with-class-bindings-of ?inherit-options . ?body)
+    ((_ with-class-bindings-of ?inherit-options ?variable-name . ?body)
      (begin . ?body))
 
     ((_ ?keyword . ?rest)
@@ -4891,7 +4892,6 @@
   (syntax-rules ()
     ((_ ?class-name ?identifier . ?body)
      (begin . ?body))))
-
 
 
 (define-virtual-class <builtin>

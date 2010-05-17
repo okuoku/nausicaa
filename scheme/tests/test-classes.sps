@@ -1798,6 +1798,31 @@
   #t)
 
 
+(parametrise ((check-test-name	'with-class))
+
+  (let ()
+
+    (define-class <alpha>
+      (fields a))
+
+    (check
+	(let ((o (make <alpha> 1)))
+	  (with-class ((o <alpha>))
+	    o.a))
+      => 1)
+
+    (check
+	(let ((o (make <alpha> 1)))
+	  (with-class ((o <alpha>))
+	    (define b 2)
+	    (list b o.a)))
+      => '(2 1))
+
+    #f)
+
+  #t)
+
+
 (parametrise ((check-test-name	'let/with-class))
 
 ;;; let/with-class
@@ -2201,6 +2226,15 @@
 
     (let ((f (lambda/with-class ((a <fraction>) b . rest)
 	       (vector a.numerator b rest))))
+      (check (f (make-<fraction> 11/12) 2) => '#(11 2 ()))
+      (check (f (make-<fraction> 11/12) 2 3) => '#(11 2 (3)))
+      (check (f (make-<fraction> 11/12) 2 3 4) => '#(11 2 (3 4)))
+      #f)
+
+    ;;With definition in the body.
+    (let ((f (lambda/with-class ((a <fraction>) b . rest)
+	       (define r rest)
+	       (vector a.numerator b r))))
       (check (f (make-<fraction> 11/12) 2) => '#(11 2 ()))
       (check (f (make-<fraction> 11/12) 2 3) => '#(11 2 (3)))
       (check (f (make-<fraction> 11/12) 2 3 4) => '#(11 2 (3 4)))
