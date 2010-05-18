@@ -38,6 +38,7 @@
   (export
     format format-output-column)
   (import (nausicaa)
+    (infix syntax)
     (only (rnrs r5rs) remainder quotient)
     (only (rnrs mutable-strings) string-set!))
 
@@ -114,67 +115,64 @@
 
 ;;;; porting and miscellaneous helpers
 
-(define-syntax increment!
-  (syntax-rules ()
-    ((_ ?varname ?step)
-     (set! ?varname (+ ?varname ?step)))
-    ((_ ?varname)
-     (set! ?varname (+ ?varname 1)))))
-
-;;Return the  first K  elements from the  list ELL; this  function comes
-;;from SRFI lists.
 (define (take ell k)
-  (let loop ((ell ell)
-	     (k   k))
+  ;;Return the first  K elements from the list  ELL; this function comes
+  ;;from SRFI lists.
+  ;;
+  (let loop ((ell ell) (k k))
     (if (zero? k)
 	'()
-      (cons (car ell)
-	    (loop (cdr ell) (- k 1))))))
+      (cons (car ell) (loop (cdr ell) (- k 1))))))
 
-;;Return true if S1 is the prefix in S2.
 (define (string-prefix? s1 s2)
+  ;;Return true if S1 is the prefix in S2.
+  ;;
   (or (eq? s1 s2)
       (let ((len1 (string-length s1)))
 	(and (<= len1 (string-length s2))
 	     (string=? s1 (substring s2 0 len1))))))
 
-;;Return the index of CH in STR.
 (define (string-index str ch)
+  ;;Return the index of CH in STR.
+  ;;
   (let ((len (string-length str)))
     (do ((i 0 (+ 1 i)))
 	((or (= i len) (char=? ch (string-ref str i)))
 	 (if (= i len) #f i)))))
 
-;;Return the index of CH in STR starting from the end.
 (define (string-index-right str ch)
+  ;;Return the index of CH in STR starting from the end.
+  ;;
   (do ((i (- (string-length str) 1) (- i 1)))
       ((or (< i 0) (char=? ch (string-ref str i)))
        (if (< i 0) #f i))))
 
 (define (string-count-tabs str)
+  ;;Return the number of #\tab characters in STR.
+  ;;
   (let ((len (string-length str)))
-    (do ((i 0 (+ 1 i))
-	 (count 0))
-	((= i len)
-	 count)
-      (when (char=? #\tab (string-ref str i))
-	(increment! count)))))
+    (let loop ((i 0) (count 0))
+      (if (= i len)
+	  count
+	(loop (+ 1 i) (if (char=? #\tab (string-ref str i))
+			  (+ 1 count)
+			count))))))
 
-;;Convert a string to its  representation with the first alphabetic char
-;;capitalised.   We iterate  over  the chars  rather  than extracting  a
-;;substring so that we can apply CHAR-ALPHABETIC?.
-;;
-;;Some  profiling is  needed to  understand if  an  implementation using
-;;SUBSTRING is more efficient with a given Scheme implementation.
-;;
-;;Usage examples:
-;;
-;; "hello"	-> "Hello"
-;; "hELLO"	-> "Hello"
-;; "*hello"	-> "*Hello"
-;; "hello you"	-> "Hello you"
-;;
 (define (string-titlecase/first str)
+  ;;Convert  a string to  its representation  with the  first alphabetic
+  ;;char capitalised.  We iterate  over the chars rather than extracting
+  ;;a substring so that we can apply CHAR-ALPHABETIC?.
+  ;;
+  ;;Some profiling  is needed to  understand if an  implementation using
+  ;;SUBSTRING is more efficient with a given Scheme implementation.
+  ;;
+  ;;Usage examples:
+  ;;
+  ;; "hello"		-> "Hello"
+  ;; "hELLO"		-> "Hello"
+  ;; "*hello"		-> "*Hello"
+  ;; "hello you"	-> "Hello you"
+  ;;
   (let ((cap-str		(string-copy str))
 	(non-first-alpha	#f)
 	(str-len		(string-length str)))
@@ -189,18 +187,15 @@
 	      (set! non-first-alpha #t)
 	      (string-set! cap-str i (char-upcase c)))))))))
 
-;;Return the string representation of  the integer NUM in the RADIX.  It
-;;extends R6RS  NUMBER->STRING to support any  radix, not only  2, 8, 10
-;;and 16.
 (define (number->string/radix num radix)
+  ;;Return the  string representation of  the integer NUM in  the RADIX.
+  ;;It extends R6RS NUMBER->STRING to  support any radix, not only 2, 8,
+  ;;10 and 16.
+  (define who 'number->string/radix)
   (unless (and (integer? num) (exact? num))
-    (assertion-violation 'number->string
-      "only integers can be converted to a base different from 10"
-      num))
+    (assertion-violation who "only integers can be converted to a base different from 10" num))
   (unless (and (integer? radix) (exact? radix) (positive? radix))
-    (assertion-violation 'number->string
-      "the radix has to be a strictly positive exact integer"
-      radix))
+    (assertion-violation who "the radix has to be a strictly positive exact integer" radix))
   (case radix
     ((2 8 10 16)
      (number->string num radix))
@@ -215,10 +210,11 @@
 
 ;;;; escape sequence parameter handling
 
-;;Extract an  escape sequence  parameter from a  list of  parameters and
-;;return it.
 (define (format:par parameters number-of-parameters
 		    index default parameter-name)
+  ;;Extract an escape  sequence parameter from a list  of parameters and
+  ;;return it.
+  ;;
   (if (<= number-of-parameters index)
       default
     (let ((par (list-ref parameters index)))
@@ -257,24 +253,24 @@
     (when column
       (format-output-column (+ delta column)))))
 
-;;To be  invoked after printing STR  to the destination  port.  Scan the
-;;string for  the last newline  and tabulations, then adjust  the output
-;;column accordingly.  Notice  that what matters is the  last newline in
-;;the string.
-;;
-;;A tabulation is defined to be 8 characters.
-;;
-;;Examples:
-;;
-;;  "ciao"		-> increment by 4
-;;  "one\ntwo"		-> set to 3
-;;  "ciao\nmamma\n"	-> set to 0
-;;  "\t"		-> increment by 8
-;;  "A\t"		-> increment by 1+8 = stringlen+8-1
-;;  "A\t\t"		-> increment by 1+2*8 = stringlen+2*8-2
-;;  "ciao\nmamma\t"	-> increment by 5+8
-;;
 (define (adjust-output-column-from-string str)
+  ;;To be invoked after printing  STR to the destination port.  Scan the
+  ;;string for the last newline  and tabulations, then adjust the output
+  ;;column accordingly.  Notice that what matters is the last newline in
+  ;;the string.
+  ;;
+  ;;A tabulation is defined to be 8 characters.
+  ;;
+  ;;Examples:
+  ;;
+  ;;  "ciao"		-> increment by 4
+  ;;  "one\ntwo"	-> set to 3
+  ;;  "ciao\nmamma\n"	-> set to 0
+  ;;  "\t"		-> increment by 8
+  ;;  "A\t"		-> increment by 1+8 = stringlen+8-1
+  ;;  "A\t\t"		-> increment by 1+2*8 = stringlen+2*8-2
+  ;;  "ciao\nmamma\t"	-> increment by 5+8
+  ;;
   (let* ((idx	(string-index-right str #\newline))
 	 (str	(if idx
 		    (begin
@@ -283,7 +279,7 @@
 		  str))
 	 (len	(string-length str))
 	 (tabs	(string-count-tabs str)))
-    (format-output-column (+ len (- (* 8 tabs) tabs)))))
+    (format-output-column (infix len + 8 * tabs - tabs))))
 
 
 ;;;; incipit
@@ -362,9 +358,9 @@
 
 ;;;; helpers, output to destination
 
-;;Print  a single  character with  case conversion.   Update  the output
-;;column.
 (define (format:print-char ch)
+  ;;Print a  single character with  case conversion.  Update  the output
+  ;;column.
   (if format:case-conversion
       (display (format:case-conversion (string ch)) destination-port)
     (write-char ch destination-port))
@@ -372,39 +368,38 @@
       (format-output-column 0)
     (increment-output-column 1)))
 
-;;Print a string with case conversion.  Update the output column.
 (define (format:print-string str)
+  ;;Print a string with case conversion.  Update the output column.
+  ;;
   (display (if format:case-conversion
 	       (format:case-conversion str)
 	     str)
 	   destination-port)
   (adjust-output-column-from-string str))
 
-;;Print a substring.  Update the output column.
 (define (format:print-substring str i n)
+  ;;Print a substring.  Update the output column.
+  ;;
   (let ((str (substring str i n)))
     (display str destination-port)
     (adjust-output-column-from-string str)))
 
-;;Print a string filled with the same char.  Update the output column.
 (define (format:print-fill-chars n ch)
-  (let ((str (make-string n ch)))
-    (format:print-string str)
-    (adjust-output-column-from-string str)))
-
+  ;;Print a string filled with the same char.  Update the output column.
+  ;;
+  (format:print-string (make-string n ch)))
 
 
 ;;;; helpers, any object to string
 
-;;Print any object with padding  chars.  It is the implementation of the
-;;"~s" and "~a" escape sequences.
-;;
-;;USE-WRITE decides whether to use WRITE or DISPLAY.
-;;
-;;PAD-LEFT decides whether padding (if any) is to the left or right.
-;;
 (define (format:out-obj-padded pad-left obj use-write parameters)
-
+  ;;Print any  object with padding  chars.  It is the  implementation of
+  ;;the "~s" and "~a" escape sequences.
+  ;;
+  ;;USE-WRITE decides whether to use WRITE or DISPLAY.
+  ;;
+  ;;PAD-LEFT decides whether padding (if any) is to the left or right.
+  ;;
   (define (obj->str obj use-write)
     (let ((res (call-with-string-output-port
 		   (lambda (port) ((if use-write write display)
@@ -921,7 +916,7 @@
       (let ((ch (string-ref en-str i)))
 	(when (char-numeric? ch)
 	  (exponent-char-set! exponent-length ch)
-	  (increment! exponent-length 1))))))
+	  (incr! exponent-length 1))))))
 
 ;;Fill   the  mantissa   buffer  with   zeros,   update  MANTISSA-LENGTH
 ;;accordingly but not MANTISSA-DOT-INDEX.  Examples:
@@ -938,7 +933,7 @@
   (when (> (+ n mantissa-length) mantissa-max-length) ; from the left or right
     ;;If this happens we have to enlarge MANTISSA-MAX-LENGTH.
     (error 'mantissa-zfill "flonum too long to format"))
-  (increment! mantissa-length n)
+  (incr! mantissa-length n)
   (if left?
       (do ((i mantissa-length (- i 1))) ; fill n 0s to left
 	  ((< i 0))
@@ -973,7 +968,7 @@
       n mantissa-length))
   (do ((i n (+ i 1)))
       ((= i mantissa-length)
-       (increment! mantissa-length (- n)))
+       (incr! mantissa-length (- n)))
     (mantissa-char-set! (- i n) (mantissa-char-ref i))))
 
 ;;Print to the destination the mantissa part of the number.
@@ -1140,7 +1135,7 @@
     (when (and (zero? mantissa-dot-index)
 	       (zero? number-of-digits))
       (mantissa-prepend-zeros 1)
-      (increment! mantissa-dot-index)))
+      (incr! mantissa-dot-index)))
 
   (define (compute-rounded-digit-with-carry digit first-truncated-digit-idx)
     (let ((rounded
@@ -1182,7 +1177,7 @@
 	     ;;
 	     (mantissa-prepend-zeros 1)
 	     (mantissa-char-set! 0 #\1)
-	     (increment! mantissa-dot-index)))
+	     (incr! mantissa-dot-index)))
 
 	;;Propagate the carry.
 	(let ((digit+carry (+ 1 (mantissa-digit-ref i))))
@@ -1277,14 +1272,14 @@
 		     (set! mantissa-started? #t)
 		     (if (char=? ch #\0)
 			 (when all-zeros?
-			   (increment! left-zeros 1))
+			   (incr! left-zeros 1))
 		       (set! all-zeros? #f))
 		     (mantissa-char-set! mantissa-length ch)
-		     (increment! mantissa-length 1))
+		     (incr! mantissa-length 1))
 		    (else
 		     (set! exponent-started? #t)
 		     (exponent-char-set! exponent-length ch)
-		     (increment! exponent-length 1))))
+		     (incr! exponent-length 1))))
 
 	     ((or (char=? ch #\-) (char=? ch #\+))
 	      ;;Record the  sign of the mantissa or  exponent.  Raise an
@@ -1360,7 +1355,7 @@
 	       ;;  "0000123.45" -> "123.45"
 	       ;;
 	       (mantissa-shift-left left-zeros)
-	       (increment! mantissa-dot-index (- left-zeros))
+	       (incr! mantissa-dot-index (- left-zeros))
 	       (set! left-zeros 0))
 	      (else
 	       ;;Normalise buffers like:
@@ -1368,7 +1363,7 @@
 	       ;;  "000.000123" -> ".000123"
 	       ;;
 	       (mantissa-shift-left mantissa-dot-index)
-	       (increment! left-zeros (- mantissa-dot-index))
+	       (incr! left-zeros (- mantissa-dot-index))
 	       (set! mantissa-dot-index 0))))
 
       ;;Normalise buffers to have zero exponent.
@@ -1437,7 +1432,7 @@
 	   ;;                      dot index
 	   ;;
 	   ((zero? left-zeros)
-	    (increment! mantissa-dot-index shift))
+	    (incr! mantissa-dot-index shift))
 
 	   ;;This is for cases like:
 	   ;;
@@ -1544,12 +1539,12 @@
 		   (prepend-zero	(> width (+ decimals 1))))
 	      ;;Plus or minus sign.
 	      (when (or (not mantissa-is-positive) (eq? modifier 'at))
-		(increment! output-len))
+		(incr! output-len))
 	      ;;If mantissa's integer part is zero and it does not cause
 	      ;;a  width overflow:  prepend  a "0."   to the  fractional
 	      ;;part, else prepend only the dot.
 	      (when (and (= mantissa-dot-index 0) prepend-zero)
-		(increment! output-len))
+		(incr! output-len))
 	      ;;Output pad characters before the number.
 	      (when (< output-len width)
 		(format:print-fill-chars (- width output-len) (integer->char padch)))
@@ -1570,11 +1565,11 @@
 	    (let ((output-len (+ mantissa-length 1)))
 	      ;;Plus or minus sign.
 	      (when (or (not mantissa-is-positive) (eq? modifier 'at))
-		(increment! output-len))
+		(incr! output-len))
 	      ;;If mantissa's  integer part is  zero prepend a  "0."  to
 	      ;;the fractional part.
 	      (when (= mantissa-dot-index 0)
-		(increment! output-len))
+		(incr! output-len))
 	      ;;Output pad characters before the number.
 	      (when (< output-len width)
 		(format:print-fill-chars (- width output-len) (integer->char padch)))
@@ -1699,18 +1694,18 @@
 	    (let ((output-len (+ mantissa-length 3)))
 	      ;;Sign before the mantissa.
 	      (when (or (not mantissa-is-positive) (eq? modifier 'at))
-		(increment! output-len))
+		(incr! output-len))
 
 	      ;;If there  is room  and the integer  part is  zero: the
 	      ;;mantissa will start with "0.", else it will start with
 	      ;;"."; for example "0.123E+0" rather than ".123E+0".
 	      (when (and (= mantissa-dot-index 0) (> width (+ decimals 1)))
-		(increment! output-len))
+		(incr! output-len))
 
 	      ;;If more exponent digits  than present are required: we
 	      ;;will   add  them   (with  the   appropriate   call  to
 	      ;;EXPONENT-PRINT).
-	      (increment! output-len (compute-exponent-digits))
+	      (incr! output-len (compute-exponent-digits))
 
 	      ;;Print the padding chars before the number.
 	      (print-padding-chars-if-needed output-len)
@@ -1741,18 +1736,18 @@
 	    (let ((output-len (+ mantissa-length 3)))
 	      ;;Sign before the mantissa.
 	      (when (or (not mantissa-is-positive) (eq? modifier 'at))
-		(increment! output-len 1))
+		(incr! output-len 1))
 
 	      ;;If  the integer part  is zero:  the mantissa  will start
 	      ;;with "0."  not only  "."; for example  "0.123E+0" rather
 	      ;;than ".123E+0".
 	      (when (= mantissa-dot-index 0)
-		(increment! output-len 1))
+		(incr! output-len 1))
 
 	      ;;If more  exponent digits  than present are  required: we
 	      ;;will   add   them   (with   the  appropriate   call   to
 	      ;;EXPONENT-PRINT).
-	      (increment! output-len (compute-exponent-digits))
+	      (incr! output-len (compute-exponent-digits))
 
 	      ;;Print the padding chars before the number.
 	      (print-padding-chars-if-needed output-len)
