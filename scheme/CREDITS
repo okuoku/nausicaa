@@ -218,6 +218,12 @@ The library is derived from "match.scm" by Alex Shinn, who placed it in
 the Public Domain.
 
 
+(msgcat)
+--------
+
+Written by Marco Maggi, with inspiration from the "msgcat" Tcl package.
+
+
 (nausicaa)
 (nausicaa *)
 ------------

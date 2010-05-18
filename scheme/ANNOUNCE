@@ -71,6 +71,8 @@ Notes for --- tag 0.2a0
   for  better  and  cleaner  hygiene support.   Removed  the
   (infix syntax) library.
 
+* Added (msgcat) library.
+
 
 Notes for 2010-03-28 tag 0.1a11
 -------------------------------
