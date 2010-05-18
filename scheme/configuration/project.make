@@ -56,7 +56,7 @@ $(eval $(call nau-libraries,infix,infix))
 $(eval $(call nau-libraries,lalr,lalr))
 $(eval $(call nau-libraries,libraries,libraries))
 $(eval $(call nau-libraries,lists,lists))
-$(eval $(call nau-libraries,msgcat,msgcat))
+##$(eval $(call nau-libraries,msgcat,msgcat))
 $(eval $(call nau-libraries,nausicaa,nausicaa))
 $(eval $(call nau-libraries,parser-tools,parser-tools))
 $(eval $(call nau-libraries,profiling,profiling))
@@ -78,7 +78,9 @@ $(eval $(call ds-builddir,msgcat,$(nau_sls_BUILDDIR)/msgcat))
 msgcat_SOURCES	= $(call ds-glob,msgcat,*.cat)
 msgcat_TARGETS	= $(call ds-replace-dir,$(msgcat_BUILDDIR),$(msgcat_SOURCES))
 
-$(eval $(call ds-default-install-variables,msgcat,$(pkglibdir)))
+msgcat_INSTDIR	= $(pkglibdir)/msgcat
+msgcat_INSTLST	= $(msgcat_TARGETS)
+
 $(eval $(call ds-module,msgcat,bin,DATA))
 
 $(msgcat_BUILDDIR)/%.cat : $(msgcat_SRCDIR)/%.cat
