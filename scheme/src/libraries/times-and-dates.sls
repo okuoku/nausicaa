@@ -129,7 +129,7 @@
     ;; string conversion
     date->string string->date)
   (import (nausicaa)
-    (infix)
+    (infix syntax)
     (rnrs mutable-strings)
     (formations)
     (times-and-dates compat))
@@ -864,11 +864,15 @@
 ;;;; date manipulation
 
 (define (%leap-year? year)
-  ;;Return true if YEAR is a leap year.
+  ;;Return true if YEAR is a leap year.  From the Calendar FAQ:
   ;;
-  (or (= (mod year 400) 0)
-      (and (= (mod year 4) 0)
-	   (not (= (mod year 100) 0)))))
+  ;;  Every year divisible by 4 is a leap year.
+  ;;  However, every year divisible by 100 is not a leap year.
+  ;;  However, every year divisible by 400 is a leap year after all.
+  ;;
+  (or (zero? (mod year 400))
+      (and (zero? (mod year 4))
+	   (not (zero? (mod year 100))))))
 
 (define (leap-year? (D <date>))
   ;;Return true if D in in a leap year.
@@ -879,11 +883,10 @@
   ;;Return the  number of days  from the beginning  of the year  for the
   ;;specified date.  Assume that the given date is correct.
   ;;
-  (+ (vector-ref (if (%leap-year? year)
-		     $number-of-days-the-first-day-of-each-month/leap-year
-		   $number-of-days-the-first-day-of-each-month/non-leap-year)
-		 month)
-     day))
+  (+ day (vector-ref (if (%leap-year? year)
+			 $number-of-days-the-first-day-of-each-month/leap-year
+		       $number-of-days-the-first-day-of-each-month/non-leap-year)
+		     month)))
 
 (define (date-year-day (D <date>))
   (%year-day D.day D.month D.year))

@@ -30055,6 +30055,10 @@ Numbers and all ``the other'' values are just put there.
 @section Infix notation expressions
 
 
+The following bindings are exported by the @library{infix syntax}
+library and reexported by the @library{infix} library.
+
+
 @deffn Syntax infix @var{sexp-atom} ...
 Like @func{infix->prefix} but evaluates the result on the spot, in the
 lexical context of the macro use.  The syntax allows us to evaluate
