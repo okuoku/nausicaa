@@ -1,0 +1,83 @@
+;;;
+;;;Part of: Nausicaa/Scheme
+;;;Contents: message catalog for the en_US locale
+;;;Date: Tue May 18, 2010
+;;;
+;;;Abstract
+;;;
+;;;	This is the message catalog for the "en_US" locale.
+;;;
+;;;Copyright (c) 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;
+;;;This program is free software:  you can redistribute it and/or modify
+;;;it under the terms of the  GNU General Public License as published by
+;;;the Free Software Foundation, either version 3 of the License, or (at
+;;;your option) any later version.
+;;;
+;;;This program is  distributed in the hope that it  will be useful, but
+;;;WITHOUT  ANY   WARRANTY;  without   even  the  implied   warranty  of
+;;;MERCHANTABILITY  or FITNESS FOR  A PARTICULAR  PURPOSE.  See  the GNU
+;;;General Public License for more details.
+;;;
+;;;You should  have received  a copy of  the GNU General  Public License
+;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
+;;;
+
+(msgcat (1) en_US
+
+	;;Indicatore dell'ora: antimeridiana, pomeridiana.
+	("AM"	"AM")
+	("PM"	"PM")
+
+	("Yes"	"Yes")
+	("No"	"Yes")
+
+	("Sun"	"Sun")
+	("Mon"	"Mon")
+	("Tue"	"Tue")
+	("Wed"	"Wed")
+	("Thu"	"Thu")
+	("Fri"	"Fri")
+	("Sat"	"Sat")
+
+	("Sunday"	"Sunday")
+	("Monday"	"Monday")
+	("Tuesday"	"Tuesday")
+	("Wednesday"	"Wednesday")
+	("Thursday"	"Thursday")
+	("Friday"	"Friday")
+	("Saturday"	"Saturday")
+
+	("Jan"	"Jan")
+	("Feb"	"Feb")
+	("Mar"	"Mar")
+	("Apr"	"Apr")
+	("May"	"May")
+	("Jun"	"Jun")
+	("Jul"	"Jul")
+	("Aug"	"Aug")
+	("Sep"	"Sep")
+	("Oct"	"Oct")
+	("Nov"	"Nov")
+	("Dec"	"Dec")
+
+	("January"	"January")
+	("February"	"February")
+	("March"	"March")
+	("April"	"April")
+	("May"		"May")
+	("June"		"June")
+	("July"		"July")
+	("August"	"August")
+	("September"	"September")
+	("October"	"October")
+	("November"	"November")
+	("December"	"December")
+
+	)
+
+;;; end of file
+;; Local Variables:
+;; mode: scheme
+;; coding: utf-8-unix
+;; End:

@@ -27,8 +27,9 @@
 
 (library (msgcat)
   (export
-    mc
-    load-catalog current-catalog en_GB)
+    mc mcmax
+    load-catalog load-catalog-from-file
+    current-catalog en_GB)
   (import (nausicaa)
     (matches)
     (only (strings) string-tokenize)
@@ -41,8 +42,19 @@
     ((_ ?string)
      ((current-catalog) ?string))))
 
-(define (en_GB string)
-  string)
+(define (mcmax . strings)
+  (if (null? strings)
+      0
+    (max (map (lambda (S)
+		(string-length ((current-catalog) S)))
+	   strings))))
+
+(define en_GB
+  (case-lambda
+   ((string)
+    string)
+   ((string default)
+    string)))
 
 (define current-catalog
   (make-parameter en_GB
@@ -73,16 +85,26 @@
 	  (error 'load-catalog "msgcat catalog does not exist" name)
 	(let ((pathname (string-append (car path) "/" name ".cat")))
 	  (if (file-exists? pathname)
-	      (let ((table (make-hashtable string-hash string=?)))
-		(match (with-input-from-file pathname read)
-		  (('msgcat (1) ?catalog-name (?src ?dst) ...)
-		   (for-each (lambda (src dst)
-			       (hashtable-set! table src dst))
-		     ?src ?dst)
-		   (lambda (S) (hashtable-ref table S S)))
-		  (_
-		   (error 'load-catalog "invalid format of message catalog" name))))
+	      (load-catalog-from-file pathname)
 	    (loop (cdr path))))))))
+
+(define (load-catalog-from-file pathname)
+  (define who 'load-catalog-from-file)
+  (unless (file-exists? pathname)
+    (error who "missing catalogue file for messages translation" pathname))
+  (let ((table (make-hashtable string-hash string=?)))
+    (match (with-input-from-file pathname read)
+      (('msgcat (1) ?catalog-name (?src ?dst) ...)
+       (for-each (lambda (src dst)
+		   (hashtable-set! table src dst))
+	 ?src ?dst)
+       (case-lambda
+	((S)
+	 (hashtable-ref table S S))
+	((S default)
+	 (hashtable-ref table S default))))
+      (_
+       (error who "invalid format of message catalog" pathname)))))
 
 
 ;;;; done

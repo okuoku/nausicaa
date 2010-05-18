@@ -36,6 +36,7 @@
 (parametrise ((check-test-name	'basic))
 
   (define it_IT (load-catalog 'it_IT))
+  (define en_US (load-catalog 'en_US))
 
   (check
       (mc "January")
@@ -50,6 +51,22 @@
 
     #f)
 
+  (parametrise ((current-catalog en_GB))
+
+    (check
+	(mc "Yes")
+      => "Yes")
+
+    #f)
+
+  (parametrise ((current-catalog en_US))
+
+    (check
+	(mc "July")
+      => "July")
+
+    #f)
+
   #t)
 
 
@@ -58,3 +75,6 @@
 (check-report)
 
 ;;; end of file
+;; Local Variables:
+;; coding: utf-8-unix
+;; End:
