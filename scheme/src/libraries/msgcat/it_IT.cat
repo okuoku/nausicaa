@@ -1,0 +1,86 @@
+;;;
+;;;Part of: Nausicaa/Scheme
+;;;Contents: message catalog for the it_IT locale
+;;;Date: Tue May 18, 2010
+;;;
+;;;Abstract
+;;;
+;;;	This is  the message catalog  for the "it_IT" locale,  using the
+;;;	grave accents.  Notice that UNI establishes that all the accents
+;;;	have to be grave, with the exception of "perché", "affinché" and
+;;;	the likes; however, it is not an error to use acute accents.
+;;;
+;;;Copyright (c) 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;
+;;;This program is free software:  you can redistribute it and/or modify
+;;;it under the terms of the  GNU General Public License as published by
+;;;the Free Software Foundation, either version 3 of the License, or (at
+;;;your option) any later version.
+;;;
+;;;This program is  distributed in the hope that it  will be useful, but
+;;;WITHOUT  ANY   WARRANTY;  without   even  the  implied   warranty  of
+;;;MERCHANTABILITY  or FITNESS FOR  A PARTICULAR  PURPOSE.  See  the GNU
+;;;General Public License for more details.
+;;;
+;;;You should  have received  a copy of  the GNU General  Public License
+;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
+;;;
+
+(msgcat (1) it_IT
+
+	;;Indicatore dell'ora: antimeridiana, pomeridiana.
+	("AM"	"AM")
+	("PM"	"PM")
+
+	("Yes"	"Sì")
+	("No"	"No")
+
+	("Sun"	"Dom")
+	("Mon"	"Lun")
+	("Tue"	"Mar")
+	("Wed"	"Mer")
+	("Thu"	"Gio")
+	("Fri"	"Ven")
+	("Sat"	"Sab")
+
+	("Sunday"	"Domenica")
+	("Monday"	"Lunedì")
+	("Tuesday"	"Martedì")
+	("Wednesday"	"Mercoledì")
+	("Thursday"	"Giovedì")
+	("Friday"	"Venerdì")
+	("Saturday"	"Sabato")
+
+	("Jan"		"Gen")
+	("Feb"		"Feb")
+	("Mar"		"Mar")
+	("Apr"		"Apr")
+	("May"		"Mag")
+	("Jun"		"Giu")
+	("Jul"		"Lug")
+	("Aug"		"Ago")
+	("Sep"		"Set")
+	("Oct"		"Ott")
+	("Nov"		"Nov")
+	("Dec"		"Dic")
+
+	("January"	"Gennaio")
+	("February"	"Febbraio")
+	("March"	"Marzo")
+	("April"	"Aprile")
+	("May"		"Maggio")
+	("June"		"Giugno")
+	("July"		"Luglio")
+	("August"	"Agosto")
+	("September"	"Settembre")
+	("October"	"Ottobre")
+	("November"	"Novembre")
+	("December"	"Dicembre")
+
+	)
+
+;;; end of file
+;; Local Variables:
+;; mode: scheme
+;; coding: utf-8-unix
+;; End:

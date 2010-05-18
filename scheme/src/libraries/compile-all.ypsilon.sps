@@ -62,6 +62,7 @@
   (only (randomisations borosh))
   (only (comparisons))
   (only (arrays))
+  (only (msgcat))
   (only (times-and-dates))
 
   (only (sentinel))

@@ -163,6 +163,9 @@
 (compile-library "arrays.sls"
 		 "arrays.slfasl")
 
+(compile-library "msgcat.sls"
+		 "msgcat.slfasl")
+
 (compile-library "times-and-dates/compat.larceny.sls"
 		 "times-and-dates/compat.larceny.slfasl")
 
