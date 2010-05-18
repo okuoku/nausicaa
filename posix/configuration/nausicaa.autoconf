@@ -762,102 +762,6 @@ AC_DEFUN([NAUSICAA_FLOATTYPE_TEST],
       TYPEOF_$1="$nausicaa_cv_typeof_$1"],[#f])
    AC_SUBST([TYPEOF_$1])])
 
-
-dnl page
-dnl --------------------------------------------------------------------
-dnl C language types accessors.
-dnl --------------------------------------------------------------------
-
-dnl *** WARNING ***
-dnl
-dnl Remember that the parentheses have special meaning for m4, so we
-dnl cannot use them in the shell 'case' construct.  This is why we use
-dnl all these 'if' statements.
-
-dnl AC_DEFUN([NAUSICAA_ACCESSORS_TEST],
-dnl   [NAUSICAA_GETTER_TEST([$1],[$2])
-dnl    NAUSICAA_SETTER_TEST([$1],[$2])])
-
-dnl AC_DEFUN([NAUSICAA_GETTER_TEST],
-dnl   [NAUSICAA_OPTIONAL_TEST([GETTEROF_$1],
-dnl      [NAUSICAA_DEFAULT_VALUE([getterof_$1],[#f])
-dnl       AC_CACHE_CHECK([getter for type '$2'],
-dnl         [nausicaa_cv_getterof_$1],
-dnl         [if   test "${TYPEOF_$1}" = signed-char ; then
-dnl             nausicaa_cv_getterof_$1="pointer-ref-c-signed-char"
-dnl          elif test "${TYPEOF_$1}" = unsigned-char ; then
-dnl             nausicaa_cv_getterof_$1="pointer-ref-c-unsigned-char"
-dnl          elif test "${TYPEOF_$1}" = signed-int ; then
-dnl             nausicaa_cv_getterof_$1="pointer-ref-c-signed-int"
-dnl          elif test "${TYPEOF_$1}" = unsigned-int ; then
-dnl             nausicaa_cv_getterof_$1="pointer-ref-c-unsigned-int"
-dnl          elif test "${TYPEOF_$1}" = signed-short ; then
-dnl             nausicaa_cv_getterof_$1="pointer-ref-c-signed-short"
-dnl          elif test "${TYPEOF_$1}" = unsigned-short ; then
-dnl             nausicaa_cv_getterof_$1="pointer-ref-c-unsigned-short"
-dnl          elif test "${TYPEOF_$1}" = signed-long ; then
-dnl             nausicaa_cv_getterof_$1="pointer-ref-c-signed-long"
-dnl          elif test "${TYPEOF_$1}" = unsigned-long ; then
-dnl             nausicaa_cv_getterof_$1="pointer-ref-c-unsigned-long"
-dnl          elif test "${TYPEOF_$1}" = signed-long-long ; then
-dnl             nausicaa_cv_getterof_$1="pointer-ref-c-signed-long-long"
-dnl          elif test "${TYPEOF_$1}" = unsigned-long-long ; then
-dnl             nausicaa_cv_getterof_$1="pointer-ref-c-unsigned-long-long"
-dnl          elif test "${TYPEOF_$1}" = float ; then
-dnl             nausicaa_cv_getterof_$1="pointer-ref-c-float"
-dnl          elif test "${TYPEOF_$1}" = double ; then
-dnl             nausicaa_cv_getterof_$1="pointer-ref-c-double"
-dnl          elif test "${TYPEOF_$1}" = long-double ; then
-dnl             nausicaa_cv_getterof_$1="pointer-ref-c-long-double"
-dnl          elif test "${TYPEOF_$1}" = pointer ; then
-dnl             nausicaa_cv_getterof_$1="pointer-ref-c-pointer"
-dnl          else
-dnl             AC_MSG_WARN([cannot determine getter for '$2' from '$TYPEOF_$1'])
-dnl             nausicaa_cv_getterof_$1="$nausicaa_default_getterof_$1"
-dnl          fi])
-dnl       GETTEROF_$1="$nausicaa_cv_getterof_$1"],[#f])
-dnl    AC_SUBST([GETTEROF_$1])])
-
-dnl AC_DEFUN([NAUSICAA_SETTER_TEST],
-dnl   [NAUSICAA_OPTIONAL_TEST([SETTEROF_$1],
-dnl      [NAUSICAA_DEFAULT_VALUE([setterof_$1],[#f])
-dnl       AC_CACHE_CHECK([setter for type '$2'],
-dnl         [nausicaa_cv_setterof_$1],
-dnl         [if   test "${TYPEOF_$1}" = signed-char       ; then
-dnl             nausicaa_cv_setterof_$1="pointer-set-c-signed-char!"
-dnl          elif test "${TYPEOF_$1}" = unsigned-char     ; then
-dnl             nausicaa_cv_setterof_$1="pointer-set-c-unsigned-char!"
-dnl          elif test "${TYPEOF_$1}" = signed-int    ; then
-dnl             nausicaa_cv_setterof_$1="pointer-set-c-signed-int!"
-dnl          elif test "${TYPEOF_$1}" = unsigned-int  ; then
-dnl             nausicaa_cv_setterof_$1="pointer-set-c-unsigned-int!"
-dnl          elif test "${TYPEOF_$1}" = signed-short      ; then
-dnl             nausicaa_cv_setterof_$1="pointer-set-c-signed-short!"
-dnl          elif test "${TYPEOF_$1}" = unsigned-short    ; then
-dnl             nausicaa_cv_setterof_$1="pointer-set-c-unsigned-short!"
-dnl          elif test "${TYPEOF_$1}" = signed-long       ; then
-dnl             nausicaa_cv_setterof_$1="pointer-set-c-signed-long!"
-dnl          elif test "${TYPEOF_$1}" = unsigned-long     ; then
-dnl             nausicaa_cv_setterof_$1="pointer-set-c-unsigned-long!"
-dnl          elif test "${TYPEOF_$1}" = signed-long-long  ; then
-dnl             nausicaa_cv_setterof_$1="pointer-set-c-signed-long-long!"
-dnl          elif test "${TYPEOF_$1}" = unsigned-long-long; then
-dnl             nausicaa_cv_setterof_$1="pointer-set-c-unsigned-long-long!"
-dnl          elif test "${TYPEOF_$1}" = float             ; then
-dnl             nausicaa_cv_setterof_$1="pointer-set-c-float!"
-dnl          elif test "${TYPEOF_$1}" = double            ; then
-dnl             nausicaa_cv_setterof_$1="pointer-set-c-double!"
-dnl          elif test "${TYPEOF_$1}" = long-double       ; then
-dnl             nausicaa_cv_setterof_$1="pointer-set-c-long-double!"
-dnl          elif test "${TYPEOF_$1}" = pointer           ; then
-dnl             nausicaa_cv_setterof_$1="pointer-set-c-pointer!"
-dnl          else
-dnl             AC_MSG_WARN([cannot determine setter for '${TYPEOF_$1}'],[2])
-dnl             nausicaa_cv_setterof_$1="$nausicaa_default_setterof_$1"
-dnl          fi])
-dnl       SETTEROF_$1="$nausicaa_cv_setterof_$1"],[#f])
-dnl    AC_SUBST([SETTEROF_$1])])
-
 dnl page
 dnl --------------------------------------------------------------------
 dnl C language type full inspection.
@@ -872,9 +776,7 @@ AC_DEFUN([NAUSICAA_INSPECT_TYPE],
   [NAUSICAA_SIZEOF_TEST([$1],[$2],[$4],[$5])
    NAUSICAA_ALIGNOF_TEST([$1],[$2],[$4],[$5])
    NAUSICAA_STRIDEOF_TEST([$1],[$2],[$4],[$5])
-   NAUSICAA_BASE_TYPE_TEST([$1],[$2],[$3])
-   dnl NAUSICAA_ACCESSORS_TEST([$1],[$2])
-   ])
+   NAUSICAA_BASE_TYPE_TEST([$1],[$2],[$3])])
 
 dnl 1 variable-suffix
 dnl 2 typedef
@@ -894,9 +796,7 @@ dnl 6 optional-headers
 AC_DEFUN([NAUSICAA_INSPECT_FIELD_TYPE],
   [NAUSICAA_OFFSETOF_FIELD_TEST([$1],[$2],[$3],[$6])
    NAUSICAA_SIZEOF_FIELD_TEST([$1],[$2],[$3],[$5],[$6])
-   NAUSICAA_BASE_TYPE_TEST([$1],[$2.$3],[$4])
-   dnl NAUSICAA_ACCESSORS_TEST([$1],[$2.$3])
-   ])
+   NAUSICAA_BASE_TYPE_TEST([$1],[$2.$3],[$4])])
 
 dnl 1 variable-suffix
 dnl 2 struct-typedef
