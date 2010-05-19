@@ -23478,6 +23478,9 @@ they safely match only themselves.
 
 (pregexp-quote "list?")
 @result{} "list\\?"
+
+(pregexp-quote "([a-z]+) +([0-9]+,)? *([0-9]+)")
+@result{} "\\(\\[a-z\\]\\+\\) \\+\\(\\[0-9\\]\\+,\\)\\? \\*\\(\\[0-9\\]\\+\\)"
 @end example
 
 @func{pregexp-quote} is useful when building a composite regexp from a
