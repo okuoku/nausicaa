@@ -726,423 +726,463 @@ year is found as:
 
         Solar Number = (year + 8) mod 28 + 1
 
-In the Julian calendar there is a one-to-one relationship between the
+  In the Julian calendar there  is a one-to-one relationship between the
 Solar Number and the day on which a particular date falls.
 
-(The leap year cycle of the Gregorian calendar is 400 years, which is
-146,097 days, which curiously enough is a multiple of 7. So in the
-Gregorian calendar the equivalent of the "Solar Cycle" would be 400
+  (The leap year cycle of the  Gregorian calendar is 400 years, which is
+146,097 days,  which curiously  enough is  a multiple of  7.  So  in the
+Gregorian  calendar the  equivalent of  the "Solar  Cycle" would  be 400
 years, not 7*400=2800 years as one might be tempted to believe.)
 
 
 2.5. What is the Dominical Letter?
 ----------------------------------
 
-Each ordinary (non-leap) year is assigned a letter in the range A to G
-which describes what days of the year are Sundays. This letter is
-called the "Dominical Letter" ("Sunday Letter") of the year.
+  Each ordinary (non-leap)  year is assigned a letter in the  range A to G
+which describes what days of the year are Sundays. This letter is called
+the "Dominical Letter" ("Sunday Letter") of the year.
 
-It works in this manner: Assign the letter A to 1 January, B to 2 Jan,
-C to 3 Jan, ... G to 7 Jan, A to 8 Jan, B to 9 Jan, and so on, using
-the letters A to G and omitting the leap day.
+  It works in this manner: assign the letter A to 1 January, B to 2 Jan,
+C to 3 Jan, ... G to 7 Jan, A to 8 Jan, B to 9 Jan, and so on, using the
+letters A to G and omitting the leap day.
 
-In a year with Dominical Letter A, all days marked A are Sundays.
-In a year with Dominical Letter B, all days marked B are Sundays.
-And so on.
+* In a year with Dominical Letter A, all days marked A are Sundays.
 
-Leap years have two Dominical Letters, one which is used from the
-start of January until the leap day, and another one which is used for
+* In a year with Dominical Letter B, all days marked B are Sundays.
+
+* And so on.
+
+  Leap  years have two  Dominical Letters,  one which  is used  from the
+start of January  until the leap day, and another one  which is used for
 the rest of the year.
 
-The Dominical Letters of 2008 (a leap year) are F and E.
+  The Dominical Letters of 2008 (a leap year) are F and E.
 
 
 2.6. What day of the week was 2 August 1953?
 --------------------------------------------
 
-To calculate the day on which a particular date falls, the following
-algorithm may be used (the divisions are integer divisions, in which
+To calculate  the day  on which a  particular date falls,  the following
+algorithm may  be used  (the divisions are  integer divisions,  in which
 remainders are discarded):
 
-a = (14 - month) / 12
-y = year - a
-m = month + 12*a - 2
-For Julian calendar: d = (5 + day + y + y/4 + (31*m)/12) mod 7
-For Gregorian calendar: d = (day + y + y/4 - y/100 + y/400 + (31*m)/12) mod 7
+    a = (14 - month) / 12
+    y = year - a
+    m = month + 12*a - 2
 
-The value of d is 0 for a Sunday, 1 for a Monday, 2 for a Tuesday, etc.
+for Julian calendar:
+
+    d = (5 + day + y + y/4 + (31*m)/12) mod 7
+
+for Gregorian calendar:
+
+    d = (day + y + y/4 - y/100 + y/400 + (31*m)/12) mod 7
+
+the value of d is 0 for a Sunday, 1 for a Monday, 2 for a Tuesday, etc.
 
 Example: On what day of the week was the author born?
 
-My birthday is 2 August 1953 (Gregorian, of course).
+  My birthday is 2 August 1953 (Gregorian, of course).
 
-a = (14 - 8) / 12 = 0
-y = 1953 - 0 = 1953
-m = 8 + 12*0 - 2 = 6
-d = (2 + 1953 + 1953/4 - 1953/100 + 1953/400 + (31*6)/12) mod 7
-  = (2 + 1953 +  488   -    19    +     4    +    15    ) mod 7
-  = 2443 mod 7
-  = 0
+  a = (14 - 8) / 12 = 0
+  y = 1953 - 0 = 1953
+  m = 8 + 12*0 - 2 = 6
+  d = (2 + 1953 + 1953/4 - 1953/100 + 1953/400 + (31*6)/12) mod 7
+    = (2 + 1953 + 488 - 19 + 4 + 15 ) mod 7
+    = 2443 mod 7
+    = 0
 
-I was born on a Sunday.
+  I was born on a Sunday.
 
 
 2.7. When can I reuse my 1992 calendar?
 ---------------------------------------
 
-Let us first assume that you are only interested in which dates fall
-on which days of the week; you are not interested in the dates for
-Easter and other irregular holidays.
+Let us first assume that you  are only interested in which dates fall on
+which days of  the week; you are not interested in  the dates for Easter
+and other irregular holidays.
 
-Let us further confine ourselves to the years 1901-2099.
+  Let us further confine ourselves to the years 1901-2099.
 
-With these restrictions, the answer is as follows:
+  With these restrictions, the answer is as follows:
 
-  - If year X is a leap year, you can reuse its calendar in year X+28.
+* If year X is a leap year, you can reuse its calendar in year X+28.
 
-  - If year X is the first year after a leap year, you can reuse its
-    calendar in years X+6, X+17, and X+28.
+* If year  X is  the first  year after a  leap year,  you can  reuse its
+  calendar in years X+6, X+17, and X+28.
 
-  - If year X is the second year after a leap year, you can reuse its
-    calendar in years X+11, X+17, and X+28.
+* If year  X is the  second year  after a leap  year, you can  reuse its
+  calendar in years X+11, X+17, and X+28.
 
-  - If year X is the third year after a leap year, you can reuse its
-    calendar in years X+11, X+22, and X+28.
+* If year  X is  the third  year after a  leap year,  you can  reuse its
+  calendar in years X+11, X+22, and X+28.
 
-Note that the expression X+28 occurs in all four items above. So you
+  Note that the expression X+28 occurs  in all four items above.  So you
 can always reuse your calendar every 28 years.
 
-But if you also want your calendar's indication of Easter and other
-Christian holidays to be correct, the rules are far too complex to be
-put to a simple formula. Sometimes calendars can be reused after just
-six years. For example, the calendars for the years 1981 and 1987 are
-identical, even when it comes to the date for Easter. But sometimes a
-very long time can pass before a calendar can be reused; if you happen
-to have a calendar from 1940, you won't be able to reuse it until the
+  But if  you also want your  calendar's indication of  Easter and other
+Christian holidays  to be correct, the  rules are far too  complex to be
+put to a  simple formula.  Sometimes calendars can  be reused after just
+six years.  For  example, the calendars for the years  1981 and 1987 are
+identical, even when  it comes to the date for  Easter.  But sometimes a
+very long time  can pass before a calendar can be  reused; if you happen
+to have a  calendar from 1940, you  won't be able to reuse  it until the
 year 5280!
 
 
 2.8. What is the Roman calendar?
 --------------------------------
 
-Before Julius Caesar introduced the Julian calendar in 45 BC, the
-Roman calendar was a mess, and much of our so-called "knowledge" about
-it seems to be little more than guesswork.
+Before Julius Caesar introduced the  Julian calendar in 45 BC, the Roman
+calendar  was a mess,  and much  of our  so-called "knowledge"  about it
+seems to be little more than guesswork.
 
-Originally, the year started on 1 March and consisted of only 304 days
-or 10 months (Martius, Aprilis, Maius, Junius, Quintilis, Sextilis,
-September, October, November, and December). These 304 days were
-followed by an unnamed and unnumbered winter period. The Roman king
-Numa Pompilius (c. 715-673 BC, although his historicity is disputed)
-allegedly introduced February and January (in that order) between
-December and March, increasing the length of the year to 354 or 355
-days. In 450 BC, February was moved to its current position between
+  Originally, the year started on 1 March and consisted of only 304 days
+or  10 months  (Martius,  Aprilis, Maius,  Junius, Quintilis,  Sextilis,
+September,  October,  November,  and  December).  These  304  days  were
+followed by  an unnamed  and unnumbered winter  period.  The  Roman king
+Numa Pompilius  (c.  715-673 BC,  although his historicity  is disputed)
+allegedly  introduced  February  and  January (in  that  order)  between
+December and  March, increasing  the length  of the year  to 354  or 355
+days.  In  450 BC,  February was moved  to its current  position between
 January and March.
 
-In order to make up for the lack of days in a year, an extra month,
-Intercalaris or Mercedonius, (allegedly with 22 or 23 days though some
-authorities dispute this) was introduced in some years. In an 8 year
+  In order to  make up for the lack  of days in a year,  an extra month,
+Intercalaris or Mercedonius,  (allegedly with 22 or 23  days though some
+authorities dispute  this) was introduced in  some years.  In  an 8 year
 period the length of the years were:
-        1: 12 months or 355 days
-        2: 13 months or 377 days
-        3: 12 months or 355 days
-        4: 13 months or 378 days
-        5: 12 months or 355 days
-        6: 13 months or 377 days
-        7: 12 months or 355 days
-        8: 13 months or 378 days
-A total of 2930 days corresponding to a year of 366 1/4 days. This
-year was discovered to be too long, and therefore 7 days were later
+
+    1: 12 months or 355 days
+    2: 13 months or 377 days
+    3: 12 months or 355 days
+    4: 13 months or 378 days
+    5: 12 months or 355 days
+    6: 13 months or 377 days
+    7: 12 months or 355 days
+    8: 13 months or 378 days
+
+  A total  of 2930 days corresponding to  a year of 366  1/4 days.  This
+year was  discovered to  be too  long, and therefore  7 days  were later
 dropped from the 8th year, yielding 365.375 days per year.
 
-This is all theory. In practice it was the duty of the priesthood to
-keep track of the calendars, but they failed miserably, partly due to
-ignorance, partly because they were bribed to make certain years long
-and other years short. Furthermore, leap years were considered unlucky
-and were therefore avoided in time of crisis, such as the Second Punic
+  This is all theory.  In practice  it was the duty of the priesthood to
+keep track  of the calendars, but  they failed miserably,  partly due to
+ignorance, partly  because they were  bribed to make certain  years long
+and other years short.   Furthermore, leap years were considered unlucky
+and were therefore  avoided in time of crisis, such  as the Second Punic
 War.
 
-In order to clean up this mess, Julius Caesar made his famous calendar
-reform in 45 BC. We can make an educated guess about the length of the
+  In order to clean up this mess, Julius Caesar made his famous calendar
+reform in 45 BC.  We can make an educated guess about  the length of the
 months in the years 47 and 46 BC:
 
-                47 BC          46 BC
-Januarius        29             29
-Februarius       28             24
-Intercalaris                    27
-Martius          31             31
-Aprilis          29             29
-Maius            31             31
-Junius           29             29
-Quintilis        31             31
-Sextilis         29             29
-September        29             29
-October          31             31
-November         29             29
-Undecember                      33
-Duodecember                     34
-December         29             29
-                ---            ---
-Total           355            445
+                    47 BC          46 BC
+    Januarius        29             29
+    Februarius       28             24
+    Intercalaris                    27
+    Martius          31             31
+    Aprilis          29             29
+    Maius            31             31
+    Junius           29             29
+    Quintilis        31             31
+    Sextilis         29             29
+    September        29             29
+    October          31             31
+    November         29             29
+    Undecember                      33
+    Duodecember                     34
+    December         29             29
+                    ---            ---
+    Total           355            445
 
-The names of the last four months are derived from the Latin words for
+  The names of the last four months are derived from the Latin words for
 nine, eleven, twelve, ten - in that order!
 
-The length of the months from 45 BC onward were the same as the ones
+  The length of the  months from 45 BC onward were the  same as the ones
 we know today.
 
-Occasionally one reads the following story:
-        "Julius Caesar made all odd numbered months 31 days long, and
-        all even numbered months 30 days long (with February having 29
-        days in non-leap years). In 44 BC Quintilis was renamed
-        'Julius' (July) in honour of Julius Caesar, and in 8 BC
-        Sextilis became 'Augustus' in honour of emperor Augustus. When
-        Augustus had a month named after him, he wanted his month to
-        be a full 31 days long, so he removed a day from February and
-        shifted the length of the other months so that August would
-        have 31 days."
-This story, however, has no basis in actual fact. It is a fabrication,
-possibly invented by the English-French scholar Johannes de Sacrobosco
+  Occasionally one reads the following story:
+
+        "Julius Caesar  made all odd  numbered months 31 days  long, and
+        all even numbered  months 30 days long (with  February having 29
+        days  in  non-leap  years).   In  44 BC  Quintilis  was  renamed
+        'Julius' (July) in honour of Julius Caesar, and in 8 BC Sextilis
+        became 'Augustus' in honour  of emperor Augustus.  When Augustus
+        had a month named after him, he wanted his month to be a full 31
+        days long,  so he  removed a day  from February and  shifted the
+        length of the other months so that August would have 31 days."
+
+this story, however,  has no basis in actual fact.  It is a fabrication,
+possibly invented  by the English-French scholar  Johannes de Sacrobosco
 in the 13th century.
 
 
 2.8.1. How did the Romans number days?
 --------------------------------------
 
-The Romans didn't number the days sequentially from 1. Instead they
-had three fixed points in each month:
-        "Kalendae" (or "Calendae"), which was the first day of the month.
-        "Idus", which was the 13th day of January, February, April,
-                June, August, September, November, and December, or
-                the 15th day of March, May, July, or October.
-        "Nonae", which was the 9th day before Idus (counting Idus
-                 itself as the 1st day).
+The Romans didn't number the days sequentially from 1.  Instead they had
+three fixed points in each month:
 
-The days between Kalendae and Nonae were called "the 5th day before
-Nonae", "the 4th day before Nonae", "the 3rd day before Nonae", and
-"the day before Nonae". (There was no "2nd day before Nonae". This was
-because of the inclusive way of counting used by the Romans: To them,
-Nonae itself was the first day, and thus "the 2nd day before" and "the
+"Kalendae" (or "Calendae")
+    Which was the first day of the month.
+
+"Idus"
+    Which was  the 13th day  of January, February, April,  June, August,
+    September, November,  and December, or  the 15th day of  March, May,
+    July, or October.
+
+"Nonae"
+    Which was the  9th day before Idus (counting Idus  itself as the 1st
+    day).
+
+  The days  between Kalendae and Nonae  were called "the  5th day before
+Nonae", "the 4th day before Nonae", "the 3rd day before Nonae", and "the
+day  before Nonae".  (There  was no  "2nd day  before Nonae".   This was
+because of  the inclusive way of  counting used by the  Romans: To them,
+Nonae itself was  the first day, and thus "the 2nd  day before" and "the
 day before" would mean the same thing.)
 
-Similarly, the days between Nonae and Idus were called "the Xth day
-before Idus", and the days after Idus were called "the Xth day before
+  Similarly, the  days between Nonae and  Idus were called  "the Xth day
+before Idus",  and the days after  Idus were called "the  Xth day before
 Kalendae (of the next month)".
 
-Julius Caesar decreed that in leap years the "6th day before Kalendae
-of March" should be doubled. So in contrast to our present system, in
-which we introduce an extra date (29 February), the Romans had the
-same date twice in leap years. The doubling of the 6th day before
-Kalendae of March is the origin of the word "bissextile".  If we
-create a list of equivalences between the Roman days and our current
-days of February in a leap year, we get the following:
+  Julius Caesar decreed that in  leap years the "6th day before Kalendae
+of March" should  be doubled.  So in contrast to  our present system, in
+which we introduce an extra date  (29 February), the Romans had the same
+date twice in  leap years.  The doubling of the  6th day before Kalendae
+of March is the origin of the word "bissextile".  If we create a list of
+equivalences between the Roman days  and our current days of February in
+a leap year, we get the following:
 
-        7th day before Kalendae of March        23 February
-        6th day before Kalendae of March        24 February
-        6th day before Kalendae of March        25 February
-        5th day before Kalendae of March        26 February
-        4th day before Kalendae of March        27 February
-        3rd day before Kalendae of March        28 February
-        the day before Kalendae of March        29 February
-        Kalendae of March                        1 March
+    7th day before Kalendae of March        23 February
+    6th day before Kalendae of March        24 February
+    6th day before Kalendae of March        25 February
+    5th day before Kalendae of March        26 February
+    4th day before Kalendae of March        27 February
+    3rd day before Kalendae of March        28 February
+    the day before Kalendae of March        29 February
+    Kalendae of March                        1 March
 
-You can see that the extra 6th day (going backwards) falls on what is
-today 24 February. For this reason 24 February is still today
-considered the "extra day" in leap years (see section 2.3). However,
-at certain times in history the second 6th day (25 Feb) has been
-considered the leap day.
+  You can see that the extra  6th day (going backwards) falls on what is
+today  24  February.   For  this  reason  24  February  is  still  today
+considered the "extra day" in leap years (see section 2.3).  However, at
+certain times in history the second 6th day (25 Feb) has been considered
+the leap day.
 
-Why did Caesar choose to double the 6th day before Kalendae of March?
-It appears that the leap month Intercalaris/Mercedonius of the
-pre-reform calendar was not placed after February, but inside it,
-namely between the 7th and 6th day before Kalendae of March. It was
-therefore natural to have the leap day in the same position.
+  Why did Caesar choose to double  the 6th day before Kalendae of March?
+It  appears   that  the  leap  month   Intercalaris/Mercedonius  of  the
+pre-reform calendar was not placed after February, but inside it, namely
+between the 7th and 6th day  before Kalendae of March.  It was therefore
+natural to have the leap day in the same position.
 
 
 2.9. What is the proleptic calendar?
 ------------------------------------
 
-The Julian calendar was introduced in 45 BC, but when historians date
-events prior to that year, they normally extend the Julian calendar
-backward in time. This extended calendar is known as the "Julian
+The Julian  calendar was introduced in  45 BC, but  when historians date
+events  prior to  that year,  they normally  extend the  Julian calendar
+backward  in time.   This  extended  calendar is  known  as the  "Julian
 Proleptic Calendar".
 
-Similarly, it is possible to extend the Gregorian calendar backward in
-time before 1582. However, this "Gregorian Proleptic Calendar" is
-not commonly used.
+  Similarly, it is possible to extend the Gregorian calendar backward in
+time before  1582.  However, this "Gregorian Proleptic  Calendar" is not
+commonly used.
 
-If someone refers to, for example, 15 March 429 BC, they are probably
+  If someone refers to, for example,  15 March 429 BC, they are probably
 using the Julian proleptic calendar.
 
-In the Julian proleptic calendar, year X BC is a leap year, if X-1 is
-divisible by 4. This is the natural extension of the Julian leap year
+  In the Julian proleptic  calendar, year X BC is a leap  year if X-1 is
+divisible by 4.   This is the natural extension of  the Julian leap year
 rules.
 
 
 2.10. Has the year always started on 1 January?
 -----------------------------------------------
 
-In some ways, yes. When Julius Caesar introduced his calendar in
-45 BC, the year started on 1 January, and that was always the date on
-which the Solar Number and the Golden Number (see section 2.13.3) were
+In some ways, yes.  When Julius Caesar introduced his calendar in 45 BC,
+the year started on 1 January, and that was always the date on which the
+Solar  Number   and  the  Golden   Number  (see  section   2.13.3)  were
 incremented.
 
-However, the church didn't like the wild parties that took place at
-the start of the new year, and in AD 567 the council of Tours declared
-that having the year start on 1 January was an ancient mistake that
+  However, the  church didn't like the  wild parties that  took place at
+the start of the  new year, and in AD 567 the  council of Tours declared
+that having  the year  start on  1 January was  an ancient  mistake that
 should be abolished.
 
-Through the middle ages various New Year dates were used. If an
-ancient document refers to year X, it may mean any of 7 different
+  Through  the middle  ages various  New Year  dates were  used.   If an
+ancient  document refers  to year  X,  it may  mean any  of 7  different
 periods in our present system:
 
-- 1 Mar X to 28/29 Feb X+1
-- 1 Jan X to 31 Dec X
-- 1 Jan X-1 to 31 Dec X-1
-- 25 Mar X-1 to 24 Mar X
-- 25 Mar X to 24 Mar X+1
-- Saturday before Easter X to Friday before Easter X+1
-- 25 Dec X-1 to 24 Dec X
+    1 Mar X                     to      28/29 Feb X+1
+    1 Jan X                     to      31 Dec X
+    1 Jan X-1                   to      31 Dec X-1
+   25 Mar X-1                   to      24 Mar X
+   25 Mar X                     to      24 Mar X+1
+  Saturday before Easter X      to      Friday before Easter X+1
+   25 Dec X-1                   to      24 Dec X
 
-Choosing the right interpretation of a year number is difficult, so
-much more as one country might use different systems for religious and
+  Choosing the  right interpretation of  a year number is  difficult, so
+much more as  one country might use different  systems for religious and
 civil needs.
 
-The Byzantine Empire used a year starting on 1 Sep, but they didn't
-count years since the birth of Christ, instead they counted years
-since the creation of the world which they dated to 1 September 5509 BC.
+  The Byzantine  Empire used a year  starting on 1 Sep,  but they didn't
+count years since the birth  of Christ, instead they counted years since
+the creation of the world which they dated to 1 September 5509 BC.
 
-Since about 1600 most countries have used 1 January as the first day
-of the year. Italy and England, however, did not make 1 January official
-until around 1750.
+  Since about 1600  most countries have used 1 January  as the first day
+of  the  year.  Italy  and  England, however,  did  not  make 1  January
+official until around 1750.
 
-In England (but not Scotland) three different years were used:
-- The historical year, which started on 1 January.
-- The liturgical year, which started on the first Sunday in advent.
-- The civil year, which
-        from the 7th to the 12th century started on 25 December,
-        from the 12th century until 1751 started on 25 March,
-        from 1752 started on 1 January.
+  In England (but not Scotland) three different years were used:
 
-It is sometimes claimed that having the year start on 1 January was part of
-the Gregorian calendar reform. This is not true. This myth has probably
-started because in 1752 England moved the start of the year to 1 January and
-also changed to the Gregorian calendar. But in most other countries the two
-events were not related. Scotland, for example, changed to the Gregorian
-calendar together with England in 1752, but they moved the start of the year
-to 1 January in 1600.
+* The historical year, which started on 1 January.
+
+* The liturgical year, which started on the first Sunday in advent.
+
+* The civil year, which:
+
+  - from the 7th to the 12th century started on 25 December,
+
+  - from the 12th century until 1751 started on 25 March,
+
+  - from 1752 started on 1 January.
+
+  It is  sometimes claimed that having  the year start on  1 January was
+part of the Gregorian calendar reform.  This is not true.  This myth has
+probably started because in 1752 England  moved the start of the year to
+1 January and also changed to the Gregorian calendar.  But in most other
+countries  the two  events  were not  related.   Scotland, for  example,
+changed to  the Gregorian  calendar together with  England in  1752, but
+they moved the start of the year to 1 January in 1600.
 
 
 2.11. Then what about leap years?
 ---------------------------------
 
-If the year started on, for example, 1 March, two months later than
-our present year, when was the leap day inserted?
+If the year started on, for  example, 1 March, two months later than our
+present year, when was the leap day inserted?
 
-[The following information is to the best of my knowledge true. If
+  [The following  information is to the  best of my  knowledge true.  If
 anyone can confirm or refute it, please let me know.]
 
-When it comes to determining if a year is a leap year, since AD 8 the
-Julian calendar has always had 48 months between two leap days. So, in
-a country using a year starting on 1 March, 1439 would have been a
-leap year, because their February 1439 would correspond to February
-1440 in the January-based reckoning.
+  When it comes to determining if a  year is a leap year, since AD 8 the
+Julian calendar has always had 48  months between two leap days.  So, in
+a country using a year starting on  1 March, 1439 would have been a leap
+year, because their  February 1439 would correspond to  February 1440 in
+the January-based reckoning.
 
 
 2.12. What is the origin of the names of the months?
 ---------------------------------------------------
 
-A lot of languages, including English, use month names based on Latin.
-Their origin is listed below. However, some languages (Czech and
+A lot of  languages, including English, use month  names based on Latin.
+Their  origin  is listed  below.   However,  some  languages (Czech  and
 Polish, for example) use quite different names.
 
-January     Latin: Januarius. Named after the god Janus.
-February    Latin: Februarius. Named after Februa, the purification
-            festival.
-March       Latin: Martius. Named after the god Mars.
-April       Latin: Aprilis. The origin of the name is unknown. It may
-            come from the Latin word "aperire" ("to open"), or - more
-            likely - from the ancient Latin prefix "apter-"
-            ("subsequent").
-May         Latin: Maius. Named after the goddess Maia or the god
-            Maius.
-June        Latin: Junius. Named after the goddess Juno.
-July        Latin: Julius. Named after Julius Caesar in 44 BC. Prior
-            to that time its name was Quintilis from the word
-            "quintus", fifth, because it was the 5th month in the old
-            Roman calendar.
-August      Latin: Augustus. Named after emperor Augustus in 8
-            BC. Prior to that time the name was Sextilis from the
-            word "sextus", sixth, because it was the 6th month in the
-            old Roman calendar.
-September   Latin: September. From the word "septem", seven, because
-            it was the 7th month in the old Roman calendar.
-October     Latin: October. From the word "octo", eight, because it
-            was the 8th month in the old Roman calendar.
-November    Latin: November. From the word "novem", nine, because it
-            was the 9th month in the old Roman calendar.
-December    Latin: December. From the word "decem", ten, because it
-            was the 10th month in the old Roman calendar.
+January
+    Latin: Januarius.  Named after the god Janus.
+
+February
+    Latin: Februarius.  Named after Februa, the purification festival.
+
+March
+    Latin: Martius.  Named after the god Mars.
+
+April
+    Latin: Aprilis.   The origin  of the name  is unknown.  It  may come
+    from the Latin  word "aperire" ("to open"), or -  more likely - from
+    the ancient Latin prefix "apter-" ("subsequent").
+
+May
+    Latin: Maius.  Named after the goddess Maia or the god Maius.
+
+June
+    Latin: Junius.  Named after the goddess Juno.
+
+July
+    Latin: Julius.   Named after Julius Caesar  in 44 BC.  Prior to that
+    time its name was Quintilis  from the word "quintus", fifth, because
+    it was the 5th month in the old Roman calendar.
+
+August
+    Latin: Augustus.  Named after  emperor Augustus in  8 BC.   Prior to
+    that  time the  name was  Sextilis  from the  word "sextus",  sixth,
+    because it was the 6th month in the old Roman calendar.
+
+September
+    Latin: September.  From the word "septem", seven, because it was the
+    7th month in the old Roman calendar.
+
+October
+    Latin: October.  From the word "octo", eight, because it was the 8th
+    month in the old Roman calendar.
+
+November
+    Latin: November.   From the word  "novem", nine, because it  was the
+    9th month in the old Roman calendar.
+
+December
+    Latin: December.   From the  word "decem", ten,  because it  was the
+    10th month in the old Roman calendar.
 
 
 2.13. What is Easter?
 ---------------------
 
-In the Christian world, Easter (and the days immediately preceding it)
-is the celebration of the death and resurrection of Jesus in
+In the Christian  world, Easter (and the days  immediately preceding it)
+is  the  celebration   of  the  death  and  resurrection   of  Jesus  in
 (approximately) AD 30.
 
 
 2.13.1. When is Easter? (Short answer)
 --------------------------------------
 
-Easter Sunday is the first Sunday after the first full moon after
-vernal equinox.
+Easter Sunday is the first Sunday after the first full moon after vernal
+equinox.
 
 
 2.13.2. When is Easter? (Long answer)
 -------------------------------------
 
-The calculation of Easter is complicated because it is linked to (an
+The calculation  of Easter  is complicated because  it is linked  to (an
 inaccurate version of) the Hebrew calendar.
 
-Jesus was crucified immediately before the Jewish Passover, which is a
-celebration of the Exodus from Egypt under Moses. Celebration of
-Passover started on the 15th day of the (spring) month of Nisan.
-Jewish months start when the moon is new, therefore the 15th day of
-the month must be immediately after a full moon.
+  Jesus was crucified immediately before the Jewish Passover, which is a
+celebration  of  the  Exodus  from  Egypt under  Moses.  Celebration  of
+Passover started on the 15th day of the (spring) month of Nisan.  Jewish
+months start when  the moon is new, therefore the 15th  day of the month
+must be immediately after a full moon.
 
-It was therefore decided to make Easter Sunday the first Sunday after
-the first full moon after vernal equinox. Or more precisely: Easter
-Sunday is the first Sunday after the *official* full moon on or after
+  It was therefore decided to  make Easter Sunday the first Sunday after
+the  first full  moon after  vernal equinox.  Or more  precisely: Easter
+Sunday is  the first Sunday after  the *official* full moon  on or after
 the *official* vernal equinox.
 
-The official vernal equinox is always 21 March.
+  The official vernal equinox is always 21 March.
 
-The official full moon may differ from the *real* full moon by one or
+  The official full moon may differ  from the *real* full moon by one or
 two days.
 
-(Note, however, that historically, some countries have used the *real*
-(astronomical) full moon instead of the official one when calculating
-Easter. This was the case, for example, of the German Protestant states,
-which used the astronomical full moon in the years 1700-1776. A
-similar practice was used in Sweden in the years 1740-1844 and in
+  (Note, however, that historically, some countries have used the *real*
+(astronomical) full  moon instead of  the official one  when calculating
+Easter.   This was  the  case,  for example,  of  the German  Protestant
+states, which used the astronomical full moon in the years 1700-1776.  A
+similar  practice was  used  in Sweden  in  the years  1740-1844 and  in
 Denmark in the 1700s.)
 
-The full moon that precedes Easter is called the Paschal full
-moon. Two concepts play an important role when calculating the Paschal
-full moon: The Golden Number and the Epact. They are described in the
+  The full  moon that precedes Easter  is called the  Paschal full moon.
+Two concepts  play an important  role when calculating the  Paschal full
+moon:  the Golden  Number  and the  Epact.   They are  described in  the
 following sections.
 
-The following sections give details about how to calculate the date
-for Easter. Note, however, that while the Julian calendar was in use,
-it was customary to use tables rather than calculations to determine
-Easter. The following sections do mention how to calculate Easter
-under the Julian calendar, but the reader should be aware that this is
-an attempt to express in formulas what was originally expressed in
-tables. The formulas can be taken as a good indication of when Easter
-was celebrated in the Western Church from approximately the 6th
-century.
+  The following  sections give details  about how to calculate  the date
+for Easter.  Note,  however, that while the Julian  calendar was in use,
+it was  customary to  use tables rather  than calculations  to determine
+Easter.  The following sections do mention how to calculate Easter under
+the Julian  calendar, but  the reader  should be aware  that this  is an
+attempt to express in formulas  what was originally expressed in tables.
+The  formulas can  be taken  as  a good  indication of  when Easter  was
+celebrated in the Western Church from approximately the 6th century.
 
 
 2.13.3. What is the Golden Number?
@@ -1150,24 +1190,23 @@ century.
 
 Each year is associated with a Golden Number.
 
-Considering that the relationship between the moon's phases and the
-days of the year repeats itself every 19 years (as described in
-chapter 1), it is natural to associate a number between 1 and 19
-with each year. This number is the so-called Golden Number. It is
-calculated thus:
-        GoldenNumber = (year mod 19)+1
+  Considering that  the relationship between  the moon's phases  and the
+days of the year repeats itself  every 19 years (as described in chapter
+1), it is natural to associate a number between 1 and 19 with each year.
+This  number is  the so-called  Golden Number.   It is  calculated thus:
 
-In years which have the same Golden Number, the new moon will fall on
-(approximately) the same date. The Golden Number is sufficient to
+    GoldenNumber = (year mod 19)+1
+
+  In years which have the same  Golden Number, the new moon will fall on
+(approximately)  the  same date.  The  Golden  Number  is sufficient  to
 calculate the Paschal full moon in the Julian calendar.
 
 
 2.13.4. How does one calculate Easter then?
 -------------------------------------------
 
-Under the Julian calendar the method was simple. If you know the
-Golden Number of the year, you can find the Paschal full moon in this
-table:
+Under the Julian calendar the method was simple.  If you know the Golden
+Number of the year, you can find the Paschal full moon in this table:
 
    Golden                 Golden                 Golden
    Number   Full moon     Number   Full moon     Number   Full moon
@@ -1180,24 +1219,24 @@ table:
      6      10 April        13     24 March
      7      30 March        14     12 April
 
-Easter Sunday is the first Sunday following the above full moon date.
-If the full moon falls on a Sunday, Easter Sunday is the following
+  Easter Sunday is the first  Sunday following the above full moon date.
+If  the full  moon falls  on a  Sunday, Easter  Sunday is  the following
 Sunday.
 
-(In particular in the Eastern Orthodox Churches, an additional rule
-that Easter must come after the Jewish Passover has been used. As time
-went by, this rule became less important, as the error in the Julian
+  (In particular  in the Eastern  Orthodox Churches, an  additional rule
+that Easter must come after the  Jewish Passover has been used.  As time
+went by,  this rule became  less important, as  the error in  the Julian
 calendar caused Easter to fall later in spring.)
 
-Under the Gregorian calendar, things became much more complicated.
-One of the changes made in the Gregorian calendar reform was a
-modification of the way Easter was calculated. There were two reasons
-for this. First, the 19 year cycle of the phases of moon (the Metonic
-cycle) was known not to be perfect. Secondly, the Metonic cycle fitted
-the Gregorian calendar year worse than it fitted the Julian calendar
+  Under  the Gregorian  calendar, things  became much  more complicated.
+One  of  the  changes  made  in  the Gregorian  calendar  reform  was  a
+modification of the  way Easter was calculated.  There  were two reasons
+for this.  First,  the 19 year cycle of the phases  of moon (the Metonic
+cycle) was known not to  be perfect.  Secondly, the Metonic cycle fitted
+the Gregorian  calendar year  worse than it  fitted the  Julian calendar
 year.
 
-It was therefore decided to base Easter calculations on the so-called
+  It was therefore decided to  base Easter calculations on the so-called
 Epact.
 
 
@@ -1206,90 +1245,92 @@ Epact.
 
 Each year is associated with an Epact.
 
-The Epact is a measure of the age of the moon (i.e. the number of days
+  The Epact is a measure of the age of the moon (i.e. the number of days
 that have passed since an "official" new moon) on a particular date.
 
-(In this context a "new moon" is the first visible crescent moon. In
-modern calendars, a "new moon" is the completely invisble moon. The
-two differ by approximately one day, and this difference must be kept
-in mind when comparing the new moon calculations presented here to
+  (In this context a "new moon"  is the first visible crescent moon.  In
+modern calendars, a "new moon" is the completely invisble moon.  The two
+differ by  approximately one  day, and this  difference must be  kept in
+mind  when  comparing  the  new  moon  calculations  presented  here  to
 reality.)
 
-In the Julian calendar, the Epact is the age of the moon on 22 March.
-In the Gregorian calendar, the Epact is the age of the moon at the
-start of the year.
+  In the Julian calendar, the Epact is  the age of the moon on 22 March.
+In the Gregorian calendar, the Epact is the age of the moon at the start
+of the year.
 
-The Epact is linked to the Golden Number in the following manner:
-
-Under the Julian calendar, 19 years were assumed to be exactly an
-integral number of synodic months, and the following relationship
-exists between the Golden Number and the Epact:
+  The  Epact is linked  to the  Golden Number  in the  following manner:
+under  the Julian  calendar,  19 years  were  assumed to  be exactly  an
+integral number of synodic months, and the following relationship exists
+between the Golden Number and the Epact:
 
         Epact = (11 * (GoldenNumber-1)) mod 30
 
-If this formula yields zero, the Epact is by convention frequently
-designated by the symbol * and its value is said to be 30. Weird?
+if  this formula  yields zero,  the  Epact is  by convention  frequently
+designated  by the symbol  * and  its value  is said  to be  30.  Weird?
 Maybe, but people didn't like the number zero in the old days.
 
-Since there are only 19 possible golden numbers, the Epact can have
-only 19 different values: 1, 3, 4, 6, 7, 9, 11, 12, 14, 15, 17, 18, 20,
+  Since there  are only 19 possible  golden numbers, the  Epact can have
+only 19 different values: 1, 3, 4, 6,  7, 9, 11, 12, 14, 15, 17, 18, 20,
 22, 23, 25, 26, 28, and 30.
 
-
-In the Gregorian calendar reform, some modifications were made to the
+  In the Gregorian calendar reform,  some modifications were made to the
 simple relationship between the Golden Number and the Epact.
 
-In the Gregorian calendar the Epact should be calculated thus (the
+  In the  Gregorian calendar  the Epact should  be calculated  thus (the
 divisions are integer divisions, in which remainders are discarded):
 
 1) Use the Julian formula:
+
       JulianEpact = (11 * (GoldenNumber-1)) mod 30
 
 2) Calculate the so-called "Solar Equation":
+
         S = (3*century)/4
 
-   The Solar Equation is an expression of the difference between the
-   Julian and the Gregorian calendar. The value of S increases by one
+   The Solar  Equation is  an expression of  the difference  between the
+   Julian and the  Gregorian calendar.  The value of  S increases by one
    in every century year that is not a leap year.
 
-   (For the purpose of this calculation century=20 is used for the
-   years 1900 through 1999, and similarly for other centuries,
-   although this contradicts the rules in section 2.14.3.)
+   (For the purpose of this calculation century=20 is used for the years
+   1900 through  1999, and similarly for other  centuries, although this
+   contradicts the rules in section 2.14.3.)
 
 3) Calculate the so-called "Lunar Equation":
+
         L = (8*century + 5)/25
 
-   The Lunar Equation is an expression of the difference between the
-   Julian calendar and the Metonic cycle. The value of L increases by
+   The Lunar  Equation is  an expression of  the difference  between the
+   Julian calendar  and the Metonic cycle.  The value of  L increases by
    one 8 times every 2500 years.
 
 4) Calculate the Gregorian epact thus:
+
         GregorianEpact = JulianEpact - S + L + 8
 
-   The number 8 is a constant that calibrates the starting point of
-   the Gregorian Epact so that it matches the actual age of the moon
-   on new year's day.
+   The number 8 is a constant  that calibrates the starting point of the
+   Gregorian Epact so that it matches  the actual age of the moon on new
+   year's day.
 
 5) Add or subtract 30 until GregorianEpact lies between 1 and 30.
 
-In the Gregorian calendar, the Epact can have any value from 1 to 30.
+  In the Gregorian calendar, the Epact can have any value from 1 to 30.
 
 Example: What was the Epact for 1992?
 
-GoldenNumber = 1992 mod 19 + 1 = 17
-1) JulianEpact = (11 * (17-1)) mod 30 = 26
-2) S = (3*20)/4 = 15
-3) L = (8*20 + 5)/25 = 6
-4) GregorianEpact = 26 - 15 + 6 + 8 = 25
-5) No adjustment is necessary
+    GoldenNumber = 1992 mod 19 + 1 = 17
+    1) JulianEpact = (11 * (17-1)) mod 30 = 26
+    2) S = (3*20)/4 = 15
+    3) L = (8*20 + 5)/25 = 6
+    4) GregorianEpact = 26 - 15 + 6 + 8 = 25
+    5) No adjustment is necessary
 
-The Epact for 1992 was 25.
+    The Epact for 1992 was 25.
 
 
 2.13.6. How does one calculate Gregorian Easter then?
 -----------------------------------------------------
 
-Look up the Epact in this table to find the date for the Paschal full
+Look up the  Epact in this table  to find the date for  the Paschal full
 moon:
 
   Epact   Full moon     Epact   Full moon     Epact   Full moon
@@ -1305,90 +1346,101 @@ moon:
      9     4 April        19    25 March        29    14 April
     10     3 April        20    24 March        30    13 April
 
-Easter Sunday is the first Sunday following the above full moon date.
-If the full moon falls on a Sunday, Easter Sunday is the following
+Easter Sunday  is the first Sunday  following the above  full moon date.
+If  the full  moon falls  on a  Sunday, Easter  Sunday is  the following
 Sunday.
 
-
-An Epact of 25 requires special treatment, as it has two dates in the
-above table. There are two equivalent methods for choosing the correct
+  An Epact of 25 requires special  treatment, as it has two dates in the
+above table.  There are two  equivalent methods for choosing the correct
 full moon date:
 
-A) Choose 18 April, unless the current century contains years with an
+A) Choose  18 April, unless the  current century contains  years with an
    epact of 24, in which case 17 April should be used.
 
-B) If the Golden Number is > 11 choose 17 April, otherwise choose 18 April.
+B) If  the Golden Number  is > 11  choose 17 April, otherwise  choose 18
+   April.
 
-The proof that these two statements are equivalent is left as an
-exercise to the reader. (The frustrated ones may contact me for the
+  The  proof that  these two  statements are  equivalent is  left  as an
+exercise  to the reader.  (The frustrated  ones may  contact me  for the
 proof.)
 
 Example: When was Easter in 1992?
 
-In the previous section we found that the Golden Number for 1992 was
-17 and the Epact was 25. Looking in the table, we find that the
-Paschal full moon was either 17 or 18 April. By rule B above, we
-choose 17 April because the Golden Number > 11.
+    In the previous section we found that the Golden Number for 1992 was
+    17 and  the Epact was  25.  Looking in  the table, we find  that the
+    Paschal full  moon was either 17 or  18 April.  By rule  B above, we
+    choose 17 April because the Golden Number > 11.
 
-17 April 1992 was a Friday. Easter Sunday must therefore have been
-19 April.
+    17 April 1992 was a  Friday.  Easter Sunday must therefore have been
+    19 April.
 
 
 2.13.7. Isn't there a simpler way to calculate Easter?
 ------------------------------------------------------
 
-This is an attempt to boil down the information given in the previous
-sections (the divisions are integer divisions, in which remainders are
+This is  an attempt to boil  down the information given  in the previous
+sections (the  divisions are integer divisions, in  which remainders are
 discarded):
 
 G = year mod 19
 
 For the Julian calendar:
+
     I = (19*G + 15) mod 30
     J = (year + year/4 + I) mod 7
 
 For the Gregorian calendar:
+
     C = year/100
     H = (C - C/4 - (8*C+13)/25 + 19*G + 15) mod 30
     I = H - (H/28)*(1 - (29/(H + 1))*((21 - G)/11))
     J = (year + year/4 + I + 2 - C + C/4) mod 7
 
 Thereafter, for both calendars:
-L = I - J
-EasterMonth = 3 + (L + 40)/44
-EasterDay = L + 28 - 31*(EasterMonth/4)
 
+    L = I - J
+    EasterMonth = 3 + (L + 40)/44
+    EasterDay = L + 28 - 31*(EasterMonth/4)
 
-This algorithm is based in part on the algorithm of Oudin (1940) as
-quoted in "Explanatory Supplement to the Astronomical Almanac",
+  This algorithm  is based in part  on the algorithm of  Oudin (1940) as
+quoted  in   "Explanatory  Supplement  to   the  Astronomical  Almanac",
 P. Kenneth Seidelmann, editor.
 
-People who want to dig into the workings of this algorithm, may be
-interested to know that
-    G is the Golden Number-1
-    H is 23-Epact (modulo 30)
-    I is the number of days from 21 March to the Paschal full moon
-    J is the weekday for the Paschal full moon (0=Sunday, 1=Monday,
-      etc.)
-    L is the number of days from 21 March to the Sunday on or before
-      the Paschal full moon (a number between -6 and 28)
+  People who  want to dig  into the workings  of this algorithm,  may be
+interested to know that:
+
+G
+    Is the Golden Number-1.
+
+H
+    Is 23-Epact (modulo 30).
+
+I
+    Is the number of days from 21 March to the Paschal full moon.
+
+J
+    Is the weekday for the Paschal full moon (0=Sunday, 1=Monday, etc.).
+
+L
+    Is the number of  days from 21 March to the Sunday  on or before the
+    Paschal full moon (a number between -6 and 28).
 
 
 2.13.8. Isn't there an even simpler way to calculate Easter?
 ------------------------------------------------------------
 
-If we confine ourselves to the years 1900-2099 and consider only the
-Gregorian calendar, the formulas of the previous section can be
-further simplified thus:
+If we  confine ourselves  to the years  1900-2099 and consider  only the
+Gregorian calendar, the formulas of  the previous section can be further
+simplified thus:
 
-H = (24 + 19*(year mod 19)) mod 30
-I = H - H/28
-J = (year + year/4 + I - 13) mod 7
-L = I - J
-EasterMonth = 3 + (L + 40)/44
-EasterDay = L + 28 - 31*(EasterMonth/4)
+    H = (24 + 19*(year mod 19)) mod 30
+    I = H - H/28
+    J = (year + year/4 + I - 13) mod 7
+    L = I - J
+    EasterMonth = 3 + (L + 40)/44
+    EasterDay = L + 28 - 31*(EasterMonth/4)
 
-(Again, the divisions are integer divisions, in which remainders are
+(Again,  the divisions are  integer divisions,  in which  remainders are
 discarded.)
 
 

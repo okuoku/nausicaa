@@ -63,6 +63,8 @@
 (library (times-and-dates)
   (export
 
+    <date> <time>
+
     ;; constants
     time-duration time-monotonic time-tai time-utc
     ;;time-process time-thread
@@ -90,6 +92,8 @@
     <date>-nanosecond <date>-second <date>-minute <date>-hour
     <date>-day <date>-month <date>-year <date>-zone-offset
     date-year-day date-week-day date-week-number
+
+    date-easter-day
 
     ;; converters
     date->julian-day
@@ -895,7 +899,7 @@
   ;;Return the index  of the day in its week,  zero based: Sun=0, Mon=1,
   ;;Tue=2, etc.  Assume the given date is correct.
   ;;
-  ;;From the calendar FAQ.
+  ;;From the calendar FAQ section 2.6.
   ;;
   (let* ((a (infix (14 - month) // 12))
 	 (y (infix year - a))
@@ -942,6 +946,38 @@
 	   (+ current-century n))
 	  (else
 	   (infix current-century - 100 + n)))))
+
+(define (%easter-month-and-day year)
+  ;;Return two  values being:  the 1-based index  of the month  in which
+  ;;Easter falls,  the 1-based index of  the day in  which Easter falls.
+  ;;The computation is for the Gregorian calendar.
+  ;;
+  ;;From the Calendar FAQ, section 2.13.7.
+  ;;
+  (let* ((G	(infix year % 19))
+	 (C	(infix year // 100))
+	 (H	(infix (C - C // 4 - (8 * C + 13) // 25 + 19 * G + 15) % 30))
+	 (I	(infix H - (H // 28) * (1 - (29 // (H + 1)) * ((21 - G) // 11))))
+	 (J	(infix (year + year // 4 + I + 2 - C + C // 4) % 7))
+	 (L	(infix I - J))
+
+	 (easter-month	(infix 3 + (L + 40) // 44))
+	 (easter-day	(infix L + 28 - 31 * (easter-month // 4))))
+    (values easter-month easter-day)))
+
+(define (date-easter-day (D <date>))
+  ;;Return a new <date> object  representing the Easter day for the year
+  ;;in D.  The new object has sub-day time set to zero and the same zone
+  ;;of D.
+  ;;
+  (receive (easter-month easter-day)
+      (%easter-month-and-day D.year)
+    (make <date>
+      0 0 0 0 ;nanosecond second minute hour
+      easter-day easter-month D.year D.zone-offset)))
+
+
+;;;; conversion functions
 
 (define (date->julian-day (D <date>))
   ;;Return the Julian day representing D.
