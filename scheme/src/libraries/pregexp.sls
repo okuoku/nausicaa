@@ -14,8 +14,8 @@
 ;;;
 ;;;		<http://evalwhen.com/pregexp/index.html>
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marcomaggi@gna.org>
 ;;;Copyright (c) 1999-2005 Dorai Sitaram. All rights reserved.
+;;;Modified in 2009, 2010 by Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;Permission  to copy,  modify,  distribute,  and use  this  work or  a
 ;;;modified  copy of  this work,  for  any purpose,  is hereby  granted,
@@ -33,7 +33,8 @@
     pregexp-split
     pregexp-replace
     pregexp-replace*
-    pregexp-comment-char)
+    pregexp-comment-char
+    pregexp-quote)
   (import (rnrs)
     (rnrs mutable-pairs)
     (lists)
