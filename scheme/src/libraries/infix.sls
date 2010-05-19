@@ -28,13 +28,13 @@
 (library (infix)
   (export infix-string->sexp infix->prefix infix)
   (import (rnrs)
+    (infix syntax)
     (only (keywords) define-keywords)
     (silex lexer)
     (parser-tools source-location)
     (parser-tools lexical-token)
     (infix string-lexer)
     (infix string-parser)
-    (infix syntax)
     (infix sexp-parser)
     (infix helpers))
 
@@ -72,51 +72,50 @@
 	($le		(make-<lexical-token> 'LE		#f '<= 2))
 	($ge		(make-<lexical-token> 'GE		#f '>= 2))
 	($eq		(make-<lexical-token> 'EQ		#f '= 1))
-	($question	(make-<lexical-token> 'QUESTION-ID	#f '? 1))
+	($question	(make-<lexical-token> 'QUESTION-ID	#f 'if 1))
 	($colon		(make-<lexical-token> 'COLON-ID		#f ': 1)))
     (lambda (expr)
-      (do ((result '())
+      (do ((tokens '())
 	   (expr	(if (pair? expr) expr (list expr)) (cdr expr)))
 	  ((null? expr)
-	   result)
+	   tokens)
 	(let ((atom (car expr)))
-	  (cond ((number? atom)
-		 (set! result
-		       (cons (make-<lexical-token> 'NUM #f atom 0)
-			     result)))
-		((symbol? atom)
-		 (set! result
-		       (cons (case atom
-			       ((+)	$add)
-			       ((-)	$sub)
-			       ((*)	$mul)
-			       ((/)	$div)
-			       ((%)	$mod)
-			       ((^)	$expt)
-			       ((//)	$div0)
-			       ((<)	$lt)
-			       ((>)	$gt)
-			       ((<=)	$le)
-			       ((>=)	$ge)
-			       ((=)	$eq)
-			       ((?)	$question)
-			       ((:)	$colon)
-			       (else	(make-<lexical-token> 'ID #f atom 0)))
-			     result)))
-		((procedure? atom)
-		 (set! result
-		       (cons (make-<lexical-token> 'ID #f atom 0)
-			     result)))
-		((pair? atom)
-		 (set! result
-		       ;;Parentheses  in reverse  order  because the  RESULT
-		       ;;will be reversed!!!
-		       (append ell-rparen-token
-			       (%infix-sexp->tokens atom)
-			       ell-lparen-token
-			       result)))
-		(else
-		 (make-<lexical-token> 'NUM #f atom 0))))))))
+	  (let-syntax ((set-cons!	(syntax-rules ()
+					  ((_ ?name ?form)
+					   (set! ?name (cons ?form ?name)))))
+		       (set-append!	(syntax-rules ()
+					  ((_ ?name ?form ...)
+					   (set! ?name (append ?form ... ?name))))))
+	    (cond ((number? atom)
+		   (set-cons! tokens (make-<lexical-token> 'NUM #f atom 0)))
+		  ((symbol? atom)
+		   (set-cons! tokens (case atom
+				       ((+)	$add)
+				       ((-)	$sub)
+				       ((*)	$mul)
+				       ((/)	$div)
+				       ((%)	$mod)
+				       ((^)	$expt)
+				       ((//)	$div0)
+				       ((<)	$lt)
+				       ((>)	$gt)
+				       ((<=)	$le)
+				       ((>=)	$ge)
+				       ((=)	$eq)
+				       ((?)	$question)
+				       ((:)	$colon)
+				       (else	(make-<lexical-token> 'ID #f atom 0)))))
+		  ((procedure? atom)
+		   (set-cons! tokens (make-<lexical-token> 'ID #f atom 0)))
+		  ((pair? atom)
+		   (set-append! tokens
+				;;Parentheses  in reverse  order because
+				;;the TOKENS will be reversed!!!
+				ell-rparen-token
+				(%infix-sexp->tokens atom)
+				ell-lparen-token))
+		  (else
+		   (set-cons! tokens (make-<lexical-token> 'NUM #f atom 0))))))))))
 
 
 ;;;; done

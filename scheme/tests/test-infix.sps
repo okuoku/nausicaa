@@ -298,7 +298,6 @@
   (check (infix->prefix '(1 + a ? 2 + b : 3 + c - 4))
     => '(if (+ 1 a) (+ 2 b) (- (+ 3 c) 4)))
 
-
   #t)
 
 
@@ -437,6 +436,7 @@
     (check (infix (a ? 1 : c))	=> (if a 1 c))
     (check (infix (a ? b : 1))	=> (if a b 1))
     (check (infix (1 ? 2 : 3))	=> (if 1 2 3))
+    (check (infix #f ? 2 : 3)	=> (if #f 2 3))
     (check (infix (#f ? 2 : 3))	=> (if #f 2 3))
 
     (check (infix (a * (b / a ? b : c)))

@@ -399,7 +399,7 @@
                   $1
                   .
                   yy-stack-values)
-          (yy-reduce-pop-and-push 5 1 (list 'if $1 $3 $5) yy-stack-states yy-stack-values))
+          (yy-reduce-pop-and-push 5 1 (list $2 $1 $3 $5) yy-stack-states yy-stack-values))
         (lambda (yy-reduce-pop-and-push yypushback yycustom yy-stack-states $1 . yy-stack-values)
           (yy-reduce-pop-and-push 1 1 $1 yy-stack-states yy-stack-values))
         (lambda (yy-reduce-pop-and-push
