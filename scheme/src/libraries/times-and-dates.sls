@@ -244,7 +244,9 @@
 ;;Number of seconds in a day.
 (define-constant $number-of-seconds-in-a-day  86400)
 
-;;Number of seconds in a half day.
+;;Number  of seconds  in a  half  day.  It  is used  in the  expressions
+;;involving  the  Julian Day,  which  starts  at  noon (rather  than  at
+;;midnight).
 (define-constant $number-of-seconds-in-half-day 43200)
 
 ;;Number of seconds in an hour.
@@ -713,11 +715,23 @@
 ;;;; Julian day stuff
 
 (define (%encode-julian-day-number day month year)
-  ;;Return the julian day which starts at noon.
+  ;;Return  an exact integer  representing the  Julian Day,  starting at
+  ;;noon, for  the given  date; does the  computation for  the Gregorian
+  ;;calendar.  Assumes the given date is correct.
+  ;;
+  ;;Notice that the returned value is not the "public" Julian Day number
+  ;;defined by this library: the  returned value is missing the fraction
+  ;;corresponding to hours, minutes, seconds and nanoseconds.
+  ;;
+  ;;From the Calendar FAQ, section 2.16.1.
   ;;
   (let* ((a (infix (14 - month) // 12))
 	 (y (- (infix year + 4800 - a)
-	       (if (negative? year) -1 0)))
+	       (if (negative?  year) -1 0)
+		;This adjusts year, taking care of the fact that between
+		;1 Annus  Dominis and 1  Before Christ there is  no year
+		;zero.  See the Calendar FAQ for details.
+	       ))
 	 (m (infix month + 12 * a - 3)))
     (infix day
 	   + (153 * m + 2) // 5
@@ -728,9 +742,12 @@
 	   - 32045)))
 
 (define (%decode-julian-day-number jdn)
-  ;;Return 4 values: seconds, date, month, year.
+  ;;Return  4  values:  seconds,  day,  month,  year  in  the  Gregorian
+  ;;calendar.
   ;;
   ;;*NOTE* Watch out for precedence of * and // !!!
+  ;;
+  ;;From the Calendar FAQ, section 2.16.1.
   ;;
   (let* ((days	(truncate jdn))
 	 (a	(infix days + 32044))
@@ -740,11 +757,14 @@
 	 (e	(infix c - (1461 * d) // 4))
 	 (m	(infix ((5 * e) + 2) // 153))
 	 (y	(infix (100 * b) + d - 4800 + (m // 10))))
-    (values	;seconds date month year
-     (infix (jdn - days) * $number-of-seconds-in-a-day)
-     (infix e + 1 - ((153 * m + 2) // 5))
-     (infix m + 3 - 12 * (m // 10))
+    (values
+     (infix (jdn - days) * $number-of-seconds-in-a-day)	;seconds
+     (infix e + 1 - (153 * m + 2) // 5)			;day
+     (infix m + 3 - 12 * (m // 10))			;month
      (if (>= 0 y) (- y 1) y))))
+		;Year.  This adjusts year,  taking care of the fact that
+		;between 1 Annus Dominis and 1 Before Christ there is no
+		;year zero.  See the Calendar FAQ for details.
 
 (define (%time->julian-day-number seconds tz-offset)
   ;; special thing -- ignores nanos
@@ -809,7 +829,7 @@
 	tz-offset))))
 
 
-;;;; date conversion
+;;;; conversion functions between time and date
 
 (define time-tai->date
   (case-lambda
@@ -977,7 +997,7 @@
       easter-day easter-month D.year D.zone-offset)))
 
 
-;;;; conversion functions
+;;;; conversion functions involving Julian Day
 
 (define (date->julian-day (D <date>))
   ;;Return the Julian day representing D.
@@ -1367,6 +1387,9 @@
 
 
 (define (string->date input-string (template-string <string>))
+  ;;Convert INPUT-STRING  into a <date>  object according to  a template
+  ;;string.
+  ;;
   (define who 'string->date)
 
   (define (main)

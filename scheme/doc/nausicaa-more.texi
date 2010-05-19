@@ -15940,12 +15940,13 @@ An integer representing the number of seconds east of @acronym{GMT} for
 this timezone.
 @end table
 
-A @emph{Julian Day} represents a point in time as a real number of days
-since -4714-11-24T12:00:00Z (November 24, -4714 at noon, @utc{}).
+A @emph{Julian Day} represents a point in time as an inexact real number
+of days since -4714-11-24T12:00:00Z (November 24, -4714 at noon,
+@utc{}).
 
-A @emph{Modified Julian Day} represents a point in time as a real number
-of days since 1858-11-17T00:00:00Z (November 17, 1858 at midnight, UTC).
-
+A @emph{Modified Julian Day} represents a point in time as an inexact
+real number of days since 1858-11-17T00:00:00Z (November 17, 1858 at
+midnight, UTC).
 
 @c page
 @node time const

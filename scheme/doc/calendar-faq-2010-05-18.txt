@@ -1447,62 +1447,62 @@ discarded.)
 2.13.9. Is there a simple relationship between two consecutive Easters?
 -----------------------------------------------------------------------
 
-Suppose you know the Easter date of the current year, can you easily
-find the Easter date in the next year? No, but you can make a
-qualified guess.
+Suppose you  know the Easter  date of the  current year, can  you easily
+find the Easter date in the next year?  No, but you can make a qualified
+guess.
 
-If Easter Sunday in the current year falls on day X and the next year
-is not a leap year, Easter Sunday of next year will fall on one of the
+  If Easter Sunday in the current year  falls on day X and the next year
+is not a leap  year, Easter Sunday of next year will  fall on one of the
 following days: X-15, X-8, X+13 (rare), or X+20.
 
-If Easter Sunday in the current year falls on day X and the next year
-is a leap year, Easter Sunday of next year will fall on one of the
-following days: X-16, X-9, X+12 (extremely rare), or X+19. (The jump
-X+12 occurs only once in the period 1800-2200, namely when going from
+  If Easter Sunday in the current year  falls on day X and the next year
+is a  leap year,  Easter Sunday  of next year  will fall  on one  of the
+following days:  X-16, X-9,  X+12 (extremely rare),  or X+19.  (The jump
+X+12 occurs  only once in the  period 1800-2200, namely  when going from
 2075 to 2076.)
 
-If you combine this knowledge with the fact that Easter Sunday never
-falls before 22 March and never falls after 25 April, you can
-narrow the possibilities down to two or three dates.
+  If you combine  this knowledge with the fact  that Easter Sunday never
+falls before 22 March and never falls after 25 April, you can narrow the
+possibilities down to two or three dates.
 
 
 2.13.10. How frequently are the dates for Easter repeated?
 ----------------------------------------------------------
 
-The sequence of Easter dates repeats itself every 532 years in the
-Julian calendar. The number 532 is the product of the following
+The  sequence of  Easter dates  repeats itself  every 532  years  in the
+Julian  calendar.   The number  532  is  the  product of  the  following
 numbers:
 
-        19 (the Metonic cycle or the cycle of the Golden Number)
-        28 (the Solar cycle, see section 2.4)
+    19 (the Metonic cycle or the cycle of the Golden Number)
+    28 (the Solar cycle, see section 2.4)
 
-The sequence of Easter dates repeats itself every 5,700,000 years in
-the Gregorian calendar. Calculating this is not as simple as for the
-Julian calendar, but the number 5,700,000 turns out to be the product
-of the following numbers:
+  The sequence of  Easter dates repeats itself every  5,700,000 years in
+the Gregorian  calendar.  Calculating this is  not as simple  as for the
+Julian calendar, but the number 5,700,000 turns out to be the product of
+the following numbers:
 
-        19 (the Metonic cycle or the cycle of the Golden Number)
-        400 (the Gregorian equivalent of the Solar cycle, see section 2.4)
-        25 (the cycle used in step 3 when calculating the Epact)
-        30 (the number of different Epact values)
+    19 (the Metonic cycle or the cycle of the Golden Number)
+   400 (the Gregorian equivalent of the Solar cycle, see section 2.4)
+    25 (the cycle used in step 3 when calculating the Epact)
+    30 (the number of different Epact values)
 
 
 2.13.11. What about Greek Orthodox Easter?
 ------------------------------------------
 
-The Greek Orthodox Church does not always celebrate Easter on the same
-day as the Catholic and Protestant countries. The reason is that the
-Orthodox Church uses the Julian calendar when calculating Easter. This
-is the case even in the churches that otherwise use the Gregorian
+The Greek Orthodox  Church does not always celebrate  Easter on the same
+day as  the Catholic and Protestant  countries.  The reason  is that the
+Orthodox Church uses the  Julian calendar when calculating Easter.  This
+is  the case  even  in the  churches  that otherwise  use the  Gregorian
 calendar.
 
-When the Greek Orthodox Church in 1923 decided to change to the
-Gregorian calendar (or rather: a Revised Julian Calendar), they chose
-to use the astronomical full moon as the basis for calculating Easter,
-rather than the "official" full moon described in the previous
-sections. And they chose the meridian of Jerusalem to serve as
-definition of when a Sunday starts. However, except for some sporadic
-use in the 1920s, this system was never adopted in practice.
+  When  the Greek  Orthodox  Church in  1923  decided to  change to  the
+Gregorian calendar (or rather: a Revised Julian Calendar), they chose to
+use  the astronomical  full moon  as the  basis for  calculating Easter,
+rather than the "official" full moon described in the previous sections.
+And they chose the meridian of  Jerusalem to serve as definition of when
+a Sunday  starts.  However, except for  some sporadic use  in the 1920s,
+this system was never adopted in practice.
 
 
 2.13.12. Did the Easter dates change in 2001?
@@ -1510,104 +1510,103 @@ use in the 1920s, this system was never adopted in practice.
 
 No.
 
-At a meeting in Aleppo, Syria (5-10 March 1997), organised by the
-World Council of Churches and the Middle East Council of Churches,
-representatives of several churches and Christian world communions
-suggested that the discrepancies between Easter calculations in the
-Western and the Eastern churches could be resolved by adopting
-astronomically accurate calculations of the vernal equinox and the
-full moon, instead of using the algorithm presented in section 2.13.6.
-The meridian of Jerusalem should be used for the astronomical
-calculations.
+  At  a meeting in  Aleppo, Syria  (5-10 March  1997), organised  by the
+World  Council of  Churches and  the  Middle East  Council of  Churches,
+representatives  of  several  churches  and Christian  world  communions
+suggested  that the  discrepancies  between Easter  calculations in  the
+Western  and  the  Eastern   churches  could  be  resolved  by  adopting
+astronomically accurate calculations of  the vernal equinox and the full
+moon, instead of  using the algorithm presented in  section 2.13.6.  The
+meridian of Jerusalem should be used for the astronomical calculations.
 
-The new method for calculating Easter should have taken effect from
-the year 2001. In that year the Julian and Gregorian Easter dates
-coincided (on 15 April Gregorian/2 April Julian), and it would
-therefore be a reasonable starting point for the new system.
+  The new  method for calculating  Easter should have taken  effect from
+the  year 2001.  In  that year  the  Julian and  Gregorian Easter  dates
+coincided (on 15 April Gregorian/2 April Julian), and it would therefore
+be a reasonable starting point for the new system.
 
-However, the Eastern churches (especially the Russian Orthodox Church)
-are reluctant to change, having already experienced a schism in the
-calendar question. So nothing will happen in the near future.
+  However, the Eastern churches (especially the Russian Orthodox Church)
+are  reluctant to  change, having  already experienced  a schism  in the
+calendar question.  So nothing will happen in the near future.
 
-If the new system were introduced, churches using the Gregorian
-calendar will hardly notice the change. Only once during the period
-2001-2025 would these churches note a difference: In 2019 the
-Gregorian method gives an Easter date of 21 April, but the proposed
-new method gives 24 March.
+  If  the  new system  were  introduced,  churches  using the  Gregorian
+calendar will  hardly notice  the change.  Only  once during  the period
+2001-2025 would these churches note  a difference: in 2019 the Gregorian
+method gives  an Easter date  of 21 April,  but the proposed  new method
+gives 24 March.
 
-Note that the new method makes an Easter date of 21 March possible.
-This date was not possible under the Julian or Gregorian algorithms.
-(Under the new method, Easter will fall on 21 March in the year 2877.
+  Note that  the new method makes  an Easter date of  21 March possible.
+This date  was not  possible under the  Julian or  Gregorian algorithms.
+(Under the  new method, Easter will fall  on 21 March in  the year 2877.
 You're all invited to my house on that date!)
 
 
 2.14. How does one count years?
 -------------------------------
 
-In about AD 523, the papal chancellor, Bonifatius, asked a monk by the
-name of Dionysius Exiguus to devise a way to implement the rules from
-the Council of Nicaea (the so-called "Alexandrine Rules") for general
+In about AD  523, the papal chancellor, Bonifatius, asked  a monk by the
+name of  Dionysius Exiguus to devise  a way to implement  the rules from
+the Council  of Nicaea (the  so-called "Alexandrine Rules")  for general
 use.
 
-Dionysius Exiguus (in English known as Denis the Little) was a monk
-from Scythia, he was a canon in the Roman Curia, and his assignment
-was to prepare calculations of the dates of Easter. At that time it
-was customary to count years since the reign of emperor Diocletian;
-but in his calculations Dionysius chose to number the years since the
-birth of Christ, rather than honour the persecutor Diocletian.
+  Dionysius Exiguus  (in English known as  Denis the Little)  was a monk
+from Scythia, he was a canon  in the Roman Curia, and his assignment was
+to prepare  calculations of the  dates of Easter.   At that time  it was
+customary to count  years since the reign of  emperor Diocletian; but in
+his calculations Dionysius chose to  number the years since the birth of
+Christ, rather than honour the persecutor Diocletian.
 
-Dionysius (wrongly) fixed Jesus' birth with respect to Diocletian's
-reign in such a manner that it falls on 25 December 753 AUC (ab urbe
-condita, i.e. since the founding of Rome), thus making the current era
+  Dionysius (wrongly)  fixed Jesus'  birth with respect  to Diocletian's
+reign in  such a manner that  it falls on  25 December 753 AUC  (ab urbe
+condita, i.e. since  the founding of Rome), thus  making the current era
 start with AD 1 on 1 January 754 AUC.
 
-How Dionysius established the year of Christ's birth is not known (see
-section 2.14.1 for a couple of theories). Jesus was born under the
-reign of King Herod the Great, who died in 750 AUC, which means that
-Jesus could have been born no later than that year. Dionysius'
+  How Dionysius established the year of Christ's birth is not known (see
+section  2.14.1 for a  couple of  theories).  Jesus  was born  under the
+reign of  King Herod the  Great, who died  in 750 AUC, which  means that
+Jesus  could  have  been  born  no later  than  that  year.   Dionysius'
 calculations were disputed at a very early stage.
 
-When people started dating years before 754 AUC using the term "Before
-Christ", they let the year 1 BC immediately precede AD 1 with no
+  When people started dating years before 754 AUC using the term "Before
+Christ",  they let  the  year 1  BC  immediately precede  AD  1 with  no
 intervening year zero.
 
-Note, however, that astronomers frequently use another way of
-numbering the years BC. Instead of 1 BC they use 0, instead of 2 BC
+  Note,  however,  that  astronomers   frequently  use  another  way  of
+numbering the  years BC.  Instead of  1 BC they  use 0, instead of  2 BC
 they use -1, instead of 3 BC they use -2, etc.
 
-See also section 2.14.2.
+  See also section 2.14.2.
 
-The earliest uses of BC dating are found in the works of the Venerable
+  The earliest uses of BC dating are found in the works of the Venerable
 Bede (673-735).
 
-In this section I have used AD 1 = 754 AUC. This is the most likely
-equivalence between the two systems. However, some authorities state
-that AD 1 = 753 AUC or 755 AUC. This confusion is not a modern one, it
-appears that even the Romans were in some doubt about how to count
-the years since the founding of Rome.
+  In this section I  have used AD 1 = 754 AUC.   This is the most likely
+equivalence between  the two  systems.  However, some  authorities state
+that AD 1 = 753 AUC or 755  AUC.  This confusion is not a modern one, it
+appears that even  the Romans were in some doubt about  how to count the
+years since the founding of Rome.
 
 
 2.14.1. How did Dionysius date Christ's birth?
 ----------------------------------------------
 
-There are quite a few theories about this. And many of the theories
-are presented as if they were indisputable historical fact.
+There are quite a few theories about this.  And many of the theories are
+presented as if they were indisputable historical fact.
 
-Here are two theories that I personally consider likely:
+  Here are two theories that I personally consider likely:
 
-1. According to the Gospel of Luke (3:1 & 3:23) Jesus was "about
-   thirty years old" shortly after "the fifteenth year of the reign of
-   Tiberius Caesar". Tiberius became emperor in AD 14. If you combine
-   these numbers you reach a birthyear for Jesus that is strikingly
-   close to the beginning of our year reckoning. This may have been
-   the basis for Dionysius' calculations.
+1. According to the Gospel of  Luke (3:1 & 3:23) Jesus was "about thirty
+   years old" shortly after "the fifteenth year of the reign of Tiberius
+   Caesar".  Tiberius  became emperor  in AD 14.   If you  combine these
+   numbers you reach  a birthyear for Jesus that  is strikingly close to
+   the beginning  of our year reckoning.   This may have  been the basis
+   for Dionysius' calculations.
 
-2. Dionysius' original task was to calculate an Easter table. In the
-   Julian calendar, the dates for Easter repeat every 532 years (see
-   section 2.13.10). The first year in Dionysius' Easter tables is AD
-   532. Is it a coincidence that the number 532 appears twice here? Or
-   did Dionysius perhaps fix Jesus' birthyear so that his own Easter
-   tables would start exactly at the beginning of the second Easter
+2. Dionysius'  original task was to  calculate an Easter  table.  In the
+   Julian calendar,  the dates  for Easter repeat  every 532  years (see
+   section 2.13.10).  The  first year in Dionysius' Easter  tables is AD
+   532.  Is it a coincidence that  the number 532 appears twice here? Or
+   did Dionysius  perhaps fix  Jesus' birthyear so  that his  own Easter
+   tables  would start  exactly at  the beginning  of the  second Easter
    cycle after Jesus' birth?
 
 
@@ -1616,243 +1615,254 @@ Here are two theories that I personally consider likely:
 
 No.
 
-There are two reasons for this:
-        - There is no year 0.
-        - Jesus was born before 4 BC.
+  There are two reasons for this:
 
-The concept of a year "zero" is a modern myth (but a very popular
-one). In our calendar, AD 1 follows immediately after 1 BC with no
-intervening year zero. So a person who was born in 10 BC and died in
-AD 10, would have died at the age of 19, not 20.
+* There is no year 0.
 
-Furthermore, as described in section 2.14, our year reckoning was
-established by Dionysius Exiguus in the 6th century. Dionysius let
-the year AD 1 start one week after what he believed to be Jesus'
-birthday. But Dionysius' calculations were wrong. The Gospel of
-Matthew tells us that Jesus was born under the reign of King Herod the
-Great, who died in 4 BC. It is likely that Jesus was actually born
-around 7 BC. The date of his birth is unknown; it may or may not be 25
-December.
+* Jesus was born before 4 BC.
+
+  The concept  of a  year "zero" is  a modern  myth (but a  very popular
+one).  In  our calendar,  AD 1  follows immediately after  1 BC  with no
+intervening year zero.  So a person who was born in 10 BC and died in AD
+10, would have died at the age of 19, not 20.
+
+  Furthermore,  as described  in section  2.14, our  year  reckoning was
+established by Dionysius Exiguus in  the 6th century.  Dionysius let the
+year AD 1  start one week after what he believed  to be Jesus' birthday.
+But Dionysius' calculations were wrong.   The Gospel of Matthew tells us
+that Jesus was born under the reign of King Herod the Great, who died in
+4 BC.  It is likely that Jesus  was actually born around 7 BC.  The date
+of his birth is unknown; it may or may not be 25 December.
 
 
 2.14.3. When did the 3rd millennium start?
 ------------------------------------------
 
-The first millennium started in AD 1, so the millennia are counted in
+The first  millennium started in AD  1, so the millennia  are counted in
 this manner:
 
-1st millennium:    1-1000
-2nd millennium: 1001-2000
-3rd millennium: 2001-3000
+    1st millennium:    1-1000
+    2nd millennium: 1001-2000
+    3rd millennium: 2001-3000
 
-Thus, the 3rd millennium and, similarly, the 21st century started on
-1 Jan 2001.
+  Thus, the 3rd millennium and, similarly, the 21st century started on 1
+Jan 2001.
 
-This is the cause of some heated debate, especially since some
-dictionaries and encyclopaedias say that a century starts in years
-that end in 00. Furthermore, the change 1999/2000 is obviously much
-more spectacular than the change 2000/2001.
+  This  is  the cause  of  some  heated  debate, especially  since  some
+dictionaries and encyclopaedias say that  a century starts in years that
+end  in 00.  Furthermore, the  change 1999/2000  is obviously  much more
+spectacular than the change 2000/2001.
 
-Let me propose a few compromises:
+  Let me propose a few compromises:
 
-Any 100-year period is a century. Therefore the period from 23 June 2004
-to 22 June 2104 is a century. So please feel free to celebrate the
-start of a century any day you like!
+* Any 100-year period  is a century.  Therefore the  period from 23 June
+  2004 to 22  June 2104 is a century.  So please  feel free to celebrate
+  the start of a century any day you like!
 
-Although the 20th century started in 1901, the 1900s started in 1900.
-Similarly, the 21st century started in 2001, but the 2000s started in
-2000.
+* Although the 20th century started  in 1901, the 1900s started in 1900.
+  Similarly, the 21st century started  in 2001, but the 2000s started in
+  2000.
 
 
 2.14.4. What do AD, BC, CE, and BCE stand for?
 ----------------------------------------------
 
-Years before the birth of Christ are in English traditionally
-identified using the abbreviation BC ("Before Christ").
+Years before the birth of Christ are in English traditionally identified
+using the abbreviation BC ("Before Christ").
 
-Years after the birth of Christ are traditionally identified using the
-Latin abbreviation AD ("Anno Domini", that is, "In the Year of the
+  Years after the birth of Christ are traditionally identified using the
+Latin  abbreviation AD  ("Anno Domini",  that is,  "In the  Year  of the
 Lord").
 
-Some people, who want to avoid the reference to Christ that is implied
-in these terms, prefer the abbreviations BCE ("Before the Common Era"
-or "Before the Christian Era") and CE ("Common Era" or "Christian Era").
+  Some people, who want to avoid the reference to Christ that is implied
+in these terms, prefer the abbreviations BCE ("Before the Common Era" or
+"Before the Christian Era") and CE ("Common Era" or "Christian Era").
 
 
 2.15. What is the Indiction?
 ----------------------------
 
-The Indiction was used in the middle ages to specify the position of a
-year in a 15 year taxation cycle. It was introduced by emperor
-Constantine the Great on 1 September 312 and ceased to be used in
-1806.
+The Indiction was  used in the middle ages to specify  the position of a
+year  in  a  15 year  taxation  cycle.   It  was introduced  by  emperor
+Constantine the Great on 1 September 312 and ceased to be used in 1806.
 
-The Indiction may be calculated thus:
-        Indiction = (year + 2) mod 15 + 1
+  The Indiction may be calculated thus:
 
-The Indiction has no astronomical significance.
+    Indiction = (year + 2) mod 15 + 1
 
-The Indiction did not always follow the calendar year. Three different
+  The Indiction has no astronomical significance.
+
+  The Indiction did not always follow the calendar year. Three different
 Indictions may be identified:
 
-1) The Pontifical or Roman Indiction, which started on New Year's Day
+1) The  Pontifical or Roman Indiction,  which started on  New Year's Day
    (being either 25 December, 1 January, or 25 March).
-2) The Greek or Constantinopolitan Indiction, which started on 1 September.
-3) The Imperial Indiction or Indiction of Constantine, which started
-   on 24 September.
+
+2)  The  Greek  or  Constantinopolitan  Indiction, which  started  on  1
+   September.
+
+3) The Imperial Indiction or  Indiction of Constantine, which started on
+   24 September.
 
 
 2.16. What is the Julian Period?
 --------------------------------
 
-The Julian period (and the Julian day number) must not be confused
-with the Julian calendar.
+The Julian period (and the Julian  day number) must not be confused with
+the Julian calendar.
 
-The French scholar Joseph Justus Scaliger (1540-1609) was interested
-in assigning a positive number to every year without having to worry
-about BC/AD. He invented what is today known as the "Julian Period".
+  The French  scholar Joseph Justus Scaliger  (1540-1609) was interested
+in assigning  a positive  number to every  year without having  to worry
+about BC/AD.  He invented what is today known as the "Julian Period".
 
-The Julian Period probably takes its name from the Julian calendar,
-although it has been claimed that it is named after Scaliger's father,
+  The Julian  Period probably takes  its name from the  Julian calendar,
+although it has  been claimed that it is  named after Scaliger's father,
 the Italian scholar Julius Caesar Scaliger (1484-1558).
 
-Scaliger's Julian period starts on 1 January 4713 BC (Julian calendar)
-and lasts for 7980 years. AD 2008 is thus year 6721 in the Julian
-period. After 7980 years the number starts from 1 again.
+  Scaliger's Julian period starts on 1 January 4713 BC (Julian calendar)
+and  lasts for 7980  years.  AD  2008 is  thus year  6721 in  the Julian
+period.  After 7980 years the number starts from 1 again.
 
-Why 4713 BC and why 7980 years? Well, in 4713 BC the Indiction (see
-section 2.15), the Golden Number (see section 2.13.3) and the Solar
-Number (see section 2.4) were all 1. The next times this happens is
+  Why 4713 BC  and why 7980 years?  Well, in 4713  BC the Indiction (see
+section  2.15), the  Golden Number  (see section  2.13.3) and  the Solar
+Number (see  section 2.4) were  all 1.  The  next times this  happens is
 15*19*28=7980 years later, in AD 3268.
 
-Astronomers have used the Julian period to assign a unique number to
-every day since 1 January 4713 BC. This is the so-called Julian Day
-(JD). JD 0 designates the 24 hours from noon UT on 1 January 4713 BC
-to noon UT on 2 January 4713 BC. (UT=Universal Time, roughly
-equivalent to GMT.)
+  Astronomers have used  the Julian period to assign  a unique number to
+every day  since 1 January  4713 BC.  This  is the so-called  Julian Day
+(JD).  JD 0 designates the 24 hours from noon UT on 1 January 4713 BC to
+noon UT on 2 January 4713 BC.  (UT=Universal Time, roughly equivalent to
+GMT.)
 
-This means that at noon UT on 1 January AD 2000, JD 2,451,545
-started.
+  This means that at noon UT on 1 January AD 2000, JD 2,451,545 started.
 
-This can be calculated thus:
-        From 4713 BC to AD 2000 there are 6712 years.
-        In the Julian calendar, years have 365.25 days, so 6712 years
-        correspond to 6712*365.25=2,451,558 days. Subtract from this
-        the 13 days that the Gregorian calendar is ahead of the Julian
-        calendar, and you get 2,451,545.
+  This can be calculated thus:
 
-Often fractions of Julian day numbers are used, so that 1 January AD
+    From  4713 BC  to  AD 2000  there  are 6712  years.   In the  Julian
+    calendar,  years  have 365.25  days,  so  6712  years correspond  to
+    6712*365.25=2,451,558 days.  Subtract from this the 13 days that the
+    Gregorian  calendar is  ahead of  the Julian  calendar, and  you get
+    2,451,545.
+
+  Often fractions of  Julian day numbers are used, so  that 1 January AD
 2000 at 15:00 UT is referred to as JD 2,451,545.125.
 
-Note that some people use the term "Julian day number" to refer to any
-numbering of days. NASA, for example, uses the term to denote the
-number of days since 1 January of the current year, counting 1 January
+  Note that some people use the term "Julian day number" to refer to any
+numbering  of days.   NASA, for  example, uses  the term  to  denote the
+number of days  since 1 January of the current  year, counting 1 January
 as day 1.
 
 
 2.16.1. Is there a formula for calculating the Julian day number?
 -----------------------------------------------------------------
 
-Try this one (the divisions are integer divisions, in which remainders
+Try this one  (the divisions are integer divisions,  in which remainders
 are discarded):
 
    a = (14-month)/12
-   y = year+4800-a
-   m = month + 12*a - 3
+   y = year + 4800 - a
+   m = month + 12 * a - 3
 
-  For a date in the Gregorian calendar:
+for a date in the Gregorian calendar:
+
    JD = day + (153*m+2)/5 + y*365 + y/4 - y/100 + y/400 - 32045
 
-  For a date in the Julian calendar:
+for a date in the Julian calendar:
+
    JD = day + (153*m+2)/5 + y*365 + y/4 - 32083
 
-
-JD is the Julian day number that starts at noon UT on the specified
+JD is  the Julian  day number that  starts at  noon UT on  the specified
 date.
 
-The algorithm works fine for AD dates. If you want to use it for BC
-dates, you must first convert the BC year to a negative year (e.g.,
-10 BC = -9). The algorithm works correctly for all dates after 4800 BC,
+  The algorithm works  fine for AD dates.  If you want to use  it for BC
+dates, you must  first convert the BC year to a  negative year (e.g., 10
+BC =  -9). The algorithm  works correctly for  all dates after  4800 BC,
 i.e. at least for all positive Julian day numbers.
 
+   convert the other way (i.e., to convert a Julian day number, JD, to a
+day, month, and  year) these formulas can be  used (again, the divisions
+are integer divisions), for the Gregorian calendar:
 
-To convert the other way (i.e., to convert a Julian day number, JD,
-to a day, month, and year) these formulas can be used (again, the
-divisions are integer divisions):
+    a = JD + 32044
+    b = (4*a+3)/146097
+    c = a - (b*146097)/4
 
-  For the Gregorian calendar:
-     a = JD + 32044
-     b = (4*a+3)/146097
-     c = a - (b*146097)/4
+for the Julian calendar:
 
-  For the Julian calendar:
-     b = 0
-     c = JD + 32082
+    b = 0
+    c = JD + 32082
 
-  Then, for both calendars:
-     d = (4*c+3)/1461
-     e = c - (1461*d)/4
-     m = (5*e+2)/153
+then, for both calendars:
 
-     day   = e - (153*m+2)/5 + 1
-     month = m + 3 - 12*(m/10)
-     year  = b*100 + d - 4800 + m/10
+    d = (4*c+3)/1461
+    e = c - (1461*d)/4
+    m = (5*e+2)/153
+
+    day   = e - (153*m+2)/5 + 1
+    month = m + 3 - 12*(m/10)
+    year  = b*100 + d - 4800 + m/10
 
 
 2.16.2. What is the modified Julian day number?
 -----------------------------------------------
 
-Sometimes a modified Julian day number (MJD) is used which is
-2,400,000.5 less than the Julian day number. This brings the numbers
-into a more manageable numeric range and makes the day numbers change
-at midnight UT rather than noon.
+Sometimes  a  modified  Julian  day   number  (MJD)  is  used  which  is
+2,400,000.5 less  than the  Julian day number.  This brings  the numbers
+into a more manageable numeric range and makes the day numbers change at
+midnight UT rather than noon.
 
-MJD 0 thus started on 17 Nov 1858 (Gregorian) at 00:00:00 UT.
+  MJD 0 thus started on 17 Nov 1858 (Gregorian) at 00:00:00 UT.
 
 
 2.16.3. What is the Lilian day number?
 --------------------------------------
 
-The Lilian day number is similar to the Julian day number, except that
-Lilian day number 1 started at midnight of the first day of the
+The Lilian day  number is similar to the Julian  day number, except that
+Lilian  day  number 1  started  at  midnight of  the  first  day of  the
 Gregorian calendar, that is, 15 October 1582.
 
-The Lilian day number was invented by Bruce G. Ohms of IBM in 1986. It
-is named after Aloysius Lilius mentioned in section 2.2.
+  The Lilian  day number was invented by  Bruce G. Ohms of  IBM in 1986.
+It is named after Aloysius Lilius mentioned in section 2.2.
 
 
 2.17. What is the correct way to write dates?
 ---------------------------------------------
 
-The answer to this question depends on what you mean by "correct".
+The  answer to  this question  depends on  what you  mean  by "correct".
 Different countries have different customs.
 
-Most countries use a day-month-year format, such as:
-   25.12.1998   25/12/1998   25/12-1998   25.XII.1998
+  Most countries use a day-month-year format, such as:
 
-In the U.S.A. a month-day-year format is common:
-   12/25/1998   12-25-1998
+    25.12.1998   25/12/1998   25/12-1998   25.XII.1998
 
-International standard ISO 8601 (see chapter 3) mandates a
-year-month-day format, namely either 1998-12-25 or 19981225. This
+  In the U.S.A. a month-day-year format is common:
+
+    12/25/1998   12-25-1998
+
+  International   standard  ISO   8601  (see   chapter  3)   mandates  a
+year-month-day  format,  namely  either  1998-12-25 or  19981225.   This
 format is gaining popularity in some countries.
 
-In all of these systems, the first two digits of the year are
+  In  all  of these  systems,  the  first two  digits  of  the year  are
 frequently omitted:
-   25.12.98   12/25/98   98-12-25
-However, although the last form is frequently seen, it is not allowed
+
+    25.12.98   12/25/98   98-12-25
+
+  However, although the last form  is frequently seen, it is not allowed
 by the ISO standard.
 
-This confusion leads to misunderstandings. What is 02-03-04? To most
-people it is 2 Mar 2004; to an American it is 3 Feb 2004; and to a
-person using the international standard it could be 4 Mar 2002
-(although a year specified with only two digits does not conform to
-the ISO standard).
+  This confusion leads to misunderstandings.  What is 02-03-04?  To most
+people it  is 2  Mar 2004; to  an American it  is 3  Feb 2004; and  to a
+person using the international standard it could be 4 Mar 2002 (although
+a  year specified  with only  two  digits does  not conform  to the  ISO
+standard).
 
-If you want to be sure that people understand you, I recommend that
-you
-  * write the month with letters instead of numbers, and
-  * write the years as 4-digit numbers.
+  If you  want to be sure  that people understand you,  I recommend that
+you:
+
+* write the month with letters instead of numbers, and
+
+* write the years as 4-digit numbers.
 
 
 3. ISO 8601
