@@ -64,7 +64,7 @@
   (assertion-violation who
     (apply string-append "lex error: "
 	   "line "   (if line   (number->string line)   "?")
-	   "column " (if column (number->string column) "?")
+	   " column " (if column (number->string column) "?")
 	   ": " message-strings)))
 
 (define-keywords :port :counters)

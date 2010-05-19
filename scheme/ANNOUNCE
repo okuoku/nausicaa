@@ -68,8 +68,7 @@ Notes for --- tag 0.2a0
   notation.
 
 * Rewritten the infix-to-prefix notation syntax from (infix)
-  for  better  and  cleaner  hygiene support.   Removed  the
-  (infix syntax) library.
+  for better and cleaner hygiene support.
 
 * Added (msgcat) library.
 

@@ -59,47 +59,64 @@
 	 (parser	(make-infix-sexp-parser)))
     (parser lexer error-handler #f)))
 
-(define (%infix-sexp->tokens expr)
-  (do ((result '())
-       (expr	(if (pair? expr) expr (list expr)) (cdr expr)))
-      ((null? expr)
-       result)
-    (let ((atom (car expr)))
-      (cond ((number? atom)
-	     (set! result
-		   (cons (make-<lexical-token> 'NUM #f atom 0)
-			 result)))
-	    ((symbol? atom)
-	     (set! result
-		   (cons (case atom
-			   ((+)	(make-<lexical-token> 'ADD	#f '+ 0))
-			   ((-)	(make-<lexical-token> 'SUB	#f '- 0))
-			   ((*)	(make-<lexical-token> 'MUL	#f '* 0))
-			   ((/)	(make-<lexical-token> 'DIV	#f '/ 0))
-			   ((%)	(make-<lexical-token> 'MOD	#f 'mod 0))
-			   ((^)	(make-<lexical-token> 'EXPT	#f 'expt 0))
-			   ((//) (make-<lexical-token> 'DIV0	#f 'div 0))
-			   ((<)	(make-<lexical-token> 'LT	#f '< 0))
-			   ((>)	(make-<lexical-token> 'GT	#f '> 0))
-			   ((<=) (make-<lexical-token> 'LE	#f '<= 0))
-			   ((>=) (make-<lexical-token> 'GE	#f '>= 0))
-			   ((=)	(make-<lexical-token> 'EQ	#f '= 0))
-			   (else (make-<lexical-token> 'ID	#f atom 0)))
-			 result)))
-	    ((procedure? atom)
-	     (set! result
-		   (cons (make-<lexical-token> 'ID #f atom 0)
-			 result)))
-	    ((pair? atom)
-	     (set! result
-		   ;;Parentheses  in reverse  order  because the  RESULT
-		   ;;will be reversed!!!
-		   (append ell-rparen-token
-			   (%infix-sexp->tokens atom)
-			   ell-lparen-token
-			   result)))
-	    (else
-	     (make-<lexical-token> 'NUM #f atom 0))))))
+(define %infix-sexp->tokens
+  (let (($add		(make-<lexical-token> 'ADD		#f '+ 1))
+	($sub		(make-<lexical-token> 'SUB		#f '- 1))
+	($mul		(make-<lexical-token> 'MUL		#f '* 1))
+	($div		(make-<lexical-token> 'DIV		#f '/ 1))
+	($mod		(make-<lexical-token> 'MOD		#f 'mod 1))
+	($expt		(make-<lexical-token> 'EXPT		#f 'expt 1))
+	($div0		(make-<lexical-token> 'DIV0		#f 'div 2))
+	($lt		(make-<lexical-token> 'LT		#f '< 1))
+	($gt		(make-<lexical-token> 'GT		#f '> 1))
+	($le		(make-<lexical-token> 'LE		#f '<= 2))
+	($ge		(make-<lexical-token> 'GE		#f '>= 2))
+	($eq		(make-<lexical-token> 'EQ		#f '= 1))
+	($question	(make-<lexical-token> 'QUESTION-ID	#f '? 1))
+	($colon		(make-<lexical-token> 'COLON-ID		#f ': 1)))
+    (lambda (expr)
+      (do ((result '())
+	   (expr	(if (pair? expr) expr (list expr)) (cdr expr)))
+	  ((null? expr)
+	   result)
+	(let ((atom (car expr)))
+	  (cond ((number? atom)
+		 (set! result
+		       (cons (make-<lexical-token> 'NUM #f atom 0)
+			     result)))
+		((symbol? atom)
+		 (set! result
+		       (cons (case atom
+			       ((+)	$add)
+			       ((-)	$sub)
+			       ((*)	$mul)
+			       ((/)	$div)
+			       ((%)	$mod)
+			       ((^)	$expt)
+			       ((//)	$div0)
+			       ((<)	$lt)
+			       ((>)	$gt)
+			       ((<=)	$le)
+			       ((>=)	$ge)
+			       ((=)	$eq)
+			       ((?)	$question)
+			       ((:)	$colon)
+			       (else	(make-<lexical-token> 'ID #f atom 0)))
+			     result)))
+		((procedure? atom)
+		 (set! result
+		       (cons (make-<lexical-token> 'ID #f atom 0)
+			     result)))
+		((pair? atom)
+		 (set! result
+		       ;;Parentheses  in reverse  order  because the  RESULT
+		       ;;will be reversed!!!
+		       (append ell-rparen-token
+			       (%infix-sexp->tokens atom)
+			       ell-lparen-token
+			       result)))
+		(else
+		 (make-<lexical-token> 'NUM #f atom 0))))))))
 
 
 ;;;; done

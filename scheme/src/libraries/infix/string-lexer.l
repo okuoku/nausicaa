@@ -8,7 +8,7 @@
 ;;;	The lexer table is derived  from the lexer in Guile-Arith by Ian
 ;;;	Grant <iang@pobox.com>.
 ;;;
-;;;Copyright (c) 2007, 2009 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2007, 2009-2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;Copyright (C) 2000 The Free Software Foundation
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
@@ -44,11 +44,13 @@ pinf            \+inf\.0|inf\.0
 minf            \-inf\.0
 
 initial         [a-zA-Z_]
-subsequent      {initial}|[0-9\.@!$&:<=>?~\-]
+subsequent      {initial}|[0-9\.@!$&:<=>\?~\-]
 symbol          {initial}{subsequent}*
 
 operator	(<=|>=|//)|[\+\-*/%\^<>=]
 
+question	\?
+colon		:
 comma		,
 
 oparen		\(
@@ -99,6 +101,16 @@ cparen		\)
 {symbol}	(make-<lexical-token> 'ID
 				      (make-<source-location> #f yyline yycolumn yyoffset)
 				      (string->symbol yytext)
+				      (string-length yytext))
+
+{question}	(make-<lexical-token> 'QUESTION-ID
+				      (make-<source-location> #f yyline yycolumn yyoffset)
+				      '?
+				      (string-length yytext))
+
+{colon}		(make-<lexical-token> 'COLON-ID
+				      (make-<source-location> #f yyline yycolumn yyoffset)
+				      ':
 				      (string-length yytext))
 
 {comma}		(make-<lexical-token>

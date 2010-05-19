@@ -142,6 +142,21 @@
   (check (infix-string->sexp "cos(a) * (tan(b) / c)")
     => '(* (cos a) (/ (tan b) c)))
 
+;;; if-then-else
+
+  (check 'this (infix-string->sexp "(a ? b : c)")	=> '(if a b c))
+  (check (infix-string->sexp "a ? b : c")	=> '(if a b c))
+  (check (infix-string->sexp "1 ? b : c")	=> '(if 1 b c))
+  (check (infix-string->sexp "a ? 1 : c")	=> '(if a 1 c))
+  (check (infix-string->sexp "a ? b : 1")	=> '(if a b 1))
+  (check (infix-string->sexp "1 ? 2 : 3")	=> '(if 1 2 3))
+
+  (check (infix-string->sexp "a * (b / a ? b : c)")
+    => '(* a (if (/ b a) b c)))
+
+  (check (infix-string->sexp "1 + a ? 2 + b : 3 + c - 4")
+    => '(if (+ 1 a) (+ 2 b) (- (+ 3 c) 4)))
+
   #t)
 
 
@@ -269,6 +284,21 @@
   (check (infix->prefix '((cos (a)) * ((tan (b)) / c)))
     => '(* (cos a) (/ (tan b) c)))
 
+;;; if-then-else
+
+  (check (infix->prefix '(a ? b : c))	=> '(if a b c))
+  (check (infix->prefix '(1 ? b : c))	=> '(if 1 b c))
+  (check (infix->prefix '(a ? 1 : c))	=> '(if a 1 c))
+  (check (infix->prefix '(a ? b : 1))	=> '(if a b 1))
+  (check (infix->prefix '(1 ? 2 : 3))	=> '(if 1 2 3))
+
+  (check (infix->prefix '(a * (b / a ? b : c)))
+    => '(* a (if (/ b a) b c)))
+
+  (check (infix->prefix '(1 + a ? 2 + b : 3 + c - 4))
+    => '(if (+ 1 a) (+ 2 b) (- (+ 3 c) 4)))
+
+
   #t)
 
 
@@ -383,7 +413,7 @@
   (check (infix 1 >= 3)		=> (>= 1 3))
   (check (infix 1 = 3)		=> (=  1 3))
 
-  ;; ;;; variables
+;;; variables
 
   (let ((a 1) (b 2) (c 3))
     (check (infix a * 1.1)	=> (* a 1.1))
@@ -395,6 +425,25 @@
 
     (check (infix (cos (a) * tan (b) / c))
       => (/ (* (cos a) (tan b)) c))
+
+    #f)
+
+;;; if-then-else
+
+  (let ((a 1) (b 2) (c 3))
+
+    (check (infix a ? b : c)	=> (if a b c))
+    (check (infix (1 ? b : c))	=> (if 1 b c))
+    (check (infix (a ? 1 : c))	=> (if a 1 c))
+    (check (infix (a ? b : 1))	=> (if a b 1))
+    (check (infix (1 ? 2 : 3))	=> (if 1 2 3))
+    (check (infix (#f ? 2 : 3))	=> (if #f 2 3))
+
+    (check (infix (a * (b / a ? b : c)))
+      => (* a (if (/ b a) b c)))
+
+    (check (infix (1 + a ? 2 + b : 3 + c - 4))
+      => (if (+ 1 a) (+ 2 b) (- (+ 3 c) 4)))
 
     #f)
 

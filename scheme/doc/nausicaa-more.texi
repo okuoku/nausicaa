@@ -29933,6 +29933,9 @@ Examples:
 
 (infix-string->sexpr "cos(a) * (tan(b) / c)")
 @result{} (* (cos a) (/ (tan b) c))
+
+(infix-string->sexp "a * (b / a ? b : c)")
+@result{} (* a (if (/ b a) b c))
 @end example
 @end defun
 
@@ -29948,7 +29951,7 @@ regular expression:
 
 @example
 initial         [a-zA-Z_]
-subsequent      @{initial@}|[0-9\.@@!$&:<=>?~\-]
+subsequent      @{initial@}|[0-9\.@@!$&:<=>\?~\-]
 symbol          @{initial@}@{subsequent@}*
 @end example
 
@@ -29968,6 +29971,11 @@ remember that the Scheme comparison operators are meant to return a
 boolean value, rather than a number object.  @samp{//} stands for
 @func{div}, @samp{%} stands for @func{mod}, @samp{^} stands for
 @func{expt}.
+
+@item
+The if--then--else statement involves the special symbols @code{?} and
+@code{:} which cannot be variable symbols; this statement has the least
+precedence.
 
 @item
 Every symbol which is not an operator is interpreted as variable
@@ -29996,16 +30004,19 @@ S--expression:
 (infix->prefix '(1 + (2 - 3)))  @result{} '(+ 1 (- 2 3))
 
 (infix->prefix '(cos (sin (1.1))))
-@result{} '(cos (sin 1.1))
+@result{} (cos (sin 1.1))
 
 (infix->prefix '(cos (sin (1.1) + 4)))
-@result{} '(cos (+ (sin 1.1) 4))
+@result{} (cos (+ (sin 1.1) 4))
 
 (infix->prefix '(fun (1.1 2)))
-@result{} '(fun 1.1 2)
+@result{} (fun 1.1 2)
 
 (infix->prefix '(fun (1 2 3 4)))
-@result{} '(fun 1 2 3 4)
+@result{} (fun 1 2 3 4)
+
+(infix->prefix '(a * (b / a ? b : c)))
+@result{} (* a (if (/ b a) b c))
 @end example
 
 @noindent
@@ -30031,6 +30042,11 @@ remember that the Scheme comparison operators are meant to return a
 boolean value, rather than a number object.  @samp{//} stands for
 @func{div}, @samp{%} stands for @func{mod}, @samp{^} stands for
 @func{expt}.
+
+@item
+The if--then--else statement involves the special symbols @code{?} and
+@code{:} which cannot be variable symbols; this statement has the least
+precedence.
 
 @item
 The elements of the S--expression can be numbers, symbols, procedures,
@@ -30064,9 +30080,9 @@ library and reexported by the @library{infix} library.
 
 
 @deffn Syntax infix @var{sexp-atom} ...
-Like @func{infix->prefix} but evaluates the result on the spot, in the
-lexical context of the macro use.  The syntax allows us to evaluate
-forms like:
+Like @func{infix->prefix} but expands to a prefix expression to be
+evaluated at runtime, in the lexical context of the macro use.  The
+syntax allows us to evaluate forms like:
 
 @example
 (/ (* (cos a) (tan b)) c)

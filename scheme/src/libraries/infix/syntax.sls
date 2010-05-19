@@ -32,7 +32,7 @@
   (import (rnrs)
     (prefix (only (nausicaa) + - * / < > <= >= =) nausicaa:)
     (for (parser-tools lexical-token)	expand)
-    (for (infix sexp-parser)		expand)
+    (for (infix syntax-parser)		expand)
     (for (infix helpers)		expand))
 
 
@@ -90,6 +90,17 @@
 			     ((or (free-identifier=? atom #'=)
 				  (free-identifier=? atom #'nausicaa:=))
 			      (make-<lexical-token> 'EQ		#f #'= 0))
+
+			     ((free-identifier=? atom #'?)
+			      ;;Here  using the  #'if  syntax object  as
+			      ;;semantic  value  is  a  trick  to  avoid
+			      ;;insertion  of a  raw  value: the  parser
+			      ;;will take it and use it as the IF in the
+			      ;;output form.
+			      (make-<lexical-token> 'QUESTION-ID #f #'if 0))
+
+			     ((free-identifier=? atom #':)
+			      (make-<lexical-token> 'COLON-ID	#f #': 0))
 			     (else
 			      (make-<lexical-token> 'ID		#f atom 0)))))
 		((pair? atom)
@@ -101,12 +112,12 @@
 		 ;;as operand.
 		 (make-<lexical-token> 'NUM #f atom 0))))))
 
-    (syntax-case stx ()
+    (syntax-case stx (? :)
       ((_ ?operand ...)
        (let ((tokens	(reverse (%stx-list->tokens (syntax->list #'(?operand ...))))))
 	 (if (null? tokens)
 	     #'(values)
-	   ((make-infix-sexp-parser)		;parser function
+	   ((make-infix-syntax-parser)		;parser function
 	    (lambda ()				;lexer function
 	      (if (null? tokens)
 		  eoi-token
