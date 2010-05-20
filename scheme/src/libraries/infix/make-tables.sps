@@ -92,7 +92,7 @@
 			(expr GE expr)		: (list $2 $1 $3)
 			(expr EQ expr)		: (list $2 $1 $3)
 			(ADD expr (prec: UADD))	: $2
-			(SUB expr (prec: USUB))	: (- $2)
+			(SUB expr (prec: USUB))	: (list $1 $2)
 			(ID)			: $1
 			(ID LPAREN args RPAREN)	: (cons $1 $3)
 			(expr QUESTION-ID expr COLON-ID expr) : (list 'if $1 $3 $5)
@@ -136,18 +136,25 @@
 			(expr GE expr)		: (list $2 $1 $3)
 			(expr EQ expr)		: (list $2 $1 $3)
 			(ADD expr (prec: UADD))	: $2
-			(SUB expr (prec: USUB))	: (- $2)
+			(SUB expr (prec: USUB))	: (list $1 $2)
 			(ID)			: $1
+
+			;;The  following are  two  versions of  function
+			;;application.
 			(ID LPAREN args RPAREN)	: (cons $1 $3)
+
+			;;The following is the if-then-else operator.
+			;;
+			;;When parsing  a sexp the $2 is  the raw symbol
+			;;IF.
+			;;
+			;;When  parsing  a   macro  input  form  the  $2
+			;;(semantic  value of  QUESTION-ID) is  a syntax
+			;;object  holding the  IF  binding from  (rnrs);
+			;;this  is a  trick  to allow  insertion of  the
+			;;correct binding in the output form.
 			(expr QUESTION-ID expr COLON-ID expr) : (list $2 $1 $3 $5)
-				;;When  parsing  a sexp  the  $2 is  the
-				;;symbol IF.
-				;;
-				;;When parsing a macro input form the $2
-				;;is  a  syntax  object holding  the  IF
-				;;binding from (rnrs);  it is a trick to
-				;;allow insertion of the correct binding
-				;;in the output form.
+
 			(NUM)			: $1
 			(LPAREN expr RPAREN)	: $2)
 

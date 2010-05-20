@@ -27,8 +27,7 @@
 
 
 (library (infix helpers)
-  (export syntax->list
-	  eoi-token ell-lparen-token ell-rparen-token
+  (export eoi-token ell-lparen-token ell-rparen-token
 	  error-handler)
   (import (rnrs)
     (parser-tools lexical-token)
@@ -57,20 +56,6 @@
 	 " line " (if line (number->string line) "unknown")
 	 " column " (if column (number->string column) "unknown"))))
     token))
-
-(define (syntax->list stx)
-  ;;Given a syntax object STX holding  a list, decompose it and return a
-  ;;list of syntax  objects.  Take care of returning  a proper list when
-  ;;the input is a syntax object holding a proper list.
-  ;;
-  ;;This functions  provides a workaround  for bugs in Ikarus  and Mosh,
-  ;;which expand syntax objects holding a list into IMproper lists.
-  ;;
-  (syntax-case stx ()
-    (()		'())
-    ((?car . ?cdr)	(cons (syntax->list #'?car) (syntax->list #'?cdr)))
-    (?atom		(identifier? #'?atom)	#'?atom)
-    (?atom		(syntax->datum #'?atom))))
 
 
 ;;;; done

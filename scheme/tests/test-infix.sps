@@ -39,13 +39,13 @@
 ;;; integers
 
   (check (infix-string->sexp "1")	=> 1)
-  (check (infix-string->sexp "-1")	=> -1)
+  (check (infix-string->sexp "-1")	=> '(- 1))
   (check (infix-string->sexp "+1")	=> 1)
 
 ;;; reals
 
   (check (infix-string->sexp "1.1")	=> 1.1)
-  (check (infix-string->sexp "-1.1")	=> -1.1)
+  (check (infix-string->sexp "-1.1")	=> '(- 1.1))
   (check (infix-string->sexp "+1.1")	=> +1.1)
   (check (infix-string->sexp "1.1e10")	=> 1.1e10)
   (check (infix-string->sexp "1.1E10")	=> 1.1e10)
@@ -57,17 +57,17 @@
   (check (infix-string->sexp "1E-10")	=> 1e-10)
 
   (check (infix-string->sexp ".0")	=> 0.0)
-  (check (infix-string->sexp "-.0")	=> -0.0)
+  (check (infix-string->sexp "-.0")	=> '(- 0.0))
   (check (infix-string->sexp "0.")	=> 0.0)
 
 ;;; complexes
 
-  (check (infix-string->sexp "1i")	(=> =) +1i)
-  (check (infix-string->sexp "-1i")	(=> =) -1i)
-  (check (infix-string->sexp "+1.1i")	(=> =) +1.1i)
-  (check (infix-string->sexp "-1.1i")	(=> =) -1.1i)
-  (check (infix-string->sexp "+.1i")	(=> =) +0.1i)
-  (check (infix-string->sexp "-.1i")	(=> =) -0.1i)
+  (check (infix-string->sexp "1i")	=> +1i)
+  (check (infix-string->sexp "-1i")	=> '(- +1i))
+  (check (infix-string->sexp "+1.1i")	=> +1.1i)
+  (check (infix-string->sexp "-1.1i")	=> '(- +1.1i))
+  (check (infix-string->sexp "+.1i")	=> +0.1i)
+  (check (infix-string->sexp "-.1i")	=> '(- +0.1i))
 
 ;;; nan and infinity
 
@@ -369,9 +369,20 @@
   (check (infix 1 / 2 + 3)	=> (+ (/ 1 2) 3))
   (check (infix 1 / 2 - 3)	=> (- (/ 1 2) 3))
 
+  (check (infix - 2)		=> (- 2))
+  (check (infix (- 2))		=> (- 2))
+  (check (infix (1 + (- 2)))	=> (+ 1 (- 2)))
+  (let ((a 2))
+    (check (infix (- a))	=> (- 2))
+    (check (infix (1 + (- a)))	=> (+ 1 (- 2)))
+    #f)
+
   (check (infix 1 // 3)		=> (div 1 3))
+  (check (infix 1 div 3)	=> (div 1 3))
   (check (infix 1 % 3)		=> (mod 1 3))
+  (check (infix 10 mod 3)	=> (mod 10 3))
   (check (infix 1 ^ 3)		=> (expt 1 3))
+  (check (infix 10 expt 3)	=> (expt 10 3))
 
   (check (infix 1 rnrs:+ 2)		=> (rnrs:+ 1 2))
   (check (infix 1 rnrs:+ 2 rnrs:+ 3)	=> (rnrs:+ (rnrs:+ 1 2) 3))
@@ -395,7 +406,34 @@
   (check (infix 1 rnrs:/ 2 rnrs:+ 3)	=> (rnrs:+ (rnrs:/ 1 2) 3))
   (check (infix 1 rnrs:/ 2 rnrs:- 3)	=> (rnrs:- (rnrs:/ 1 2) 3))
 
+;;; comparison operators
+
+  (check (infix 1 < 3)		=> (<  1 3))
+  (check (infix 1 > 3)		=> (>  1 3))
+  (check (infix 1 <= 3)		=> (<= 1 3))
+  (check (infix 1 >= 3)		=> (>= 1 3))
+  (check (infix 1 = 3)		=> (=  1 3))
+
 ;;; functions
+
+  (let ()
+
+    (define (fun a b c)
+      (+ a b c))
+
+    (check
+	(infix fun (1 2 3))
+      => (fun 1 2 3))
+
+    (check
+	(infix fun(1 2 3))
+      => (fun 1 2 3))
+
+    (check
+	(infix (fun (1 2 3)))
+      => (fun 1 2 3))
+
+    #f)
 
   (check (infix sin (1.1))		=> (sin 1.1))
 
@@ -405,12 +443,6 @@
   (check
       (infix 1 + 23e-45 + 0.006789e2 * (4.113 + +23i) / sin (0.5) + atan (0.1 0.2))
     => (+ (+ (+ 1 23e-45) (/ (* 0.006789e2 (+ 4.113 +23i)) (sin 0.5))) (atan 0.1 0.2)))
-
-  (check (infix 1 < 3)		=> (<  1 3))
-  (check (infix 1 > 3)		=> (>  1 3))
-  (check (infix 1 <= 3)		=> (<= 1 3))
-  (check (infix 1 >= 3)		=> (>= 1 3))
-  (check (infix 1 = 3)		=> (=  1 3))
 
 ;;; variables
 
@@ -445,6 +477,42 @@
     (check (infix (1 + a ? 2 + b : 3 + c - 4))
       => (if (+ 1 a) (+ 2 b) (- (+ 3 c) 4)))
 
+    #f)
+
+;;; nested prefix expressions
+
+  (check
+      (infix (begin
+	       (+ 1 2)))
+    => (+ 1 2))
+
+  (check
+      (infix (begin
+	       (+ 1 2)
+	       (+ 3 4)))
+    => (+ 3 4))
+
+  (check
+      (infix (begin
+	       (let ((a 3))
+		 (/ a 4))))
+    => (/ 3 4))
+
+  (let ((a 3))
+    (check
+	(infix (begin
+		 (/ a 4)))
+      => (/ a 4)))
+
+  (check (infix (begin 1) + 2 * 3)	=> (+ 1 (* 2 3)))
+  (check (infix 1 - (begin 2) * 3)	=> (- 1 (* 2 3)))
+  (check (infix 1 + 2 / (begin 3))	=> (+ 1 (/ 2 3)))
+
+  (let ((a 1) (b 2) (c 3))
+    (check (infix (1 + a ? (begin
+			     (+ 2 b))
+		     : 3 + c - 4))
+      => (if (+ 1 a) (+ 2 b) (- (+ 3 c) 4)))
     #f)
 
   #t)
