@@ -30120,7 +30120,8 @@ for @func{expt}.  The recognised operators are bindings from both the
 
 @item
 The if--then--else statement involves the special symbols @code{?} and
-@code{:} which should be free identifiers.
+@code{:} which should be free identifiers.  This statement has the least
+precedence of all.
 
 @item
 Any Scheme value can be element of the S--expression.

@@ -29,7 +29,7 @@
 
 (library (infix syntax)
   (export infix)
-  (import (rnrs)
+  (import (for (rnrs) run expand (meta 2))
     (prefix (only (nausicaa) + - * / < > <= >= =) nausicaa:)
     (for (parser-tools lexical-token)	expand)
     (for (infix sexp-parser)		expand))
@@ -83,16 +83,11 @@
 	((_ ?atom ((?s ...) ?e ...) ... (else ?b ...))
 	 (cond ((memv ?atom #'?s ...) ?e ...) ... (else ?b ...)))))
 
-    (define-syntax prefix
-      ;;Used to mark prefix-notation expressions in SYNTAX->LIST.
-      ;;
-      (identifier-syntax #f))
-
     (define (syntax->list stx)
       (syntax-case stx ()
 	((?begin . ?body)
 	 (and (identifier? #'?begin) (free-identifier=? #'begin #'?begin))
-	 (cons #'prefix #'?body))
+	 (cons #'begin #'?body))
 	(()		'())
 	((?car . ?cdr)	(cons (syntax->list #'?car) (syntax->list #'?cdr)))
 	(?atom		(identifier? #'?atom)	#'?atom)
@@ -139,7 +134,7 @@
 			reversed-tokens)))
 		((pair? atom)
 		 (if (and (identifier? (car atom))
-			  (free-identifier=? #'prefix (car atom)))
+			  (free-identifier=? #'begin (car atom)))
 		     (stx-list->reversed-tokens
 		      (cdr sexp)
 		      (cons (make-<lexical-token> 'NUM #f (cons #'begin (cdr atom)) 0)
