@@ -16213,8 +16213,13 @@ the substitution.  Marks applied after a substitution, i.e., appear over
 the substitution in the wrap, are not relevant and are ignored.
 
 An algebra that defines how marks and substitutions work more precisely
-is given in section 2.4 of Oscar Waddell's PhD thesis.
-
+is given in section 2.4 of Oscar Waddell's PhD thesis.  Note, however,
+that Waddell's thesis describes slightly different semantics for
+@func{bound-identifier=?}, it specifies that for two identifiers to be
+equal in the sense of @func{bound-identifier=?}, they must have the same
+marks and be equal in the sense of @func{free-identifier=?}, whereas
+this report requires instead that they must have the same marks and have
+the same name.
 
 @c page
 @node stdlib syntax-case objects
