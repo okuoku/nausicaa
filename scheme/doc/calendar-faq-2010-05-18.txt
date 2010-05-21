@@ -109,6 +109,7 @@ this document can be found at:
 	    <http://www.tondering.dk/claus/algo.html>
 
 
+
 Contents
 --------
 
@@ -234,6 +235,7 @@ Contents
 12. Date
 
 
+
 1. What Astronomical Events Form the Basis of Calendars?
 --------------------------------------------------------
 
@@ -335,6 +337,7 @@ position in the sky with respect  to the equinoxes and the next time the
 sun is in the same position.
 
 
+
 2. The Christian Calendar
 -------------------------
 
@@ -1865,124 +1868,121 @@ you:
 * write the years as 4-digit numbers.
 
 
+
 3. ISO 8601
 -----------
 
-The International Organization for Standardization, ISO, has published
-a standard on how to write dates, times, and time intervals. This
-standard is known as ISO 8601. The text below refers to the third
-edition of that standard, which was published on 1 December 2004. Its
-title is: ISO 8601:2004, "Data elements and interchange formats -
+The International Organization for Standardization, ISO, has published a
+standard  on  how to  write  dates,  times,  and time  intervals.   This
+standard  is known  as ISO  8601.  The  text below  refers to  the third
+edition of that  standard, which was published on  1 December 2004.  Its
+title  is:  ISO 8601:2004,  "Data  elements  and  interchange formats  -
 Information interchange - Representation of dates and times".
 
-The text below is not an exhaustive description of everything you may
-find in ISO 8601; it does, however, try to capture the most important
+  The text below is not  an exhaustive description of everything you may
+find in  ISO 8601; it does,  however, try to capture  the most important
 points.
 
 
 3.1. What date format does the Standard mandate?
 ------------------------------------------------
 
-There are three basic formats: Calendar date, ordinal date, and week
+There are  three basic  formats: Calendar date,  ordinal date,  and week
 date.
 
+* A calendar date  should be written as a  4-digit year number, followed
+  by a  2-digit month number, followed  by a 2-digit  day number.  Thus,
+  for example, 2 August 1953 may be written:
 
-A calendar date should be written as a 4-digit year number, followed
-by a 2-digit month number, followed by a 2-digit day number. Thus, for
-example, 2 August 1953 may be written:
+    19530802    or    1953-08-02
 
-   19530802   or   1953-08-02
+* An ordinal date  should be written as a  4-digit year number, followed
+  by a 3-digit number indicating the  number of the day within the year.
+  Thus, for example, 2 August 1953 may be written:
 
+    1953214     or    1953-214
 
-An ordinal date should be written as a 4-digit year number, followed
-by a 3-digit number indicating the number of the day within the year.
-Thus, for example, 2 August 1953 may be written:
+  2 August is the 214th day of a non-leap year.
 
-   1953214   or   1953-214
+* A week date should be written  as a 4-digit year number, followed by a
+  W, followed  by a 2-digit week  number followed by a  1-digit week day
+  number  (1=Monday,  2=Tuesday, ...,  7=Sunday).   The  week number  is
+  defined  in section  7.7.  Thus,  for example,  2 August  1953  may be
+  written:
 
-2 August is the 214th day of a non-leap year.
+    1953W317    or    1953-W31-7
 
+  2 August was the Sunday of week 31 of 1953.
 
-A week date should be written as a 4-digit year number, followed by a
-W, followed by a 2-digit week number followed by a 1-digit week day
-number (1=Monday, 2=Tuesday, ..., 7=Sunday). The week number is
-defined in section 7.7. Thus, for example, 2 August 1953 may be
-written:
+  In all the examples above, the hyphens are optional.
 
-   1953W317   or   1953-W31-7
-
-2 August was the Sunday of week 31 of 1953.
-
-
-In all the examples above, the hyphens are optional.
-
-Note that you must always write all the digits. Thus the year 47 must
+  Note that you must always write all the digits.  Thus the year 47 must
 be written as 0047.
 
 
 3.2. What time format does the Standard mandate?
 ------------------------------------------------
 
-A 24-hour clock must be used. A time is written as a 2-digit hour,
-followed by a 2-digit minute, followed by a 2-digit second, followed
-by a comma, followed by a number of digits indicating a fraction of a
-second. For example, thus:
+A 24-hour  clock must  be used.  A  time is  written as a  2-digit hour,
+followed by a 2-digit minute,  followed by a 2-digit second, followed by
+a  comma, followed  by a  number of  digits indicating  a fraction  of a
+second.  For example, thus:
 
    140812,35   or   14:08:12,35
 
-The fraction, the seconds, and the minutes may be omitted if less
+  The  fraction, the seconds,  and the  minutes may  be omitted  if less
 accuracy is required:
 
    140812   or   14:08:12
    1408     or   14:08
    14
 
-In all the examples above, the colons are optional. The comma may be
+  In all the  examples above, the colons are optional.  The comma may be
 replaced by a period (.), but this is not recommended.
 
-The time may optionally be followed by a time zone indication. For
-UTC, the time zone indication is the letter Z. For other time zones,
-the indication is a plus or minus followed by the time difference to
-UTC (plus for times east of Greenwich, minus for times west of
-Greenwich). For example:
+  The time  may optionally be followed  by a time  zone indication.  For
+UTC, the  time zone indication is  the letter Z.  For  other time zones,
+the indication is a plus or minus followed by the time difference to UTC
+(plus for times  east of Greenwich, minus for  times west of Greenwich).
+For example:
 
-   1130Z       (11:30 UTC)
-   1130+0430   (11:30, at a location 4 and a half hours ahead of UTC)
-   1130-05     (11:30, at a location 5 hours behind of UTC)
+    1130Z       (11:30 UTC)
+    1130+0430   (11:30, at a location 4 and a half hours ahead of UTC)
+    1130-05     (11:30, at a location 5 hours behind of UTC)
 
 
 3.3. What if I want to specify both a date and a time?
 ------------------------------------------------------
 
-Date and time indications can be strung together by putting the letter
-T between them. For example, ten minutes to 7 p.m. on 2 August 1953
-may be written as:
+Date and time indications can be strung together by putting the letter T
+between them.  For  example, ten minutes to 7 p.m. on  2 August 1953 may
+be written as:
 
-   19530802T185000   or   1953-08-02T18:50:00
+    19530802T185000   or   1953-08-02T18:50:00
 
 
 3.4. What format does the Standard mandate for a time interval?
 ---------------------------------------------------------------
 
-There are several to choose from. A time interval can be specified as
-a starting time and an ending time or as a duration together with
-either a starting time or an ending time.
+There are several to choose from.  A time interval can be specified as a
+starting time and an ending time or as a duration together with either a
+starting time or an ending time.
 
-There are too many details to cover here, so I shall only give a few
+  There are too many  details to cover here, so I shall  only give a few
 examples:
 
-Using starting time and ending time:
+* Using starting time and ending time:
 
-   1998-12-01T12:03/2004-04-02T14:12
+    1998-12-01T12:03/2004-04-02T14:12
 
-Using starting time and duration:
+* Using starting time and duration:
 
-   1927-03-12T08:04/P1Y4M12DT6H30M9S
+    1927-03-12T08:04/P1Y4M12DT6H30M9S
 
-This last example should be read as the time interval starting on 12
-March 1927 at 08:04 and lasting for 1 year, 4 months, 12 days, 6
-hours, 30 minutes, and 9 seconds. The letter P following the slash
-indicates that a duration follows.
+  This last example  should be read as the time  interval starting on 12
+March 1927 at 08:04 and lasting for  1 year, 4 months, 12 days, 6 hours,
+30 minutes, and  9 seconds.  The letter P  following the slash indicates
+that a duration follows.
 
 
 3.5. Can I write BC dates and dates after the year 9999 using ISO 8601?
@@ -1990,43 +1990,42 @@ indicates that a duration follows.
 
 Yes, you can.
 
-The year 1 BC must be written as 0000. The year 2 BC must be written
+  The year 1 BC must be written  as 0000.  The year 2 BC must be written
 as -0001, the year 3 BC must be written as -0002 etc.
 
-Years of more than 4 digits must be written with an initial plus sign.
+  Years of more than 4 digits must be written with an initial plus sign.
 Thus the year AD 10000 must be written as +10000.
 
 
 3.6. Can I write dates in the Julian calendar using ISO 8601?
 -------------------------------------------------------------
 
-No. The Standard requires that the Gregorian calendar be used for all
-dates. Dates before the introduction of the Gregorian calendar are
-written using the proleptic Gregorian calendar (see section 2.9).
-This is one of the few places where the proleptic Gregorian calendar
-is used.
+No.  The Standard  requires that the Gregorian calendar  be used for all
+dates.   Dates before  the introduction  of the  Gregorian  calendar are
+written using the proleptic  Gregorian calendar (see section 2.9).  This
+is one of the few places where the proleptic Gregorian calendar is used.
 
-Thus the Julian date 12 March 826 must be written as 0826-03-16,
+  Thus  the Julian  date 12  March 826  must be  written  as 0826-03-16,
 because its equivalent date in the Gregorian calendar is 16 March.
 
 
 3.7. Does the Standard define the Gregorian calendar?
 -----------------------------------------------------
 
-Yes, ISO 8601 specifies how the Gregorian calendar works. The
-specification is completely compatible with the calendar specified by
-Pope Gregory XIII in 1582, except that ISO 8601 does not concern itself
+Yes,  ISO   8601  specifies  how  the  Gregorian   calendar  works.  The
+specification is  completely compatible  with the calendar  specified by
+Pope Gregory XIII in 1582, except  that ISO 8601 does not concern itself
 with the calculation of Easter.
 
-However, the calendar reference point used by the Standard is not
-Christ's birth but the date on which the metric convention
-("Convention du Metre") was signed in Paris. The Standard defines that
-date to be 20 May 1875.
+  However,  the calendar  reference point  used by  the Standard  is not
+Christ's birth but the date  on which the metric convention ("Convention
+du Metre") was signed in Paris.  The Standard defines that date to be 20
+May 1875.
 
-Similarly, the reference point of the week cycles is 1 January 2000,
+  Similarly, the reference  point of the week cycles  is 1 January 2000,
 which is defined to be a Saturday.
 
-Of course, these reference points are also completely compatible with
+  Of course, these reference  points are also completely compatible with
 common usage.
 
 
@@ -2035,268 +2034,265 @@ common usage.
 
 According to ISO 8601, Monday is the first day of the week.
 
-Each week has a number. A week that lies partly in one year and partly
-in another is assigned a number in the year in which most of its days
-lie. The Standard specifies this by saying that week 1 of any year is
-the week that includes the first Thursday of that year.
+  Each  week has a  number.  A  week that  lies partly  in one  year and
+partly in another is assigned a number  in the year in which most of its
+days lie.  The Standard specifies this by saying that week 1 of any year
+is the week that includes the first Thursday of that year.
 
-More details can be found in chapter 7, which deals with the week in
+  More details can  be found in chapter 7, which deals  with the week in
 greater detail.
 
 
 3.9. Why are ISO 8601 dates not used in this Calendar FAQ?
 ----------------------------------------------------------
 
-The Standard specifies how to write dates using only numbers. The
-Standard explicitly does not cover the cases where dates are written
-using words (such as January, February, etc.). In fact, the Standard
-itself makes frequent use of dates such as "20 May 1875" and
-"15 October 1582".
+The  Standard specifies  how  to  write dates  using  only numbers.  The
+Standard explicitly  does not  cover the cases  where dates  are written
+using words  (such as  January, February, etc.).  In fact,  the Standard
+itself makes frequent use of dates such as "20 May 1875" and "15 October
+1582".
 
-In other words, ISO 8601 helps people with data communication where it
-is natural to use all-number dates. In everyday language (spoken and
+  In other words, ISO 8601 helps people with data communication where it
+is natural  to use all-number  dates.  In everyday language  (spoken and
 written) we are free to use the terms we like best.
 
 
 3.10. Where can I get the Standard?
 -----------------------------------
 
-If you are looking for a free copy somewhere on the internet, forget
-it! ISO makes money from selling copies of their standards.
+If you are looking for a free copy somewhere on the internet, forget it!
+ISO makes money from selling copies of their standards.
 
-ISO 8601:2004 can be bought from ISO at http://www.iso.ch. It is very
-expensive. The last time I checked, the price was 124 Swiss Francs
+  ISO 8601:2004 can be bought from ISO at http://www.iso.ch.  It is very
+expensive.   The last time  I checked,  the price  was 124  Swiss Francs
 (about U.S. $97) for a 33 page document.
 
-Your local library may be able to find a copy for you.
+  Your local library may be able to find a copy for you.
 
 
+
 4. The Hebrew Calendar
 ----------------------
 
-The current definition of the Hebrew calendar is generally said to
-have been set down by the Sanhedrin president Hillel II in
-approximately AD 359. The original details of his calendar are,
-however, uncertain.
+The current definition of the  Hebrew calendar is generally said to have
+been set down  by the Sanhedrin president Hillel  II in approximately AD
+359.  The original details of his calendar are, however, uncertain.
 
-The Hebrew calendar is used for religious purposes by Jews all over
+  The Hebrew  calendar is used for  religious purposes by  Jews all over
 the world, and it is the official calendar of Israel.
 
-The Hebrew calendar is a combined solar/lunar calendar, in that it
-strives to have its years coincide with the tropical year and its
-months coincide with the synodic months. This is a complicated goal,
-and the rules for the Hebrew calendar are correspondingly
-fascinating.
+  The Hebrew  calendar is  a combined solar/lunar  calendar, in  that it
+strives to have its years coincide with the tropical year and its months
+coincide with the  synodic months.  This is a  complicated goal, and the
+rules for the Hebrew calendar are correspondingly fascinating.
 
 
 4.1. What does a Hebrew year look like?
 ---------------------------------------
 
-An ordinary (non-leap) year has 353, 354, or 355 days.
-A leap year has 383, 384, or 385 days.
-The three lengths of the years are termed, "deficient", "regular",
-and "complete", respectively.
+An ordinary (non-leap) year has 353,  354, or 355 days.  A leap year has
+383,  384, or  385 days.   The three  lengths of  the years  are termed,
+"deficient", "regular", and "complete", respectively.
 
-An ordinary year has 12 months, a leap year has 13 months.
+  An ordinary year has 12 months, a leap year has 13 months.
 
-Every month starts (approximately) on the day of a new moon.
+  Every month starts (approximately) on the day of a new moon.
 
-The months and their lengths are:
+  The months and their lengths are:
 
-          Length in a      Length in a     Length in a
-Name      deficient year   regular year    complete year
--------   --------------   ------------    -------------
-Tishri          30              30              30
-Heshvan         29              29              30
-Kislev          29              30              30
-Tevet           29              29              29
-Shevat          30              30              30
-(Adar I         30              30              30)
-Adar II         29              29              29
-Nisan           30              30              30
-Iyar            29              29              29
-Sivan           30              30              30
-Tammuz          29              29              29
-Av              30              30              30
-Elul            29              29              29
--------   --------------   ------------    -------------
-Total:      353 or 383      354 or 384      355 or 385
+              Length in a      Length in a     Length in a
+    Name      deficient year   regular year    complete year
+    -------   --------------   ------------    -------------
+    Tishri          30              30              30
+    Heshvan         29              29              30
+    Kislev          29              30              30
+    Tevet           29              29              29
+    Shevat          30              30              30
+    (Adar I         30              30              30)
+    Adar II         29              29              29
+    Nisan           30              30              30
+    Iyar            29              29              29
+    Sivan           30              30              30
+    Tammuz          29              29              29
+    Av              30              30              30
+    Elul            29              29              29
+    -------   --------------   ------------    -------------
+    Total:      353 or 383      354 or 384      355 or 385
 
-The month Adar I is only present in leap years. In non-leap years
+  The month  Adar I is  only present in  leap years.  In  non-leap years
 Adar II is simply called "Adar".
 
-Note that in a regular year the numbers 30 and 29 alternate; a
-complete year is created by adding a day to Heshvan, whereas a
-deficient year is created by removing a day from Kislev.
+  Note  that in  a  regular year  the  numbers 30  and  29 alternate;  a
+complete year is created by adding a day to Heshvan, whereas a deficient
+year is created by removing a day from Kislev.
 
-The alteration of 30 and 29 ensures that when the year starts with a
+  The alteration of  30 and 29 ensures that when the  year starts with a
 new moon, so does each month.
 
 
 4.2. What years are leap years?
 -------------------------------
 
-A year is a leap year if the number 'year mod 19' is one of the
+A  year is  a leap  year  if the  number 'year  mod  19' is  one of  the
 following: 0, 3, 6, 8, 11, 14, or 17.
 
-The value for year in this formula is the "Anno Mundi" described in
+  The value  for year in this  formula is the "Anno  Mundi" described in
 section 4.8.
 
 
 4.3. What years are deficient, regular, and complete?
 -----------------------------------------------------
 
-That is the wrong question to ask. The correct question to ask is: When
-does a Hebrew year begin? Once you have answered that question (see
-section 4.6), the length of the year is the number of days between
-1 Tishri in one year and 1 Tishri in the following year.
+That is the wrong question to ask.  The correct question to ask is: when
+does a  Hebrew year  begin?  Once you  have answered that  question (see
+section 4.6),  the length of  the year is  the number of days  between 1
+Tishri in one year and 1 Tishri in the following year.
 
 
 4.4. When is New Year's day?
 ----------------------------
 
-That depends. Jews have several different days to choose from. The
+That depends.   Jews have  several different days  to choose  from.  The
 most important are:
 
-1 Tishri:  "Rosh HaShanah". This day is a celebration of the creation
-           of the world and marks the start of a new calendar
-           year. This will be the day we shall base our calculations on
-           in the following sections.
+1 Tishri:
+    "Rosh HaShanah".  This  day is a celebration of  the creation of the
+    world and marks the start of  a new calendar year.  This will be the
+    day we shall base our calculations on in the following sections.
 
-1 Nisan:   "New Year for Kings". This is also the start of the
-           religious year. Nisan is considered the first month,
-           although it occurs 6 or 7 months after the start of the
-           calendar year.
+1 Nisan:
+    "New Year for Kings".  This is also the start of the religious year.
+    Nisan  is considered  the first  month, although  it occurs  6  or 7
+    months after the start of the calendar year.
 
 
 3.5. When does a Hebrew day begin?
 ----------------------------------
 
-A Hebrew-calendar day does not begin at midnight, but at either sunset
-or when three medium-sized stars should be visible, depending on the
+A Hebrew-calendar day  does not begin at midnight,  but at either sunset
+or when  three medium-sized  stars should be  visible, depending  on the
 religious circumstance.
 
-Sunset marks the start of the 12 night hours, whereas sunrise marks the
-start of the 12 day hours. This means that night hours may be longer
-or shorter than day hours, depending on the season.
+  Sunset marks  the start of the  12 night hours,  whereas sunrise marks
+the  start of the  12 day  hours.  This  means that  night hours  may be
+longer or shorter than day hours, depending on the season.
 
 
 4.6. When does a Hebrew year begin?
 -----------------------------------
 
-The first day of the calendar year, Rosh HaShanah, on 1 Tishri is
+The  first day  of the  calendar  year, Rosh  HaShanah, on  1 Tishri  is
 determined as follows:
 
-1) The new year starts on the day of the new moon that occurs about
-   354 days (or 384 days if the previous year was a leap year) after
-   1 Tishri of the previous year
+1) The new year starts on the  day of the new moon that occurs about 354
+   days  (or 384 days  if the  previous year  was a  leap year)  after 1
+   Tishri of the previous year
 
-2) If the new moon occurs after noon on that day, delay the new year
-   by one day. (Because in that case the new crescent moon will not be
+2) If the new moon occurs after  noon on that day, delay the new year by
+   one day.  (Because in  that case  the new crescent  moon will  not be
    visible until the next day.)
 
-3) If this would cause the new year to start on a Sunday, Wednesday,
-   or Friday, delay it by one day. (Because we want to avoid that
-   Yom Kippur (10 Tishri) falls on a Friday or Sunday, and that
-   Hoshanah Rabba (21 Tishri) falls on a Sabbath (Saturday)).
+3) If this would cause the new  year to start on a Sunday, Wednesday, or
+   Friday, delay  it by  one day.   (Because we want  to avoid  that Yom
+   Kippur (10  Tishri) falls  on a Friday  or Sunday, and  that Hoshanah
+   Rabba (21 Tishri) falls on a Sabbath (Saturday)).
 
-4) If two consecutive years start 356 days apart (an illegal year
+4)  If two  consecutive  years start  356  days apart  (an illegal  year
    length), delay the start of the first year by two days.
 
-5) If two consecutive years start 382 days apart (an illegal year
+5)  If two  consecutive  years start  382  days apart  (an illegal  year
    length), delay the start of the second year by one day.
 
 
-Note: Rule 4 can only come into play if the first year was supposed
-to start on a Tuesday. Therefore a two day delay is used rather than a
-one day delay, as the year must not start on a Wednesday as stated in
-rule 3.
+  Note: Rule 4 can only come into play if the first year was supposed to
+start on a Tuesday.  Therefore a two day delay is used rather than a one
+day delay, as the  year must not start on a Wednesday  as stated in rule
+3.
 
 
 4.7. When is the new moon?
 --------------------------
 
-A calculated new moon is used. In order to understand the
-calculations, one must know that an hour is subdivided into 1080
-"parts".
+A calculated new moon is  used. In order to understand the calculations,
+one must know that an hour is subdivided into 1080 "parts".
 
 The calculations are as follows:
 
-The new moon that started the year AM 1, occurred 5 hours and 204
-parts after sunset (i.e. just before midnight on Julian date 6 October
-3761 BC).
+The new moon that started the year  AM 1, occurred 5 hours and 204 parts
+after sunset  (i.e. just before midnight  on Julian date  6 October 3761
+BC).
 
-The new moon of any particular year is calculated by extrapolating
-from this time, using a synodic month of 29 days 12 hours and 793
-parts.
+The new moon of any  particular year is calculated by extrapolating from
+this time, using a synodic month of 29 days 12 hours and 793 parts.
 
-Note that 18:00 Jerusalem time (15:39 UTC) is used instead of sunset in
+Note that 18:00 Jerusalem time (15:39  UTC) is used instead of sunset in
 all these calculations.
 
 
 4.8. How does one count years?
 ------------------------------
 
-Years are counted since the creation of the world, which is assumed to
-have taken place in the autumn of 3760 BC. In that year, after less
-than a week belonging to AM 1, AM 2 started (AM = Anno Mundi = year of
-the world). In other words, AM 2 started less than a week after the
+Years are counted  since the creation of the world,  which is assumed to
+have taken  place in the  autumn of 3760  BC.  In that year,  after less
+than a week belonging  to AM 1, AM 2 started (AM =  Anno Mundi = year of
+the world).   In other words,  AM 2 started  less than a week  after the
 "creation of the world".
 
-In the year AD 2008 we shall witness the start of Hebrew year AM 5769.
+  In the year AD 2008 we shall witness the start of Hebrew year AM 5769.
 
 
 4.9. When was Passover in AD 30?
 --------------------------------
 
-People who ask this question are normally trying to calculate the
-exact date of Jesus' death.
+People who ask this question  are normally trying to calculate the exact
+date of Jesus' death.
 
-The New Testament states that Jesus died on a Friday at the beginning
-of the Jewish Passover, and that his resurrection took place on the
-following Sunday. However, it is not quite clear if Jesus' death took
-place immediately before the start of the Jewish Passover or on the
-first day of Passover. Since Passover starts on 15 Nisan, it is
-unclear if Jesus died on 14 or 15 Nisan.
+  The New Testament states that Jesus  died on a Friday at the beginning
+of  the Jewish Passover,  and that  his resurrection  took place  on the
+following Sunday.  However,  it is not quite clear  if Jesus' death took
+place  immediately before the  start of  the Jewish  Passover or  on the
+first day of Passover.  Since Passover starts on 15 Nisan, it is unclear
+if Jesus died on 14 or 15 Nisan.
 
-This question is important for Christian historians because if you
-know the date, you may with some degree of confidence also calculate
-the year; all you have to do is find a year near AD 30 where 14 or
-15 Nisan fell on a Friday.
+  This  question is important  for Christian  historians because  if you
+know the date, you may with some degree of confidence also calculate the
+year; all you have to do is find  a year near AD 30 where 14 or 15 Nisan
+fell on a Friday.
 
-The problem is that we don't know the exact details of the Hebrew
-calendar as it was used in the first century. This means that we have
-to allow for a margin of a day or two in the calculations, and this in
+  The problem  is that  we don't  know the exact  details of  the Hebrew
+calendar as it  was used in the first century.  This  means that we have
+to allow for a  margin of a day or two in  the calculations, and this in
 turn means that we are left with quite a few possible dates.
 
-Through the centuries several different dates for the crucifixion have
-been suggested. Currently, the most common theories suggest either
-7 April AD 30 or 3 April AD 33.
+  Through the centuries several different dates for the crucifixion have
+been suggested.   Currently, the most  common theories suggest  either 7
+April AD 30 or 3 April AD 33.
 
-(I frequently receive e-mail proposing very different approaches to
-calculating the date for Jesus' death, including claims that Jesus did
-not die on a Friday or that he did not die on 14 or 15 Nisan. However,
-the statements made in this section describe the most commonly held
-views. A detailed discussion on the dating can be found in Blackburn &
+  (I frequently  receive e-mail  proposing very different  approaches to
+calculating the date  for Jesus' death, including claims  that Jesus did
+not die on a Friday or that he  did not die on 14 or 15 Nisan.  However,
+the  statements made  in this  section describe  the most  commonly held
+views.  A detailed discussion on the  dating can be found in Blackburn &
 Holford-Strevens' brilliant book which I mention in section 11.6.)
 
 
+
 5. The Islamic Calendar
 -----------------------
 
-The Islamic calendar (or Hijri calendar) is a purely lunar
-calendar. It contains 12 months that are based on the motion of the
-moon, and because 12 synodic months is only 12*29.53=354.36 days, the
-Islamic calendar is consistently shorter than a tropical year, and
-therefore it shifts with respect to the Christian calendar.
+The Islamic calendar (or Hijri calendar) is a purely lunar calendar.  It
+contains 12 months that are based on the motion of the moon, and because
+12 synodic months is only  12*29.53=354.36 days, the Islamic calendar is
+consistently shorter than a tropical  year, and therefore it shifts with
+respect to the Christian calendar.
 
-The calendar is based on the Qur'an (Sura IX, 36-37) and its proper
+  The calendar  is based on the  Qur'an (Sura IX, 36-37)  and its proper
 observance is a sacred duty for Muslims.
 
-The Islamic calendar is the official calendar in countries around the
-Gulf, especially Saudi Arabia (but see section 5.5). But other Muslim
-countries use the Gregorian calendar for civil purposes and only turn
-to the Islamic calendar for religious purposes.
+  The Islamic calendar is the  official calendar in countries around the
+Gulf, especially Saudi  Arabia (but see section 5.5).   But other Muslim
+countries use the Gregorian calendar for civil purposes and only turn to
+the Islamic calendar for religious purposes.
 
 
 5.1. What does an Islamic year look like?
@@ -2304,242 +2300,244 @@ to the Islamic calendar for religious purposes.
 
 The names of the 12 months that comprise the Islamic year are:
 
-1. Muharram                          7. Rajab
-2. Safar                             8. Sha'ban
-3. Rabi' al-awwal (Rabi' I)          9. Ramadan
-4. Rabi' al-thani (Rabi' II)        10. Shawwal
-5. Jumada al-awwal (Jumada I)       11. Dhu al-Qi'dah
-6. Jumada al-thani (Jumada II)      12. Dhu al-Hijjah
+    1. Muharram                          7. Rajab
+    2. Safar                             8. Sha'ban
+    3. Rabi' al-awwal (Rabi' I)          9. Ramadan
+    4. Rabi' al-thani (Rabi' II)        10. Shawwal
+    5. Jumada al-awwal (Jumada I)       11. Dhu al-Qi'dah
+    6. Jumada al-thani (Jumada II)      12. Dhu al-Hijjah
 
-(Due to different transliterations of the Arabic alphabet, other
+(Due  to  different  transliterations  of  the  Arabic  alphabet,  other
 spellings of the months are possible.)
 
-Each month starts when the lunar crescent is first seen (by an actual
+  Each month starts when the lunar  crescent is first seen (by an actual
 human being) after a new moon.
 
-Although new moons may be calculated quite precisely, the actual
-visibility of the crescent is much more difficult to predict. It
-depends on factors such as weather, the optical properties of the
-atmosphere, and the location of the observer. It is therefore very
-difficult to give accurate information in advance about when a new
-month will start.
+  Although  new moons  may  be calculated  quite  precisely, the  actual
+visibility  of the  crescent  is  much more  difficult  to predict.   It
+depends  on factors  such  as  weather, the  optical  properties of  the
+atmosphere,  and the  location of  the observer.   It is  therefore very
+difficult to give accurate information in advance about when a new month
+will start.
 
-Furthermore, some Muslims depend on a local sighting of the moon,
-whereas others depend on a sighting by authorities somewhere in the
-Muslim world. Both are valid Islamic practices, but they may lead to
+  Furthermore,  some Muslims  depend on  a local  sighting of  the moon,
+whereas  others depend  on a  sighting by  authorities somewhere  in the
+Muslim world.  Both are  valid Islamic practices,  but they may  lead to
 different starting days for the months.
 
 
 5.2. So you can't print an Islamic calendar in advance?
 -------------------------------------------------------
 
-Not a reliable one. However, calendars are printed for planning
-purposes, but such calendars are based on estimates of the visibility
-of the lunar crescent, and the actual month may start a day earlier or
+Not  a  reliable  one.  However,  calendars  are  printed  for  planning
+purposes, but such calendars are based on estimates of the visibility of
+the lunar  crescent, and  the actual  month may start  a day  earlier or
 later than predicted in the printed calendar.
 
-Different methods for estimating the calendars are used.
+  Different methods for estimating the calendars are used.
 
-Some sources mention a crude system in which all odd numbered months
-have 30 days and all even numbered months have 29 days with an extra
-day added to the last month in "leap years" (a concept otherwise
-unknown in the calendar). Leap years could then be years in which the
-number 'year mod 30' is one of the following: 2, 5, 7, 10, 13, 16, 18,
-21, 24, 26, or 29. (This is the algorithm used in the calendar program
-of the Gnu Emacs editor.)
+  Some sources mention  a crude system in which  all odd numbered months
+have 30 days and all even numbered months have 29 days with an extra day
+added to the last month in  "leap years" (a concept otherwise unknown in
+the calendar).  Leap years could then be years in which the number 'year
+mod 30' is one of the following: 2, 5, 7, 10, 13, 16, 18, 21, 24, 26, or
+29.  (This  is the  algorithm used  in the calendar  program of  the Gnu
+Emacs editor.)
 
-Such a calendar would give an average month length of 29.53056 days,
-which is quite close to the synodic month of 29.53059 days, so *on the
-average* it would be quite accurate, but in any given month it is
-still just a rough estimate.
+  Such a calendar  would give an average month  length of 29.53056 days,
+which is quite  close to the synodic month of 29.53059  days, so *on the
+average* it would be quite accurate,  but in any given month it is still
+just a rough estimate.
 
-Better algorithms for estimating the visibility of the new moon have
-been devised, and a number of computer programs with this purpose
-exist.
+  Better algorithms for  estimating the visibility of the  new moon have
+been devised, and a number of computer programs with this purpose exist.
 
 
 5.3. How does one count years?
 ------------------------------
 
-Years are counted since the Hijra, that is, Mohammed's emigration to
-Medina in AD 622. On 16 July (Julian calendar) of that year, AH 1
+Years are  counted since  the Hijra, that  is, Mohammed's  emigration to
+Medina  in AD 622.   On 16  July (Julian  calendar) of  that year,  AH 1
 started (AH = Anno Hegirae = year of the Hijra).
 
-In the year AD 2008 we witness the start of Islamic years AH 1429 (in
+  In the year AD 2008 we witness  the start of Islamic years AH 1429 (in
 January) and 1430 (in December).
 
-Note that although only 2008-622=1386 years have passed in the
-Christian calendar, 1429 years have passed in the Islamic calendar,
-because its year is consistently shorter (by about 11 days) than the
+  Note  that  although  only  2008-622=1386  years have  passed  in  the
+Christian  calendar, 1429  years have  passed in  the  Islamic calendar,
+because its  year is  consistently shorter (by  about 11 days)  than the
 tropical year used by the Christian calendar.
 
 
 5.4. When will the Islamic calendar overtake the Gregorian calendar?
 --------------------------------------------------------------------
 
-As the year in the Islamic calendar is about 11 days shorter than the
-year in the Christian calendar, the Islamic years are slowly gaining
-in on the Christian years. But it will be many years before the two
-coincide. The 1st day of the 5th month of AD 20874 in the Gregorian
-calendar will also be (approximately) the 1st day of the 5th month of
-AH 20874 of the Islamic calendar.
+As the  year in the Islamic calendar  is about 11 days  shorter than the
+year in the Christian calendar,  the Islamic years are slowly gaining in
+on  the Christian  years.  But  it  will be  many years  before the  two
+coincide.  The  1st day of  the 5th month  of AD 20874 in  the Gregorian
+calendar will also be (approximately) the 1st day of the 5th month of AH
+20874 of the Islamic calendar.
 
 
 5.5. Doesn't Saudi Arabia have special rules?
 ---------------------------------------------
 
-[For civil (but not religious) purposes,] Saudi Arabia doesn't rely on
-a visual sighting of the crescent moon to fix the start of a new
-month. Instead they base their calendar on a calculated astronomical
+[For civil (but not religious) purposes,] Saudi Arabia doesn't rely on a
+visual  sighting  of  the crescent  moon  to  fix  the  start of  a  new
+month.  Instead they base  their calendar  on a  calculated astronomical
 moon.
 
-Since 2002 (AH 1423) the rule has been as follows: If on the 29th day
+  Since 2002 (AH 1423) the rule has  been as follows: if on the 29th day
 of an Islamic month,
 
-   * the geocentric conjunction (that is, the new moon as seen from
-     the centre of the earth) occurs before sunset, and
-   * the moon sets after the sun,
+   * The geocentric conjunction (that is,  the new moon as seen from the
+     centre of the earth) occurs before sunset, and
 
-then the next day will be the first of a new month; otherwise the next
+   * The moon sets after the sun,
+
+then the next day  will be the first of a new  month; otherwise the next
 day will be the last (30th) of the current month.
 
-The times for the setting of the sun and the moon are calculated for
+  The times for  the setting of the sun and the  moon are calculated for
 the coordinates of Mecca.
 
 
+
 6. The Persian Calendar
 -----------------------
 
-The Persian calendar is a solar calendar with a starting point that
-matches that of the Islamic calendar. Apart from that, the two
-calendars are not related. The origin of the Persian calendar can be
-traced back to the 11th century when a group of astronomers (including
-the well-known poet Omar Khayyam) created what is known as the Jalaali
-calendar. However, a number of changes have been made to the calendar
+The  Persian calendar is  a solar  calendar with  a starting  point that
+matches  that  of  the  Islamic  calendar.  Apart  from  that,  the  two
+calendars are  not related.  The origin  of the Persian  calendar can be
+traced back to  the 11th century when a  group of astronomers (including
+the well-known poet  Omar Khayyam) created what is  known as the Jalaali
+calendar.  However, a  number of changes have been  made to the calendar
 since then.
 
-The current calendar has been used in Iran since 1925 and in
-Afghanistan since 1957. However, Afghanistan used the Islamic calendar
+  The  current  calendar  has  been  used  in Iran  since  1925  and  in
+Afghanistan since 1957.  However,  Afghanistan used the Islamic calendar
 in the years 1999-2002.
 
 
 6.1. What does a Persian year look like?
 ----------------------------------------
 
-The names and lengths of the 12 months that comprise the Persian year
+The names  and lengths of the  12 months that comprise  the Persian year
 are:
 
-1. Farvardin   (31 days)      7. Mehr    (30 days)
-2. Ordibehesht (31 days)      8. Aban    (30 days)
-3. Khordad     (31 days)      9. Azar    (30 days)
-4. Tir         (31 days)     10. Day     (30 days)
-5. Mordad      (31 days)     11. Bahman  (30 days)
-6. Shahrivar   (31 days)     12. Esfand  (29/30 days)
+    1. Farvardin   (31 days)      7. Mehr    (30 days)
+    2. Ordibehesht (31 days)      8. Aban    (30 days)
+    3. Khordad     (31 days)      9. Azar    (30 days)
+    4. Tir         (31 days)     10. Day     (30 days)
+    5. Mordad      (31 days)     11. Bahman  (30 days)
+    6. Shahrivar   (31 days)     12. Esfand  (29/30 days)
 
-(Due to different transliterations of the Persian alphabet, other
-spellings of the months are possible.) In Afghanistan the months are
+  (Due  to different  transliterations  of the  Persian alphabet,  other
+spellings of  the months are  possible.)  In Afghanistan the  months are
 named differently.
 
-The month of Esfand has 29 days in an ordinary year, 30 days in a leap
+  The month of Esfand has 29 days in an ordinary year, 30 days in a leap
 year.
 
 
 6.2. When does the Persian year begin?
 --------------------------------------
 
-The Persian year starts at vernal equinox. If the astronomical vernal
-equinox falls before noon (Tehran true time) on a particular day, then
-that day is the first day of the year. If the astronomical vernal
-equinox falls after noon, the following day is the first day of the
+The Persian year  starts at vernal equinox.  If  the astronomical vernal
+equinox falls before  noon (Tehran true time) on  a particular day, then
+that  day is  the first  day of  the year.   If the  astronomical vernal
+equinox falls  after noon,  the following  day is the  first day  of the
 year.
 
 
 6.3. How does one count years?
 ------------------------------
 
-As in the Islamic calendar (section 5.3), years are counted since
-Mohammed's emigration to Medina in AD 622. At vernal equinox of that
+As  in the  Islamic  calendar  (section 5.3),  years  are counted  since
+Mohammed's emigration  to Medina  in AD 622.  At vernal equinox  of that
 year, AP 1 started (AP = Anno Persico/Anno Persarum = Persian year).
 
-Note that contrary to the Islamic calendar, the Persian calendar
-counts solar years. In the year AD 2008 we have therefore witnessed
-the start of Persian year 1387, but the start of Islamic year 1429.
+  Note  that contrary  to  the Islamic  calendar,  the Persian  calendar
+counts solar years.  In the year AD 2008 we have therefore witnessed the
+start of Persian year 1387, but the start of Islamic year 1429.
 
 
 6.4. What years are leap years?
 -------------------------------
 
-Since the Persian year is defined by the astronomical vernal equinox,
-the answer is simply: Leap years are years in which there are 366 days
+Since the  Persian year is  defined by the astronomical  vernal equinox,
+the answer is  simply: leap years are years in which  there are 366 days
 between two Persian new year's days.
 
-However, basing the Persian calendar purely on an astronomical
-observation of the vernal equinox is rejected by many, and a few
-mathematical rules for determining the length of the year have been
+  However,  basing  the  Persian  calendar  purely  on  an  astronomical
+observation  of  the vernal  equinox  is rejected  by  many,  and a  few
+mathematical  rules for  determining the  length of  the year  have been
 suggested.
 
-The most popular (and complex) of these is probably the following:
+  The most popular (and complex) of these is probably the following:
 
-The calendar is divided into periods of 2820 years. These periods are
+  The calendar is divided into periods of 2820 years.  These periods are
 then divided into 88 cycles whose lengths follow this pattern:
 
-29, 33, 33, 33, 29, 33, 33, 33, 29, 33, 33, 33, ...
+    29, 33, 33, 33, 29, 33, 33, 33, 29, 33, 33, 33, ...
 
-This gives 2816 years. The total of 2820 years is achieved by
+  This  gives  2816 years.   The  total of  2820  years  is achieved  by
 extending the last cycle by 4 years (for a total of 37 years).
 
-If you number the years within each cycle starting with 0, then leap
-years are the years that are divisible by 4, except that the year 0 is
+  If you number  the years within each cycle starting  with 0, then leap
+years are the years  that are divisible by 4, except that  the year 0 is
 not a leap year.
 
-So within, say, a 29 year cycle, this is the leap year pattern:
+  So within, say, a 29 year cycle, this is the leap year pattern:
 
-Year            Year              Year              Year
- 0  Ordinary      8  Leap          16  Leap          24  Leap
- 1  Ordinary      9  Ordinary      17  Ordinary      25  Ordinary
- 2  Ordinary     10  Ordinary      18  Ordinary      26  Ordinary
- 3  Ordinary     11  Ordinary      19  Ordinary      27  Ordinary
- 4  Leap         12  Leap          20  Leap          28  Leap
- 5  Ordinary     13  Ordinary      21  Ordinary
- 6  Ordinary     14  Ordinary      22  Ordinary
- 7  Ordinary     15  Ordinary      23  Ordinary
+    Year            Year              Year              Year
+     0  Ordinary      8  Leap          16  Leap          24  Leap
+     1  Ordinary      9  Ordinary      17  Ordinary      25  Ordinary
+     2  Ordinary     10  Ordinary      18  Ordinary      26  Ordinary
+     3  Ordinary     11  Ordinary      19  Ordinary      27  Ordinary
+     4  Leap         12  Leap          20  Leap          28  Leap
+     5  Ordinary     13  Ordinary      21  Ordinary
+     6  Ordinary     14  Ordinary      22  Ordinary
+     7  Ordinary     15  Ordinary      23  Ordinary
 
-This gives a total of 683 leap years every 2820 years, which
-corresponds to an average year length of 365 683/2820 = 365.24220
-days. This is a better approximation to the tropical year than the
+  This  gives  a  total  of  683  leap years  every  2820  years,  which
+corresponds  to an  average  year  length of  365  683/2820 =  365.24220
+days.  This is  a better  approximation to  the tropical  year  than the
 365.2425 days of the Gregorian calendar.
 
-The current 2820 year period started in the year AP 475 (AD 1096).
+  The current 2820 year period started in the year AP 475 (AD 1096).
 
-This "mathematical" calendar currently coincides closely with the
-purely astronomical calendar. In the years between AP 1244 and 1531
-(AD 1865 and 2152) a discrepancy of one day is seen twice, namely in
-AP 1404 and 1437 (starting at vernal equinox of AD 2025 and 2058).
-However, outside this period, discrepancies are more frequent.
+  This  "mathematical"  calendar currently  coincides  closely with  the
+purely astronomical calendar.  In the years between AP 1244 and 1531 (AD
+1865 and 2152) a discrepancy of one day is seen twice, namely in AP 1404
+and 1437  (starting at  vernal equinox of  AD 2025 and  2058).  However,
+outside this period, discrepancies are more frequent.
 
 
+
 7. The Week
 -----------
 
-The Christian, the Hebrew, the Islamic, and the Persian calendars all
+The Christian,  the Hebrew, the  Islamic, and the Persian  calendars all
 have a 7-day week.
 
 
 7.1. What is the origin of the 7-day week?
 ------------------------------------------
 
-Digging into the history of the 7-day week is a very complicated
-matter. Authorities have very different opinions about the history of
-the week, and they frequently present their speculations as if they
-were indisputable facts. In short, nothing can be said with certainty
-about the origin of the 7-day week.
+Digging into the history of the 7-day week is a very complicated matter.
+Authorities have very different opinions  about the history of the week,
+and  they  frequently  present   their  speculations  as  if  they  were
+indisputable facts.  In short, nothing  can be said with certainty about
+the origin of the 7-day week.
 
-The first pages of the Bible explain how God created the world in six
-days and rested on the seventh. This seventh day became the Jewish
-day of rest, the Sabbath, Saturday.
+  The first pages of the Bible  explain how God created the world in six
+days and rested on the seventh.   This seventh day became the Jewish day
+of rest, the Sabbath, Saturday.
 
-Extra-biblical locations sometimes mentioned as the birthplace of the
-7-day week include: Babylon, Persia, and several others. The week was
+  Extra-biblical locations sometimes mentioned  as the birthplace of the
+7-day week include:  Babylon, Persia, and several others.   The week was
 known in Rome before the advent of Christianity.
 
 
@@ -2765,6 +2763,7 @@ the normal 6-day week cycle). A return to the normal 7-day week was
 decreed on 26 June 1940.
 
 
+
 8. The French Revolutionary Calendar
 ------------------------------------
 
@@ -2864,6 +2863,7 @@ Year  6: 22 Sep 1797            Year 13: 23 Sep 1804
 Year  7: 22 Sep 1798            Year 14: 23 Sep 1805
 
 
+
 9. The Maya Calendar
 --------------------
 
@@ -3056,6 +3056,7 @@ digits. Suppose the 7.13.0.0.0 days had corresponded to 2.001 cycles
 rather than 2 cycles of the 365-day year, would the Mayas have noticed?)
 
 
+
 10. The Chinese Calendar
 ------------------------
 
@@ -3208,6 +3209,7 @@ started on 7 Feb 2008.
 
 
 
+
 11. Frequently Asked Questions about this FAQ
 ---------------------------------------------
 
@@ -3315,6 +3317,7 @@ Good places to start your calendar search include:
    http://personal.ecu.edu/mccartyr/calendar-reform.html
 
 
+
 12. Date
 --------
 
@@ -3341,4 +3344,5 @@ This version 2.9 of this document was finished on
 # mode: text
 # fill-column: 72
 # paragraph-start: "*"
+# page-delimiter: "^\"
 # End:
