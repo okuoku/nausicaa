@@ -28,7 +28,7 @@
 (library (makers)
   (export define-maker)
   (import (rnrs)
-    (for (makers helpers) run expand))
+    (for (makers helpers) expand))
 
 
 (define-syntax define-maker
@@ -36,7 +36,10 @@
     (syntax-case stx ()
 
       ((?k ?name ?maker-sexp ?keywords-and-defaults)
-       (not (identifier? #'?name))
+       (not (or (identifier? #'?name)
+		(let ((L (syntax->list #'?name)))
+		  (and (pair? L)
+		       (identifier? (car L))))))
        (syntax-violation 'define-maker
 	 "expected identifier as maker name in maker definition"
 	 (syntax->datum #'(?k ?name ?maker-sexp ?keywords-and-defaults))
@@ -55,17 +58,39 @@
 	 (syntax->datum #'(?k ?name ?maker-sexp ?keywords-and-defaults))
 	 (syntax->datum #'?keywords-and-defaults)))
 
+      ((_ (?name ?var0 ?var ...) (?maker ?arg ...) ?keywords-and-defaults)
+       #'(define-syntax ?name
+	   (lambda (use)
+	     (syntax-case use ()
+	       ((_ ?var0 ?var ... . ?args)
+		#`(?maker ?arg ... ?var0 ?var ...
+			  #,@(parse-input-form-stx (quote ?name) use #'?args
+						   (quote ?keywords-and-defaults))))))))
+
       ((_ ?name (?maker ?arg ...) ?keywords-and-defaults)
        #'(define-syntax ?name
 	   (lambda (use)
-	     #`(?maker ?arg ... #,@(parse-input-form-stx (quote ?name) use
-							 (quote ?keywords-and-defaults))))))
+	     (syntax-case use ()
+	       ((?k . ?args)
+		#`(?maker ?arg ... #,@(parse-input-form-stx (quote ?name) use #'?args
+							    (quote ?keywords-and-defaults))))))))
+
+      ((_ (?name ?var0 ?var ...) ?maker ?keywords-and-defaults)
+       #'(define-syntax ?name
+	   (lambda (use)
+	     (syntax-case use ()
+	       ((?k ?var0 ?var ... . ?args)
+		#`(?maker ?var0 ?var ...
+			  #,@(parse-input-form-stx (quote ?name) use #'?args
+						   (quote ?keywords-and-defaults))))))))
 
       ((_ ?name ?maker ?keywords-and-defaults)
        #'(define-syntax ?name
 	   (lambda (use)
-	     #`(?maker #,@(parse-input-form-stx (quote ?name) use
-						(quote ?keywords-and-defaults))))))
+	     (syntax-case use ()
+	       ((?k . ?args)
+		#`(?maker #,@(parse-input-form-stx (quote ?name) use #'?args
+						   (quote ?keywords-and-defaults))))))))
 
       (?input-form
        (syntax-violation 'define-maker
@@ -73,65 +98,6 @@
 	 (syntax->datum #'?input-form)))
 
       )))
-
-
-(define (parse-input-form-stx who input-form-stx keywords-and-defaults)
-  (let ((arguments-stx (cdr (syntax->list input-form-stx))))
-
-    ;;Make sure  that ARGUMENTS-STX only holds subforms  starting with a
-    ;;keyword in KEYWORDS; any order is allowed.
-    (for-each (lambda (key-and-argument)
-		(let ((key (car key-and-argument)))
-		  (unless (identifier? key)
-		    (syntax-violation who
-		      "expected identifier as first element of argument subform"
-		      (syntax->datum input-form-stx)
-		      (syntax->datum key-and-argument)))
-		  (unless (exists (lambda (key-and-default)
-				    (eq? (car key-and-default) (syntax->datum key)))
-				  keywords-and-defaults)
-		    (syntax-violation who
-		      (string-append "unrecognised argument keyword, expected one among: "
-				     (%keywords-join keywords-and-defaults))
-		      (syntax->datum input-form-stx)
-		      (syntax->datum key)))))
-      arguments-stx)
-
-    ;;Build  and return a  list of  arguments' syntax  objects, possibly
-    ;;using the given defaults.
-    (map (lambda (key-and-default)
-	   (let ((key (car key-and-default)))
-	     (or (exists (lambda (key-and-argument)
-			   (and (eq? key (syntax->datum (car key-and-argument)))
-				(cadr key-and-argument)))
-			 arguments-stx)
-		 (cadr key-and-default))))
-      keywords-and-defaults)))
-
-(define (%keywords-join keywords-and-defaults)
-  ;;Given an  alist of  keywords and default  values, join  the keywords
-  ;;into a string  with a comma as separator; return  the string.  To be
-  ;;used to build error messages involving the list of keywords.
-  ;;
-  (let ((keys (map (lambda (p)
-		     (symbol->string (car p)))
-		keywords-and-defaults)))
-    (if (null? keys)
-	""
-      (call-with-values
-	  (lambda ()
-	    (open-string-output-port))
-	(lambda (port getter)
-	  (display (car keys) port)
-	  (let loop ((keys (cdr keys)))
-	    (if (null? keys)
-		(getter)
-	      (begin
-		(display ", " port)
-		(display (car keys) port)
-		(loop (cdr keys))))))))))
-
-
 
 
 ;;;; done

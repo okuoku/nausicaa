@@ -36,112 +36,242 @@
 
 (parametrise ((check-test-name	'base))
 
-  (let ()	;no fixed arguments
+  (let ()	;variable arguments, no fixed arguments
 
     (define-maker doit
-      list ((alpha	1)
-	    (beta	2)
-	    (gamma	3)))
+      list ((:alpha	1)
+	    (:beta	2)
+	    (:gamma	3)))
 
     (check
 	(doit)
       => '(1 2 3))
 
     (check
-    	(doit (alpha 10))
+    	(doit (:alpha 10))
       => '(10 2 3))
 
     (check
-    	(doit (beta 20))
+    	(doit (:beta 20))
       => '(1 20 3))
 
     (check
-    	(doit (gamma 30))
+    	(doit (:gamma 30))
       => '(1 2 30))
 
     (check
-    	(doit (alpha	10)
-	      (beta	20))
+    	(doit (:alpha	10)
+	      (:beta	20))
       => '(10 20 3))
 
     (check
-    	(doit (alpha	10)
-	      (gamma	30))
+    	(doit (:alpha	10)
+	      (:gamma	30))
       => '(10 2 30))
 
     (check
-    	(doit (gamma	30)
-	      (beta	20))
+    	(doit (:gamma	30)
+	      (:beta	20))
       => '(1 20 30))
 
     (check
-    	(doit (alpha	10)
-	      (beta	20)
-	      (gamma	30))
+    	(doit (:alpha	10)
+	      (:beta	20)
+	      (:gamma	30))
       => '(10 20 30))
 
     (check
 	(let ((b 7))
-	  (doit (beta	(+ 6 (* 2 b)))
-		(alpha	(+ 2 8))))
+	  (doit (:beta	(+ 6 (* 2 b)))
+		(:alpha	(+ 2 8))))
       => '(10 20 3))
 
     #f)
 
 ;;; --------------------------------------------------------------------
 
-  (let ()	;fixed arguments
+  (let ()	;no variable arguments, yes fixed arguments
 
     (define S "ciao")
 
     (define-maker doit
       (list (string-ref S 2) #\b)
-      ((alpha	1)
-       (beta	2)
-       (gamma	3)))
+      ((:alpha	1)
+       (:beta	2)
+       (:gamma	3)))
 
     (check
 	(doit)
       => '(#\a #\b 1 2 3))
 
     (check
-    	(doit (alpha 10))
+    	(doit (:alpha 10))
       => '(#\a #\b 10 2 3))
 
     (check
-    	(doit (beta 20))
+    	(doit (:beta 20))
       => '(#\a #\b 1 20 3))
 
     (check
-    	(doit (gamma 30))
+    	(doit (:gamma 30))
       => '(#\a #\b 1 2 30))
 
     (check
-    	(doit (alpha	10)
-	      (beta	20))
+    	(doit (:alpha	10)
+	      (:beta	20))
       => '(#\a #\b 10 20 3))
 
     (check
-    	(doit (alpha	10)
-	      (gamma	30))
+    	(doit (:alpha	10)
+	      (:gamma	30))
       => '(#\a #\b 10 2 30))
 
     (check
-    	(doit (gamma	30)
-	      (beta	20))
+    	(doit (:gamma	30)
+	      (:beta	20))
       => '(#\a #\b 1 20 30))
 
     (check
-    	(doit (alpha	10)
-	      (beta	20)
-	      (gamma	30))
+    	(doit (:alpha	10)
+	      (:beta	20)
+	      (:gamma	30))
       => '(#\a #\b 10 20 30))
 
     (check
 	(let ((b 7))
-	  (doit (beta	(+ 6 (* 2 b)))
-		(alpha	(+ 2 8))))
+	  (doit (:beta	(+ 6 (* 2 b)))
+		(:alpha	(+ 2 8))))
       => '(#\a #\b 10 20 3))
+
+    #f)
+
+;;; --------------------------------------------------------------------
+
+  (let ()	;yes variable arguments, no fixed arguments
+
+    (define S "ciao")
+
+    (define-maker (doit a b)
+      list
+      ((:alpha	1)
+       (:beta	2)
+       (:gamma	3)))
+
+    (check
+	(doit #\a #\b)
+      => '(#\a #\b 1 2 3))
+
+    (check
+    	(doit #\a #\b
+	      (:alpha 10))
+      => '(#\a #\b 10 2 3))
+
+    (check
+    	(doit #\a #\b
+	      (:beta 20))
+      => '(#\a #\b 1 20 3))
+
+    (check
+    	(doit #\a #\b
+	      (:gamma 30))
+      => '(#\a #\b 1 2 30))
+
+    (check
+    	(doit #\a #\b
+	      (:alpha	10)
+	      (:beta	20))
+      => '(#\a #\b 10 20 3))
+
+    (check
+    	(doit #\a #\b
+	      (:alpha	10)
+	      (:gamma	30))
+      => '(#\a #\b 10 2 30))
+
+    (check
+    	(doit #\a #\b
+	      (:gamma	30)
+	      (:beta	20))
+      => '(#\a #\b 1 20 30))
+
+    (check
+    	(doit #\a #\b
+	      (:alpha	10)
+	      (:beta	20)
+	      (:gamma	30))
+      => '(#\a #\b 10 20 30))
+
+    (check
+	(let ((b 7))
+	  (doit #\a #\b
+		(:beta	(+ 6 (* 2 b)))
+		(:alpha	(+ 2 8))))
+      => '(#\a #\b 10 20 3))
+
+    #f)
+
+;;; --------------------------------------------------------------------
+
+  (let ()	;yes variable arguments, yes fixed arguments
+
+    (define S "ciao")
+
+    (define-maker (doit a b)
+      (list #\a #\b)
+      ((:alpha	1)
+       (:beta	2)
+       (:gamma	3)))
+
+    (check
+	(doit #\p #\q)
+      => '(#\a #\b #\p #\q 1 2 3))
+
+    (check
+    	(doit #\p #\q
+	      (:alpha 10))
+      => '(#\a #\b #\p #\q 10 2 3))
+
+    (check
+    	(doit #\p #\q
+	      (:beta 20))
+      => '(#\a #\b #\p #\q 1 20 3))
+
+    (check
+    	(doit #\p #\q
+	      (:gamma 30))
+      => '(#\a #\b #\p #\q 1 2 30))
+
+    (check
+    	(doit #\p #\q
+	      (:alpha	10)
+	      (:beta	20))
+      => '(#\a #\b #\p #\q 10 20 3))
+
+    (check
+    	(doit #\p #\q
+	      (:alpha	10)
+	      (:gamma	30))
+      => '(#\a #\b #\p #\q 10 2 30))
+
+    (check
+    	(doit #\p #\q
+	      (:gamma	30)
+	      (:beta	20))
+      => '(#\a #\b #\p #\q 1 20 30))
+
+    (check
+    	(doit #\p #\q
+	      (:alpha	10)
+	      (:beta	20)
+	      (:gamma	30))
+      => '(#\a #\b #\p #\q 10 20 30))
+
+    (check
+	(let ((b 7))
+	  (doit #\p #\q
+		(:beta	(+ 6 (* 2 b)))
+		(:alpha	(+ 2 8))))
+      => '(#\a #\b #\p #\q 10 20 3))
 
     #f)
 

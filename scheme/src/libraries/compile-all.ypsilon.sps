@@ -33,6 +33,7 @@
   (only (parameters))
   (only (pretty-print))
   (only (shared-structures))
+  (only (makers))
   (only (classes))
   (only (deferred-exceptions))
   (only (compensations))

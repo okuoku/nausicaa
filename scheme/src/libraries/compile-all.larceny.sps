@@ -64,6 +64,12 @@
 (compile-library "classes/helpers.sls"
 		 "classes/helpers.slfasl")
 
+(compile-library "makers/helpers.sls"
+		 "mekers/helpers.slfasl")
+
+(compile-library "makers.sls"
+		 "makers.slfasl")
+
 (compile-library "classes.sls"
 		 "classes.slfasl")
 
