@@ -149,8 +149,6 @@
 
   (let ()	;yes variable arguments, no fixed arguments
 
-    (define S "ciao")
-
     (define-maker (doit a b)
       list
       ((:alpha	1)
@@ -213,8 +211,6 @@
 ;;; --------------------------------------------------------------------
 
   (let ()	;yes variable arguments, yes fixed arguments
-
-    (define S "ciao")
 
     (define-maker (doit a b)
       (list #\a #\b)
