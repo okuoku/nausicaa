@@ -28,6 +28,9 @@
 (library (makers)
   (export define-maker)
   (import (rnrs)
+    ;;Notice that  we need to have  the helpers in  a different library,
+    ;;because some functions  are used by the newly  defined macros, not
+    ;;just by DEFINE-MAKER.
     (for (makers helpers) expand))
 
 
