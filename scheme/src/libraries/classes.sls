@@ -66,8 +66,10 @@
     <real> <real-valued> <complex> <number>)
   (import (rnrs)
     (rnrs mutable-strings)
+    (only (language-extensions) define-values receive)
     (for (gensym) expand)
-    (for (classes helpers) expand))
+    (for (classes helpers) expand)
+    (classes top))
 
 
 ;;;; helpers
@@ -3155,29 +3157,227 @@
   ;;used in the inheritance hierarchy of classes.
   ;;
   (lambda (stx)
-    (syntax-case stx (fields inherit predicate virtual-fields methods method setter getter bindings)
+    (define (doit input-form label-identifier predicate-identifier clauses)
+      ;;Parse the definition clauses and generate the output forms.
+      ;;
+      (define (%synner msg subform)
+	(syntax-violation 'define-label
+	  (string-append msg " in label definition")
+	  (syntax->datum input-form)
+	  (syntax->datum subform)))
 
+      (%check-clauses
+       '(inherit predicate setter getter bindings) ;only once keywords
+       '(virtual-fields methods method method-syntax) ;multiple times keywords
+       clauses %synner)
+
+      (let-values
+	  ;;The superlabel  identifier or false;  the inherit options:
+	  ;;all boolean values.
+	  (((superlabel-identifier inherit-virtual-fields? inherit-methods? inherit-setter-and-getter?)
+	    (%collect-clause/label/inherit clauses %synner))
+
+	   ;;False or an  identifier representing the custom predicate
+	   ;;for the label.
+	   ((custom-predicate)
+	    (%collect-clause/label/predicate clauses %synner))
+
+	   ;;False or  an identifier  representing the setter  for the
+	   ;;label.
+	   ((setter)
+	    (%collect-clause/setter clauses %synner))
+
+	   ;;False or  an identifier  representing the getter  for the
+	   ;;label.
+	   ((getter)
+	    (%collect-clause/getter clauses %synner))
+
+	   ;;An identifier representing  the custom bindings macro for
+	   ;;the label.
+	   ((bindings-macro)
+	    (%collect-clause/bindings clauses %synner))
+
+	   ;;Null  or  a  validated  list  of  virtual  fields  having
+	   ;;elements with format:
+	   ;;
+	   ;;    (immutable <field name> <field accessor>)
+	   ;;    (mutable   <field name> <field accessor> <field mutator>)
+	   ;;
+	   ;;where  IMMUTABLE and  MUTABLE are  symbols and  the other
+	   ;;elements are identifiers.
+	   ((virtual-fields)
+	    (%collect-clause/virtual-fields label-identifier clauses %synner))
+
+	   ;;Null or a validated  list of method specifications having
+	   ;;elements with format:
+	   ;;
+	   ;;	(<field identifier> <method identifier>)
+	   ;;
+	   ((methods-from-methods)
+	    (%collect-clause/methods label-identifier clauses %synner))
+
+	   ;;Null/null  or a validated  list of  method specifications
+	   ;;having elements with format:
+	   ;;
+	   ;;    (<method name> <function name>)
+	   ;;
+	   ;;and a list of definitions with the format:
+	   ;;
+	   ;;    (<definition> ...)
+	   ;;
+	   ;;in which each definition has one of the formats:
+	   ;;
+	   ;;    (define (<function name> . <args>) . <body>)
+	   ;;    (define <function name> <expression>)
+	   ;;
+	   ((methods definitions)
+	    (%collect-clause/method clauses %synner #'define/with-class))
+
+	   ;;Null/null   or  a   validated  list   of   method  syntax
+	   ;;specifications having elements with format:
+	   ;;
+	   ;;    (<method name> <macro name>)
+	   ;;
+	   ;;and a list of definitions with the format:
+	   ;;
+	   ;;    (<definition> ...)
+	   ;;
+	   ;;in which each definition has the format:
+	   ;;
+	   ;;    (define-syntax <macro name> <expression>)
+	   ;;
+	   ((syntax-methods syntax-definitions)
+	    (%collect-clause/method-syntax clauses %synner)))
+
+	(set! methods		(append methods methods-from-methods syntax-methods))
+	(set! definitions	(append definitions syntax-definitions))
+
+	(let ((id (duplicated-identifiers? (append (map cadr virtual-fields)
+						   (map car  methods)))))
+	  (when id
+	    (%synner "duplicated field names" id)))
+
+	(with-syntax ((LABEL-NAME			label-identifier)
+		      (SUPERLABEL-IDENTIFIER		superlabel-identifier)
+		      (PREDICATE			predicate-identifier)
+		      (CUSTOM-PREDICATE			custom-predicate)
+		      ((DEFINITION ...)			definitions)
+		      (INHERIT-VIRTUAL-FIELDS?		inherit-virtual-fields?)
+		      (INHERIT-METHODS?			inherit-methods?)
+		      (INHERIT-SETTER-AND-GETTER?	inherit-setter-and-getter?)
+		      (SETTER				setter)
+		      (GETTER				getter)
+		      (BINDINGS-MACRO			bindings-macro)
+		      (((METHOD METHOD-FUNCTION) ...)	methods)
+		      (((VIRTUAL-MUTABILITY VIRTUAL-FIELD VIRTUAL-ACCESSOR/MUTATOR ...)
+			...)
+		       virtual-fields))
+	  #'(begin
+	      (define PREDICATE
+		(let ((p CUSTOM-PREDICATE))
+		  (or p (lambda (x)
+			  (assertion-violation (quote PREDICATE)
+			    "no predicate definition for label"
+			    (quote ?input-form))))))
+
+	      DEFINITION ...
+
+	      (define-syntax LABEL-NAME
+		(lambda (stx)
+		  (syntax-case stx (is-a? with-class-bindings-of)
+
+		    ((_ is-a? ?arg)
+		     #'(PREDICATE ?arg))
+
+		    ((_ with-class-bindings-of
+			(?inherit-concrete-fields ;this comes from WITH-CLASS
+			 ?inherit-virtual-fields
+			 ?inherit-methods
+			 ?inherit-setter-and-getter)
+			?variable-name ?arg (... ...))
+		     (for-all boolean? (syntax->datum #'(?inherit-concrete-fields
+							 ?inherit-virtual-fields
+							 ?inherit-methods
+							 ?inherit-setter-and-getter)))
+		     #'(with-label-bindings
+			(?inherit-virtual-fields
+			 ?inherit-methods
+			 ?inherit-setter-and-getter)
+			?variable-name ?arg (... ...)))
+
+		    ((_ ?keyword . ?rest)
+		     (syntax-violation 'LABEL-NAME
+		       "invalid label internal keyword"
+		       (syntax->datum #'(LABEL-NAME ?keyword . ?rest))
+		       (syntax->datum #'?keyword)))
+		    )))
+
+	      (define-syntax with-label-bindings
+		(syntax-rules ()
+		  ((_ (?inherit-virtual-fields ?inherit-methods ?inherit-setter-and-getter)
+		      ?variable-name ?body0 ?body (... ...))
+		   (SUPERLABEL-IDENTIFIER
+		    with-class-bindings-of (#f
+					    INHERIT-VIRTUAL-FIELDS?
+					    INHERIT-METHODS?
+					    INHERIT-SETTER-AND-GETTER?)
+		    ?variable-name
+		    (with-label-bindings/virtual-fields
+		     ?inherit-virtual-fields ?variable-name
+		     (with-label-bindings/methods
+		      ?inherit-methods ?variable-name
+		      (with-label-bindings/setter-and-getter
+		       ?inherit-setter-and-getter ?variable-name
+		       (BINDINGS-MACRO LABEL-NAME ?variable-name
+				       ?body0 ?body (... ...)))))))
+		  ))
+
+	      (define-syntax with-label-bindings/virtual-fields
+		(lambda (stx)
+		  (syntax-case stx ()
+		    ((_ ?inherit-virtual-fields ?variable-name . ?body)
+		     (syntax->datum #'?inherit-virtual-fields)
+		     #'(%with-class-fields ?variable-name
+					   ((VIRTUAL-MUTABILITY VIRTUAL-FIELD VIRTUAL-ACCESSOR/MUTATOR ...)
+					    ...)
+					   . ?body))
+		    ((_ ?inherit-fields ?variable-name . ?body)
+		     #'(begin . ?body))
+		    )))
+
+	      (define-syntax with-label-bindings/methods
+		(lambda (stx)
+		  (syntax-case stx ()
+		    ((_ ?inherit-methods ?variable-name . ?body)
+		     (syntax->datum #'?inherit-methods)
+		     #'(%with-class-methods ?variable-name ((METHOD METHOD-FUNCTION) ...)
+					    . ?body))
+		    ((_ ?inherit-methods ?variable-name . ?body)
+		     #'(begin . ?body))
+		    )))
+
+	      (define-syntax with-label-bindings/setter-and-getter
+		(lambda (stx)
+		  (syntax-case stx ()
+		    ((_ ?inherit-setter-and-getter ?variable-name . ?body)
+		     (syntax->datum #'?inherit-setter-and-getter)
+		     #'(%with-class-setter-and-getter ?variable-name SETTER GETTER . ?body))
+		    ((_ ?inherit-setter-and-getter ?variable-name . ?body)
+		     #'(begin . ?body))
+		    )))
+
+	      ))))
+
+    (syntax-case stx ()
       ((_ (?name ?predicate) ?clause ...)
        (all-identifiers? #'(?name ?predicate))
-       #'(%define-label/sort-clauses
-	  (define-label (?name ?predicate) ?clause ...)
-	  (?name ?predicate)
-	  ()		;collected virtual fields
-	  ()		;collected methods
-	  ()		;collected definitions
-	  (predicate) (setter) (getter) (bindings) (inherit)
-	  ?clause ...))
+       (doit stx #'?name #'?predicate
+	     (syntax->list #'(?clause ...))))
 
       ((_ ?name ?clause ...)
        (identifier? (syntax ?name))
-       #`(%define-label/sort-clauses
-	  (define-label ?name ?clause ...)
-	  (?name #,(syntax-suffix #'?name "?"))
-	  ()		;collected virtual fields
-	  ()		;collected methods
-	  ()		;collected definitions
-	  (predicate) (setter) (getter) (bindings) (inherit)
-	  ?clause ...))
+       (doit stx #'?name (syntax-suffix #'?name "?")
+	     (syntax->list #'(?clause ...))))
 
       ((_ ?name-spec . ?clauses)
        (syntax-violation 'define-label
@@ -3187,7 +3387,7 @@
       )))
 
 
-(define-syntax %define-label/sort-clauses
+#;(define-syntax %define-label/sort-clauses
   ;;Sorts all  the auxiliary  syntaxes.  Collects the  specifications of
   ;;virtual fields; expands the field clauses given with no accessor and
   ;;mutator   names  to   clauses  with   accessor  and   mutator  names
@@ -3200,8 +3400,8 @@
     (define (%sinner msg input-form subform)
       (syntax-violation 'define-label msg (syntax->datum input-form) (syntax->datum subform)))
 
-    (syntax-case stx (fields virtual-fields methods method method-syntax
-			     predicate setter getter inherit bindings)
+    (syntax-case stx (virtual-fields methods method method-syntax
+				     predicate setter getter inherit bindings)
 
       ;;Gather the INHERIT clause.
       ((%define-label/sort-clauses
@@ -3526,7 +3726,7 @@
       )))
 
 
-(define-syntax %define-label/sort-clauses/virtual-fields
+#;(define-syntax %define-label/sort-clauses/virtual-fields
   (lambda (stx)
     (syntax-case stx (mutable immutable virtual-fields predicate setter getter inherit bindings)
 
@@ -3710,7 +3910,7 @@
       )))
 
 
-(define-syntax %define-label/sort-clauses/methods
+#;(define-syntax %define-label/sort-clauses/methods
   (lambda (stx)
     (syntax-case stx (mutable immutable methods predicate setter getter inherit bindings)
 
@@ -3835,7 +4035,7 @@
       )))
 
 
-(define-syntax %define-label/normalise-inheritance
+#;(define-syntax %define-label/normalise-inheritance
   ;;Normalise  the  definition  by  processing  INHERIT.   Finally  hand
   ;;everything to %DEFINE-LABEL/NORMALISE-PREDICATE.
   ;;
@@ -3843,7 +4043,7 @@
     (syntax-case stx (predicate setter getter inherit bindings)
 
       ;;If the  label definition used  no INHERIT clause, make  the type
-      ;;derived by "<top>-label".
+      ;;derived by "<top>-superlabel".
       ((_ ?input-form (?name ?predicate)
 	  (?collected-virtual-field ...)
 	  (?collected-method ...)
@@ -3858,7 +4058,7 @@
 	  (?collected-virtual-field ...)
 	  (?collected-method ...)
 	  (?collected-definition ...)
-	  (<top>-label ())
+	  (<top>-superlabel ())
 	  (predicate		?pre ...)
 	  (setter		?set ...)
 	  (getter		?get ...)
@@ -3882,7 +4082,7 @@
 	  (?collected-method ...)
 	  (?collected-definition ...)
 	  #,(if (free-identifier=? #'<top> #'?superlabel-name)
-		#'(<top>-label ())
+		#'(<top>-superlabel ())
 	      #'(?superlabel-name ()))
 	  (predicate	?pre ...)
 	  (setter	?set ...)
@@ -3906,7 +4106,7 @@
 	      (?collected-method ...)
 	      (?collected-definition ...)
 	      #,(if (free-identifier=? #'<top> #'?superlabel-name)
-		    #'(<top>-label (?inherit-option ...))
+		    #'(<top>-superlabel (?inherit-option ...))
 		  #'(?superlabel-name (?inherit-option ...)))
 	      (predicate	?pre ...)
 	      (setter		?set ...)
@@ -3920,7 +4120,7 @@
       )))
 
 
-(define-syntax %define-label/normalise-predicate
+#;(define-syntax %define-label/normalise-predicate
   (syntax-rules (predicate setter getter bindings)
 
     ;;No predicate was given.
@@ -3968,7 +4168,7 @@
     ))
 
 
-(define-syntax %define-label/normalise-setter
+#;(define-syntax %define-label/normalise-setter
   (syntax-rules (setter getter bindings)
 
     ;;No setter was given.
@@ -4016,7 +4216,7 @@
     ))
 
 
-(define-syntax %define-label/normalise-getter
+#;(define-syntax %define-label/normalise-getter
   (syntax-rules (getter bindings)
 
     ;;No getter was given.
@@ -4064,7 +4264,7 @@
     ))
 
 
-(define-syntax %define-label/normalise-bindings
+#;(define-syntax %define-label/normalise-bindings
   (lambda (stx)
     (syntax-case stx (bindings)
 
@@ -4128,7 +4328,7 @@
       )))
 
 
-(define-syntax %define-label/output-forms
+#;(define-syntax %define-label/output-forms
   ;;Generate the final output forms for label definition.
   ;;
   (lambda (stx)
@@ -4825,75 +5025,6 @@
 
 ;;;; builtin classes
 
-(define-record-type <top>
-  (nongenerative nausicaa:builtin:<top>))
-
-(define-syntax <top>-superclass
-  (lambda (stx)
-    (syntax-case stx (class-record-type-descriptor
-		      class-type-uid
-		      class-uid-list
-		      public-constructor-descriptor
-		      superclass-constructor-descriptor
-		      from-fields-constructor-descriptor
-		      parent-rtd-list
-		      make make-from-fields is-a?
-		      with-class-bindings-of)
-
-      ((_ class-record-type-descriptor)
-       #'(record-type-descriptor <top>))
-
-      ((_ class-type-uid)
-       #'(quote nausicaa:builtin:<top>))
-
-      ((_ class-uid-list)
-       #'(quote (nausicaa:builtin:<top>)))
-
-      ((_ public-constructor-descriptor)
-       #'(record-constructor-descriptor <top>))
-
-      ((_ superclass-constructor-descriptor)
-       #'(record-constructor-descriptor <top>))
-
-      ((_ from-fields-constructor-descriptor)
-       #'(record-constructor-descriptor <top>))
-
-      ((_ parent-rtd-list)
-       #'(list (record-type-descriptor <top>)))
-
-      ((_ is-a? ?arg)
-       #'(<top>? ?arg))
-
-      ((_ with-class-bindings-of ?inherit-options ?variable-name ?body0 ?body ...)
-       #'(begin ?body0 ?body ...))
-
-      ((_ ?keyword . ?rest)
-       (syntax-violation '<top>
-	 "invalid class internal keyword"
-	 (syntax->datum #'(<top> ?keyword . ?rest))
-	 (syntax->datum #'?keyword))))))
-
-(define-syntax <top>-label
-  (syntax-rules (is-a? with-class-bindings-of)
-
-    ((_ is-a? ?arg)
-     #t)
-
-    ((_ with-class-bindings-of ?inherit-options ?variable-name . ?body)
-     (begin . ?body))
-
-    ((_ ?keyword . ?rest)
-     (syntax-violation '<top>
-       "invalid class internal keyword"
-       (syntax->datum #'(<top> ?keyword . ?rest))
-       (syntax->datum #'?keyword)))))
-
-(define-syntax <top>-bindings
-  (syntax-rules ()
-    ((_ ?class-name ?identifier . ?body)
-     (begin . ?body))))
-
-
 (define-virtual-class <builtin>
   (nongenerative nausicaa:builtin:<builtin>))
 
