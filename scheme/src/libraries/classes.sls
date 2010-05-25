@@ -58,6 +58,13 @@
     let/with-class			let*/with-class
     letrec/with-class			letrec*/with-class
 
+    ;; auxiliary syntaxes
+    parent sealed opaque parent-rtd nongenerative
+    protocol fields mutable immutable
+    inherit predicate setter getter bindings
+    public-protocol superclass-protocol virtual-fields
+    methods method method-syntax
+
     ;; builtin classes
     <top> <builtin> <pair> <list>
     <char> <string> <vector> <bytevector> <hashtable> <record> <condition>
@@ -66,9 +73,9 @@
     <real> <real-valued> <complex> <number>)
   (import (rnrs)
     (rnrs mutable-strings)
-    (only (language-extensions) define-values receive)
     (for (gensym) expand)
     (for (classes helpers) expand)
+    (classes auxiliary-syntaxes)
     (classes top))
 
 
@@ -390,6 +397,434 @@
 
 (define-syntax define-class
   (lambda (stx)
+    (define (generate-field-indexes number-of-fields)
+      ;;Derived  from   IOTA  from  (lists);  generate   a  sequence  of
+      ;;non-negative exact integers to be  used as indexes in the vector
+      ;;of concrete fields.
+      ;;
+      (do ((count number-of-fields (- count 1))
+	   (val (- number-of-fields 1) (- val 1))
+	   (ret '() (cons val ret)))
+	  ((<= count 0)
+	   ret)))
+
+    (define (doit input-form class-identifier constructor-identifier predicate-identifier clauses)
+      ;;Parse the definition clauses and generate the output forms.
+      ;;
+      (define (%synner msg subform)
+	(syntax-violation 'define-class
+	  (string-append msg " in class definition")
+	  (syntax->datum input-form)
+	  (syntax->datum subform)))
+
+      (%check-clauses
+       (list #'parent #'sealed #'opaque #'parent-rtd #'nongenerative
+	     #'inherit #'predicate #'setter #'getter #'bindings
+	     #'protocol #'public-protocol #'superclass-protocol) ;only once keywords
+       (list #'fields #'virtual-fields #'methods #'method #'method-syntax) ;multiple times keywords
+       (list (list #'inherit #'parent #'parent-rtd)) ;exclusive keywords
+       clauses %synner)
+
+      (let-values
+	  ;;The superlabel  identifier or false;  the inherit options:
+	  ;;all boolean values.
+	  (((superclass-identifier inherit-concrete-fields? inherit-virtual-fields?
+				   inherit-methods? inherit-setter-and-getter?)
+	    (%collect-clause/class/inherit clauses %synner))
+
+	   ;;An identifier representing the UID of the class.
+	   ((uid-symbol)
+	    (%collect-clause/nongenerative class-identifier clauses %synner))
+
+	   ;;A boolean establishing if the class type is sealed.
+	   ((sealed)
+	    (%collect-clause/sealed clauses %synner))
+
+	   ;;A boolean establishing if the class type is opaque.
+	   ((opaque)
+	    (%collect-clause/opaque clauses %synner))
+
+	   ;;A syntax  object holding  an expression which  evaluates to
+	   ;;the class' common protocol function.
+	   ((common-protocol)
+	    (%collect-clause/protocol clauses %synner))
+
+	   ;;A syntax  object holding  an expression which  evaluates to
+	   ;;the class' public protocol function.
+	   ((public-protocol)
+	    (%collect-clause/public-protocol clauses %synner))
+
+	   ;;False  or  a  syntax  object holding  an  expression  which
+	   ;;evaluates to the class' superclass protocol function.
+	   ((superclass-protocol)
+	    (%collect-clause/superclass-protocol clauses %synner))
+
+	   ;;False/false  or  an  expression  evaluating to  the  parent
+	   ;;record type descriptor and  an expression evaluating to the
+	   ;;parent constructor  descriptor.  The  CD can be  false when
+	   ;;the RTD is not false.
+	   ((parent-rtd-expression parent-cd-expression)
+	    (%collect-clause/parent&parent-rtd clauses %synner))
+
+	   ;;Set to  PREDICATE-IDENTIFIER or an  identifier representing
+	   ;;the custom predicate for the class.
+	   ((custom-predicate)
+	    (%collect-clause/predicate predicate-identifier clauses %synner))
+
+	   ;;False or  an identifier  representing the setter  for the
+	   ;;class.
+	   ((setter)
+	    (%collect-clause/setter clauses %synner))
+
+	   ;;False or  an identifier  representing the getter  for the
+	   ;;class.
+	   ((getter)
+	    (%collect-clause/getter clauses %synner))
+
+	   ;;An identifier representing  the custom bindings macro for
+	   ;;the class.
+	   ((bindings-macro)
+	    (%collect-clause/bindings clauses %synner))
+
+	   ;;Null or a validated list of concrete fields having elements
+	   ;;with format:
+	   ;;
+	   ;;    (immutable <field name> <field accessor>)
+	   ;;    (mutable   <field name> <field accessor> <field mutator>)
+	   ;;
+	   ;;where  IMMUTABLE and  MUTABLE are  symbols and  the other
+	   ;;elements are identifiers.
+	   ((fields)
+	    (%collect-clause/fields class-identifier clauses %synner))
+
+	   ;;Null  or  a  validated  list  of  virtual  fields  having
+	   ;;elements with format:
+	   ;;
+	   ;;    (immutable <field name> <field accessor>)
+	   ;;    (mutable   <field name> <field accessor> <field mutator>)
+	   ;;
+	   ;;where  IMMUTABLE and  MUTABLE are  symbols and  the other
+	   ;;elements are identifiers.
+	   ((virtual-fields)
+	    (%collect-clause/virtual-fields class-identifier clauses %synner))
+
+	   ;;Null or a validated  list of method specifications from the
+	   ;;METHODS clauses, having elements with format:
+	   ;;
+	   ;;	(<method name> <function or macro identifier>)
+	   ;;
+	   ((methods-from-methods)
+	    (%collect-clause/methods class-identifier clauses %synner))
+
+	   ;;Null/null or a validated list of method specifications from
+	   ;;the METHOD clauses, having elements with format:
+	   ;;
+	   ;;    (<method name> <function name>)
+	   ;;
+	   ;;and a list of definitions with the format:
+	   ;;
+	   ;;    (<definition> ...)
+	   ;;
+	   ;;in which each definition has one of the formats:
+	   ;;
+	   ;;    (define (<function name> . <args>) . <body>)
+	   ;;    (define <function name> <expression>)
+	   ;;
+	   ((methods definitions)
+	    (%collect-clause/method clauses %synner #'define/with-class))
+
+	   ;;Null/null   or   a   validated   list  of   method   syntax
+	   ;;specifications  from   the  METHOD-SYNTAX  clauses,  having
+	   ;;elements with format:
+	   ;;
+	   ;;    (<method name> <macro identifier>)
+	   ;;
+	   ;;and a list of definitions with the format:
+	   ;;
+	   ;;    (<definition> ...)
+	   ;;
+	   ;;in which each definition has the format:
+	   ;;
+	   ;;    (define-syntax <macro identifier> <expression>)
+	   ;;
+	   ((syntax-methods syntax-definitions)
+	    (%collect-clause/method-syntax clauses %synner)))
+
+	(set! methods		(append methods methods-from-methods syntax-methods))
+	(set! definitions	(append definitions syntax-definitions))
+
+	(let ((id (duplicated-identifiers? (append (map cadr fields)
+						   (map cadr virtual-fields)
+						   (map car  methods)))))
+	  (when id
+	    (%synner "duplicated field names" id)))
+
+	(cond
+
+	 ;;The INHERIT clause was used with "<top>" as superclass.
+	 ((free-identifier=? superclass-identifier #'<top>-superclass)
+	  (set! parent-rtd-expression (datum->syntax class-identifier
+						     '(record-type-descriptor <top>)))
+	  (set! parent-cd-expression  (datum->syntax class-identifier
+						     '(record-constructor-descriptor <top>))))
+
+	 ;;The INHERIT clause was  used with a superclass different from
+	 ;;"<top>".
+	 (superclass-identifier
+	  (set! parent-rtd-expression #`(#,superclass-identifier class-record-type-descriptor))
+	  (set! parent-cd-expression  #`(#,superclass-identifier superclass-constructor-descriptor)))
+
+	 ;;The PARENT clause was given.
+	 ((and (not superclass-identifier) parent-rtd-expression (not parent-cd-expression))
+	  (set! superclass-identifier #'<top>-superclass)
+	  (set! parent-cd-expression (datum->syntax class-identifier
+						    '(record-constructor-descriptor <top>))))
+
+	 ;;The PARENT-RTD clause was given.
+	 ((and (not superclass-identifier) parent-rtd-expression parent-cd-expression)
+	  (set! superclass-identifier #'<top>-superclass))
+
+	 (else
+	  (%synner "invalid selection of superclass" #f)))
+
+	(with-syntax
+	    ((CLASS-NAME			class-identifier)
+	     (SUPERCLASS-NAME			superclass-identifier)
+	     (PARENT-RTD			parent-rtd-expression)
+	     (PARENT-CD				parent-cd-expression)
+	     (UID				uid-symbol)
+	     (SEALED				sealed)
+	     (OPAQUE				opaque)
+	     (COMMON-PROTOCOL			common-protocol)
+	     (PUBLIC-PROTOCOL			public-protocol)
+	     (SUPERCLASS-PROTOCOL		superclass-protocol)
+	     (CONSTRUCTOR-IDENTIFIER		constructor-identifier)
+	     (PREDICATE-IDENTIFIER		predicate-identifier)
+	     (CUSTOM-PREDICATE			custom-predicate)
+	     ((DEFINITION ...)			definitions)
+	     (INHERIT-CONCRETE-FIELDS?		inherit-concrete-fields?)
+	     (INHERIT-VIRTUAL-FIELDS?		inherit-virtual-fields?)
+	     (INHERIT-METHODS?			inherit-methods?)
+	     (INHERIT-SETTER-AND-GETTER?	inherit-setter-and-getter?)
+	     (SETTER				setter)
+	     (GETTER				getter)
+	     (BINDINGS-MACRO			bindings-macro)
+	     (((METHOD METHOD-IDENTIFIER) ...)	methods)
+
+	     (((MUTABILITY FIELD ACCESSOR/MUTATOR ...)
+	       ...)
+	      fields)
+	     (((VIRTUAL-MUTABILITY VIRTUAL-FIELD VIRTUAL-ACCESSOR/MUTATOR ...) ...)
+	      virtual-fields)
+
+	     ((FIELD-INDEX ...)			(generate-field-indexes (length fields))))
+
+	  #'(begin
+	      (define the-parent-rtd		PARENT-RTD)
+
+	      (define the-rtd
+		(make-record-type-descriptor (quote CLASS-NAME) the-parent-rtd
+					     (quote UID) SEALED OPAQUE
+					     (quote #((MUTABILITY FIELD) ...))))
+
+	      (define the-common-protocol	COMMON-PROTOCOL)
+	      (define the-public-protocol	(or PUBLIC-PROTOCOL     the-common-protocol))
+	      (define the-superclass-protocol	(or SUPERCLASS-PROTOCOL the-common-protocol))
+
+	      (define the-from-fields-cd
+		(%make-from-fields-cd the-rtd))
+
+	      ;;Construction   protocol  used  when   invoking  the
+	      ;;constructor explicitly through MAKE.
+	      (define the-public-cd
+		(make-record-constructor-descriptor the-rtd PARENT-CD the-public-protocol))
+
+	      ;;Construction   protocol  used  when   invoking  the
+	      ;;constructor from a subclass constructor.
+	      (define the-superclass-cd
+		(make-record-constructor-descriptor the-rtd PARENT-CD the-superclass-protocol))
+
+	      (define CONSTRUCTOR-IDENTIFIER	(record-constructor the-public-cd))
+	      (define superclass-constructor	(record-constructor the-superclass-cd))
+	      (define from-fields-constructor	(record-constructor the-from-fields-cd))
+
+	      (define PREDICATE-IDENTIFIER	(record-predicate the-rtd))
+
+	      (define the-parent-uid-list
+		(cons (quote UID) (if the-parent-rtd
+				       (map record-type-uid (record-parent-list the-parent-rtd))
+				     '())))
+
+	      (define (the-parent-rtd-list)
+		(cons the-rtd (if the-parent-rtd
+				  (record-parent-list the-parent-rtd)
+				'())))
+
+	      (%define-class/output-forms/fields-accessors-and-mutators
+	       the-rtd (FIELD-INDEX ...) (MUTABILITY FIELD ACCESSOR/MUTATOR ...) ...)
+
+	      DEFINITION ...
+
+	      (define-syntax CLASS-NAME
+	      	(lambda (stx)
+	      	  (syntax-case stx (class-record-type-descriptor
+	      			    class-type-uid
+	      			    class-uid-list
+	      			    public-constructor-descriptor
+	      			    superclass-constructor-descriptor
+	      			    from-fields-constructor-descriptor
+	      			    parent-rtd-list
+	      			    make make-from-fields is-a?
+	      			    with-class-bindings-of)
+
+	      	    ((_ class-record-type-descriptor)
+	      	     #'(begin the-rtd))
+
+	      	    ((_ class-type-uid)
+	      	     #'(quote UID))
+
+	      	    ((_ class-uid-list)
+	      	     #'the-parent-uid-list)
+
+	      	    ((_ public-constructor-descriptor)
+	      	     #'(begin the-public-cd))
+
+	      	    ((_ superclass-constructor-descriptor)
+	      	     #'(begin the-superclass-cd))
+
+	      	    ((_ from-fields-constructor-descriptor)
+	      	     #'(begin the-from-fields-cd))
+
+	      	    ((_ parent-rtd-list)
+	      	     #'(the-parent-rtd-list))
+
+	      	    ((_ make ?arg (... ...))
+	      	     #'(CONSTRUCTOR-IDENTIFIER ?arg (... ...)))
+
+	      	    ((_ make-from-fields ?arg (... ...))
+	      	     #'(from-fields-constructor ?arg (... ...)))
+
+	      	    ((_ is-a? ?arg)
+	      	     #'(CUSTOM-PREDICATE ?arg))
+
+	      	    ((_ with-class-bindings-of
+	      		(?inherit-concrete-fields
+	      		 ?inherit-virtual-fields
+	      		 ?inherit-methods
+	      		 ?inherit-setter-and-getter)
+	      		?variable-name ?arg (... ...))
+	      	     (for-all boolean? (syntax->datum #'(?inherit-concrete-fields
+	      						 ?inherit-virtual-fields
+	      						 ?inherit-methods
+	      						 ?inherit-setter-and-getter)))
+	      	     #'(with-class-bindings
+	      		(?inherit-concrete-fields
+	      		 ?inherit-virtual-fields
+	      		 ?inherit-methods
+	      		 ?inherit-setter-and-getter)
+	      		?variable-name ?arg (... ...)))
+
+	      	    ((_ ?keyword . ?rest)
+	      	     (syntax-violation 'CLASS-NAME
+	      	       "invalid class internal keyword"
+	      	       (syntax->datum stx)
+	      	       (syntax->datum #'?keyword)))
+	      	    )))
+
+	      (define-syntax with-class-bindings
+	      	(syntax-rules ()
+	      	  ((_ (?inherit-concrete-fields
+	      	       ?inherit-virtual-fields
+	      	       ?inherit-methods
+	      	       ?inherit-setter-and-getter)
+	      	      ?variable-name ?body0 ?body (... ...))
+	      	   (SUPERCLASS-NAME with-class-bindings-of (INHERIT-CONCRETE-FIELDS?
+	      						    INHERIT-VIRTUAL-FIELDS?
+	      						    INHERIT-METHODS?
+	      						    INHERIT-SETTER-AND-GETTER?)
+	      			    ?variable-name
+	      			    (with-class-bindings/concrete-fields
+	      			     ?inherit-concrete-fields ?variable-name
+	      			     (with-class-bindings/virtual-fields
+	      			      ?inherit-virtual-fields ?variable-name
+	      			      (with-class-bindings/methods
+	      			       ?inherit-methods ?variable-name
+	      			       (with-class-bindings/setter-and-getter
+	      				?inherit-setter-and-getter ?variable-name
+	      				(BINDINGS-MACRO ?class-name ?variable-name
+	      						?body0 ?body (... ...))))))))
+	      	  ))
+
+	      (define-syntax with-class-bindings/concrete-fields
+	      	(lambda (stx)
+	      	  (syntax-case stx ()
+	      	    ((_ ?inherit-concrete-fields ?variable-name . ?body)
+	      	     (syntax->datum #'?inherit-concrete-fields)
+	      	     #'(%with-class-fields ?variable-name
+	      				   ((MUTABILITY FIELD ACCESSOR/MUTATOR ...) ...)
+	      				   . ?body))
+	      	    ((_ ?inherit-fields ?variable-name . ?body)
+	      	     #'(begin . ?body))
+	      	    )))
+
+	      (define-syntax with-class-bindings/virtual-fields
+	      	(lambda (stx)
+	      	  (syntax-case stx ()
+	      	    ((_ ?inherit-virtual-fields ?variable-name . ?body)
+	      	     (syntax->datum #'?inherit-virtual-fields)
+	      	     #'(%with-class-fields ?variable-name
+	      				   ((VIRTUAL-MUTABILITY VIRTUAL-FIELD
+								VIRTUAL-ACCESSOR/MUTATOR ...) ...)
+	      				   . ?body))
+	      	    ((_ ?inherit-fields ?variable-name . ?body)
+	      	     #'(begin . ?body))
+	      	    )))
+
+	      (define-syntax with-class-bindings/methods
+	      	(lambda (stx)
+	      	  (syntax-case stx ()
+	      	    ((_ ?inherit-methods ?variable-name . ?body)
+	      	     (syntax->datum #'?inherit-methods)
+	      	     #'(%with-class-methods ?variable-name ((METHOD METHOD-IDENTIFIER) ...) . ?body))
+	      	    ((_ ?inherit-methods ?variable-name . ?body)
+	      	     #'(begin . ?body))
+	      	    )))
+
+	      (define-syntax with-class-bindings/setter-and-getter
+	      	(lambda (stx)
+	      	  (syntax-case stx ()
+	      	    ((_ ?inherit-setter-and-getter ?variable-name . ?body)
+	      	     (syntax->datum #'?inherit-setter-and-getter)
+	      	     #'(%with-class-setter-and-getter ?variable-name SETTER GETTER . ?body))
+	      	    ((_ ?inherit-setter-and-getter ?variable-name . ?body)
+	      	     #'(begin . ?body))
+	      	    )))
+
+	      ))))
+
+    (syntax-case stx (fields mutable immutable parent sealed opaque parent-rtd nongenerative
+			     virtual-fields methods method predicate setter getter inherit
+			     bindings)
+
+      ((_ (?name ?constructor ?predicate) ?clause ...)
+       (all-identifiers? #'(?name ?constructor ?predicate))
+       (doit stx #'?name #'?constructor #'?predicate (syntax->list #'(?clause ...))))
+
+      ((_ ?name ?clause ...)
+       (identifier? #'?name)
+       (doit stx #'?name (syntax-prefix "make-" #'?name) (syntax-suffix #'?name "?")
+	     (syntax->list #'(?clause ...))))
+
+      ((_ ?name-spec . ?clauses)
+       (syntax-violation 'define-class
+	 "invalid name specification in class definition"
+	 (syntax->datum stx)
+	 (syntax->datum #'?name-spec)))
+      )))
+
+
+#;(define-syntax define-class
+  (lambda (stx)
     (syntax-case stx (fields mutable immutable parent sealed opaque parent-rtd nongenerative
 			     virtual-fields methods method predicate setter getter inherit
 			     bindings)
@@ -409,7 +844,7 @@
 	  ?clause ...))
 
       ((_ ?name ?clause ...)
-       (identifier? (syntax ?name))
+       (identifier? #'?name)
        #`(%define-class/sort-clauses
 	  (define-class ?name ?clause ...)
 	  (?name #,(syntax-prefix "make-" #'?name) #,(syntax-suffix #'?name "?"))
@@ -425,12 +860,12 @@
       ((_ ?name-spec . ?clauses)
        (syntax-violation 'define-class
 	 "invalid name specification in class definition"
-	 (syntax->datum (syntax ?input-form))
-	 (syntax->datum (syntax ?name-spec))))
+	 (syntax->datum stx)
+	 (syntax->datum #'?name-spec)))
       )))
 
 
-(define-syntax %define-class/sort-clauses
+#;(define-syntax %define-class/sort-clauses
   ;;Sorts all  the auxiliary  syntaxes.  Collects the  specifications of
   ;;concrete and virtual fields; expands the field clauses given with no
   ;;accessor  and mutator  names to  clauses with  accessor  and mutator
@@ -1366,7 +1801,7 @@
       )))
 
 
-(define-syntax %define-class/sort-clauses/fields
+#;(define-syntax %define-class/sort-clauses/fields
   (lambda (stx)
     (syntax-case stx (fields mutable immutable parent sealed opaque parent-rtd nongenerative
 			     predicate setter getter inherit bindings)
@@ -1640,7 +2075,7 @@
       )))
 
 
-(define-syntax %define-class/sort-clauses/virtual-fields
+#;(define-syntax %define-class/sort-clauses/virtual-fields
   (lambda (stx)
     (syntax-case stx (mutable immutable parent sealed opaque parent-rtd nongenerative
 			      virtual-fields predicate setter getter inherit bindings)
@@ -1916,7 +2351,7 @@
       )))
 
 
-(define-syntax %define-class/sort-clauses/methods
+#;(define-syntax %define-class/sort-clauses/methods
   (lambda (stx)
     (syntax-case stx (parent sealed opaque parent-rtd nongenerative
 			     methods predicate setter getter inherit bindings)
@@ -2105,7 +2540,7 @@
       )))
 
 
-(define-syntax %define-class/normalise-inheritance
+#;(define-syntax %define-class/normalise-inheritance
   ;;Normalise   the  definition  by   processing  INHERIT,   PARENT  and
   ;;PARENT-RTD  clauses;   also  take  care  of   selecting  the  parent
   ;;constructor    descriptors.      Finally    hand    everything    to
@@ -2378,7 +2813,7 @@
       )))
 
 
-(define-syntax %define-class/normalise-predicate
+#;(define-syntax %define-class/normalise-predicate
   (syntax-rules (sealed opaque nongenerative predicate setter getter bindings)
 
     ;;No predicate was given.
@@ -2445,7 +2880,7 @@
     ))
 
 
-(define-syntax %define-class/normalise-setter
+#;(define-syntax %define-class/normalise-setter
   (syntax-rules (sealed opaque nongenerative setter getter bindings)
 
     ;;No setter was given.
@@ -2512,7 +2947,7 @@
     ))
 
 
-(define-syntax %define-class/normalise-getter
+#;(define-syntax %define-class/normalise-getter
   (syntax-rules (sealed opaque nongenerative getter bindings)
 
     ;;No getter was given.
@@ -2580,7 +3015,7 @@
     ))
 
 
-(define-syntax %define-class/normalise-bindings
+#;(define-syntax %define-class/normalise-bindings
   (lambda (stx)
     (syntax-case stx (sealed opaque nongenerative bindings)
 
@@ -2669,7 +3104,7 @@
       )))
 
 
-(define-syntax %define-class/normalise-sealed
+#;(define-syntax %define-class/normalise-sealed
   (syntax-rules (sealed opaque nongenerative)
 
     ;;A SEALED was given.
@@ -2736,7 +3171,7 @@
     ))
 
 
-(define-syntax %define-class/normalise-opaque
+#;(define-syntax %define-class/normalise-opaque
   (syntax-rules (opaque nongenerative)
 
     ;;An OPAQUE was given.
@@ -2804,7 +3239,7 @@
     ))
 
 
-(define-syntax %define-class/normalise-nongenerative
+#;(define-syntax %define-class/normalise-nongenerative
   (lambda (stx)
     (syntax-case stx (nongenerative)
 
@@ -2876,7 +3311,7 @@
       )))
 
 
-(define-syntax %define-class/output-forms
+#;(define-syntax %define-class/output-forms
   ;;Generate the final output forms for class definition.
   ;;
   ;;Notice  that  for  the  class-specific  definitions  we  select  the
@@ -3116,8 +3551,8 @@
 
 
 (define-syntax %define-class/output-forms/fields-accessors-and-mutators
-  ;;Subroutine  of  %DEFINE-CLASS/OUTPUT-FORMS   which  expands  to  the
-  ;;definitions of the class' concrete field accessors and mutators.
+  ;;Subroutine of  DEFINE-CLASS which expands to the  definitions of the
+  ;;class' concrete field accessors and mutators.
   ;;
   (syntax-rules ()
 
@@ -3167,8 +3602,9 @@
 	  (syntax->datum subform)))
 
       (%check-clauses
-       '(inherit predicate setter getter bindings) ;only once keywords
-       '(virtual-fields methods method method-syntax) ;multiple times keywords
+       (list #'inherit #'predicate #'setter #'getter #'bindings) ;only once keywords
+       (list #'virtual-fields #'methods #'method #'method-syntax) ;multiple times keywords
+       '()	;exclusive keywords
        clauses %synner)
 
       (let-values
@@ -3236,7 +3672,7 @@
 	   ;;Null/null   or  a   validated  list   of   method  syntax
 	   ;;specifications having elements with format:
 	   ;;
-	   ;;    (<method name> <macro name>)
+	   ;;    (<method name> <macro identifier>)
 	   ;;
 	   ;;and a list of definitions with the format:
 	   ;;
@@ -3244,7 +3680,7 @@
 	   ;;
 	   ;;in which each definition has the format:
 	   ;;
-	   ;;    (define-syntax <macro name> <expression>)
+	   ;;    (define-syntax <macro identifier> <expression>)
 	   ;;
 	   ((syntax-methods syntax-definitions)
 	    (%collect-clause/method-syntax clauses %synner)))
@@ -3384,1070 +3820,6 @@
 	 "invalid name specification in label definition"
 	 (syntax->datum (syntax ?input-form))
 	 (syntax->datum (syntax ?name-spec))))
-      )))
-
-
-#;(define-syntax %define-label/sort-clauses
-  ;;Sorts all  the auxiliary  syntaxes.  Collects the  specifications of
-  ;;virtual fields; expands the field clauses given with no accessor and
-  ;;mutator   names  to   clauses  with   accessor  and   mutator  names
-  ;;automatically built from the record  type name (as defined by R6RS).
-  ;;Collects  the method clauses,  expanding the  ones with  no function
-  ;;name  to clauses  with function  name automatically  built  from the
-  ;;record type name.
-  ;;
-  (lambda (stx)
-    (define (%sinner msg input-form subform)
-      (syntax-violation 'define-label msg (syntax->datum input-form) (syntax->datum subform)))
-
-    (syntax-case stx (virtual-fields methods method method-syntax
-				     predicate setter getter inherit bindings)
-
-      ;;Gather the INHERIT clause.
-      ((%define-label/sort-clauses
-	?input-form (?name ?predicate)
-	(?collected-virtual-field ...)
-	(?collected-method ...)
-	(?collected-definition ...)
-	(predicate	?pre ...)
-	(setter		?set ...)
-	(getter		?get ...)
-	(bindings	?bin ...)
-	(inherit	. ?inherit-rest)
-	(inherit ?superlabel-name . ?inherit-clauses) ?clause ...)
-       (let ((form	(syntax ?input-form))
-	     (subform	(syntax (inherit ?superlabel-name))))
-	 (cond ((not (null? (syntax->datum (syntax ?inherit-rest))))
-		(%sinner "inherit clause given twice in label definition" form subform))
-	       ((not (identifier? (syntax ?superlabel-name)))
-		(%sinner "invalid inherit clause in label definition" form subform))
-	       (else
-		#'(%define-label/sort-clauses
-		   ?input-form (?name ?predicate)
-		   (?collected-virtual-field ...)
-		   (?collected-method ...)
-		   (?collected-definition ...)
-		   (predicate	?pre ...)
-		   (setter	?set ...)
-		   (getter	?get ...)
-		   (bindings	?bin ...)
-		   (inherit	?superlabel-name . ?inherit-clauses)
-		   ?clause ...)))))
-
-      ;;Gather the PREDICATE clause.
-      ((%define-label/sort-clauses
-	?input-form (?name ?predicate)
-	(?collected-virtual-field ...)
-	(?collected-method ...)
-	(?collected-definition ...)
-	(predicate	. ?predicate-rest)
-	(setter		?set ...)
-	(getter		?get ...)
-	(bindings	?bin ...)
-	(inherit	?inh ...)
-	(predicate ?function-name) ?clause ...)
-       (let ((form	(syntax ?input-form))
-	     (subform	(syntax (predicate ?function-name))))
-	 (cond ((not (null? (syntax->datum (syntax ?predicate-rest))))
-		(%sinner "predicate clause given twice in label definition" form subform))
-	       ((not (identifier? (syntax ?function-name)))
-		(%sinner "invalid predicate clause in label definition" form subform))
-	       (else
-		#'(%define-label/sort-clauses
-		   ?input-form (?name ?predicate)
-		   (?collected-virtual-field ...)
-		   (?collected-method ...)
-		   (?collected-definition ...)
-		   (predicate	?function-name)
-		   (setter	?set ...)
-		   (getter	?get ...)
-		   (bindings	?bin ...)
-		   (inherit	?inh ...)
-		   ?clause ...)))))
-
-      ;;Gather the SETTER clause.
-      ((%define-label/sort-clauses
-	?input-form (?name ?predicate)
-	(?collected-virtual-field ...)
-	(?collected-method ...)
-	(?collected-definition ...)
-	(predicate	?pre ...)
-	(setter		. ?setter-rest)
-	(getter		?get ...)
-	(bindings	?bin ...)
-	(inherit	?inh ...)
-	(setter ?setter) ?clause ...)
-       (let ((form	(syntax ?input-form))
-	     (subform	(syntax (setter ?setter))))
-	 (cond ((not (null? (syntax->datum (syntax ?setter-rest))))
-		(%sinner "setter clause given twice in label definition" form subform))
-	       ((not (identifier? (syntax ?setter)))
-		(%sinner "invalid setter clause in label definition" form subform))
-	       (else
-		#'(%define-label/sort-clauses
-		   ?input-form (?name ?predicate)
-		   (?collected-virtual-field ...)
-		   (?collected-method ...)
-		   (?collected-definition ...)
-		   (predicate	?pre ...)
-		   (setter	?setter)
-		   (getter	?get ...)
-		   (bindings	?bin ...)
-		   (inherit	?inh ...)
-		   ?clause ...)))))
-
-      ;;Gather the GETTER clause.
-      ((%define-label/sort-clauses
-	?input-form (?name ?predicate)
-	(?collected-virtual-field ...)
-	(?collected-method ...)
-	(?collected-definition ...)
-	(predicate	?pre ...)
-	(setter		?set ...)
-	(getter		. ?getter-rest)
-	(bindings	?bin ...)
-	(inherit	?inh ...)
-	(getter ?getter) ?clause ...)
-       (let ((form	(syntax ?input-form))
-	     (subform	(syntax (getter ?getter))))
-	 (cond ((not (null? (syntax->datum (syntax ?getter-rest))))
-		(%sinner "getter clause given twice in label definition" form subform))
-	       ((not (identifier? (syntax ?getter)))
-		(%sinner "invalid getter clause in label definition" form subform))
-	       (else
-		#'(%define-label/sort-clauses
-		   ?input-form (?name ?predicate)
-		   (?collected-virtual-field ...)
-		   (?collected-method ...)
-		   (?collected-definition ...)
-		   (predicate	?pre ...)
-		   (setter	?set ...)
-		   (getter	?getter)
-		   (bindings	?bin ...)
-		   (inherit	?inh ...)
-		   ?clause ...)))))
-
-;;; --------------------------------------------------------------------
-
-      ;;Gather the BINDINGS clause.
-      ((%define-label/sort-clauses
-	?input-form (?name ?predicate)
-	(?collected-virtual-field ...)
-	(?collected-method ...)
-	(?collected-definition ...)
-	(predicate	?pre ...)
-	(setter		?set ...)
-	(getter		?get ...)
-	(bindings	. ?bindings-rest)
-	(inherit	?inh ...)
-	(bindings ?macro-name) ?clause ...)
-       (let ((form	(syntax ?input-form))
-	     (subform	(syntax (bindings ?macro-name))))
-	 (cond ((not (null? (syntax->datum (syntax ?bindings-rest))))
-		(%sinner "bindings clause given twice in label definition" form subform))
-	       ((not (identifier? (syntax ?macro-name)))
-		(%sinner "invalid bindings clause in label definition" form subform))
-	       (else
-		#'(%define-label/sort-clauses
-		   ?input-form (?name ?predicate)
-		   (?collected-virtual-field ...)
-		   (?collected-method ...)
-		   (?collected-definition ...)
-		   (predicate	?pre ...)
-		   (setter	?set ...)
-		   (getter	?get ...)
-		   (bindings	?macro-name)
-		   (inherit	?inh ...)
-		   ?clause ...)))))
-
-;;; --------------------------------------------------------------------
-
-      ;;Gather   the    VIRTUAL-FIELDS   clause.    Notice    that   the
-      ;;VIRTUAL-FIELDS clause can be used multiple times.
-      ((%define-label/sort-clauses
-	?input-form (?name ?predicate)
-	(?collected-virtual-field ...)
-	(?collected-method ...)
-	(?collected-definition ...)
-	(predicate	?pre ...)
-	(setter		?set ...)
-	(getter		?get ...)
-	(bindings	?bin ...)
-	(inherit	?inh ...)
-	(virtual-fields ?field-clause ...) ?clause ...)
-       #'(%define-label/sort-clauses/virtual-fields
-	  ?input-form (?name ?predicate)
-	  (?collected-virtual-field ...)
-	  (?collected-method ...)
-	  (?collected-definition ...)
-	  (predicate	?pre ...)
-	  (setter	?set ...)
-	  (getter	?get ...)
-	  (bindings	?bin ...)
-	  (inherit	?inh ...)
-	  (virtual-fields ?field-clause ...) ?clause ...))
-
-;;; --------------------------------------------------------------------
-
-      ;;Gather METHODS  clause.  Notice that  the METHODS clause  can be
-      ;;used multiple times.
-      ((%define-label/sort-clauses
-	?input-form (?name ?predicate)
-	(?collected-virtual-field ...)
-	(?collected-method ...)
-	(?collected-definition ...)
-	(predicate	?pre ...)
-	(setter		?set ...)
-	(getter		?get ...)
-	(bindings	?bin ...)
-	(inherit	?inh ...)
-	(methods ?method-clause ...) ?clause ...)
-       #'(%define-label/sort-clauses/methods
-	  ?input-form (?name ?predicate)
-	  (?collected-virtual-field ...)
-	  (?collected-method ...)
-	  (?collected-definition ...)
-	  (predicate	?pre ...)
-	  (setter	?set ...)
-	  (getter	?get ...)
-	  (bindings	?bin ...)
-	  (inherit	?inh ...)
-	  (methods ?method-clause ...) ?clause ...))
-
-;;; --------------------------------------------------------------------
-
-      ;;Gather a METHOD clause with define-like function definition.
-      ((%define-label/sort-clauses
-	?input-form (?name ?predicate)
-	(?collected-virtual-field ...)
-	(?collected-method ...)
-	(?collected-definition ...)
-	(predicate	?pre ...)
-	(setter		?set ...)
-	(getter		?get ...)
-	(bindings	?bin ...)
-	(inherit	?inh ...)
-	(method (?method . ?args) . ?body) ?clause ...)
-       (identifier? #'?method)
-       #'(%define-label/sort-clauses
-	  ?input-form (?name ?predicate)
-	  (?collected-virtual-field ...)
-	  (?collected-method ... (?method function-name))
-	  (?collected-definition ... (define/with-class (function-name . ?args) . ?body))
-	  (predicate	?pre ...)
-	  (setter	?set ...)
-	  (getter	?get ...)
-	  (bindings	?bin ...)
-	  (inherit	?inh ...)
-	  ?clause ...))
-
-      ;;Gather a METHOD clause with expression function definition.
-      ((%define-label/sort-clauses
-	?input-form (?name ?predicate)
-	(?collected-virtual-field ...)
-	(?collected-method ...)
-	(?collected-definition ...)
-	(predicate	?pre ...)
-	(setter		?set ...)
-	(getter		?get ...)
-	(bindings	?bin ...)
-	(inherit	?inh ...)
-	(method ?method ?expression) ?clause ...)
-       (identifier? #'?method)
-       #'(%define-label/sort-clauses
-	  ?input-form (?name ?predicate)
-	  (?collected-virtual-field ...)
-	  (?collected-method ... (?method function-name))
-	  (?collected-definition ... (define function-name ?expression))
-	  (predicate	?pre ...)
-	  (setter	?set ...)
-	  (getter	?get ...)
-	  (bindings	?bin ...)
-	  (inherit	?inh ...)
-	  ?clause ...))
-
-;;; --------------------------------------------------------------------
-
-      ;;Gather a METHOD-SYNTAX clause.
-      ((%define-label/sort-clauses
-	?input-form (?name ?predicate)
-	(?collected-virtual-field ...)
-	(?collected-method ...)
-	(?collected-definition ...)
-	(predicate	?pre ...)
-	(setter		?set ...)
-	(getter		?get ...)
-	(bindings	?bin ...)
-	(inherit	?inh ...)
-	(method-syntax ?method ?transformer) ?clause ...)
-       (identifier? #'?method)
-       #'(%define-label/sort-clauses
-	  ?input-form (?name ?predicate)
-	  (?collected-virtual-field ...)
-	  (?collected-method ... (?method macro-name))
-	  (?collected-definition ... (define-syntax macro-name ?transformer))
-	  (predicate	?pre ...)
-	  (setter	?set ...)
-	  (getter	?get ...)
-	  (bindings	?bin ...)
-	  (inherit	?inh ...)
-	  ?clause ...))
-
-;;; --------------------------------------------------------------------
-
-      ;;No    more   clauses    to   gather.     Hand    everything   to
-      ;;%DEFINE-LABEL/NORMALISE-INHERITANCE.
-      ;;
-      ((_ ?input-form (?name ?predicate)
-	  (?collected-virtual-field ...)
-	  (?collected-method ...)
-	  (?collected-definition ...)
-	  (predicate	?pre ...)
-	  (setter	?set ...)
-	  (getter	?get ...)
-	  (bindings	?bin ...)
-	  (inherit	?inh ...))
-       #'(%define-label/normalise-inheritance
-	  ?input-form (?name ?predicate)
-	  (?collected-virtual-field ...)
-	  (?collected-method ...)
-	  (?collected-definition ...)
-	  (predicate	?pre ...)
-	  (setter	?set ...)
-	  (getter	?get ...)
-	  (bindings	?bin ...)
-	  (inherit	?inh ...)))
-
-      ((_ ?input-form . ?stuff)
-       (syntax-violation 'define-label
-	 "invalid label definition"
-	 (syntax->datum (syntax ?input-form))))
-
-      )))
-
-
-#;(define-syntax %define-label/sort-clauses/virtual-fields
-  (lambda (stx)
-    (syntax-case stx (mutable immutable virtual-fields predicate setter getter inherit bindings)
-
-      ;;Gather mutable VIRTUAL-FIELDS  clause with explicit selection of
-      ;;accessor and mutator names.
-      ((%define-label/sort-clauses/virtual-fields
-	?input-form (?name ?predicate)
-	(?collected-virtual-field ...)
-	(?collected-method ...)
-	(?collected-definition ...)
-	(predicate	?pre ...)
-	(setter		?set ...)
-	(getter		?get ...)
-	(bindings	?bin ...)
-	(inherit	?inh ...)
-	(virtual-fields (mutable ?field ?accessor ?mutator) ?field-clause ...) ?clause ...)
-       (all-identifiers? #'(?field ?accessor ?mutator))
-       #'(%define-label/sort-clauses/virtual-fields
-	  ?input-form (?name ?predicate)
-	  (?collected-virtual-field ...  (mutable ?field ?accessor ?mutator))
-	  (?collected-method ...)
-	  (?collected-definition ...)
-	  (predicate	?pre ...)
-	  (setter	?set ...)
-	  (getter	?get ...)
-	  (bindings	?bin ...)
-	  (inherit	?inh ...)
-	  (virtual-fields ?field-clause ...) ?clause ...))
-
-      ;;Gather   mutable   VIRTUAL-FIELDS   clause  with   automatically
-      ;;generated accessor and mutator names.
-      ((%define-label/sort-clauses/virtual-fields
-	?input-form (?name ?predicate)
-	(?collected-virtual-field ...)
-	(?collected-method ...)
-	(?collected-definition ...)
-	(predicate	?pre ...)
-	(setter		?set ...)
-	(getter		?get ...)
-	(bindings	?bin ...)
-	(inherit	?inh ...)
-	(virtual-fields (mutable ?field) ?field-clause ...) ?clause ...)
-       (identifier? #'?field)
-       #`(%define-label/sort-clauses/virtual-fields
-	  ?input-form (?name ?predicate)
-	  (?collected-virtual-field ...  (mutable ?field
-						  #,(syntax-accessor-name #'?name #'?field)
-						  #,(syntax-mutator-name  #'?name #'?field)))
-	  (?collected-method ...)
-	  (?collected-definition ...)
-	  (predicate	?pre ...)
-	  (setter	?set ...)
-	  (getter	?get ...)
-	  (bindings	?bin ...)
-	  (inherit	?inh ...)
-	  (virtual-fields ?field-clause ...) ?clause ...))
-
-;;; --------------------------------------------------------------------
-
-      ;;Gather immutable  VIRTUAL-FIELDS clause with  explicit selection
-      ;;of accessor name.
-      ((%define-label/sort-clauses/virtual-fields
-	?input-form (?name ?predicate)
-	(?collected-virtual-field ...)
-	(?collected-method ...)
-	(?collected-definition ...)
-	(predicate	?pre ...)
-	(setter		?set ...)
-	(getter		?get ...)
-	(bindings	?bin ...)
-	(inherit	?inh ...)
-	(virtual-fields (immutable ?field ?accessor) ?field-clause ...) ?clause ...)
-       (all-identifiers? #'(?field ?accessor))
-       #'(%define-label/sort-clauses/virtual-fields
-	  ?input-form (?name ?predicate)
-	  (?collected-virtual-field ... (immutable ?field ?accessor))
-	  (?collected-method ...)
-	  (?collected-definition ...)
-	  (predicate	?pre ...)
-	  (setter	?set ...)
-	  (getter	?get ...)
-	  (bindings	?bin ...)
-	  (inherit	?inh ...)
-	  (virtual-fields ?field-clause ...) ?clause ...))
-
-      ;;Gather   immutable  VIRTUAL-FIELDS  clause   with  automatically
-      ;;generated accessor name.
-      ((%define-label/sort-clauses/virtual-fields
-	?input-form (?name ?predicate)
-	(?collected-virtual-field ...)
-	(?collected-method ...)
-	(?collected-definition ...)
-	(predicate	?pre ...)
-	(setter		?set ...)
-	(getter		?get ...)
-	(bindings	?bin ...)
-	(inherit	?inh ...)
-	(virtual-fields (immutable ?field) ?field-clause ...) ?clause ...)
-       (identifier? #'?field)
-       #`(%define-label/sort-clauses/virtual-fields
-	  ?input-form (?name ?predicate)
-	  (?collected-virtual-field ... (immutable ?field #,(syntax-accessor-name #'?name #'?field)))
-	  (?collected-method ...)
-	  (?collected-definition ...)
-	  (predicate	?pre ...)
-	  (setter	?set ...)
-	  (getter	?get ...)
-	  (bindings	?bin ...)
-	  (inherit	?inh ...)
-	  (virtual-fields ?field-clause ...) ?clause ...))
-
-      ;;Gather immutable VIRTUAL-FIELDS  clause declared without IMMUTABLE
-      ;;auxiliary syntax.
-      ((%define-label/sort-clauses/virtual-fields
-	?input-form (?name ?predicate)
-	(?collected-virtual-field ...)
-	(?collected-method ...)
-	(?collected-definition ...)
-	(predicate	?pre ...)
-	(setter		?set ...)
-	(getter		?get ...)
-	(bindings	?bin ...)
-	(inherit	?inh ...)
-	(virtual-fields ?field ?field-clause ...) ?clause ...)
-       (identifier? #'?field)
-       #`(%define-label/sort-clauses/virtual-fields
-	  ?input-form (?name ?predicate)
-	  (?collected-virtual-field ... (immutable ?field #,(syntax-accessor-name #'?name #'?field)))
-	  (?collected-method ...)
-	  (?collected-definition ...)
-	  (predicate	?pre ...)
-	  (setter	?set ...)
-	  (getter	?get ...)
-	  (bindings	?bin ...)
-	  (inherit	?inh ...)
-	  (virtual-fields ?field-clause ...) ?clause ...))
-
-;;; --------------------------------------------------------------------
-
-      ;;Remove empty, leftover, VIRTUAL-FIELDS clause.
-      ((%define-label/sort-clauses/virtual-fields
-	?input-form (?name ?predicate)
-	(?collected-virtual-field ...)
-	(?collected-method ...)
-	(?collected-definition ...)
-	(predicate	?pre ...)
-	(setter		?set ...)
-	(getter		?get ...)
-	(bindings	?bin ...)
-	(inherit	?inh ...)
-	(virtual-fields) ?clause ...)
-       #'(%define-label/sort-clauses
-	  ?input-form (?name ?predicate)
-	  (?collected-virtual-field ...)
-	  (?collected-method ...)
-	  (?collected-definition ...)
-	  (predicate	?pre ...)
-	  (setter	?set ...)
-	  (getter	?get ...)
-	  (bindings	?bin ...)
-	  (inherit	?inh ...)
-	  ?clause ...))
-
-      ;;Error.
-      ((%define-label/sort-clauses/virtual-fields
-	?input-form (?name ?predicate)
-	(?collected-virtual-field ...)
-	(?collected-method ...)
-	(?collected-definition ...)
-	(predicate	?pre ...)
-	(setter		?set ...)
-	(getter		?get ...)
-	(bindings	?bin ...)
-	(inherit	?inh ...)
-	(virtual-fields ?field-spec ?field-clause ...) ?clause ...)
-       (syntax-violation 'define-label
-	 "invalid virtual field specification"
-	 (syntax->datum #'?input-form)
-	 (syntax->datum #'(virtual-fields ?field-spec  ?field-clause ...))))
-
-      )))
-
-
-#;(define-syntax %define-label/sort-clauses/methods
-  (lambda (stx)
-    (syntax-case stx (mutable immutable methods predicate setter getter inherit bindings)
-
-      ;;Gather  METHODS   clause  with  explicit   selection  of  method
-      ;;function/macro name.
-      ((%define-label/sort-clauses/methods
-	?input-form (?name ?predicate)
-	(?collected-virtual-field ...)
-	(?collected-method ...)
-	(?collected-definition ...)
-	(predicate	?pre ...)
-	(setter		?set ...)
-	(getter		?get ...)
-	(bindings	?bin ...)
-	(inherit	?inh ...)
-	(methods (?method ?method-name) ?method-clause ...) ?clause ...)
-       (and (identifier? #'?method) (identifier? #'?method-name))
-       #'(%define-label/sort-clauses/methods
-	  ?input-form (?name ?predicate)
-	  (?collected-virtual-field ...)
-	  (?collected-method ... (?method ?method-name))
-	  (?collected-definition ...)
-	  (predicate		?pre ...)
-	  (setter		?set ...)
-	  (getter		?get ...)
-	  (bindings		?bin ...)
-	  (inherit		?inh ...)
-	  (methods ?method-clause ...) ?clause ...))
-
-      ;;Gather  METHODS  clause  with automatically  generated  function
-      ;;name.
-      ((%define-label/sort-clauses/methods
-	?input-form (?name ?predicate)
-	(?collected-virtual-field ...)
-	(?collected-method ...)
-	(?collected-definition ...)
-	(predicate	?pre ...)
-	(setter		?set ...)
-	(getter		?get ...)
-	(bindings	?bin ...)
-	(inherit	?inh ...)
-	(methods (?method) ?method-clause ...) ?clause ...)
-       (identifier? #'?method)
-       #`(%define-label/sort-clauses/methods
-	  ?input-form (?name ?predicate)
-	  (?collected-virtual-field ...)
-	  (?collected-method ... (?method #,(syntax-method-name #'?name #'?method)))
-	  (?collected-definition ...)
-	  (predicate		?pre ...)
-	  (setter		?set ...)
-	  (getter		?get ...)
-	  (bindings		?bin ...)
-	  (inherit		?inh ...)
-	  (methods ?method-clause ...) ?clause ...))
-
-      ;;Gather METHODS clause declared with only the symbol.
-      ((%define-label/sort-clauses/methods
-	?input-form (?name ?predicate)
-	(?collected-virtual-field ...)
-	(?collected-method ...)
-	(?collected-definition ...)
-	(predicate	?pre ...)
-	(setter		?set ...)
-	(getter		?get ...)
-	(bindings	?bin ...)
-	(inherit	?inh ...)
-	(methods ?method ?method-clause ...) ?clause ...)
-       (identifier? #'?method)
-       #`(%define-label/sort-clauses/methods
-	  ?input-form (?name ?predicate)
-	  (?collected-virtual-field ...)
-	  (?collected-method ... (?method #,(syntax-method-name #'?name #'?method)))
-	  (?collected-definition ...)
-	  (predicate		?pre ...)
-	  (setter		?set ...)
-	  (getter		?get ...)
-	  (bindings		?bin ...)
-	  (inherit		?inh ...)
-	  (methods ?method-clause ...) ?clause ...))
-
-      ;;Remove empty, leftover, METHODS clause.
-      ((%define-label/sort-clauses/methods
-	?input-form (?name ?predicate)
-	(?collected-virtual-field ...)
-	(?collected-method ...)
-	(?collected-definition ...)
-	(predicate	?pre ...)
-	(setter		?set ...)
-	(getter		?get ...)
-	(bindings	?bin ...)
-	(inherit	?inh ...)
-	(methods) ?clause ...)
-       #'(%define-label/sort-clauses
-	  ?input-form (?name ?predicate)
-	  (?collected-virtual-field ...)
-	  (?collected-method ...)
-	  (?collected-definition ...)
-	  (predicate		?pre ...)
-	  (setter		?set ...)
-	  (getter		?get ...)
-	  (bindings		?bin ...)
-	  (inherit		?inh ...)
-	  ?clause ...))
-
-      ;;Error.
-      ((%define-label/sort-clauses/methods
-	?input-form (?name ?predicate)
-	(?collected-virtual-field ...)
-	(?collected-method ...)
-	(?collected-definition ...)
-	(predicate	?pre ...)
-	(setter		?set ...)
-	(getter		?get ...)
-	(bindings	?bin ...)
-	(inherit	?inh ...)
-	(methods ?method-spec ?method-clause ...) ?clause ...)
-       (syntax-violation 'define-label
-	 "invalid methods clause"
-	 (syntax->datum #'?input-form)
-	 (syntax->datum #'(methods ?method-spec ?method-clause ...))))
-
-      )))
-
-
-#;(define-syntax %define-label/normalise-inheritance
-  ;;Normalise  the  definition  by  processing  INHERIT.   Finally  hand
-  ;;everything to %DEFINE-LABEL/NORMALISE-PREDICATE.
-  ;;
-  (lambda (stx)
-    (syntax-case stx (predicate setter getter inherit bindings)
-
-      ;;If the  label definition used  no INHERIT clause, make  the type
-      ;;derived by "<top>-superlabel".
-      ((_ ?input-form (?name ?predicate)
-	  (?collected-virtual-field ...)
-	  (?collected-method ...)
-	  (?collected-definition ...)
-	  (predicate	?pre ...)
-	  (setter	?set ...)
-	  (getter	?get ...)
-	  (bindings	?bin ...)
-	  (inherit)) ;no inherit
-       #'(%define-label/normalise-predicate
-	  ?input-form (?name ?predicate)
-	  (?collected-virtual-field ...)
-	  (?collected-method ...)
-	  (?collected-definition ...)
-	  (<top>-superlabel ())
-	  (predicate		?pre ...)
-	  (setter		?set ...)
-	  (getter		?get ...)
-	  (bindings		?bin ...)))
-
-;;; --------------------------------------------------------------------
-
-      ;;Process INHERIT clause without inheritance options.
-      ((_ ?input-form (?name ?predicate)
-	  (?collected-virtual-field ...)
-	  (?collected-method ...)
-	  (?collected-definition ...)
-	  (predicate		?pre ...)
-	  (setter		?set ...)
-	  (getter		?get ...)
-	  (bindings		?bin ...)
-	  (inherit		?superlabel-name))
-       #`(%define-label/normalise-predicate
-	  ?input-form (?name ?predicate)
-	  (?collected-virtual-field ...)
-	  (?collected-method ...)
-	  (?collected-definition ...)
-	  #,(if (free-identifier=? #'<top> #'?superlabel-name)
-		#'(<top>-superlabel ())
-	      #'(?superlabel-name ()))
-	  (predicate	?pre ...)
-	  (setter	?set ...)
-	  (getter	?get ...)
-	  (bindings	?bin ...)))
-
-      ;;Process INHERIT clause with inheritance options.
-      ((_ ?input-form (?name ?predicate)
-	  (?collected-virtual-field ...)
-	  (?collected-method ...)
-	  (?collected-definition ...)
-	  (predicate	?pre ...)
-	  (setter	?set ...)
-	  (getter	?get ...)
-	  (bindings	?bin ...)
-	  (inherit	?superlabel-name (?inherit-option ...)))
-       (if (all-identifiers? #'(?inherit-option ...))
-	   #'(%define-label/normalise-predicate
-	      ?input-form (?name ?predicate)
-	      (?collected-virtual-field ...)
-	      (?collected-method ...)
-	      (?collected-definition ...)
-	      #,(if (free-identifier=? #'<top> #'?superlabel-name)
-		    #'(<top>-superlabel (?inherit-option ...))
-		  #'(?superlabel-name (?inherit-option ...)))
-	      (predicate	?pre ...)
-	      (setter		?set ...)
-	      (getter		?get ...)
-	      (bindings		?bin ...))
-	 (syntax-violation 'define-label
-	   "invalid inheritance options in inherit clause of label definition"
-	   (syntax->datum #'?input-form)
-	   (syntax->datum #'(inherit ?superlabel-name (?inherit-option ...))))))
-
-      )))
-
-
-#;(define-syntax %define-label/normalise-predicate
-  (syntax-rules (predicate setter getter bindings)
-
-    ;;No predicate was given.
-    ((_ ?input-form (?name ?predicate)
-	(?collected-virtual-field ...)
-	(?collected-method ...)
-	(?collected-definition ...)
-	(?superlabel-name ?inherit-options)
-	(predicate)
-	(setter	?set ...)
-	(getter	?get ...)
-	(bindings	?bin ...))
-     (%define-label/normalise-setter
-      ?input-form (?name ?predicate)
-      (?collected-virtual-field ...)
-      (?collected-method ...)
-      (?collected-definition ...)
-      (?superlabel-name ?inherit-options)
-      #f
-      (setter		?set ...)
-      (getter		?get ...)
-      (bindings		?bin ...)))
-
-    ;;A predicate was given.
-    ((_ ?input-form (?name ?predicate)
-	(?collected-virtual-field ...)
-	(?collected-method ...)
-	(?collected-definition ...)
-	(?superlabel-name ?inherit-options)
-	(predicate	?predicate-identifier)
-	(setter		?set ...)
-	(getter		?get ...)
-	(bindings	?bin ...))
-     (%define-label/normalise-setter
-      ?input-form (?name ?predicate)
-      (?collected-virtual-field ...)
-      (?collected-method ...)
-      (?collected-definition ...)
-      (?superlabel-name ?inherit-options)
-      ?predicate-identifier
-      (setter		?set ...)
-      (getter		?get ...)
-      (bindings		?bin ...)))
-
-    ))
-
-
-#;(define-syntax %define-label/normalise-setter
-  (syntax-rules (setter getter bindings)
-
-    ;;No setter was given.
-    ((_ ?input-form (?name ?predicate)
-	(?collected-virtual-field ...)
-	(?collected-method ...)
-	(?collected-definition ...)
-	(?superlabel-name ?inherit-options)
-	?predicate-identifier
-	(setter)
-	(getter		?get ...)
-	(bindings	?bin ...))
-     (%define-label/normalise-getter
-      ?input-form (?name ?predicate)
-      (?collected-virtual-field ...)
-      (?collected-method ...)
-      (?collected-definition ...)
-      (?superlabel-name ?inherit-options)
-      ?predicate-identifier
-      #f
-      (getter		?get ...)
-      (bindings		?bin ...)))
-
-    ;;A setter was given.
-    ((_ ?input-form (?name ?predicate)
-	(?collected-virtual-field ...)
-	(?collected-method ...)
-	(?collected-definition ...)
-	(?superlabel-name ?inherit-options)
-	?predicate-identifier
-	(setter		?setter)
-	(getter		?get ...)
-	(bindings	?bin ...))
-     (%define-label/normalise-getter
-      ?input-form (?name ?predicate)
-      (?collected-virtual-field ...)
-      (?collected-method ...)
-      (?collected-definition ...)
-      (?superlabel-name ?inherit-options)
-      ?predicate-identifier
-      ?setter
-      (getter		?get ...)
-      (bindings		?bin ...)))
-
-    ))
-
-
-#;(define-syntax %define-label/normalise-getter
-  (syntax-rules (getter bindings)
-
-    ;;No getter was given.
-    ((_ ?input-form (?name ?predicate)
-	(?collected-virtual-field ...)
-	(?collected-method ...)
-	(?collected-definition ...)
-	(?superlabel-name ?inherit-options)
-	?predicate-identifier
-	?setter
-	(getter)
-	(bindings	?bin ...))
-     (%define-label/normalise-bindings
-      ?input-form (?name ?predicate)
-      (?collected-virtual-field ...)
-      (?collected-method ...)
-      (?collected-definition ...)
-      (?superlabel-name ?inherit-options)
-      ?predicate-identifier
-      ?setter
-      #f
-      (bindings		?bin ...)))
-
-    ;;A getter was given.
-    ((_ ?input-form (?name ?predicate)
-	(?collected-virtual-field ...)
-	(?collected-method ...)
-	(?collected-definition ...)
-	(?superlabel-name ?inherit-options)
-	?predicate-identifier
-	?setter
-	(getter		?getter)
-	(bindings	?bin ...))
-     (%define-label/normalise-bindings
-      ?input-form (?name ?predicate)
-      (?collected-virtual-field ...)
-      (?collected-method ...)
-      (?collected-definition ...)
-      (?superlabel-name ?inherit-options)
-      ?predicate-identifier
-      ?setter
-      ?getter
-      (bindings		?bin ...)))
-
-    ))
-
-
-#;(define-syntax %define-label/normalise-bindings
-  (lambda (stx)
-    (syntax-case stx (bindings)
-
-      ;;No BINDINGS was given.
-      ((_ ?input-form (?name ?predicate)
-	  (?collected-virtual-field ...)
-	  (?collected-method ...)
-	  (?collected-definition ...)
-	  (?superlabel-name ?inherit-options)
-	  ?predicate-identifier
-	  ?setter
-	  ?getter
-	  (bindings))
-       #'(%define-label/output-forms
-	  ?input-form (?name ?predicate)
-	  (?collected-virtual-field ...)
-	  (?collected-method ...)
-	  (?collected-definition ...)
-	  (?superlabel-name ?inherit-options)
-	  ?predicate-identifier
-	  ?setter
-	  ?getter
-	  <top>-bindings))
-
-      ;;A BINDINGS was given.
-      ((_ ?input-form (?name ?predicate)
-	  (?collected-virtual-field ...)
-	  (?collected-method ...)
-	  (?collected-definition ...)
-	  (?superlabel-name ?inherit-options)
-	  ?predicate-identifier
-	  ?setter
-	  ?getter
-	  (bindings	?bindings-name))
-       #'(%define-label/output-forms
-	  ?input-form (?name ?predicate)
-	  (?collected-virtual-field ...)
-	  (?collected-method ...)
-	  (?collected-definition ...)
-	  (?superlabel-name ?inherit-options)
-	  ?predicate-identifier
-	  ?setter
-	  ?getter
-	  ?bindings-name))
-
-      ;;Error.
-      ((_ ?input-form (?name ?predicate)
-	  (?collected-virtual-field ...)
-	  (?collected-method ...)
-	  (?collected-definition ...)
-	  (?superlabel-name ?inherit-options)
-	  ?predicate-identifier
-	  ?setter
-	  ?getter
-	  (bindings	?bin ...))
-       (syntax-violation 'define-label
-	 "invalid bindings clause in label definition"
-	 (syntax->datum #'?input-form)
-	 (syntax->datum #'(bindings ?bin ...))))
-
-      )))
-
-
-#;(define-syntax %define-label/output-forms
-  ;;Generate the final output forms for label definition.
-  ;;
-  (lambda (stx)
-    (syntax-case stx ()
-
-      ((_ ?input-form (?label-name ?predicate)
-	  ((?virtual-mutability ?virtual-field ?virtual-accessor ...) ...)
-	  ((?method ?method-function) ...)
-	  (?collected-definition ...)
-	  (?superlabel-name ?inherit-options)
-	  ?predicate-identifier ?setter ?getter ?bindings-name)
-       (let ((id (duplicated-identifiers? #'(?virtual-field ... ?method ...))))
-	 (if id
-	     (syntax-violation 'define-label
-	       "duplicated field names in label definition"
-	       (syntax->datum #'?input-form)
-	       (syntax->datum id))
-	   (let ((name (syntax->datum #'?label-name)))
-	     (with-syntax (((INHERIT-VIRTUAL-FIELDS? INHERIT-METHODS? INHERIT-SETTER-AND-GETTER?)
-			    (datum->syntax #'?name
-					   (%parse-label-inherit-options #'?inherit-options
-									 #'?input-form))))
-	       #'(begin
-		   (define ?predicate
-		     (let ((p ?predicate-identifier))
-		       (or p (lambda (x)
-			       (assertion-violation (quote ?predicate)
-				 "no predicate definition for label"
-				 (quote ?input-form))))))
-
-		   ;;These are the definitions of in-definition methods.
-		   ?collected-definition ...
-
-		   (define-syntax ?label-name
-		     (lambda (stx)
-		       (syntax-case stx (is-a? with-class-bindings-of)
-
-			 ((_ is-a? ?arg)
-			  #'(?predicate-identifier ?arg))
-
-			 ((_ with-class-bindings-of
-			     (?inherit-concrete-fields	;this comes from WITH-CLASS
-			      ?inherit-virtual-fields
-			      ?inherit-methods
-			      ?inherit-setter-and-getter)
-			     ?variable-name ?arg (... ...))
-			  (for-all boolean? (syntax->datum #'(?inherit-concrete-fields
-							      ?inherit-virtual-fields
-							      ?inherit-methods
-							      ?inherit-setter-and-getter)))
-			  #'(with-label-bindings
-			     (?inherit-virtual-fields
-			      ?inherit-methods
-			      ?inherit-setter-and-getter)
-			     ?variable-name ?arg (... ...)))
-
-			 ((_ ?keyword . ?rest)
-			  (syntax-violation '?label-name
-			    "invalid label internal keyword"
-			    (syntax->datum #'(?label-name ?keyword . ?rest))
-			    (syntax->datum #'?keyword)))
-			 )))
-
-		   (define-syntax with-label-bindings
-		     (syntax-rules ()
-		       ((_ (?inherit-virtual-fields ?inherit-methods ?inherit-setter-and-getter)
-			   ?variable-name ?body0 ?body (... ...))
-			(?superlabel-name
-			 with-class-bindings-of (#f
-						 INHERIT-VIRTUAL-FIELDS?
-						 INHERIT-METHODS?
-						 INHERIT-SETTER-AND-GETTER?)
-			 ?variable-name
-			 (with-label-bindings/virtual-fields
-			  ?inherit-virtual-fields ?variable-name
-			  (with-label-bindings/methods
-			   ?inherit-methods ?variable-name
-			   (with-label-bindings/setter-and-getter
-			    ?inherit-setter-and-getter ?variable-name
-			    (?bindings-name ?label-name ?variable-name
-					    ?body0 ?body (... ...)))))))
-		       ))
-
-		   (define-syntax with-label-bindings/virtual-fields
-		     (lambda (stx)
-		       (syntax-case stx ()
-			 ((_ ?inherit-virtual-fields ?variable-name . ?body)
-			  (syntax->datum #'?inherit-virtual-fields)
-			  #'(%with-class-fields
-			     ?variable-name
-			     ((?virtual-mutability ?virtual-field ?virtual-accessor ...) ...)
-			     . ?body))
-			 ((_ ?inherit-fields ?variable-name . ?body)
-			  #'(begin . ?body))
-			 )))
-
-		   (define-syntax with-label-bindings/methods
-		     (lambda (stx)
-		       (syntax-case stx ()
-			 ((_ ?inherit-methods ?variable-name . ?body)
-			  (syntax->datum #'?inherit-methods)
-			  #'(%with-class-methods ?variable-name ((?method ?method-function) ...)
-						 . ?body))
-			 ((_ ?inherit-methods ?variable-name . ?body)
-			  #'(begin . ?body))
-			 )))
-
-		   (define-syntax with-label-bindings/setter-and-getter
-		     (lambda (stx)
-		       (syntax-case stx ()
-			 ((_ ?inherit-setter-and-getter ?variable-name . ?body)
-			  (syntax->datum #'?inherit-setter-and-getter)
-			  #'(%with-class-setter-and-getter ?variable-name ?setter ?getter . ?body))
-			 ((_ ?inherit-setter-and-getter ?variable-name . ?body)
-			  #'(begin . ?body))
-			 )))
-
-		   )))
-	   )))
       )))
 
 

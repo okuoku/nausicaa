@@ -35,13 +35,23 @@
     syntax-method-name
     syntax-dot-notation-name
     duplicated-identifiers?		all-identifiers?
-    %parse-inherit-options
-
     %check-clauses			%clause-ref
 
     ;; label-specific clause collectors
     %collect-clause/label/inherit
     %collect-clause/label/predicate
+
+    ;; class-specific clause collectors and helper functions
+    %collect-clause/class/inherit
+    %collect-clause/parent&parent-rtd
+    %collect-clause/nongenerative
+    %collect-clause/opaque
+    %collect-clause/sealed
+    %collect-clause/protocol
+    %collect-clause/public-protocol
+    %collect-clause/superclass-protocol
+    %collect-clause/predicate
+    %output-forms/concrete-fields
 
     ;; clause collectors
     %collect-clause/fields
@@ -55,7 +65,8 @@
     )
   (import (rnrs)
     (gensym)
-    (classes top))
+    (classes top)
+    (classes auxiliary-syntaxes))
 
 
 (define (%variable-name->Setter-name variable-name/stx)
@@ -138,7 +149,437 @@
 	  (loop x (cdr ls)))))))
 
 
-(define (%parse-inherit-options inherit-options/stx input-form/stx)
+(define (%check-clauses only-once-keywords multiple-times-keywords exclusive-keywords clauses synner)
+  ;;Make  sure that  CLAUSES is  an  unwrapped syntax  object list  only
+  ;;holding subforms  starting with  a keyword in  ONLY-ONCE-KEYWORDS or
+  ;;MULTIPLE-TIMES-KEYWORDS; any order is allowed.
+  ;;
+  ;;Identifiers in ONLY-ONCE-KEYWORDS can appear only once.  Identifiers
+  ;;in    MULTIPLE-TIMES-KEYWORDS    can    appear    multiple    times.
+  ;;EXCLUSIVE-KEYWORDS   is  a   list  of   list,  each   sublist  holds
+  ;;identifiers; the identifiers in each sublist are mutually exclusive:
+  ;;at most one can appear in CLAUSES.
+  ;;
+  ;;SYNNER must  be the closure  used to raise  a syntax violation  if a
+  ;;parse  error  occurs; it  must  accept  two  arguments: the  message
+  ;;string, the subform.
+  ;;
+  (define (stx-memv id list-of-ids)
+    (cond ((null? list-of-ids)
+	   #f)
+	  ((free-identifier=? id (car list-of-ids))
+	   #t)
+	  (else
+	   (stx-memv id (cdr list-of-ids)))))
+
+  ;;Validate clauses list.
+  (unless (or (null? clauses) (list? clauses))
+    (synner "expected possibly empty list of clauses" clauses))
+
+  ;;Check the keyword of each clause.
+  (for-each
+      (lambda (clause)
+	(unless (list? clause)
+	  (synner "expected list as clause" clause))
+	(let ((key (car clause)))
+	  (unless (identifier? key)
+	    (synner "expected identifier as first clause element" clause))
+	  (unless (or (stx-memv key only-once-keywords) (stx-memv key multiple-times-keywords))
+	    (synner (string-append
+		     "unrecognised clause keyword, expected one among: "
+		     (%keywords-join-for-message (append only-once-keywords multiple-times-keywords)))
+		    key))
+	    (let ((count (length (filter (lambda (once-key)
+					   (free-identifier=? key once-key))
+				   only-once-keywords))))
+	      (unless (or (zero? count) (= 1 count))
+		(synner (string-append "clause " (symbol->string (syntax->datum key))
+				       " given multiple times")
+			clause)))))
+    clauses)
+
+  ;;Check mutually exclusive keywords.
+  (for-each (lambda (mutually-exclusive-ids)
+	      (let ((err (filter (lambda (clause) clause)
+			   (map (lambda (e)
+				  (exists (lambda (clause)
+					    (and (free-identifier=? e (car clause))
+						 clause))
+					  clauses))
+			     mutually-exclusive-ids))))
+		(when (< 1 (length err))
+		  (synner "mutually exclusive clauses" err))))
+    exclusive-keywords))
+
+(define (%keywords-join-for-message keywords)
+  ;;Given  a  list of  symbols,  join  them a  string  with  a comma  as
+  ;;separator; return  the string.  To  be used to build  error messages
+  ;;involving the list of keywords.
+  ;;
+  (let ((keys (map symbol->string keywords)))
+    (if (null? keys)
+	""
+      (call-with-values
+	  (lambda ()
+	    (open-string-output-port))
+	(lambda (port getter)
+	  (display (syntax->datum (car keys)) port)
+	  (let loop ((keys (cdr keys)))
+	    (if (null? keys)
+		(getter)
+	      (begin
+		(display ", " port)
+		(display (syntax->datum (car keys)) port)
+		(loop (cdr keys))))))))))
+
+(define (%clause-ref key clauses)
+  ;;Given a  list of definition clauses (unwrapped  syntax object), look
+  ;;for  the  ones having  KEY  (a symbol)  as  keyword  and return  the
+  ;;selected  clauses in  a single  list; return  the empty  list  if no
+  ;;matching clause is found.
+  ;;
+  ;;Examples:
+  ;;
+  ;;    (%clause-ref #'methods '((<fields> <a> <b>)
+  ;;		 		 (<methods> <c> <d>)))
+  ;;    => ((methods <c> <d>))
+  ;;
+  ;;    (%clause-ref #'method  '((<fields> <a> <b>)
+  ;;				 (<method> <c>)
+  ;;				 (<method> (<d>) ---)))
+  ;;    => ((method <c>) (method (<d>) ---))
+  ;;
+  (let next-clause ((clauses  clauses)
+		    (selected '()))
+    (if (null? clauses)
+	(reverse selected) ;it is important to keep the order
+      (next-clause (cdr clauses)
+		   (if (free-identifier=? key (caar clauses))
+		       (cons (car clauses) selected)
+		     selected)))))
+
+
+;;;; class-specific definition clauses collectors
+
+(define (%collect-clause/class/inherit clauses synner)
+  ;;Given a  list of  class definition clauses  in CLAUSES,  extract the
+  ;;INHERIT clause and  parse it; there must be  only one INHERIT clause
+  ;;in CLAUSES.
+  ;;
+  ;;Return  Five values:  an identifier  representing the  superclass, 4
+  ;;booleans representing the inherit  options.  If no INHERIT clause is
+  ;;found: return "<top>-superclass" and all true.
+  ;;
+  ;;SYNNER must  be the closure  used to raise  a syntax violation  if a
+  ;;parse  error  occurs; it  must  accept  two  arguments: the  message
+  ;;string, the subform.
+  ;;
+  (let ((clauses (%clause-ref #'inherit clauses)))
+    (if (null? clauses)
+	(values #'<top>-superclass #t #t #t #t)
+      (syntax-case (car clauses) ()
+
+	((?keyword ?superclass-name)
+	 (and (all-identifiers? #'(?keyword ?superclass-name))
+	      (free-identifier=? #'?keyword #'inherit))
+	 (values (if (free-identifier=? #'<top> #'?superclass-name)
+		     #'<top>-superclass
+		   #'?superclass-name)
+		 #t #t #t #t))
+
+	((?keyword ?superclass-name (?inherit-option ...))
+	 (and (all-identifiers? #'(?keyword ?superclass-name ?inherit-option ...))
+	      (free-identifier=? #'?keyword #'inherit))
+	 (call-with-values
+	     (lambda ()
+	       (%parse-class-inherit-options #'(?inherit-option ...) synner))
+	   (lambda (concrete-fields virtual-fields methods setter-and-getter)
+	     (values (if (free-identifier=? #'<top> #'?superclass-name)
+			 #'<top>-superclass
+		       #'?superclass-name)
+		     concrete-fields virtual-fields methods setter-and-getter))))
+
+	(_
+	 (synner "invalid inherit clause" (car clauses)))
+	))))
+
+(define (%collect-clause/parent&parent-rtd clauses synner)
+  ;;Given a  list of definition  clauses in CLAUSES, extract  the PARENT
+  ;;and/or PARENT-RTD clause and parse it; there must be only one PARENT
+  ;;clause,  or  only  one  PARENT-RTD  clause, or  neither  PARENT  nor
+  ;;PARENT-RTD clauses in CLAUSES.
+  ;;
+  ;;Return two values:  the expression evaluating to the  parent RTD and
+  ;;the  expression  evaluating to  the  parent constructor  descriptor.
+  ;;Return two false if neither PARENT nor PARENT-RTD clause is present.
+  ;;
+  ;;SYNNER must  be the closure  used to raise  a syntax violation  if a
+  ;;parse  error  occurs; it  must  accept  two  arguments: the  message
+  ;;string, the subform.
+  ;;
+  (let ((parents	(%clause-ref #'parent     clauses))
+	(parent-rtds	(%clause-ref #'parent-rtd clauses)))
+    (cond ((and (null? parents) (null? parent-rtds))
+	   (values #f #f))
+
+	  ((not (null? parents))
+	   (syntax-case (car parents) ()
+	     ((?keyword ?rtd)
+	      (and (identifier? #'?keyword) (free-identifier=? #'?keyword #'parent))
+	      #'?rtd)
+	     (_
+	      (synner "invalid parent clause" (car parents)))))
+
+	  ((not (null? parent-rtds))
+	   (syntax-case (car parent-rtds) ()
+	     ((?keyword ?rtd ?cd)
+	      (and (identifier? #'?keyword) (free-identifier=? #'?keyword #'parent-rtd))
+	      (values #'?rtd #'?cd))
+	     (_
+	      (synner "invalid parent-rtd clause" (car parent-rtds)))))
+
+	  (else
+	   (synner "internal error parsing parent and parent-rtd clauses" #f)))))
+
+(define (%collect-clause/nongenerative thing-identifier clauses synner)
+  ;;Given  a  list  of   definition  clauses  in  CLAUSES,  extract  the
+  ;;NONGENERATIVE  clause   and  parse  it;  there  must   be  only  one
+  ;;NONGENERATIVE clause in CLAUSES.
+  ;;
+  ;;Return  an identifier  representing the  UID of  the  defined thing.
+  ;;THING-IDENTIFIER must be the identifier the UID belongs to.
+  ;;
+  ;;SYNNER must  be the closure  used to raise  a syntax violation  if a
+  ;;parse  error  occurs; it  must  accept  two  arguments: the  message
+  ;;string, the subform.
+  ;;
+  (let ((clauses (%clause-ref #'nongenerative clauses)))
+    (if (null? clauses)
+	(datum->syntax thing-identifier (gensym))
+      (syntax-case (car clauses) ()
+
+	((?keyword)
+	 (and (identifier? #'?keyword) (free-identifier=? #'?keyword #'nongenerative))
+	 (datum->syntax thing-identifier (gensym)))
+
+	((?keyword ?uid)
+	 (and (all-identifiers? #'(?keyword ?uid)) (free-identifier=? #'?keyword #'nongenerative))
+	 #'?uid)
+
+	(_
+	 (synner "invalid nongenerative clause" (car clauses)))
+	))))
+
+(define (%collect-clause/sealed clauses synner)
+  ;;Given a  list of definition  clauses in CLAUSES, extract  the SEALED
+  ;;clause  and  parse it;  there  must be  only  one  SEALED clause  in
+  ;;CLAUSES.
+  ;;
+  ;;Return a boolean  establishing if the defined thing  type is sealed;
+  ;;return false if no SEALED clause was found.
+  ;;
+  ;;SYNNER must  be the closure  used to raise  a syntax violation  if a
+  ;;parse  error  occurs; it  must  accept  two  arguments: the  message
+  ;;string, the subform.
+  ;;
+  (let ((clauses (%clause-ref #'sealed clauses)))
+    (if (null? clauses)
+	#f
+      (syntax-case (car clauses) ()
+
+	((?keyword ?bool)
+	 (and (identifier? #'?keyword)
+	      (free-identifier=? #'?keyword #'sealed)
+	      (boolean? (syntax->datum #'?bool)))
+	 (syntax->datum #'?bool))
+
+	(_
+	 (synner "invalid sealed clause" (car clauses)))
+	))))
+
+(define (%collect-clause/opaque clauses synner)
+  ;;Given a  list of definition  clauses in CLAUSES, extract  the OPAQUE
+  ;;clause  and  parse it;  there  must be  only  one  OPAQUE clause  in
+  ;;CLAUSES.
+  ;;
+  ;;Return a boolean  establishing if the defined thing  type is opaque;
+  ;;return false if no OPAQUE clause was found.
+  ;;
+  ;;SYNNER must  be the closure  used to raise  a syntax violation  if a
+  ;;parse  error  occurs; it  must  accept  two  arguments: the  message
+  ;;string, the subform.
+  ;;
+  (let ((clauses (%clause-ref #'opaque clauses)))
+    (if (null? clauses)
+	#f
+      (syntax-case (car clauses) ()
+
+	((?keyword ?bool)
+	 (and (identifier? #'?keyword)
+	      (free-identifier=? #'?keyword #'opaque)
+	      (boolean? (syntax->datum #'?bool)))
+	 (syntax->datum #'?bool))
+
+	(_
+	 (synner "invalid opaque clause" (car clauses)))
+	))))
+
+(define (%collect-clause/protocol clauses synner)
+  ;;Given a list of definition  clauses in CLAUSES, extract the PROTOCOL
+  ;;clause  and parse  it; there  must be  only one  PROTOCOL  clause in
+  ;;CLAUSES.
+  ;;
+  ;;Return  the clause  expression or  false if  no PROTOCOL  clause was
+  ;;found.
+  ;;
+  ;;SYNNER must  be the closure  used to raise  a syntax violation  if a
+  ;;parse  error  occurs; it  must  accept  two  arguments: the  message
+  ;;string, the subform.
+  ;;
+  (let ((clauses (%clause-ref #'protocol clauses)))
+    (if (null? clauses)
+	#f
+      (syntax-case (car clauses) ()
+
+	((?keyword ?expression)
+	 (and (identifier? #'?keyword) (free-identifier=? #'?keyword #'protocol))
+	 #'?expression)
+
+	(_
+	 (synner "invalid protocol clause" (car clauses)))
+	))))
+
+(define (%collect-clause/public-protocol clauses synner)
+  ;;Given  a  list  of   definition  clauses  in  CLAUSES,  extract  the
+  ;;PUBLIC-PROTOCOL  clause  and  parse  it;  there  must  be  only  one
+  ;;PUBLIC-PROTOCOL clause in CLAUSES.
+  ;;
+  ;;Return the  clause expression or false if  no PUBLIC-PROTOCOL clause
+  ;;was found.
+  ;;
+  ;;SYNNER must  be the closure  used to raise  a syntax violation  if a
+  ;;parse  error  occurs; it  must  accept  two  arguments: the  message
+  ;;string, the subform.
+  ;;
+  (let ((clauses (%clause-ref #'public-protocol clauses)))
+    (if (null? clauses)
+	#f
+      (syntax-case (car clauses) ()
+
+	((?keyword ?expression)
+	 (and (identifier? #'?keyword) (free-identifier=? #'?keyword #'public-protocol))
+	 #'?expression)
+
+	(_
+	 (synner "invalid public-protocol clause" (car clauses)))
+	))))
+
+(define (%collect-clause/superclass-protocol clauses synner)
+  ;;Given  a  list  of   definition  clauses  in  CLAUSES,  extract  the
+  ;;SUPERCLASS-PROTOCOL  clause and  parse it;  there must  be  only one
+  ;;SUPERCLASS-PROTOCOL clause in CLAUSES.
+  ;;
+  ;;Return  the clause  expression  or false  if no  SUPERCLASS-PROTOCOL
+  ;;clause was found.
+  ;;
+  ;;SYNNER must  be the closure  used to raise  a syntax violation  if a
+  ;;parse  error  occurs; it  must  accept  two  arguments: the  message
+  ;;string, the subform.
+  ;;
+  (let ((clauses (%clause-ref #'superclass-protocol clauses)))
+    (if (null? clauses)
+	#f
+      (syntax-case (car clauses) ()
+
+	((?keyword ?expression)
+	 (and (identifier? #'?keyword) (free-identifier=? #'?keyword #'superclass-protocol))
+	 #'?expression)
+
+	(_
+	 (synner "invalid superclass-protocol clause" (car clauses)))
+	))))
+
+(define (%collect-clause/predicate predicate-identifier clauses synner)
+  ;;Given a  list of  class definition clauses  in CLAUSES,  extract the
+  ;;PREDICATE  clause and  parse it;  there must  be only  one PREDICATE
+  ;;clause in CLAUSES.
+  ;;
+  ;;Return  an  identifier representing  the  custom  predicate for  the
+  ;;class; return PREDICATE-IDENTIFIER if no PREDICATE clause is found.
+  ;;
+  ;;SYNNER must  be the closure  used to raise  a syntax violation  if a
+  ;;parse  error  occurs; it  must  accept  two  arguments: the  message
+  ;;string, the subform.
+  ;;
+  (let ((clauses (%clause-ref #'predicate clauses)))
+    (if (null? clauses)
+	predicate-identifier
+      (syntax-case (car clauses) ()
+	((?keyword ?predicate)
+	 (and (all-identifiers? #'(?keyword ?predicate))
+	      (free-identifier=? #'?keyword #'predicate))
+	 #'?predicate)
+	(_
+	 (synner "invalid predicate clause" (car clauses)))
+	))))
+
+(define-syntax %output-forms/concrete-fields
+  (syntax-rules ()
+    ((_ ?rtd ?specs ?synner)
+     (output-forms/class/concrete-fields ?rtd ?specs ?synner 0 '()))))
+
+(define (output-forms/class/concrete-fields rtd-identifier field-specs synner index field-definitions)
+  ;;This is  a recursive funciton accumulating  in FIELD-DEFINITIONS the
+  ;;definitions of  the concrete  fields accessor and  mutator bindings.
+  ;;Given a  list of concrete  field specifications in  FIELD-SPECS with
+  ;;the format:
+  ;;
+  ;;	(mutable <field name> <accessor identifier> <mutator identifier>)
+  ;;	(immutable <field name> <accessor identifier>)
+  ;;
+  ;;extract the  accessor and  mutator identifiers and  build a  list of
+  ;;syntax objects with the format:
+  ;;
+  ;;	(begin
+  ;;	  (define <accessor identifier>
+  ;;	    (record-accessor RTD-IDENTIFIER INDEX))
+  ;;	  (define <mutator identifier>
+  ;;	    (record-mutator RTD-IDENTIFIER INDEX)))
+  ;;    (define <accessor identifier>
+  ;;	   (record-accessor RTD-IDENTIFIER INDEX))
+  ;;
+  ;;SYNNER must be  the closure used to raise a  syntax violation if a
+  ;;parse  error occurs;  it must  accept two  arguments:  the message
+  ;;string, the subform.
+  ;;
+  (if (null? field-specs)
+      (reverse field-definitions)
+    (syntax-case (car field-specs) ()
+
+      ((?mutable ?field ?accessor ?mutator)
+       (and (all-identifiers? #'(?mutable ?field ?accessor ?mutator))
+	    (free-identifier=? #'?mutable #'mutable))
+       (output-forms/class/concrete-fields
+	rtd-identifier (cdr field-specs) synner (+ 1 index)
+	(cons #`(begin
+		  (define ?accessor  (record-accessor #,rtd-identifier #,index))
+		  (define ?mutator   (record-mutator  #,rtd-identifier #,index)))
+	      field-definitions)))
+
+      ((?immutable ?field ?accessor)
+       (and (all-identifiers? #'(?immutable ?field ?accessor))
+	    (free-identifier=? #'?immutable #'immutable))
+       (output-forms/class/concrete-fields
+	rtd-identifier (cdr field-specs) synner (+ 1 index)
+	(cons #`(define ?accessor  (record-accessor #,rtd-identifier #,index))
+	      field-definitions)))
+
+      (_
+       (synner "invalid concrete field specification" (car field-specs)))
+
+      )))
+
+(define (%parse-class-inherit-options inherit-options/stx synner)
   ;;Here we already know that INHERIT-OPTIONS is a list of identifiers.
   ;;
   (let loop ((concrete-fields	#t)
@@ -182,88 +623,7 @@
 	 (loop concrete-fields virtual-fields methods #f (cdr options)))
 
 	(else
-	 (syntax-violation 'define-class
-	   "invalid inheritance option"
-	   (syntax->datum input-form/stx) (car options)))))))
-
-
-(define (%check-clauses only-once-keywords multiple-times-keywords clauses synner)
-  ;;Make  sure that  CLAUSES is  an  unwrapped syntax  object list  only
-  ;;holding subforms  starting with  a keyword in  ONLY-ONCE-KEYWORDS or
-  ;;MULTIPLE-TIMES-KEYWORDS; any order is allowed.
-  ;;
-  ;;SYNNER must  be the closure  used to raise  a syntax violation  if a
-  ;;parse  error  occurs; it  must  accept  two  arguments: the  message
-  ;;string, the subform.
-  ;;
-  (unless (or (null? clauses) (list? clauses))
-    (synner "expected possibly empty list of clauses" clauses))
-
-  (for-each
-      (lambda (clause)
-	(unless (list? clause)
-	  (synner "expected list as clause" clause))
-	(let ((key (car clause)))
-	  (unless (identifier? key)
-	    (synner "expected identifier as first clause element" clause))
-	  (let ((key (syntax->datum key)))
-	    (unless (or (memq key only-once-keywords) (memq key multiple-times-keywords))
-	      (synner (string-append
-			"unrecognised clause keyword, expected one among: "
-			(%keywords-join-for-message (append only-once-keywords multiple-times-keywords)))
-		      key))
-	    (let ((count (length (filter (lambda (once-key) (eq? key once-key)) only-once-keywords))))
-	      (unless (or (zero? count) (= 1 count))
-		(synner (string-append "clause " (symbol->string key) " given multiple times")
-			clause))))))
-    clauses))
-
-(define (%keywords-join-for-message keywords)
-  ;;Given  a  list of  symbols,  join  them a  string  with  a comma  as
-  ;;separator; return  the string.  To  be used to build  error messages
-  ;;involving the list of keywords.
-  ;;
-  (let ((keys (map symbol->string keywords)))
-    (if (null? keys)
-	""
-      (call-with-values
-	  (lambda ()
-	    (open-string-output-port))
-	(lambda (port getter)
-	  (display (car keys) port)
-	  (let loop ((keys (cdr keys)))
-	    (if (null? keys)
-		(getter)
-	      (begin
-		(display ", " port)
-		(display (car keys) port)
-		(loop (cdr keys))))))))))
-
-(define (%clause-ref key clauses)
-  ;;Given a  list of definition clauses (unwrapped  syntax object), look
-  ;;for  the  ones having  KEY  (a symbol)  as  keyword  and return  the
-  ;;selected  clauses in  a single  list; return  the empty  list  if no
-  ;;matching clause is found.
-  ;;
-  ;;Examples:
-  ;;
-  ;;    (%clause-ref 'methods '((<fields> <a> <b>)
-  ;;				(<methods> <c> <d>)))
-  ;;    => ((methods <c> <d>))
-  ;;
-  ;;    (%clause-ref 'method  '((<fields> <a> <b>)
-  ;;				(<method> <c>)
-  ;;				(<method> (<d>) ---)))
-  ;;    => ((method <c>) (method (<d>) ---))
-  ;;
-  (let next-clause ((clauses  clauses)
-		    (selected '()))
-    (if (null? clauses)
-	(reverse selected) ;it is important to keep the order
-      (next-clause (cdr clauses)
-		   (if (eq? key (syntax->datum (caar clauses)))
-		       (cons (car clauses) selected)
-		     selected)))))
+	 (synner "invalid inheritance option" (car options)))))))
 
 
 ;;;; label-specific definition clauses collectors
@@ -281,23 +641,25 @@
   ;;parse  error  occurs; it  must  accept  two  arguments: the  message
   ;;string, the subform.
   ;;
-  (let ((clauses (%clause-ref 'inherit clauses)))
+  (let ((clauses (%clause-ref #'inherit clauses)))
     (if (null? clauses)
 	(values #'<top>-superlabel #t #t #t)
       (syntax-case (car clauses) (inherit)
 
-	((inherit ?superlabel-name)
-	 (identifier? #'?superlabel-name)
+	((?keyword ?superlabel-name)
+	 (and (all-identifiers? #'(?keyword ?superlabel-name))
+	      (free-identifier=? #'?keyword #'inherit))
 	 (values (if (free-identifier=? #'<top> #'?superlabel-name)
 		     #'<top>-superlabel
 		   #'?superlabel-name)
 		 #t #t #t))
 
-	((inherit ?superlabel-name (?inherit-option ...))
-	 (all-identifiers? #'(?superlabel-name ?inherit-option ...))
+	((?keyword ?superlabel-name (?inherit-option ...))
+	 (and (all-identifiers? #'(?keyword ?superlabel-name ?inherit-option ...))
+	      (free-identifier=? #'?keyword #'inherit))
 	 (call-with-values
 	     (lambda ()
-	       (%parse-label-inherit-options #'?inherit-clauses synner))
+	       (%parse-label-inherit-options #'(?inherit-option ...) synner))
 	   (lambda (virtual-fields methods setter-and-getter)
 	     (values (if (free-identifier=? #'<top> #'?superlabel-name)
 			 #'<top>-superlabel
@@ -320,12 +682,13 @@
   ;;parse  error  occurs; it  must  accept  two  arguments: the  message
   ;;string, the subform.
   ;;
-  (let ((clauses (%clause-ref 'predicate clauses)))
+  (let ((clauses (%clause-ref #'predicate clauses)))
     (if (null? clauses)
 	#f
-      (syntax-case (car clauses) (predicate)
-	((predicate ?predicate)
-	 (identifier? #'?predicate)
+      (syntax-case (car clauses) ()
+	((?keyword ?predicate)
+	 (and (all-identifiers? #'(?keyword ?predicate))
+	      (free-identifier=? #'?keyword #'predicate))
 	 #'?predicate)
 	(_
 	 (synner "invalid predicate clause" (car clauses)))
@@ -396,15 +759,15 @@
   ;;parse  error  occurs; it  must  accept  two  arguments: the  message
   ;;string, the subform.
   ;;
-  (let next-clause ((clauses   (%clause-ref 'fields clauses))
+  (let next-clause ((clauses   (%clause-ref #'fields clauses))
 		    (collected '()))
     (if (null? clauses)
 	(reverse collected)
-      (syntax-case (car clauses) (fields)
-	((fields ?field-clause ...)
+      (syntax-case (car clauses) ()
+	((?keyword ?field-clause ...)
+	 (and (identifier? #'?keyword) (free-identifier=? #'?keyword #'fields))
 	 (next-clause (cdr clauses)
-		      (%parse-clause/fields thing-identifier (syntax->list #'(?field-clause ...))
-					    synner collected)))
+		      (%parse-clause/fields thing-identifier (cdar clauses) synner collected)))
 	(_
 	 (synner "invalid fields clause" (car clauses)))
 	))))
@@ -431,15 +794,15 @@
   ;;parse  error  occurs; it  must  accept  two  arguments: the  message
   ;;string, the subform.
   ;;
-  (let next-clause ((clauses   (%clause-ref 'virtual-fields clauses))
+  (let next-clause ((clauses   (%clause-ref #'virtual-fields clauses))
 		    (collected '()))
     (if (null? clauses)
 	(reverse collected)
-      (syntax-case (car clauses) (virtual-fields)
-	((virtual-fields ?field-clause ...)
+      (syntax-case (car clauses) ()
+	((?keyword ?field-clause ...)
+	 (and (identifier? #'?keyword) (free-identifier=? #'?keyword #'virtual-fields))
 	 (next-clause (cdr clauses)
-		      (%parse-clause/virtual-fields thing-identifier (syntax->list #'(?field-clause ...))
-						    synner collected)))
+		      (%parse-clause/virtual-fields thing-identifier (cdar clauses) synner collected)))
 	(_
 	 (synner "invalid virtual-fields clause" (car clauses)))
 	))))
@@ -462,12 +825,13 @@
   ;;parse  error  occurs; it  must  accept  two  arguments: the  message
   ;;string, the subform.
   ;;
-  (let next-clause ((clauses   (%clause-ref 'methods clauses))
+  (let next-clause ((clauses   (%clause-ref #'methods clauses))
 		    (collected '()))
     (if (null? clauses)
 	(reverse collected)
-      (syntax-case (car clauses) (methods)
-	((methods ?method-clause ...)
+      (syntax-case (car clauses) ()
+	((?keyword ?method-clause ...)
+	 (and (identifier? #'?keyword) (free-identifier=? #'?keyword #'methods))
 	 (next-clause (cdr clauses)
 		      (%parse-clause/methods thing-identifier (syntax->list #'(?method-clause ...))
 					     synner collected)))
@@ -498,13 +862,14 @@
   ;;parse  error  occurs; it  must  accept  two  arguments: the  message
   ;;string, the subform.
   ;;
-  (let next-clause ((clauses		(%clause-ref 'method clauses))
+  (let next-clause ((clauses		(%clause-ref #'method clauses))
 		    (methods		'())
 		    (definitions	'()))
     (if (null? clauses)
 	(values (reverse methods) (reverse definitions))
-      (syntax-case (car clauses) (method)
-	((method . ?args)
+      (syntax-case (car clauses) ()
+	((?keyword . ?args)
+	 (and (identifier? #'?keyword) (free-identifier=? #'?keyword #'method))
 	 (call-with-values
 	     (lambda ()
 	       (%parse-clause/method (car clauses) synner  define/with-class))
@@ -536,13 +901,14 @@
   ;;parse  error  occurs; it  must  accept  two  arguments: the  message
   ;;string, the subform.
   ;;
-  (let next-clause ((clauses		(%clause-ref 'method-syntax clauses))
+  (let next-clause ((clauses		(%clause-ref #'method-syntax clauses))
 		    (methods		'())
 		    (definitions	'()))
     (if (null? clauses)
 	(values (reverse methods) (reverse definitions))
-      (syntax-case (car clauses) (method-syntax)
-	((method-syntax . ?args)
+      (syntax-case (car clauses) ()
+	((?keyword . ?args)
+	 (and (identifier? #'?keyword) (free-identifier=? #'?keyword #'method-syntax))
 	 (call-with-values
 	     (lambda ()
 	       (%parse-clause/method-syntax (car clauses) synner))
@@ -564,12 +930,12 @@
   ;;parse  error  occurs; it  must  accept  two  arguments: the  message
   ;;string, the subform.
   ;;
-  (let ((clauses (%clause-ref 'setter clauses)))
+  (let ((clauses (%clause-ref #'setter clauses)))
     (if (null? clauses)
 	#f
-      (syntax-case (car clauses) (setter)
-	((setter ?setter)
-	 (identifier? #'?setter)
+      (syntax-case (car clauses) ()
+	((?keyword ?setter)
+	 (and (identifier? #'?keyword) (free-identifier=? #'?keyword #'setter))
 	 #'?setter)
 	(_
 	 (synner "invalid setter clause" (car clauses)))
@@ -587,12 +953,12 @@
   ;;parse  error  occurs; it  must  accept  two  arguments: the  message
   ;;string, the subform.
   ;;
-  (let ((clauses (%clause-ref 'getter clauses)))
+  (let ((clauses (%clause-ref #'getter clauses)))
     (if (null? clauses)
 	#f
-      (syntax-case (car clauses) (getter)
-	((getter ?getter)
-	 (identifier? #'?getter)
+      (syntax-case (car clauses) ()
+	((?keyword ?getter)
+	 (and (identifier? #'?keyword) (free-identifier=? #'?keyword #'getter))
 	 #'?getter)
 	(_
 	 (synner "invalid getter clause" (car clauses)))
@@ -610,12 +976,13 @@
   ;;parse  error  occurs; it  must  accept  two  arguments: the  message
   ;;string, the subform.
   ;;
-  (let ((clauses (%clause-ref 'bindings clauses)))
+  (let ((clauses (%clause-ref #'bindings clauses)))
     (if (null? clauses)
 	#'<top>-bindings
-      (syntax-case (car clauses) (bindings)
+      (syntax-case (car clauses) ()
 	((bindings ?macro-name)
-	 (identifier? #'?macro-name)
+	 (and (all-identifiers? #'(?keyword ?macro-name))
+	      (free-identifier=? #'?keyword #'bindings))
 	 #'?macro-name)
 	(_
 	 (synner "invalid bindings clause" (car clauses)))
@@ -651,36 +1018,35 @@
 			  (cons field-spec collected-fields)))
   (if (null? field-clauses)
       (reverse collected-fields) ;it is important to keep the order
-    (syntax-case (car field-clauses) (mutable immutable)
+    (syntax-case (car field-clauses) ()
 
-      ((mutable ?field ?accessor ?mutator)
-       (all-identifiers? #'(?field ?accessor ?mutator))
-       (recurse (list (datum->syntax #'?field 'mutable) #'?field #'?accessor #'?mutator)))
+      ((?mutable ?field ?accessor ?mutator)
+       (and (all-identifiers? #'(?mutable ?field ?accessor ?mutator))
+	    (free-identifier=? #'?mutable #'mutable))
+       (recurse #'(?mutable ?field ?accessor ?mutator)))
 
-      ((mutable ?field)
-       (identifier? #'?field)
-       (recurse (list (datum->syntax #'?field 'mutable)
-		      #'?field
-		      (syntax-accessor-name thing-name #'?field)
-		      (syntax-mutator-name  thing-name #'?field))))
+      ((?mutable ?field)
+       (and (identifier? #'?field)
+	    (identifier? #'?mutable)
+	    (free-identifier=? #'?mutable #'mutable))
+       (recurse #`(?mutable ?field
+			    #,(syntax-accessor-name thing-name #'?field)
+			    #,(syntax-mutator-name  thing-name #'?field))))
 
-      ((immutable ?field ?accessor)
-       (all-identifiers? #'(?field ?accessor ?mutator))
-       (recurse (list (datum->syntax #'?field 'immutable)
-		      #'?field
-		      #'?accessor)))
+      ((?immutable ?field ?accessor)
+       (and (all-identifiers? #'(?immutable ?field ?accessor ?mutator))
+	    (free-identifier=? #'?immutable #'immutable))
+       (recurse #'(?immutable ?field ?accessor)))
 
-      ((immutable ?field)
-       (identifier? #'?field)
-       (recurse (list (datum->syntax #'?field 'immutable)
-		      #'?field
-		      (syntax-accessor-name thing-name #'?field))))
+      ((?immutable ?field)
+       (and (identifier? #'?field)
+	    (identifier? #'?immutable)
+	    (free-identifier=? #'?immutable #'immutable))
+       (recurse #`(?immutable ?field #,(syntax-accessor-name thing-name #'?field))))
 
       (?field
        (identifier? #'?field)
-       (recurse (list (datum->syntax #'?field 'immutable)
-		      #'?field
-		      (syntax-accessor-name thing-name #'?field))))
+       (recurse #`(#,(syntax immutable) ?field #,(syntax-accessor-name thing-name #'?field))))
 
       (_
        (synner "invalid fields clause" (car field-clauses)))
@@ -712,37 +1078,35 @@
 				  (cons field-spec collected-fields)))
   (if (null? field-clauses)
       (reverse collected-fields) ;it is important to keep the order
-    (syntax-case (car field-clauses) (mutable immutable)
+    (syntax-case (car field-clauses) ()
 
-      ((mutable ?field ?accessor ?mutator)
-       (all-identifiers? #'(?field ?accessor ?mutator))
-       (recurse (list (datum->syntax #'?field 'mutable)
-		      #'?field #'?accessor #'?mutator)))
+      ((?mutable ?field ?accessor ?mutator)
+       (and (all-identifiers? #'(?mutable ?field ?accessor ?mutator))
+	    (free-identifier=? #'?mutable #'mutable))
+       (recurse #'(?mutable ?field ?accessor ?mutator)))
 
-      ((mutable ?field)
-       (identifier? #'?field)
-       (recurse (list (datum->syntax #'?field 'mutable)
-		      #'?field
-		      (syntax-accessor-name thing-name #'?field)
-		      (syntax-mutator-name  thing-name #'?field))))
+      ((?mutable ?field)
+       (and (identifier? #'?field)
+	    (identifier? #'?mutable)
+	    (free-identifier=? #'?mutable #'mutable))
+       (recurse #`(?mutable ?field
+			    #,(syntax-accessor-name thing-name #'?field)
+			    #,(syntax-mutator-name  thing-name #'?field))))
 
-      ((immutable ?field ?accessor)
-       (all-identifiers? #'(?field ?accessor ?mutator))
-       (recurse (list (datum->syntax #'?field 'immutable)
-		      #'?field
-		      #'?accessor)))
+      ((?immutable ?field ?accessor)
+       (and (all-identifiers? #'(?immutable ?field ?accessor ?mutator))
+	    (free-identifier=? #'?immutable #'immutable))
+       (recurse #'(?immutable ?field ?accessor)))
 
-      ((immutable ?field)
-       (identifier? #'?field)
-       (recurse (list (datum->syntax #'?field 'immutable)
-		      #'?field
-		      (syntax-accessor-name thing-name #'?field))))
+      ((?immutable ?field)
+       (and (identifier? #'?field)
+	    (identifier? #'?immutable)
+	    (free-identifier=? #'?immutable #'immutable))
+       (recurse #`(?immutable ?field #,(syntax-accessor-name thing-name #'?field))))
 
       (?field
        (identifier? #'?field)
-       (recurse (list (datum->syntax #'?field 'immutable)
-		      #'?field
-		      (syntax-accessor-name thing-name #'?field))))
+       (recurse #`(#,(syntax immutable) ?field #,(syntax-accessor-name thing-name #'?field))))
 
       (_
        (synner "invalid virtual-fields clause" (car field-clauses)))
@@ -806,16 +1170,20 @@
   ;;parse  error happens;  it  must accept  two  arguments: the  message
   ;;string, the subform.
   ;;
-  (syntax-case clause (method)
+  (syntax-case clause ()
 
-    ((method (?method . ?args) . ?body)
-     (identifier? #'?method)
+    ((?keyword (?method . ?args) . ?body)
+     (and (identifier? #'?keyword)
+	  (free-identifier=? #'?keyword #'method)
+	  (identifier? #'?method))
      (with-syntax ((FUNCTION-NAME (datum->syntax #'?method (gensym))))
        (values #'(?method FUNCTION-NAME)
 	       #`(#,define/with-class (FUNCTION-NAME . ?args) . ?body))))
 
-    ((method ?method ?expression)
-     (identifier? #'?method)
+    ((?keyword ?method ?expression)
+     (and (identifier? #'?keyword)
+	  (free-identifier=? #'?keyword #'method)
+	  (identifier? #'?method))
      (with-syntax ((FUNCTION-NAME (datum->syntax #'?method (gensym))))
        (values #'(?method FUNCTION-NAME)
 	       #'((define FUNCTION-NAME ?expression)))))
@@ -838,10 +1206,12 @@
   ;;parse  error happens;  it  must accept  two  arguments: the  message
   ;;string, the subform.
   ;;
-  (syntax-case clause (method-syntax)
+  (syntax-case clause ()
 
-    ((method-syntax ?method ?transformer)
-     (identifier? #'?method)
+    ((?keyword ?method ?transformer)
+     (and (identifier? #'?keyword)
+	  (free-identifier=? #'?keyword #'method-syntax)
+	  (identifier? #'?method))
      (with-syntax ((MACRO-NAME (datum->syntax #'?method (gensym))))
        (values #'(?method MACRO-NAME)
 	       #'(define-syntax MACRO-NAME ?transformer))))

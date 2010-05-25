@@ -851,6 +851,11 @@
     let/with-class			let*/with-class
     letrec/with-class			letrec*/with-class
 
+    ;; auxiliary syntaxes
+    inherit predicate setter getter bindings
+    public-protocol superclass-protocol virtual-fields
+    methods method method-syntax
+
     ;; builtin classes
     <top> <builtin> <pair> <list>
     <char> <string> <vector> <bytevector> <hashtable> <record> <condition>

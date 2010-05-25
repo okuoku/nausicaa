@@ -61,14 +61,20 @@
 (compile-library "shared-structures.sls"
 		 "shared-structures.slfasl")
 
-(compile-library "classes/helpers.sls"
-		 "classes/helpers.slfasl")
-
 (compile-library "makers/helpers.sls"
-		 "mekers/helpers.slfasl")
+		 "makers/helpers.slfasl")
 
 (compile-library "makers.sls"
 		 "makers.slfasl")
+
+(compile-library "classes/auxiliary-syntaxes.sls"
+		 "classes/auxiliary-syntaxes.slfasl")
+
+(compile-library "classes/top.sls"
+		 "classes/top.slfasl")
+
+(compile-library "classes/helpers.sls"
+		 "classes/helpers.slfasl")
 
 (compile-library "classes.sls"
 		 "classes.slfasl")
