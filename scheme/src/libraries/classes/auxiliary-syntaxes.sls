@@ -6,7 +6,8 @@
 ;;;
 ;;;Abstract
 ;;;
-;;;
+;;;	Export one binding for  each clause accepted by DEFINE-CLASS and
+;;;	DEFINE-LABEL in the (classes) library.
 ;;;
 ;;;Copyright (c) 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
@@ -28,9 +29,11 @@
 #!r6rs
 (library (classes auxiliary-syntaxes)
   (export
+    ;; bindings from (rnrs records syntactic (6))
     parent sealed opaque parent-rtd nongenerative
     protocol fields mutable immutable
 
+    ;; custom bindings
     inherit predicate setter getter bindings
     public-protocol superclass-protocol virtual-fields
     methods method method-syntax)

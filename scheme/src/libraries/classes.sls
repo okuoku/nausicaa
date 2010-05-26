@@ -459,12 +459,16 @@
 	   ((superclass-protocol)
 	    (%collect-clause/superclass-protocol clauses %synner))
 
+	   ;;False or  the identifier of  the parent *record*  type (not
+	   ;;class type).
+	   ((parent-name)
+	    (%collect-clause/parent clauses %synner))
+
 	   ;;False/false  or  an  expression  evaluating to  the  parent
 	   ;;record type descriptor and  an expression evaluating to the
-	   ;;parent constructor  descriptor.  The  CD can be  false when
-	   ;;the RTD is not false.
-	   ((parent-rtd-expression parent-cd-expression)
-	    (%collect-clause/parent&parent-rtd clauses %synner))
+	   ;;parent constructor descriptor.
+	   ((parent-rtd parent-cd)
+	    (%collect-clause/parent-rtd clauses %synner))
 
 	   ;;Set to  PREDICATE-IDENTIFIER or an  identifier representing
 	   ;;the custom predicate for the class.
@@ -559,30 +563,68 @@
 	  (when id
 	    (%synner "duplicated field names" id)))
 
+	;;Normalise the  inheritance for this  class.  We must  end with
+	;;sound  values bound  to SUPERCLASS-IDENTIFIER,  PARENT-RTD and
+	;;PARENT-CD.  The  parse procedure above  have left us  with the
+	;;following situation:
+	;;
+	;;* If  the INHERIT clause is  present: SUPERCLASS-IDENTIFIER is
+	;;set to  the identifier of  a superclass macro;  PARENT-RTD and
+	;;PARENT-CD set to false.
+	;;
+	;;* If the  PARENT clause is present: PARENT-NAME  is set to the
+	;;identifier of  the parent record  type; SUPERCLASS-IDENTIFIER,
+	;;PARENT and PARENT-CD are set to false.
+	;;
+	;;* If the PARENT-RTD clause  is present: PARENT-RTD is set to a
+	;;syntax object  evaluating to the parent RTD;  PARENT-CD is set
+	;;to  a  syntax  object  evaluating to  the  parent  constructor
+	;;descriptor; SUPERCLASS-IDENTIFIER is set to false.
 	(cond
 
-	 ;;The INHERIT clause was used with "<top>" as superclass.
-	 ((free-identifier=? superclass-identifier #'<top>-superclass)
-	  (set! parent-rtd-expression (datum->syntax class-identifier
-						     '(record-type-descriptor <top>)))
-	  (set! parent-cd-expression  (datum->syntax class-identifier
-						     '(record-constructor-descriptor <top>))))
+	 ;;The INHERIT clause is present with "<top>" as superclass.
+	 ((and superclass-identifier
+	       (free-identifier=? superclass-identifier #'<top>-superclass)
+	       (not parent-name)
+	       (not parent-rtd)
+	       (not parent-cd))
+	  (set! parent-rtd #'(record-type-descriptor <top>))
+	  (set! parent-cd  #'(record-constructor-descriptor <top>)))
 
-	 ;;The INHERIT clause was  used with a superclass different from
-	 ;;"<top>".
-	 (superclass-identifier
-	  (set! parent-rtd-expression #`(#,superclass-identifier class-record-type-descriptor))
-	  (set! parent-cd-expression  #`(#,superclass-identifier superclass-constructor-descriptor)))
+	 ;;The  INHERIT clause  is present  with a  superclass different
+	 ;;from "<top>".
+	 ((and superclass-identifier
+	       (identifier? superclass-identifier)
+	       (not parent-name)
+	       (not parent-rtd)
+	       (not parent-cd))
+	  (set! parent-rtd	#`(#,superclass-identifier class-record-type-descriptor))
+	  (set! parent-cd	#`(#,superclass-identifier superclass-constructor-descriptor)))
 
-	 ;;The PARENT clause was given.
-	 ((and (not superclass-identifier) parent-rtd-expression (not parent-cd-expression))
+	 ;;The PARENT clause is present.
+	 ((and parent-name
+	       (not superclass-identifier)
+	       (not parent-rtd)
+	       (not parent-cd))
 	  (set! superclass-identifier #'<top>-superclass)
-	  (set! parent-cd-expression (datum->syntax class-identifier
-						    '(record-constructor-descriptor <top>))))
+	  (set! parent-rtd	#`(record-type-descriptor        #,parent-name))
+	  (set! parent-cd	#`(record-constructor-descriptor #,parent-name)))
 
-	 ;;The PARENT-RTD clause was given.
-	 ((and (not superclass-identifier) parent-rtd-expression parent-cd-expression)
+	 ;;The PARENT-RTD clause is present.
+	 ((and (not superclass-identifier)
+	       (not parent-name)
+	       parent-rtd
+	       parent-cd)
 	  (set! superclass-identifier #'<top>-superclass))
+
+	 ;;No inheritance clauses are present.
+	 ((and (not superclass-identifier)
+	       (not parent-name)
+	       (not parent-rtd)
+	       (not parent-cd))
+	  (set! superclass-identifier #'<top>-superclass)
+	  (set! parent-rtd #'(record-type-descriptor <top>))
+	  (set! parent-cd  #'(record-constructor-descriptor <top>)))
 
 	 (else
 	  (%synner "invalid selection of superclass" #f)))
@@ -590,8 +632,8 @@
 	(with-syntax
 	    ((CLASS-NAME			class-identifier)
 	     (SUPERCLASS-NAME			superclass-identifier)
-	     (PARENT-RTD			parent-rtd-expression)
-	     (PARENT-CD				parent-cd-expression)
+	     (PARENT-RTD			parent-rtd)
+	     (PARENT-CD				parent-cd)
 	     (UID				uid-symbol)
 	     (SEALED				sealed)
 	     (OPAQUE				opaque)

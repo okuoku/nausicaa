@@ -34,8 +34,73 @@
 (check-set-mode! 'report-failed)
 (display "*** testing classes basics\n")
 
+(debugging #t)
+
+;;; --------------------------------------------------------------------
+
+;; (import (rnrs)
+;;   (parameters)
+;;   (records-lib)
+;;   (classes)
+;;   (rnrs eval))
+
+;; (define check-test-name
+;;   (make-parameter #f))
+;; (define debugging
+;;   (make-parameter #f))
+;; (define (debug-print-condition . args)
+;;   #f)
+
+;; (define check-count		0)
+;; (define check-success-count	0)
+;; (define check-failure-count	0)
+
+;; (define-syntax check
+;;   (syntax-rules (=>)
+;;     ((_ ?expr => ?expected-result)
+;;      (check ?expr (=> equal?) ?expected-result))
+;;     ((_ ?expr (=> ?equal) ?expected-result)
+;;      (let ((result	?expr)
+;; 	   (expected	?expected-result))
+;;        (set! check-count (+ 1 check-count))
+;;        (if (?equal result expected)
+;; 	   (set! check-success-count (+ 1 check-success-count))
+;; 	 (begin
+;; 	   (set! check-failure-count (+ 1 check-failure-count))
+;; 	   (display "test error, expected\n\n")
+;; 	   (write expected)
+;; 	   (newline)
+;; 	   (display "\ngot:\n\n")
+;; 	   (write result)
+;; 	   (newline)
+;; 	   (display "\ntest body:\n\n")
+;; 	   (write '(check ?expr (=> ?equal) ?expected-result))
+;; 	   (newline)))))
+;;     ))
+
+;; (define-syntax check-for-true
+;;   (syntax-rules ()
+;;     ((_ ?form)
+;;      (check (if ?form #t #f) => #t))
+;;     ((_ (quote ?name) ?form)
+;;      (check (quote ?name) (if ?form #t #f) => #t))))
+
+;; (define-syntax check-for-false
+;;   (syntax-rules ()
+;;     ((_ ?form)
+;;      (check (if ?form #t #f) => #f))
+;;     ((_ (quote ?name) ?form)
+;;      (check (quote ?name) (if ?form #t #f) => #f))))
+
+
+;; (define (check-report)
+;;   (display (string-append "*** executed " (number->string check-count)
+;; 			  " tests, successful: " (number->string check-success-count)
+;; 			  ", failed: "(number->string check-failure-count) "\n")))
+
 
-(parametrise ((check-test-name	'definition-simple))
+(parametrise ((check-test-name	'definition-simple)
+	      (debugging	#t))
 
   (let ()
 
@@ -86,15 +151,16 @@
 	      (environment '(nausicaa))))
     => '(<alpha> 123 <alpha>?))
 
-  (check	;unknown clause
-      (guard (E ((syntax-violation? E)
-		 (syntax-violation-form E))
-		(else #f))
-	(eval '(define-class <alpha>
-		 (woppa 123))
-	      (environment '(nausicaa))))
-    => '(define-class <alpha>
-	  (woppa 123)))
+  (check 	;unknown clause
+    (guard (E ((syntax-violation? E)
+	       (syntax-violation-subform E))
+	      (else
+	       (debug-print-condition "unknown clause:" E)
+	       #f))
+      (eval '(define-class <alpha>
+	       (woppa 123))
+	    (environment '(nausicaa))))
+    => '(woppa 123))
 
   #t)
 
@@ -135,7 +201,8 @@
   #t)
 
 
-(parametrise ((check-test-name	'definition-inherit-clause))
+(parametrise ((check-test-name	'definition-inherit-clause)
+	      (debugging	#t))
 
   (let ()	;inherit with INHERIT
 
@@ -257,22 +324,27 @@
 	      (environment '(nausicaa))))
     => '(inherit 123))
 
-  (check	;multiple INHERIT is bad
+  (check 	;multiple INHERIT is bad
       (guard (E ((syntax-violation? E)
-;;;(write (condition-message E))(newline)
+;;;(debug-print-condition "multiple inherit is bad:" E)
 		 (syntax-violation-subform E))
-		(else #f))
-	(eval '(define-class <alpha>
-		 (inherit ciao)
-		 (inherit hello))
+		(else
+		 (debug-print-condition "multiple inherit is bad:" E)
+		 #f))
+	(eval '(let ()
+                 (define-class <alpha>
+		   (inherit ciao)
+		   (inherit hello))
+                 #f)
 	      (environment '(nausicaa))))
-    => '(inherit hello))
-
+    => '((inherit ciao)
+	 (inherit hello)))
 
   #t)
 
 
-(parametrise ((check-test-name	'definition-parent-clause))
+(parametrise ((check-test-name	'definition-parent-clause)
+	      (debugging	#t))
 
   (let ()	;inherit with PARENT
 
@@ -307,21 +379,23 @@
 
   (check	;multiple PARENT is bad
       (guard (E ((syntax-violation? E)
-;;;(write (condition-message E))(newline)
+;;;(debug-print-condition "multiple PARENT is bad:" E)
 		 (syntax-violation-subform E))
 		(else #f))
 	(eval '(define-class <alpha>
 		 (parent ciao)
 		 (parent hello))
 	      (environment '(nausicaa))))
-    => '(parent hello))
+    => '((parent ciao)
+	 (parent hello)))
 
 
 
   #t)
 
 
-(parametrise ((check-test-name	'definition-parent-rtd-clause))
+(parametrise ((check-test-name	'definition-parent-rtd-clause)
+	      (debugging	#t))
 
   (let ()	;inherit with PARENT-RTD
 
@@ -345,16 +419,17 @@
 ;;; --------------------------------------------------------------------
 ;;; errors
 
-  (check	;multiple PARENT-RTD is bad
+  (check 	;multiple PARENT-RTD is bad
       (guard (E ((syntax-violation? E)
-;;;(write (condition-message E))(newline)
+;;;(debug-print-condition "multiple PARENT-RTD is bad:" E)
 		 (syntax-violation-subform E))
 		(else #f))
 	(eval '(define-class <alpha>
                  (parent-rtd ciao ciao)
 		 (parent-rtd hello hello))
 	      (environment '(nausicaa))))
-    => '(parent-rtd hello hello))
+    => '((parent-rtd ciao ciao)
+	 (parent-rtd hello hello)))
 
 
   #t)
@@ -367,14 +442,15 @@
 
   (check	;multiple PROTOCOL is bad
       (guard (E ((syntax-violation? E)
-;;;(write (condition-message E))(newline)
+;;;(debug-print-condition "multiple PROTOCOL is bad:" E)
 		 (syntax-violation-subform E))
 		(else #f))
 	(eval '(define-class <alpha>
                  (protocol ciao)
 		 (protocol hello))
 	      (environment '(nausicaa))))
-    => '(protocol hello))
+    => '((protocol ciao)
+	 (protocol hello)))
 
   #t)
 
@@ -412,15 +488,15 @@
 
   (check	;multiple PUBLIC-ROTOCOL is bad
       (guard (E ((syntax-violation? E)
-;;;(write (condition-message E))(newline)
+;;;(debug-print-condition "multiple PUBLIC-PROTOCOL is bad:" E)
 		 (syntax-violation-subform E))
 		(else #f))
 	(eval '(define-class <alpha>
                  (public-protocol ciao)
 		 (public-protocol hello))
 	      (environment '(nausicaa))))
-    => '(public-protocol hello))
-
+    => '((public-protocol ciao)
+	 (public-protocol hello)))
 
   #t)
 
@@ -459,14 +535,15 @@
 
   (check	;multiple SUPERCLASS-ROTOCOL is bad
       (guard (E ((syntax-violation? E)
-;;;(write (condition-message E))(newline)
+;;;(debug-print-condition "multiple SUPERCLASS-PROTOCOL is bad:" E)
 		 (syntax-violation-subform E))
 		(else #f))
 	(eval '(define-class <alpha>
                  (superclass-protocol ciao)
 		 (superclass-protocol hello))
 	      (environment '(nausicaa))))
-    => '(superclass-protocol hello))
+    => '((superclass-protocol ciao)
+	 (superclass-protocol hello)))
 
   #t)
 
@@ -522,14 +599,14 @@
 
   (check	;multiple SEALED is bad
       (guard (E ((syntax-violation? E)
-;;;(write (condition-message E))(newline)
+;;;(debug-print-condition "multiple SEALED is bad:" E)
 		 (syntax-violation-subform E))
 		(else #f))
 	(eval '(define-class <alpha>
                  (sealed #t)
 		 (sealed #f))
 	      (environment '(nausicaa))))
-    => '(sealed #f))
+    => '((sealed #t) (sealed #f)))
 
 
   #t)
@@ -552,14 +629,15 @@
 
   (check	;multiple OPAQUE is bad
       (guard (E ((syntax-violation? E)
-;;;(write (condition-message E))(newline)
+;;;(debug-print-condition "multiple OPAQUE is bad:" E)
 		 (syntax-violation-subform E))
 		(else #f))
 	(eval '(define-class <alpha>
                  (opaque #t)
 		 (opaque #f))
 	      (environment '(nausicaa))))
-    => '(opaque #f))
+    => '((opaque #t)
+	 (opaque #f)))
 
   #t)
 
@@ -581,15 +659,15 @@
 
   (check	;multiple PREDICATE is bad
       (guard (E ((syntax-violation? E)
-;;;(write (condition-message E))(newline)
+;;;(debug-print-condition "multiple PREDICATE is bad:" E)
 		 (syntax-violation-subform E))
 		(else #f))
 	(eval '(define-class <alpha>
 		 (predicate ciao)
 		 (predicate hello))
 	      (environment '(nausicaa))))
-    => '(predicate hello))
-
+    => '((predicate ciao)
+	 (predicate hello)))
 
   #t)
 
@@ -611,25 +689,27 @@
 
   (check	;multiple non-empty NONGENERATIVE is bad
       (guard (E ((syntax-violation? E)
-;;;(write (condition-message E))(newline)
+;;;(debug-print-condition "multiple NONGENERATIVE is bad:" E)
 		 (syntax-violation-subform E))
 		(else #f))
 	(eval '(define-class <alpha>
                  (nongenerative ciao)
 		 (nongenerative hello))
 	      (environment '(nausicaa))))
-    => '(nongenerative hello))
+    => '((nongenerative ciao)
+	 (nongenerative hello)))
 
   (check	;multiple empty NONGENERATIVE is bad
       (guard (E ((syntax-violation? E)
-;;;(write (condition-message E))(newline)
+;;;(debug-print-condition "multiple NONGENERATIVE is bad:" E)
 		 (syntax-violation-subform E))
 		(else #f))
 	(eval '(define-class <alpha>
                  (nongenerative)
 		 (nongenerative))
 	      (environment '(nausicaa))))
-    => '(nongenerative))
+    => '((nongenerative)
+	 (nongenerative)))
 
   #t)
 
@@ -662,14 +742,15 @@
 
   (check	;multiple BINDINGS is bad
       (guard (E ((syntax-violation? E)
-;;;(write (condition-message E))(newline)
+;;;(debug-print-condition "multiple BINDINGS is bad:" E)
 		 (syntax-violation-subform E))
 		(else #f))
 	(eval '(define-class <alpha>
                  (bindings ciao)
 		 (bindings hello))
 	      (environment '(nausicaa))))
-    => '(bindings hello))
+    => '((bindings ciao)
+	 (bindings hello)))
 
   #t)
 
