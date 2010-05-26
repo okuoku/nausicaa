@@ -73,8 +73,9 @@
     <real> <real-valued> <complex> <number>)
   (import (rnrs)
     (rnrs mutable-strings)
-    (for (gensym) expand)
-    (for (classes helpers) expand)
+    (for (syntax-utilities)	expand)
+    (for (gensym)		expand)
+    (for (classes helpers)	expand)
     (classes auxiliary-syntaxes)
     (classes top))
 
@@ -850,12 +851,12 @@
 
       ((_ (?name ?constructor ?predicate) ?clause ...)
        (all-identifiers? #'(?name ?constructor ?predicate))
-       (doit stx #'?name #'?constructor #'?predicate (syntax->list #'(?clause ...))))
+       (doit stx #'?name #'?constructor #'?predicate (unwrap-syntax-object #'(?clause ...))))
 
       ((_ ?name ?clause ...)
        (identifier? #'?name)
        (doit stx #'?name (syntax-prefix "make-" #'?name) (syntax-suffix #'?name "?")
-	     (syntax->list #'(?clause ...))))
+	     (unwrap-syntax-object #'(?clause ...))))
 
       ((_ ?name-spec . ?clauses)
        (syntax-violation 'define-class
@@ -3850,12 +3851,12 @@
       ((_ (?name ?predicate) ?clause ...)
        (all-identifiers? #'(?name ?predicate))
        (doit stx #'?name #'?predicate
-	     (syntax->list #'(?clause ...))))
+	     (unwrap-syntax-object #'(?clause ...))))
 
       ((_ ?name ?clause ...)
        (identifier? (syntax ?name))
        (doit stx #'?name (syntax-suffix #'?name "?")
-	     (syntax->list #'(?clause ...))))
+	     (unwrap-syntax-object #'(?clause ...))))
 
       ((_ ?name-spec . ?clauses)
        (syntax-violation 'define-label

@@ -58,6 +58,12 @@ Egner.  Modified  by Derick Eddington for R6RS  Scheme.  Integrated into
 Nausicaa by Marco Maggi.
 
 
+(classes ---)
+------------
+
+Written by Marco Maggi.
+
+
 (cleanup-handlers)
 ------------------
 
@@ -347,12 +353,6 @@ Scientific Library  (GSL), by James Theiler and  Brian Gough.  Converted
 by Marco Maggi.
 
 
-(classes)
----------
-
-Written by Marco Maggi.
-
-
 (scmobj)
 --------
 
@@ -410,6 +410,13 @@ by Philip L. Bewig of Saint Louis, Missouri, USA.
 Derived from the reference implementation of SRFI 13 "String Libraries",
 by Olin  Shivers.  Port to  R6RS and contributions by  Derick Eddington.
 Reorganisation and Nausicaa integration by Marco Maggi.
+
+
+(syntax-utilities)
+------------------
+
+Written by Marco Maggi.  Aaron Hsu contributed the SYNTAX->LIST function
+through a  post on comp.lang.scheme.
 
 
 (unimplemented)

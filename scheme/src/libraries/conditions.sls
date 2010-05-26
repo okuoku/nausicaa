@@ -44,7 +44,8 @@
     &unimplemented make-unimplemented-condition unimplemented-condition?
     raise-unimplemented-error)
   (import (rnrs)
-    (unimplemented))
+    (unimplemented)
+    (syntax-utilities))
 
 
 (define-syntax define-condition
@@ -58,6 +59,9 @@
 
 (define-syntax %define-condition/collect-clauses
   (lambda (stx)
+    (define (synner message subform/stx)
+      (syntax-violation 'define-condition message (syntax->datum stx) (syntax->datum subform/stx)))
+
     (syntax-case stx (parent fields)
 
       ;; no more clauses
@@ -66,10 +70,7 @@
 
       ;; error if PARENT given twice
       ((_ ?input-form ?name (?par) (?fie ...) (parent ?parent) ?clause ...)
-       (syntax-violation 'define-condition
-	 "PARENT clause given twice in condition type definition"
-	 (syntax->datum #'?input-form)
-	 (syntax->datum #'(parent ?parent))))
+       (synner "PARENT clause given twice in condition type definition" #'(parent ?parent)))
 
       ;; collect PARENT clause
       ((_ ?input-form ?name () (?fie ...) (parent ?parent) ?clause ...)
@@ -77,36 +78,16 @@
 
       ;; error if FIELDS given twice
       ((_ ?input-form ?name (?par ...) (?fie0 ?fie ...) (fields ?field ...) ?clause ...)
-       (syntax-violation 'define-condition
-	 "FIELDS clause given twice in condition type definition"
-	 (syntax->datum #'?input-form)
-	 (syntax->datum #'(fields ?field ...))))
+       (synner "FIELDS clause given twice in condition type definition" #'(fields ?field ...)))
 
-      ;; collect fields clause
+      ;; error if field names are not identifiers
       ((_ ?input-form ?name (?par ...) () (fields ?field ...) ?clause ...)
-       #'(%define-condition/collect-fields ?input-form ?name (?par ...) () (?field ...) ?clause ...))
-      )))
+       (not (all-identifiers? #'(?field ...)))
+       (synner "condition type field specification must be an identifier" #'(fields ?field ...)))
 
-(define-syntax %define-condition/collect-fields
-  ;;Parse the FIELDS clause, collecting field identifiers.  Then go back
-  ;;to %DEFINE-CONDITION/COLLECT-FIELDS.
-  ;;
-  (lambda (stx)
-    (syntax-case stx ()
-
-      ;; no more fields
-      ((_ ?input-form ?name (?par ...) (?fie ...) () ?clause ...)
-       #'(%define-condition/collect-clauses ?input-form ?name (?par ...) (?fie ...) ?clause ...))
-
-      ;; collect a field
-      ((_ ?input-form ?name (?par ...) (?fie ...) (?field0 ?field ...) ?clause ...)
-       (if (identifier? #'?field0)
-	   #'(%define-condition/collect-fields  ?input-form ?name (?par ...)
-						(?fie ... ?field0) (?field ...) ?clause ...)
-	 (syntax-violation 'define-condition
-	   "condition type field specification must be an identifier"
-	   (syntax->datum #'?input-form)
-	   (syntax->datum #'?field0))))
+      ;; collect FIELDS clause
+      ((_ ?input-form ?name (?par ...) () (fields ?field ...) ?clause ...)
+       #'(%define-condition/collect-clauses ?input-form ?name (?par ...) (?field ...) ?clause ...))
       )))
 
 (define-syntax %define-condition/fix-parent

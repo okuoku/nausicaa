@@ -27,11 +27,25 @@
 
 (library (syntax-utilities)
   (export
-    unwrap-syntax-object)
+    unwrap-syntax-object
+    all-identifiers?
+    duplicated-identifiers?)
   (import (rnrs))
 
 
 (define (unwrap-syntax-object stx)
+  ;;Given a syntax object STX  decompose it and return the corresponding
+  ;;S-expression holding datums and identifiers.  Take care of returning
+  ;;a proper  list when the  input is a  syntax object holding  a proper
+  ;;list.
+  ;;
+  ;;This functions  also provides  a workaround for  bugs in  Ikarus and
+  ;;Mosh,  which expand  syntax  objects holding  a  list into  IMproper
+  ;;lists.
+  ;;
+  ;;Aaron Hsu  contributed the SYNTAX->LIST  function through a  post on
+  ;;comp.lang.scheme: it was used as starting point for this function.
+  ;;
   (syntax-case stx ()
     (()
      '())
@@ -45,6 +59,25 @@
      (syntax ?atom))
     (?atom
      (syntax->datum (syntax ?atom)))))
+
+(define (all-identifiers? stx)
+  (for-all identifier? (unwrap-syntax-object stx)))
+
+
+(define (duplicated-identifiers? ell/stx)
+  ;;Recursive  function.  Search  the  list of  identifiers ELL/STX  for
+  ;;duplicated  identifiers; at  the first  duplicate found,  return it;
+  ;;return false if no duplications are found.
+  ;;
+  (if (null? ell/stx)
+      #f
+    (let loop ((x  (car ell/stx))
+	       (ls (cdr ell/stx)))
+      (if (null? ls)
+	  (duplicated-identifiers? (cdr ell/stx))
+	(if (bound-identifier=? x (car ls))
+	    x
+	  (loop x (cdr ls)))))))
 
 
 ;;;; done

@@ -6,8 +6,7 @@
 ;;;
 ;;;Abstract
 ;;;
-;;;	Aaron Hsu  contributed the SYNTAX->LIST function  through a post
-;;;	on comp.lang.scheme.
+;;;
 ;;;
 ;;;Copyright (c) 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
@@ -29,7 +28,7 @@
 (library (classes helpers)
   (export
     %variable-name->Setter-name		%variable-name->Getter-name
-    syntax->list
+    unwrap-syntax-object
     syntax-prefix			syntax-suffix
     syntax-accessor-name		syntax-mutator-name
     syntax-method-name
@@ -66,6 +65,7 @@
     )
   (import (rnrs)
     (gensym)
+    (syntax-utilities)
     (for (classes top) (meta -1))
     (for (classes auxiliary-syntaxes) (meta -1)))
 
@@ -107,19 +107,6 @@
 				 (symbol->string (syntax->datum field-name/stx))))))
 
 
-(define (syntax->list stx)
-  ;;Given a syntax object STX holding  a list, decompose it and return a
-  ;;list of syntax  objects.  Take care of returning  a proper list when
-  ;;the input is a syntax object holding a proper list.
-  ;;
-  ;;This functions  provides a workaround  for bugs in Ikarus  and Mosh,
-  ;;which expand syntax objects holding a list into IMproper lists.
-  ;;
-  (syntax-case stx ()
-    (()			'())
-    ((?car . ?cdr)	(cons (syntax->list #'?car) (syntax->list #'?cdr)))
-    (?atom		#'?atom)))
-
 (define (syntax-prefix prefix-string symbol/stx)
   (datum->syntax symbol/stx
 		 (string->symbol (string-append prefix-string
@@ -131,24 +118,6 @@
 						suffix-string))))
 
 
-(define (all-identifiers? ell/stx)
-  (for-all identifier? (syntax->list ell/stx)))
-
-(define (duplicated-identifiers? ell/stx)
-  ;;Search the list of  identifier syntax objects ELL/STX for duplicated
-  ;;identifiers; return  false of a  syntax object holding  a duplicated
-  ;;identifier.
-  ;;
-  (if (null? ell/stx)
-      #f
-    (let loop ((x  (car ell/stx))
-	       (ls (cdr ell/stx)))
-      (if (null? ls)
-	  (duplicated-identifiers? (cdr ell/stx))
-	(if (bound-identifier=? x (car ls))
-	    x
-	  (loop x (cdr ls)))))))
-
 (define-syntax keyword=?
   (syntax-rules ()
     ((_ ?stx ?keyword)
@@ -853,7 +822,8 @@
 	((?keyword ?method-clause ...)
 	 (keyword=? ?keyword methods)
 	 (next-clause (cdr clauses)
-		      (%parse-clause/methods thing-identifier (syntax->list #'(?method-clause ...))
+		      (%parse-clause/methods thing-identifier
+					     (unwrap-syntax-object #'(?method-clause ...))
 					     synner collected)))
 	(_
 	 (synner "invalid methods clause" (car clauses)))
