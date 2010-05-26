@@ -855,6 +855,11 @@
     let/with-class			let*/with-class
     letrec/with-class			letrec*/with-class
 
+    ;; auxiliary  syntaxes which should be from  (rnrs records syntactic
+    ;; (6)) but are not under Larceny
+    parent sealed opaque parent-rtd nongenerative
+    protocol fields mutable immutable
+
     ;; auxiliary syntaxes
     inherit predicate setter getter bindings
     public-protocol superclass-protocol virtual-fields

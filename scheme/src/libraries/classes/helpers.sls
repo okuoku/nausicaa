@@ -66,8 +66,8 @@
     )
   (import (rnrs)
     (gensym)
-    (classes top)
-    (classes auxiliary-syntaxes))
+    (for (classes top) (meta -1))
+    (for (classes auxiliary-syntaxes) (meta -1)))
 
 
 (define (%variable-name->Setter-name variable-name/stx)
