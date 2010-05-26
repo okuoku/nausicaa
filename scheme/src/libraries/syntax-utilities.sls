@@ -27,43 +27,70 @@
 
 (library (syntax-utilities)
   (export
-    unwrap-syntax-object
-    all-identifiers?
-    duplicated-identifiers?)
+    unwrap-syntax-object		unwrap-options
+    quoted-syntax-object?
+    all-identifiers?			duplicated-identifiers?)
   (import (rnrs))
 
 
-(define (unwrap-syntax-object stx)
-  ;;Given a syntax object STX  decompose it and return the corresponding
-  ;;S-expression holding datums and identifiers.  Take care of returning
-  ;;a proper  list when the  input is a  syntax object holding  a proper
-  ;;list.
-  ;;
-  ;;This functions  also provides  a workaround for  bugs in  Ikarus and
-  ;;Mosh,  which expand  syntax  objects holding  a  list into  IMproper
-  ;;lists.
-  ;;
-  ;;Aaron Hsu  contributed the SYNTAX->LIST  function through a  post on
-  ;;comp.lang.scheme: it was used as starting point for this function.
-  ;;
+(define-enumeration enum-unwrap-options
+  (keep-general-quoted)
+  unwrap-options)
+
+(define unwrap-syntax-object
+  (case-lambda
+   ((stx)
+    (unwrap-syntax-object stx (unwrap-options)))
+   ((stx options)
+    ;;Given   a  syntax  object   STX  decompose   it  and   return  the
+    ;;corresponding S-expression  holding datums and  identifiers.  Take
+    ;;care of returning a proper list  when the input is a syntax object
+    ;;holding a proper list.
+    ;;
+    ;;This functions also  provides a workaround for bugs  in Ikarus and
+    ;;Mosh,  which expand syntax  objects holding  a list  into IMproper
+    ;;lists.
+    ;;
+    ;;Aaron Hsu contributed the  SYNTAX->LIST function through a post on
+    ;;comp.lang.scheme: it was used as starting point for this function.
+    ;;
+    (syntax-case stx ()
+      (()
+       '())
+      ((?car . ?cdr)
+       (and (enum-set-member? 'keep-general-quoted options)
+	    (identifier? #'?car)
+	    (or (free-identifier=? #'?car #'quote)
+		(free-identifier=? #'?car #'quasiquote)
+		(free-identifier=? #'?car #'syntax)
+		(free-identifier=? #'?car #'quasisyntax)))
+       (syntax (?car . ?cdr)))
+      ((?car . ?cdr)
+       (cons (unwrap-syntax-object (syntax ?car))
+	     (unwrap-syntax-object (syntax ?cdr))))
+      (#(?item ...)
+       (list->vector (unwrap-syntax-object (syntax (?item ...)))))
+      (?atom
+       (identifier? (syntax ?atom))
+       (syntax ?atom))
+      (?atom
+       (syntax->datum (syntax ?atom)))))))
+
+
+(define (quoted-syntax-object? stx)
   (syntax-case stx ()
-    (()
-     '())
     ((?car . ?cdr)
-     (cons (unwrap-syntax-object (syntax ?car))
-	   (unwrap-syntax-object (syntax ?cdr))))
-    (#(?item ...)
-     (list->vector (unwrap-syntax-object (syntax (?item ...)))))
-    (?atom
-     (identifier? (syntax ?atom))
-     (syntax ?atom))
-    (?atom
-     (syntax->datum (syntax ?atom)))))
+     (and (identifier? #'?car)
+	  (or (free-identifier=? #'?car #'quote)
+	      (free-identifier=? #'?car #'quasiquote)
+	      (free-identifier=? #'?car #'syntax)
+	      (free-identifier=? #'?car #'quasisyntax)))
+     #t)
+    (_ #f)))
 
 (define (all-identifiers? stx)
   (for-all identifier? (unwrap-syntax-object stx)))
 
-
 (define (duplicated-identifiers? ell/stx)
   ;;Recursive  function.  Search  the  list of  identifiers ELL/STX  for
   ;;duplicated  identifiers; at  the first  duplicate found,  return it;
