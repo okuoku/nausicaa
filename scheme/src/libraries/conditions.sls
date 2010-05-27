@@ -45,7 +45,7 @@
     raise-unimplemented-error)
   (import (rnrs)
     (unimplemented)
-    (syntax-utilities))
+    (for (syntax-utilities) expand))
 
 
 (define-syntax define-condition
