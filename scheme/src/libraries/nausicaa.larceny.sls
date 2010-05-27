@@ -830,6 +830,7 @@
     define-class			define-virtual-class
     define-label			is-a?
     make				make-from-fields
+    make*
 
     ;; inspection macros
     class-record-type-descriptor
@@ -861,8 +862,8 @@
     protocol fields mutable immutable
 
     ;; auxiliary syntaxes
-    inherit predicate setter getter bindings
-    public-protocol superclass-protocol virtual-fields
+    inherit predicate maker setter getter bindings
+    public-protocol maker-protocol superclass-protocol virtual-fields
     methods method method-syntax
 
     ;; builtin classes

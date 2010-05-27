@@ -959,6 +959,7 @@ Defining new class types
 * classes define class::        Defining class types.
 * classes define inherit::      Defining hierarchies of classes.
 * classes define protocol::     Defining constructor protocols.
+* classes define maker::        Defining class makers.
 * classes define predicate::    Defining class predicates.
 * classes define virtual::      Defining classes having virtual
                                 fields.
@@ -19968,16 +19969,16 @@ variable arguments, plus optional keyword arguments:
 The following bindings are exported by the @library{makers} library.
 
 
-@deffn define-maker @ameta{name spec} @ameta{maker sexp} @meta{keywords and defaults}
+@deffn Syntax define-maker @ameta{name spec} @ameta{maker sexp} @meta{keywords and defaults}
 Define a new maker macro.  @meta{name spec} has one of the forms:
 
 @example
-@cmeta{name symbol}
-(@cmeta{name symbol} @cmeta{positional arg} @cmeta{positional arg} ...)
+@cmeta{name identifier}
+(@cmeta{name identifier} @cmeta{positional arg} ...)
 @end example
 
 @noindent
-where @meta{name symbol} is the name of the defined macro and each
+where @meta{name identifier} is the name of the defined macro and each
 @meta{positional arg} is an identifier, name of a mandatory, positional
 argument for the macro.
 
@@ -19989,14 +19990,13 @@ argument for the macro.
 @end example
 
 @noindent
-where each @meta{maker expr} is an expression which is evaluated in the
-lexical context of the macro use.
+where each @meta{maker expr} is an expression evaluated in the lexical
+context of the macro use.
 
 @meta{keywords and defaults} has the form:
 
 @example
-((@cmetao{keyword}  @cmetao{default})
- (@cmeta{keyword}   @cmeta{default})
+((@cmeta{keyword}   @cmeta{default})
  ...)
 @end example
 
@@ -20005,7 +20005,7 @@ where each @meta{keyword} is an identifier selecting the keyword's
 symbol and @meta{default} is an expression representing the default
 value for the optional argument; the expressions are evaluated in the
 lexical context of the macro use.  Notice that the @meta{keyword}
-identifier are matched against the values in the macro use by comparing
+identifiers are matched against the values in the macro use by comparing
 the symbols with @func{eq?}, so they are @strong{not} handled as
 identifiers (bound or free).
 
@@ -20084,6 +20084,7 @@ it is @strong{not} associated to a record type as defined by
 * classes define class::        Defining class types.
 * classes define inherit::      Defining hierarchies of classes.
 * classes define protocol::     Defining constructor protocols.
+* classes define maker::        Defining class makers.
 * classes define predicate::    Defining class predicates.
 * classes define virtual::      Defining classes having virtual
                                 fields.
@@ -20128,10 +20129,11 @@ unique identifier.
 
 @deffn Syntax define-virtual-class @ameta{name spec} @ameta{class clause}*
 Like @func{define-class}, but inserts a @func{public-protocol} clause
-whose constructor raises an assertion violation if called.  Virtual
-classes are not meant to be instantiated, their purpose is only to
-provide virtual fields and methods to instances of other types; for
-example: all the classes for builtin types are virtual.
+and a @func{maker-protocol} clause whose constructors raise an assertion
+violation if called.  Virtual classes are not meant to be instantiated,
+their purpose is only to provide virtual fields and methods to instances
+of other types; for example: all the classes for builtin types are
+virtual.
 
 Virtual classes can be used in the hierarchy of concrete classes:
 virtual classes can have a proper superclass constructor protocol.
@@ -20242,6 +20244,12 @@ protocol function; the @dfn{from--fields constructor} is automatically
 generated to be used by the @func{make-from-fields} macro and it builds
 instances from raw field values.
 
+Additionally a fourth constructor can be optionally defined: the maker
+constructor to be used by the maker specified with the @code{maker}
+clause and the high--level macro @func{make*}.  @ref{classes define
+maker} for details on the maker constructor.
+
+
 The @func{define-virtual-class} macro defines only the superclass and
 the from--fields constructors.
 
@@ -20283,6 +20291,61 @@ default one.
 @deffn {Auxiliary Syntax} superclass-protocol @ameta{expression}
 Select the superclass constructor's protocol function, overriding the
 default one.
+@end deffn
+
+@c page
+@node classes define maker
+@subsection Defining class makers
+
+
+@deffn {Auxiliary Syntax} maker (@ameta{positional-arg} ...) (@ameta{optional-keyword} @ameta{optional-default}) ...
+Define the specification of the maker to be used by @func{make*};
+Defining a maker for a class means defining a specialised macro with
+@func{define-maker}.  The @func{maker} clause in the following
+definition:
+
+@example
+(define-class <alpha>
+  (fields a b c d e)
+  (maker (a b c)
+         (d 1)
+         (e 2)))
+@end example
+
+@noindent
+can be thought as equivalent to:
+
+@example
+(define-maker (the-maker a b c)
+  (make <alpha>)
+  ((d 1)
+   (e 2)))
+@end example
+
+@noindent
+and can be used as:
+
+@example
+(make* <alpha> #\a #\b #\c
+  (d 4))
+@end example
+
+@noindent
+where the @func{make*} macro will expand to an use of the
+@func{the-maker} macro.  See the documentation of @func{define-maker}
+for details on the arguments of @func{maker}.  @ref{makers api, Defining
+makers}
+
+The maker will use the maker--specific constructor if one was specified
+with the @code{maker-protocol} clause, else it will default to the
+public constructor.
+@end deffn
+
+
+@deffn {Auxiliary Syntax} maker-protocol @ameta{expression}
+Select the maker constructor's protocol function.  When this clause is
+not used: the maker syntax expands to an application of the public
+constructor function.
 @end deffn
 
 @c page
@@ -20792,6 +20855,18 @@ Example:
   (define a
     (make <alpha> 1.2)))
 @end example
+@end deffn
+
+
+@deffn Syntax make* @ameta{class name} @ameta{expression} ...
+Expand to the application of the maker constructor of @meta{class name}
+to the results of evaluating the @meta{expression} arguments, which can
+be any expression and are evaluated only once.
+
+This macro allows both mandatory, positional arguments and optional
+arguments as specified with the @code{maker} clause of
+@func{define-class}.  The maker will use the maker--specific constructor
+if one was specified, else it will default to the public constructor.
 @end deffn
 
 

@@ -49,24 +49,18 @@
 	 (syntax->datum #'?name)))
 
       ((?k ?name ?maker-sexp ?keywords-and-defaults)
-       (null? (syntax->list #'?keywords-and-defaults))
-       (syntax-violation 'define-maker
-	 "invalid empty list of keywords in maker definition"
-	 (syntax->datum #'(?k ?name ?maker-sexp ?keywords-and-defaults))))
-
-      ((?k ?name ?maker-sexp ?keywords-and-defaults)
        (not (valid-keywords-and-defaults? (syntax->list #'?keywords-and-defaults)))
        (syntax-violation 'define-maker
 	 "invalid format for keywords and defaults in maker definition"
 	 (syntax->datum #'(?k ?name ?maker-sexp ?keywords-and-defaults))
 	 (syntax->datum #'?keywords-and-defaults)))
 
-      ((_ (?name ?var0 ?var ...) (?maker ?arg ...) ?keywords-and-defaults)
+      ((_ (?name ?var ...) (?maker ?arg ...) ?keywords-and-defaults)
        #'(define-syntax ?name
 	   (lambda (use)
 	     (syntax-case use ()
-	       ((_ ?var0 ?var ... . ?args)
-		#`(?maker ?arg ... ?var0 ?var ...
+	       ((_ ?var ... . ?args)
+		#`(?maker ?arg ... ?var ...
 			  #,@(parse-input-form-stx (quote ?name) use #'?args
 						   (quote ?keywords-and-defaults))))))))
 
@@ -78,12 +72,12 @@
 		#`(?maker ?arg ... #,@(parse-input-form-stx (quote ?name) use #'?args
 							    (quote ?keywords-and-defaults))))))))
 
-      ((_ (?name ?var0 ?var ...) ?maker ?keywords-and-defaults)
+      ((_ (?name ?var ...) ?maker ?keywords-and-defaults)
        #'(define-syntax ?name
 	   (lambda (use)
 	     (syntax-case use ()
-	       ((?k ?var0 ?var ... . ?args)
-		#`(?maker ?var0 ?var ...
+	       ((?k ?var ... . ?args)
+		#`(?maker ?var ...
 			  #,@(parse-input-form-stx (quote ?name) use #'?args
 						   (quote ?keywords-and-defaults))))))))
 

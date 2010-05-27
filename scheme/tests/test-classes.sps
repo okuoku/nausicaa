@@ -1879,6 +1879,141 @@
   #t)
 
 
+(parametrise ((check-test-name	'definition-maker)
+	      (debugging	#t))
+
+  (let ()	;only positional arguments
+
+    (define-class <alpha>
+      (fields a b)
+      (maker (a b)))
+
+    (check
+	(let ((o (make* <alpha> 1 2)))
+	  (with-class ((o <alpha>))
+	    (list o.a o.b)))
+      => '(1 2))
+
+    #f)
+
+  (let ()	;only optional arguments
+
+    (define-class <alpha>
+      (fields a b)
+      (maker () (a 1) (b 2)))
+
+    (check
+	(let ((o (make* <alpha>)))
+	  (with-class ((o <alpha>))
+	    (list o.a o.b)))
+      => '(1 2))
+
+    (check
+	(let ((o (make* <alpha> (a 10))))
+	  (with-class ((o <alpha>))
+	    (list o.a o.b)))
+      => '(10 2))
+
+    (check
+	(let ((o (make* <alpha> (b 20))))
+	  (with-class ((o <alpha>))
+	    (list o.a o.b)))
+      => '(1 20))
+
+    (check
+	(let ((o (make* <alpha> (b 20) (a 10))))
+	  (with-class ((o <alpha>))
+	    (list o.a o.b)))
+      => '(10 20))
+
+    #f)
+
+  (let ()	;mixed arguments
+
+    (define-class <alpha>
+      (fields a b)
+      (maker (a) (b 2)))
+
+    (check
+	(let ((o (make* <alpha> 1)))
+	  (with-class ((o <alpha>))
+	    (list o.a o.b)))
+      => '(1 2))
+
+    (check
+	(let ((o (make* <alpha> 1 (b 20))))
+	  (with-class ((o <alpha>))
+	    (list o.a o.b)))
+      => '(1 20))
+
+    #f)
+
+  (let ()	;maker protocol
+
+    (define-class <alpha>
+      (fields a b c)
+      (maker (a) (b 2))
+      (maker-protocol (lambda (make-top)
+			(lambda (a b)
+			  ((make-top) a b 456)))))
+
+    (check
+	(let ((o (make* <alpha> 1)))
+	  (with-class ((o <alpha>))
+	    (list o.a o.b o.c)))
+      => '(1 2 456))
+
+    (check
+	(let ((o (make* <alpha> 1 (b 20))))
+	  (with-class ((o <alpha>))
+	    (list o.a o.b o.c)))
+      => '(1 20 456))
+
+    #f)
+
+;;; --------------------------------------------------------------------
+;;; errors
+
+    (check	;bad MAKER clause
+	(guard (E ((syntax-violation? E)
+;;;(debug-print-condition "bad MAKER clause:" E)
+		   (syntax-violation-subform E))
+		  (else #f))
+	  (eval '(define-class <alpha>
+		   (fields a b)
+		   (maker 123 123))
+		(environment '(nausicaa))))
+      => '(maker 123 123))
+
+    (check	;multiple MAKER is bad
+	(guard (E ((syntax-violation? E)
+;;;(debug-print-condition "multiple MAKER is bad:" E)
+		   (syntax-violation-subform E))
+		  (else #f))
+	  (eval '(define-class <alpha>
+		   (fields a b)
+		   (maker (a) (b 1))
+		   (maker (b) (a 2)))
+		(environment '(nausicaa))))
+      => '((maker (a) (b 1))
+	   (maker (b) (a 2))))
+
+    (check	;no MAKER defined
+	(guard (E ((syntax-violation? E)
+;;;(debug-print-condition "no MAKER defined:" E)
+		   (syntax-violation-form E))
+		  (else #f))
+	  (eval '(let ()
+		   (define-class <alpha>
+		     (fields a b))
+		   (make* <alpha> 1 2)
+		   #f)
+		(environment '(nausicaa))))
+      => '(make* <alpha> 1 2))
+
+    #t)
+
+
 (parametrise ((check-test-name	'with-class))
 
   (let ()

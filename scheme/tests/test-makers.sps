@@ -299,18 +299,6 @@
 		 (write E)(newline)
 		 #f))
 	(eval '(let ()
-		 (define-maker doit list ())
-		 'bad)
-	      (environment '(rnrs) '(makers))))
-    => "invalid empty list of keywords in maker definition")
-
-  (check
-      (guard (E ((syntax-violation? E)
-		 (condition-message E))
-		(else
-		 (write E)(newline)
-		 #f))
-	(eval '(let ()
 		 (define-maker doit
 		   list
 		   ((alpha	1)

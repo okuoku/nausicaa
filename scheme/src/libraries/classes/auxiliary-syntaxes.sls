@@ -34,8 +34,8 @@
     protocol fields mutable immutable
 
     ;; custom bindings
-    inherit predicate setter getter bindings
-    public-protocol superclass-protocol virtual-fields
+    inherit predicate maker setter getter bindings
+    public-protocol maker-protocol superclass-protocol virtual-fields
     methods method method-syntax)
   (import (rnrs))
   (define-syntax define-auxiliary-syntax
@@ -44,10 +44,12 @@
        (define-syntax ?name (identifier-syntax #f)))))
   (define-auxiliary-syntax inherit)
   (define-auxiliary-syntax predicate)
+  (define-auxiliary-syntax maker)
   (define-auxiliary-syntax setter)
   (define-auxiliary-syntax getter)
   (define-auxiliary-syntax bindings)
   (define-auxiliary-syntax public-protocol)
+  (define-auxiliary-syntax maker-protocol)
   (define-auxiliary-syntax superclass-protocol)
   (define-auxiliary-syntax virtual-fields)
   (define-auxiliary-syntax methods)

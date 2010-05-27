@@ -43,7 +43,9 @@
     %collect-clause/sealed
     %collect-clause/protocol
     %collect-clause/public-protocol
+    %collect-clause/maker-protocol
     %collect-clause/superclass-protocol
+    %collect-clause/maker
     %collect-clause/predicate
     %output-forms/concrete-fields
 
@@ -308,6 +310,31 @@
 	 (synner "invalid public-protocol clause" (car clauses)))
 	))))
 
+(define (%collect-clause/maker-protocol clauses synner)
+  ;;Given  a  list  of   definition  clauses  in  CLAUSES,  extract  the
+  ;;MAKER-PROTOCOL  clause  and  parse   it;  there  must  be  only  one
+  ;;MAKER-PROTOCOL clause in CLAUSES.
+  ;;
+  ;;Return the  clause expression or  false if no  MAKER-PROTOCOL clause
+  ;;was found.
+  ;;
+  ;;SYNNER must  be the closure  used to raise  a syntax violation  if a
+  ;;parse  error  occurs; it  must  accept  two  arguments: the  message
+  ;;string, the subform.
+  ;;
+  (let ((clauses (filter-clauses #'maker-protocol clauses)))
+    (if (null? clauses)
+	#f
+      (syntax-case (car clauses) ()
+
+	((?keyword ?expression)
+	 (keyword=? ?keyword maker-protocol)
+	 #'?expression)
+
+	(_
+	 (synner "invalid maker-protocol clause" (car clauses)))
+	))))
+
 (define (%collect-clause/superclass-protocol clauses synner)
   ;;Given  a  list  of   definition  clauses  in  CLAUSES,  extract  the
   ;;SUPERCLASS-PROTOCOL  clause and  parse it;  there must  be  only one
@@ -355,6 +382,34 @@
 	 #'?predicate)
 	(_
 	 (synner "invalid predicate clause" (car clauses)))
+	))))
+
+(define (%collect-clause/maker clauses synner)
+  ;;Given a  list of  class definition clauses  in CLAUSES,  extract the
+  ;;MAKER clause  and parse it; there  must be only one  MAKER clause in
+  ;;CLAUSES.
+  ;;
+  ;;Return two values: a list  of identifiers representing the fixed and
+  ;;mandatory  arguments   to  the  maker,  a  list   of  maker  clauses
+  ;;representing  optional arguments.   If no  MAKER clause  is present:
+  ;;return null and null.
+  ;;
+  ;;SYNNER must  be the closure  used to raise  a syntax violation  if a
+  ;;parse  error  occurs; it  must  accept  two  arguments: the  message
+  ;;string, the subform.
+  ;;
+  (let ((clauses (filter-clauses #'maker clauses)))
+    (if (null? clauses)
+	(values '() '())
+      (syntax-case (car clauses) ()
+
+	((?keyword (?positional-arg ...) (?optional-keyword ?optional-default) ...)
+	 (and (keyword=? ?keyword maker)
+	      (all-identifiers? #'(?optional-keyword ...)))
+	 (values #'(?positional-arg ...) #'((?optional-keyword ?optional-default) ...)))
+
+	(_
+	 (synner "invalid maker clause" (car clauses)))
 	))))
 
 (define-syntax %output-forms/concrete-fields

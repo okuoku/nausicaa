@@ -297,7 +297,9 @@
 	  (unless (or (identifier-memq key mandatory-keywords)
 		      (identifier-memq key optional-keywords))
 	    (synner (string-append
-		     "unrecognised clause keyword, expected one among: "
+		     "unrecognised clause keyword \""
+		     (identifier->string (car clause))
+		     "\", expected one among: "
 		     (%identifiers-join-for-message (append mandatory-keywords optional-keywords)))
 		    clause))))
     clauses)

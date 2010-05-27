@@ -33,6 +33,7 @@
     define-class			define-virtual-class
     define-label			is-a?
     make				make-from-fields
+    make*
 
     ;; inspection macros
     class-record-type-descriptor
@@ -61,9 +62,9 @@
     ;; auxiliary syntaxes
     parent sealed opaque parent-rtd nongenerative
     protocol fields mutable immutable
-    inherit predicate setter getter bindings
-    public-protocol superclass-protocol virtual-fields
-    methods method method-syntax
+    inherit predicate maker setter getter bindings
+    public-protocol maker-protocol superclass-protocol
+    virtual-fields methods method method-syntax
 
     ;; builtin classes
     <top> <builtin> <pair> <list>
@@ -76,6 +77,7 @@
     (for (syntax-utilities)	expand)
     (for (gensym)		expand)
     (for (classes helpers)	expand)
+    (makers)
     (classes auxiliary-syntaxes)
     (classes top))
 
@@ -323,6 +325,13 @@
     ((_ ?class-name ?arg ...)
      (?class-name make ?arg ...))))
 
+(define-syntax make*
+  ;;Build a new class instance using the maker constructor.
+  ;;
+  (syntax-rules ()
+    ((_ ?class-name ?arg ...)
+     (?class-name make* ?arg ...))))
+
 (define-syntax make-from-fields
   ;;Build a new class instance using the "from fields" constructor.
   ;;
@@ -359,12 +368,13 @@
      (%define-virtual-class (define-class ?name ?clause ...) ?name () ?clause ...))))
 
 (define-syntax %define-virtual-class
-  ;;Raise an  error if a PUBLIC-PROTOCOL  or FIELD clause  is present in
-  ;;the body of the definition;  else define the class with DEFINE-CLASS
-  ;;specifying a public protocol which raises an error when invoked.
+  ;;Raise an error if  a PUBLIC-PROTOCOL, MAKER-PROTOCOL or FIELD clause
+  ;;is present in the body of the definition; else define the class with
+  ;;DEFINE-CLASS specifying a public protocol which raises an error when
+  ;;invoked.
   ;;
   (lambda (stx)
-    (syntax-case stx (fields public-protocol)
+    (syntax-case stx ()
 
       ;;no more clauses to collect
       ((_ ?input-form ?name (?collected-clause ...))
@@ -376,14 +386,24 @@
 	   ?collected-clause ...))
 
       ;;found PUBLIC-PROTOCOL clause
-      ((_ ?input-form ?name (?collected-clause ...) (public-protocol ?pro ...) ?clause ...)
+      ((_ ?input-form ?name (?collected-clause ...) (?keyword ?pro ...) ?clause ...)
+       (free-identifier=? #'?keyword #'public-protocol)
        (syntax-violation 'define-class
 	 "public-protocol clause used in definition of virtual class"
+	 (syntax->datum stx)
+	 (syntax->datum #'(public-protocol ?pro ...))))
+
+      ;;found MAKER-PROTOCOL clause
+      ((_ ?input-form ?name (?collected-clause ...) (?keyword ?pro ...) ?clause ...)
+       (free-identifier=? #'?keyword #'maker-protocol)
+       (syntax-violation 'define-class
+	 "maker-protocol clause used in definition of virtual class"
 	 (syntax->datum #'?input-form)
 	 (syntax->datum #'(public-protocol ?pro ...))))
 
       ;;found FIELDS clause
-      ((_ ?input-form ?name (?collected-clause ...) (fields ?fie ...) ?clause ...)
+      ((_ ?input-form ?name (?collected-clause ...) (?keyword ?fie ...) ?clause ...)
+       (free-identifier=? #'?keyword #'fields)
        (syntax-violation 'define-class
 	 "fields clause used in definition of virtual class"
 	 (syntax->datum #'?input-form)
@@ -423,12 +443,13 @@
        '()
        ;; optional keywords
        (list #'parent #'sealed #'opaque #'parent-rtd #'nongenerative #'fields #'protocol
-	     #'inherit #'predicate #'setter #'getter #'bindings #'public-protocol #'superclass-protocol
+	     #'inherit #'predicate #'maker #'setter #'getter #'bindings
+	     #'public-protocol #'maker-protocol #'superclass-protocol
 	     #'virtual-fields #'methods #'method #'method-syntax)
        ;; at most once keywords
        (list #'parent #'sealed #'opaque #'parent-rtd #'nongenerative
-	     #'inherit #'predicate #'setter #'getter #'bindings
-	     #'protocol #'public-protocol #'superclass-protocol)
+	     #'inherit #'predicate #'maker #'setter #'getter #'bindings
+	     #'protocol #'public-protocol #'maker-protocol #'superclass-protocol)
        ;; mutually exclusive keywords sets
        (list (list #'inherit #'parent #'parent-rtd))
        clauses %synner)
@@ -462,10 +483,21 @@
 	   ((public-protocol)
 	    (%collect-clause/public-protocol clauses %synner))
 
+	   ;;A syntax  object holding  an expression which  evaluates to
+	   ;;the class' maker protocol function.
+	   ((maker-protocol)
+	    (%collect-clause/maker-protocol clauses %synner))
+
 	   ;;False  or  a  syntax  object holding  an  expression  which
 	   ;;evaluates to the class' superclass protocol function.
 	   ((superclass-protocol)
 	    (%collect-clause/superclass-protocol clauses %synner))
+
+	   ;;Null/null  or  a   list  of  identifiers  representing  the
+	   ;;positional  arguments to  the  maker and  a  list of  maker
+	   ;;clauses representing optional arguments.
+	   ((maker-positional-args maker-optional-args)
+	    (%collect-clause/maker clauses %synner))
 
 	   ;;False or  the identifier of  the parent *record*  type (not
 	   ;;class type).
@@ -647,8 +679,11 @@
 	     (OPAQUE				opaque)
 	     (COMMON-PROTOCOL			common-protocol)
 	     (PUBLIC-PROTOCOL			public-protocol)
+	     (MAKER-PROTOCOL			maker-protocol)
 	     (SUPERCLASS-PROTOCOL		superclass-protocol)
 	     (CONSTRUCTOR-IDENTIFIER		constructor-identifier)
+	     ((MAKER-POSITIONAL-ARG ...)	maker-positional-args)
+	     ((MAKER-OPTIONAL-ARG ...)		maker-optional-args)
 	     (PREDICATE-IDENTIFIER		predicate-identifier)
 	     (CUSTOM-PREDICATE			custom-predicate)
 	     ((DEFINITION ...)			definitions)
@@ -690,11 +725,20 @@
 		(make-record-constructor-descriptor the-rtd PARENT-CD the-public-protocol))
 
 	      ;;Construction   protocol  used  when   invoking  the
+	      ;;constructor explicitly through MAKE*.
+	      (define the-maker-cd
+		(let ((the-maker-protocol MAKER-PROTOCOL))
+		  (if the-maker-protocol
+		      (make-record-constructor-descriptor the-rtd PARENT-CD the-maker-protocol)
+		    the-public-cd)))
+
+	      ;;Construction   protocol  used  when   invoking  the
 	      ;;constructor from a subclass constructor.
 	      (define the-superclass-cd
 		(make-record-constructor-descriptor the-rtd PARENT-CD the-superclass-protocol))
 
 	      (define CONSTRUCTOR-IDENTIFIER	(record-constructor the-public-cd))
+	      (define maker-constructor		(record-constructor the-maker-cd))
 	      (define superclass-constructor	(record-constructor the-superclass-cd))
 	      (define from-fields-constructor	(record-constructor the-from-fields-cd))
 
@@ -724,7 +768,7 @@
 	      			    superclass-constructor-descriptor
 	      			    from-fields-constructor-descriptor
 	      			    parent-rtd-list
-	      			    make make-from-fields is-a?
+	      			    make make* make-from-fields is-a?
 	      			    with-class-bindings-of)
 
 	      	    ((_ class-record-type-descriptor)
@@ -750,6 +794,9 @@
 
 	      	    ((_ make ?arg (... ...))
 	      	     #'(CONSTRUCTOR-IDENTIFIER ?arg (... ...)))
+
+	      	    ((_ make* ?arg (... ...))
+	      	     #'(the-maker ?arg (... ...)))
 
 	      	    ((_ make-from-fields ?arg (... ...))
 	      	     #'(from-fields-constructor ?arg (... ...)))
@@ -780,6 +827,10 @@
 	      	       (syntax->datum stx)
 	      	       (syntax->datum #'?keyword)))
 	      	    )))
+
+	      (%define-class/output-forms/maker CLASS-NAME the-maker maker-constructor
+						(MAKER-POSITIONAL-ARG ...)
+						(MAKER-OPTIONAL-ARG ...))
 
 	      (define-syntax with-class-bindings
 	      	(syntax-rules ()
@@ -909,6 +960,21 @@
        (%define-class/output-forms/fields-accessors-and-mutators ?rtd (?field-index ...) ?clause ...)))
 
     ))
+
+(define-syntax %define-class/output-forms/maker
+  (syntax-rules ()
+    ((_ class-name the-maker constructor () ())
+     (define-syntax the-maker
+       (lambda (stx)
+	 (syntax-case stx ()
+	   ((_ . ?args)
+	    (syntax-violation (quote class-name)
+	      "no maker was defined for this class"
+	      (syntax->datum #'(make* class-name . ?args)) #f))))))
+
+    ((_ class-name the-maker constructor (MAKER-POSITIONAL-ARG ...) (MAKER-OPTIONAL-ARG ...))
+     (define-maker (the-maker MAKER-POSITIONAL-ARG ...)
+       constructor (MAKER-OPTIONAL-ARG ...)))))
 
 
 (define-syntax define-label
