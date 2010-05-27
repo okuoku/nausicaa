@@ -20346,6 +20346,29 @@ public constructor.
 Select the maker constructor's protocol function.  When this clause is
 not used: the maker syntax expands to an application of the public
 constructor function.
+
+Here is a meaningless usage example:
+
+@example
+(define-class <alpha>
+  (fields a b c)
+  (maker (a) (b 2))
+  (maker-protocol (lambda (make-top)
+                    (lambda (a b)
+                      ((make-top) a b 456)))))
+
+(let (((o <alpha>) (make* <alpha> 1)))
+  (list o.a o.b o.c))
+@result{} (1 2 456)
+
+(let (((o <alpha>) (make* <alpha> 1 (b 20))))
+  (list o.a o.b o.c))
+@result{} (1 20 456)
+
+(let (((o <alpha>) (make <alpha> 1 2 3)))
+  (list o.a o.b o.c))
+@result{} (1 2 3)
+@end example
 @end deffn
 
 @c page
