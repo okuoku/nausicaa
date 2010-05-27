@@ -1226,11 +1226,12 @@
   ;;nested uses of WITH-ACCESSOR-AND-MUTATOR from (language-extensions).
   ;;
   (lambda (stx)
-    (syntax-case stx (mutable immutable)
+    (syntax-case stx ()
 
       ;;Process a field clause with both accessor and mutator.
-      ((_ ?variable-name ((mutable ?field ?accessor ?mutator) ?clause ...) . ?body)
-       (and (identifier? #'?variable-name)
+      ((_ ?variable-name ((?mutable ?field ?accessor ?mutator) ?clause ...) . ?body)
+       (and (identifier? #'?mutable) (free-identifier=? #'?mutable #'mutable)
+	    (identifier? #'?variable-name)
 	    (identifier? #'?field)
 	    (identifier? #'?accessor)
 	    (identifier? #'?mutator))
@@ -1239,8 +1240,9 @@
        				    (%with-class-fields ?variable-name (?clause ...) . ?body)))
 
       ;;Process a field clause with accessor only.
-      ((_ ?variable-name ((immutable ?field ?accessor) ?clause ...) . ?body)
-       (and (identifier? #'?variable-name)
+      ((_ ?variable-name ((?immutable ?field ?accessor) ?clause ...) . ?body)
+       (and (identifier? #'?immutable) (free-identifier=? #'?immutable #'immutable)
+	    (identifier? #'?variable-name)
 	    (identifier? #'?field)
 	    (identifier? #'?accessor))
        #`(with-accessor-and-mutator ((#,(syntax-dot-notation-identifier #'?variable-name #'?field)
