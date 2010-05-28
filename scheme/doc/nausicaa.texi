@@ -20489,14 +20489,14 @@ arguments can be of the form:
 where @meta{method} and @meta{method name} must be identifiers; in the
 first two forms the function name is built in the same way the field
 accessor names are built: appending a dash and @meta{method} to the
-record type name.  This clause can be used multiple times.
+class type name.  This clause can be used multiple times.
 
 The @meta{method name} must be an identifier bound to a Scheme function
 or syntax which will be invoked as method; it must accept as first
 argument the record which is the subject of the application.
 
 For more details on methods, especially methods with the same name in
-different record types of the same hierarchy, @ref{classes dot with,
+different class types of the same hierarchy, @ref{classes dot with,
 @func{with-class}}.
 
 @example
@@ -20571,9 +20571,9 @@ the function definition is expanded to:
 @end example
 
 @noindent
-where @code{function-name} is a unique, automatically generated,
-identifier.  The first argument in @meta{formals} will be the class
-instance.
+where @code{function-name} is an automatically generated identifier
+built by appending a dash and @meta{name} to the class type name.  The
+first argument in @meta{formals} will be the class instance.
 
 When the second form is used, the method definition is added to the
 methods list as if the following clause had been used:
@@ -20591,9 +20591,10 @@ the function definition is expanded to:
 @end example
 
 @noindent
-where @code{function-name} is a unique, automatically generated,
-identifier; the @meta{expression} must evaluate to a function accepting
-at least one argument: the class instance.
+where @code{function-name} is an automatically generated identifier
+built by appending a dash and @meta{name} to the class type name; the
+@meta{expression} must evaluate to a function accepting at least one
+argument: the class instance.
 
 @example
 (define-class <fraction>
@@ -20667,9 +20668,10 @@ the macro definition is expanded to:
 @end example
 
 @noindent
-where @code{transformer-name} is a unique, automatically generated,
-identifier.  @meta{transformer} must expand to a macro transformer.  The
-first argument to the macro will be the class instance.
+where @code{transformer-name} is an automatically generated identifier
+built by appending a dash and @meta{name} to the class type name.
+@meta{transformer} must expand to a macro transformer.  The first
+argument to the macro will be the class instance.
 @end deffn
 
 @c page

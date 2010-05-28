@@ -728,7 +728,7 @@
 	 (synner "invalid methods clause" (car clauses)))
 	))))
 
-(define (%collect-clause/method clauses synner define/with-class)
+(define (%collect-clause/method thing-name clauses synner define/with-class)
   ;;Given  a list  of definition  clauses  in CLAUSES,  extract all  the
   ;;METHOD clauses and parse them;  there can be multiple METHOD clauses
   ;;in CLAUSES.
@@ -761,14 +761,14 @@
 	 (keyword=? ?keyword method)
 	 (call-with-values
 	     (lambda ()
-	       (%parse-clause/method (car clauses) synner define/with-class))
+	       (%parse-clause/method thing-name (car clauses) synner define/with-class))
 	   (lambda (m d)
 	     (next-clause (cdr clauses) (cons m methods) (cons d definitions)))))
 	(_
 	 (synner "invalid method clause" (car clauses)))
 	))))
 
-(define (%collect-clause/method-syntax clauses synner)
+(define (%collect-clause/method-syntax thing-name clauses synner)
   ;;Given  a list  of definition  clauses  in CLAUSES,  extract all  the
   ;;METHOD-SYNTAX  clauses  and  parse   them;  there  can  be  multiple
   ;;METHOD-SYNTAX clauses in CLAUSES.
@@ -800,7 +800,7 @@
 	 (keyword=? ?keyword method-syntax)
 	 (call-with-values
 	     (lambda ()
-	       (%parse-clause/method-syntax (car clauses) synner))
+	       (%parse-clause/method-syntax thing-name (car clauses) synner))
 	   (lambda (m d)
 	     (next-clause (cdr clauses) (cons m methods) (cons d definitions)))))
 	(_
@@ -1034,7 +1034,7 @@
        (synner "invalid methods clause" (car methods-clauses)))
       )))
 
-(define (%parse-clause/method clause synner define/with-class)
+(define (%parse-clause/method thing-name clause synner define/with-class)
   ;;Given a METHOD clause in CLAUSE, parse it and return two values: the
   ;;method specification as a list with format:
   ;;
@@ -1053,13 +1053,13 @@
 
     ((?keyword (?method . ?args) . ?body)
      (and (keyword=? ?keyword method) (identifier? #'?method))
-     (with-syntax ((FUNCTION-NAME (datum->syntax #'?method (gensym))))
+     (with-syntax ((FUNCTION-NAME (syntax-method-identifier thing-name #'?method)))
        (values #'(?method FUNCTION-NAME)
 	       #`(#,define/with-class (FUNCTION-NAME . ?args) . ?body))))
 
     ((?keyword ?method ?expression)
      (and (keyword=? ?keyword method) (identifier? #'?method))
-     (with-syntax ((FUNCTION-NAME (datum->syntax #'?method (gensym))))
+     (with-syntax ((FUNCTION-NAME (syntax-method-identifier thing-name #'?method)))
        (values #'(?method FUNCTION-NAME)
 	       #'(define FUNCTION-NAME ?expression))))
 
@@ -1067,7 +1067,7 @@
      (synner "invalid method clause" clause))
     ))
 
-(define (%parse-clause/method-syntax clause synner)
+(define (%parse-clause/method-syntax thing-name clause synner)
   ;;Given  a METHOD-SYNTAX  clause in  CLAUSE, parse  it and  return two
   ;;values: the method specification as a list with format:
   ;;
@@ -1085,7 +1085,7 @@
 
     ((?keyword ?method ?transformer)
      (and (keyword=? ?keyword method-syntax) (identifier? #'?method))
-     (with-syntax ((MACRO-NAME (datum->syntax #'?method (gensym))))
+     (with-syntax ((MACRO-NAME (syntax-method-identifier thing-name #'?method)))
        (values #'(?method MACRO-NAME)
 	       #'(define-syntax MACRO-NAME ?transformer))))
 

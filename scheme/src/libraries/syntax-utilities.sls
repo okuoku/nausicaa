@@ -39,6 +39,7 @@
     identifier-memq
 
     ;; common identifier names constructor
+    identifier->string			string->identifier
     identifier-prefix			identifier-suffix
     syntax-maker-identifier		syntax-predicate-identifier
     syntax-accessor-identifier		syntax-mutator-identifier
@@ -151,24 +152,33 @@
 	 (identifier-memq identifier (cdr list-of-syntax-objects)))))
 
 
+(define (%general-string-append . args)
+  (let-values (((port getter) (open-string-output-port)))
+    (let loop ((args args))
+      (if (null? args)
+	  (getter)
+	(let ((thing (car args)))
+	  (display (if (identifier? (car args))
+		       (identifier->string (car args))
+		     (car args))
+		   port)
+	  (loop (cdr args)))))))
+
 (define-syntax identifier->string
   (syntax-rules ()
     ((_ ?identifier)
      (symbol->string (syntax->datum ?identifier)))))
 
+(define-syntax string->identifier
+  (syntax-rules ()
+    ((_ ?context-identifier ?string)
+     (datum->syntax ?context-identifier (string->symbol ?string)))))
+
 (define (identifier-prefix prefix identifier)
-  (datum->syntax identifier
-		 (string->symbol (string-append (if (string? prefix)
-						    prefix
-						  (symbol->string prefix))
-						(identifier->string identifier)))))
+  (string->identifier identifier (%general-string-append prefix identifier)))
 
 (define (identifier-suffix identifier suffix)
-  (datum->syntax identifier
-		 (string->symbol (string-append (identifier->string identifier)
-						(if (string? suffix)
-						    suffix
-						  (symbol->string suffix))))))
+  (string->identifier identifier (%general-string-append identifier suffix)))
 
 (define (syntax-maker-identifier type-identifier)
   (identifier-prefix "make-" type-identifier))
@@ -177,26 +187,16 @@
   (identifier-suffix type-identifier "?"))
 
 (define (syntax-accessor-identifier type-identifier field-identifier)
-  (datum->syntax type-identifier
-		 (string->symbol
-		  (string-append (identifier->string type-identifier)
-				 "-"
-				 (identifier->string field-identifier)))))
+  (string->identifier type-identifier
+		      (%general-string-append type-identifier "-" field-identifier)))
 
 (define (syntax-mutator-identifier type-identifier field-identifier)
-  (datum->syntax type-identifier
-		 (string->symbol
-		  (string-append (identifier->string type-identifier)
-				 "-"
-				 (identifier->string field-identifier)
-				 "-set!"))))
+  (string->identifier type-identifier
+		      (%general-string-append type-identifier "-" field-identifier "-set!")))
 
 (define (syntax-dot-notation-identifier variable-identifier field-identifier)
-  (datum->syntax variable-identifier
-		 (string->symbol
-		  (string-append (identifier->string variable-identifier)
-				 "."
-				 (identifier->string field-identifier)))))
+  (string->identifier variable-identifier
+		      (%general-string-append variable-identifier "." field-identifier)))
 
 
 (define (validate-list-of-clauses clauses synner)

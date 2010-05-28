@@ -575,7 +575,7 @@
 	   ;;    (define <function name> <expression>)
 	   ;;
 	   ((methods definitions)
-	    (%collect-clause/method clauses %synner #'define/with-class))
+	    (%collect-clause/method class-identifier clauses %synner #'define/with-class))
 
 	   ;;Null/null   or   a   validated   list  of   method   syntax
 	   ;;specifications  from   the  METHOD-SYNTAX  clauses,  having
@@ -592,7 +592,7 @@
 	   ;;    (define-syntax <macro identifier> <expression>)
 	   ;;
 	   ((syntax-methods syntax-definitions)
-	    (%collect-clause/method-syntax clauses %synner)))
+	    (%collect-clause/method-syntax class-identifier clauses %synner)))
 
 	(set! methods		(append methods methods-from-methods syntax-methods))
 	(set! definitions	(append definitions syntax-definitions))
@@ -706,41 +706,48 @@
 
 	  #'(begin
 	      (define the-parent-rtd		PARENT-RTD)
+	      (define the-parent-cd		PARENT-CD)
 
 	      (define the-rtd
 		(make-record-type-descriptor (quote CLASS-NAME) the-parent-rtd
 					     (quote UID) SEALED OPAQUE
 					     (quote #((MUTABILITY FIELD) ...))))
 
-	      (define the-common-protocol	COMMON-PROTOCOL)
-	      (define the-public-protocol	(or PUBLIC-PROTOCOL     the-common-protocol))
-	      (define the-superclass-protocol	(or SUPERCLASS-PROTOCOL the-common-protocol))
+	      (%define-class/output-forms/fields-accessors-and-mutators
+	       the-rtd (FIELD-INDEX ...) (MUTABILITY FIELD ACCESSOR/MUTATOR ...) ...)
+
+	      DEFINITION ...
 
 	      (define the-from-fields-cd
 		(%make-from-fields-cd the-rtd))
+	      (define from-fields-constructor
+		(record-constructor the-from-fields-cd))
 
-	      ;;Construction   protocol  used  when   invoking  the
-	      ;;constructor explicitly through MAKE.
+	      (define the-common-protocol
+		COMMON-PROTOCOL)
+
+	      (define the-public-protocol
+		(or PUBLIC-PROTOCOL the-common-protocol))
 	      (define the-public-cd
-		(make-record-constructor-descriptor the-rtd PARENT-CD the-public-protocol))
+		(make-record-constructor-descriptor the-rtd the-parent-cd the-public-protocol))
+	      (define CONSTRUCTOR-IDENTIFIER
+		(record-constructor the-public-cd))
 
-	      ;;Construction   protocol  used  when   invoking  the
-	      ;;constructor explicitly through MAKE*.
+	      (define the-maker-protocol
+		MAKER-PROTOCOL)
 	      (define the-maker-cd
-		(let ((the-maker-protocol MAKER-PROTOCOL))
-		  (if the-maker-protocol
-		      (make-record-constructor-descriptor the-rtd PARENT-CD the-maker-protocol)
-		    the-public-cd)))
+		(if the-maker-protocol
+		    (make-record-constructor-descriptor the-rtd the-parent-cd the-maker-protocol)
+		  the-public-cd))
+	      (define maker-constructor
+		(record-constructor the-maker-cd))
 
-	      ;;Construction   protocol  used  when   invoking  the
-	      ;;constructor from a subclass constructor.
+	      (define the-superclass-protocol
+		(or SUPERCLASS-PROTOCOL the-common-protocol))
 	      (define the-superclass-cd
-		(make-record-constructor-descriptor the-rtd PARENT-CD the-superclass-protocol))
-
-	      (define CONSTRUCTOR-IDENTIFIER	(record-constructor the-public-cd))
-	      (define maker-constructor		(record-constructor the-maker-cd))
-	      (define superclass-constructor	(record-constructor the-superclass-cd))
-	      (define from-fields-constructor	(record-constructor the-from-fields-cd))
+		(make-record-constructor-descriptor the-rtd the-parent-cd the-superclass-protocol))
+	      (define superclass-constructor
+		(record-constructor the-superclass-cd))
 
 	      (define PREDICATE-IDENTIFIER	(record-predicate the-rtd))
 
@@ -754,25 +761,24 @@
 				  (record-parent-list the-parent-rtd)
 				'())))
 
-	      (%define-class/output-forms/fields-accessors-and-mutators
-	       the-rtd (FIELD-INDEX ...) (MUTABILITY FIELD ACCESSOR/MUTATOR ...) ...)
-
-	      DEFINITION ...
-
 	      (define-syntax CLASS-NAME
 	      	(lambda (stx)
 	      	  (syntax-case stx (class-record-type-descriptor
 	      			    class-type-uid
 	      			    class-uid-list
+	      			    parent-rtd-list
 	      			    public-constructor-descriptor
 	      			    superclass-constructor-descriptor
 	      			    from-fields-constructor-descriptor
-	      			    parent-rtd-list
+				    superclass-protocol
+				    list-of-concrete-fields
+				    list-of-virtual-fields
+				    list-of-methods
 	      			    make make* make-from-fields is-a?
 	      			    with-class-bindings-of)
 
 	      	    ((_ class-record-type-descriptor)
-	      	     #'(begin the-rtd))
+	      	     #'the-rtd)
 
 	      	    ((_ class-type-uid)
 	      	     #'(quote UID))
@@ -780,17 +786,35 @@
 	      	    ((_ class-uid-list)
 	      	     #'the-parent-uid-list)
 
-	      	    ((_ public-constructor-descriptor)
-	      	     #'(begin the-public-cd))
-
-	      	    ((_ superclass-constructor-descriptor)
-	      	     #'(begin the-superclass-cd))
-
-	      	    ((_ from-fields-constructor-descriptor)
-	      	     #'(begin the-from-fields-cd))
-
 	      	    ((_ parent-rtd-list)
 	      	     #'(the-parent-rtd-list))
+
+		    ;; --------------------------------------------------
+
+	      	    ((_ public-constructor-descriptor)
+	      	     #'the-public-cd)
+
+	      	    ((_ superclass-constructor-descriptor)
+	      	     #'the-superclass-cd)
+
+	      	    ((_ from-fields-constructor-descriptor)
+	      	     #'the-from-fields-cd)
+
+		    ((_ superclass-protocol)
+		     #'the-superclass-protocol)
+
+		    ;; --------------------------------------------------
+
+		    ((_ list-of-concrete-fields)
+		     #'((MUTABILITY FIELD ACCESSOR/MUTATOR ...) ...))
+
+		    ((_ list-of-virtual-fields)
+		     #'((VIRTUAL-MUTABILITY VIRTUAL-FIELD VIRTUAL-ACCESSOR/MUTATOR ...) ...))
+
+		    ((_ list-of-methods)
+		     #'((METHOD METHOD-IDENTIFIER) ...))
+
+		    ;; --------------------------------------------------
 
 	      	    ((_ make ?arg (... ...))
 	      	     #'(CONSTRUCTOR-IDENTIFIER ?arg (... ...)))
@@ -1064,7 +1088,7 @@
 	   ;;    (define <function name> <expression>)
 	   ;;
 	   ((methods definitions)
-	    (%collect-clause/method clauses %synner #'define/with-class))
+	    (%collect-clause/method label-identifier clauses %synner #'define/with-class))
 
 	   ;;Null/null   or  a   validated  list   of   method  syntax
 	   ;;specifications having elements with format:
@@ -1080,7 +1104,7 @@
 	   ;;    (define-syntax <macro identifier> <expression>)
 	   ;;
 	   ((syntax-methods syntax-definitions)
-	    (%collect-clause/method-syntax clauses %synner)))
+	    (%collect-clause/method-syntax label-identifier clauses %synner)))
 
 	(set! methods		(append methods methods-from-methods syntax-methods))
 	(set! definitions	(append definitions syntax-definitions))
