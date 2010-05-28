@@ -9001,7 +9001,7 @@ the in--place side--effecting variant.
 
 
 The @library{arrays} library implements mutidimensional arrays on top of
-built--in Scheme vectors.
+builtin Scheme vectors.
 
 
 @menu
@@ -9021,7 +9021,7 @@ In the documentation of @library{arrays} we call:
 
 @table @dfn
 @item items
-The values collected in Scheme's built--in lists and vectors.
+The values collected in Scheme's builtin lists and vectors.
 
 @item elements
 The values collected in the arrays.
@@ -9041,7 +9041,7 @@ A proper @code{shape} object.
 A proper @code{position} object.
 
 @item position-step
-A built--in Scheme vector used to represent the difference between two
+A builtin Scheme vector used to represent the difference between two
 @code{position} values.
 
 @item dimension
@@ -9068,9 +9068,9 @@ Can be any value.
 @section Layout of elements in the vector
 
 
-Filling the underlying vector with integers representing the index of
-the element, for an array of one dimension and four elements, the vector
-is:
+If we fill the underlying vector with integers representing the index of
+the elements, for an array of one dimension and four elements, the
+vector is:
 
 @example
 #(0 1 2 3)
@@ -9135,8 +9135,7 @@ that is:
 index = plane * (3 * 4) + row * 4 + column * 1
 @end example
 
-@noindent
-generalising: The rightmost coordinate is always multiplied by @math{1},
+Generalising: the rightmost coordinate is always multiplied by @math{1},
 while the other are multiplied by a product between the length of the
 dimensions.
 
@@ -9165,7 +9164,7 @@ computation of the factors, and that @math{D(k)} is @strong{not} used in
 the computation of @math{F(k)}.
 
 If @code{dimensions} is the list of dimensions of an array, the
-followind function will compute and return the list of factors:
+following function will compute and return the list of factors:
 
 @example
 (define (%compute-factors dimensions)
@@ -9177,23 +9176,22 @@ followind function will compute and return the list of factors:
             (cons (apply * dims) factors)))))
 @end example
 
-
 @c page
 @node arrays position
 @section Specifying the coordinates of elements
 
 
-Elements' position in arrays are represented by built--in Scheme vector,
-holding exact integers.
+The elements' positions in arrays are represented by builtin Scheme
+vectors holding exact integers.
 
 
 @subsubheading Constructors
 
 
 @defun array-position @var{index0} @var{index} ...
-Build and return a new vector holding the @var{index} arguments.  The
-indexes are checked to be exact integers.  The number of arguments is
-meant to be equal to the number of dimensions of the array with which
+Build and return a new Scheme vector holding the @var{index} arguments.
+The indexes are checked to be exact integers.  The number of arguments
+is meant to be equal to the number of dimensions of the array with which
 the position value will be used.
 @end defun
 
@@ -9202,7 +9200,7 @@ the position value will be used.
 
 
 @defun array-position? @var{obj}
-Return @true{} if @var{obj} is a vector holding exact integers.
+Return @true{} if @var{obj} is a Scheme vector holding exact integers.
 @end defun
 
 
@@ -11738,7 +11736,7 @@ procedure would have to be supplied explicitly every time.  For this
 reason, the argument @var{compare} is often made optional and the
 procedure @func{default-compare} is used whenever no @var{compare}
 procedure is passed explicitly.  @func{default-compare} defines some
-resonable total order on the built--in types of @rnrs{6}.
+resonable total order on the builtin types of @rnrs{6}.
 
 For the definition of comparison procedures, special control structures
 (macros) are provided.  These control structures can be used in the
@@ -12148,7 +12146,7 @@ The binary form uses @func{default-compare} as @var{compare}.
 
 
 It is convenient to have a compare procedure readily available for
-comparing most built--in types.
+comparing most builtin types.
 
 
 @defun default-compare @var{obj1} @var{obj2}
@@ -19154,7 +19152,7 @@ The base class of all the @library{scmobj} classes.
 
 
 @deftp {Class} <builtin-class>
-The base class built--in Scheme values.
+The base class builtin Scheme values.
 @end deftp
 
 @c page
