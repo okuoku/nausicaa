@@ -306,6 +306,115 @@
   #t)
 
 
+(parametrise ((check-test-name 'valid-addresses))
+
+  (define (error-handler message token)
+    (error #f message token))
+
+  (define (doit string)
+    (let* ((IS      (lexer-make-IS :string string
+				   :counters 'all))
+	   (lexer   (make-address-lexer IS))
+	   (parser  (make-address-parser)))
+      (parser lexer error-handler)))
+
+;;; --------------------------------------------------------------------
+
+  (define-syntax check-it
+    (syntax-rules ()
+      ((_ ?address)
+       (let ((o (doit ?address)))
+	 (check (is-a? (car o) <mailbox>) => #t)))))
+
+;;; The following email addresses come from:
+;;;
+;;; http://fightingforalostcause.net/misc/2006/compare-email-regex.php
+
+
+  (check-it "l3tt3rsAndNumb3rs@domain.com")
+  (check-it "has-dash@domain.com")
+  (check-it "hasApostrophe.o'leary@domain.org")
+  (check-it "uncommonTLD@domain.museum")
+  (check-it "uncommonTLD@domain.travel")
+  (check-it "uncommonTLD@domain.mobi")
+  (check-it "countryCodeTLD@domain.uk")
+  (check-it "countryCodeTLD@domain.rw")
+  (check-it "lettersInDomain@911.com")
+  (check-it "underscore_inLocal@domain.net")
+  (check-it "IPInsteadOfDomain@127.0.0.1")
+;  (check-it "IPAndPort@127.0.0.1:25")
+  (check-it "subdomain@sub.domain.com")
+  (check-it "local@dash-inDomain.com")
+  (check-it "dot.inLocal@foo.com")
+  (check-it "a@singleLetterLocal.org")
+  (check-it "singleLetterDomain@x.org")
+  (check-it "&*=?^+{}'~@validCharsInLocal.net")
+  (check-it "foor@bar.newTLD")
+
+
+  #t)
+
+
+(parametrise ((check-test-name 'invalid-addresses))
+
+  (define (error-handler message token)
+    (error #f message token))
+
+  (define (doit string)
+    (let* ((IS      (lexer-make-IS :string string
+				   :counters 'all))
+	   (lexer   (make-address-lexer IS))
+	   (parser  (make-address-parser)))
+      (parser lexer error-handler)))
+
+;;; --------------------------------------------------------------------
+
+  (define-syntax check-it
+    (syntax-rules ()
+      ((_ ?address)
+       (check
+	   (guard (E (else #t))
+	     (doit ?address))
+	 => #t))))
+
+;;; The following email addresses come from:
+;;;
+;;; http://fightingforalostcause.net/misc/2006/compare-email-regex.php
+
+  (check-it "missingDomain@.com")
+  (check-it "@missingLocal.org")
+  (check-it "missingatSign.net")
+
+;;;No dot should be allowed, else we discard "marco@localhost".
+;;;
+;;;  (check-it "missingDot@com")
+
+  (check-it "two@@signs.com")
+  (check-it "colonButNoPort@127.0.0.1:")
+
+;;;This has  what appears  to be  a domain literal  with 5  numbers; but
+;;;domain literals are enclosed in [...], which this is not.
+;;;
+;;;  (check-it "someone-else@127.0.0.1.26")
+
+  (check-it ".localStartsWithDot@domain.com")
+  (check-it "localEndsWithDot.@domain.com")
+  (check-it "two..consecutiveDots@domain.com")
+
+;;; You sure that these are invalid?
+;;;
+;;;  (check-it "domainStartsWithDash@-domain.com")
+;;;  (check-it "domainEndsWithDash@domain-.com")
+;;;  (check-it "numbersInTLD@domain.c0m")
+;;;  (check-it "local@SecondLevelDomainNamesAreInvalidIfTheyAreLongerThan64Charactersss.org")
+
+  (check-it "missingTLD@domain.")
+  (check-it "! \"#$%(),/;<>[]`|@invalidCharsInLocal.org")
+  (check-it "invalidCharsInDomain@! \"#$%(),/;<>_[]`|.org")
+
+  #t)
+
+
 ;;;; done
 
 (check-report)
