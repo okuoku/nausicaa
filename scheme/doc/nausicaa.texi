@@ -896,6 +896,8 @@ Arithmetics
 
 Syntax--case
 
+* stdlib syntax-case intro::            Informal introduction
+                                        for beginners.
 * stdlib syntax-case hygiene::          Hygiene.
 * stdlib syntax-case objects::          Syntax objects.
 * stdlib syntax-case transformers::     Transformers.
@@ -16108,6 +16110,8 @@ controlled identifier capture.
 
 
 @menu
+* stdlib syntax-case intro::            Informal introduction
+                                        for beginners.
 * stdlib syntax-case hygiene::          Hygiene.
 * stdlib syntax-case objects::          Syntax objects.
 * stdlib syntax-case transformers::     Transformers.
@@ -16124,6 +16128,179 @@ Examples
 
 * stdlib syntax-case lisp::             Common Lisp style macros.
 @end menu
+
+@c page
+@node stdlib syntax-case intro
+@subsection Informal introduction for beginners
+
+
+A macro system allows us to give symbols in the S--expression of a
+Scheme program the role of @dfn{syntactic keywords}; this means that a
+subexpression is extracted from the program's S--expression and can be
+processed by an appropriate function called @dfn{transformer} before
+being put back.
+
+For example, let's say that @func{infix} is a syntactic keyword; we may
+have a library like this:
+
+@example
+(library (infix)
+  (export infix)
+  (import (rnrs))
+  (define-syntax infix
+    (lambda (use) ---) ;this is the transformer function
+    ))
+@end example
+
+@noindent
+then in the following program S--expression:
+
+@example
+(import (rnrs) (infix))
+
+(let-values (((port getter) (open-string-output-port)))
+  (display (infix 1 + 2) port)
+  (getter))
+@end example
+
+@noindent
+the subexpression:
+
+@example
+(infix 1 + 2)
+@end example
+
+@noindent
+is a @dfn{macro use} of the @func{infix} syntax and it becomes the
+@dfn{input form} of the transformer function of @func{infix}; the input
+form is extracted from the whole S--expression, transformed, let's say,
+into the @dfn{output form}:
+
+@example
+(begin 3)
+@end example
+
+@noindent
+and put back:
+
+@example
+(import (rnrs) (infix))
+
+(let-values (((port getter) (open-string-output-port)))
+  (display (begin 3) port)
+  (getter))
+@end example
+
+A number of rules are used not to mess up bidings in the input and
+output forms; these are introduced in @ref{stdlib syntax-case hygiene,
+Hygiene}.
+
+The single argument transformer functions are applied to is a
+@dfn{syntax object} representing the input form; the standard defines
+@dfn{wrapped syntax objects} and @dfn{unwrapped syntax objects}.  Both
+wrapped and unwrapped objects can be used to represent the same
+informations, but wrapped objects can be more efficient in terms of
+consumed resources.
+
+Let's focus on unwrapped syntax objects; it is always possible to
+convert a wrapped syntax object into an unwrapped one by applying the
+@func{unwrap-syntax-object} function defined in the following library
+(it is @strong{not} important to understand it at first reading):
+
+@example
+(library (syntax-utilities)
+  (export unwrap-syntax-object)
+  (import (rnrs))
+  (define (unwrap-syntax-object stx)
+    (syntax-case stx ()
+      (()
+       '())
+      ((?car . ?cdr)
+       (cons (unwrap-syntax-object (syntax ?car))
+             (unwrap-syntax-object (syntax ?cdr))))
+      (#(?item ...)
+       (list->vector (unwrap-syntax-object (syntax (?item ...)))))
+      (?atom
+       (identifier? (syntax ?atom))
+       (syntax ?atom))
+      (?atom
+       (syntax->datum (syntax ?atom))))))
+@end example
+
+@noindent
+it is possible to define alternative versions of this function with
+different properties, depending on the intended usage.
+
+Now let's define the following library:
+
+@example
+(library (try-it-macros)
+  (export the-macro)
+  (import (rnrs)
+    (for (syntax-utilities) expand))
+  (define-syntax the-macro
+    (lambda (stx)
+      (let ((sexp (unwrap-syntax-object stx)))
+        (write sexp)(newline)
+        #f))))
+@end example
+
+@noindent
+the macro use in the following program:
+
+@example
+(import (rnrs) (try-it-macros))
+
+(the-macro 1 hello #(ciao 2) 3 salut)
+@end example
+
+@noindent
+will cause the input form to be unwrapped and bound to @code{sexp}, then
+the S-expression is displayed as something like:
+
+@example
+(#<syntax the-macro>
+ 1
+ #<syntax hello>
+ #(#<syntax ciao> 2)
+ 3
+ #<syntax salut>)
+@end example
+
+@noindent
+we see that where symbols appear in the input form we get
+@dfn{identifiers}: unwrapped syntax objects holding a symbol annotated
+with its originating lexical context.  We can process @code{sexp} with
+the ordinary Scheme functions, then return as result an S--expression
+holding datums and identifiers that do what we want.
+
+Here is an example implementation of the @func{receive} syntax, giving a
+condensed interface to @func{call-with-values}:
+
+@example
+(import (rnrs) (for (syntax-utilities) expand))
+
+(define-syntax receive
+  (lambda (use)
+    (let ((sexp (unwrap-syntax-object use)))
+      (let ((formals          (cadr  sexp))
+            (expression       (caddr sexp))
+            (body             (cdddr sexp)))
+        `(,(syntax call-with-values)
+              (,(syntax lambda) () ,expression)
+              (,(syntax lambda) ,formals . ,body))))))
+
+(receive (a b)
+    (values 1 2)
+  (write 'ciao)
+  (list a b))
+@expansion{} (call-with-values
+        (lambda ()
+          (values 1 2))
+      (lambda (a b)
+        (write 'ciao)
+        (list a b)))
+@end example
 
 @c page
 @node stdlib syntax-case hygiene
