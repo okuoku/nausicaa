@@ -16137,7 +16137,7 @@ Examples
 A macro system allows us to give symbols in the S--expression of a
 Scheme program the role of @dfn{syntactic keywords}; this means that a
 subexpression is extracted from the program's S--expression and can be
-processed by an appropriate function called @dfn{transformer} before
+processed by an appropriate function, called @dfn{transformer}, before
 being put back.
 
 For example, let's say that @func{infix} is a syntactic keyword; we may
@@ -16202,10 +16202,11 @@ wrapped and unwrapped objects can be used to represent the same
 informations, but wrapped objects can be more efficient in terms of
 consumed resources.
 
-Let's focus on unwrapped syntax objects; it is always possible to
-convert a wrapped syntax object into an unwrapped one by applying the
-@func{unwrap-syntax-object} function defined in the following library
-(it is @strong{not} important to understand it at first reading):
+Let's focus on unwrapped syntax objects, which are easier to deal with;
+it is always possible to convert a wrapped syntax object into an
+unwrapped one by applying the @func{unwrap-syntax-object} function
+defined in the following library (it is @strong{not} important to
+understand it at first reading):
 
 @example
 (library (syntax-utilities)
@@ -16268,8 +16269,8 @@ the S-expression is displayed as something like:
 @end example
 
 @noindent
-we see that where symbols appear in the input form we get
-@dfn{identifiers}: unwrapped syntax objects holding a symbol annotated
+we see that where symbols appear in the input form, in the output form
+we get @dfn{identifiers}: syntax objects holding only a symbol marked
 with its originating lexical context.  We can process @code{sexp} with
 the ordinary Scheme functions, then return as result an S--expression
 holding datums and identifiers that do what we want.
@@ -16301,6 +16302,83 @@ condensed interface to @func{call-with-values}:
         (write 'ciao)
         (list a b)))
 @end example
+
+A wrapped syntax object can be implemented as a record instance
+containing an S--expression and lexical context informations; wrapped
+syntax objects are a disjoint type of values.  An unwrapped object is an
+S-expression, a structure of pairs and/or vectors, holding datums and
+syntax objects.
+
+Fully unwrapping a syntax object means to convert it into an
+S--expression in which all the symbols are turned into identifiers and
+the identifiers are the only syntax objects.  The identifier is the
+simplest syntax object with lexical informations in it; the symbol is
+the only element of an input form which needs lexical informations; so
+the wrapped syntax object:
+
+@example
+#<syntax (1 ciao)>
+@end example
+
+@noindent
+is unwrapped to:
+
+@example
+(1 #<syntax ciao>)
+@end example
+
+A syntax object can be partially unwrapped, for example:
+
+@example
+#<syntax (the-macro 1 hello #(ciao 2) 3 salut)>
+@end example
+
+@noindent
+can be unwrapped to:
+
+@example
+(#<syntax the-macro>
+ 1
+ #<syntax hello>
+ #<syntax #(ciao 2)>
+ 3
+ #<syntax salut>)
+@end example
+
+@noindent
+which still contains the wrapped syntax object @samp{#<syntax #(ciao
+2)>}.
+
+The function @func{unwrap-syntax-object} defined above fully unwraps its
+argument; notice that it will unwrap also quoted S--expressions, for
+example:
+
+@example
+#<syntax (a b '(1 2 #\c d))>
+@end example
+
+@noindent
+is unwrapped to:
+
+@example
+(#<syntax a>
+ #<syntax b>
+ (#<syntax quote>
+  (1 2 #\c #<syntax d>)))
+@end example
+
+@noindent
+this is not always what we want.
+
+The @func{receive} implementation above extracts datums and identifiers
+from the input form using the common list functions @func{car},
+@func{cdr}, @dots{} and, for simplicity, it performs no checks to verify
+that the input for has the required structure (for example: it does not
+check that the first element after the syntactic keyword @func{receive}
+is a list of identifiers).  The @func{syntax-case} macro provides a way
+to both extract elements from a syntax object and to perform basic
+checks on its structure, it is often more convenient and efficient to
+use @func{syntax-case} rather than to unwrap the input form.
 
 @c page
 @node stdlib syntax-case hygiene
@@ -16486,6 +16564,26 @@ return value replaces the entire @func{set!}  expression.
 the restrictions on @var{proc} only to the extent performed by applying
 it as described.  An implementation may check whether @var{proc} is an
 appropriate argument before applying it.
+
+Meaningless example using the @func{unwrap-syntax-object} function
+defined in @ref{stdlib syntax-case intro}:
+
+@example
+(import (rnrs) (for (syntax-utilities) expand))
+
+(define-syntax alpha
+  (make-variable-transformer
+   (lambda (use)
+     (write (unwrap-syntax-object use))
+     (newline)
+     #f)))
+
+(set! alpha 123)
+@print{} (#<syntax set!> #<syntax alpha> 123)
+
+alpha
+@print{} #<syntax alpha>
+@end example
 @end deffn
 
 @c page
@@ -17739,8 +17837,8 @@ where the original macro use appeared:
 (define (lisp-transformer proc)
   (lambda (stx)
     (syntax-case stx ()
-      ((use . rest)
-       (datum->syntax #'use (proc (syntax->datum stx)))))))
+      ((key . rest)
+       (datum->syntax #'key (proc (syntax->datum stx)))))))
 @end example
 
 This transformer can be used as follows, first create a library with the
@@ -17754,8 +17852,8 @@ definition in it:
   (define (lisp-transformer proc)
     (lambda (stx)
       (syntax-case stx ()
-        ((use . rest)
-         (datum->syntax #'use (proc (syntax->datum stx))))))))
+        ((key . rest)
+         (datum->syntax #'key (proc (syntax->datum stx))))))))
 @end example
 
 @noindent
