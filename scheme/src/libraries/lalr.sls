@@ -93,7 +93,7 @@
    ((message)
     (rnrs:error 'lalr-parser message))
    ((message irritants)
-    (eval rnrs:error 'lalr-parser message irritants))))
+    (apply rnrs:error 'lalr-parser message irritants))))
 
 
 ;;;; list utilities

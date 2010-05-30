@@ -53,6 +53,7 @@ $(eval $(call nau-libraries,ffi_peekers-and-pokers,ffi/peekers-and-pokers))
 $(eval $(call nau-libraries,ffi_memory,ffi/memory))
 $(eval $(call nau-libraries,ffi_memory_alloc,ffi/memory/alloc))
 $(eval $(call nau-libraries,infix,infix))
+$(eval $(call nau-libraries,json,json))
 $(eval $(call nau-libraries,lalr,lalr))
 $(eval $(call nau-libraries,libraries,libraries))
 $(eval $(call nau-libraries,lists,lists))
@@ -244,10 +245,7 @@ endif
 SILEX_TEST_PROGRAMS	= $(wildcard $(srcdir)/tests/make-silex-*.sps)
 SILEX_LIBPATH		= $(abspath $(srcdir)/tests):$(abspath $(nau_sls_BUILDDIR))
 
-ifeq (yes,$(nausicaa_ENABLE_YPSILON))
-SILEX_ENV	= YPSILON_SITELIB=$(SILEX_LIBPATH):$(YPSILON_SITELIB)
-SILEX_RUNNER	= $(SILEX_ENV) $(YPSILON)
-else ifeq (yes,$(nausicaa_ENABLE_VICARE))
+ifeq (yes,$(nausicaa_ENABLE_VICARE))
 SILEX_ENV	= VICARE_LIBRARY_PATH=$(SILEX_LIBPATH):$(VICARE_LIBRARY_PATH)
 SILEX_RUNNER	= $(SILEX_ENV) $(VICARE) --r6rs-script
 else ifeq (yes,$(nausicaa_ENABLE_IKARUS))
@@ -259,6 +257,9 @@ SILEX_RUNNER	= $(SILEX_ENV) $(MOSH)
 else ifeq (yes,$(nausicaa_ENABLE_PETITE))
 SILEX_ENV	= PETITE_LIBPATH=$(SILEX_LIBPATH):$(PETITE_LIBPATH)
 SILEX_RUNNER	= $(SILEX_ENV) $(PETITE) --libdirs $${PETITE_LIBPATH} --program
+else ifeq (yes,$(nausicaa_ENABLE_YPSILON))
+SILEX_ENV	= YPSILON_SITELIB=$(SILEX_LIBPATH):$(YPSILON_SITELIB)
+SILEX_RUNNER	= $(SILEX_ENV) $(YPSILON)
 else ifeq (yes,$(nausicaa_ENABLE_LARCENY))
 SILEX_ENV	= LARCENY_LIBPATH=$(SILEX_LIBPATH):$(LARCENY_LIBPATH)
 SILEX_RUNNER	= $(SILEX_ENV) $(LARCENY) -r6rs -program
@@ -280,10 +281,7 @@ silex-test:
 LALR_PROGRAMS	= $(wildcard $(srcdir)/tests/make-lalr-*.sps)
 LALR_LIBPATH	= $(abspath $(srcdir)/tests):$(abspath $(nau_sls_BUILDDIR))
 
-ifeq (yes,$(nausicaa_ENABLE_YPSILON))
-LALR_ENV	= YPSILON_SITELIB=$(LALR_LIBPATH):$(YPSILON_SITELIB)
-LALR_RUNNER	= $(LALR_ENV) $(YPSILON)
-else ifeq (yes,$(nausicaa_ENABLE_VICARE))
+ifeq (yes,$(nausicaa_ENABLE_VICARE))
 LALR_ENV	= VICARE_LIBRARY_PATH=$(LALR_LIBPATH):$(VICARE_LIBRARY_PATH)
 LALR_RUNNER	= $(LALR_ENV) $(VICARE) --r6rs-script
 else ifeq (yes,$(nausicaa_ENABLE_IKARUS))
@@ -295,6 +293,9 @@ LALR_RUNNER	= $(LALR_ENV) $(MOSH)
 else ifeq (yes,$(nausicaa_ENABLE_PETITE))
 LALR_ENV	= PETITE_LIBPATH=$(LALR_LIBPATH):$(PETITE_LIBPATH)
 LALR_RUNNER	= $(LALR_ENV) $(PETITE) --libdirs $${PETITE_LIBPATH} --program
+else ifeq (yes,$(nausicaa_ENABLE_YPSILON))
+LALR_ENV	= YPSILON_SITELIB=$(LALR_LIBPATH):$(YPSILON_SITELIB)
+LALR_RUNNER	= $(LALR_ENV) $(YPSILON)
 else ifeq (yes,$(nausicaa_ENABLE_LARCENY))
 LALR_ENV	= LARCENY_LIBPATH=$(LALR_LIBPATH):$(LARCENY_LIBPATH)
 LALR_RUNNER	= $(LALR_ENV) $(LARCENY) -r6rs -program
@@ -313,10 +314,7 @@ lalr:
 CSV_PROGRAM	= make-tables.sps
 CSV_LIBPATH	= $(abspath $(nau_sls_BUILDDIR))
 
-ifeq (yes,$(nausicaa_ENABLE_YPSILON))
-CSV_ENV		= YPSILON_SITELIB=$(CSV_LIBPATH):$(YPSILON_SITELIB)
-CSV_RUNNER	= $(CSV_ENV) $(YPSILON)
-else ifeq (yes,$(nausicaa_ENABLE_VICARE))
+ifeq (yes,$(nausicaa_ENABLE_VICARE))
 CSV_ENV		= VICARE_LIBRARY_PATH=$(CSV_LIBPATH):$(VICARE_LIBRARY_PATH)
 CSV_RUNNER	= $(CSV_ENV) $(VICARE) --r6rs-script
 else ifeq (yes,$(nausicaa_ENABLE_IKARUS))
@@ -328,6 +326,9 @@ CSV_RUNNER	= $(CSV_ENV) $(MOSH)
 else ifeq (yes,$(nausicaa_ENABLE_PETITE))
 CSV_ENV		= PETITE_LIBPATH=$(CSV_LIBPATH):$(PETITE_LIBPATH)
 CSV_RUNNER	= $(CSV_ENV) $(PETITE) --libdirs $${PETITE_LIBPATH} --program
+else ifeq (yes,$(nausicaa_ENABLE_YPSILON))
+CSV_ENV		= YPSILON_SITELIB=$(CSV_LIBPATH):$(YPSILON_SITELIB)
+CSV_RUNNER	= $(CSV_ENV) $(YPSILON)
 else ifeq (yes,$(nausicaa_ENABLE_LARCENY))
 CSV_ENV		= LARCENY_LIBPATH=$(CSV_LIBPATH):$(LARCENY_LIBPATH)
 CSV_RUNNER	= $(CSV_ENV) $(LARCENY) -r6rs -program
@@ -345,10 +346,7 @@ csv:
 
 INFIX_LIBPATH	= $(abspath $(nau_sls_BUILDDIR))
 
-ifeq (yes,$(nausicaa_ENABLE_YPSILON))
-INFIX_ENV	= YPSILON_SITELIB=$(INFIX_LIBPATH):$(YPSILON_SITELIB)
-INFIX_RUNNER	= $(INFIX_ENV) $(YPSILON)
-else ifeq (yes,$(nausicaa_ENABLE_VICARE))
+ifeq (yes,$(nausicaa_ENABLE_VICARE))
 INFIX_ENV	= VICARE_LIBRARY_PATH=$(INFIX_LIBPATH):$(VICARE_LIBRARY_PATH)
 INFIX_RUNNER	= $(INFIX_ENV) $(VICARE) --r6rs-script
 else ifeq (yes,$(nausicaa_ENABLE_IKARUS))
@@ -360,6 +358,9 @@ INFIX_RUNNER	= $(INFIX_ENV) $(MOSH)
 else ifeq (yes,$(nausicaa_ENABLE_PETITE))
 INFIX_ENV	= PETITE_LIBPATH=$(INFIX_LIBPATH):$(PETITE_LIBPATH)
 INFIX_RUNNER	= $(INFIX_ENV) $(PETITE) --libdirs $${PETITE_LIBPATH} --program
+else ifeq (yes,$(nausicaa_ENABLE_YPSILON))
+INFIX_ENV	= YPSILON_SITELIB=$(INFIX_LIBPATH):$(YPSILON_SITELIB)
+INFIX_RUNNER	= $(INFIX_ENV) $(YPSILON)
 else ifeq (yes,$(nausicaa_ENABLE_LARCENY))
 INFIX_ENV	= LARCENY_LIBPATH=$(INFIX_LIBPATH):$(LARCENY_LIBPATH)
 INFIX_RUNNER	= $(INFIX_ENV) $(LARCENY) -r6rs -program
@@ -378,11 +379,8 @@ infix:
 EMAIL_PROGRAM	= make-tables.sps
 EMAIL_LIBPATH	= $(abspath $(nau_sls_BUILDDIR))
 
-ifeq (yes,$(nausicaa_ENABLE_YPSILON))
-EMAIL_ENV		= YPSILON_SITELIB=$(EMAIL_LIBPATH):$(YPSILON_SITELIB)
-EMAIL_RUNNER	= $(EMAIL_ENV) $(YPSILON)
-else ifeq (yes,$(nausicaa_ENABLE_VICARE))
-EMAIL_ENV		= VICARE_LIBRARY_PATH=$(EMAIL_LIBPATH):$(VICARE_LIBRARY_PATH)
+ifeq (yes,$(nausicaa_ENABLE_VICARE))
+EMAIL_ENV	= VICARE_LIBRARY_PATH=$(EMAIL_LIBPATH):$(VICARE_LIBRARY_PATH)
 EMAIL_RUNNER	= $(EMAIL_ENV) $(VICARE) --r6rs-script
 else ifeq (yes,$(nausicaa_ENABLE_IKARUS))
 EMAIL_ENV		= IKARUS_LIBRARY_PATH=$(EMAIL_LIBPATH):$(IKARUS_LIBRARY_PATH)
@@ -393,6 +391,9 @@ EMAIL_RUNNER	= $(EMAIL_ENV) $(MOSH)
 else ifeq (yes,$(nausicaa_ENABLE_PETITE))
 EMAIL_ENV		= PETITE_LIBPATH=$(EMAIL_LIBPATH):$(PETITE_LIBPATH)
 EMAIL_RUNNER	= $(EMAIL_ENV) $(PETITE) --libdirs $${PETITE_LIBPATH} --program
+else ifeq (yes,$(nausicaa_ENABLE_YPSILON))
+EMAIL_ENV		= YPSILON_SITELIB=$(EMAIL_LIBPATH):$(YPSILON_SITELIB)
+EMAIL_RUNNER	= $(EMAIL_ENV) $(YPSILON)
 else ifeq (yes,$(nausicaa_ENABLE_LARCENY))
 EMAIL_ENV		= LARCENY_LIBPATH=$(EMAIL_LIBPATH):$(LARCENY_LIBPATH)
 EMAIL_RUNNER	= $(EMAIL_ENV) $(LARCENY) -r6rs -program
@@ -402,6 +403,39 @@ endif
 
 email:
 	cd $(srcdir)/src/libraries/email/addresses && $(EMAIL_RUNNER) $(EMAIL_PROGRAM)
+
+#page
+## --------------------------------------------------------------------
+## Special rules: json lexers and parser building.
+## --------------------------------------------------------------------
+
+JSON_PROGRAM	= make-tables.sps
+JSON_LIBPATH	= $(abspath $(nau_sls_BUILDDIR))
+
+ifeq (yes,$(nausicaa_ENABLE_VICARE))
+JSON_ENV	= VICARE_LIBRARY_PATH=$(JSON_LIBPATH):$(VICARE_LIBRARY_PATH)
+JSON_RUNNER	= $(JSON_ENV) $(VICARE) --debug --r6rs-script
+else ifeq (yes,$(nausicaa_ENABLE_IKARUS))
+JSON_ENV		= IKARUS_LIBRARY_PATH=$(JSON_LIBPATH):$(IKARUS_LIBRARY_PATH)
+JSON_RUNNER	= $(JSON_ENV) $(IKARUS) --r6rs-script
+else ifeq (yes,$(nausicaa_ENABLE_MOSH))
+JSON_ENV		= MOSH_LOADPATH=$(JSON_LIBPATH):$(MOSH_LOADPATH)
+JSON_RUNNER	= $(JSON_ENV) $(MOSH)
+else ifeq (yes,$(nausicaa_ENABLE_PETITE))
+JSON_ENV		= PETITE_LIBPATH=$(JSON_LIBPATH):$(PETITE_LIBPATH)
+JSON_RUNNER	= $(JSON_ENV) $(PETITE) --libdirs $${PETITE_LIBPATH} --program
+else ifeq (yes,$(nausicaa_ENABLE_YPSILON))
+JSON_ENV	= YPSILON_SITELIB=$(JSON_LIBPATH):$(YPSILON_SITELIB)
+JSON_RUNNER	= $(JSON_ENV) $(YPSILON)
+else ifeq (yes,$(nausicaa_ENABLE_LARCENY))
+JSON_ENV		= LARCENY_LIBPATH=$(JSON_LIBPATH):$(LARCENY_LIBPATH)
+JSON_RUNNER	= $(JSON_ENV) $(LARCENY) -r6rs -program
+endif
+
+.PHONY: json
+
+json:
+	cd $(srcdir)/src/libraries/json && $(JSON_RUNNER) $(JSON_PROGRAM)
 
 
 

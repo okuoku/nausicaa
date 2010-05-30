@@ -84,6 +84,7 @@ lalr	- rebuild the tests for the (lalr) parser
 csv	- rebuild the tables for the (csv) library
 infix	- rebuild the tables for the (infix) library
 email	- rebuild the tables for the email libraries
+json	- rebuild the tables for the json libraries
 
   The special  makefile rule "libdist" will  create a source
 libraries  only  archive  under the  "$(builddir)/libdist.d"
