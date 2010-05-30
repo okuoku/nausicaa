@@ -80,12 +80,6 @@
 
 (define syntax-method-identifier syntax-accessor-identifier)
 
-(define-syntax keyword=?
-  (syntax-rules ()
-    ((_ ?stx ?keyword)
-     (and (identifier? #'?stx)
-	  (free-identifier=? #'?stx #'?keyword)))))
-
 
 ;;;; class-specific definition clauses collectors
 
@@ -105,19 +99,17 @@
   (let ((clauses (filter-clauses #'inherit clauses)))
     (if (null? clauses)
 	(values #f #t #t #t #t)
-      (syntax-case (car clauses) ()
+      (syntax-case (car clauses) (inherit)
 
-	((?keyword ?superclass-name)
-	 (and (keyword=? ?keyword inherit)
-	      (identifier? #'?superclass-name))
+	((inherit ?superclass-name)
+	 (identifier? #'?superclass-name)
 	 (values (if (free-identifier=? #'<top> #'?superclass-name)
 		     #'<top>-superclass
 		   #'?superclass-name)
 		 #t #t #t #t))
 
-	((?keyword ?superclass-name (?inherit-option ...))
-	 (and (keyword=? ?keyword inherit)
-	      (all-identifiers? #'(?superclass-name ?inherit-option ...)))
+	((inherit ?superclass-name (?inherit-option ...))
+	 (all-identifiers? #'(?superclass-name ?inherit-option ...))
 	 (call-with-values
 	     (lambda ()
 	       (%parse-class-inherit-options #'(?inherit-option ...) synner))
@@ -146,10 +138,9 @@
   (let ((clauses (filter-clauses #'parent clauses)))
     (if (null? clauses)
 	#f
-      (syntax-case (car clauses) ()
-	((?keyword ?record-name)
-	 (and (keyword=? ?keyword parent)
-	      (identifier? #'?record-name))
+      (syntax-case (car clauses) (parent)
+	((parent ?record-name)
+	 (identifier? #'?record-name)
 	 #'?record-name)
 
 	(_
@@ -171,9 +162,8 @@
   (let ((clauses (filter-clauses #'parent-rtd clauses)))
     (if (null? clauses)
 	(values #f #f)
-      (syntax-case (car clauses) ()
-	((?keyword ?rtd ?cd)
-	 (keyword=? ?keyword parent-rtd)
+      (syntax-case (car clauses) (parent-rtd)
+	((parent-rtd ?rtd ?cd)
 	 (values #'?rtd #'?cd))
 	(_
 	 (synner "invalid parent-rtd clause" (car clauses)))))))
@@ -193,15 +183,13 @@
   (let ((clauses (filter-clauses #'nongenerative clauses)))
     (if (null? clauses)
 	(datum->syntax thing-identifier (gensym))
-      (syntax-case (car clauses) ()
+      (syntax-case (car clauses) (nongenerative)
 
-	((?keyword)
-	 (keyword=? ?keyword nongenerative)
+	((?nongenerative)
 	 (datum->syntax thing-identifier (gensym)))
 
-	((?keyword ?uid)
-	 (and (keyword=? ?keyword nongenerative)
-	      (identifier? #'?uid))
+	((nongenerative ?uid)
+	 (identifier? #'?uid)
 	 #'?uid)
 
 	(_
@@ -223,11 +211,10 @@
   (let ((clauses (filter-clauses #'sealed clauses)))
     (if (null? clauses)
 	#f
-      (syntax-case (car clauses) ()
+      (syntax-case (car clauses) (sealed)
 
-	((?keyword ?bool)
-	 (and (keyword=? ?keyword sealed)
-	      (boolean? (syntax->datum #'?bool)))
+	((sealed ?bool)
+	 (boolean? (syntax->datum #'?bool))
 	 (syntax->datum #'?bool))
 
 	(_
@@ -249,11 +236,10 @@
   (let ((clauses (filter-clauses #'opaque clauses)))
     (if (null? clauses)
 	#f
-      (syntax-case (car clauses) ()
+      (syntax-case (car clauses) (opaque)
 
-	((?keyword ?bool)
-	 (and (keyword=? ?keyword opaque)
-	      (boolean? (syntax->datum #'?bool)))
+	((opaque ?bool)
+	 (boolean? (syntax->datum #'?bool))
 	 (syntax->datum #'?bool))
 
 	(_
@@ -275,10 +261,9 @@
   (let ((clauses (filter-clauses #'protocol clauses)))
     (if (null? clauses)
 	#f
-      (syntax-case (car clauses) ()
+      (syntax-case (car clauses) (protocol)
 
-	((?keyword ?expression)
-	 (keyword=? ?keyword protocol)
+	((protocol ?expression)
 	 #'?expression)
 
 	(_
@@ -300,10 +285,9 @@
   (let ((clauses (filter-clauses #'public-protocol clauses)))
     (if (null? clauses)
 	#f
-      (syntax-case (car clauses) ()
+      (syntax-case (car clauses) (public-protocol)
 
-	((?keyword ?expression)
-	 (keyword=? ?keyword public-protocol)
+	((public-protocol ?expression)
 	 #'?expression)
 
 	(_
@@ -325,10 +309,9 @@
   (let ((clauses (filter-clauses #'maker-protocol clauses)))
     (if (null? clauses)
 	#f
-      (syntax-case (car clauses) ()
+      (syntax-case (car clauses) (maker-protocol)
 
-	((?keyword ?expression)
-	 (keyword=? ?keyword maker-protocol)
+	((maker-protocol ?expression)
 	 #'?expression)
 
 	(_
@@ -350,10 +333,9 @@
   (let ((clauses (filter-clauses #'superclass-protocol clauses)))
     (if (null? clauses)
 	#f
-      (syntax-case (car clauses) ()
+      (syntax-case (car clauses) (superclass-protocol)
 
-	((?keyword ?expression)
-	 (keyword=? ?keyword superclass-protocol)
+	((superclass-protocol ?expression)
 	 #'?expression)
 
 	(_
@@ -375,10 +357,9 @@
   (let ((clauses (filter-clauses #'predicate clauses)))
     (if (null? clauses)
 	predicate-identifier
-      (syntax-case (car clauses) ()
-	((?keyword ?predicate)
-	 (and (keyword=? ?keyword predicate)
-	      (identifier? #'?predicate))
+      (syntax-case (car clauses) (predicate)
+	((predicate ?predicate)
+	 (identifier? #'?predicate)
 	 #'?predicate)
 	(_
 	 (synner "invalid predicate clause" (car clauses)))
@@ -401,11 +382,10 @@
   (let ((clauses (filter-clauses #'maker clauses)))
     (if (null? clauses)
 	(values '() '())
-      (syntax-case (car clauses) ()
+      (syntax-case (car clauses) (maker)
 
-	((?keyword (?positional-arg ...) (?optional-keyword ?optional-default) ...)
-	 (and (keyword=? ?keyword maker)
-	      (all-identifiers? #'(?optional-keyword ...)))
+	((maker (?positional-arg ...) (?optional-keyword ?optional-default) ...)
+	 (all-identifiers? #'(?optional-keyword ...))
 	 (values #'(?positional-arg ...) #'((?optional-keyword ?optional-default) ...)))
 
 	(_
@@ -441,27 +421,24 @@
   ;;parse  error occurs;  it must  accept two  arguments:  the message
   ;;string, the subform.
   ;;
+  (define (recurse index field-definitions)
+    (output-forms/class/concrete-fields rtd-identifier (cdr field-specs)
+					synner (+ 1 index) field-definitions))
   (if (null? field-specs)
       (reverse field-definitions)
-    (syntax-case (car field-specs) ()
+    (syntax-case (car field-specs) (mutable immutable)
 
-      ((?mutable ?field ?accessor ?mutator)
-       (and (keyword=? ?mutable mutable)
-	    (all-identifiers? #'(?field ?accessor ?mutator)))
-       (output-forms/class/concrete-fields
-	rtd-identifier (cdr field-specs) synner (+ 1 index)
-	(cons #`(begin
-		  (define ?accessor  (record-accessor #,rtd-identifier #,index))
-		  (define ?mutator   (record-mutator  #,rtd-identifier #,index)))
-	      field-definitions)))
+      ((mutable ?field ?accessor ?mutator)
+       (all-identifiers? #'(?field ?accessor ?mutator))
+       (recurse (cons #`(begin
+			  (define ?accessor  (record-accessor #,rtd-identifier #,index))
+			  (define ?mutator   (record-mutator  #,rtd-identifier #,index)))
+		      field-definitions)))
 
-      ((?immutable ?field ?accessor)
-       (and (keyword=? ?immutable immutable)
-	    (all-identifiers? #'(?field ?accessor)))
-       (output-forms/class/concrete-fields
-	rtd-identifier (cdr field-specs) synner (+ 1 index)
-	(cons #`(define ?accessor  (record-accessor #,rtd-identifier #,index))
-	      field-definitions)))
+      ((immutable ?field ?accessor)
+       (all-identifiers? #'(?field ?accessor))
+       (recurse (cons #`(define ?accessor  (record-accessor #,rtd-identifier #,index))
+		      field-definitions)))
 
       (_
        (synner "invalid concrete field specification" (car field-specs)))
@@ -530,30 +507,27 @@
   ;;parse  error  occurs; it  must  accept  two  arguments: the  message
   ;;string, the subform.
   ;;
+  (define (select-superlabel superlabel-name)
+    (if (free-identifier=? #'<top> superlabel-name)
+	#'<top>-superlabel
+      superlabel-name))
   (let ((clauses (filter-clauses #'inherit clauses)))
     (if (null? clauses)
 	(values #'<top>-superlabel #t #t #t)
       (syntax-case (car clauses) (inherit)
 
-	((?keyword ?superlabel-name)
-	 (and (keyword=? ?keyword inherit)
-	      (identifier? #'?superlabel-name))
-	 (values (if (free-identifier=? #'<top> #'?superlabel-name)
-		     #'<top>-superlabel
-		   #'?superlabel-name)
-		 #t #t #t))
+	((inherit ?superlabel-name)
+	 (identifier? #'?superlabel-name)
+	 (values (select-superlabel #'?superlabel-name) #t #t #t))
 
-	((?keyword ?superlabel-name (?inherit-option ...))
-	 (and (keyword=? ?keyword inherit)
-	      (all-identifiers? #'(?superlabel-name ?inherit-option ...)))
+	((inherit ?superlabel-name (?inherit-option ...))
+	 (all-identifiers? #'(?superlabel-name ?inherit-option ...))
 	 (call-with-values
 	     (lambda ()
 	       (%parse-label-inherit-options #'(?inherit-option ...) synner))
-	   (lambda (virtual-fields methods setter-and-getter)
-	     (values (if (free-identifier=? #'<top> #'?superlabel-name)
-			 #'<top>-superlabel
-		       #'?superlabel-name)
-		     virtual-fields methods setter-and-getter))))
+	   (lambda (inherit-virtual-fields? inherit-methods? inherit-setter-and-getter?)
+	     (values (select-superlabel #'?superlabel-name)
+		     inherit-virtual-fields? inherit-methods? inherit-setter-and-getter?))))
 
 	(_
 	 (synner "invalid inherit clause" (car clauses)))
@@ -574,9 +548,9 @@
   (let ((clauses (filter-clauses #'predicate clauses)))
     (if (null? clauses)
 	#f
-      (syntax-case (car clauses) ()
-	((?keyword ?predicate)
-	 (and (keyword=? ?keyword predicate) (identifier? #'?predicate))
+      (syntax-case (car clauses) (predicate)
+	((predicate ?predicate)
+	 (identifier? #'?predicate)
 	 #'?predicate)
 	(_
 	 (synner "invalid predicate clause" (car clauses)))
@@ -651,9 +625,8 @@
 		    (collected '()))
     (if (null? clauses)
 	(reverse collected)
-      (syntax-case (car clauses) ()
-	((?keyword ?field-clause ...)
-	 (keyword=? ?keyword fields)
+      (syntax-case (car clauses) (fields)
+	((fields ?field-clause ...)
 	 (next-clause (cdr clauses)
 		      (%parse-clause/fields thing-identifier (cdar clauses) synner collected)))
 	(_
@@ -686,9 +659,8 @@
 		    (collected '()))
     (if (null? clauses)
 	(reverse collected)
-      (syntax-case (car clauses) ()
-	((?keyword ?field-clause ...)
-	 (keyword=? ?keyword virtual-fields)
+      (syntax-case (car clauses) (virtual-fields)
+	((virtual-fields ?field-clause ...)
 	 (next-clause (cdr clauses)
 		      (%parse-clause/virtual-fields thing-identifier (cdar clauses) synner collected)))
 	(_
@@ -717,9 +689,8 @@
 		    (collected '()))
     (if (null? clauses)
 	(reverse collected)
-      (syntax-case (car clauses) ()
-	((?keyword ?method-clause ...)
-	 (keyword=? ?keyword methods)
+      (syntax-case (car clauses) (methods)
+	((methods ?method-clause ...)
 	 (next-clause (cdr clauses)
 		      (%parse-clause/methods thing-identifier
 					     (unwrap-syntax-object #'(?method-clause ...))
@@ -756,14 +727,10 @@
 		    (definitions	'()))
     (if (null? clauses)
 	(values (reverse methods) (reverse definitions))
-      (syntax-case (car clauses) ()
-	((?keyword . ?args)
-	 (keyword=? ?keyword method)
-	 (call-with-values
-	     (lambda ()
-	       (%parse-clause/method thing-name (car clauses) synner define/with-class))
-	   (lambda (m d)
-	     (next-clause (cdr clauses) (cons m methods) (cons d definitions)))))
+      (syntax-case (car clauses) (method)
+	((method . ?args)
+	 (let-values (((m d) (%parse-clause/method thing-name (car clauses) synner define/with-class)))
+	   (next-clause (cdr clauses) (cons m methods) (cons d definitions))))
 	(_
 	 (synner "invalid method clause" (car clauses)))
 	))))
@@ -795,14 +762,10 @@
 		    (definitions	'()))
     (if (null? clauses)
 	(values (reverse methods) (reverse definitions))
-      (syntax-case (car clauses) ()
-	((?keyword . ?args)
-	 (keyword=? ?keyword method-syntax)
-	 (call-with-values
-	     (lambda ()
-	       (%parse-clause/method-syntax thing-name (car clauses) synner))
-	   (lambda (m d)
-	     (next-clause (cdr clauses) (cons m methods) (cons d definitions)))))
+      (syntax-case (car clauses) (method-syntax)
+	((method-syntax . ?args)
+	 (let-values (((m d) (%parse-clause/method-syntax thing-name (car clauses) synner)))
+	   (next-clause (cdr clauses) (cons m methods) (cons d definitions))))
 	(_
 	 (synner "invalid method-syntax clause" (car clauses)))
 	))))
@@ -822,9 +785,8 @@
   (let ((clauses (filter-clauses #'setter clauses)))
     (if (null? clauses)
 	#f
-      (syntax-case (car clauses) ()
-	((?keyword ?setter)
-	 (keyword=? ?keyword setter)
+      (syntax-case (car clauses) (setter)
+	((setter ?setter)
 	 #'?setter)
 	(_
 	 (synner "invalid setter clause" (car clauses)))
@@ -845,9 +807,8 @@
   (let ((clauses (filter-clauses #'getter clauses)))
     (if (null? clauses)
 	#f
-      (syntax-case (car clauses) ()
-	((?keyword ?getter)
-	 (keyword=? ?keyword getter)
+      (syntax-case (car clauses) (getter)
+	((getter ?getter)
 	 #'?getter)
 	(_
 	 (synner "invalid getter clause" (car clauses)))
@@ -868,9 +829,9 @@
   (let ((clauses (filter-clauses #'bindings clauses)))
     (if (null? clauses)
 	#'<top>-bindings
-      (syntax-case (car clauses) ()
-	((?keyword ?macro-name)
-	 (and (keyword=? ?keyword bindings) (identifier? #'?macro-name))
+      (syntax-case (car clauses) (bindings)
+	((bindings ?macro-name)
+	 (identifier? #'?macro-name)
 	 #'?macro-name)
 	(_
 	 (synner "invalid bindings clause" (car clauses)))
@@ -907,27 +868,25 @@
   (if (null? field-clauses)
       collected-fields ;it  is important to  keep the order,  we reverse
 		       ;the list in the calling function
-    (syntax-case (car field-clauses) ()
+    (syntax-case (car field-clauses) (mutable immutable)
 
-      ((?mutable ?field ?accessor ?mutator)
-       (and (keyword=? ?mutable mutable)
-	    (all-identifiers? #'(?field ?accessor ?mutator)))
-       (recurse #'(?mutable ?field ?accessor ?mutator)))
+      ((mutable ?field ?accessor ?mutator)
+       (all-identifiers? #'(?field ?accessor ?mutator))
+       (recurse #'(mutable ?field ?accessor ?mutator)))
 
-      ((?mutable ?field)
-       (and (keyword=? ?mutable mutable)
-	    (identifier? #'?field))
-       (recurse #`(?mutable ?field
-			    #,(syntax-accessor-identifier thing-name #'?field)
-			    #,(syntax-mutator-identifier  thing-name #'?field))))
+      ((mutable ?field)
+       (identifier? #'?field)
+       (recurse #`(mutable ?field
+			   #,(syntax-accessor-identifier thing-name #'?field)
+			   #,(syntax-mutator-identifier  thing-name #'?field))))
 
-      ((?immutable ?field ?accessor)
-       (and (keyword=? ?immutable immutable) (all-identifiers? #'(?field ?accessor ?mutator)))
-       (recurse #'(?immutable ?field ?accessor)))
+      ((immutable ?field ?accessor)
+       (all-identifiers? #'(?field ?accessor ?mutator))
+       (recurse #'(immutable ?field ?accessor)))
 
-      ((?immutable ?field)
-       (and (keyword=? ?immutable immutable) (identifier? #'?field))
-       (recurse #`(?immutable ?field #,(syntax-accessor-identifier thing-name #'?field))))
+      ((immutable ?field)
+       (identifier? #'?field)
+       (recurse #`(immutable ?field #,(syntax-accessor-identifier thing-name #'?field))))
 
       (?field
        (identifier? #'?field)
@@ -963,29 +922,29 @@
 				  (cons field-spec collected-fields)))
   (if (null? field-clauses)
       (reverse collected-fields) ;it is important to keep the order
-    (syntax-case (car field-clauses) ()
+    (syntax-case (car field-clauses) (mutable immutable)
 
-      ((?mutable ?field ?accessor ?mutator)
-       (and (keyword=? ?mutable mutable) (all-identifiers? #'(?field ?accessor ?mutator)))
-       (recurse #'(?mutable ?field ?accessor ?mutator)))
+      ((mutable ?field ?accessor ?mutator)
+       (all-identifiers? #'(?field ?accessor ?mutator))
+       (recurse #'(mutable ?field ?accessor ?mutator)))
 
-      ((?mutable ?field)
-       (and (keyword=? ?mutable mutable) (identifier? #'?field))
-       (recurse #`(?mutable ?field
-			    #,(syntax-accessor-identifier thing-name #'?field)
-			    #,(syntax-mutator-identifier  thing-name #'?field))))
+      ((mutable ?field)
+       (identifier? #'?field)
+       (recurse #`(mutable ?field
+			   #,(syntax-accessor-identifier thing-name #'?field)
+			   #,(syntax-mutator-identifier  thing-name #'?field))))
 
-      ((?immutable ?field ?accessor)
-       (and (keyword=? ?immutable immutable) (all-identifiers? #'(?field ?accessor ?mutator)))
-       (recurse #'(?immutable ?field ?accessor)))
+      ((immutable ?field ?accessor)
+       (all-identifiers? #'(?field ?accessor ?mutator))
+       (recurse #'(immutable ?field ?accessor)))
 
-      ((?immutable ?field)
-       (and (keyword=? ?immutable immutable) (identifier? #'?field))
-       (recurse #`(?immutable ?field #,(syntax-accessor-identifier thing-name #'?field))))
+      ((immutable ?field)
+       (identifier? #'?field)
+       (recurse #`(immutable ?field #,(syntax-accessor-identifier thing-name #'?field))))
 
       (?field
        (identifier? #'?field)
-       (recurse #`(#,(syntax immutable) ?field #,(syntax-accessor-identifier thing-name #'?field))))
+       (recurse #`(immutable ?field #,(syntax-accessor-identifier thing-name #'?field))))
 
       (_
        (synner "invalid virtual-fields clause" (car field-clauses)))
@@ -1016,19 +975,19 @@
 			   (cons method-spec collected-methods)))
   (if (null? methods-clauses)
       (reverse collected-methods)
-    (syntax-case (car methods-clauses) ()
+    (syntax-case (car methods-clauses) (method)
 
-      ((?method ?method-name)
-       (and (identifier? #'?method) (identifier? #'?method-name))
-       (recurse (list #'?method #'?method-name)))
+      ((?field-name ?method-function/macro)
+       (and (identifier? #'?field-name) (identifier? #'?method-function/macro))
+       (recurse (list #'?field-name #'?method-function/macro)))
 
-      ((?method)
-       (identifier? #'?method)
-       (recurse (list #'?method (syntax-method-identifier thing-name #'?method))))
+      ((?field-name)
+       (identifier? #'?field-name)
+       (recurse (list #'?field-name (syntax-method-identifier thing-name #'?field-name))))
 
-      (?method
-       (identifier? #'?method)
-       (recurse (list #'?method (syntax-method-identifier thing-name #'?method))))
+      (?field-name
+       (identifier? #'?field-name)
+       (recurse (list #'?field-name (syntax-method-identifier thing-name #'?field-name))))
 
       (_
        (synner "invalid methods clause" (car methods-clauses)))
@@ -1049,16 +1008,16 @@
   ;;parse  error happens;  it  must accept  two  arguments: the  message
   ;;string, the subform.
   ;;
-  (syntax-case clause ()
+  (syntax-case clause (method)
 
-    ((?keyword (?method . ?args) . ?body)
-     (and (keyword=? ?keyword method) (identifier? #'?method))
+    ((method (?method . ?args) . ?body)
+     (identifier? #'?method)
      (with-syntax ((FUNCTION-NAME (syntax-method-identifier thing-name #'?method)))
        (values #'(?method FUNCTION-NAME)
 	       #`(#,define/with-class (FUNCTION-NAME . ?args) . ?body))))
 
-    ((?keyword ?method ?expression)
-     (and (keyword=? ?keyword method) (identifier? #'?method))
+    ((method ?method ?expression)
+     (identifier? #'?method)
      (with-syntax ((FUNCTION-NAME (syntax-method-identifier thing-name #'?method)))
        (values #'(?method FUNCTION-NAME)
 	       #'(define FUNCTION-NAME ?expression))))
@@ -1083,8 +1042,8 @@
   ;;
   (syntax-case clause ()
 
-    ((?keyword ?method ?transformer)
-     (and (keyword=? ?keyword method-syntax) (identifier? #'?method))
+    ((method-syntax ?method ?transformer)
+     (identifier? #'?method)
      (with-syntax ((MACRO-NAME (syntax-method-identifier thing-name #'?method)))
        (values #'(?method MACRO-NAME)
 	       #'(define-syntax MACRO-NAME ?transformer))))

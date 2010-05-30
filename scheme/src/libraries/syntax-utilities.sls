@@ -36,7 +36,7 @@
 
     ;; identifiers hangling
     all-identifiers?			duplicated-identifiers?
-    identifier-memq
+    identifier-memq			symbol-identifier=?
 
     ;; common identifier names constructor
     identifier->string			string->identifier
@@ -151,6 +151,11 @@
 	(else
 	 (identifier-memq identifier (cdr list-of-syntax-objects)))))
 
+(define (symbol-identifier=? id1 id2)
+  (assert (identifier? id1))
+  (assert (identifier? id2))
+  (eq? (syntax->datum id1) (syntax->datum id2)))
+
 
 (define (%general-string-append . args)
   (let-values (((port getter) (open-string-output-port)))
@@ -233,10 +238,10 @@
 		    (selected '()))
     (if (null? clauses)
 	(reverse selected) ;it is important to keep the order
-      (next-clause (cdr clauses)
-		   (if (free-identifier=? keyword-identifier (caar clauses))
-		       (cons (car clauses) selected)
-		     selected)))))
+	(next-clause (cdr clauses)
+		     (if (free-identifier=? keyword-identifier (caar clauses))
+			 (cons (car clauses) selected)
+		       selected)))))
 
 
 (define (validate-definition-clauses mandatory-keywords optional-keywords
