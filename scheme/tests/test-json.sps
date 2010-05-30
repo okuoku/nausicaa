@@ -39,7 +39,7 @@
 (define-keywords :string :counters)
 
 
-(parameterise ((check-test-name 'quoted-text-lexer))
+(parameterise ((check-test-name 'string-lexer))
 
   (define (tokenise-string string)
     ;;This  is just  a  lexer, it  does  not check  for the  terminating
@@ -50,21 +50,56 @@
       (do ((token (lexer) (lexer)))
 	  ((<lexical-token>?/end-of-input token)
 	   (reverse out))
+;;;(write token)(newline)
 	(set! out (cons token out)))))
 
 ;;; --------------------------------------------------------------------
 
-  (check	;empty string
-      (tokenise-string "")
-    => '())
+;;All the test strings must end with a double-quote char.
 
   (check	;empty string
       (tokenise-string "\"")
     => '(QUOTED-TEXT-CLOSE))
 
-  (check	;a string
-      (tokenise-string "ciao")
-    => '("ciao"))
+  (check
+      (tokenise-string "\\\"\"")
+    => '("\"" QUOTED-TEXT-CLOSE))
+
+  (check
+      (tokenise-string "\\/\"")
+    => '("/" QUOTED-TEXT-CLOSE))
+
+  (check
+      (tokenise-string "\\b\"")
+    => '("\b" QUOTED-TEXT-CLOSE))
+
+  (check
+      (tokenise-string "\\f\"")
+    => '("\f" QUOTED-TEXT-CLOSE))
+
+  (check
+      (tokenise-string "\\n\"")
+    => '("\n" QUOTED-TEXT-CLOSE))
+
+  (check
+      (tokenise-string "\\r\"")
+    => '("\r" QUOTED-TEXT-CLOSE))
+
+  (check
+      (tokenise-string "\\t\"")
+    => '("\t" QUOTED-TEXT-CLOSE))
+
+  (check
+      (tokenise-string "inizio\\\"\\/\\b\\f\\n\\r\\tfine\"")
+    => '("inizio" "\"" "/" "\b" "\f" "\n" "\r" "\t" "fine" QUOTED-TEXT-CLOSE))
+
+  (check
+      (tokenise-string "\\u005C\"")
+    => '("\\" QUOTED-TEXT-CLOSE))
+
+  (check
+      (tokenise-string "\\u0063\\u0069\\u0061\\u006f\"")
+    => '("c" "i" "a" "o" QUOTED-TEXT-CLOSE))
 
   (check	;a string
       (tokenise-string "ciao\"")
@@ -72,18 +107,14 @@
 
   (check
       ;;A string with a quoted character in it.  The quoting is removed.
-      (tokenise-string "\\a\"")
+      (tokenise-string "a\"")
     => '("a" QUOTED-TEXT-CLOSE))
-
-;;   (check ;a string with utf-8 character
-;;       (tokenise-string "cio\"")
-;;     => '("cio" QUOTED-TEXT-CLOSE))
 
   (check
       ;;Nested double quotes.  The Scheme string "\\\"" is seen as \" by
       ;;the lexer and the backslash quoting character is removed.
       (tokenise-string "ciao \\\"hello\\\" salut\"")
-    => '("ciao \"hello\" salut"  QUOTED-TEXT-CLOSE))
+    => '("ciao " "\"" "hello" "\"" " salut"  QUOTED-TEXT-CLOSE))
 
   #t)
 

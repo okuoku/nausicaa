@@ -60,7 +60,9 @@
 				  (<source-location>-column pos)
 				  (<source-location>-offset pos))
 				 text (string-length text))))
-      (display token port))))
+      (if (<lexical-token>?/end-of-input token)
+	  (error 'json-string-lexer "unexpected end of input while parsing string")
+	(display token port)))))
 
 (define (json->tokens IS)
   (let ((lexer (make-json-rfc-lexer IS)))

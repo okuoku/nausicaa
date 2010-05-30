@@ -25,21 +25,47 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
+hexdigit		[0-9a-fA-F]
+
+escaped-quote		\\\"
+escaped-backslash	\\\\
+escaped-slash		\\/
+escaped-backspace	\\b
+escaped-formfeed	\\f
+escaped-linefeed	\\n
+escaped-return		\\r
+escaped-tab		\\t
+escaped-unicode		\\u{hexdigit}{hexdigit}{hexdigit}{hexdigit}
+
 double-quote		\"
-quoted-text		([^\"]+|\\\")+
+
+text			[^\"\\]+
 
 %%
 
 {double-quote}		'QUOTED-TEXT-CLOSE
 
-{quoted-text}		(unquote-string yytext)
+{escaped-quote}		"\""
+{escaped-backslash}	"\\"
+{escaped-slash}		"/"
+{escaped-backspace}	"\b"
+{escaped-formfeed}	"\f"
+{escaped-linefeed}	"\n"
+{escaped-return}	"\r"
+{escaped-tab}		"\t"
+{escaped-unicode}	(begin
+                         (string (integer->char (string->number (substring yytext 2 6) 16))))
+
+{text}			(begin yytext)
 
 <<EOF>>			(make-<lexical-token> '*eoi*
 			 (make-<source-location> #f yyline yycolumn yyoffset)
 			 (eof-object) 0)
 
-<<ERROR>>		(make-<lexical-token> '*lexer-error*
-			 (make-<source-location> #f yyline yycolumn yyoffset)
-			 yytext (string-length yytext))
+<<ERROR>>		(error 'json-lexer
+                         (string-append "invalid character \"" yytext
+			                "\" in JSON string at line " (number->string yyline)
+					" column " (number->string yycolumn))
+			 yytext)
 
 ;;; end of file
