@@ -28,7 +28,8 @@
 (library (json)
   (export
     make-json-rfc-lexer make-json-parser
-    json->tokens)
+    json->tokens
+    json-encode-string)
   (import (nausicaa)
     (silex lexer)
     (json string-lexer)
@@ -71,6 +72,60 @@
       (if (<lexical-token>?/special token)
 	  (reverse list-of-tokens)
 	(loop (lexer) (cons token list-of-tokens))))))
+
+
+(define (json-encode-string in-str)
+  (let-values (((port getter) (open-string-output-port)))
+    (string-for-each (lambda (ch)
+		       (display (case ch
+				  ((#\")		"\\\"")
+				  ((#\\)		"\\\\")
+				  ((#\/)		"\\/")
+				  ((#\backspace)	"\\b")
+				  ((#\page)		"\\f")
+				  ((#\linefeed)		"\\n")
+				  ((#\return)		"\\r")
+				  ((#\tab)		"\\t")
+				  (else
+				   (let ((n (char->integer ch)))
+				     (if (<= 32 n 126)
+					 ch
+				       (let ((hex (number->string n 16)))
+					 (string-append "\\u"
+							(case (string-length hex)
+							  ((0)  "0000")
+							  ((1)  "000")
+							  ((2)  "00")
+							  ((3)  "0")
+							  (else ""))
+							hex))))))
+				port))
+		     in-str)
+    (getter)))
+
+
+(define (json-make-object name value)
+  (assert (string? name))
+  (assert (string? value))
+  (string-append "{ " name ": " value " }"))
+
+(define (json-make-array the-values)
+  (let ((list-of-values (cond ((list? the-values)
+			       the-values)
+			      ((vector? the-values)
+			       (vector->list the-values))
+			      (else
+			       (assertion-violation 'json-make-array
+				 "expected list or vector of values for JSON array")))))
+    (let-values (((port getter) (open-string-output-port)))
+      (display "[ " port)
+      (display (car list-of-values) port)
+      (for-each (lambda (val)
+		  (display ", " port)
+		  (display val port))
+	list-of-values)
+      (display " ]" port)
+      (getter))))
 
 
 ;;;; done

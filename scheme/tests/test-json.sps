@@ -39,7 +39,7 @@
 (define-keywords :string :counters)
 
 
-(parameterise ((check-test-name 'string-lexer))
+(parameterise ((check-test-name 'lexer-string))
 
   (define (tokenise-string string)
     ;;This  is just  a  lexer, it  does  not check  for the  terminating
@@ -119,7 +119,7 @@
   #t)
 
 
-(parameterise ((check-test-name 'lexer))
+(parameterise ((check-test-name 'lexer-json))
 
   (define (doit string)
     (map (lambda (token)
@@ -205,7 +205,7 @@
   #t)
 
 
-(parameterise ((check-test-name 'lexer))
+(parameterise ((check-test-name 'parser))
 
   (define (doit string)
     (let* ((IS		(lexer-make-IS :string string :counters 'all))
@@ -243,6 +243,59 @@
 			 ("Height" . 125)
 			 ("Width" . "100")))
 	 ("IDs" . #(116 943 234 38793))))
+
+  #t)
+
+
+(parameterise ((check-test-name 'string-encode))
+
+  (check
+      (json-encode-string "")
+    => "")
+
+  (check
+      (json-encode-string "ciao")
+    => "ciao")
+
+  (check
+      (json-encode-string "\"")
+    => "\\\"")
+
+  (check
+      (json-encode-string "/")
+    => "\\/")
+
+  (check
+      (json-encode-string "\b")
+    => "\\b")
+
+  (check
+      (json-encode-string "\f")
+    => "\\f")
+
+  (check
+      (json-encode-string "\n")
+    => "\\n")
+
+  (check
+      (json-encode-string "\r")
+    => "\\r")
+
+  (check
+      (json-encode-string "\t")
+    => "\\t")
+
+  (check
+      (json-encode-string " ")
+    => " ")
+
+  (check
+      (json-encode-string "\x127;")
+    => "\\u0127")
+
+  (check
+      (json-encode-string "\x1234;")
+    => "\\u1234")
 
   #t)
 
