@@ -96,6 +96,10 @@
   ;;parse  error  occurs; it  must  accept  two  arguments: the  message
   ;;string, the subform.
   ;;
+  (define (select-superclass superclass-name)
+    (if (free-identifier=? #'<top> superclass-name)
+	#'<top>-superclass
+      superclass-name))
   (let ((clauses (filter-clauses #'inherit clauses)))
     (if (null? clauses)
 	(values #f #t #t #t #t)
@@ -103,21 +107,16 @@
 
 	((inherit ?superclass-name)
 	 (identifier? #'?superclass-name)
-	 (values (if (free-identifier=? #'<top> #'?superclass-name)
-		     #'<top>-superclass
-		   #'?superclass-name)
-		 #t #t #t #t))
+	 (values (select-superclass #'?superclass-name) #t #t #t #t))
 
 	((inherit ?superclass-name (?inherit-option ...))
 	 (all-identifiers? #'(?superclass-name ?inherit-option ...))
-	 (call-with-values
-	     (lambda ()
-	       (%parse-class-inherit-options #'(?inherit-option ...) synner))
-	   (lambda (concrete-fields virtual-fields methods setter-and-getter)
-	     (values (if (free-identifier=? #'<top> #'?superclass-name)
-			 #'<top>-superclass
-		       #'?superclass-name)
-		     concrete-fields virtual-fields methods setter-and-getter))))
+	 (let-values (((inherit-concrete-fields? inherit-virtual-fields? inherit-methods?
+						 inherit-setter-and-getter?)
+		       (%parse-class-inherit-options #'(?inherit-option ...) synner)))
+	   (values (select-superclass #'?superclass-name)
+		   inherit-concrete-fields? inherit-virtual-fields? inherit-methods?
+		   inherit-setter-and-getter?)))
 
 	(_
 	 (synner "invalid inherit clause" (car clauses)))
@@ -185,7 +184,7 @@
 	(datum->syntax thing-identifier (gensym))
       (syntax-case (car clauses) (nongenerative)
 
-	((?nongenerative)
+	((nongenerative)
 	 (datum->syntax thing-identifier (gensym)))
 
 	((nongenerative ?uid)
@@ -414,6 +413,7 @@
   ;;	    (record-accessor RTD-IDENTIFIER INDEX))
   ;;	  (define <mutator identifier>
   ;;	    (record-mutator RTD-IDENTIFIER INDEX)))
+  ;;
   ;;    (define <accessor identifier>
   ;;	   (record-accessor RTD-IDENTIFIER INDEX))
   ;;
@@ -421,9 +421,8 @@
   ;;parse  error occurs;  it must  accept two  arguments:  the message
   ;;string, the subform.
   ;;
-  (define (recurse index field-definitions)
-    (output-forms/class/concrete-fields rtd-identifier (cdr field-specs)
-					synner (+ 1 index) field-definitions))
+  (define (recurse field-defs)
+    (output-forms/class/concrete-fields rtd-identifier (cdr field-specs) synner (+ 1 index) field-defs))
   (if (null? field-specs)
       (reverse field-definitions)
     (syntax-case (car field-specs) (mutable immutable)
@@ -522,12 +521,10 @@
 
 	((inherit ?superlabel-name (?inherit-option ...))
 	 (all-identifiers? #'(?superlabel-name ?inherit-option ...))
-	 (call-with-values
-	     (lambda ()
-	       (%parse-label-inherit-options #'(?inherit-option ...) synner))
-	   (lambda (inherit-virtual-fields? inherit-methods? inherit-setter-and-getter?)
-	     (values (select-superlabel #'?superlabel-name)
-		     inherit-virtual-fields? inherit-methods? inherit-setter-and-getter?))))
+	 (let-values (((inherit-virtual-fields? inherit-methods? inherit-setter-and-getter?)
+		       (%parse-label-inherit-options #'(?inherit-option ...) synner)))
+	   (values (select-superlabel #'?superlabel-name)
+		   inherit-virtual-fields? inherit-methods? inherit-setter-and-getter?)))
 
 	(_
 	 (synner "invalid inherit clause" (car clauses)))
