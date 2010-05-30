@@ -26,7 +26,6 @@
 
 (import (nausicaa)
   (checks)
-  (keywords)
   (sentinel)
   (silex lexer)
   (silex-test)
@@ -37,14 +36,12 @@
 (check-set-mode! 'report-failed)
 (display "*** testing silex from file\n")
 
-(define-keywords :string :counters)
-
 (test-calc calc-lexer-table/code)
 (test-calc calc-lexer-table/portable)
 (test-calc calc-lexer-table/tree)
 
 ;;Test getting the chars until the end.
-(let* ((IS		(lexer-make-IS :string "1+2+3" :counters 'line))
+(let* ((IS		(lexer-make-IS (:string "1+2+3") (:counters 'line)))
        (lexer		(lexer-make-lexer calc-lexer-table/code IS))
        (lexer-getc	(lexer-get-func-getc IS))
        (lexer-ungetc	(lexer-get-func-ungetc IS)))

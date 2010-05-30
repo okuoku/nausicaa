@@ -44,23 +44,23 @@
   )
 
 
-(lex :input-file	"string-lexer.l"
-     :output-file	"string-lexer.sls"
-     :library-spec	'(json string-lexer)
-     :library-imports	'((lalr lr-driver)
+(lex (:input-file	"string-lexer.l")
+     (:output-file	"string-lexer.sls")
+     (:library-spec	'(json string-lexer))
+     (:library-imports	'((lalr lr-driver)
 			  (parser-tools lexical-token)
-			  (parser-tools source-location))
-     :table-name	'json-string-lexer-table
-     :counters		'all)
+			  (parser-tools source-location)))
+     (:table-name	'json-string-lexer-table)
+     (:counters		'all))
 
-(lex :input-file	"rfc-lexer.l"
-     :output-file	"rfc-lexer.sls"
-     :library-spec	'(json rfc-lexer)
-     :library-imports	'((lalr lr-driver)
+(lex (:input-file	"rfc-lexer.l")
+     (:output-file	"rfc-lexer.sls")
+     (:library-spec	'(json rfc-lexer))
+     (:library-imports	'((lalr lr-driver)
 			  (parser-tools lexical-token)
-			  (parser-tools source-location))
-     :table-name	'json-rfc-lexer-table
-     :counters		'all)
+			  (parser-tools source-location)))
+     (:table-name	'json-rfc-lexer-table)
+     (:counters		'all))
 
 
 (lalr-parser

@@ -29,13 +29,10 @@
   (export
     csv->list/comma		csv->list)
   (import (nausicaa)
-    (keywords)
     (silex lexer)
     (csv unquoted-data-lexer)
     (csv unquoted-data-comma-lexer)
     (csv strings-lexer))
-
-(define-keywords :port :counters)
 
 
 (define csv->list/comma
@@ -44,7 +41,7 @@
     (csv->list/comma port (lambda (field) field)))
 
    ((port swirl-field)
-    (let* ((IS			(lexer-make-IS :port port :counters 'all))
+    (let* ((IS			(lexer-make-IS (:port port) (:counters 'all)))
 	   (string-lexer	(lexer-make-lexer csv-strings-table IS))
 	   (data-lexer		(lexer-make-lexer csv-unquoted-data-table/comma IS))
 	   (result		'())
@@ -94,7 +91,7 @@
     (csv->list port separators (lambda (field) field)))
 
    ((port separators swirl-field)
-    (let* ((IS			(lexer-make-IS :port port :counters 'all))
+    (let* ((IS			(lexer-make-IS (:port port) (:counters 'all)))
 	   (string-lexer	(lexer-make-lexer csv-strings-table IS))
 	   (data-lexer		(lexer-make-lexer csv-unquoted-data-table/comma IS))
 	   (result		'())

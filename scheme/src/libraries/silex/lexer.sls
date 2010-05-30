@@ -44,16 +44,10 @@
     :input-system-user-getc
     :input-system-user-ungetc)
   (import (rnrs)
-    (keywords)
+    (makers)
     (rnrs mutable-strings))
 
 
-(define-keywords :port
-  :procedure
-  :string
-		;input methods
-  :counters)
-
 (define lexer-init-buffer-len 1024)
 (define lexer-integer-newline (char->integer #\newline))
 
@@ -76,33 +70,34 @@
 	  (immutable user-ungetc)))
 
 
-(define (lexer-make-IS . options)
-  (let-keywords options #f ((counters-type	:counters	'line)
-			    (input-port		:port		#f)
-			    (input-procedure	:procedure	#f)
-			    (input-string	:string		#f))
-    (let-values (((buffer read-ptr input-function)
-		  (cond ((and input-string (string? input-string))
-			 (values (string-append (string #\newline) input-string)
-				 (+ 1 (string-length input-string))
-				 (lambda () (eof-object))))
-			((and input-port (input-port? input-port))
-			 (values (make-string lexer-init-buffer-len #\newline)
-				 1
-				 (lambda () (read-char input-port))))
-			((and input-procedure (procedure? input-procedure))
-			 (values (make-string lexer-init-buffer-len #\newline)
-				 1
-				 input-procedure))
-			(else
-			 (assertion-violation 'lexer-make-IS
-			   "input source was not specified")))))
-      (lexer-raw-IS-maker buffer read-ptr input-function
-			  (if (memq counters-type '(none line all))
-			      counters-type
-			    (assertion-violation 'lexer-make-IS
-			      "invalid selection of counters type"
-			      counters-type))))))
+(define-maker lexer-make-IS
+  %lexer-make-IS
+  ((:counters	'line)
+   (:port	#f)
+   (:procedure	#f)
+   (:string	#f)))
+
+(define (%lexer-make-IS counters-type input-port input-procedure input-string)
+  (define who 'lexer-make-IS)
+  (let-values (((buffer read-ptr input-function)
+		(cond ((and input-string (string? input-string))
+		       (values (string-append (string #\newline) input-string)
+			       (+ 1 (string-length input-string))
+			       (lambda () (eof-object))))
+		      ((and input-port (input-port? input-port))
+		       (values (make-string lexer-init-buffer-len #\newline)
+			       1
+			       (lambda () (read-char input-port))))
+		      ((and input-procedure (procedure? input-procedure))
+		       (values (make-string lexer-init-buffer-len #\newline)
+			       1
+			       input-procedure))
+		      (else
+		       (assertion-violation who "input source was not specified")))))
+    (lexer-raw-IS-maker buffer read-ptr input-function
+			(if (memq counters-type '(none line all))
+			    counters-type
+			  (assertion-violation who "invalid selection of counters type" counters-type)))))
 
 (define (lexer-make-lexer tables IS)
   (case (vector-ref tables 4) ; automaton type

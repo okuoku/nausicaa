@@ -28,6 +28,7 @@
 (library (makers)
   (export define-maker)
   (import (rnrs)
+(pretty-print)
     ;;Notice that  we need to have  the helpers in  a different library,
     ;;because some functions  are used by the newly  defined macros, not
     ;;just by DEFINE-MAKER.
@@ -61,7 +62,7 @@
 	     (syntax-case use ()
 	       ((_ ?var ... . ?args)
 		#`(?maker ?arg ... ?var ...
-			  #,@(parse-input-form-stx (quote ?name) use #'?args
+			  #,@(parse-input-form-stx #'?k (quote ?name) use #'?args
 						   (quote ?keywords-and-defaults))))))))
 
       ((_ ?name (?maker ?arg ...) ?keywords-and-defaults)
@@ -69,7 +70,7 @@
 	   (lambda (use)
 	     (syntax-case use ()
 	       ((?k . ?args)
-		#`(?maker ?arg ... #,@(parse-input-form-stx (quote ?name) use #'?args
+		#`(?maker ?arg ... #,@(parse-input-form-stx #'?k (quote ?name) use #'?args
 							    (quote ?keywords-and-defaults))))))))
 
       ((_ (?name ?var ...) ?maker ?keywords-and-defaults)
@@ -78,16 +79,18 @@
 	     (syntax-case use ()
 	       ((?k ?var ... . ?args)
 		#`(?maker ?var ...
-			  #,@(parse-input-form-stx (quote ?name) use #'?args
+			  #,@(parse-input-form-stx #'?k (quote ?name) use #'?args
 						   (quote ?keywords-and-defaults))))))))
 
       ((_ ?name ?maker ?keywords-and-defaults)
        #'(define-syntax ?name
-	   (lambda (use)
-	     (syntax-case use ()
-	       ((?k . ?args)
-		#`(?maker #,@(parse-input-form-stx (quote ?name) use #'?args
-						   (quote ?keywords-and-defaults))))))))
+	   (let ((keywords-and-defaults (quote ?keywords-and-defaults)))
+	     (lambda (use)
+	       (syntax-case use ()
+		 ((?k . ?args)
+		  #`(?maker #,@(parse-input-form-stx #'?k (quote ?name) use #'?args
+						     keywords-and-defaults))
+		  ))))))
 
       (?input-form
        (syntax-violation 'define-maker

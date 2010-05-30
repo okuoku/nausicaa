@@ -52,13 +52,13 @@
 
 ;;;; lexer
 
-(lex :output-file "calc-parser-lexer.sls"
-     :counters 'all
-     :library-spec "(calc-parser-lexer)"
-     :library-imports '((parser-tools lexical-token)
-			(parser-tools source-location))
-     :table-name 'calc-parser-lexer-table
-     :input-string "
+(lex (:output-file "calc-parser-lexer.sls")
+     (:counters 'all)
+     (:library-spec "(calc-parser-lexer)")
+     (:library-imports '((parser-tools lexical-token)
+			 (parser-tools source-location)))
+     (:table-name 'calc-parser-lexer-table)
+     (:input-string "
 blanks		[ \\9]+
 newline		[\\10\\13]+
 
@@ -165,7 +165,7 @@ cparen		\\)
 		 (eof-object)
 		 0)
 <<ERROR>>	(assertion-violation #f \"invalid lexer token\")
-")
+"))
 
 
 ;;;; parser

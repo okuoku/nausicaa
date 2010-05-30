@@ -25,7 +25,6 @@
 
 
 (import (nausicaa)
-  (keywords)
   (checks)
   (silex)
   (silex lexer)
@@ -98,16 +97,14 @@ cparen		\\)
 
 
 
-(define-keywords :input-string :output-value :lexer-format)
+(test-calc (lex (:input-string l) (:output-value #t)
+		(:lexer-format 'decision-tree)))
 
-(test-calc (lex :input-string l :output-value #t
-		:lexer-format 'decision-tree))
+(test-calc (lex (:input-string l) (:output-value #t)
+		(:lexer-format 'code)))
 
-(test-calc (lex :input-string l :output-value #t
-		:lexer-format 'code))
-
-(test-calc (lex :input-string l :output-value #t
-		:lexer-format 'portable))
+(test-calc (lex (:input-string l) (:output-value #t)
+		(:lexer-format 'portable)))
 
 
 ;;;; done

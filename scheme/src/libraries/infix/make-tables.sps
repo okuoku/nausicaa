@@ -46,15 +46,15 @@
   )
 
 
-(lex :input-file	"string-lexer.l"
-     :output-file	"string-lexer.sls"
-     :library-spec	"(infix string-lexer)"
-     :library-imports	'((lalr lr-driver)
+(lex (:input-file	"string-lexer.l")
+     (:output-file	"string-lexer.sls")
+     (:library-spec	"(infix string-lexer)")
+     (:library-imports	'((lalr lr-driver)
 			  (parser-tools lexical-token)
-			  (parser-tools source-location))
-     :table-name	'infix-string-lexer-table
-     :lexer-format	'code
-     :counters		'all)
+			  (parser-tools source-location)))
+     (:table-name	'infix-string-lexer-table)
+     (:lexer-format	'code)
+     (:counters		'all))
 
 ;;; --------------------------------------------------------------------
 

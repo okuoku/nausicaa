@@ -28,7 +28,6 @@
 ;;;
 
 (import (rnrs)
-  (keywords)
   (silex))
 
 
@@ -94,9 +93,6 @@ cparen		\\)
 ")
 
 
-(define-keywords :input-port :input-file :input-string
-  :output-file :lexer-format :library-spec :table-name)
-
 (define lexer-file	"calc.l")
 (define tree-file	"calc-tree-lexer.sls")
 (define code-file	"calc-code-lexer.sls")
@@ -104,19 +100,19 @@ cparen		\\)
 
 (define lp (open-string-input-port l))
 
-(lex :input-file lexer-file :output-file tree-file
-     :library-spec "(calc-tree-lexer)"
-     :table-name 'calc-lexer-table/tree)
+(lex (:input-file lexer-file) (:output-file tree-file)
+     (:library-spec "(calc-tree-lexer)")
+     (:table-name 'calc-lexer-table/tree))
 
 
-(lex :input-string l :output-file code-file
-     :lexer-format 'code
-     :library-spec "(calc-code-lexer)"
-     :table-name 'calc-lexer-table/code)
+(lex (:input-string l) (:output-file code-file)
+     (:lexer-format 'code)
+     (:library-spec "(calc-code-lexer)")
+     (:table-name 'calc-lexer-table/code))
 
-(lex :input-port lp :output-file portable-file
-     :lexer-format 'portable
-     :library-spec "(calc-portable-lexer)"
-     :table-name 'calc-lexer-table/portable)
+(lex (:input-port lp) (:output-file portable-file)
+     (:lexer-format 'portable)
+     (:library-spec "(calc-portable-lexer)")
+     (:table-name 'calc-lexer-table/portable))
 
 ;;; end of file

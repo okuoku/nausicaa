@@ -25,7 +25,6 @@
 
 
 (import (nausicaa)
-  (keywords)
   (checks)
   (silex lexer)
   (csv strings-lexer)
@@ -37,13 +36,11 @@
 (check-set-mode! 'report-failed)
 (display "*** testing csv\n")
 
-(define-keywords :string :counters)
-
 
 (parameterise ((check-test-name 'strings-lexer))
 
   (define (tokenise/list string)
-    (let* ((IS	(lexer-make-IS :string string :counters 'all))
+    (let* ((IS		(lexer-make-IS (:string string) (:counters 'all)))
 	   (lexer	(lexer-make-lexer csv-strings-table IS)))
       (do ((token (lexer) (lexer))
 	   (ell   '()))
@@ -52,7 +49,7 @@
 	(set! ell (cons token ell)))))
 
   (define (tokenise/string string)
-    (let* ((IS	(lexer-make-IS :string string))
+    (let* ((IS		(lexer-make-IS (:string string)))
 	   (lexer	(lexer-make-lexer csv-strings-table IS)))
       (let-values (((port the-string) (open-string-output-port)))
 	(do ((token (lexer) (lexer)))
@@ -127,7 +124,7 @@
 (parameterise ((check-test-name 'unquoted-data-lexer))
 
   (define (tokenise string)
-    (let* ((IS		(lexer-make-IS :string string :counters 'all))
+    (let* ((IS		(lexer-make-IS (:string string) (:counters 'all)))
 	   (lexer	(lexer-make-lexer csv-unquoted-data-table IS)))
       (do ((token (lexer) (lexer))
 	   (ell   '()))
@@ -182,7 +179,7 @@
 (parameterise ((check-test-name 'unquoted-data-lexer/comma))
 
   (define (tokenise string)
-    (let* ((IS		(lexer-make-IS :string string :counters 'all))
+    (let* ((IS		(lexer-make-IS (:string string) (:counters 'all)))
 	   (lexer	(lexer-make-lexer csv-unquoted-data-table/comma IS)))
       (do ((token (lexer) (lexer))
 	   (ell   '()))

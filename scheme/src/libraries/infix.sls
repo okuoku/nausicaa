@@ -42,7 +42,7 @@
 
 
 (define (infix-string->sexp string)
-  (let* ((IS		(lexer-make-IS :string string :counters 'all))
+  (let* ((IS		(lexer-make-IS (:string string) (:counters 'all)))
 	 (lexer		(lexer-make-lexer infix-string-lexer-table IS))
 	 (parser	(make-infix-string-parser)))
     (parser lexer error-handler #f)))

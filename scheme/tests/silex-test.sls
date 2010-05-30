@@ -27,18 +27,15 @@
 (library (silex-test)
   (export test-calc)
   (import (except (nausicaa) =)
-    (keywords)
     (only (rnrs) =)
     (silex lexer)
     (checks))
-
-(define-keywords :string :counters)
 
 
 (define (test-calc table)
 
   (define (tokenize string)
-    (let* ((IS		(lexer-make-IS :string string :counters 'line))
+    (let* ((IS		(lexer-make-IS (:string string) (:counters 'line)))
 	   (lexer	(lexer-make-lexer table IS)))
       (do ((token (lexer) (lexer))
 	   (out   '()))

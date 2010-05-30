@@ -28,7 +28,6 @@
 (import (nausicaa)
   (json)
   (json string-lexer)
-  (keywords)
   (parser-tools lexical-token)
   (silex lexer)
   (checks))
@@ -36,15 +35,13 @@
 (check-set-mode! 'report-failed)
 (display "*** testing JSON\n")
 
-(define-keywords :string :counters)
-
 
 (parameterise ((check-test-name 'lexer-string))
 
   (define (tokenise-string string)
     ;;This  is just  a  lexer, it  does  not check  for the  terminating
     ;;double-quote.
-    (let* ((IS		(lexer-make-IS :string string :counters 'all))
+    (let* ((IS		(lexer-make-IS (:string string) (:counters 'all)))
 	   (lexer	(lexer-make-lexer json-string-lexer-table IS))
 	   (out		'()))
       (do ((token (lexer) (lexer)))
@@ -125,7 +122,7 @@
     (map (lambda (token)
 	   (cons (<lexical-token>-category token)
 		 (<lexical-token>-value    token)))
-      (json->tokens (lexer-make-IS :string string :counters 'all))))
+      (json->tokens (lexer-make-IS (:string string) (:counters 'all)))))
 
 ;;; --------------------------------------------------------------------
 
@@ -208,7 +205,7 @@
 (parameterise ((check-test-name 'parser))
 
   (define (doit string)
-    (let* ((IS		(lexer-make-IS :string string :counters 'all))
+    (let* ((IS		(lexer-make-IS (:string string) (:counters 'all)))
 	   (lexer	(make-json-rfc-lexer IS))
 	   (parser	(make-json-parser))
 	   (handler	(lambda (msg tok) (list 'error-handler msg tok))))

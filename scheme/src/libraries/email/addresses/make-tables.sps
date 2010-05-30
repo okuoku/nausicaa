@@ -44,45 +44,45 @@
   )
 
 
-(lex :input-file	"quoted-text.l"
-     :output-file	"quoted-text-lexer.sls"
-     :library-spec	'(email addresses quoted-text-lexer)
-     :library-imports	'((lalr lr-driver)
+(lex (:input-file	"quoted-text.l")
+     (:output-file	"quoted-text-lexer.sls")
+     (:library-spec	'(email addresses quoted-text-lexer))
+     (:library-imports	'((lalr lr-driver)
 			  (email addresses common)
 			  (parser-tools lexical-token)
-			  (parser-tools source-location))
-     :table-name	'quoted-text-table
-     :counters		'all)
+			  (parser-tools source-location)))
+     (:table-name	'quoted-text-table)
+     (:counters		'all))
 
-(lex :input-file	"comments.l"
-     :output-file	"comments-lexer.sls"
-     :library-spec	'(email addresses comments-lexer)
-     :library-imports	'((lalr lr-driver)
+(lex (:input-file	"comments.l")
+     (:output-file	"comments-lexer.sls")
+     (:library-spec	'(email addresses comments-lexer))
+     (:library-imports	'((lalr lr-driver)
 			  (email addresses common)
 			  (parser-tools lexical-token)
-			  (parser-tools source-location))
-     :table-name	'comments-table
-     :counters		'all)
+			  (parser-tools source-location)))
+     (:table-name	'comments-table)
+     (:counters		'all))
 
-(lex :input-file	"domain-literals.l"
-     :output-file	"domain-literals-lexer.sls"
-     :library-spec	'(email addresses domain-literals-lexer)
-     :library-imports	'((lalr lr-driver)
+(lex (:input-file	"domain-literals.l")
+     (:output-file	"domain-literals-lexer.sls")
+     (:library-spec	'(email addresses domain-literals-lexer))
+     (:library-imports	'((lalr lr-driver)
 			  (email addresses common)
 			  (parser-tools lexical-token)
-			  (parser-tools source-location))
-     :table-name	'domain-literals-table
-     :counters		'all)
+			  (parser-tools source-location)))
+     (:table-name	'domain-literals-table)
+     (:counters		'all))
 
-(lex :input-file	"lexer.l"
-     :output-file	"lexer.sls"
-     :library-spec	'(email addresses lexer)
-     :library-imports	'((lalr lr-driver)
+(lex (:input-file	"lexer.l")
+     (:output-file	"lexer.sls")
+     (:library-spec	'(email addresses lexer))
+     (:library-imports	'((lalr lr-driver)
 			  (email addresses common)
 			  (parser-tools lexical-token)
-			  (parser-tools source-location))
-     :table-name	'address-table
-     :counters		'all)
+			  (parser-tools source-location)))
+     (:table-name	'address-table)
+     (:counters		'all))
 
 
 (lalr-parser

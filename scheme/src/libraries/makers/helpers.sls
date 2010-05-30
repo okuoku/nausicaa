@@ -31,15 +31,11 @@
 
 
 (define (syntax->list stx)
-  ;;Given a syntax object STX holding  a list, decompose it and return a
-  ;;list of syntax  objects.  Take care of returning  a proper list when
-  ;;the input is a syntax object holding a proper list.
-  ;;
-  ;;This functions  provides a workaround  for bugs in Ikarus  and Mosh,
-  ;;which expand syntax objects holding a list into IMproper lists.
-  ;;
   (syntax-case stx ()
     (()			'())
+    ((?car . ?cdr)
+     (and (identifier? #'?car) (free-identifier=? #'quote #'?car))
+     #'(?car . ?cdr))
     ((?car . ?cdr)	(cons (syntax->list #'?car) (syntax->list #'?cdr)))
     (?atom		#'?atom)))
 
@@ -49,7 +45,7 @@
 		  (null? (cddr key-and-default))))
 	   keywords-and-defaults))
 
-(define (parse-input-form-stx who input-form-stx arguments-stx keywords-and-defaults)
+(define (parse-input-form-stx context who input-form-stx arguments-stx keywords-and-defaults)
   (define (%keywords-join keywords-and-defaults)
     ;;Given an alist  of keywords and default values,  join the keywords
     ;;into a string with a comma as separator; return the string.  To be
@@ -102,7 +98,7 @@
 			   (and (eq? key (syntax->datum (car key-and-argument)))
 				(cadr key-and-argument)))
 			 arguments-stx)
-		 (cadr key-and-default))))
+		 (datum->syntax context (cadr key-and-default)))))
       keywords-and-defaults)))
 
 

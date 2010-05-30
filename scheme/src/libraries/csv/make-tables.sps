@@ -24,33 +24,25 @@
 ;;;
 
 (import (rnrs)
-  (keywords)
   (silex))
 
-(define-keywords
-  :input-file
-  :output-file
-  :library-spec
-  :table-name
-  :counters)
+(lex (:input-file "unquoted-data.l")
+     (:output-file "unquoted-data-lexer.sls")
+     (:library-spec '(csv unquoted-data-lexer))
+     (:table-name 'csv-unquoted-data-table)
+     (:counters 'all))
 
-(lex :input-file "unquoted-data.l"
-     :output-file "unquoted-data-lexer.sls"
-     :library-spec '(csv unquoted-data-lexer)
-     :table-name 'csv-unquoted-data-table
-     :counters 'all)
+(lex (:input-file "unquoted-data-comma.l")
+     (:output-file "unquoted-data-comma-lexer.sls")
+     (:library-spec '(csv unquoted-data-comma-lexer))
+     (:table-name 'csv-unquoted-data-table/comma)
+     (:counters 'all))
 
-(lex :input-file "unquoted-data-comma.l"
-     :output-file "unquoted-data-comma-lexer.sls"
-     :library-spec '(csv unquoted-data-comma-lexer)
-     :table-name 'csv-unquoted-data-table/comma
-     :counters 'all)
-
-(lex :input-file "strings.l"
-     :output-file "strings-lexer.sls"
-     :library-spec '(csv strings-lexer)
-     :table-name 'csv-strings-table
-     :counters 'all)
+(lex (:input-file "strings.l")
+     (:output-file "strings-lexer.sls")
+     (:library-spec '(csv strings-lexer))
+     (:table-name 'csv-strings-table)
+     (:counters 'all))
 
 
 ;;; end of file
