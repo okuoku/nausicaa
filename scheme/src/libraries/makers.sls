@@ -62,7 +62,7 @@
 	     (syntax-case use ()
 	       ((_ ?var ... . ?args)
 		#`(?maker ?arg ... ?var ...
-			  #,@(parse-input-form-stx #'?k (quote ?name) use #'?args
+			  #,@(parse-input-form-stx #'?name (quote ?name) use #'?args
 						   (quote ?keywords-and-defaults))))))))
 
       ((_ ?name (?maker ?arg ...) ?keywords-and-defaults)
@@ -70,7 +70,7 @@
 	   (lambda (use)
 	     (syntax-case use ()
 	       ((?k . ?args)
-		#`(?maker ?arg ... #,@(parse-input-form-stx #'?k (quote ?name) use #'?args
+		#`(?maker ?arg ... #,@(parse-input-form-stx #'?name (quote ?name) use #'?args
 							    (quote ?keywords-and-defaults))))))))
 
       ((_ (?name ?var ...) ?maker ?keywords-and-defaults)
@@ -79,7 +79,7 @@
 	     (syntax-case use ()
 	       ((?k ?var ... . ?args)
 		#`(?maker ?var ...
-			  #,@(parse-input-form-stx #'?k (quote ?name) use #'?args
+			  #,@(parse-input-form-stx #'?name (quote ?name) use #'?args
 						   (quote ?keywords-and-defaults))))))))
 
       ((_ ?name ?maker ?keywords-and-defaults)
@@ -88,7 +88,7 @@
 	     (lambda (use)
 	       (syntax-case use ()
 		 ((?k . ?args)
-		  #`(?maker #,@(parse-input-form-stx #'?k (quote ?name) use #'?args
+		  #`(?maker #,@(parse-input-form-stx #'?name (quote ?name) use #'?args
 						     keywords-and-defaults))
 		  ))))))
 
