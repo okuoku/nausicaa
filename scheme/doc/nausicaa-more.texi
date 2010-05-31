@@ -33786,6 +33786,29 @@ Build and return a @library{silex} lexer for @json{} text using
 @end defun
 
 
+@defun make-json-extended-lexer @var{input-system}
+Like @func{make-json-rfc-lexer} but supports the following extensions:
+
+@itemize
+@item
+The literal @samp{Infinity} is decoded as the positive infinity,
+@samp{+inf.0}.
+
+@item
+The literal @samp{-Infinity} is decoded as the negative infinity,
+@samp{-inf.0}.
+
+@item
+The literal @samp{NaN} is decoded as not--a--number, @samp{+nan.0}.
+
+@item
+Numbers are accepted in binary, octal and hexadecimal format when they
+are prefixed, respectively, by: @samp{#b} or @samp{#B}, @samp{#o} or
+@samp{#O}, @samp{#x} or @samp{#X}.
+@end itemize
+@end defun
+
+
 @defun make-json-parser
 Build and return a new @json{} parser using @library{lalr lr-driver};
 the returned value is a parser function as described in @ref{lalr
@@ -33843,6 +33866,26 @@ Build and return a string representing a @json{} pair.
 When @var{value} is a string and @var{encode-value?} is true:
 @var{value} is encoded with @func{json-encode-string};
 @var{encode-value?} defaults to true.
+@end defun
+
+
+@defun json-make-pair* @var{name} @var{value}
+@defunx json-make-pair* @var{name} @var{value} @var{encode-value?}
+Like @func{json-make-pair} but with the following extensions:
+
+@itemize
+@item
+If @var{value} is positive infinity, it is encoded as the literal
+@samp{Infinity}.
+
+@item
+If @var{value} is positive infinity, it is encoded as the literal
+@samp{-Infinity}.
+
+@item
+If @var{value} is not--a--number, it is encoded as the literal
+@samp{NaN}.
+@end itemize
 @end defun
 
 

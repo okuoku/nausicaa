@@ -27,22 +27,31 @@
 
 (library (json)
   (export
-    make-json-rfc-lexer json->tokens make-json-parser
+    make-json-rfc-lexer		make-json-extended-lexer
+    json->tokens
+    make-json-parser
     json-encode-string		json-decode-string
-    json-make-pair
+    json-make-pair		json-make-pair*
     json-make-object
     json-make-array)
   (import (nausicaa)
     (silex lexer)
     (json string-lexer)
     (json rfc-lexer)
+    (json extended-lexer)
     (json parser)
     (parser-tools lexical-token)
     (parser-tools source-location))
 
 
 (define (make-json-rfc-lexer IS)
-  (let ((lexer (lexer-make-lexer json-rfc-lexer-table IS)))
+  (%make-json-lexer IS json-rfc-lexer-table))
+
+(define (make-json-extended-lexer IS)
+  (%make-json-lexer IS json-extended-lexer-table))
+
+(define (%make-json-lexer IS table)
+  (let ((lexer (lexer-make-lexer table IS)))
     (lambda ()
       (let ((token (lexer)))
 	(if (eq? 'QUOTED-TEXT-OPEN (<lexical-token>-category token))
@@ -127,7 +136,38 @@
 			      (string-append "\"" (json-encode-string value) "\"")
 			    value))
 			 ((number? value)
-			  (number->string value))
+			  (if (or (nan? value) (infinite? value))
+			      (error 'json-make-pair
+				"attempt to encode NaN or infinite number, which is invalid JSON" value)
+			    (number->string value)))
+			 ((eqv? #t value)
+			  "true")
+			 ((eqv? #f value)
+			  "false")
+			 ((null? value)
+			  "null")
+			 )))))
+
+(define json-make-pair*
+  (case-lambda
+   ((name value)
+    (json-make-pair* name value #t))
+   ((name value encode-value?)
+    (assert (string? name))
+    (string-append "\"" (json-encode-string name) "\": "
+		   (cond ((string? value)
+			  (if encode-value?
+			      (string-append "\"" (json-encode-string value) "\"")
+			    value))
+			 ((number? value)
+			  (cond ((nan? value)
+				 "NaN")
+				((infinite? value)
+				 (if (positive? value)
+				     "Infinity"
+				   "-Infinity"))
+				(else
+				 (number->string value))))
 			 ((eqv? #t value)
 			  "true")
 			 ((eqv? #f value)

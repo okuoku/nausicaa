@@ -202,7 +202,7 @@
   #t)
 
 
-(parameterise ((check-test-name 'parser))
+(parameterise ((check-test-name 'rfc-parser))
 
   (define (doit string)
     (let* ((IS		(lexer-make-IS (:string string) (:counters 'all)))
@@ -257,6 +257,167 @@
       (doit "{ \"Hello\" : true, \"Ciao\": false }")
     => '(("Hello" . #t)
 	 ("Ciao" . #f)))
+
+  (check
+      (doit "{
+  \"glossary\": {
+    \"title\": \"example glossary\",
+    \"GlossDiv\": {
+      \"title\": \"S\",
+      \"GlossList\": {
+        \"GlossEntry\": {
+          \"ID\": \"SGML\",
+          \"SortAs\": \"SGML\",
+          \"GlossTerm\": \"Standard Generalized Markup Language\",
+          \"Acronym\": \"SGML\",
+          \"Abbrev\": \"ISO 8879:1986\",
+          \"GlossDef\": {
+            \"para\": \"A meta-markup language, used to create markup languages such as DocBook.\",
+            \"GlossSeeAlso\": [\"GML\", \"XML\"]
+          },
+          \"GlossSee\": \"markup\"
+        }
+      }
+    }
+  }
+}
+")
+    => '(("glossary" .
+	  (("title". "example glossary")
+	   ("GlossDiv" .
+	    (("title" . "S")
+	     ("GlossList" . (("GlossEntry" .
+			      (("ID" . "SGML")
+			       ("SortAs" . "SGML")
+			       ("GlossTerm" . "Standard Generalized Markup Language")
+			       ("Acronym" . "SGML")
+			       ("Abbrev" . "ISO 8879:1986")
+			       ("GlossDef" .
+				(("para" . "A meta-markup language, used to create markup languages such as DocBook.")
+				 ("GlossSeeAlso" . #("GML" "XML"))))
+			       ("GlossSee" . "markup")))))))))))
+
+  #t)
+
+
+(parameterise ((check-test-name 'rfc-parser))
+
+  (define (doit string)
+    (let* ((IS		(lexer-make-IS (:string string) (:counters 'all)))
+	   (lexer	(make-json-extended-lexer IS))
+	   (parser	(make-json-parser))
+	   (handler	(lambda (msg tok) (list 'error-handler msg tok))))
+      (parser (lambda ()
+		(let ((token (lexer)))
+;;;		  (write token)(newline)
+		  token))
+	      handler)))
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (doit "{ \"ciao\" : Infinity }")
+    => '(("ciao" . +inf.0)))
+
+  (check
+      (doit "{ \"ciao\" : -Infinity }")
+    => '(("ciao" . -inf.0)))
+
+  (check
+      (doit "{ \"ciao\" : NaN }")
+    => '(("ciao" . +nan.0)))
+
+  (check
+      (doit "{ \"ciao\" : #o0444 }")
+    => '(("ciao" . 292)))
+
+  (check
+      (doit "{ \"ciao\" : #b0111 }")
+    => '(("ciao" . 7)))
+
+  (check
+      (doit "{ \"ciao\" : #x0FF }")
+    => '(("ciao" . 255)))
+
+  (check
+      (doit "{
+  \"Image\": {
+    \"Width\":  800,
+    \"Height\": 600,
+    \"Title\":  \"View from 15th Floor\",
+    \"Thumbnail\": {
+      \"Url\":    \"http://www.example.com/image/481989943\",
+      \"Height\": 125,
+      \"Width\":  \"100\"
+    },
+    \"IDs\": [116, 943, 234, 38793]
+  }
+}
+")
+    => '(("Image"
+	  ("Width" . 800)
+	  ("Height" . 600)
+	  ("Title" . "View from 15th Floor")
+	  ("Thumbnail" . (("Url" . "http://www.example.com/image/481989943")
+			  ("Height" . 125)
+			  ("Width" . "100")))
+	  ("IDs" . #(116 943 234 38793)))))
+
+  (check
+      (doit "{ \"Hello\" : true }")
+    => '(("Hello" . #t)))
+
+  (check
+      (doit "{ \"Hello\" : false }")
+    => '(("Hello" . #f)))
+
+  (check
+      (doit "{ \"Hello\" : null }")
+    => '(("Hello" . ())))
+
+  (check
+      (doit "{ \"Hello\" : true, \"Ciao\": false }")
+    => '(("Hello" . #t)
+	 ("Ciao" . #f)))
+
+  (check
+      (doit "{
+  \"glossary\": {
+    \"title\": \"example glossary\",
+    \"GlossDiv\": {
+      \"title\": \"S\",
+      \"GlossList\": {
+        \"GlossEntry\": {
+          \"ID\": \"SGML\",
+          \"SortAs\": \"SGML\",
+          \"GlossTerm\": \"Standard Generalized Markup Language\",
+          \"Acronym\": \"SGML\",
+          \"Abbrev\": \"ISO 8879:1986\",
+          \"GlossDef\": {
+            \"para\": \"A meta-markup language, used to create markup languages such as DocBook.\",
+            \"GlossSeeAlso\": [\"GML\", \"XML\"]
+          },
+          \"GlossSee\": \"markup\"
+        }
+      }
+    }
+  }
+}
+")
+    => '(("glossary" .
+	  (("title". "example glossary")
+	   ("GlossDiv" .
+	    (("title" . "S")
+	     ("GlossList" . (("GlossEntry" .
+			      (("ID" . "SGML")
+			       ("SortAs" . "SGML")
+			       ("GlossTerm" . "Standard Generalized Markup Language")
+			       ("Acronym" . "SGML")
+			       ("Abbrev" . "ISO 8879:1986")
+			       ("GlossDef" .
+				(("para" . "A meta-markup language, used to create markup languages such as DocBook.")
+				 ("GlossSeeAlso" . #("GML" "XML"))))
+			       ("GlossSee" . "markup")))))))))))
 
   #t)
 
@@ -404,6 +565,44 @@
 ;;; --------------------------------------------------------------------
 
   (check
+      (json-make-pair* "ciao" 123)
+    => "\"ciao\": 123")
+
+  (check
+      (json-make-pair* "ciao" +nan.0)
+    => "\"ciao\": NaN")
+
+  (check
+      (json-make-pair* "ciao" +inf.0)
+    => "\"ciao\": Infinity")
+
+  (check
+      (json-make-pair* "ciao" -inf.0)
+    => "\"ciao\": -Infinity")
+
+  (check
+      (json-make-pair* "ciao" "hello")
+    => "\"ciao\": \"hello\"")
+
+  (check
+      (json-make-pair* "ciao" #t)
+    => "\"ciao\": true")
+
+  (check
+      (json-make-pair* "ciao" #f)
+    => "\"ciao\": false")
+
+  (check
+      (json-make-pair* "ciao" '())
+    => "\"ciao\": null")
+
+  (check
+      (json-make-pair* "hey" "{ \"ciao\": 123 }" #f)
+    => "\"hey\": { \"ciao\": 123 }")
+
+;;; --------------------------------------------------------------------
+
+  (check
       (json-make-object "\"ciao\": 123")
     => "{ \"ciao\": 123 }")
 
@@ -422,7 +621,7 @@
       (json-make-array '("12" "34" "56"))
     => "[ 12, 34, 56 ]")
 
-  #;(check
+  (check
       (json-make-array '#())
     => "[  ]")
 

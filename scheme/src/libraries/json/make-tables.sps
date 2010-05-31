@@ -47,6 +47,15 @@
      (:table-name	'json-rfc-lexer-table)
      (:counters		'all))
 
+(lex (:input-file	"extended-lexer.l")
+     (:output-file	"extended-lexer.sls")
+     (:library-spec	'(json extended-lexer))
+     (:library-imports	'((lalr lr-driver)
+			  (parser-tools lexical-token)
+			  (parser-tools source-location)))
+     (:table-name	'json-extended-lexer-table)
+     (:counters		'all))
+
 
 (lalr-parser
 
