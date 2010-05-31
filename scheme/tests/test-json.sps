@@ -232,14 +232,31 @@
   }
 }
 ")
-    => '("Image"
-	 ("Width" . 800)
-	 ("Height" . 600)
-	 ("Title" . "View from 15th Floor")
-	 ("Thumbnail" . (("Url" . "http://www.example.com/image/481989943")
-			 ("Height" . 125)
-			 ("Width" . "100")))
-	 ("IDs" . #(116 943 234 38793))))
+    => '(("Image"
+	  ("Width" . 800)
+	  ("Height" . 600)
+	  ("Title" . "View from 15th Floor")
+	  ("Thumbnail" . (("Url" . "http://www.example.com/image/481989943")
+			  ("Height" . 125)
+			  ("Width" . "100")))
+	  ("IDs" . #(116 943 234 38793)))))
+
+  (check
+      (doit "{ \"Hello\" : true }")
+    => '(("Hello" . #t)))
+
+  (check
+      (doit "{ \"Hello\" : false }")
+    => '(("Hello" . #f)))
+
+  (check
+      (doit "{ \"Hello\" : null }")
+    => '(("Hello" . ())))
+
+  (check
+      (doit "{ \"Hello\" : true, \"Ciao\": false }")
+    => '(("Hello" . #t)
+	 ("Ciao" . #f)))
 
   #t)
 
@@ -293,6 +310,125 @@
   (check
       (json-encode-string "\x1234;")
     => "\\u1234")
+
+  #t)
+
+
+(parameterise ((check-test-name 'string-decode))
+
+  (check	;empty string
+      (json-decode-string "")
+    => "")
+
+  (check
+      (json-decode-string "\\\"")
+    => "\"")
+
+  (check
+      (json-decode-string "\\/")
+    => "/")
+
+  (check
+      (json-decode-string "\\b")
+    => "\b")
+
+  (check
+      (json-decode-string "\\f")
+    => "\f")
+
+  (check
+      (json-decode-string "\\n")
+    => "\n")
+
+  (check
+      (json-decode-string "\\r")
+    => "\r")
+
+  (check
+      (json-decode-string "\\t")
+    => "\t")
+
+  (check
+      (json-decode-string "inizio\\\"\\/\\b\\f\\n\\r\\tfine")
+    => "inizio\"/\b\f\n\r\tfine")
+
+  (check
+      (json-decode-string "\\u005C")
+    => "\\")
+
+  (check
+      (json-decode-string "\\u0063\\u0069\\u0061\\u006f")
+    => "ciao")
+
+  (check
+      (json-decode-string "ciao")
+    => "ciao")
+
+  (check
+      (json-decode-string "a")
+    => "a")
+
+  (check
+      (json-decode-string "ciao \\\"hello\\\" salut")
+    => "ciao \"hello\" salut")
+
+  #t)
+
+
+(parameterise ((check-test-name 'generator))
+
+  (check
+      (json-make-pair "ciao" 123)
+    => "\"ciao\": 123")
+
+  (check
+      (json-make-pair "ciao" "hello")
+    => "\"ciao\": \"hello\"")
+
+  (check
+      (json-make-pair "ciao" #t)
+    => "\"ciao\": true")
+
+  (check
+      (json-make-pair "ciao" #f)
+    => "\"ciao\": false")
+
+  (check
+      (json-make-pair "ciao" '())
+    => "\"ciao\": null")
+
+  (check
+      (json-make-pair "hey" "{ \"ciao\": 123 }" #f)
+    => "\"hey\": { \"ciao\": 123 }")
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (json-make-object "\"ciao\": 123")
+    => "{ \"ciao\": 123 }")
+
+  (check
+      (json-make-object "\"ciao\": 123"
+			"\"ciao\": \"hello\"")
+    => "{ \"ciao\": 123, \"ciao\": \"hello\" }")
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (json-make-array '())
+    => "[  ]")
+
+  (check
+      (json-make-array '("12" "34" "56"))
+    => "[ 12, 34, 56 ]")
+
+  #;(check
+      (json-make-array '#())
+    => "[  ]")
+
+  (check
+      (json-make-array '#("12" "34" "56"))
+    => "[ 12, 34, 56 ]")
 
   #t)
 

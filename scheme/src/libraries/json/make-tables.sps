@@ -61,30 +61,41 @@
 				      NUMBER STRING))
 
  (:rules
-  '((json-text		(object)					: $1
-			(array)						: $1)
+  '((json-text
+     (object)				: $1
+     (array)				: $1)
 
-    (object		(BEGIN_OBJECT END_OBJECT)			: '()
-			(BEGIN_OBJECT member END_OBJECT)		: $2
-			(BEGIN_OBJECT member member-rest END_OBJECT)	: (cons $2 $3))
-    (member		(STRING NAME_SEPARATOR value)			: (cons $1 $3))
-    (member-rest	(VALUE_SEPARATOR member)			: (list $2)
-			(VALUE_SEPARATOR member member-rest)		: (cons $2 $3))
+    (object
+     (BEGIN_OBJECT END_OBJECT)		: '()
+     (BEGIN_OBJECT pair END_OBJECT)	: (list $2)
+     (BEGIN_OBJECT pair pair-rest END_OBJECT)
+					: (cons $2 $3))
+
+    (pair
+     (STRING NAME_SEPARATOR value)	: (cons $1 $3))
+    (pair-rest
+     (VALUE_SEPARATOR pair)		: (list $2)
+     (VALUE_SEPARATOR pair pair-rest)
+					: (cons $2 $3))
 
 
-    (array		(BEGIN_ARRAY END_ARRAY)				: '#()
-			(BEGIN_ARRAY value END_ARRAY)			: (vector $2)
-			(BEGIN_ARRAY value value-rest END_ARRAY)	: (list->vector (cons $2 $3)))
+    (array
+     (BEGIN_ARRAY END_ARRAY)		: '#()
+     (BEGIN_ARRAY value END_ARRAY)	: (vector $2)
+     (BEGIN_ARRAY value value-rest END_ARRAY)
+					: (list->vector (cons $2 $3)))
 
-    (value		(FALSE)						: $1
-			(NULL)						: $1
-			(TRUE)						: $1
-			(NUMBER)					: $1
-			(STRING)					: $1
-			(object)					: $1
-			(array)						: $1)
-    (value-rest		(VALUE_SEPARATOR value)				: (list $2)
-			(VALUE_SEPARATOR value value-rest)		: (cons $2 $3))
+    (value
+     (FALSE)				: $1
+     (NULL)				: $1
+     (TRUE)				: $1
+     (NUMBER)				: $1
+     (STRING)				: $1
+     (object)				: $1
+     (array)				: $1)
+    (value-rest
+     (VALUE_SEPARATOR value)		: (list $2)
+     (VALUE_SEPARATOR value value-rest)	: (cons $2 $3))
 
     )))
 

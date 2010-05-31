@@ -27,9 +27,11 @@
 
 (library (json)
   (export
-    make-json-rfc-lexer make-json-parser
-    json->tokens
-    json-encode-string)
+    make-json-rfc-lexer json->tokens make-json-parser
+    json-encode-string		json-decode-string
+    json-make-pair
+    json-make-object
+    json-make-array)
   (import (nausicaa)
     (silex lexer)
     (json string-lexer)
@@ -103,11 +105,49 @@
 		     in-str)
     (getter)))
 
+(define (json-decode-string in-string)
+  (let* ((IS	(lexer-make-IS (:string in-string) (:counters 'all)))
+	 (lexer	(lexer-make-lexer json-string-lexer-table IS)))
+    (let-values (((port getter) (open-string-output-port)))
+      (do ((token (lexer) (lexer)))
+	  ((<lexical-token>?/end-of-input token)
+	   (getter))
+	(display token port)))))
+
 
-(define (json-make-object name value)
-  (assert (string? name))
-  (assert (string? value))
-  (string-append "{ " name ": " value " }"))
+(define json-make-pair
+  (case-lambda
+   ((name value)
+    (json-make-pair name value #t))
+   ((name value encode-value?)
+    (assert (string? name))
+    (string-append "\"" (json-encode-string name) "\": "
+		   (cond ((string? value)
+			  (if encode-value?
+			      (string-append "\"" (json-encode-string value) "\"")
+			    value))
+			 ((number? value)
+			  (number->string value))
+			 ((eqv? #t value)
+			  "true")
+			 ((eqv? #f value)
+			  "false")
+			 ((null? value)
+			  "null")
+			 )))))
+
+(define (json-make-object . the-pairs)
+  (assert (for-all string? the-pairs))
+  (let-values (((port getter) (open-string-output-port)))
+    (display "{ " port)
+    (unless (null? the-pairs)
+      (display (car the-pairs) port)
+      (for-each (lambda (val)
+		  (display ", " port)
+		  (display val port))
+	(cdr the-pairs)))
+    (display " }" port)
+    (getter)))
 
 (define (json-make-array the-values)
   (let ((list-of-values (cond ((list? the-values)
@@ -119,11 +159,12 @@
 				 "expected list or vector of values for JSON array")))))
     (let-values (((port getter) (open-string-output-port)))
       (display "[ " port)
-      (display (car list-of-values) port)
-      (for-each (lambda (val)
-		  (display ", " port)
-		  (display val port))
-	list-of-values)
+      (unless (null? list-of-values)
+	(display (car list-of-values) port)
+	(for-each (lambda (val)
+		    (display ", " port)
+		    (display val port))
+	  (cdr list-of-values)))
       (display " ]" port)
       (getter))))
 

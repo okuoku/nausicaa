@@ -75,8 +75,8 @@
         (lambda
           (yy-reduce-pop-and-push yypushback yycustom
            yy-stack-states $3 $2 $1 . yy-stack-values)
-          (yy-reduce-pop-and-push 3 2 $2 yy-stack-states
-            yy-stack-values))
+          (yy-reduce-pop-and-push 3 2 (list $2)
+            yy-stack-states yy-stack-values))
         (lambda
           (yy-reduce-pop-and-push yypushback yycustom
            yy-stack-states $4 $3 $2 $1 . yy-stack-values)

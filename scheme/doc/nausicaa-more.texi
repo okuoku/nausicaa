@@ -137,6 +137,10 @@ Revised^6 Report on the algorithmic language Scheme
 @acronym{ISO}
 @end macro
 
+@macro json{}
+@acronym{JSON}
+@end macro
+
 @macro posix{}
 @acronym{POSIX}
 @end macro
@@ -604,6 +608,7 @@ the list of original documents and their authors.  See also the
 * infix::                       Infix notation utilities.
 * getopts::                     Parsing command line arguments.
 * armor::                       @ascii{} armor encoding/decoding.
+* json::                        Parsing and generating @json{} text.
 * libraries::                   Libraries inspection.
 
 Low level libraries
@@ -1268,6 +1273,12 @@ Examples of encoding and decoding
 
 * armor examples encode::       Encoding example.
 * armor examples decode::       Decoding example.
+
+Parsing and generating @json{} text
+
+* json intro::                  Introduction to @json{}.
+* json decoding::               Decoding @json{} text.
+* json encoding::               Encoding @json{} text.
 
 Libraries inspection
 
@@ -26800,7 +26811,7 @@ representing the automaton.  There are three of them: action, goto,
 reduction.  The tables are used as arguments for a call to
 @func{lr-driver} or @func{glr-driver}: Their return value is a closure
 implementing an instance of the parser.
-@end defun
+@end deffn
 
 
 @deffn Clause :terminals @var{sexpr}
@@ -33626,6 +33637,258 @@ is decoded in the sequence of bytes:
 @example
 0 1 2 3 4 0 1 2 3 4 5 6 0 1 2 3 4 5 6
 @end example
+
+@c page
+@node json
+@chapter Parsing and generating @json{} text
+
+
+The @library{json} library implements a parser which converts @json{}
+text to Scheme S-expressions and a set of functions to generate @json{}
+text from Scheme values.
+
+@menu
+* json intro::                  Introduction to @json{}.
+* json decoding::               Decoding @json{} text.
+* json encoding::               Encoding @json{} text.
+@end menu
+
+@c page
+@node json intro
+@section Introduction to @json{}
+
+
+@json{} (JavaScript Object Notation) is a lightweight data--interchange
+format; full informations on the notation are available
+at:@footnote{@aurl{} last verified Mon May 31, 2010.}
+
+@center @url{http://www.json.org/}
+
+@noindent
+the specification is also available in @rfc{} 4627.
+
+The @library{json} library parses @json{} text using the @library{silex
+lexer} and @library{lalr lr-driver} libraries; given the terminals,
+optionally surrounded by white spaces:
+
+@example
+BEGIN_ARRAY             [
+END_ARRAY               ]
+BEGIN_OBJECT            @{
+END_OBJECT              @}
+NAME_SEPARATOR          :
+VALUE_SEPARATOR         ,
+
+FALSE                   "false"
+NULL                    "null"
+TRUE                    "true"
+@end example
+
+@noindent
+with the addition of @samp{NUMBER} and @samp{STRING}, the grammar is:
+
+@example
+((json-text     (object)
+                (array))
+
+ (object        (BEGIN_OBJECT END_OBJECT)
+                (BEGIN_OBJECT pair END_OBJECT)
+                (BEGIN_OBJECT pair pair-rest END_OBJECT))
+
+ (pair          (STRING NAME_SEPARATOR value))
+ (pair-rest     (VALUE_SEPARATOR pair)
+                (VALUE_SEPARATOR pair pair-rest))
+
+ (array         (BEGIN_ARRAY END_ARRAY)
+                (BEGIN_ARRAY value END_ARRAY)
+                (BEGIN_ARRAY value value-rest END_ARRAY))
+
+ (value         (FALSE)
+                (NULL)
+                (TRUE)
+                (NUMBER)
+                (STRING)
+                (object)
+                (array))
+ (value-rest    (VALUE_SEPARATOR value)
+                (VALUE_SEPARATOR value value-rest)))
+@end example
+
+@library{json} turns @json{} text into a Scheme S--expression; @json{}
+pairs become Scheme pairs:
+
+@example
+"Height": 600           @expansion{} ("Height" . 600)
+"Hello" : "Ciao"        @expansion{} ("Hello"  . "Ciao")
+@end example
+
+@noindent
+objects become lists:
+
+@example
+@{ "Height": 600" @}
+@expansion{} (("Height" . 600))
+
+@{ "Height": 600, "Hello" : "Ciao" @}
+@expansion{} (("Height" . 600) ("Hello"  . "Ciao"))
+@end example
+
+@noindent
+arrays become vectors:
+
+@example
+[ "Ciao", "Hello", "Salut" ]
+@expansion{} #("Ciao" "Hello" "Salut")
+@end example
+
+@noindent
+the literal @samp{true} becomes @true{}, the literal @samp{false}
+becomes @false{}, the literal @samp{null} becomes @code{()}.
+
+@c page
+@node json decoding
+@section Decoding @json{} text
+
+
+The following functions are exported by @library{json}; they allow
+parsing of @json{} text as follows:
+
+@example
+(import (rnrs)
+  (silex lexer)
+  (json))
+
+(define json-text
+  "@{ \"Hello\" : true, \"Ciao\": false @}")
+
+(define IS
+  (lexer-make-IS (:string json-text)
+                 (:counters 'all)))
+
+(define lexer
+  (make-json-rfc-lexer IS))
+
+(define parser
+  (make-json-parser))
+
+(define (error-handler msg tok)
+  (error 'json-parser msg tok))
+
+(parser lexer error-handler)
+@result{} (("Hello" . #t) ("Ciao" . #f))
+@end example
+
+
+@defun make-json-rfc-lexer @var{input-system}
+Build and return a @library{silex} lexer for @json{} text using
+@var{input-system}; the lexer will parse @json{} text conforming to
+@rfc{} 4627.
+@end defun
+
+
+@defun make-json-parser
+Build and return a new @json{} parser using @library{lalr lr-driver};
+the returned value is a parser function as described in @ref{lalr
+parser}.
+@end defun
+
+
+@defun json->tokens @var{input-system}
+Read @json{} text from @var{input-system} and return a list of
+@class{lexical-token} records.
+@end defun
+
+
+@defun json-decode-string @var{input-string}
+Decode a @json{} string returning a Scheme string.  @var{input-string}
+must not be enclosed in double quotes.  Examples:
+
+@example
+(json-decode-string "")         @result{} ""
+(json-decode-string "a")        @result{} "a"
+(json-decode-string "ciao")     @result{} "ciao"
+(json-decode-string "\\\"")     @result{} "\""
+(json-decode-string "\\/")      @result{} "/"
+(json-decode-string "\\b")      @result{} "\b"
+(json-decode-string "\\f")      @result{} "\f"
+(json-decode-string "\\n")      @result{} "\n"
+(json-decode-string "\\r")      @result{} "\r"
+(json-decode-string "\\t")      @result{} "\t"
+(json-decode-string "\\u005C")  @result{} "\\"
+
+(json-decode-string "inizio\\\"\\/\\b\\f\\n\\r\\tfine")
+@result{} "inizio\"/\b\f\n\r\tfine"
+
+(json-decode-string "\\u0063\\u0069\\u0061\\u006f")
+@result{} "ciao"
+
+(json-decode-string "ciao \\\"hello\\\" salut")
+@result{} "ciao \"hello\" salut"
+@end example
+@end defun
+
+@c page
+@node json encoding
+@section Encoding @json{} text
+
+
+@defun json-make-pair @var{name} @var{value}
+@defunx json-make-pair @var{name} @var{value} @var{encode-value?}
+Build and return a string representing a @json{} pair.
+
+@var{name} must be a string and it is always encoded with
+@func{json-encode-string}.
+
+@var{value} can be a string, a number, @true{}, @false{} or @code{()}.
+When @var{value} is a string and @var{encode-value?} is true:
+@var{value} is encoded with @func{json-encode-string};
+@var{encode-value?} defaults to true.
+@end defun
+
+
+@defun json-make-object @var{pair} ...
+Given a list of strings representing @json{} pairs return a string
+representing a @json{} object.
+@end defun
+
+
+@defun json-make-array @var{list-or-vector}
+Given a list or vector of strings representing @json{} values return a
+string representing a @json{} array.
+
+@example
+(json-make-array '("12" "34" "56"))
+@result{} "[ 12, 34, 56 ]"
+
+(json-make-array '#("12" "34" "56"))
+@result{} "[ 12, 34, 56 ]"
+@end example
+@end defun
+
+
+@defun json-encode-string @var{input-string}
+Encode a Scheme string to its representation as @json{} string; return a
+string.  All the characters whose integer representation is outside the
+range @math{[32, 126]} are represented with the @samp{\uXXXX} sequence,
+where @samp{X} is a hexadecimal digit.  Examples:
+
+@example
+(json-encode-string "")         @result{} ""
+(json-encode-string "ciao")     @result{} "ciao"
+(json-encode-string "\"")       @result{} "\\\""
+(json-encode-string "/")        @result{} "\\/"
+(json-encode-string "\b")       @result{} "\\b"
+(json-encode-string "\f")       @result{} "\\f"
+(json-encode-string "\n")       @result{} "\\n"
+(json-encode-string "\r")       @result{} "\\r"
+(json-encode-string "\t")       @result{} "\\t"
+(json-encode-string " ")        @result{} " "
+(json-encode-string "\x127;")   @result{} "\\u0127"
+(json-encode-string "\x1234;")  @result{} "\\u1234"
+@end example
+@end defun
+
+
 
 @c page
 @node libraries
