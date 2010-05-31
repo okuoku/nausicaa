@@ -283,7 +283,7 @@
 }
 ")
     => '(("glossary" .
-	  (("title". "example glossary")
+	  (("title" . "example glossary")
 	   ("GlossDiv" .
 	    (("title" . "S")
 	     ("GlossList" . (("GlossEntry" .
@@ -405,7 +405,7 @@
 }
 ")
     => '(("glossary" .
-	  (("title". "example glossary")
+	  (("title" . "example glossary")
 	   ("GlossDiv" .
 	    (("title" . "S")
 	     ("GlossList" . (("GlossEntry" .
