@@ -32,22 +32,8 @@
 
 #!r6rs
 (import (rnrs)
-  (keywords)
   (lalr)
   (silex))
-
-(define-keywords
-  :counters
-  :dump-table
-  :input-string
-  :library-imports
-  :library-spec
-  :output-file
-  :parser-name
-  :rules
-  :table-name
-  :terminals
-  )
 
 
 ;;;; lexer
@@ -172,83 +158,83 @@ cparen		\\)
 
 (lalr-parser
 
- :output-file		"calc-parser.sls"
+ (:output-file		"calc-parser.sls")
 		;output a parser, called calc-parser, in a separate file
 
- :parser-name		'make-calc-parser
- :library-spec		'(calc-parser)
- :library-imports	'((calc-parser-helper) (rnrs eval)
+ (:parser-name		'make-calc-parser)
+ (:library-spec		'(calc-parser))
+ (:library-imports	'((calc-parser-helper) (rnrs eval)
 			  (parser-tools lexical-token)
-			  (parser-tools source-location))
+			  (parser-tools source-location)))
 
- :dump-table		"calc-parser-tables.txt"
+ (:dump-table		"calc-parser-tables.txt")
 		;output to a file the human readable LALR table
 
-;;; :expect		5
+;;; (:expect		5)
 		;there should be no conflicts
 
- :terminals	'(ID NUM ASSIGN LPAREN RPAREN NEWLINE COMMA
+ (:terminals	'(ID NUM ASSIGN LPAREN RPAREN NEWLINE COMMA
 		  (left: + -)
 		  (left: * / DIV MOD EXPT LESS GREAT LESSEQ GREATEQ EQUAL)
 		  (nonassoc: uminus)
-		  (nonassoc: uplus))
+		  (nonassoc: uplus)))
 
- :rules	'((script	(lines)	: $1)
+ (:rules
+  '((script	(lines)			: $1)
 
-	  (lines
-	   (lines line)		: (let ((result $2))
-				    (when result
-				      (evaluated-expressions
-				       (cons result (evaluated-expressions))))
-				    result)
+    (lines	(lines line)		: (let ((result $2))
+					    (when result
+					      (evaluated-expressions
+					       (cons result (evaluated-expressions))))
+					    result)
 		;this reports the result of the last line
-	   (line)		: (let ((result $1))
+		(line)		: (let ((result $1))
 				    (when result
 				      (evaluated-expressions
 				       (cons result (evaluated-expressions))))
 				    result))
 		;this reports the result of all the lines but the last
 
-	  (line     (assign NEWLINE)	: $1
-		    (expr   NEWLINE)	: $1
+    (line	(assign NEWLINE)	: $1
+		(expr   NEWLINE)	: $1
 
-		    (error  NEWLINE)	: #f)
+		(error  NEWLINE)	: #f)
 		;either a line starts  with an expression or assignment,
 		;or it  is an  error; in case  of error discard  all the
 		;tokens up until the first newline
 
-	  (assign   (ID ASSIGN expr)	: (begin
-					    (hashtable-set! (table-of-variables) $1 $3)
-					    #f))
+    (assign   (ID ASSIGN expr)	: (begin
+				    (hashtable-set! (table-of-variables) $1 $3)
+				    #f))
 
-	  (expr     (expr + expr)	: (+ $1 $3)
-		    (expr - expr)	: (- $1 $3)
-		    (expr * expr)	: (* $1 $3)
-		    (expr / expr)	: (/ $1 $3)
-		    (+ expr (prec: uplus))
-					: $2
-		    (- expr (prec: uminus))
-					: (- $2)
-		    (expr DIV expr)	: (div $1 $3)
-		    (expr MOD expr)	: (mod $1 $3)
-		    (expr EXPT expr)	: (expt $1 $3)
-		    (expr LESS expr)	: (< $1 $3)
-		    (expr GREAT expr)	: (> $1 $3)
-		    (expr LESSEQ expr)	: (<= $1 $3)
-		    (expr GREATEQ expr)	: (>= $1 $3)
-		    (expr EQUAL expr)	: (= $1 $3)
-		    (ID)		: (hashtable-ref (table-of-variables) $1 #f)
-		    (ID LPAREN args RPAREN)
-					: (apply (eval $1 (environment '(rnrs))) $3)
-		    (NUM)		: $1
-		    (LPAREN expr RPAREN)
-					: $2)
+    (expr     (expr + expr)	: (+ $1 $3)
+	      (expr - expr)	: (- $1 $3)
+	      (expr * expr)	: (* $1 $3)
+	      (expr / expr)	: (/ $1 $3)
+	      (+ expr (prec: uplus))
+	      : $2
+	      (- expr (prec: uminus))
+	      : (- $2)
+	      (expr DIV expr)	: (div $1 $3)
+	      (expr MOD expr)	: (mod $1 $3)
+	      (expr EXPT expr)	: (expt $1 $3)
+	      (expr LESS expr)	: (< $1 $3)
+	      (expr GREAT expr)	: (> $1 $3)
+	      (expr LESSEQ expr)	: (<= $1 $3)
+	      (expr GREATEQ expr)	: (>= $1 $3)
+	      (expr EQUAL expr)	: (= $1 $3)
+	      (ID)		: (hashtable-ref (table-of-variables) $1 #f)
+	      (ID LPAREN args RPAREN)
+	      : (apply (eval $1 (environment '(rnrs))) $3)
+	      (NUM)		: $1
+	      (LPAREN expr RPAREN)
+	      : $2)
 
-	  (args     ()			: '()
-		    (expr arg-rest)	: (cons $1 $2))
+    (args     ()			: '()
+	      (expr arg-rest)	: (cons $1 $2))
 
-	  (arg-rest (COMMA expr arg-rest)
-					: (cons $2 $3)
-		    ()			: '())))
+    (arg-rest (COMMA expr arg-rest)
+	      : (cons $2 $3)
+	      ()			: '()))))
 
 ;;; end of file

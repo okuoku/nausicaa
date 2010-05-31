@@ -30,7 +30,6 @@
 
 
 (import (nausicaa)
-  (keywords)
   (silex lexer)
   (calc-parser)
   (calc-parser-helper)
@@ -53,8 +52,6 @@
 		       " line " (if line (number->string line) "unknown")
 		       " column " (if column (number->string column) "unknown"))))
     token))
-
-(define-keywords :string :counters)
 
 
 (parameterise ((check-test-name	'expressions))

@@ -26,25 +26,8 @@
 
 
 (import (nausicaa)
-  (keywords)
   (silex)
   (lalr))
-
-(define-keywords
-  :counters
-  :dump-table
-  :input-file
-  :input-string
-  :lexer-format
-  :library-imports
-  :library-spec
-  :output-file
-  :parser-name
-  :rules
-  :table-name
-  :terminals
-  )
-
 
 (lex (:input-file	"string-lexer.l")
      (:output-file	"string-lexer.sls")
@@ -64,65 +47,65 @@
 
 (lalr-parser
 
- :output-file		"string-parser.sls"
- :parser-name		'make-infix-string-parser
- :library-spec		'(infix string-parser)
-;;; :library-imports	'((rnrs eval))
+ (:output-file		"string-parser.sls")
+ (:parser-name		'make-infix-string-parser)
+ (:library-spec		'(infix string-parser))
+;;; (:library-imports	'((rnrs eval)))
 
- :terminals	'(ID QUESTION-ID COLON-ID NUM LPAREN RPAREN COMMA
+ (:terminals	'(ID QUESTION-ID COLON-ID NUM LPAREN RPAREN COMMA
 		     (left: ADD SUB)
 		     (left: MUL DIV DIV0)
 		     (left: MOD)
 		     (left: EXPT)
 		     (left: LT GT LE GE EQ)
 		     (nonassoc: UADD)
-		     (nonassoc: USUB))
+		     (nonassoc: USUB)))
 
- :rules	'((expr		(expr ADD expr)		: (list $2 $1 $3)
-			(expr SUB expr)		: (list $2 $1 $3)
-			(expr DIV expr)		: (list $2 $1 $3)
-			(expr MUL expr)		: (list $2 $1 $3)
+ (:rules '((expr		(expr ADD expr)		: (list $2 $1 $3)
+				(expr SUB expr)		: (list $2 $1 $3)
+				(expr DIV expr)		: (list $2 $1 $3)
+				(expr MUL expr)		: (list $2 $1 $3)
 
-			(expr DIV0 expr)	: (list $2 $1 $3)
-			(expr MOD expr)		: (list $2 $1 $3)
-			(expr EXPT expr)	: (list $2 $1 $3)
-			(expr LT expr)		: (list $2 $1 $3)
-			(expr GT expr)		: (list $2 $1 $3)
-			(expr LE expr)		: (list $2 $1 $3)
-			(expr GE expr)		: (list $2 $1 $3)
-			(expr EQ expr)		: (list $2 $1 $3)
-			(ADD expr (prec: UADD))	: $2
-			(SUB expr (prec: USUB))	: (list $1 $2)
-			(ID)			: $1
-			(ID LPAREN args RPAREN)	: (cons $1 $3)
-			(expr QUESTION-ID expr COLON-ID expr) : (list 'if $1 $3 $5)
-			(NUM)			: $1
-			(LPAREN expr RPAREN)	: $2)
+				(expr DIV0 expr)	: (list $2 $1 $3)
+				(expr MOD expr)		: (list $2 $1 $3)
+				(expr EXPT expr)	: (list $2 $1 $3)
+				(expr LT expr)		: (list $2 $1 $3)
+				(expr GT expr)		: (list $2 $1 $3)
+				(expr LE expr)		: (list $2 $1 $3)
+				(expr GE expr)		: (list $2 $1 $3)
+				(expr EQ expr)		: (list $2 $1 $3)
+				(ADD expr (prec: UADD))	: $2
+				(SUB expr (prec: USUB))	: (list $1 $2)
+				(ID)			: $1
+				(ID LPAREN args RPAREN)	: (cons $1 $3)
+				(expr QUESTION-ID expr COLON-ID expr) : (list 'if $1 $3 $5)
+				(NUM)			: $1
+				(LPAREN expr RPAREN)	: $2)
 
-	  (args		()			: '()
-			(expr arg-rest)		: (cons $1 $2))
+	   (args		()			: '()
+				(expr arg-rest)		: (cons $1 $2))
 
-	  (arg-rest	(COMMA expr arg-rest)	: (cons $2 $3)
-			()			: '())))
+	   (arg-rest	(COMMA expr arg-rest)	: (cons $2 $3)
+			()			: '()))))
 
 ;;; --------------------------------------------------------------------
 
 (lalr-parser
 
- :output-file		"sexp-parser.sls"
- :parser-name		'make-infix-sexp-parser
- :library-spec		'(infix sexp-parser)
+ (:output-file		"sexp-parser.sls")
+ (:parser-name		'make-infix-sexp-parser)
+ (:library-spec		'(infix sexp-parser))
 
- :terminals	'(ID QUESTION-ID COLON-ID NUM LPAREN RPAREN
+ (:terminals	'(ID QUESTION-ID COLON-ID NUM LPAREN RPAREN
 		     (left: ADD SUB)
 		     (left: MUL DIV DIV0)
 		     (left: MOD)
 		     (left: EXPT)
 		     (left: LT GT LE GE EQ)
 		     (nonassoc: UADD)
-		     (nonassoc: USUB))
+		     (nonassoc: USUB)))
 
- :rules	'((expr		(expr ADD expr)		: (list $2 $1 $3)
+ (:rules '((expr	(expr ADD expr)		: (list $2 $1 $3)
 			(expr SUB expr)		: (list $2 $1 $3)
 			(expr DIV expr)		: (list $2 $1 $3)
 			(expr MUL expr)		: (list $2 $1 $3)
@@ -158,10 +141,10 @@
 			(NUM)			: $1
 			(LPAREN expr RPAREN)	: $2)
 
-	  (args		()			: '()
+	   (args	()			: '()
 			(expr arg-rest)		: (cons $1 $2))
 
-	  (arg-rest	(expr arg-rest)		: (cons $1 $2)
-			()			: '())))
+	   (arg-rest	(expr arg-rest)		: (cons $1 $2)
+			()			: '()))))
 
 ;;; end of file

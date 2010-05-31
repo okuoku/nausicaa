@@ -53,7 +53,7 @@
     (rnrs eval)
     (parser-tools source-location)
     (parser-tools lexical-token)
-    (keywords)
+    (makers)
     (pretty-print))
 
 
@@ -196,49 +196,54 @@
 				   (vector-ref v2 i)))))
 
 
-(define (lalr-parser . options)
+(define-maker lalr-parser
+  %lalr-parser
+  ((:library-spec	#f)
+   (:library-imports	'())
+   (:parser-type	'lr)
+   (:parser-name	#f)
+
+   (:output-value	#f)
+   (:output-port	#f)
+   (:output-file	#f)
+
+   (:dump-table		#f)
+
+   (:expect		0)
+   (:rules		#f)
+   (:terminals		#f)))
+
+(define (%lalr-parser library-spec library-imports parser-type parser-name
+		      output-value output-port output-file
+		      dump-table
+		      expect rules terminals)
 
   (define (main)
-    (let-keywords options #f ((library-spec	:library-spec		#f)
-			      (library-imports	:library-imports	'())
-			      (parser-type	:parser-type		'lr)
-			      (parser-name	:parser-name		#f)
+    (set! expected-conflicts expect)
+    (set! driver-name (case parser-type
+			((glr)	'glr-driver)
+			((lr)		'lr-driver)
+			(else
+			 (assertion-violation 'lalr-parser
+			   "expected \"lr\" or \"glr\" as parser type"
+			   parser-type))))
 
-			      (output-value	:output-value		#f)
-			      (output-port	:output-port		#f)
-			      (output-file	:output-file		#f)
+    (let* ((gram/actions (gen-tables! terminals rules))
+	   (code         `(,driver-name ',action-table
+					,(build-goto-table)
+					,(build-reduction-table gram/actions))))
 
-			      (dump-table	:dump-table		#f)
+      (when dump-table
+	(with-output-to-new-file dump-table debug:print-states))
 
-			      (expect		:expect			0)
-			      (rules		:rules			#f)
-			      (terminals	:terminals		#f))
-
-      (set! expected-conflicts expect)
-      (set! driver-name (case parser-type
-			  ((glr)	'glr-driver)
-			  ((lr)		'lr-driver)
-			  (else
-			   (assertion-violation 'lalr-parser
-			     "expected \"lr\" or \"glr\" as parser type"
-			     parser-type))))
-
-      (let* ((gram/actions (gen-tables! terminals rules))
-	     (code         `(,driver-name ',action-table
-					  ,(build-goto-table)
-					  ,(build-reduction-table gram/actions))))
-
-	(when dump-table
-	  (with-output-to-new-file dump-table debug:print-states))
-
-	(let* ((imports	(append `((rnrs)
+      (let* ((imports	(append `((rnrs)
 				  (lalr ,driver-name)
 				  (parser-tools source-location)
 				  (parser-tools lexical-token)
 				  (sentinel))
 				library-imports))
-	       (exports	`(,parser-name))
-	       (code	(cond (library-spec ;generate a library
+	     (exports	`(,parser-name))
+	     (code	(cond (library-spec ;generate a library
 			       (unless parser-name
 				 (assertion-violation 'lalr-parser
 				   "parser binding name required when building a library"))
@@ -252,14 +257,14 @@
 
 			      (else ;generate a lambda
 			       `(lambda () ,code)))))
-	  (cond (output-value
-		 (eval code (apply environment imports)))
-		(output-port
-		 (pretty-print code output-port))
-		(output-file
-		 (with-output-to-new-file output-file
-					  (lambda (port)
-					    (pretty-print code port)))))))))
+	(cond (output-value
+	       (eval code (apply environment imports)))
+	      (output-port
+	       (pretty-print code output-port))
+	      (output-file
+	       (with-output-to-new-file output-file
+					(lambda (port)
+					  (pretty-print code port))))))))
 
 
 ;;;; macro pour les structures de donnees

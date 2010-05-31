@@ -25,23 +25,8 @@
 
 
 (import (rnrs)
-  (keywords)
   (silex)
   (lalr))
-
-(define-keywords
-  :counters
-  :dump-table
-  :input-file
-  :input-string
-  :library-imports
-  :library-spec
-  :output-file
-  :parser-name
-  :rules
-  :table-name
-  :terminals
-  )
 
 
 (lex (:input-file	"quoted-text.l")
@@ -87,21 +72,21 @@
 
 (lalr-parser
 
- :output-file		"parser.sls"
- :parser-name		'make-address-parser
- :library-spec		'(email addresses parser)
- :library-imports	'((email addresses common) (strings))
+ (:output-file		"parser.sls")
+ (:parser-name		'make-address-parser)
+ (:library-spec		'(email addresses parser))
+ (:library-imports	'((email addresses common) (strings)))
 
- :terminals	'(DOT COMMA COLON SEMICOLON ATOM AT
+ (:terminals	'(DOT COMMA COLON SEMICOLON ATOM AT
 		      ANGLE-OPEN ANGLE-CLOSE
 		      DOMAIN-LITERAL-OPEN DOMAIN-LITERAL-CLOSE DOMAIN-LITERAL-INTEGER
-		      QUOTED-TEXT)
+		      QUOTED-TEXT))
 
- :rules
- '((address		(group address-rest)	: (cons $1 $2)
+ (:rules
+  '((address		(group address-rest)	: (cons $1 $2)
 			(mailbox address-rest)	: (cons $1 $2)
 			(address-rest)		: $1)
-   (address-rest	(COMMA group address-rest)
+    (address-rest	(COMMA group address-rest)
 			: (cons $2 $3)
 			(COMMA mailbox address-rest)
 			: (cons $2 $3)
@@ -110,17 +95,17 @@
 
 ;;; --------------------------------------------------------------------
 
-   (group		(display-name COLON SEMICOLON)
+    (group		(display-name COLON SEMICOLON)
 			: (make-<group> $1 '())
 			(display-name COLON mailbox-list SEMICOLON)
 			: (make-<group> $1 $3))
 
 ;;; --------------------------------------------------------------------
 
-   (mailbox-list	(mailbox mailbox-list-rest)
+    (mailbox-list	(mailbox mailbox-list-rest)
 			: (cons $1 $2)
 			(mailbox-list-rest)	: $1)
-   (mailbox-list-rest	(COMMA mailbox mailbox-list-rest)
+    (mailbox-list-rest	(COMMA mailbox mailbox-list-rest)
 			: (cons $2 $3)
 			(COMMA mailbox-list-rest)
 			: $2
@@ -128,7 +113,7 @@
 
 ;;; --------------------------------------------------------------------
 
-   (mailbox		(display-name ANGLE-OPEN route addr-spec ANGLE-CLOSE)
+    (mailbox		(display-name ANGLE-OPEN route addr-spec ANGLE-CLOSE)
 			: (make-<mailbox> $1 $3 $4)
 			(display-name ANGLE-OPEN addr-spec ANGLE-CLOSE)
 			: (make-<mailbox> $1 #f $3)
@@ -140,28 +125,28 @@
 
 ;;; --------------------------------------------------------------------
 
-   (route		(AT domain route-rest)	: (make-<route> (cons $2 $3)))
-   (route-rest		(COMMA AT domain route-rest)
+    (route		(AT domain route-rest)	: (make-<route> (cons $2 $3)))
+    (route-rest		(COMMA AT domain route-rest)
 			: (cons $3 $4)
 			(COLON)			: '())
 
 ;;; --------------------------------------------------------------------
 
-   (addr-spec		(local-part AT domain)	: (make-<addr-spec> $1 $3))
+    (addr-spec		(local-part AT domain)	: (make-<addr-spec> $1 $3))
 
 ;;; --------------------------------------------------------------------
 
-   (domain		(domain-ref)		: $1
+    (domain		(domain-ref)		: $1
 			(domain-literal)	: $1)
 
-   (domain-ref		(ATOM domain-ref-rest)	: (make-<domain> #f (cons $1 $2)))
-   (domain-ref-rest	(DOT ATOM domain-ref-rest)
+    (domain-ref		(ATOM domain-ref-rest)	: (make-<domain> #f (cons $1 $2)))
+    (domain-ref-rest	(DOT ATOM domain-ref-rest)
 			: (cons $2 $3)
 			()			: '())
 
 ;;; --------------------------------------------------------------------
 
-   (domain-literal	(DOMAIN-LITERAL-OPEN
+    (domain-literal	(DOMAIN-LITERAL-OPEN
 			 DOMAIN-LITERAL-INTEGER DOT
 			 DOMAIN-LITERAL-INTEGER DOT
 			 DOMAIN-LITERAL-INTEGER DOT
@@ -172,19 +157,19 @@
 ;;; --------------------------------------------------------------------
 
 
-   (local-part		(ATOM local-part-rest)	: (make-<local-part> (cons $1 $2)))
-   (local-part-rest	(DOT ATOM local-part-rest)
+    (local-part		(ATOM local-part-rest)	: (make-<local-part> (cons $1 $2)))
+    (local-part-rest	(DOT ATOM local-part-rest)
 			: (cons $2 $3)
 			()			: '())
 
 ;;; --------------------------------------------------------------------
 
-   (display-name	(phrase)		: (string-join $1 " ")
+    (display-name	(phrase)		: (string-join $1 " ")
 			(QUOTED-TEXT)		: $1)
-   (phrase		(phrase-rest)		: $1)
-   (phrase-rest		(ATOM phrase-rest)	: (cons $1 $2)
-			()			: '())
+    (phrase		(phrase-rest)		: $1)
+    (phrase-rest		(ATOM phrase-rest)	: (cons $1 $2)
+				()			: '())
 
-   ))
+    )))
 
 ;;; end of file
