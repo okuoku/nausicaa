@@ -329,6 +329,23 @@
 
 ;;; --------------------------------------------------------------------
 
+(compile-library "json/string-lexer.sls"
+		 "json/string-lexer.slfasl")
+
+(compile-library "json/rfc-lexer.sls"
+		 "json/rfc-lexer.slfasl")
+
+(compile-library "json/extended-lexer.sls"
+		 "json/extended-lexer.slfasl")
+
+(compile-library "json/parser.sls"
+		 "json/parser.slfasl")
+
+(compile-library "json.sls"
+		 "json.slfasl")
+
+;;; --------------------------------------------------------------------
+
 (compile-library "getopts.sls"
 		 "getopts.slfasl")
 

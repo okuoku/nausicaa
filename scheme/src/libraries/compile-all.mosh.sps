@@ -119,6 +119,8 @@
   (only (email addresses))
 
   (only (getopts))
+  (only (json))
+  (only (libraries))
 
   (only (armor conditions))
   (only (armor base16))
