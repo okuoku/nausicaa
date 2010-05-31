@@ -29,7 +29,6 @@
   (export infix-string->sexp infix->prefix infix)
   (import (rnrs)
     (infix syntax)
-    (only (keywords) define-keywords)
     (silex lexer)
     (parser-tools source-location)
     (parser-tools lexical-token)
@@ -37,8 +36,6 @@
     (infix string-parser)
     (infix sexp-parser)
     (infix helpers))
-
-(define-keywords :string :counters)
 
 
 (define (infix-string->sexp string)
