@@ -28,7 +28,6 @@
 (library (makers)
   (export define-maker)
   (import (rnrs)
-(pretty-print)
     ;;Notice that  we need to have  the helpers in  a different library,
     ;;because some functions  are used by the newly  defined macros, not
     ;;just by DEFINE-MAKER.
@@ -56,41 +55,57 @@
 	 (syntax->datum #'(?k ?name ?maker-sexp ?keywords-and-defaults))
 	 (syntax->datum #'?keywords-and-defaults)))
 
-      ((_ (?name ?var ...) (?maker ?arg ...) ?keywords-and-defaults)
-       #'(define-syntax ?name
-	   (lambda (use)
-	     (syntax-case use ()
-	       ((_ ?var ... . ?args)
-		#`(?maker ?arg ... ?var ...
-			  #,@(parse-input-form-stx #'?name (quote ?name) use #'?args
-						   (quote ?keywords-and-defaults))))))))
+      ((_ (?name ?var ...) (?maker ?arg ...) ((?keyword ?default) ...))
+       (with-syntax (((VAR ...) (generate-temporaries #'(?default ...))))
+	 #'(begin
+	     (define VAR ?default) ...
+	     (define this-context #f)
+	     (define-syntax ?name
+	       (lambda (use)
+		 (syntax-case use ()
+		   ((_ ?var ... . ?args)
+		    #`(?maker ?arg ... ?var ...
+			      #,@(parse-input-form-stx #'this-context (quote ?name) use #'?args
+						       '((?keyword VAR) ...))))))))))
 
-      ((_ ?name (?maker ?arg ...) ?keywords-and-defaults)
-       #'(define-syntax ?name
-	   (lambda (use)
-	     (syntax-case use ()
-	       ((?k . ?args)
-		#`(?maker ?arg ... #,@(parse-input-form-stx #'?name (quote ?name) use #'?args
-							    (quote ?keywords-and-defaults))))))))
+      ((_ ?name (?maker ?arg ...) ((?keyword ?default) ...))
+       (with-syntax (((VAR ...) (generate-temporaries #'(?default ...))))
+	 #'(begin
+	     (define VAR ?default) ...
+	     (define this-context #f)
+	     (define-syntax ?name
+	       (lambda (use)
+		 (syntax-case use ()
+		   ((?k . ?args)
+		    #`(?maker ?arg ...
+			      #,@(parse-input-form-stx #'this-context (quote ?name) use #'?args
+						       '((?keyword VAR) ...))))))))))
 
-      ((_ (?name ?var ...) ?maker ?keywords-and-defaults)
-       #'(define-syntax ?name
-	   (lambda (use)
-	     (syntax-case use ()
-	       ((?k ?var ... . ?args)
-		#`(?maker ?var ...
-			  #,@(parse-input-form-stx #'?name (quote ?name) use #'?args
-						   (quote ?keywords-and-defaults))))))))
+      ((_ (?name ?var ...) ?maker ((?keyword ?default) ...))
+       (with-syntax (((VAR ...) (generate-temporaries #'(?default ...))))
+	 #'(begin
+	     (define VAR ?default) ...
+	     (define this-context #f)
+	     (define-syntax ?name
+	       (lambda (use)
+		 (syntax-case use ()
+		   ((?k ?var ... . ?args)
+		    #`(?maker ?var ...
+			      #,@(parse-input-form-stx #'this-context (quote ?name) use #'?args
+						       '((?keyword VAR) ...))))))))))
 
-      ((_ ?name ?maker ?keywords-and-defaults)
-       #'(define-syntax ?name
-	   (let ((keywords-and-defaults (quote ?keywords-and-defaults)))
-	     (lambda (use)
-	       (syntax-case use ()
-		 ((?k . ?args)
-		  #`(?maker #,@(parse-input-form-stx #'?name (quote ?name) use #'?args
-						     keywords-and-defaults))
-		  ))))))
+      ((_ ?name ?maker ((?keyword ?default) ...))
+       (with-syntax (((VAR ...) (generate-temporaries #'(?default ...))))
+	 #'(begin
+	     (define VAR ?default) ...
+	     (define this-context #f)
+	     (define-syntax ?name
+	       (lambda (use)
+		 (syntax-case use ()
+		   ((?k . ?args)
+		    #`(?maker #,@(parse-input-form-stx #'this-context (quote ?name) use #'?args
+						       '((?keyword VAR) ...)))
+		    )))))))
 
       (?input-form
        (syntax-violation 'define-maker

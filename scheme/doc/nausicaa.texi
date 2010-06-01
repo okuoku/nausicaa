@@ -20277,9 +20277,10 @@ context of the macro use.
 
 @noindent
 where each @meta{keyword} is an identifier selecting the keyword's
-symbol and @meta{default} is a @strong{datum} representing the default
-value for the optional argument; the expressions are evaluated in the
-lexical context of the macro use.  Notice that the @meta{keyword}
+symbol and @meta{default} is an expression representing the default
+value for the optional argument; the expressions are all evaluated only
+once in the lexical context of the macro definition, even if the
+resulting default value is never used.  Notice that the @meta{keyword}
 identifiers are matched against the values in the macro use by comparing
 the symbols with @func{eq?}, so they are @strong{not} handled as
 identifiers (bound or free).

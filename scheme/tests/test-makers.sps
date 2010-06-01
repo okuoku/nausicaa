@@ -36,12 +36,12 @@
 
 (parametrise ((check-test-name	'base))
 
-  (let ()	;variable arguments, no fixed arguments
+  (let ((v 2))	;variable arguments, no fixed arguments
 
     (define-maker doit
       list ((:alpha	1)
 	    (:beta	2)
-	    (:gamma	3)))
+	    (:gamma	(+ 1 v))))
 
     (check
 	(doit)

@@ -34,6 +34,13 @@
   (syntax-case stx ()
     (()			'())
     ((?car . ?cdr)
+     (and (identifier? #'?car)
+	  (or (free-identifier=? #'?car #'quote)
+	      (free-identifier=? #'?car #'quasiquote)
+	      (free-identifier=? #'?car #'syntax)
+	      (free-identifier=? #'?car #'quasisyntax)))
+     (syntax (?car . ?cdr)))
+    ((?car . ?cdr)
      (and (identifier? #'?car) (free-identifier=? #'quote #'?car))
      #'(?car . ?cdr))
     ((?car . ?cdr)	(cons (syntax->list #'?car) (syntax->list #'?cdr)))
@@ -98,7 +105,8 @@
 			   (and (eq? key (syntax->datum (car key-and-argument)))
 				(cadr key-and-argument)))
 			 arguments-stx)
-		 (datum->syntax context (cadr key-and-default)))))
+		 (datum->syntax context (cadr key-and-default))
+		 )))
       keywords-and-defaults)))
 
 
