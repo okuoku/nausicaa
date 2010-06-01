@@ -59,9 +59,9 @@
 
 (lalr-parser
 
- (:output-file		"parser.sls")
- (:parser-name		'make-json-parser)
- (:library-spec		'(json parser))
+ (:output-file		"sexp-parser.sls")
+ (:parser-name		'make-json-sexp-parser)
+ (:library-spec		'(json sexp-parser))
 
  (:terminals		'(BEGIN_ARRAY END_ARRAY
 				      BEGIN_OBJECT END_OBJECT

@@ -116,7 +116,7 @@
   #t)
 
 
-(parameterise ((check-test-name 'lexer-json))
+(parameterise ((check-test-name 'lexer-tokens))
 
   (define (doit string)
     (map (lambda (token)
@@ -128,15 +128,16 @@
 
   (check
       (doit "")
-    => '())
+    => `((*eoi* . ,(eof-object))))
 
   (check
       (doit " { \"Count\": 12 }")
-    => '((BEGIN_OBJECT . #\{)
+    => `((BEGIN_OBJECT . #\{)
 	 (STRING . "Count")
 	 (NAME_SEPARATOR . #\:)
 	 (NUMBER . 12)
-	 (END_OBJECT . #\})))
+	 (END_OBJECT . #\})
+	 (*eoi* . ,(eof-object))))
 
   (check
     (doit "{
@@ -153,7 +154,7 @@
   }
 }
 ")
-    => '((BEGIN_OBJECT . #\{)
+    => `((BEGIN_OBJECT . #\{)
 	 (STRING . "Image")
 	 (NAME_SEPARATOR . #\:)
 	 (BEGIN_OBJECT . #\{)
@@ -197,23 +198,37 @@
 	 (NUMBER . 38793)
 	 (END_ARRAY . #\])
 	 (END_OBJECT . #\})
-	 (END_OBJECT . #\})))
+	 (END_OBJECT . #\})
+	 (*eoi* . ,(eof-object))))
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (doit " { \"Count\" . 12 }")
+    => `((BEGIN_OBJECT . #\{)
+	 (STRING . "Count")
+	 (*lexer-error* . " . 12 }...")))
+
+  (check
+      (doit " { \"Count\" . 12, \"ciao\": false }")
+    => `((BEGIN_OBJECT . #\{)
+	 (STRING . "Count")
+	 (*lexer-error* . " . 12, \"ci...")))
 
   #t)
 
 
-(parameterise ((check-test-name 'rfc-parser))
+(parameterise ((check-test-name 'rfc-lexer-parser))
 
   (define (doit string)
     (let* ((IS		(lexer-make-IS (:string string) (:counters 'all)))
 	   (lexer	(make-json-rfc-lexer IS))
-	   (parser	(make-json-parser))
-	   (handler	(lambda (msg tok) (list 'error-handler msg tok))))
+	   (parser	(make-json-sexp-parser)))
       (parser (lambda ()
 		(let ((token (lexer)))
 ;;;		  (write token)(newline)
 		  token))
-	      handler)))
+	      (make-json-error-handler 'json-parser))))
 
 ;;; --------------------------------------------------------------------
 
@@ -297,15 +312,41 @@
 				 ("GlossSeeAlso" . #("GML" "XML"))))
 			       ("GlossSee" . "markup")))))))))))
 
+;;; --------------------------------------------------------------------
+
+  (check
+      (guard (E ((json-parser-error-condition? E)
+;;;(write (condition-message E))(newline)
+		 (condition-irritants E))
+		(else #f))
+	(doit " { \"Count\" . 12, \"ciao\": false }"))
+    => '(" . 12, \"ci..."))
+
+  (check
+      (guard (E ((json-parser-error-condition? E)
+;;;(write (condition-message E))(newline)
+		 (condition-irritants E))
+		(else #f))
+	(doit " { \"Count\" , 12, \"ciao\": false }"))
+    => '(","))
+
+  (check
+      (guard (E ((json-parser-error-condition? E)
+;;;(write (condition-message E))(newline)
+		 (condition-irritants E))
+		(else #f))
+	(doit " { 12, \"ciao\": false }"))
+    => '("12"))
+
   #t)
 
 
-(parameterise ((check-test-name 'rfc-parser))
+(parameterise ((check-test-name 'extended-lexer-parser))
 
   (define (doit string)
     (let* ((IS		(lexer-make-IS (:string string) (:counters 'all)))
 	   (lexer	(make-json-extended-lexer IS))
-	   (parser	(make-json-parser))
+	   (parser	(make-json-sexp-parser))
 	   (handler	(lambda (msg tok) (list 'error-handler msg tok))))
       (parser (lambda ()
 		(let ((token (lexer)))

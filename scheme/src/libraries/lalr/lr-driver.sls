@@ -23,7 +23,7 @@
 ;;;
 ;;;			<http://code.google.com/p/lalr-scm/>
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;Copyright (c) 2005-2008 Dominique Boucher
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
@@ -78,7 +78,7 @@
       (define (main lookahead)
 	(let ((category (<lexical-token>-category lookahead)))
 	  (if (eq? '*lexer-error* category)
-	      (main (attempt-error-recovery lookahead))
+	      (main (attempt-error-recovery lookahead "lexer error, invalid input"))
 	    (let ((action (select-action category (current-state))))
 	      ;; (debug "~%*** main states ~s values ~s lookahead-category=~s action ~s"
 	      ;; 	     stack-states stack-values category action)
@@ -88,7 +88,7 @@
 		    ((eq? action '*error*) ;syntax error in input
 		     (if (eq? category '*eoi*)
 			 (error-handler "unexpected end of input" lookahead)
-		       (main (attempt-error-recovery lookahead))))
+		       (main (attempt-error-recovery lookahead "syntax error, unexpected token"))))
 
 		    ((<= 0 action) ;shift (= push) token on the stack
 ;;;		     (debug "shift: ~s new-state= ~s" lookahead action)
@@ -151,10 +151,10 @@
 		(reduce (- default-action))
 		(reduce-using-default-actions))))))
 
-      (define (attempt-error-recovery lookahead)
+      (define (attempt-error-recovery lookahead error-message)
 
 	(define (%main)
-	  (error-handler "syntax error, unexpected token" lookahead)
+	  (error-handler error-message lookahead)
 	  (let ((token (synchronise-parser/rewind-stack)))
 	    ;;If recovery succeeds: TOKEN  is set to the next lookahead.
 	    ;;If recovery fails: TOKEN is set to end--of--input.

@@ -122,8 +122,24 @@ number			{real}|{integer}
 			 (make-<source-location> #f yyline yycolumn yyoffset)
 			 (eof-object) 0)
 
-<<ERROR>>		(make-<lexical-token> '*lexer-error*
-			 (make-<source-location> #f yyline yycolumn yyoffset)
-			 yytext (string-length yytext))
+<<ERROR>>		(let ((text (letrec ((unget (lambda (count)
+						      (unless (zero? count)
+							(yyungetc)
+							(unget (- count 1)))))
+					     (done  (lambda (count chars)
+						      (unget count)
+						      (apply string
+							     (reverse (cons* #\. #\. #\. chars))))))
+				      (let loop ((count 0) (chars '()))
+					(if (= 10 count)
+					    (done count chars)
+					  (let ((ch (yygetc)))
+					    (if (eof-object? ch)
+						(done count chars)
+					      (loop (+ 1 count) (cons ch chars)))))))))
+			  (make-<lexical-token>
+			   '*lexer-error*
+			   (make-<source-location> #f yyline yycolumn yyoffset)
+			   text (string-length text)))
 
 ;;; end of file

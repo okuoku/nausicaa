@@ -1,12 +1,12 @@
-(library (json parser)
-  (export make-json-parser)
+(library (json sexp-parser)
+  (export make-json-sexp-parser)
   (import
     (rnrs)
     (lalr lr-driver)
     (parser-tools source-location)
     (parser-tools lexical-token)
     (sentinel))
-  (define (make-json-parser)
+  (define (make-json-sexp-parser)
     (lr-driver
       '#(((*default* . *error*) (BEGIN_ARRAY . 2)
            (BEGIN_OBJECT . 1))

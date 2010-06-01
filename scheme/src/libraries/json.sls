@@ -29,21 +29,62 @@
   (export
     make-json-rfc-lexer		make-json-extended-lexer
     json->tokens
-    make-json-parser
+    make-json-sexp-parser	make-json-error-handler
     json-encode-string		json-decode-string
     json-make-pair		json-make-pair*
     json-make-object
-    json-make-array)
+    json-make-array
+
+    &json-parser-error
+    make-json-parser-error-condition
+    json-parser-error-condition?)
   (import (nausicaa)
+    (makers)
+    (conditions)
     (silex lexer)
     (json string-lexer)
     (json rfc-lexer)
     (json extended-lexer)
-    (json parser)
+    (json sexp-parser)
     (parser-tools lexical-token)
     (parser-tools source-location))
 
 
+(define-condition &json-parser-error
+  (parent &error))
+
+(define (make-json-error-handler who)
+  (lambda (message (token <lexical-token>))
+    (raise
+     (condition
+      (make-json-parser-error-condition)
+      (make-who-condition who)
+      (make-message-condition
+       (let (((pos <source-location>) token.location))
+	 (string-append "invalid JSON input at line " (number->string pos.line)
+			" column " (number->string pos.column)
+			" offset " (number->string pos.offset)
+			": " message)))
+      (make-irritants-condition (list (cond ((string? token.value)
+					     token.value)
+					    ((number? token.value)
+					     (number->string token.value))
+					    ((char? token.value)
+					     (string token.value))
+					    ((eqv? #t token.value)
+					     "true")
+					    ((eqv? #f token.value)
+					     "false")
+					    ((null? token.value)
+					     "null")
+					    (else
+					     (assertion-violation who
+					       "internal error: unexpected invalid token value"
+					       token.value)))))))))
+
+
+;;;; lexers
+
 (define (make-json-rfc-lexer IS)
   (%make-json-lexer IS json-rfc-lexer-table))
 
@@ -53,8 +94,8 @@
 (define (%make-json-lexer IS table)
   (let ((lexer (lexer-make-lexer table IS)))
     (lambda ()
-      (let ((token (lexer)))
-	(if (eq? 'QUOTED-TEXT-OPEN (<lexical-token>-category token))
+      (let (((token <lexical-token>) (lexer)))
+	(if (eq? 'QUOTED-TEXT-OPEN token.category)
 	    (%lex-string IS token)
 	  token)))))
 
@@ -81,10 +122,117 @@
     (let loop ((token		(lexer))
 	       (list-of-tokens	'()))
       (if (<lexical-token>?/special token)
-	  (reverse list-of-tokens)
+	  (reverse (cons token list-of-tokens))
 	(loop (lexer) (cons token list-of-tokens))))))
 
 
+;;;; event parser
+
+(define-maker make-json-event-parser
+  event-parser
+  ((:begin-object	#f)
+   (:end-object		#f)
+   (:begin-array	#f)
+   (:end-array		#f)
+   (:begin-pair		#f)
+   (:atom		#f)))
+
+(define (event-parser begin-object-handler end-object-handler
+		      begin-array-handler  end-array-handler
+		      begin-pair-handler atom-handler)
+
+  (define who 'json-event-parser)
+
+  (define-syntax case-token
+    (syntax-rules ()
+      ((_ ?token ?error-message ((?category ...) . ?body) ...)
+       (let (((token <lexical-token>) ?token))
+	 (case token.category
+	   ((?category ...) . ?body)
+	   ...
+	   (else
+	    (%error ?error-message token)))))))
+
+  (define %error
+    (make-json-error-handler who))
+
+  (lambda (lexer)
+
+    (define (%parse-object)
+      ;;Parse an object.  To be  called after the BEGIN_OBJECT token has
+      ;;been parsed.
+      ;;
+      (begin-object-handler 'begin-object)
+      (let next-pair ()
+	(unless (%parse-pair)
+	  (let (((token <lexical-token>) (lexer)))
+	    (case-token
+	     token "expected end of object or value separator after pair"
+	     ((VALUE_SEPARATOR)
+	      (next-pair)))))))
+
+    (define (%parse-array)
+      ;;Parse  the list  of  array  elements.  To  be  called after  the
+      ;;BEGIN_ARRAY token has been parsed.
+      ;;
+      (begin-array-handler 'begin-array)
+      (let next-value ()
+	(%parse-value)
+	(case-token
+	 (lexer) "expected value separator or end of array structural character"
+	 ((VALUE_SEPARATOR)
+	  (next-value))
+	 ((END_ARRAY)
+	  (end-array-handler 'end-array)))))
+
+    (define (%parse-pair)
+      ;;Parse a pair in an  object.  To be called after the BEGIN_OBJECT
+      ;;or VALUE_SEPARATOR  token has been  parsed.  Return true  if the
+      ;;END_OBJECT token was found.
+      ;;
+      (let (((token <lexical-token>) (lexer)))
+	(case-token
+	 token "expected end of object or string as name of pair"
+	 ((STRING)
+	  (case-token
+	   (lexer) "expected name separator after pair's name"
+	   ((NAME_SEPARATOR)
+	    (begin-pair-handler 'begin-pair token.value)
+	    (%parse-value)
+	    #f)))
+	 ((END_OBJECT)
+	  #t))))
+
+    (define (%parse-value)
+      ;;Parse the value of a pair or an array element.
+      ;;
+      (let (((token <lexical-token>) (lexer)))
+	(case-token
+	 token "expected value"
+	 ((FALSE)
+	  (atom-handler 'false #f))
+	 ((TRUE)
+	  (atom-handler 'true #t))
+	 ((NULL)
+	  (atom-handler 'null '()))
+	 ((NUMBER)
+	  (atom-handler 'number token.value))
+	 ((STRING)
+	  (atom-handler 'string token.value))
+	 ((BEGIN_OBJECT)
+	  (%parse-object))
+	 ((BEGIN_ARRAY)
+	  (%parse-array)))))
+
+    (case-token (lexer) "expected object or array"
+		((BEGIN_OBJECT)
+		 (%parse-object))
+		((BEGIN_ARRAY)
+		 (%parse-array)))))
+
+
+;;;; string encoding and decoding
+
 (define (json-encode-string in-str)
   (let-values (((port getter) (open-string-output-port)))
     (string-for-each (lambda (ch)
@@ -124,6 +272,8 @@
 	(display token port)))))
 
 
+;;;; generator
+
 (define json-make-pair
   (case-lambda
    ((name value)
