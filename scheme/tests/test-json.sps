@@ -228,10 +228,15 @@
 	 (STRING . "Count")
 	 (*lexer-error* . " . 12, \"ci...")))
 
-  (check
+  (check	;bad value in string
       (doit "{ \"\\u00\"")
     => '((BEGIN_OBJECT . #\{)
 	 (*lexer-error* . "\\u00")))
+
+  (check	;unexpected end of input while parsing string
+      (doit "{ \"ciao")
+    => '((BEGIN_OBJECT . #\{)
+	 (*lexer-error* . "\"ciao")))
 
   #t)
 

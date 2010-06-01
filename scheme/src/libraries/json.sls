@@ -107,7 +107,8 @@
 	     (let ((text (getter)))
 	       (make-<lexical-token> 'STRING opening-token.location text (string-length text))))
 	    ((<lexical-token>?/end-of-input token)
-	     (let ((text opening-token.value))
+	     ;;Unexpected end of input while parsing string.
+	     (let ((text (string-append "\"" (getter))))
 	       (make-<lexical-token> '*lexer-error* opening-token.location
 				     text (string-length text))))
 	    ((<lexical-token>?/lexer-error token)

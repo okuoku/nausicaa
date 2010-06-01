@@ -33868,7 +33868,8 @@ are prefixed, respectively, by: @samp{#b} or @samp{#B}, @samp{#o} or
 Build and return a new @json{} parser using @library{lalr lr-driver};
 the returned value is a parser function as described in @ref{lalr
 parser}.  The parser function returns the S--expression representing the
-@json{} text.
+@json{} text; notice that strings in the S--expression are @strong{not}
+processed by @func{json-decode-string}.
 @end defun
 
 
