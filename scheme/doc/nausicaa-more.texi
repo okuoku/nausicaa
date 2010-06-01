@@ -33826,7 +33826,8 @@ characters.
 When a token with category @code{*lexer-error*} is returned: its
 semantic value is set to the offending fragment from the input; at most
 @math{10} characters from the input are included, followed by an
-ellipsis.  For example the following @json{} object:
+ellipsis if the fragment is not at the end of input.  For example the
+following @json{} object:
 
 @example
 @{ \"Count\" . 12, \"ciao\": false @}

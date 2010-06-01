@@ -99,23 +99,22 @@
 	    (%lex-string IS token)
 	  token)))))
 
-(define (%lex-string IS opening-token)
+(define (%lex-string IS (opening-token <lexical-token>))
   (let-values (((lexer)		(lexer-make-lexer json-string-lexer-table IS))
 	       ((port getter)	(open-string-output-port)))
-    (do ((token (lexer) (lexer)))
-	((eq? token 'QUOTED-TEXT-CLOSE)
-	 (let ((pos  (<lexical-token>-location opening-token))
-	       (text (getter)))
-	   (make-<lexical-token> 'STRING
-				 (make-<source-location>
-				  (<source-location>-input  pos)
-				  (<source-location>-line   pos)
-				  (<source-location>-column pos)
-				  (<source-location>-offset pos))
-				 text (string-length text))))
-      (if (<lexical-token>?/end-of-input token)
-	  (error 'json-string-lexer "unexpected end of input while parsing string")
-	(display token port)))))
+    (let loop ((token (lexer)))
+      (cond ((eq? token 'QUOTED-TEXT-CLOSE)
+	     (let ((text (getter)))
+	       (make-<lexical-token> 'STRING opening-token.location text (string-length text))))
+	    ((<lexical-token>?/end-of-input token)
+	     (let ((text opening-token.value))
+	       (make-<lexical-token> '*lexer-error* opening-token.location
+				     text (string-length text))))
+	    ((<lexical-token>?/lexer-error token)
+	     token)
+	    (else
+	     (display token port)
+	     (loop (lexer)))))))
 
 (define (json->tokens IS)
   (let ((lexer (make-json-rfc-lexer IS)))

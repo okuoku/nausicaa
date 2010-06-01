@@ -77,6 +77,13 @@
     #t
     (lambda (yycontinue yygetc yyungetc)
       (lambda (yytext yyline yycolumn yyoffset)
+                     	(make-<lexical-token> '*lexer-error*
+			 (make-<source-location> #f yyline yycolumn yyoffset)
+			 yytext (string-length yytext))
+        ))
+    #t
+    (lambda (yycontinue yygetc yyungetc)
+      (lambda (yytext yyline yycolumn yyoffset)
       			(begin yytext)
         )))
    'decision-trees
@@ -89,9 +96,9 @@
     err err (65 (48 err (58 14 err)) (97 (71 14 err) (103 14 err))) (65 (48
     err (58 15 err)) (97 (71 15 err) (103 15 err))) (65 (48 err (58 16
     err)) (97 (71 16 err) (103 16 err))) err)
-   '#((#f . #f) (10 . 10) (#f . #f) (0 . 0) (#f . #f) (8 . 8) (7 . 7) (6 .
-    6) (5 . 5) (4 . 4) (3 . 3) (2 . 2) (1 . 1) (#f . #f) (#f . #f) (#f .
-    #f) (9 . 9))))
+   '#((#f . #f) (11 . 11) (#f . #f) (0 . 0) (#f . #f) (8 . 8) (7 . 7) (6 .
+    6) (5 . 5) (4 . 4) (3 . 3) (2 . 2) (1 . 1) (10 . 10) (10 . 10) (10 .
+    10) (9 . 9))))
 
 ) ; end of library
 

@@ -45,10 +45,13 @@
 	   (lexer	(lexer-make-lexer json-string-lexer-table IS))
 	   (out		'()))
       (do ((token (lexer) (lexer)))
-	  ((<lexical-token>?/end-of-input token)
-	   (reverse out))
+	  ((<lexical-token>?/special token)
+	   (let (((T <lexical-token>) token))
+	     (reverse (cons (cons T.category T.value) out))))
 ;;;(write token)(newline)
 	(set! out (cons token out)))))
+
+  (define eoi `(*eoi* . ,(eof-object)))
 
 ;;; --------------------------------------------------------------------
 
@@ -56,62 +59,72 @@
 
   (check	;empty string
       (tokenise-string "\"")
-    => '(QUOTED-TEXT-CLOSE))
+    => `(QUOTED-TEXT-CLOSE ,eoi))
 
   (check
       (tokenise-string "\\\"\"")
-    => '("\"" QUOTED-TEXT-CLOSE))
+    => `("\"" QUOTED-TEXT-CLOSE ,eoi))
 
   (check
       (tokenise-string "\\/\"")
-    => '("/" QUOTED-TEXT-CLOSE))
+    => `("/" QUOTED-TEXT-CLOSE ,eoi))
 
   (check
       (tokenise-string "\\b\"")
-    => '("\b" QUOTED-TEXT-CLOSE))
+    => `("\b" QUOTED-TEXT-CLOSE ,eoi))
 
   (check
       (tokenise-string "\\f\"")
-    => '("\f" QUOTED-TEXT-CLOSE))
+    => `("\f" QUOTED-TEXT-CLOSE ,eoi))
 
   (check
       (tokenise-string "\\n\"")
-    => '("\n" QUOTED-TEXT-CLOSE))
+    => `("\n" QUOTED-TEXT-CLOSE ,eoi))
 
   (check
       (tokenise-string "\\r\"")
-    => '("\r" QUOTED-TEXT-CLOSE))
+    => `("\r" QUOTED-TEXT-CLOSE ,eoi))
 
   (check
       (tokenise-string "\\t\"")
-    => '("\t" QUOTED-TEXT-CLOSE))
+    => `("\t" QUOTED-TEXT-CLOSE ,eoi))
 
   (check
       (tokenise-string "inizio\\\"\\/\\b\\f\\n\\r\\tfine\"")
-    => '("inizio" "\"" "/" "\b" "\f" "\n" "\r" "\t" "fine" QUOTED-TEXT-CLOSE))
+    => `("inizio" "\"" "/" "\b" "\f" "\n" "\r" "\t" "fine" QUOTED-TEXT-CLOSE ,eoi))
 
   (check
       (tokenise-string "\\u005C\"")
-    => '("\\" QUOTED-TEXT-CLOSE))
+    => `("\\" QUOTED-TEXT-CLOSE ,eoi))
 
   (check
       (tokenise-string "\\u0063\\u0069\\u0061\\u006f\"")
-    => '("c" "i" "a" "o" QUOTED-TEXT-CLOSE))
+    => `("c" "i" "a" "o" QUOTED-TEXT-CLOSE ,eoi))
 
   (check	;a string
       (tokenise-string "ciao\"")
-    => '("ciao" QUOTED-TEXT-CLOSE))
+    => `("ciao" QUOTED-TEXT-CLOSE ,eoi))
 
   (check
       ;;A string with a quoted character in it.  The quoting is removed.
       (tokenise-string "a\"")
-    => '("a" QUOTED-TEXT-CLOSE))
+    => `("a" QUOTED-TEXT-CLOSE ,eoi))
 
   (check
       ;;Nested double quotes.  The Scheme string "\\\"" is seen as \" by
       ;;the lexer and the backslash quoting character is removed.
       (tokenise-string "ciao \\\"hello\\\" salut\"")
-    => '("ciao " "\"" "hello" "\"" " salut"  QUOTED-TEXT-CLOSE))
+    => `("ciao " "\"" "hello" "\"" " salut"  QUOTED-TEXT-CLOSE ,eoi))
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (tokenise-string "\\u00\"")
+    => `((*lexer-error* . "\\u00")))
+
+  (check
+      (tokenise-string "ciao")
+    => `("ciao" ,eoi))
 
   #t)
 
@@ -207,13 +220,18 @@
       (doit " { \"Count\" . 12 }")
     => `((BEGIN_OBJECT . #\{)
 	 (STRING . "Count")
-	 (*lexer-error* . " . 12 }...")))
+	 (*lexer-error* . " . 12 }")))
 
   (check
       (doit " { \"Count\" . 12, \"ciao\": false }")
     => `((BEGIN_OBJECT . #\{)
 	 (STRING . "Count")
 	 (*lexer-error* . " . 12, \"ci...")))
+
+  (check
+      (doit "{ \"\\u00\"")
+    => '((BEGIN_OBJECT . #\{)
+	 (*lexer-error* . "\\u00")))
 
   #t)
 

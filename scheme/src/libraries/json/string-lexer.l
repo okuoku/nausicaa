@@ -1,4 +1,4 @@
-;;; -*- mode: fundamental; coding: utf-8-unix -*-
+;;; -*- mode: scheme; coding: utf-8-unix -*-
 ;;;
 ;;;Part of: Nausicaa/Scheme
 ;;;Contents: string lexer for strings in json chunks
@@ -37,6 +37,12 @@ escaped-return		\\r
 escaped-tab		\\t
 escaped-unicode		\\u{hexdigit}{hexdigit}{hexdigit}{hexdigit}
 
+bad-escaped-unicode-1	\\u{hexdigit}
+bad-escaped-unicode-2	\\u{hexdigit}{hexdigit}
+bad-escaped-unicode-3	\\u{hexdigit}{hexdigit}{hexdigit}
+
+bad-escaped-unicode	{bad-escaped-unicode-1}|{bad-escaped-unicode-2}|{bad-escaped-unicode-3}
+
 double-quote		\"
 
 text			[^\"\\]+
@@ -55,6 +61,10 @@ text			[^\"\\]+
 {escaped-tab}		"\t"
 {escaped-unicode}	(begin
                          (string (integer->char (string->number (substring yytext 2 6) 16))))
+
+{bad-escaped-unicode}	(make-<lexical-token> '*lexer-error*
+			 (make-<source-location> #f yyline yycolumn yyoffset)
+			 yytext (string-length yytext))
 
 {text}			(begin yytext)
 
