@@ -1,7 +1,7 @@
 (library (json string-lexer)
   (export
     json-string-lexer-table)
-  (import (rnrs) (silex lexer)(lalr lr-driver)(parser-tools lexical-token)(parser-tools source-location))
+  (import (rnrs) (silex lexer)(silex default-error-handler)(parser-tools lexical-token)(parser-tools source-location))
 
 ;
 ; Table generated from the file string-lexer.l by SILex 1.0
@@ -18,11 +18,7 @@
        ))
    (lambda (yycontinue yygetc yyungetc)
      (lambda (yytext yyline yycolumn yyoffset)
-         		(error 'json-lexer
-                         (string-append "invalid character \"" yytext
-			                "\" in JSON string at line " (number->string yyline)
-					" column " (number->string yycolumn))
-			 yytext)
+         		(silex-default-error-handler)
 
 ;;; end of file
        ))

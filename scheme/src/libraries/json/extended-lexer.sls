@@ -1,7 +1,7 @@
 (library (json extended-lexer)
   (export
     json-extended-lexer-table)
-  (import (rnrs) (silex lexer)(lalr lr-driver)(parser-tools lexical-token)(parser-tools source-location))
+  (import (rnrs) (silex lexer)(silex default-error-handler)(parser-tools lexical-token)(parser-tools source-location))
 
 ;
 ; Table generated from the file extended-lexer.l by SILex 1.0
@@ -18,25 +18,7 @@
        ))
    (lambda (yycontinue yygetc yyungetc)
      (lambda (yytext yyline yycolumn yyoffset)
-         		(let ((text (letrec ((unget (lambda (count)
-						      (unless (zero? count)
-							(yyungetc)
-							(unget (- count 1)))))
-					     (done  (lambda (count chars)
-						      (unget count)
-						      (apply string
-							     (reverse (cons* #\. #\. #\. chars))))))
-				      (let loop ((count 0) (chars '()))
-					(if (= 10 count)
-					    (done count chars)
-					  (let ((ch (yygetc)))
-					    (if (eof-object? ch)
-						(done count chars)
-					      (loop (+ 1 count) (cons ch chars)))))))))
-			  (make-<lexical-token>
-			   '*lexer-error*
-			   (make-<source-location> #f yyline yycolumn yyoffset)
-			   text (string-length text)))
+         		(silex-default-error-handler)
 
 ;;; end of file
        ))

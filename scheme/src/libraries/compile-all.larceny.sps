@@ -251,6 +251,9 @@
 
 ;;; --------------------------------------------------------------------
 
+(compile-library "silex/default-error-handler.sls"
+		 "silex/default-error-handler.slfasl")
+
 (compile-library "silex/lexer.sls"
 		 "silex/lexer.slfasl")
 
@@ -338,8 +341,8 @@
 (compile-library "json/extended-lexer.sls"
 		 "json/extended-lexer.slfasl")
 
-(compile-library "json/parser.sls"
-		 "json/parser.slfasl")
+(compile-library "json/sexp-parser.sls"
+		 "json/sexp-parser.slfasl")
 
 (compile-library "json.sls"
 		 "json.slfasl")

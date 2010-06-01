@@ -62,10 +62,6 @@ text			[^\"\\]+
 			 (make-<source-location> #f yyline yycolumn yyoffset)
 			 (eof-object) 0)
 
-<<ERROR>>		(error 'json-lexer
-                         (string-append "invalid character \"" yytext
-			                "\" in JSON string at line " (number->string yyline)
-					" column " (number->string yycolumn))
-			 yytext)
+<<ERROR>>		(silex-default-error-handler)
 
 ;;; end of file
