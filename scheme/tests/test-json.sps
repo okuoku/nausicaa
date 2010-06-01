@@ -486,6 +486,201 @@
   #t)
 
 
+(parameterise ((check-test-name 'event-lexer-parser))
+
+  (define (doit string)
+    (let* ((IS		(lexer-make-IS (:string string) (:counters 'all)))
+	   (lexer	(make-json-rfc-lexer IS))
+	   (result	'())
+	   (handler	(lambda args
+			  (set-cons! result args)))
+	   (parser	(make-json-event-parser
+			 (:begin-object		handler)
+			 (:end-object		handler)
+			 (:begin-array		handler)
+			 (:end-array		handler)
+			 (:begin-pair		handler)
+			 (:end-pair		handler)
+			 (:atom			handler))))
+      (parser lexer
+	      ;; (lambda ()
+	      ;; 	(let ((token (lexer)))
+	      ;; 	  (write token)(newline)
+	      ;; 	  token))
+	      (make-json-error-handler 'json-parser))
+      (reverse result)))
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (doit "{ }")
+    => '((begin-object)
+	 (end-object)))
+
+  (check
+      (doit "{ \"key\" : 123 }")
+    => '((begin-object)
+	 (begin-pair "key")
+	 (number 123)
+	 (end-pair)
+	 (end-object)))
+
+  (check
+      (doit "{ \"key\" : \"value\" }")
+    => '((begin-object)
+	 (begin-pair "key")
+	 (string "value")
+	 (end-pair)
+	 (end-object)))
+
+  (check
+      (doit "{ \"key\" : true, \"yek\": false }")
+    => '((begin-object)
+	 (begin-pair "key")
+	 (true #t)
+	 (end-pair)
+	 (begin-pair "yek")
+	 (false #f)
+	 (end-pair)
+	 (end-object)))
+
+  (check
+      (doit "{ \"key\" : true, \"yek\": false, \"wop\": null }")
+    => '((begin-object)
+	 (begin-pair "key")
+	 (true #t)
+	 (end-pair)
+	 (begin-pair "yek")
+	 (false #f)
+	 (end-pair)
+	 (begin-pair "wop")
+	 (null ())
+	 (end-pair)
+	 (end-object)))
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (doit "[ ]")
+    => '((begin-array)
+	 (end-array)))
+
+  (check
+      (doit "[ 1 ]")
+    => '((begin-array)
+	 (number 1)
+	 (end-array)))
+
+  (check
+      (doit "[ 1, 2, 3 ]")
+    => '((begin-array)
+	 (number 1)
+	 (number 2)
+	 (number 3)
+	 (end-array)))
+
+  (check
+      (doit "[ 1, \"ciao\", true ]")
+    => '((begin-array)
+	 (number 1)
+	 (string "ciao")
+	 (true #t)
+	 (end-array)))
+
+  (check
+      (doit "[ 1, { \"ciao\": 123 }, true ]")
+    => '((begin-array)
+	 (number 1)
+	 (begin-object)
+	 (begin-pair "ciao")
+	 (number 123)
+	 (end-pair)
+	 (end-object)
+	 (true #t)
+	 (end-array)))
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (doit "{
+  \"Image\": {
+    \"Width\":  800,
+    \"Height\": 600,
+    \"Title\":  \"View from 15th Floor\",
+    \"Thumbnail\": {
+      \"Url\":    \"http://www.example.com/image/481989943\",
+      \"Height\": 125,
+      \"Width\":  \"100\"
+    },
+    \"IDs\": [116, 943, 234, 38793]
+  }
+}
+")
+    => '((begin-object)
+	 (begin-pair "Image")
+	 (begin-object)
+	 (begin-pair "Width") (number 800) (end-pair)
+	 (begin-pair "Height") (number 600) (end-pair)
+	 (begin-pair "Title") (string "View from 15th Floor") (end-pair)
+	 (begin-pair "Thumbnail")
+	 (begin-object)
+	 (begin-pair "Url") (string "http://www.example.com/image/481989943") (end-pair)
+	 (begin-pair "Height") (number 125) (end-pair)
+	 (begin-pair "Width") (string "100") (end-pair)
+	 (end-object)
+	 (end-pair)
+	 (begin-pair "IDs")
+	 (begin-array) (number 116) (number 943) (number 234) (number 38793) (end-array)
+	 (end-pair)
+	 (end-object)
+	 (end-pair)
+	 (end-object)))
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (guard (E ((json-parser-error-condition? E)
+;;;(write (condition-message E))(newline)
+		 (condition-irritants E))
+		(else #f))
+	(doit " { \"Count\" . 12, \"ciao\": false }"))
+    => '(" . 12, \"ci..."))
+
+  (check
+      (guard (E ((json-parser-error-condition? E)
+;;;(write (condition-message E))(newline)
+		 (condition-irritants E))
+		(else #f))
+	(doit " { \"Count\" , 12, \"ciao\": false }"))
+    => '(","))
+
+  (check
+      (guard (E ((json-parser-error-condition? E)
+;;;(write (condition-message E))(newline)
+		 (condition-irritants E))
+		(else #f))
+	(doit " { 12, \"ciao\": false }"))
+    => '("12"))
+
+  (check	;;end of input while lexing string
+      (guard (E ((json-parser-error-condition? E)
+;;;(write (condition-message E))(newline)
+		 (condition-irritants E))
+		(else #f))
+	(doit " { \"ciao"))
+    => '("\"ciao"))
+
+  (check
+      (guard (E ((json-parser-error-condition? E)
+;;;(write (condition-message E))(newline)
+		 (condition-irritants E))
+		(else #f))
+	(doit " { \"ciao\": }"))
+    => '("}"))
+
+  #t)
+
+
 (parameterise ((check-test-name 'string-encode))
 
   (check

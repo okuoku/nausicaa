@@ -157,6 +157,12 @@ Written  by Marco Maggi.   The string  lexer table  is derived  from the
 lexer in Guile-Arith by Ian Grant <iang@pobox.com>.
 
 
+(json ---)
+----------
+
+Written by Marco Maggi.
+
+
 (keywords)
 ----------
 

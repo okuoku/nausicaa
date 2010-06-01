@@ -30,6 +30,7 @@
     make-json-rfc-lexer		make-json-extended-lexer
     json->tokens
     make-json-sexp-parser	make-json-error-handler
+    make-json-event-parser
     json-encode-string		json-decode-string
     json-make-pair		json-make-pair*
     json-make-object
@@ -135,28 +136,27 @@
    (:begin-array	#f)
    (:end-array		#f)
    (:begin-pair		#f)
+   (:end-pair		#f)
    (:atom		#f)))
 
 (define (event-parser begin-object-handler end-object-handler
 		      begin-array-handler  end-array-handler
-		      begin-pair-handler atom-handler)
+		      begin-pair-handler   end-pair-handler
+		      atom-handler)
 
   (define who 'json-event-parser)
 
-  (define-syntax case-token
-    (syntax-rules ()
-      ((_ ?token ?error-message ((?category ...) . ?body) ...)
-       (let (((token <lexical-token>) ?token))
-	 (case token.category
-	   ((?category ...) . ?body)
-	   ...
-	   (else
-	    (%error ?error-message token)))))))
+  (lambda (lexer error-handler)
 
-  (define %error
-    (make-json-error-handler who))
-
-  (lambda (lexer)
+    (define-syntax case-token
+      (syntax-rules ()
+	((_ ?token ?error-message ((?category ...) . ?body) ...)
+	 (let (((token <lexical-token>) ?token))
+	   (case token.category
+	     ((?category ...) . ?body)
+	     ...
+	     (else
+	      (error-handler ?error-message token)))))))
 
     (define (%parse-object)
       ;;Parse an object.  To be  called after the BEGIN_OBJECT token has
@@ -164,12 +164,14 @@
       ;;
       (begin-object-handler 'begin-object)
       (let next-pair ()
-	(unless (%parse-pair)
+	(if (%parse-pair)
+	    (end-object-handler 'end-object)
 	  (let (((token <lexical-token>) (lexer)))
-	    (case-token
-	     token "expected end of object or value separator after pair"
-	     ((VALUE_SEPARATOR)
-	      (next-pair)))))))
+	    (case-token token "expected end of object or value separator after pair"
+			((VALUE_SEPARATOR)
+			 (next-pair))
+			((END_OBJECT)
+			 (end-object-handler 'end-object)))))))
 
     (define (%parse-array)
       ;;Parse  the list  of  array  elements.  To  be  called after  the
@@ -177,58 +179,97 @@
       ;;
       (begin-array-handler 'begin-array)
       (let next-value ()
-	(%parse-value)
-	(case-token
-	 (lexer) "expected value separator or end of array structural character"
-	 ((VALUE_SEPARATOR)
-	  (next-value))
-	 ((END_ARRAY)
-	  (end-array-handler 'end-array)))))
+	(if (%parse-array-value)
+	    (end-array-handler 'end-array)
+	  (case-token (lexer) "expected value separator or end of array structural character"
+		      ((VALUE_SEPARATOR)
+		       (next-value))
+		      ((END_ARRAY)
+		       (end-array-handler 'end-array))))))
 
     (define (%parse-pair)
       ;;Parse a pair in an  object.  To be called after the BEGIN_OBJECT
       ;;or VALUE_SEPARATOR  token has been  parsed.  Return true  if the
-      ;;END_OBJECT token was found.
+      ;;END_OBJECT token was correctly found after the pair's value.
       ;;
       (let (((token <lexical-token>) (lexer)))
-	(case-token
-	 token "expected end of object or string as name of pair"
-	 ((STRING)
-	  (case-token
-	   (lexer) "expected name separator after pair's name"
-	   ((NAME_SEPARATOR)
-	    (begin-pair-handler 'begin-pair token.value)
-	    (%parse-value)
-	    #f)))
-	 ((END_OBJECT)
-	  #t))))
+	(case-token token "expected end of object or string as name of pair"
+		    ((STRING)
+		     (case-token
+		      (lexer) "expected name separator after pair's name"
+		      ((NAME_SEPARATOR)
+		       (begin-pair-handler 'begin-pair token.value)
+		       (%parse-object-value)
+		       (end-pair-handler 'end-pair)
+		       #f)))
+		    ((END_OBJECT)
+		     #t))))
 
-    (define (%parse-value)
-      ;;Parse the value of a pair or an array element.
+    (define (%parse-object-value)
+      ;;Parse the value of a pair.  To be called after a VALUE_SEPARATOR
+      ;;token has been found.
+      ;;
+      ;;Return  false if  a value  is correctly  parsed; return  true if
+      ;;END_OBJECT was found.
       ;;
       (let (((token <lexical-token>) (lexer)))
-	(case-token
-	 token "expected value"
-	 ((FALSE)
-	  (atom-handler 'false #f))
-	 ((TRUE)
-	  (atom-handler 'true #t))
-	 ((NULL)
-	  (atom-handler 'null '()))
-	 ((NUMBER)
-	  (atom-handler 'number token.value))
-	 ((STRING)
-	  (atom-handler 'string token.value))
-	 ((BEGIN_OBJECT)
-	  (%parse-object))
-	 ((BEGIN_ARRAY)
-	  (%parse-array)))))
+	(case-token token "expected object pair's value"
+		    ((FALSE)
+		     (atom-handler 'false #f))
+		    ((TRUE)
+		     (atom-handler 'true #t))
+		    ((NULL)
+		     (atom-handler 'null '()))
+		    ((NUMBER)
+		     (atom-handler 'number token.value))
+		    ((STRING)
+		     (atom-handler 'string token.value))
+		    ((BEGIN_OBJECT)
+		     (%parse-object))
+		    ((BEGIN_ARRAY)
+		     (%parse-array)))))
 
-    (case-token (lexer) "expected object or array"
-		((BEGIN_OBJECT)
-		 (%parse-object))
-		((BEGIN_ARRAY)
-		 (%parse-array)))))
+    (define (%parse-array-value)
+      ;;Parse the value  of an array.  To be  called after a BEGIN_ARRAY
+      ;;or VALUE_SEPARATOR token has been found.
+      ;;
+      ;;Return  false if  a value  is correctly  parsed; return  true if
+      ;;END_ARRAY was found.
+      ;;
+      (let (((token <lexical-token>) (lexer)))
+	(case-token token "expected array value"
+		    ((FALSE)
+		     (atom-handler 'false #f)
+		     #f)
+		    ((TRUE)
+		     (atom-handler 'true #t)
+		     #f)
+		    ((NULL)
+		     (atom-handler 'null '())
+		     #f)
+		    ((NUMBER)
+		     (atom-handler 'number token.value)
+		     #f)
+		    ((STRING)
+		     (atom-handler 'string token.value)
+		     #f)
+		    ((BEGIN_OBJECT)
+		     (%parse-object)
+		     #f)
+		    ((BEGIN_ARRAY)
+		     (%parse-array)
+		     #f)
+		    ((END_ARRAY)
+		     #t))))
+
+    (let ((token (lexer)))
+      (case-token token "expected object or array"
+		  ((BEGIN_OBJECT)
+		   (%parse-object))
+		  ((BEGIN_ARRAY)
+		   (%parse-array))
+		  ((*eoi*)
+		   #t)))))
 
 
 ;;;; string encoding and decoding

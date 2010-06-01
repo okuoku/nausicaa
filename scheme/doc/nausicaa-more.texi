@@ -33770,8 +33770,22 @@ becomes @false{}, the literal @samp{null} becomes @code{()}.
 @section Decoding @json{} text
 
 
-The following functions are exported by @library{json}; they allow
-parsing of @json{} text as follows:
+@menu
+* json decoding intro::         Introduction to decoding @json{}.
+* json decoding lexer::         Lexing @json{} text.
+* json decoding parser::        Parsing @json{} text.
+* json decoding string::        Decoding @json{} strings.
+@end menu
+
+@c page
+@node json decoding intro
+@subsection Introduction to decoding @json{}
+
+
+The @api{} documented in this section allows parsing of @json{} text.
+There are two types of parsers: one converting a full @json{} fragment
+into an S--expression; one calling functions for each ``event'' in
+incoming @json{} text.  To setup conversion to S--expression we do:
 
 @example
 (import (rnrs)
@@ -33797,6 +33811,97 @@ parsing of @json{} text as follows:
 (parser lexer error-handler)
 @result{} (("Hello" . #t) ("Ciao" . #f))
 @end example
+
+Here is a set of meaningless examples using the event parser:
+
+@example
+(import (nausicaa)
+  (json)
+  (silex lexer))
+
+
+(define (doit string)
+  (let* ((IS      (lexer-make-IS (:string string)
+                                 (:counters 'all)))
+         (lexer   (make-json-rfc-lexer IS))
+         (result  '())
+         (handler (lambda args
+                    (set-cons! result args)))
+         (parser  (make-json-event-parser
+                    (:begin-object  handler)
+                    (:end-object    handler)
+                    (:begin-array   handler)
+                    (:end-array     handler)
+                    (:begin-pair    handler)
+                    (:end-pair      handler)
+                    (:atom          handler))))
+    (parser lexer (make-json-error-handler 'json-parser))
+    (reverse result)))
+
+(doit "@{ @}")
+@result{} '((begin-object) (end-object))
+
+(doit "@{ \"key\" : 123 @}")
+@result{} ((begin-object)
+    (begin-pair "key")
+    (number 123)
+    (end-pair)
+    (end-object))
+
+(doit "@{ \"key\" : \"value\" @}")
+@result{} ((begin-object)
+    (begin-pair "key")
+    (string "value")
+    (end-pair)
+    (end-object))
+
+(doit "@{ \"key\" : true, \"yek\": false @}")
+@result{} ((begin-object)
+    (begin-pair "key")
+    (true #t)
+    (end-pair)
+    (begin-pair "yek")
+    (false #f)
+    (end-pair)
+    (end-object))
+
+(doit "[ 1 ]")
+@result{} ((begin-array)
+    (number 1)
+    (end-array))
+
+(doit "[ 1, 2, 3 ]")
+@result{} ((begin-array)
+    (number 1)
+    (number 2)
+    (number 3)
+    (end-array))
+
+(doit "[ 1, \"ciao\", true ]")
+@result{} '((begin-array)
+    (number 1)
+    (string "ciao")
+    (true #t)
+    (end-array))
+
+(doit "[ 1, @{ \"ciao\": 123 @}, true ]")
+@result{} ((begin-array)
+    (number 1)
+    (begin-object)
+    (begin-pair "ciao")
+    (number 123)
+    (end-pair)
+    (end-object)
+    (true #t)
+    (end-array))
+@end example
+
+@c page
+@node json decoding lexer
+@subsection Lexing @json{} text
+
+
+The following bindings are exported by the @library{json} library.
 
 
 @defun make-json-rfc-lexer @var{input-system}
@@ -33864,6 +33969,20 @@ are prefixed, respectively, by: @samp{#b} or @samp{#B}, @samp{#o} or
 @end defun
 
 
+@defun json->tokens @var{input-system}
+Read @json{} text from @var{input-system} and return a list of
+@class{lexical-token} records.  Processing of input stops at the first
+token with category @code{*eoi*} or @code{*lexer-error*}.
+@end defun
+
+@c page
+@node json decoding parser
+@subsection Parsing @json{} text
+
+
+The following bindings are exported by the @library{json} library.
+
+
 @defun make-json-parser
 Build and return a new @json{} parser using @library{lalr lr-driver};
 the returned value is a parser function as described in @ref{lalr
@@ -33873,11 +33992,87 @@ processed by @func{json-decode-string}.
 @end defun
 
 
-@defun json->tokens @var{input-system}
-Read @json{} text from @var{input-system} and return a list of
-@class{lexical-token} records.  Processing of input stops at the first
-token with category @code{*eoi*} or @code{*lexer-error*}.
-@end defun
+@deffn Syntax make-json-event-parser @ameta{clause} ...
+Build and return a new @json{} parser which calls provided functions
+when parsing elements.  The returned parser function matches the
+interface of the parser functions based upon @library{lalr lr-driver}.
+
+Parsing is driven by the clauses described below.
+@end deffn
+
+
+@deffn {Event Parser Clause} :begin-object @var{handler}
+Used when the parser receives a @code{BEGIN_OBJECT} token.
+@var{handler} is called with the symbol @code{begin-object} as single
+argument.
+@end deffn
+
+
+@deffn {Event Parser Clause} :end-object @var{handler}
+Used when the parser receives a @code{END_OBJECT} token.  @var{handler}
+is called with the symbol @code{end-object} as single argument.
+@end deffn
+
+
+@deffn {Event Parser Clause} :begin-array @var{handler}
+Used when the parser receives a @code{BEGIN_ARRAY} token.  @var{handler}
+is called with the symbol @code{begin-array} as single argument.
+@end deffn
+
+
+@deffn {Event Parser Clause} :end-array @var{handler}
+Used when the parser receives a @code{END_ARRAY} token.  @var{handler}
+is called with the symbol @code{end-array} as single argument.
+@end deffn
+
+
+@deffn {Event Parser Clause} :begin-pair @var{handler}
+Used when the parser processes the name of a pair.  @var{handler} is
+called with the symbol @code{begin-pair} as first argument and the
+string representing the pair's name as second argument.
+@end deffn
+
+
+@deffn {Event Parser Clause} :end-pair @var{handler}
+Used when the parser terminates processing of a pair.  @var{handler} is
+called with the symbol @code{end-pair} as single argument.
+@end deffn
+
+
+@deffn {Event Parser Clause} :atom @var{handler}
+Used when the parser parses the value of a pair or an array element
+being a string, a literal or a number.  When the value is:
+
+@table @asis
+@item A number
+@var{handler} is called with the symbol @code{number} as first argument
+and the number itself as second argument.
+
+@item A string
+@var{handler} is called with the symbol @code{string} as first argument
+and the string itself as second argument.  The string is @strong{not}
+processed with @func{json-decode-string}.
+
+@item The literal true
+@var{handler} is called with the symbol @code{true} as first argument
+and @true{} as second argument.
+
+@item The literal false
+@var{handler} is called with the symbol @code{false} as first argument
+and @false{} as second argument.
+
+@item The literal null
+@var{handler} is called with the symbol @code{null} as first argument
+and @code{()} as second argument.
+@end table
+@end deffn
+
+@c page
+@node json decoding string
+@subsection Decoding @json{} strings
+
+
+The following bindings are exported by the @library{json} library.
 
 
 @defun json-decode-string @var{input-string}
