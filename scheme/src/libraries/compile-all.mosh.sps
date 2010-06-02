@@ -120,6 +120,7 @@
 
   (only (getopts))
   (only (json))
+  (only (uri))
   (only (libraries))
 
   (only (armor conditions))
