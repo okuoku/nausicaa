@@ -42,6 +42,7 @@
   (import (nausicaa)
     (makers)
     (conditions)
+    (syntax-utilities)
     (silex lexer)
     (json string-lexer)
     (json rfc-lexer)
@@ -139,10 +140,26 @@
    (:end-pair		#f)
    (:atom		#f)))
 
-(define (event-parser begin-object-handler end-object-handler
-		      begin-array-handler  end-array-handler
-		      begin-pair-handler   end-pair-handler
-		      atom-handler)
+(define (event-parser %begin-object-handler %end-object-handler
+		      %begin-array-handler  %end-array-handler
+		      %begin-pair-handler   %end-pair-handler
+		      %atom-handler)
+
+  (let-syntax ((define-handler (lambda (stx)
+				 (syntax-case stx ()
+				   ((_ ?name)
+				    (with-syntax ((NAME (identifier-prefix "%" #'?name)))
+				      #'(define-syntax ?name
+					  (syntax-rules ()
+					    ((_ . ?args)
+					     (and NAME (NAME . ?args)))))))))))
+    (define-handler begin-object-handler)
+    (define-handler end-object-handler)
+    (define-handler begin-array-handler)
+    (define-handler end-array-handler)
+    (define-handler begin-pair-handler)
+    (define-handler end-pair-handler)
+    (define-handler atom-handler))
 
   (define who 'json-event-parser)
 
