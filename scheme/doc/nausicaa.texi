@@ -20265,10 +20265,11 @@ argument for the macro.
 @end example
 
 @noindent
-where each @meta{maker expr} is an expression evaluated in the lexical
-context of the macro use.
+where each @meta{maker expr} is an expression evaluated at runtime in
+the lexical context of the use of the new macro.
 
-@meta{keywords and defaults} has the form:
+@meta{keywords and defaults} defines optional arguments selected with a
+keyword and a value; it has the form:
 
 @example
 ((@cmeta{keyword}   @cmeta{default})
@@ -20278,8 +20279,8 @@ context of the macro use.
 @noindent
 where each @meta{keyword} is an identifier selecting the keyword's
 symbol and @meta{default} is an expression representing the default
-value for the optional argument; the expressions are all evaluated only
-once in the lexical context of the macro definition, even if the
+value for the argument; the expressions are all evaluated only once in
+the lexical context of the @func{define-maker} macro use, even if the
 resulting default value is never used.  Notice that the @meta{keyword}
 identifiers are matched against the values in the macro use by comparing
 the symbols with @func{eq?}, so they are @strong{not} handled as
@@ -20292,14 +20293,14 @@ When the new macro is used without optional keywords, it is expanded to:
 (@cmeta{maker expr})
 
 ;; single maker expression, positional arguments
-(@cmeta{maker expr} @cmeta{positional arg} @cmeta{positional arg} ...)
+(@cmeta{maker expr} @cmetao{positional arg} @cmeta{positional arg} ...)
 
 ;; multiple maker expressions, no positional arguments
 (@cmetao{maker expr} @cmeta{maker expr} ...)
 
 ;; multiple maker expressions, positional arguments
 (@cmetao{maker expr} @cmeta{maker expr} ...
- @cmeta{positional arg} @cmeta{positional arg} ...)
+ @cmetao{positional arg} @cmeta{positional arg} ...)
 @end example
 
 When the new macro is used with optional keywords, the expressions in
