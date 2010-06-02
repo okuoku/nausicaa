@@ -28,9 +28,9 @@
 (library (makers)
   (export define-maker)
   (import (rnrs)
-    ;;Notice that  we need to have  the helpers in  a different library,
-    ;;because some functions  are used by the newly  defined macros, not
-    ;;just by DEFINE-MAKER.
+    ;;Notice that  we need  to have the  helpers in a  different library
+    ;;loaded for  expand, because  the functions are  used by  the newly
+    ;;defined macros, not only by DEFINE-MAKER.
     (for (makers helpers) expand))
 
 
@@ -38,23 +38,46 @@
   (lambda (stx)
     (syntax-case stx ()
 
-      ((?k ?name ?maker-sexp ?keywords-and-defaults)
+      ((_ ?name ?maker-sexp ?keywords-and-defaults)
        (not (or (identifier? #'?name)
 		(let ((L (syntax->list #'?name)))
 		  (and (pair? L)
 		       (identifier? (car L))))))
        (syntax-violation 'define-maker
 	 "expected identifier as maker name in maker definition"
-	 (syntax->datum #'(?k ?name ?maker-sexp ?keywords-and-defaults))
-	 (syntax->datum #'?name)))
+	 (syntax->datum stx) (syntax->datum #'?name)))
 
-      ((?k ?name ?maker-sexp ?keywords-and-defaults)
-       (not (valid-keywords-and-defaults? (syntax->list #'?keywords-and-defaults)))
+      ((_ ?name ?maker-sexp ?keywords-and-defaults)
+       (invalid-keywords-and-defaults? #'?keywords-and-defaults)
        (syntax-violation 'define-maker
 	 "invalid format for keywords and defaults in maker definition"
-	 (syntax->datum #'(?k ?name ?maker-sexp ?keywords-and-defaults))
-	 (syntax->datum #'?keywords-and-defaults)))
+	 (syntax->datum stx) (syntax->datum #'?keywords-and-defaults)))
 
+      ((_ (?name ?var ...) . ?forms)
+       (not (for-all symbol? (syntax->datum #'(?var ...))))
+       (syntax-violation 'define-maker
+	 "expected identifiers as positional argument names"
+	 (syntax->datum stx) (syntax->datum #'(?var ...))))
+
+      ((_ (?name ?var ...) (?maker ?arg ...) ((?keyword ?default) ...))
+       #'(output-forms (?name ?var ...) (?maker ?arg ...) ((?keyword ?default) ...)))
+
+      ((_ ?name (?maker ?arg ...) ((?keyword ?default) ...))
+       #'(output-forms (?name) (?maker ?arg ...) ((?keyword ?default) ...)))
+
+      ((_ (?name ?var ...) ?maker ((?keyword ?default) ...))
+       #'(output-forms (?name ?var ...) (?maker) ((?keyword ?default) ...)))
+
+      ((_ ?name ?maker ((?keyword ?default) ...))
+       #'(output-forms (?name) (?maker) ((?keyword ?default) ...)))
+
+      (?input-form
+       (syntax-violation 'define-maker "invalid maker definition" (syntax->datum #'?input-form)))
+      )))
+
+(define-syntax output-forms
+  (lambda (stx)
+    (syntax-case stx ()
       ((_ (?name ?var ...) (?maker ?arg ...) ((?keyword ?default) ...))
        (with-syntax (((VAR ...) (generate-temporaries #'(?default ...))))
 	 #'(begin
@@ -66,53 +89,7 @@
 		   ((_ ?var ... . ?args)
 		    #`(?maker ?arg ... ?var ...
 			      #,@(parse-input-form-stx #'this-context (quote ?name) use #'?args
-						       '((?keyword VAR) ...))))))))))
-
-      ((_ ?name (?maker ?arg ...) ((?keyword ?default) ...))
-       (with-syntax (((VAR ...) (generate-temporaries #'(?default ...))))
-	 #'(begin
-	     (define VAR ?default) ...
-	     (define this-context #f)
-	     (define-syntax ?name
-	       (lambda (use)
-		 (syntax-case use ()
-		   ((?k . ?args)
-		    #`(?maker ?arg ...
-			      #,@(parse-input-form-stx #'this-context (quote ?name) use #'?args
-						       '((?keyword VAR) ...))))))))))
-
-      ((_ (?name ?var ...) ?maker ((?keyword ?default) ...))
-       (with-syntax (((VAR ...) (generate-temporaries #'(?default ...))))
-	 #'(begin
-	     (define VAR ?default) ...
-	     (define this-context #f)
-	     (define-syntax ?name
-	       (lambda (use)
-		 (syntax-case use ()
-		   ((?k ?var ... . ?args)
-		    #`(?maker ?var ...
-			      #,@(parse-input-form-stx #'this-context (quote ?name) use #'?args
-						       '((?keyword VAR) ...))))))))))
-
-      ((_ ?name ?maker ((?keyword ?default) ...))
-       (with-syntax (((VAR ...) (generate-temporaries #'(?default ...))))
-	 #'(begin
-	     (define VAR ?default) ...
-	     (define this-context #f)
-	     (define-syntax ?name
-	       (lambda (use)
-		 (syntax-case use ()
-		   ((?k . ?args)
-		    #`(?maker #,@(parse-input-form-stx #'this-context (quote ?name) use #'?args
-						       '((?keyword VAR) ...)))
-		    )))))))
-
-      (?input-form
-       (syntax-violation 'define-maker
-	 "invalid maker definition"
-	 (syntax->datum #'?input-form)))
-
-      )))
+						       '((?keyword VAR) ...)))))))))))))
 
 
 ;;;; done

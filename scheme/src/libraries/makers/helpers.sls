@@ -26,7 +26,7 @@
 
 
 (library (makers helpers)
-  (export syntax->list valid-keywords-and-defaults? parse-input-form-stx)
+  (export syntax->list invalid-keywords-and-defaults? parse-input-form-stx)
   (import (rnrs))
 
 
@@ -46,11 +46,11 @@
     ((?car . ?cdr)	(cons (syntax->list #'?car) (syntax->list #'?cdr)))
     (?atom		#'?atom)))
 
-(define (valid-keywords-and-defaults? keywords-and-defaults)
-  (for-all (lambda (key-and-default)
-	     (and (identifier? (car key-and-default))
-		  (null? (cddr key-and-default))))
-	   keywords-and-defaults))
+(define (invalid-keywords-and-defaults? keywords-and-defaults)
+  (not (for-all (lambda (key-and-default)
+		  (and (identifier? (car key-and-default))
+		       (null? (cddr key-and-default))))
+		(syntax->list keywords-and-defaults))))
 
 (define (parse-input-form-stx context who input-form-stx arguments-stx keywords-and-defaults)
   (define (%keywords-join keywords-and-defaults)

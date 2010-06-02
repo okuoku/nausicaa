@@ -28,6 +28,7 @@
 (import (nausicaa)
   (rnrs eval)
   (makers)
+  (makers-lib)	;this is in the tests directory
   (checks))
 
 (check-set-mode! 'report-failed)
@@ -274,6 +275,207 @@
   #t)
 
 
+(parametrise ((check-test-name	'library))
+
+;;; these tests make use of the makers from (makers-lib)
+
+  (check
+      (doit1)
+    => '(1 2 3))
+
+  (check
+      (doit1 (:alpha 10))
+    => '(10 2 3))
+
+  (check
+      (doit1 (:beta 20))
+    => '(1 20 3))
+
+  (check
+      (doit1 (:gamma 30))
+    => '(1 2 30))
+
+  (check
+      (doit1 (:alpha	10)
+	     (:beta	20))
+    => '(10 20 3))
+
+  (check
+      (doit1 (:alpha	10)
+	     (:gamma	30))
+    => '(10 2 30))
+
+  (check
+      (doit1 (:gamma	30)
+	     (:beta	20))
+    => '(1 20 30))
+
+  (check
+      (doit1 (:alpha	10)
+	     (:beta	20)
+	     (:gamma	30))
+    => '(10 20 30))
+
+  (check
+      (let ((b 7))
+	(doit1 (:beta	(+ 6 (* 2 b)))
+	       (:alpha	(+ 2 8))))
+    => '(10 20 3))
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (doit2)
+    => '(#\a #\b 1 2 3))
+
+  (check
+      (doit2 (:alpha 10))
+    => '(#\a #\b 10 2 3))
+
+  (check
+      (doit2 (:beta 20))
+    => '(#\a #\b 1 20 3))
+
+  (check
+      (doit2 (:gamma 30))
+    => '(#\a #\b 1 2 30))
+
+  (check
+      (doit2 (:alpha	10)
+	     (:beta	20))
+    => '(#\a #\b 10 20 3))
+
+  (check
+      (doit2 (:alpha	10)
+	     (:gamma	30))
+    => '(#\a #\b 10 2 30))
+
+  (check
+      (doit2 (:gamma	30)
+	     (:beta	20))
+    => '(#\a #\b 1 20 30))
+
+  (check
+      (doit2 (:alpha	10)
+	     (:beta	20)
+	     (:gamma	30))
+    => '(#\a #\b 10 20 30))
+
+  (check
+      (let ((b 7))
+	(doit2 (:beta	(+ 6 (* 2 b)))
+	       (:alpha	(+ 2 8))))
+    => '(#\a #\b 10 20 3))
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (doit3 #\a #\b)
+    => '(#\a #\b 1 2 3))
+
+  (check
+      (doit3 #\a #\b
+	     (:alpha 10))
+    => '(#\a #\b 10 2 3))
+
+  (check
+      (doit3 #\a #\b
+	     (:beta 20))
+    => '(#\a #\b 1 20 3))
+
+  (check
+      (doit3 #\a #\b
+	     (:gamma 30))
+    => '(#\a #\b 1 2 30))
+
+  (check
+      (doit3 #\a #\b
+	     (:alpha	10)
+	     (:beta	20))
+    => '(#\a #\b 10 20 3))
+
+  (check
+      (doit3 #\a #\b
+	     (:alpha	10)
+	     (:gamma	30))
+    => '(#\a #\b 10 2 30))
+
+  (check
+      (doit3 #\a #\b
+	     (:gamma	30)
+	     (:beta	20))
+    => '(#\a #\b 1 20 30))
+
+  (check
+      (doit3 #\a #\b
+	     (:alpha	10)
+	     (:beta	20)
+	     (:gamma	30))
+    => '(#\a #\b 10 20 30))
+
+  (check
+      (let ((b 7))
+	(doit3 #\a #\b
+	       (:beta	(+ 6 (* 2 b)))
+	       (:alpha	(+ 2 8))))
+    => '(#\a #\b 10 20 3))
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (doit4 #\p #\q)
+    => '(#\a #\b #\p #\q 1 2 3))
+
+  (check
+      (doit4 #\p #\q
+	     (:alpha 10))
+    => '(#\a #\b #\p #\q 10 2 3))
+
+  (check
+      (doit4 #\p #\q
+	     (:beta 20))
+    => '(#\a #\b #\p #\q 1 20 3))
+
+  (check
+      (doit4 #\p #\q
+	     (:gamma 30))
+    => '(#\a #\b #\p #\q 1 2 30))
+
+  (check
+      (doit4 #\p #\q
+	     (:alpha	10)
+	     (:beta	20))
+    => '(#\a #\b #\p #\q 10 20 3))
+
+  (check
+      (doit4 #\p #\q
+	     (:alpha	10)
+	     (:gamma	30))
+    => '(#\a #\b #\p #\q 10 2 30))
+
+  (check
+      (doit4 #\p #\q
+	     (:gamma	30)
+	     (:beta	20))
+    => '(#\a #\b #\p #\q 1 20 30))
+
+  (check
+      (doit4 #\p #\q
+	     (:alpha	10)
+	     (:beta	20)
+	     (:gamma	30))
+    => '(#\a #\b #\p #\q 10 20 30))
+
+  (check
+      (let ((b 7))
+	(doit4 #\p #\q
+	       (:beta	(+ 6 (* 2 b)))
+	       (:alpha	(+ 2 8))))
+    => '(#\a #\b #\p #\q 10 20 3))
+
+  #t)
+
+
 (parametrise ((check-test-name	'errors))
 
   (check
@@ -291,6 +493,22 @@
 		 'bad)
 	      (environment '(rnrs) '(makers))))
     => "expected identifier as maker name in maker definition")
+
+  (check
+      (guard (E ((syntax-violation? E)
+		 (condition-message E))
+		(else
+		 (write E)(newline)
+		 #f))
+	(eval '(let ()
+		 (define-maker (doit 123)
+		   list
+		   ((alpha	1)
+		    (beta	2)
+		    (gamma	3)))
+		 'bad)
+	      (environment '(rnrs) '(makers))))
+    => "expected identifiers as positional argument names")
 
   (check
       (guard (E ((syntax-violation? E)
