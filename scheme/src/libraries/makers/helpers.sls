@@ -26,7 +26,7 @@
 
 
 (library (makers helpers)
-  (export syntax->list invalid-keywords-and-defaults? parse-input-form-stx)
+  (export syntax->list invalid-keywords-and-values? parse-input-form-stx)
   (import (rnrs))
 
 
@@ -46,11 +46,11 @@
     ((?car . ?cdr)	(cons (syntax->list #'?car) (syntax->list #'?cdr)))
     (?atom		#'?atom)))
 
-(define (invalid-keywords-and-defaults? keywords-and-defaults)
-  (not (for-all (lambda (key-and-default)
-		  (and (identifier? (car key-and-default))
-		       (null? (cddr key-and-default))))
-		(syntax->list keywords-and-defaults))))
+(define (invalid-keywords-and-values? keywords-and-values)
+  (not (for-all (lambda (key-and-value)
+		  (and (identifier? (car key-and-value))
+		       (null? (cddr key-and-value))))
+		(syntax->list keywords-and-values))))
 
 (define (parse-input-form-stx context who input-form-stx arguments-stx keywords-and-defaults)
   (define (%keywords-join keywords-and-defaults)
@@ -76,37 +76,38 @@
 		  (display (car keys) port)
 		  (loop (cdr keys))))))))))
 
-  (let ((arguments-stx (syntax->list arguments-stx)))
+  (define (synner message subform)
+    (syntax-violation who message (syntax->datum input-form-stx) (syntax->datum subform)))
 
-    ;;Make sure  that ARGUMENTS-STX only holds subforms  starting with a
-    ;;keyword in KEYWORDS; any order is allowed.
+  (let ((unwrapped-arguments-stx (syntax->list arguments-stx)))
+
+    ;;Make sure that UNWRAPPED-ARGUMENTS-STX  has the correct format and
+    ;;only    holds    subforms    starting    with   a    keyword    in
+    ;;KEYWORDS-AND-DEFAULTS; any order is allowed.
     (for-each (lambda (key-and-argument)
-		(let ((key (car key-and-argument)))
-		  (unless (identifier? key)
-		    (syntax-violation who
-		      "expected identifier as first element of argument subform"
-		      (syntax->datum input-form-stx)
-		      (syntax->datum key-and-argument)))
-		  (unless (exists (lambda (key-and-default)
-				    (eq? (car key-and-default) (syntax->datum key)))
-				  keywords-and-defaults)
-		    (syntax-violation who
-		      (string-append "unrecognised argument keyword, expected one among: "
-				     (%keywords-join keywords-and-defaults))
-		      (syntax->datum input-form-stx)
-		      (syntax->datum key)))))
-      arguments-stx)
+		(unless (pair? key-and-argument)
+		  (synner "expected pair as maker clause argument" key-and-argument))
+		(unless (identifier? (car key-and-argument))
+		  (synner "expected identifier as first element of maker argument clause"
+			  key-and-argument))
+		(unless (null? (cddr key-and-argument))
+		  (synner "expected list of two values as maker clause argument" key-and-argument))
+		(unless (exists (lambda (key-and-default)
+				  (eq? (car key-and-default) (syntax->datum (car key-and-argument))))
+				keywords-and-defaults)
+		  (synner (string-append "unrecognised argument keyword, expected one among: "
+					 (%keywords-join keywords-and-defaults))
+			  (car key-and-argument))))
+      unwrapped-arguments-stx)
 
     ;;Build  and return a  list of  arguments' syntax  objects, possibly
     ;;using the given defaults.
     (map (lambda (key-and-default)
-	   (let ((key (car key-and-default)))
-	     (or (exists (lambda (key-and-argument)
-			   (and (eq? key (syntax->datum (car key-and-argument)))
-				(cadr key-and-argument)))
-			 arguments-stx)
-		 (datum->syntax context (cadr key-and-default))
-		 )))
+	   (or (exists (lambda (key-and-argument)
+			 (and (eq? (car key-and-default) (syntax->datum (car key-and-argument)))
+			      (cadr key-and-argument)))
+		       unwrapped-arguments-stx)
+	       (datum->syntax context (cadr key-and-default))))
       keywords-and-defaults)))
 
 

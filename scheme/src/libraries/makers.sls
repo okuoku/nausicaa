@@ -48,7 +48,7 @@
 	 (syntax->datum stx) (syntax->datum #'?name)))
 
       ((_ ?name ?maker-sexp ?keywords-and-defaults)
-       (invalid-keywords-and-defaults? #'?keywords-and-defaults)
+       (invalid-keywords-and-values? #'?keywords-and-defaults)
        (syntax-violation 'define-maker
 	 "invalid format for keywords and defaults in maker definition"
 	 (syntax->datum stx) (syntax->datum #'?keywords-and-defaults)))

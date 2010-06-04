@@ -524,7 +524,7 @@
 		    (gamma	3)))
 		 (doit (123 9)))
 	      (environment '(rnrs) '(makers))))
-    => "expected identifier as first element of argument subform")
+    => "expected identifier as first element of maker argument clause")
 
   (check
       (guard (E ((syntax-violation? E)
