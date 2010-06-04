@@ -25,6 +25,7 @@
 ;;;
 
 
+#!r6rs
 (import (nausicaa)
   (checks)
   (rnrs mutable-pairs (6))
