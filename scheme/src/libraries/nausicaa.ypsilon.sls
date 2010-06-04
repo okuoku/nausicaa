@@ -788,7 +788,7 @@
     symbol*->string symbol->string/maybe do*
 
     ;; other stuff
-    pretty-print
+    pretty-print define-maker
 
 ;;;; bindings from (conditions)
 
@@ -888,6 +888,7 @@
     (for (classes) expand run)
     (for (compensations) expand run)
     (for (deferred-exceptions) expand run)
+    (for (makers) expand run)
     (for (nausicaa common) expand run))
 
 

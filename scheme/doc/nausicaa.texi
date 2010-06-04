@@ -18939,6 +18939,10 @@ Parameter objects.  @ref{parameters, Parameter objects}.
 Reading and writing shared structures.  @ref{shared-structures, External
 representation for data with shared structure}.
 
+@item makers
+Defining functions and macros with optional arguments.  @ref{makers,
+Maker syntaxes}.
+
 @item classes
 Provides record type extensions.  @ref{classes, Record utilities}.
 Notice that @func{receive/with-class} is reexported with its name and
