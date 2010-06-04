@@ -353,6 +353,9 @@
 
 ;;; --------------------------------------------------------------------
 
+(%compile-library "uri/low.sls"
+		  "uri/low.slfasl")
+
 (%compile-library "uri.sls"
 		  "uri.slfasl")
 

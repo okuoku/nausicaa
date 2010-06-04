@@ -27,6 +27,7 @@
 
 (import (nausicaa)
   (uri)
+  (prefix (uri low) uri:)
   (checks))
 
 (check-set-mode! 'report-failed)
@@ -35,11 +36,46 @@
 
 (parametrise ((check-test-name	'percent-encoding))
 
+  (check (uri:to-string (uri:to-utf8 ""))		=> "")
+  (check (uri:to-string (uri:to-utf8 "ciao"))		=> "ciao")
+  (check (uri:to-string (uri:to-utf8 "ci%3fa%3do"))	=> "ci%3fa%3do")
+
+;;; --------------------------------------------------------------------
+
   (let ()
 
     (define-inline (doit ch str)
-      (check (percent-decode-string str) => ch)
-      (check (percent-encode-char   ch)  => str))
+      (check (uri:percent-encode ch)  => str)
+      (check (uri:percent-decode str) => (string ch)))
+
+    (doit #\. ".")
+    (doit #\- "-")
+    (doit #\_ "_")
+    (doit #\~ "~")
+    (doit #\% "%25")
+    (doit #\? "%3f")
+    (doit #\= "%3d")
+    (doit #\# "%23")
+
+    #f)
+
+  (let ()
+
+    (define-inline (doit ch str)
+      (check
+	  (uri:percent-encode ch (:char-selector (lambda (chi)
+						   (memv (integer->char chi)
+							 '(#\. #\- #\_ #\~ #\%
+							   #\: #\/ #\?
+							   #\# #\[ #\]
+							   #\@ #\\ #\!
+							   #\$ #\& #\'
+							   #\( #\) #\*
+							   #\+ #\, #\;
+							   #\=))
+						   )))
+	=> str)
+      (check (uri:percent-decode str) => (string ch)))
 
     (doit #\. "%2e")
     (doit #\- "%2d")
@@ -57,8 +93,8 @@
   (let ()
 
     (define-inline (doit dec enc)
-      (check (string->percent-encoded-string dec) => enc)
-      (check (percent-encoded-string->string enc) => dec))
+      (check (uri:percent-encode dec) => enc)
+      (check (uri:percent-decode enc) => dec))
 
     (doit "" "")
     (doit "ciao" "ciao")
@@ -67,32 +103,35 @@
 
     #f)
 
+  (check
+      (uri:percent-encode "ciao" (:bytevector-result? #t))
+    => '#vu8(99 105 97 111))
+
 ;;; --------------------------------------------------------------------
 
   (check
-      (normalise-percent-encoded-string "")
+      (uri:normalise-percent-encoded-string "")
     => "")
 
   (check
-      (normalise-percent-encoded-string "ciao")
+      (uri:normalise-percent-encoded-string "ciao")
     => "ciao")
 
   (check
-      (normalise-percent-encoded-string "cia%3do")
+      (uri:normalise-percent-encoded-string "cia%3do")
     => "cia%3do")
 
   (check
-      (normalise-percent-encoded-string "ci%3fa%3do")
+      (uri:normalise-percent-encoded-string "ci%3fa%3do")
     => "ci%3fa%3do")
 
   (check
-      (normalise-percent-encoded-string "%7eciao")
+      (uri:normalise-percent-encoded-string "%7eciao")
     => "~ciao")
 
   (check
-      (normalise-percent-encoded-string "ci%5fao")
+      (uri:normalise-percent-encoded-string "ci%5fao")
     => "ci_ao")
-
 
   #t)
 

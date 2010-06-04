@@ -117,6 +117,10 @@ Revised^6 Report on the algorithmic language Scheme
 @acronym{URL}
 @end macro
 
+@macro uri{}
+@acronym{URI}
+@end macro
+
 @macro ascii{}
 @acronym{ASCII}
 @end macro
@@ -609,6 +613,7 @@ the list of original documents and their authors.  See also the
 * getopts::                     Parsing command line arguments.
 * armor::                       @ascii{} armor encoding/decoding.
 * json::                        Parsing and generating @json{} text.
+* uri::                         Uniform resource identifiers.
 * libraries::                   Libraries inspection.
 
 Low level libraries
@@ -1279,6 +1284,23 @@ Parsing and generating @json{} text
 * json intro::                  Introduction to @json{}.
 * json decoding::               Decoding @json{} text.
 * json encoding::               Encoding @json{} text.
+* json error::                  Error handlers and condition objects.
+
+Decoding @json{} text
+
+* json decoding intro::         Introduction to decoding @json{}.
+* json decoding lexer::         Lexing @json{} text.
+* json decoding parser::        Parsing @json{} text.
+* json decoding string::        Decoding @json{} strings.
+
+Error handlers and condition objects
+
+* json error conditions::       @json{}--related condition objects.
+* json error handlers::         Error handlers for @json{} parsers.
+
+Uniform resource identifiers
+
+* uri percent::                 Percent encoding of characters.
 
 Libraries inspection
 
@@ -34232,6 +34254,129 @@ The value in the @condition{irritants} object is a list with a single
 element: the offending string from the input.
 @end defun
 
+@c page
+@node uri
+@chapter Uniform resource identifiers
+
+
+The @library{uri} library implements a parser and class type to handle
+@uri{}s compliant with @rfc{} 3986.
+
+@menu
+* uri percent::                 Percent encoding of characters.
+@end menu
+
+@c page
+@node uri percent
+@section Percent encoding of characters
+
+
+A string is valid as @uri{} component only if its characters match the
+following @library{silex} specification:
+
+@example
+ALPHA           [a-zA-Z]
+DIGIT           [0-9]
+HEXDIG          [0-9a-fA-F]
+
+pct-encoded     %@{HEXDIG@}@{HEXDIG@}
+
+gen-delims      [:/\?#\[\]@@]
+sub-delims      [\!\$&\'()\*\+,\;=]
+
+reserved        @{gen-delims@}|@{sub-delims@}
+unreserved      @{ALPHA@}|@{DIGIT@}|[\-\._~]
+@end example
+
+@noindent
+@ref{silex syntax} for the syntax of the specification.  All the
+characters which are not unreserved are meant to be percent--encoded in
+a @uri{} string; in particular the following must be encoded:
+
+@example
+: / ? # [ ] @ \ ! $ & ' ( ) * + , ; =
+@end example
+
+@noindent
+the characters in the unreserved set can, but should not, be encoded.
+
+The following bindings are exported by the @library{uri low} library; it
+is suggested to prefix them when importing this library.
+
+
+@defun unreserved-char? @var{obj}
+Return true if @var{obj} represents an unreserved character according to
+the @rfc{}.  @var{obj} can be either a character or an integer
+representing a character according to @func{char->integer}.
+@end defun
+
+
+@defun to-utf8 @var{obj}
+If @var{obj} is a bytevector: @var{obj} itself is returned.  If
+@var{obj} is a string: convert it to a bytevector representation;
+characters are taken from @var{obj} and inserted into the resulting
+bytevector after decoding them, char to byte, as @ascii{}.
+@end defun
+
+
+@defun to-string @var{obj}
+If @var{obj} is a string: @var{obj} itself is returned.  If @var{obj} is
+a bytevector: convert it to a string representation; bytes are taken
+from @var{obj} and inserted into the resulting string after encoding
+them, byte to char, as @ascii{}.
+@end defun
+
+
+@deffn Syntax percent-encode @ameta{obj} @ameta{clause} ...
+This syntax is a maker, @nauref{makers, Maker syntaxes}.
+Percent--encode the given object, return the result; characters outside
+a selected range are percent--encoded.
+
+@var{obj} must be an expression evaluating to any character, or string,
+or bytevector; the character is converted to a string and the string is
+converted to a bytevector with @func{string->utf8}.
+
+The following clauses are supported:
+
+@table @code
+@item :char-selector @var{pred}
+@var{pred} must be a predicate function which, applied to an integer
+representing a character according to @func{char->integer}, returns true
+if the character must be percent encoded.  The default is to encode all
+the character not unreserved.
+
+@item :bytevector-result? @var{bool}
+If @var{bool} is true: return a bytevector, else return a string; the
+default is to return a string.
+@end table
+@end deffn
+
+
+@deffn Syntax percent-decode @ameta{obj} @ameta{clause} ...
+This syntax is a maker, @nauref{makers, Maker syntaxes}.
+Percent--decode the given @var{obj}, return the result.
+
+@var{obj} must be an expression evaluating to any string or bytevector;
+the string is converted to a bytevector with @func{string->utf8}.
+
+The following clauses are supported:
+
+@table @code
+@item :bytevector-result? @var{bool}
+If @var{bool} is true: return a bytevector, else return a string; the
+default is to return a string.
+@end table
+@end deffn
+
+
+@defun normalise-percent-encoded-string @var{str}
+Normalise the given percent--encoded string; characters that are encoded
+but should not are decoded; return the normalised string.  Assume that
+@var{str} is composed by characters in the valid range for @uri{}s.
+
+Notice that this function does @strong{not} percent--encode characters
+which are already not so.
+@end defun
 
 @c page
 @node libraries

@@ -39,54 +39,58 @@
      (:counters		'all))
 
 
-#;(lalr-parser
+(lalr-parser
 
- (:output-file		"sexp-parser.sls")
- (:parser-name		'make-json-sexp-parser)
- (:library-spec		'(json sexp-parser))
+ (:output-file		"generic-parser.sls")
+ (:parser-name		'make-uri-generic-parser)
+ (:library-spec		'(uri generic-parser))
 
- (:terminals		'(BEGIN_ARRAY END_ARRAY
-				      BEGIN_OBJECT END_OBJECT
-				      NAME_SEPARATOR VALUE_SEPARATOR
-				      FALSE TRUE NULL
-				      NUMBER STRING))
+ (:terminals		'(AT COLON QUESTION SHARP SLASH DOUBLE_SLASH OPEN_BRACKET CLOSE_BRACKET
+			     SCHEME_STRING USERINFO_STRING IPVFUTURE_STRING))
 
  (:rules
-  '((json-text
-     (object)				: $1
-     (array)				: $1)
+  '((uri
+     (scheme COLON hier-part)		: #f
+     (scheme COLON hier-part uri-tail)	: #f)
 
-    (object
-     (BEGIN_OBJECT END_OBJECT)		: '()
-     (BEGIN_OBJECT pair END_OBJECT)	: (list $2)
-     (BEGIN_OBJECT pair pair-rest END_OBJECT)
-					: (cons $2 $3))
+    (uri-tail
+     (QUESTION query)			: #f
+     (SHARP fragment)			: #f
+     (QUESTION query SHARP fragment)	: #f)
 
-    (pair
-     (STRING NAME_SEPARATOR value)	: (cons $1 $3))
-    (pair-rest
-     (VALUE_SEPARATOR pair)		: (list $2)
-     (VALUE_SEPARATOR pair pair-rest)
-					: (cons $2 $3))
+    (scheme
+     (SCHEME_STRING)			: #f)
+
+    (hier-part
+     (DOUBLE_SLASH authority path-abempty)	: #f
+     (path-absolute)				: #f
+     (path-rootless)				: #f
+     (path-empty)				: #f)
+
+    (authority
+     (host)				: #f
+     (host COLON port)			: #f
+     (userinfo AT host COLON port)	: #f
+     (userinfo AT host)			: #f)
+
+    (host
+     (IP-literal)			: #f
+     (IPv4address)			: #f
+     (reg-name)				: #f)
+
+    (IP-literal
+     (OPEN_BRACKET IPv6address CLOSE_BRACKET)	: #f
+     (OPEN_BRACKET IPVFUTURE_STRING   CLOSE_BRACKET)	: #f)
 
 
-    (array
-     (BEGIN_ARRAY END_ARRAY)		: '#()
-     (BEGIN_ARRAY value END_ARRAY)	: (vector $2)
-     (BEGIN_ARRAY value value-rest END_ARRAY)
-					: (list->vector (cons $2 $3)))
+    (userinfo
+     (USERINFO_STRING)			: $1)
 
-    (value
-     (FALSE)				: $1
-     (NULL)				: $1
-     (TRUE)				: $1
-     (NUMBER)				: $1
-     (STRING)				: $1
-     (object)				: $1
-     (array)				: $1)
-    (value-rest
-     (VALUE_SEPARATOR value)		: (list $2)
-     (VALUE_SEPARATOR value value-rest)	: (cons $2 $3))
+    (query		()					: #f)
+    (fragment		()					: #f)
+
+    (string		(USERINFO_STRING)			: $1
+			(SCHEME_STRING)				: $1)
 
     )))
 

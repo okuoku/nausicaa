@@ -67,6 +67,7 @@ $(eval $(call nau-libraries,scmobj,scmobj))
 $(eval $(call nau-libraries,silex,silex))
 $(eval $(call nau-libraries,strings,strings))
 $(eval $(call nau-libraries,times-and-dates,times-and-dates))
+$(eval $(call nau-libraries,uri,uri))
 $(eval $(call nau-libraries,vectors,vectors))
 
 #page
@@ -436,6 +437,40 @@ endif
 
 json:
 	cd $(srcdir)/src/libraries/json && $(JSON_RUNNER) $(JSON_PROGRAM)
+
+
+#page
+## --------------------------------------------------------------------
+## Special rules: uri lexers and parser building.
+## --------------------------------------------------------------------
+
+URI_PROGRAM	= make-tables.sps
+URI_LIBPATH	= $(abspath $(nau_sls_BUILDDIR))
+
+ifeq (yes,$(nausicaa_ENABLE_VICARE))
+URI_ENV	= VICARE_LIBRARY_PATH=$(URI_LIBPATH):$(VICARE_LIBRARY_PATH)
+URI_RUNNER	= $(URI_ENV) $(VICARE) --debug --r6rs-script
+else ifeq (yes,$(nausicaa_ENABLE_IKARUS))
+URI_ENV		= IKARUS_LIBRARY_PATH=$(URI_LIBPATH):$(IKARUS_LIBRARY_PATH)
+URI_RUNNER	= $(URI_ENV) $(IKARUS) --r6rs-script
+else ifeq (yes,$(nausicaa_ENABLE_MOSH))
+URI_ENV		= MOSH_LOADPATH=$(URI_LIBPATH):$(MOSH_LOADPATH)
+URI_RUNNER	= $(URI_ENV) $(MOSH)
+else ifeq (yes,$(nausicaa_ENABLE_PETITE))
+URI_ENV		= PETITE_LIBPATH=$(URI_LIBPATH):$(PETITE_LIBPATH)
+URI_RUNNER	= $(URI_ENV) $(PETITE) --libdirs $${PETITE_LIBPATH} --program
+else ifeq (yes,$(nausicaa_ENABLE_YPSILON))
+URI_ENV	= YPSILON_SITELIB=$(URI_LIBPATH):$(YPSILON_SITELIB)
+URI_RUNNER	= $(URI_ENV) $(YPSILON)
+else ifeq (yes,$(nausicaa_ENABLE_LARCENY))
+URI_ENV		= LARCENY_LIBPATH=$(URI_LIBPATH):$(LARCENY_LIBPATH)
+URI_RUNNER	= $(URI_ENV) $(LARCENY) -r6rs -program
+endif
+
+.PHONY: uri
+
+uri:
+	cd $(srcdir)/src/libraries/uri && $(URI_RUNNER) $(URI_PROGRAM)
 
 
 

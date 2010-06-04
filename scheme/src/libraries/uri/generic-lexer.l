@@ -34,67 +34,78 @@ CR			\13
 SP			\32
 DQUOTE			\"
 
+AT			@
+COLON			:
+QUESTION		\?
+SHARP			#
+SLASH			/
+DOUBLE_SLASH		{SLASH}{SLASH}
+OPEN_BRACKET		\[
+CLOSE_BRACKET		\]
+
 pct-encoded		%{HEXDIG}{HEXDIG}
 
-gen-delims		[:/\?#\[\]@]
+gen-delims		[{COLON}{QUESTION}{SHARP}{SLASH}\[\]@]
 sub-delims		[\!\$&\'()\*\+,\;=]
 
 reserved		{gen-delims}|{sub-delims}
 unreserved		{ALPHA}|{DIGIT}|[\-\._~]
 
-;;; numbers
-
-decint			[0-9]
-integer			{decint}+
-exponent		([eE][+\-]?[0-9]+)
-real			{decint}+\.|{decint}*\.{decint}+{exponent}?|{decint}+{exponent}
-number			{real}|{integer}
+SCHEME_STRING		{ALPHA}({ALPHA}|{DIGIT}|[+\-/.])*
+USERINFO_STRING		({unreserved}|{pct-encoded}|{sub-delims}|:)*
+IPvFuture		[vV]{HEXDIG}\.({unreserved}|{sub-delims}|:)*
 
 %%
 
-{BEGIN_ARRAY}		(make-<lexical-token> 'BEGIN_ARRAY
+{AT}			(make-<lexical-token> 'AT
 			 (make-<source-location> #f yyline yycolumn yyoffset)
-			 #\[ 1)
+			 #\@ 1)
 
-{BEGIN_OBJECT}		(make-<lexical-token> 'BEGIN_OBJECT
-			 (make-<source-location> #f yyline yycolumn yyoffset)
-			 #\{ 1)
-
-{END_ARRAY}		(make-<lexical-token> 'END_ARRAY
-			 (make-<source-location> #f yyline yycolumn yyoffset)
-			 #\] 1)
-
-{END_OBJECT}		(make-<lexical-token> 'END_OBJECT
-			 (make-<source-location> #f yyline yycolumn yyoffset)
-			 #\} 1)
-
-{NAME_SEPARATOR}	(make-<lexical-token> 'NAME_SEPARATOR
+{COLON}			(make-<lexical-token> 'COLON
 			 (make-<source-location> #f yyline yycolumn yyoffset)
 			 #\: 1)
 
-{VALUE_SEPARATOR}	(make-<lexical-token> 'VALUE_SEPARATOR
+{QUESTION}		(make-<lexical-token> 'QUESTION
 			 (make-<source-location> #f yyline yycolumn yyoffset)
-			 #\, 1)
+			 #\? 1)
 
-{THE_FALSE}		(make-<lexical-token> 'FALSE
+{SHARP}			(make-<lexical-token> 'SHARP
 			 (make-<source-location> #f yyline yycolumn yyoffset)
-			 #f 5)
+			 #\# 1)
 
-{THE_TRUE}		(make-<lexical-token> 'TRUE
+{SLASH}			(make-<lexical-token> 'SLASH
 			 (make-<source-location> #f yyline yycolumn yyoffset)
-			 #t 4)
+			 #\/ 1)
 
-{THE_NULL}		(make-<lexical-token> 'NULL
+{DOUBLE_SLASH}		(make-<lexical-token> 'DOUBLE_SLASH
 			 (make-<source-location> #f yyline yycolumn yyoffset)
-			 '() 4)
+			 "//" 2)
 
-{NUMBER}		(make-<lexical-token> 'NUMBER
+{OPEN_BRACKET}		(make-<lexical-token> 'OPEN_BRACKE
 			 (make-<source-location> #f yyline yycolumn yyoffset)
-			 (string->number yytext) (string-length yytext))
+			 #\] 1)
 
-{START_QUOTED_TEXT}	(make-<lexical-token> 'QUOTED-TEXT-OPEN
+{CLOSE_BRACKET}		(make-<lexical-token> 'CLOSE_BRACKET
 			 (make-<source-location> #f yyline yycolumn yyoffset)
-			 #\" 1)
+			 #\[ 1)
+
+
+{SCHEME_STRING}		(make-<lexical-token> 'SCHEME_STRING
+			 (make-<source-location> #f yyline yycolumn yyoffset)
+			 yytext (string-length yytext))
+
+{USERINFO_STRING}	(make-<lexical-token> 'USERINFO_STRING
+			 (make-<source-location> #f yyline yycolumn yyoffset)
+			 yytext (string-length yytext))
+
+{IPvFuture}		(make-<lexical-token> 'IPVFUTURE_STRING
+			 (make-<source-location> #f yyline yycolumn yyoffset)
+			 yytext (string-length yytext))
+
+;; {NUMBER}		(make-<lexical-token> 'NUMBER
+;; 			 (make-<source-location> #f yyline yycolumn yyoffset)
+;; 			 (string->number yytext) (string-length yytext))
+
 
 <<EOF>>			(make-<lexical-token> '*eoi*
 			 (make-<source-location> #f yyline yycolumn yyoffset)
