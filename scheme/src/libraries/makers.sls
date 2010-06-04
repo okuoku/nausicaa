@@ -71,8 +71,8 @@
       ((_ ?name ?maker ((?keyword ?default) ...))
        #'(output-forms (?name) (?maker) ((?keyword ?default) ...)))
 
-      (?input-form
-       (syntax-violation 'define-maker "invalid maker definition" (syntax->datum #'?input-form)))
+      (_
+       (syntax-violation 'define-maker "invalid maker definition" (syntax->datum stx)))
       )))
 
 (define-syntax output-forms
@@ -82,7 +82,7 @@
        (with-syntax (((VAR ...) (generate-temporaries #'(?default ...))))
 	 #'(begin
 	     (define VAR ?default) ...
-	     (define this-context #f)
+	     (define this-context)
 	     (define-syntax ?name
 	       (lambda (use)
 		 (syntax-case use ()
