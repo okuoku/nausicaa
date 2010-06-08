@@ -20150,8 +20150,8 @@ It is an error to read from a closed port.
 
 The @library{makers} library provides a constructor for macro
 definitions; its nominal purpose is to define macros which wrap
-constructor for records and similar, allowing the use of ``keywords'' to
-specify non--positional arguments.
+constructors for records and similar, allowing the use of ``keywords''
+to specify non--positional arguments.
 
 @menu
 * makers intro::                Introduction to maker macros.
@@ -20261,7 +20261,7 @@ where @meta{name identifier} is the name of the defined macro and each
 @meta{positional arg} is an identifier, name of a mandatory, positional
 argument for the macro.
 
-@meta{maker sexp} has the form:
+@meta{maker sexp} has one of the forms:
 
 @example
 @cmeta{maker expr}
@@ -20269,8 +20269,9 @@ argument for the macro.
 @end example
 
 @noindent
-where each @meta{maker expr} is an expression evaluated at runtime in
-the lexical context of the use of the new macro.
+where each @meta{maker expr} is an expression evaluated at runtime, only
+once, in the lexical context of the @func{define-maker} macro use, even
+if the defined macro is never used.
 
 @meta{keywords and defaults} defines optional arguments selected with a
 keyword and a value; it has the form:
@@ -20294,16 +20295,17 @@ When the new macro is used without optional keywords, it is expanded to:
 
 @example
 ;; single maker expression, no positional arguments
-(@cmeta{maker expr})
+(@cmeta{maker expr result})
 
 ;; single maker expression, positional arguments
-(@cmeta{maker expr} @cmetao{positional arg} @cmeta{positional arg} ...)
+(@cmeta{maker expr result}
+ @cmetao{positional arg} @cmeta{positional arg} ...)
 
 ;; multiple maker expressions, no positional arguments
-(@cmetao{maker expr} @cmeta{maker expr} ...)
+(@cmetao{maker expr result} @cmeta{maker expr result} ...)
 
 ;; multiple maker expressions, positional arguments
-(@cmetao{maker expr} @cmeta{maker expr} ...
+(@cmetao{maker expr result} @cmeta{maker expr result} ...
  @cmetao{positional arg} @cmeta{positional arg} ...)
 @end example
 

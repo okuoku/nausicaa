@@ -79,16 +79,20 @@
   (lambda (stx)
     (syntax-case stx ()
       ((_ (?name ?var ...) (?maker ?arg ...) ((?keyword ?default) ...))
-       (with-syntax (((VAR ...) (generate-temporaries #'(?default ...))))
+       (with-syntax (((MAKER)	(generate-temporaries #'(?maker)))
+		     ((ARG ...) (generate-temporaries #'(?arg ...)))
+		     ((VAR ...) (generate-temporaries #'(?default ...))))
 	 #'(begin
+	     (define MAKER ?maker)
+	     (define ARG ?arg) ...
 	     (define VAR ?default) ...
 	     (define-syntax ?name
 	       (lambda (use)
 		 (syntax-case use ()
 		   ((_ ?var ... . ?args)
-		    #`(?maker ?arg ... ?var ...
-			      #,@(parse-input-form-stx (quote ?name) use #'?args
-						       #'((?keyword VAR) ...)))))))))))))
+		    #`(MAKER ARG ... ?var ...
+			     #,@(parse-input-form-stx (quote ?name) use #'?args
+						      #'((?keyword VAR) ...)))))))))))))
 
 
 ;;;; done
