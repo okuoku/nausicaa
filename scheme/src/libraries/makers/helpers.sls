@@ -32,19 +32,18 @@
 
 (define (syntax->list stx)
   (syntax-case stx ()
-    (()			'())
+    (()		'())
     ((?car . ?cdr)
      (and (identifier? #'?car)
 	  (or (free-identifier=? #'?car #'quote)
 	      (free-identifier=? #'?car #'quasiquote)
 	      (free-identifier=? #'?car #'syntax)
 	      (free-identifier=? #'?car #'quasisyntax)))
-     (syntax (?car . ?cdr)))
-    ((?car . ?cdr)
-     (and (identifier? #'?car) (free-identifier=? #'quote #'?car))
      #'(?car . ?cdr))
-    ((?car . ?cdr)	(cons (syntax->list #'?car) (syntax->list #'?cdr)))
-    (?atom		#'?atom)))
+    ((?car . ?cdr)
+     (cons (syntax->list #'?car) (syntax->list #'?cdr)))
+    (?atom
+     #'?atom)))
 
 (define (invalid-keywords-and-values? keywords-and-values)
   (not (for-all (lambda (key-and-value)
