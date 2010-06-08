@@ -82,14 +82,13 @@
        (with-syntax (((VAR ...) (generate-temporaries #'(?default ...))))
 	 #'(begin
 	     (define VAR ?default) ...
-	     (define this-context)
 	     (define-syntax ?name
 	       (lambda (use)
 		 (syntax-case use ()
 		   ((_ ?var ... . ?args)
 		    #`(?maker ?arg ... ?var ...
-			      #,@(parse-input-form-stx #'this-context (quote ?name) use #'?args
-						       '((?keyword VAR) ...)))))))))))))
+			      #,@(parse-input-form-stx (quote ?name) use #'?args
+						       #'((?keyword VAR) ...)))))))))))))
 
 
 ;;;; done

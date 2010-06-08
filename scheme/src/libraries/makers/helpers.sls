@@ -51,14 +51,16 @@
 		       (null? (cddr key-and-value))))
 		(syntax->list keywords-and-values))))
 
-(define (parse-input-form-stx context who input-form-stx arguments-stx keywords-and-defaults)
+(define (parse-input-form-stx who input-form-stx arguments-stx keywords-and-defaults)
+  (define unwrapped-keywords-and-defaults
+    (syntax->list keywords-and-defaults))
   (define (%keywords-join keywords-and-defaults)
     ;;Given an alist  of keywords and default values,  join the keywords
     ;;into a string with a comma as separator; return the string.  To be
     ;;used to build error messages involving the list of keywords.
     ;;
     (let ((keys (map (lambda (p)
-		       (symbol->string (car p)))
+		       (symbol->string (syntax->datum (car p))))
 		  keywords-and-defaults)))
       (if (null? keys)
 	  ""
@@ -92,10 +94,11 @@
 		(unless (null? (cddr key-and-argument))
 		  (synner "expected list of two values as maker clause argument" key-and-argument))
 		(unless (exists (lambda (key-and-default)
-				  (eq? (car key-and-default) (syntax->datum (car key-and-argument))))
-				keywords-and-defaults)
+				  (eq? (syntax->datum (car key-and-default))
+				       (syntax->datum (car key-and-argument))))
+				unwrapped-keywords-and-defaults)
 		  (synner (string-append "unrecognised argument keyword, expected one among: "
-					 (%keywords-join keywords-and-defaults))
+					 (%keywords-join unwrapped-keywords-and-defaults))
 			  (car key-and-argument))))
       unwrapped-arguments-stx)
 
@@ -103,11 +106,12 @@
     ;;using the given defaults.
     (map (lambda (key-and-default)
 	   (or (exists (lambda (key-and-argument)
-			 (and (eq? (car key-and-default) (syntax->datum (car key-and-argument)))
+			 (and (eq? (syntax->datum (car key-and-default))
+				   (syntax->datum (car key-and-argument)))
 			      (cadr key-and-argument)))
 		       unwrapped-arguments-stx)
-	       (datum->syntax context (cadr key-and-default))))
-      keywords-and-defaults)))
+	       (cadr key-and-default)))
+      unwrapped-keywords-and-defaults)))
 
 
 ;;;; done
