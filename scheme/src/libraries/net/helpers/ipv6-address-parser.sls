@@ -9,34 +9,43 @@
   (define (make-ipv6-address-parser)
     (lr-driver
       '#(((*default* . *error*) (COLON . 2) (NUMBER . 1))
-         ((*default* . -8) (COLON . 5))
-         ((*default* . *error*) (COLON . 8))
+         ((*default* . -9) (SLASH . 5) (COLON . 6))
+         ((*default* . *error*) (COLON . 10))
          ((*default* . -4))
-         ((*default* . *error*) (*eoi* . 9))
-         ((*default* . *error*) (COLON . 8) (NUMBER . 10))
-         ((*default* . -2)) ((*default* . -3))
-         ((*default* . -12) (NUMBER . 13))
+         ((*default* . *error*) (*eoi* . 11))
+         ((*default* . *error*) (NUMBER . 12))
+         ((*default* . *error*) (COLON . 10) (NUMBER . 13))
+         ((*default* . -8)) ((*default* . -2))
+         ((*default* . -3))
+         ((*default* . -14) (NUMBER . 16) (SLASH . 5))
          ((*default* . -1) (*eoi* . accept))
-         ((*default* . -8) (DOT . 16) (COLON . 5))
-         ((*default* . *error*) (DOT . 19))
+         ((*default* . -19))
+         ((*default* . -9) (SLASH . 5) (DOT . 20)
+           (COLON . 6)) ((*default* . *error*) (DOT . 23))
          ((*default* . -5))
-         ((*default* . -15) (DOT . 16) (COLON . 20))
-         ((*default* . -11)) ((*default* . -9))
-         ((*default* . *error*) (NUMBER . 22))
+         ((*default* . -18) (SLASH . 5) (DOT . 20)
+           (COLON . 24)) ((*default* . -12))
+         ((*default* . -13)) ((*default* . -10))
+         ((*default* . *error*) (NUMBER . 27))
          ((*default* . -7)) ((*default* . -6))
-         ((*default* . *error*) (NUMBER . 23))
-         ((*default* . *error*) (NUMBER . 25))
-         ((*default* . -10)) ((*default* . -17))
-         ((*default* . *error*) (DOT . 16))
-         ((*default* . -16))
-         ((*default* . -15) (DOT . 16) (COLON . 20))
-         ((*default* . -14)) ((*default* . -13)))
-      (vector '((3 . 3) (1 . 4)) '((3 . 6) (2 . 7)) '() '()
-        '() '((7 . 11) (6 . 12)) '() '()
-        '((7 . 11) (6 . 14) (4 . 15)) '()
-        '((3 . 17) (2 . 18)) '() '() '((5 . 21)) '() '() '()
-        '() '() '((7 . 24)) '((7 . 11) (6 . 26)) '() '() '()
-        '() '((5 . 27)) '() '())
+         ((*default* . *error*) (NUMBER . 28))
+         ((*default* . *error*) (NUMBER . 30))
+         ((*default* . -17)) ((*default* . -11))
+         ((*default* . -23))
+         ((*default* . *error*) (DOT . 20))
+         ((*default* . -22) (SLASH . 5))
+         ((*default* . -18) (SLASH . 5) (DOT . 20)
+           (COLON . 24)) ((*default* . -16))
+         ((*default* . -20)) ((*default* . -21))
+         ((*default* . -15)))
+      (vector '((3 . 3) (1 . 4)) '((6 . 7) (3 . 8) (2 . 9))
+        '() '() '() '() '((9 . 14) (7 . 15)) '() '() '()
+        '((9 . 14) (7 . 17) (6 . 18) (4 . 19)) '() '()
+        '((6 . 7) (3 . 21) (2 . 22)) '() '()
+        '((6 . 25) (5 . 26)) '() '() '() '() '() '()
+        '((9 . 29)) '((9 . 14) (7 . 31)) '() '() '() '()
+        '((8 . 32) (6 . 33)) '((6 . 25) (5 . 34)) '() '()
+        '() '())
       (vector '()
         (lambda
           (yy-reduce-pop-and-push yypushback yycustom
@@ -78,6 +87,11 @@
             yy-stack-values))
         (lambda
           (yy-reduce-pop-and-push yypushback yycustom
+           yy-stack-states $1 . yy-stack-values)
+          (yy-reduce-pop-and-push 1 2 $1 yy-stack-states
+            yy-stack-values))
+        (lambda
+          (yy-reduce-pop-and-push yypushback yycustom
            yy-stack-states . yy-stack-values)
           (yy-reduce-pop-and-push 0 2 '() yy-stack-states
             yy-stack-values))
@@ -91,6 +105,11 @@
            yy-stack-states $2 $1 . yy-stack-values)
           (yy-reduce-pop-and-push 2 4
             (cons (string->number $1 16) $2) yy-stack-states
+            yy-stack-values))
+        (lambda
+          (yy-reduce-pop-and-push yypushback yycustom
+           yy-stack-states $1 . yy-stack-values)
+          (yy-reduce-pop-and-push 1 4 $1 yy-stack-states
             yy-stack-values))
         (lambda
           (yy-reduce-pop-and-push yypushback yycustom
@@ -115,18 +134,39 @@
             yy-stack-values))
         (lambda
           (yy-reduce-pop-and-push yypushback yycustom
+           yy-stack-states $1 . yy-stack-values)
+          (yy-reduce-pop-and-push 1 5 $1 yy-stack-states
+            yy-stack-values))
+        (lambda
+          (yy-reduce-pop-and-push yypushback yycustom
            yy-stack-states . yy-stack-values)
           (yy-reduce-pop-and-push 0 5 '() yy-stack-states
             yy-stack-values))
         (lambda
           (yy-reduce-pop-and-push yypushback yycustom
-           yy-stack-states $3 $2 $1 . yy-stack-values)
-          (yy-reduce-pop-and-push 3 6 (list $1 $3)
+           yy-stack-states $2 $1 . yy-stack-values)
+          (yy-reduce-pop-and-push 2 6
+            `((,(string->number $2))) yy-stack-states
+            yy-stack-values))
+        (lambda
+          (yy-reduce-pop-and-push yypushback yycustom
+           yy-stack-states $4 $3 $2 $1 . yy-stack-values)
+          (yy-reduce-pop-and-push 4 7 (cons* $1 $3 $4)
             yy-stack-states yy-stack-values))
         (lambda
           (yy-reduce-pop-and-push yypushback yycustom
+           yy-stack-states $1 . yy-stack-values)
+          (yy-reduce-pop-and-push 1 8 $1 yy-stack-states
+            yy-stack-values))
+        (lambda
+          (yy-reduce-pop-and-push yypushback yycustom
+           yy-stack-states . yy-stack-values)
+          (yy-reduce-pop-and-push 0 8 '() yy-stack-states
+            yy-stack-values))
+        (lambda
+          (yy-reduce-pop-and-push yypushback yycustom
            yy-stack-states $3 $2 $1 . yy-stack-values)
-          (yy-reduce-pop-and-push 3 7
+          (yy-reduce-pop-and-push 3 9
             (+
               (bitwise-arithmetic-shift-left
                 (string->number $1 10) 8)

@@ -264,6 +264,9 @@
 (%compile-library "silex.sls"
 		  "silex.slfasl")
 
+(%compile-library "silex/utilities.sls"
+		  "silex/utilities.slfasl")
+
 ;;; --------------------------------------------------------------------
 
 (%compile-library "lalr/lr-driver.sls"

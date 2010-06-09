@@ -175,8 +175,8 @@
 	(make-who-condition who)
 	(make-message-condition
 	 (let (((pos <source-location>) token.location))
-	   (string-append "invalid IPv6 address input at column " (number->string pos.column)
-			  ": " message)))
+	   (string-append "invalid IPv6 address input at column "
+	 		  pos.column-string ": " message)))
 	(make-irritants-condition (list string token.value))))))
 
   (define (parse-address string)
@@ -186,10 +186,14 @@
       (parser lexer (make-ipv6-address-parser-error-handler 'parse-address string))))
 
 ;;; --------------------------------------------------------------------
+;;; plain addresses
 
   (check
       (parse-address "1:2:3:4:5:6:7:8")
     => '(1 2 3 4 5 6 7 8))
+
+;;; --------------------------------------------------------------------
+;;; compressed format (omitting zeros)
 
   (check
       (parse-address "::1")
@@ -215,15 +219,102 @@
       (parse-address "1:2::3:4")
     => '(1 2 #f 3 4))
 
+  (check
+      (parse-address "1:2:3::4:5:6")
+    => '(1 2 3 #f 4 5 6))
+
 ;;; --------------------------------------------------------------------
+;;; IPv4 tail address
+
+  (check
+      (parse-address "::192.168.99.1")
+    => '(#f #xC0A8 #x6301))
 
   (check
       (parse-address "1:2:3:4:172.30.67.254")
     => '(1 2 3 4 #xac1e #x43fe))
 
   (check
+      (parse-address "1:2:3:4::172.30.67.254")
+    => '(1 2 3 4 #f #xac1e #x43fe))
+
+  (check
+      (parse-address "::1:2:3:4:172.30.67.254")
+    => '(#f 1 2 3 4 #xac1e #x43fe))
+
+  (check
+      (parse-address "1:2::3:4:172.30.67.254")
+    => '(1 2 #f 3 4 #xac1e #x43fe))
+
+  (check
       (parse-address "::ffff:192.168.99.1")
     => '(#f #xFFFF #xC0A8 #x6301))
+
+;;; --------------------------------------------------------------------
+;;; prefix, compressed format (omitting zeros)
+
+  (check
+      (parse-address "::1/60")
+    => '(#f 1 (60)))
+
+  (check
+      (parse-address "1::/60")
+    => '(1 #f (60)))
+
+  (check
+      (parse-address "1::2/60")
+    => '(1 #f 2 (60)))
+
+  (check
+      (parse-address "1:2::3/60")
+    => '(1 2 #f 3 (60)))
+
+  (check
+      (parse-address "1::2:3/60")
+    => '(1 #f 2 3 (60)))
+
+  (check
+      (parse-address "1:2::3:4/60")
+    => '(1 2 #f 3 4 (60)))
+
+  (check
+      (parse-address "1:2:3::4:5:6/60")
+    => '(1 2 3 #f 4 5 6 (60)))
+
+;;; --------------------------------------------------------------------
+;;; prefix, IPv4 tail address
+
+  (check
+      (parse-address "::192.168.99.1/60")
+    => '(#f #xC0A8 #x6301 (60)))
+
+  (check
+      (parse-address "1:2:3:4:172.30.67.254/60")
+    => '(1 2 3 4 #xac1e #x43fe (60)))
+
+  (check
+      (parse-address "1:2:3:4::172.30.67.254/60")
+    => '(1 2 3 4 #f #xac1e #x43fe (60)))
+
+  (check
+      (parse-address "::1:2:3:4:172.30.67.254/60")
+    => '(#f 1 2 3 4 #xac1e #x43fe (60)))
+
+  (check
+      (parse-address "1:2::3:4:172.30.67.254/60")
+    => '(1 2 #f 3 4 #xac1e #x43fe (60)))
+
+  (check
+      (parse-address "::ffff:192.168.99.1/60")
+    => '(#f #xFFFF #xC0A8 #x6301 (60)))
+
+;;; --------------------------------------------------------------------
+;;; errors
+
+  (check
+      (guard (E (else #t))
+	(parse-address "1,"))
+    => #t)
 
 
   #t)

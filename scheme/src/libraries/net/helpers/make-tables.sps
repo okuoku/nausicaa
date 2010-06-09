@@ -45,7 +45,7 @@
  (:parser-name		'make-ipv6-address-parser)
  (:library-spec		'(net helpers ipv6-address-parser))
 
- (:terminals		'(COLON DOT NUMBER))
+ (:terminals		'(COLON DOT SLASH NUMBER))
 
  (:rules
   '((ipv6-address
@@ -57,6 +57,7 @@
      (COLON ipv4-address)		: $2
      (COLON NUMBER tail)		: (cons (string->number $2 16) $3)
      (COLON NUMBER double-colon-tail)	: (cons (string->number $2 16) $3)
+     (prefix-length)			: $1
      ()					: '())
 
     (double-colon-tail
@@ -65,15 +66,25 @@
     (after-double-colon
      (NUMBER no-double-colon-tail)	: (cons (string->number $1 16) $2)
      (ipv4-address)			: $1
+     (prefix-length)			: $1
      ()					: '())
 
     (no-double-colon-tail
      (COLON NUMBER no-double-colon-tail): (cons (string->number $2 16) $3)
      (COLON ipv4-address)		: $2
+     (prefix-length)			: $1
      ()					: '())
 
+    (prefix-length
+     (SLASH NUMBER)			: `((,(string->number $2))))
+
     (ipv4-address
-     (dot-couple DOT dot-couple)	: (list $1 $3))
+     (dot-couple DOT dot-couple ipv4-address-tail)
+					: (cons* $1 $3 $4))
+
+    (ipv4-address-tail
+     (prefix-length)			: $1
+     ()					: '())
 
     (dot-couple
      (NUMBER DOT NUMBER)		: (+ (bitwise-arithmetic-shift-left (string->number $1 10) 8)

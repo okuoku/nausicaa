@@ -613,6 +613,7 @@ the list of original documents and their authors.  See also the
 * getopts::                     Parsing command line arguments.
 * armor::                       @ascii{} armor encoding/decoding.
 * json::                        Parsing and generating @json{} text.
+* net::                         Network--related libraries.
 * uri::                         Uniform resource identifiers.
 * libraries::                   Libraries inspection.
 
@@ -1067,6 +1068,7 @@ A lexical analyser generator
 * silex syntax::                Syntax of the specification.
 * silex semantics::             Semantics of the specification file.
 * silex format::                Tables output format.
+* silex utilities::             Utility functions.
 
 Syntax of the specification
 
@@ -1297,6 +1299,15 @@ Error handlers and condition objects
 
 * json error conditions::       @json{}--related condition objects.
 * json error handlers::         Error handlers for @json{} parsers.
+
+Network--related libraries
+
+* net ipv6address::             IPv6 address objects.
+
+IPv6 address objects
+
+* net ipv6address lexer::       Tokenising an IPv6 address.
+* net ipv6address parser::      Parsing an IPv6 address.
 
 Uniform resource identifiers
 
@@ -24458,6 +24469,14 @@ the actions}
 @end defcv
 
 
+@defcv {Immutable Virtual Field} @aclass{source-location} line-string
+@defcvx {Immutable Virtual Field} @aclass{source-location} column-string
+@defcvx {Immutable Virtual Field} @aclass{source-location} offset-string
+Strings representing the counters for the line number, column number and
+character offset from the start of the input.
+@end defcv
+
+
 @defun <source-location>-input @var{loc}
 @defunx <source-location>-line @var{loc}
 @defunx <source-location>-column @var{loc}
@@ -24840,6 +24859,7 @@ original code is available at@footnote{@aurl{} last verified Mon Aug 3,
 * silex syntax::                Syntax of the specification.
 * silex semantics::             Semantics of the specification file.
 * silex format::                Tables output format.
+* silex utilities::             Utility functions.
 @end menu
 
 @c page
@@ -25843,6 +25863,21 @@ fast lexical analyser.  Instead of containing data structures
 representing the behavior of the automaton, the table contains Scheme
 code that ``hard--codes'' the automaton.  This encoding often generates
 big tables.  Such an analyser is not portable to non--@rnrs{6} Schemes.
+
+@c page
+@node silex utilities
+@section Utility functions
+
+
+The following bindings are exported by the @library{silex utilities}
+library.
+
+
+@defun make-max-count-lexer @var{lexer} @var{max-number-of-tokens} @var{error-handler}
+Return a lexer function wrapping @var{lexer}; if the number of returned
+tokens reaches @var{max-number-of-tokens}: the thunk @var{error-handler}
+is invoked.
+@end defun
 
 @c page
 @node lalr
@@ -34253,6 +34288,214 @@ When the handler is invoked it raises an exception of types:
 The value in the @condition{irritants} object is a list with a single
 element: the offending string from the input.
 @end defun
+
+@c page
+@node net
+@chapter Network--related libraries
+
+
+@menu
+* net ipv6address::             IPv6 address objects.
+@end menu
+
+@c page
+@node net ipv6address
+@section IPv6 address objects
+
+
+The library @library{net ipv6address} exports utilities to handle IPv6
+addresses specifications, according to @rfc{} 4291.
+
+@menu
+* net ipv6address lexer::       Tokenising an IPv6 address.
+* net ipv6address parser::      Parsing an IPv6 address.
+@end menu
+
+@c page
+@node net ipv6address lexer
+@subsection Tokenising an IPv6 address string
+
+
+The following bindings are exported by the @library{net helpers
+ipv6address-lexer} library.
+
+
+@defvr Constant ipv6-address-lexer-table
+A lexer table to be used by @library{silex lexer} to tokenise textual
+IPv6 address or IPv6 address prefix representations.
+@end defvr
+
+
+To tokenise an IPv6 address string we can do:
+
+@example
+(import (nausicaa)
+  (silex lexer)
+  (net helpers ipv6address-lexer)
+  (parser-tools lexical-token)
+  (parser-tools source-location))
+
+(define (make-address-lexer address-string)
+  (let ((IS (lexer-make-IS (:string address-string)
+                           (:counters 'all))))
+    (lexer-make-lexer ipv6-address-lexer-table IS)))
+@end example
+
+@noindent
+every time the lexer thunk is evaluated, it returns an object of type
+@class{lexical-token}.
+
+The token categories are: @code{COLON}, @code{DOT}, @code{SLASH},
+@code{NUMBER}.  The tokens of category @code{COLON}, @code{DOT} and
+@code{SLASH} hold, as semantic value, the characters @code{#\:},
+@code{#\.} and @code{#\/} respectively; the tokens of category
+@code{NUMBER} hold as semantic value the string representing a value in
+the input IPv6 address.  The interpretation of numbers, especially their
+base, cannot be determined by the lexer.
+
+The longest IPv6 address string has: @math{8} numbers as address
+components, @math{7} separators between address components, a final
+slash and number to specify the address prefix length; the total is
+@math{8 + 7 + 2 = 17} tokens.  We may want to use
+@func{make-max-count-lexer} from @library{silex utilities} to limit the
+number of returned tokens.
+
+@c page
+@node net ipv6address parser
+@subsection Parsing an IPv6 address
+
+
+The following bindings are exported by the @library{net helpers
+ipv6address-parser} library.
+
+
+@defun make-ipv6-address-parser
+Return a parser function for textual IPv6 address or IPv6 address prefix
+representations, it works as described in @ref{lalr parser}; the lexer
+must work as described in @ref{net ipv6address lexer}.
+
+The returned parser function, when applied to the lexer and error
+handler, returns a list of values representing the address; this list
+must be further parsed and validated as described below.
+@end defun
+
+
+To parse an IPv6 address string we can do:
+
+@example
+(import (nausicaa)
+  (silex lexer)
+  (net helpers ipv6address-lexer)
+  (net helpers ipv6address-parser)
+  (parser-tools lexical-token)
+  (parser-tools source-location))
+
+(define (make-ipv6-address-parser-error-handler who string)
+  (lambda (message (token <lexical-token>))
+    (assertion-violation who
+      (let (((pos <source-location>) token.location))
+        (string-append "invalid IPv6 address input at column "
+                       pos.column-string ": " message))
+      string token.value)))
+
+(define (parse-address string)
+  (let* ((IS      (lexer-make-IS (:string string)
+                                 (:counters 'all)))
+         (lexer   (lexer-make-lexer ipv6-address-lexer-table IS))
+         (parser  (make-ipv6-address-parser)))
+    (parser lexer
+            (make-ipv6-address-parser-error-handler
+             'parse-address string))))
+@end example
+
+@noindent
+here are some examples of address parsing:
+
+@example
+(parse-address "1:2:3:4:5:6:7:8")
+@result{} (1 2 3 4 5 6 7 8)
+
+(parse-address "1::")           @result{} (1 #f)
+(parse-address "1::2")          @result{} (1 #f 2)
+(parse-address "1:2::3")        @result{} (1 2 #f 3)
+(parse-address "1::2:3")        @result{} (1 #f 2 3)
+(parse-address "1:2::3:4")      @result{} (1 2 #f 3 4)
+
+(parse-address "::192.168.99.1")
+@result{} (#f #xC0A8 #x6301)
+
+(parse-address "1:2:3:4:172.30.67.254")
+@result{} (1 2 3 4 #xac1e #x43fe)
+
+(parse-address "1:2:3:4::172.30.67.254")
+@result{} (1 2 3 4 #f #xac1e #x43fe)
+
+(parse-address "::1:2:3:4:172.30.67.254")
+@result{} (#f 1 2 3 4 #xac1e #x43fe)
+
+(parse-address "1:2::3:4:172.30.67.254")
+@result{} (1 2 #f 3 4 #xac1e #x43fe)
+
+(parse-address "::ffff:192.168.99.1")
+@result{} (#f #xFFFF #xC0A8 #x6301)
+@end example
+
+@noindent
+and here are some examples of address prefix parsing:
+
+@example
+(parse-address "::1/60")        @result{} (#f 1 (60))
+(parse-address "1::/60")        @result{} (1 #f (60))
+(parse-address "1::2/60")       @result{} (1 #f 2 (60))
+(parse-address "1:2::3/60")     @result{} (1 2 #f 3 (60))
+(parse-address "1::2:3/60")     @result{} (1 #f 2 3 (60))
+(parse-address "1:2::3:4/60")   @result{} (1 2 #f 3 4 (60))
+
+(parse-address "1:2:3::4:5:6/60")
+@result{} (1 2 3 #f 4 5 6 (60))
+@end example
+
+From the examples we see that:
+
+@enumerate
+@item
+If the input is an address prefix: the last element of the returned list
+is a list of one value, the value begin the prefix length: a number
+specifying how many of the leftmost contiguous bits of the address
+comprise the prefix.
+
+@item
+If the input is an address: the last element is a number of @false{}.
+
+@item
+Whenever the input has the double--colon sequence, the returned list has
+@false{}.
+@end enumerate
+
+The list must be processed and validated as follows:
+
+@enumerate
+@item
+If the numeric address components are more than @math{8} the address is
+invalid.
+
+@item
+There must be at most one @false{} value.
+
+@item
+If the @false{} value is present and the numeric address components are
+more than @math{7} the address is invalid; @false{} represents at least
+one implicit zero element.
+
+@item
+The @false{} value, if present, must be expanded to the number of zeros
+required to make the address numeric components of length @math{8}.
+
+@item
+The prefix length, if present, must be validated as explained in the
+@rfc{} 4291 (Section 2.3 ``Text Representation of Address Prefixes''):
+all the bits not in the prefix must be zero.
+@end enumerate
 
 @c page
 @node uri

@@ -49,6 +49,7 @@ number			{decint}|{hexint}
 
 COLON			:
 DOT			\.
+SLASH			/
 
 %%
 
@@ -59,6 +60,10 @@ DOT			\.
 {DOT}			(make-<lexical-token> 'DOT
 			 (make-<source-location> #f yyline yycolumn yyoffset)
 			 #\. 1)
+
+{SLASH}			(make-<lexical-token> 'SLASH
+			 (make-<source-location> #f yyline yycolumn yyoffset)
+			 #\/ 1)
 
 {number}		(make-<lexical-token> 'NUMBER
 			 (make-<source-location> #f yyline yycolumn yyoffset)

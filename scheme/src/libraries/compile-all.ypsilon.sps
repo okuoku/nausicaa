@@ -91,6 +91,7 @@
 
   (only (silex lexer))
   (only (silex))
+  (only (silex utilities))
 
   (only (lalr lr-driver))
   (only (lalr glr-driver))

@@ -69,6 +69,9 @@
 	  (immutable line)
 	  (immutable column)
 	  (immutable offset))
+  (virtual-fields (immutable line-string)
+		  (immutable column-string)
+		  (immutable offset-string))
   (nongenerative nausicaa:parser-tools:<source-location>))
 
 (define-inline (make-<source-location>/start input-spec)
@@ -86,6 +89,15 @@
 (define (<source-location>?/start/or-false obj)
   (or (not obj)
       (<source-location>?/start obj)))
+
+(define (<source-location>-line-string (o <source-location>))
+  (number->string o.line))
+
+(define (<source-location>-column-string (o <source-location>))
+  (number->string o.column))
+
+(define (<source-location>-offset-string (o <source-location>))
+  (number->string o.offset))
 
 
 (define (source-location=? a b)
