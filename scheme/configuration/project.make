@@ -60,6 +60,8 @@ $(eval $(call nau-libraries,lists,lists))
 $(eval $(call nau-libraries,makers,makers))
 ##$(eval $(call nau-libraries,msgcat,msgcat))
 $(eval $(call nau-libraries,nausicaa,nausicaa))
+$(eval $(call nau-libraries,net,net))
+$(eval $(call nau-libraries,net_helpers,net/helpers))
 $(eval $(call nau-libraries,parser-tools,parser-tools))
 $(eval $(call nau-libraries,profiling,profiling))
 $(eval $(call nau-libraries,randomisations,randomisations))
@@ -471,6 +473,39 @@ endif
 
 uri:
 	cd $(srcdir)/src/libraries/uri && $(URI_RUNNER) $(URI_PROGRAM)
+
+#page
+## --------------------------------------------------------------------
+## Special rules: net-related lexers and parser building.
+## --------------------------------------------------------------------
+
+NET_PROGRAM	= make-tables.sps
+NET_LIBPATH	= $(abspath $(nau_sls_BUILDDIR))
+
+ifeq (yes,$(nausicaa_ENABLE_VICARE))
+NET_ENV	= VICARE_LIBRARY_PATH=$(NET_LIBPATH):$(VICARE_LIBRARY_PATH)
+NET_RUNNER	= $(NET_ENV) $(VICARE) --debug --r6rs-script
+else ifeq (yes,$(nausicaa_ENABLE_IKARUS))
+NET_ENV		= IKARUS_LIBRARY_PATH=$(NET_LIBPATH):$(IKARUS_LIBRARY_PATH)
+NET_RUNNER	= $(NET_ENV) $(IKARUS) --r6rs-script
+else ifeq (yes,$(nausicaa_ENABLE_MOSH))
+NET_ENV		= MOSH_LOADPATH=$(NET_LIBPATH):$(MOSH_LOADPATH)
+NET_RUNNER	= $(NET_ENV) $(MOSH)
+else ifeq (yes,$(nausicaa_ENABLE_PETITE))
+NET_ENV		= PETITE_LIBPATH=$(NET_LIBPATH):$(PETITE_LIBPATH)
+NET_RUNNER	= $(NET_ENV) $(PETITE) --libdirs $${PETITE_LIBPATH} --program
+else ifeq (yes,$(nausicaa_ENABLE_YPSILON))
+NET_ENV	= YPSILON_SITELIB=$(NET_LIBPATH):$(YPSILON_SITELIB)
+NET_RUNNER	= $(NET_ENV) $(YPSILON)
+else ifeq (yes,$(nausicaa_ENABLE_LARCENY))
+NET_ENV		= LARCENY_LIBPATH=$(NET_LIBPATH):$(LARCENY_LIBPATH)
+NET_RUNNER	= $(NET_ENV) $(LARCENY) -r6rs -program
+endif
+
+.PHONY: net
+
+net:
+	cd $(srcdir)/src/libraries/net/helpers && $(NET_RUNNER) $(NET_PROGRAM)
 
 
 
