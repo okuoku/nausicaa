@@ -70,13 +70,6 @@
 	  (immutable user-ungetc)))
 
 
-(define-maker lexer-make-IS
-  %lexer-make-IS
-  ((:counters	'line)
-   (:port	#f)
-   (:procedure	#f)
-   (:string	#f)))
-
 (define (%lexer-make-IS counters-type input-port input-procedure input-string)
   (define who 'lexer-make-IS)
   (let-values (((buffer read-ptr input-function)
@@ -98,6 +91,13 @@
 			(if (memq counters-type '(none line all))
 			    counters-type
 			  (assertion-violation who "invalid selection of counters type" counters-type)))))
+
+(define-maker lexer-make-IS
+  %lexer-make-IS
+  ((:counters	'line)
+   (:port	#f)
+   (:procedure	#f)
+   (:string	#f)))
 
 (define (lexer-make-lexer tables IS)
   (case (vector-ref tables 4) ; automaton type
