@@ -45,15 +45,39 @@
  (:parser-name		'make-ipv6-address-parser)
  (:library-spec		'(net helpers ipv6-address-parser))
 
- (:terminals		'(COLON HEXINT))
+ (:terminals		'(COLON DOT NUMBER))
 
  (:rules
   '((ipv6-address
+     (NUMBER double-colon-tail)		: (cons (string->number $1 16) $2)
+     (NUMBER tail)			: (cons (string->number $1 16) $2)
+     (double-colon-tail)		: $1)
 
-;;;        8            7            6            5            4            3            2            1
-     (HEXINT COLON HEXINT COLON HEXINT COLON HEXINT COLON HEXINT COLON HEXINT COLON HEXINT COLON HEXINT)
-				: #f)
+    (tail
+     (COLON ipv4-address)		: $2
+     (COLON NUMBER tail)		: (cons (string->number $2 16) $3)
+     (COLON NUMBER double-colon-tail)	: (cons (string->number $2 16) $3)
+     ()					: '())
 
+    (double-colon-tail
+     (COLON COLON after-double-colon)	: (cons #f $3))
+
+    (after-double-colon
+     (NUMBER no-double-colon-tail)	: (cons (string->number $1 16) $2)
+     (ipv4-address)			: $1
+     ()					: '())
+
+    (no-double-colon-tail
+     (COLON NUMBER no-double-colon-tail): (cons (string->number $2 16) $3)
+     (COLON ipv4-address)		: $2
+     ()					: '())
+
+    (ipv4-address
+     (dot-couple DOT dot-couple)	: (list $1 $3))
+
+    (dot-couple
+     (NUMBER DOT NUMBER)		: (+ (bitwise-arithmetic-shift-left (string->number $1 10) 8)
+					     (string->number $3 10)))
     )))
 
 ;;; end of file

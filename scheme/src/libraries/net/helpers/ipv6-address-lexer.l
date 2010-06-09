@@ -32,9 +32,23 @@
 decdig			[0-9]
 hexdig			[0-9A-Fa-f]
 
-hexint			{decdig}({decdig}({decdig}({decdig})?)?)?
+decint1			{decdig}
+decint2			{decdig}{decdig}
+decint3			[01]{decdig}{decdig}
+decint4			2[0-4]{decdig}
+decint5			25[0-5]
+decint			{decint1}|{decint2}|{decint3}|{decint4}|{decint5}
+
+hexint1			{hexdig}
+hexint2			{hexdig}{hexdig}
+hexint3			{hexdig}{hexdig}{hexdig}
+hexint4			{hexdig}{hexdig}{hexdig}{hexdig}
+hexint			{hexint1}|{hexint2}|{hexint3}|{hexint4}
+
+number			{decint}|{hexint}
 
 COLON			:
+DOT			\.
 
 %%
 
@@ -42,7 +56,11 @@ COLON			:
 			 (make-<source-location> #f yyline yycolumn yyoffset)
 			 #\: 1)
 
-{hexint}		(make-<lexical-token> 'HEXINT
+{DOT}			(make-<lexical-token> 'DOT
+			 (make-<source-location> #f yyline yycolumn yyoffset)
+			 #\. 1)
+
+{number}		(make-<lexical-token> 'NUMBER
 			 (make-<source-location> #f yyline yycolumn yyoffset)
 			 yytext (string-length yytext))
 

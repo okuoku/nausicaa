@@ -29,7 +29,9 @@
   (net ipv6-address)
   (silex lexer)
   (parser-tools lexical-token)
+  (parser-tools source-location)
   (net helpers ipv6-address-lexer)
+  (net helpers ipv6-address-parser)
   (checks))
 
 (check-set-mode! 'report-failed)
@@ -56,31 +58,172 @@
 
 ;;; --------------------------------------------------------------------
 
-
   (check
       (tokenise-address "1:2:3:4:5:6:7:8")
-    => `((HEXINT . "1")
+    => `((NUMBER . "1")
 	 (COLON  . #\:)
-	 (HEXINT . "2")
+	 (NUMBER . "2")
 	 (COLON  . #\:)
-	 (HEXINT . "3")
+	 (NUMBER . "3")
 	 (COLON  . #\:)
-	 (HEXINT . "4")
+	 (NUMBER . "4")
 	 (COLON  . #\:)
-	 (HEXINT . "5")
+	 (NUMBER . "5")
 	 (COLON  . #\:)
-	 (HEXINT . "6")
+	 (NUMBER . "6")
 	 (COLON  . #\:)
-	 (HEXINT . "7")
+	 (NUMBER . "7")
 	 (COLON  . #\:)
-	 (HEXINT . "8")
+	 (NUMBER . "8")
 	 ,eoi))
 
   (check
-      (tokenise-address "1:ciao")
-    => '((HEXINT . "1")
+      (tokenise-address "F:Zciao")
+    => '((NUMBER . "F")
 	 (COLON  . #\:)
-	 (*lexer-error* . "ciao")))
+	 (*lexer-error* . "Zciao")))
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (tokenise-address "1")
+    => `((NUMBER . "1")
+	 ,eoi))
+
+  (check
+      (tokenise-address "10")
+    => `((NUMBER . "10")
+	 ,eoi))
+
+  (check
+      (tokenise-address "100")
+    => `((NUMBER . "100")
+	 ,eoi))
+
+  (check
+      (tokenise-address "190")
+    => `((NUMBER . "190")
+	 ,eoi))
+
+  (check
+      (tokenise-address "210")
+    => `((NUMBER . "210")
+	 ,eoi))
+
+  (check
+      (tokenise-address "250")
+    => `((NUMBER . "250")
+	 ,eoi))
+
+  (check
+      (tokenise-address "255")
+    => `((NUMBER . "255")
+	 ,eoi))
+
+  (check
+      (tokenise-address "256")
+    => `((NUMBER . "256")
+	 ,eoi))
+
+  (check
+      (tokenise-address "1:2:3:4:5.6.7.8")
+    => `((NUMBER . "1")
+	 (COLON  . #\:)
+	 (NUMBER . "2")
+	 (COLON  . #\:)
+	 (NUMBER . "3")
+	 (COLON  . #\:)
+	 (NUMBER . "4")
+	 (COLON  . #\:)
+	 (NUMBER . "5")
+	 (DOT    . #\.)
+	 (NUMBER . "6")
+	 (DOT    . #\.)
+	 (NUMBER . "7")
+	 (DOT    . #\.)
+	 (NUMBER . "8")
+	 ,eoi))
+
+  (check
+      (tokenise-address "a:b:c:d:5.6.7.8")
+    => `((NUMBER . "a")
+	 (COLON  . #\:)
+	 (NUMBER . "b")
+	 (COLON  . #\:)
+	 (NUMBER . "c")
+	 (COLON  . #\:)
+	 (NUMBER . "d")
+	 (COLON  . #\:)
+	 (NUMBER . "5")
+	 (DOT    . #\.)
+	 (NUMBER . "6")
+	 (DOT    . #\.)
+	 (NUMBER . "7")
+	 (DOT    . #\.)
+	 (NUMBER . "8")
+	 ,eoi))
+
+  #t)
+
+
+(parametrise ((check-test-name	'parsing))
+
+  (define (make-ipv6-address-parser-error-handler who string)
+    (lambda (message (token <lexical-token>))
+      (raise
+       (condition
+	(make-who-condition who)
+	(make-message-condition
+	 (let (((pos <source-location>) token.location))
+	   (string-append "invalid IPv6 address input at column " (number->string pos.column)
+			  ": " message)))
+	(make-irritants-condition (list string token.value))))))
+
+  (define (parse-address string)
+    (let* ((IS		(lexer-make-IS (:string string) (:counters 'all)))
+	   (lexer	(lexer-make-lexer ipv6-address-lexer-table IS))
+	   (parser	(make-ipv6-address-parser)))
+      (parser lexer (make-ipv6-address-parser-error-handler 'parse-address string))))
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (parse-address "1:2:3:4:5:6:7:8")
+    => '(1 2 3 4 5 6 7 8))
+
+  (check
+      (parse-address "::1")
+    => '(#f 1))
+
+  (check
+      (parse-address "1::")
+    => '(1 #f))
+
+  (check
+      (parse-address "1::2")
+    => '(1 #f 2))
+
+  (check
+      (parse-address "1:2::3")
+    => '(1 2 #f 3))
+
+  (check
+      (parse-address "1::2:3")
+    => '(1 #f 2 3))
+
+  (check
+      (parse-address "1:2::3:4")
+    => '(1 2 #f 3 4))
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (parse-address "1:2:3:4:172.30.67.254")
+    => '(1 2 3 4 #xac1e #x43fe))
+
+  (check
+      (parse-address "::ffff:192.168.99.1")
+    => '(#f #xFFFF #xC0A8 #x6301))
 
 
   #t)
