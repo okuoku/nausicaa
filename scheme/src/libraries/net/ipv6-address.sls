@@ -29,6 +29,25 @@
 (library (net ipv6-address)
   (export
 
+    ;; conditions
+    &ipv6-address-parser-error
+    make-ipv6-address-parser-error-condition
+    ipv6-address-parser-error-condition?
+
+    make-ipv6-address-parser-error-handler
+
+    ;; validation utilities
+    ipv6-address-parsed-list-split
+    ipv6-address-parsed-list-expand
+    ipv6-address-parsed-list-validate-prefix
+
+    ;; lexer and parser utilities
+    make-ipv6-address-lexer
+    make-ipv6-address-parser
+    ipv6-address-parse
+    ipv6-address-prefix-parse
+
+    ;; class
     <ipv6-address>		<ipv6-address>?
     make-<ipv6-address>
     <ipv6-address>-zeroth
@@ -39,19 +58,219 @@
     <ipv6-address>-fifth
     <ipv6-address>-sixth
     <ipv6-address>-seventh
+    <ipv6-address>-bignum
+    <ipv6-address>-string
+
+    <ipv6-address-prefix>	<ipv6-address-prefix>?
+    <ipv6-address-prefix>-prefix-length
+    <ipv6-address-prefix>-string
     )
   (import (nausicaa)
+    (silex lexer)
     (net helpers ipv6-address-lexer)
-    (net helpers ipv6-address-parser)
+    (prefix (net helpers ipv6-address-parser) parser:)
     (parser-tools lexical-token)
     (parser-tools source-location)
     )
 
 
+;;;; conditions and error handlers
+
+(define-condition &ipv6-address-parser-error
+  (parent &condition))
+
+(define make-ipv6-address-parser-error-handler
+  (case-lambda
+   ((who irritants)
+    (make-ipv6-address-parser-error-handler who irritants make-error))
+   ((who irritants condition-maker)
+    (lambda (message (token <lexical-token>))
+      (raise
+       (condition
+	(make-ipv6-address-parser-error-condition)
+	(condition-maker)
+	(make-who-condition who)
+	(make-message-condition
+	 (let (((pos <source-location>) token.location))
+	   (string-append "invalid IPv6 address input at column "
+			  pos.column-string ": " message)))
+	(make-irritants-condition (cons token.value irritants))))))))
+
+
+;;;; lexer and parser utilities
+
+(define-maker make-ipv6-address-lexer
+  %make-ipv6-address-lexer
+  ((:string	#f)
+   (:port	#f)
+   (:procedure	#f)))
+
+(define (%make-ipv6-address-lexer string port proc)
+  (lexer-make-lexer ipv6-address-lexer-table
+		    (cond ((and string (not port) (not proc))
+			   (lexer-make-IS (:string string) (:counters 'all)))
+			  ((and port (not string) (not proc))
+			   (lexer-make-IS (:port port) (:counters 'all)))
+			  ((and proc (not string) (not port))
+			   (lexer-make-IS (:procedure proc) (:counters 'all)))
+			  (else
+			   (syntax-violation 'make-ipv6-address-lexer
+			     "invalid or missing selection of input method")))))
+
+(define (make-ipv6-address-parser who lexer irritants)
+  (lambda ()
+    ((parser:make-ipv6-address-parser) lexer
+     (make-ipv6-address-parser-error-handler who irritants))))
+
+(define (ipv6-address-parse the-string)
+  (let* ((who		'ipv6-address-parse)
+	 (irritants	(list the-string))
+	 (%error	(lambda ()
+			  (raise
+			   (condition (make-ipv6-address-parser-error-condition)
+				      (make-who-condition who)
+				      (make-message-condition "invalid IPv6 address string")
+				      (make-irritants-condition irritants))))))
+    (let* ((lexer	(make-ipv6-address-lexer  (:string the-string)))
+	   (parser	(make-ipv6-address-parser who lexer irritants))
+	   (ell		(parser)))
+      (receive (addr-ell number-of-bits-in-prefix)
+	  (ipv6-address-parsed-list-split ell)
+	(when number-of-bits-in-prefix
+	  (%error))
+	(let ((addr-ell (ipv6-address-parsed-list-expand addr-ell)))
+	  (or addr-ell (%error)))))))
+
+(define (ipv6-address-prefix-parse the-string)
+  (let* ((who		'ipv6-address-prefix-parse)
+	 (irritants	(list the-string))
+	 (%error	(lambda ()
+			  (raise
+			   (condition (make-ipv6-address-parser-error-condition)
+				      (make-who-condition who)
+				      (make-message-condition "invalid IPv6 address prefix string")
+				      (make-irritants-condition irritants))))))
+    (let* ((lexer	(make-ipv6-address-lexer  (:string the-string)))
+	   (parser	(make-ipv6-address-parser who lexer irritants))
+	   (ell		(parser)))
+      (receive (addr-ell number-of-bits-in-prefix)
+	  (ipv6-address-parsed-list-split ell)
+	(unless number-of-bits-in-prefix
+	  (%error))
+	(let ((addr-ell (ipv6-address-parsed-list-expand addr-ell)))
+	  (unless addr-ell
+	    (%error))
+	  (values addr-ell number-of-bits-in-prefix))))))
+
+
+;;;; validation utilities
+
+(define (ipv6-address-parsed-list-split ell)
+  ;;Given a list returned by the  parser, return two values: the list of
+  ;;address components, the number of bits in the prefix length or #f if
+  ;;there is no prefix length.
+  ;;
+  (let ((rell (reverse ell)))
+    (if (pair? (car rell))
+	(values (reverse (cdr rell)) (caar rell))
+      (values ell #f))))
+
+(define (ipv6-address-parsed-list-expand ell)
+  ;;Given a list returned by  the parser, with the prefix length element
+  ;;stripped, expand the #f value if present.  Return the resulting list
+  ;;or #f if the list is invalid.
+  ;;
+  (define (make-list len fill)
+    (do ((i 0 (+ 1 i))
+	 (l '() (cons fill l)))
+	((= i len)
+	 l)))
+  (let ((len		(length ell))
+	(present?	(memv #f ell)))
+    (if present?
+	(if (< 8 len)
+	    #f
+	  (let split ((ell ell) (flag #f) (pre '()) (post '()))
+	    (if (null? ell)
+		(let ((pre-len  (length pre))
+		      (post-len (length post)))
+		  (append (reverse pre) (make-list (- 8 pre-len post-len) 0) (reverse post)))
+	      (cond (flag
+		     (split (cdr ell) #t pre (cons (car ell) post)))
+		    ((car ell)
+		     (split (cdr ell) #f (cons (car ell) pre) post))
+		    (else
+		     (split (cdr ell) #t pre post))))))
+      (if (= 8 len)
+	  ell
+	#f))))
+
+(define (ipv6-address-parsed-list-validate-prefix number-of-bits-in-prefix ell)
+  ;;Given  the  number of  bits  in the  prefix  and  the expanded  list
+  ;;returned by the parser (of length  8): return true if all the unused
+  ;;bits are set to zero; else return false.
+  ;;
+  (let loop ((ell ell) (n number-of-bits-in-prefix))
+    (if (null? ell)
+	#t
+      (if (or (not (zero? n)) (zero? (car ell)))
+	  (loop (cdr ell) (let ((n (- n 16)))
+			    (if (positive? n) n 0)))
+	#f))))
+
+
 (define-class <ipv6-address>
-  (fields zeroth  first  second  third
-	  fourth  fifth  sixth   seventh)
+  (protocol (lambda (make-top)
+	      (lambda (addr-ell)
+		(apply (make-top) #f #f addr-ell))))
+  (fields (mutable cached-bignum)
+	  (mutable cached-string)
+	  seventh  sixth   fifth  fourth
+	  third    second  first  zeroth)
+  (virtual-fields bignum string)
   (nongenerative nausicaa:net:ipv6-address:<ipv6-address>))
+
+(define (<ipv6-address>-bignum (o <ipv6-address>))
+  (or o.cached-bignum
+      (begin0-let ((bn (+ o.zeroth
+			  (bitwise-arithmetic-shift-left o.first    16)
+			  (bitwise-arithmetic-shift-left o.second   32)
+			  (bitwise-arithmetic-shift-left o.third    48)
+			  (bitwise-arithmetic-shift-left o.fourth   64)
+			  (bitwise-arithmetic-shift-left o.fifth    80)
+			  (bitwise-arithmetic-shift-left o.sixth    96)
+			  (bitwise-arithmetic-shift-left o.seventh 112))))
+	(set! o.cached-bignum bn))))
+
+(define (<ipv6-address>-string (o <ipv6-address>))
+  (or o.cached-string
+      (begin0-let ((S (string-append
+		       (number->string o.seventh  16) ":"
+		       (number->string o.sixth    16) ":"
+		       (number->string o.fifth    16) ":"
+		       (number->string o.fourth   16) ":"
+		       (number->string o.third    16) ":"
+		       (number->string o.second   16) ":"
+		       (number->string o.first    16) ":"
+		       (number->string o.zeroth   16))))
+	(set! o.cached-string S))))
+
+
+(define-class <ipv6-address-prefix>
+  (inherit <ipv6-address>)
+  (protocol (lambda (make-address)
+	      (lambda (addr-ell number-of-bits)
+		((make-address addr-ell) number-of-bits #f))))
+  (fields prefix-length
+	  (mutable cached-string))
+  (virtual-fields string)
+  (nongenerative nausicaa:net:ipv6-address:<ipv6-address-prefix>))
+
+(define (<ipv6-address-prefix>-string (o <ipv6-address-prefix>))
+  (or o.cached-string
+      (begin0-let ((S (string-append (<ipv6-address>-string o) "/"
+				     (number->string o.prefix-length))))
+	(set! o.cached-string S))))
 
 
 ;;;; done

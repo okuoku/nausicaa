@@ -34309,6 +34309,10 @@ addresses specifications, according to @rfc{} 4291.
 @menu
 * net ipv6address lexer::       Tokenising an IPv6 address.
 * net ipv6address parser::      Parsing an IPv6 address.
+* net ipv6address utilities::   IPv6 address parsing utilities.
+* net ipv6address errors::      Condition objects and error handlers.
+* net ipv6address class::       IPv6 address and address prefix
+                                class objects.
 @end menu
 
 @c page
@@ -34469,7 +34473,8 @@ If the input is an address: the last element is a number of @false{}.
 
 @item
 Whenever the input has the double--colon sequence, the returned list has
-@false{}.
+@false{}; the parser enforces the presence of only one double--colon
+sequence.
 @end enumerate
 
 The list must be processed and validated as follows:
@@ -34478,9 +34483,6 @@ The list must be processed and validated as follows:
 @item
 If the numeric address components are more than @math{8} the address is
 invalid.
-
-@item
-There must be at most one @false{} value.
 
 @item
 If the @false{} value is present and the numeric address components are
@@ -34496,6 +34498,237 @@ The prefix length, if present, must be validated as explained in the
 @rfc{} 4291 (Section 2.3 ``Text Representation of Address Prefixes''):
 all the bits not in the prefix must be zero.
 @end enumerate
+
+@c page
+@node net ipv6address utilities
+@subsection IPv6 address parsing utilities
+
+
+The following bindings are exported by the @library{net ipv6-address}
+library.
+
+
+@defun ipv6-address-parsed-list-split @var{ell}
+Given a list returned by the parser, return two values: the list of
+address components, the number of bits in the prefix length or @false{}
+if there is no prefix length.
+
+@example
+(ipv6-address-parsed-list-split '(1 2 3 #f 4 5))
+@result{} (1 2 3 #f 4 5) #f
+
+(ipv6-address-parsed-list-split '(1 2 3 #f 4 5 (60)))
+@result{} (1 2 3 #f 4 5) 60
+@end example
+@end defun
+
+
+@defun ipv6-address-parsed-list-expand @var{ell}
+Given a list returned by the parser, with the prefix length element
+stripped, expand the @false{} value if present.  Return the resulting
+list or @false{} if the list is invalid.
+
+@example
+(ipv6-address-parsed-list-expand '(1 2 3 4 5 6 7 8))
+@result{} (1 2 3 4 5 6 7 8)
+
+(ipv6-address-parsed-list-expand '(#f 2 3 4 5 6 7 8))
+@result{} (0 2 3 4 5 6 7 8)
+
+(ipv6-address-parsed-list-expand '(1 2 3 #f 5 6 7 8))
+@result{} (1 2 3 0 5 6 7 8)
+
+(ipv6-address-parsed-list-expand '(1 2 3 4 5 6 7 #f))
+@result{} (1 2 3 4 5 6 7 0)
+
+(ipv6-address-parsed-list-expand '(1 2 #f 6 7 8))
+@result{} (1 2 0 0 0 6 7 8)
+
+(ipv6-address-parsed-list-expand '(#f 4 5 6 7 8))
+@result{} (0 0 0 4 5 6 7 8)
+
+(ipv6-address-parsed-list-expand '(1 2 3 4 5 #f))
+@result{} (1 2 3 4 5 0 0 0)
+@end example
+@end defun
+
+@defun ipv6-address-parsed-list-validate-prefix @var{number-of-bits-in-prefix} @var{ell}
+Given the number of bits in the prefix and the expanded list returned by
+the parser (of length @math{8}): return true if all the unused bits are
+set to zero; else return false.
+
+@example
+(ipv6-address-parsed-list-validate-prefix 60
+   '(1 2 3 4 0 0 0 0))
+@result{} #t
+
+(ipv6-address-parsed-list-validate-prefix (* 16 7)
+    '(1 2 3 4 0 0 0 0))
+@result{} #t
+
+(ipv6-address-parsed-list-validate-prefix (* 16 2)
+    '(1 2 3 4 0 0 0 0))
+@result{} #f
+@end example
+@end defun
+
+
+@deffn Syntax make-ipv6-address-lexer @ameta{clause}
+Evaluate to a IPv6 address and address prefix lexer, taking input as
+specified by @ameta{clause}.
+
+@ameta{clause} can be one of the @code{:string}, @code{:port},
+@code{:procedure} clauses of @func{lexer-make-IS}, @ref{silex input} for
+details.
+@end deffn
+
+
+@defun make-ipv6-address-parser @var{who} @var{lexer} @var{irritants}
+Return a parser function which, when evaluated, returns a list
+representing a parsed IPv6 address or address prefix.  @var{lexer} must
+be an appropriate lexer function.
+
+@var{who} and @var{irritants} are used as condition object components
+when an error occurs.  If parsing fails: an exception is raised with
+compound condition objects of types
+@condition{ipv6-address-parser-error}, @condition{error},
+@condition{who}, @condition{message}, @condition{irritants}.
+@end defun
+
+
+@defun ipv6-address-parse @var{string}
+Parse @var{string} as IPv6 address and return a validated list of
+@math{8} numbers representing the numerical components of the address.
+
+If an error occurs: an exception is raised with compound condition
+objects of types @condition{ipv6-address-parser-error},
+@condition{error}, @condition{who}, @condition{message},
+@condition{irritants}.
+@end defun
+
+
+@defun ipv6-address-prefix-parse @var{string}
+Parse @var{string} as IPv6 address prefix and return two values: a
+validated list of @math{8} numbers representing the numerical components
+of the address, a number specifying how many of the leftmost contiguous
+bits of the address comprise the prefix.
+
+If an error occurs: an exception is raised with compound condition
+objects of types @condition{ipv6-address-parser-error},
+@condition{error}, @condition{who}, @condition{message},
+@condition{irritants}.
+@end defun
+
+@c page
+@node net ipv6address errors
+@subsection Condition objects and error handlers
+
+
+The following bindings are exported by the @library{net ipv6-address}
+library.
+
+
+@deftp {Condition Type} &ipv6-address-parser-error
+Tags compound condition objects as raised by the IPv6 parser or lexer.
+It is derived from @condition{condition}.
+@end deftp
+
+
+@defun make-ipv6-address-parser-error-condition
+Return a new condition object of type
+@condition{ipv6-address-parser-error}.
+@end defun
+
+
+@defun ipv6-address-parser-error-condition? @var{obj}
+Return true if @var{obj} is a condtion object of type
+@condition{ipv6-address-parser-error}.
+@end defun
+
+
+@defun make-ipv6-address-parser-error-handler @var{who} @var{irritants}
+@defunx make-ipv6-address-parser-error-handler @var{who} @var{irritants} @var{condition-maker}
+Build and return a procedure to be used as error handler by the IPv6
+address and address prefix parsers.  It raises an exception with
+compound condition objects of types
+@condition{ipv6-address-parser-error}, @condition{who},
+@condition{message}, @condition{irritants}.
+
+The optional @var{condition-maker} must be a condition object
+constructor and defaults to @func{make-error}; its result is added to
+the raised compound object.  @var{condition-maker} is meant to be used
+to tag the compound object as @condition{error} or
+@condition{assertion}.
+@end defun
+
+@c page
+@node net ipv6address class
+@subsection IPv6 address and address prefix class objects
+
+
+The following bindings are exported by the @library{net ipv6-address}
+library.
+
+
+@deftp Class @aclass{ipv6-address}
+Represents an IPv6 address.  Its constructor accepts as single argument
+the list of numbers returned by the IPv6 address parser, already
+validated.
+
+@example
+(let (((o <ipv6-address>)
+      (make <ipv6-address>
+        (ipv6-address-parse "1:2:3:4:5:6:7:8"))))
+  (list o.seventh o.sixth o.fifth o.fourth
+        o.third o.second o.first o.zeroth))
+@result{} (1 2 3 4 5 6 7 8)
+@end example
+@end deftp
+
+
+@defcv {Immutable Field} @aclass{ipv6-address} zeroth
+@defcvx {Immutable Field} @aclass{ipv6-address} first
+@defcvx {Immutable Field} @aclass{ipv6-address} second
+@defcvx {Immutable Field} @aclass{ipv6-address} third
+@defcvx {Immutable Field} @aclass{ipv6-address} fourth
+@defcvx {Immutable Field} @aclass{ipv6-address} fifth
+@defcvx {Immutable Field} @aclass{ipv6-address} sixth
+@defcvx {Immutable Field} @aclass{ipv6-address} seventh
+The numeric components of the address, each representing @math{16} bits.
+@code{zeroth} is the rightmost component, @code{first} is the second
+from the right, etc.
+@end defcv
+
+
+@defcv {Immutable Virtual Field} @aclass{ipv6-address} bignum
+A single big exact integer of @math{128} bits representing the whole
+address number.
+@end defcv
+
+
+@defcv {Immutable Virtual Field} @aclass{ipv6-address} string
+The string representation of the address.
+@end defcv
+
+
+@deftp Class @aclass{ipv6-address-prefix}
+Represents an IPv6 address prefix; it is derived from
+@class{ipv6-address}.  Its constructor accepts two arguments: the list
+of numbers returned by the IPv6 address parser, already validated; a
+number specifying how many of the leftmost contiguous bits of the
+address comprise the prefix.
+@end deftp
+
+
+@defcv {Immutable Field} @aclass{ipv6-address-prefix} prefix-length
+A number specifying how many of the leftmost contiguous bits of the
+address comprise the prefix.
+@end defcv
+
+
+@defcv {Immutable Virtual Field} @aclass{ipv6-address-prefix} string
+The string representation of the address prefix.
+@end defcv
 
 @c page
 @node uri

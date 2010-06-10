@@ -22,7 +22,7 @@ set -x
     --enable-mosh                               \
     --enable-petite                             \
     --enable-vicare                             \
-    --enable-ypsilon                            \
+    --disable-ypsilon                            \
     --enable-binfmt                             \
     --enable-doc-ps                             \
     --enable-time-tests                         \

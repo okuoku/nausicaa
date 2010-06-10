@@ -31,7 +31,7 @@
   (parser-tools lexical-token)
   (parser-tools source-location)
   (net helpers ipv6-address-lexer)
-  (net helpers ipv6-address-parser)
+  (prefix (net helpers ipv6-address-parser) parser:)
   (checks))
 
 (check-set-mode! 'report-failed)
@@ -168,10 +168,14 @@
 
 (parametrise ((check-test-name	'parsing))
 
+  (define-condition &parser-error
+    (parent &assertion))
+
   (define (make-ipv6-address-parser-error-handler who string)
     (lambda (message (token <lexical-token>))
       (raise
        (condition
+	(make-parser-error-condition)
 	(make-who-condition who)
 	(make-message-condition
 	 (let (((pos <source-location>) token.location))
@@ -182,7 +186,7 @@
   (define (parse-address string)
     (let* ((IS		(lexer-make-IS (:string string) (:counters 'all)))
 	   (lexer	(lexer-make-lexer ipv6-address-lexer-table IS))
-	   (parser	(make-ipv6-address-parser)))
+	   (parser	(parser:make-ipv6-address-parser)))
       (parser lexer (make-ipv6-address-parser-error-handler 'parse-address string))))
 
 ;;; --------------------------------------------------------------------
@@ -312,10 +316,262 @@
 ;;; errors
 
   (check
-      (guard (E (else #t))
+      (guard (E ((parser-error-condition? E)
+;;;(display (condition-message E))(newline)
+		 #t)
+		(else #f))
 	(parse-address "1,"))
     => #t)
 
+  (check
+      (guard (E ((parser-error-condition? E)
+;;;(display (condition-message E))(newline)
+		 #t)
+		(else #f))
+	(parse-address "1::2::3"))
+    => #t)
+
+  (check
+      (guard (E ((parser-error-condition? E)
+;;;(display (condition-message E))(newline)
+		 #t)
+		(else #f))
+	(parse-address "1::2::"))
+    => #t)
+
+  (check
+      (guard (E ((parser-error-condition? E)
+;;;(display (condition-message E))(newline)
+		 #t)
+		(else #f))
+	(parse-address "::2::3"))
+    => #t)
+
+  #t)
+
+
+(parametrise ((check-test-name	'utilities))
+
+  (check
+      (call-with-values
+	  (lambda ()
+	    (ipv6-address-parsed-list-split '(1 2 3 4 5)))
+	list)
+    => '((1 2 3 4 5) #f))
+
+  (check
+      (call-with-values
+	  (lambda ()
+	    (ipv6-address-parsed-list-split '(1 2 3 4 5 (60))))
+	list)
+    => '((1 2 3 4 5) 60))
+
+  (check
+      (call-with-values
+	  (lambda ()
+	    (ipv6-address-parsed-list-split '(1 (60))))
+	list)
+    => '((1) 60))
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (ipv6-address-parsed-list-expand '(1 2 3 4 5 6 7 8))
+    => '(1 2 3 4 5 6 7 8))
+
+  (check
+      (ipv6-address-parsed-list-expand '(#f 2 3 4 5 6 7 8))
+    => '(0 2 3 4 5 6 7 8))
+
+  (check
+      (ipv6-address-parsed-list-expand '(1 2 3 #f 5 6 7 8))
+    => '(1 2 3 0 5 6 7 8))
+
+  (check
+      (ipv6-address-parsed-list-expand '(1 2 3 4 5 6 7 #f))
+    => '(1 2 3 4 5 6 7 0))
+
+  (check
+      (ipv6-address-parsed-list-expand '(1 2 #f 6 7 8))
+    => '(1 2 0 0 0 6 7 8))
+
+  (check
+      (ipv6-address-parsed-list-expand '(#f 4 5 6 7 8))
+    => '(0 0 0 4 5 6 7 8))
+
+  (check
+      (ipv6-address-parsed-list-expand '(1 2 3 4 5 #f))
+    => '(1 2 3 4 5 0 0 0))
+
+  (check
+      (ipv6-address-parsed-list-expand '(1 2 3 4 5 6 7 8 9))
+    => #f)
+
+  (check
+      (ipv6-address-parsed-list-expand '(1 2 3 4 5 6 7 8 #f))
+    => #f)
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (ipv6-address-parsed-list-validate-prefix 60 '(1 2 3 4 0 0 0 0))
+    => #t)
+
+  (check
+      (ipv6-address-parsed-list-validate-prefix (* 16 7) '(1 2 3 4 0 0 0 0))
+    => #t)
+
+  (check
+      (ipv6-address-parsed-list-validate-prefix (* 16 2) '(1 2 3 4 0 0 0 0))
+    => #f)
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (ipv6-address-parse "1:2:3:4:5:6:7:8")
+    => '(1 2 3 4 5 6 7 8))
+
+  (check
+      (ipv6-address-parse "1:2:3::7:8")
+    => '(1 2 3 0 0 0 7 8))
+
+  (check
+      (guard (E ((ipv6-address-parser-error-condition? E)
+;;;(display (condition-message E))(newline)
+		 #t)
+		(else #f))
+	(ipv6-address-parse "1,"))
+    => #t)
+
+  (check
+      (guard (E ((ipv6-address-parser-error-condition? E)
+;;;(display (condition-message E))(newline)
+		 #t)
+		(else #f))
+	(ipv6-address-parse "1::2::3"))
+    => #t)
+
+  (check
+      (guard (E ((ipv6-address-parser-error-condition? E)
+;;;(display (condition-message E))(newline)
+		 #t)
+		(else #f))
+	(ipv6-address-parse "1::2::"))
+    => #t)
+
+  (check
+      (guard (E ((ipv6-address-parser-error-condition? E)
+;;;(display (condition-message E))(newline)
+		 #t)
+		(else #f))
+	(ipv6-address-parse "::2::3"))
+    => #t)
+
+  (check
+      (guard (E ((ipv6-address-parser-error-condition? E)
+;;;(display (condition-message E))(newline)
+		 #t)
+		(else #f))
+	(ipv6-address-parse "2::3::/40"))
+    => #t)
+
+;;; --------------------------------------------------------------------
+
+  (let ()
+
+    (define-inline (doit str)
+      (receive (addr len)
+	  (ipv6-address-prefix-parse str)
+	(list addr len)))
+
+    (check
+	(doit "1:2:3:4:0:0:0:0/80")
+      => '((1 2 3 4 0 0 0 0) 80))
+
+    (check
+	(doit "1:2:3::/40")
+      => '((1 2 3 0 0 0 0 0) 40))
+
+    (check
+	(guard (E ((ipv6-address-parser-error-condition? E)
+;;;(display (condition-message E))(newline)
+		   #t)
+		  (else #f))
+	  (doit "1,"))
+      => #t)
+
+    (check
+	(guard (E ((ipv6-address-parser-error-condition? E)
+;;;(display (condition-message E))(newline)
+		   #t)
+		  (else #f))
+	  (doit "1::2::3"))
+      => #t)
+
+    (check
+	(guard (E ((ipv6-address-parser-error-condition? E)
+;;;(display (condition-message E))(newline)
+		   #t)
+		  (else #f))
+	  (doit "1::2::"))
+      => #t)
+
+    (check
+	(guard (E ((ipv6-address-parser-error-condition? E)
+;;;(display (condition-message E))(newline)
+		   #t)
+		  (else #f))
+	  (doit "::2::3"))
+      => #t)
+
+    #f)
+
+  #t)
+
+
+(parametrise ((check-test-name	'class))
+
+  (check
+      (let (((o <ipv6-address>) (make <ipv6-address> (ipv6-address-parse "1:2:3:4:5:6:7:8"))))
+	(list o.seventh o.sixth o.fifth o.fourth
+	      o.third o.second o.first o.zeroth))
+    => '(1 2 3 4 5 6 7 8))
+
+  (check
+      (let (((o <ipv6-address>) (make <ipv6-address> (ipv6-address-parse "1:2:3::7:8"))))
+	(list o.seventh o.sixth o.fifth o.fourth
+	      o.third o.second o.first o.zeroth))
+    => '(1 2 3 0 0 0 7 8))
+
+  (check
+      (let (((o <ipv6-address>) (make <ipv6-address> (ipv6-address-parse "1:2:3:4:5:6:7:8"))))
+	o.bignum)
+    => #x00010002000300040005000600070008)
+
+  (check
+      (let (((o <ipv6-address>) (make <ipv6-address> (ipv6-address-parse "1:2:3:4:5:6:7:8"))))
+	o.string)
+    => "1:2:3:4:5:6:7:8")
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (let (((o <ipv6-address-prefix>)
+	     (receive (addr len)
+		 (ipv6-address-prefix-parse "1:2:3:4::/55")
+	       (make <ipv6-address-prefix> addr len))))
+	(list o.seventh o.sixth o.fifth o.fourth
+	      o.third o.second o.first o.zeroth
+	      o.prefix-length))
+    => '(1 2 3 4 0 0 0 0 55))
+
+  (check
+      (let (((o <ipv6-address-prefix>)
+	     (receive (addr len)
+		 (ipv6-address-prefix-parse "1:2:3:4::/50")
+	       (make <ipv6-address-prefix> addr len))))
+	o.string)
+    => "1:2:3:4:0:0:0:0/50")
 
   #t)
 
