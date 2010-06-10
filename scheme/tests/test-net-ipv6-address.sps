@@ -26,7 +26,7 @@
 
 
 (import (nausicaa)
-  (net ipv6-address)
+  (net ipv6-addresses)
   (silex lexer)
   (parser-tools lexical-token)
   (parser-tools source-location)
@@ -552,6 +552,68 @@
       (let (((o <ipv6-address>) (make <ipv6-address> (ipv6-address-parse "1:2:3:4:5:6:7:8"))))
 	o.string)
     => "1:2:3:4:5:6:7:8")
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (let (((o <ipv6-address>)
+	     (make <ipv6-address> (ipv6-address-parse "::0"))))
+	o.unspecified?)
+    => #t)
+
+  (check
+      (let (((o <ipv6-address>)
+	     (make <ipv6-address> (ipv6-address-parse "::1"))))
+	o.unspecified?)
+    => #f)
+
+  (check
+      (let (((o <ipv6-address>)
+	     (make <ipv6-address> (ipv6-address-parse "::0"))))
+	o.loopback?)
+    => #f)
+
+  (check
+      (let (((o <ipv6-address>)
+	     (make <ipv6-address> (ipv6-address-parse "::1"))))
+	o.loopback?)
+    => #t)
+
+  (check
+      (let (((o <ipv6-address>)
+	     (make <ipv6-address> (ipv6-address-parse "FF00::"))))
+	o.multicast?)
+    => #t)
+
+  (check
+      (let (((o <ipv6-address>)
+	     (make <ipv6-address> (ipv6-address-parse "::1"))))
+	o.multicast?)
+    => #f)
+
+  (check
+      (let (((o <ipv6-address>)
+	     (make <ipv6-address> (ipv6-address-parse "FE80::"))))
+	o.link-local-unicast?)
+    => #t)
+
+  (check
+      (let (((o <ipv6-address>)
+	     (make <ipv6-address> (ipv6-address-parse "::1"))))
+	o.link-local-unicast?)
+    => #f)
+
+  (check
+      (let (((o <ipv6-address>)
+	     (make <ipv6-address> (ipv6-address-parse "FF80::"))))
+	o.global-unicast?)
+    => #f)
+
+  (check
+      (let (((o <ipv6-address>)
+	     (make <ipv6-address> (ipv6-address-parse "1:2::"))))
+	o.global-unicast?)
+    => #t)
 
 ;;; --------------------------------------------------------------------
 

@@ -356,6 +356,17 @@
 
 ;;; --------------------------------------------------------------------
 
+(%compile-library "net/helpers/ipv6-address-lexer.sls"
+		  "net/helpers/ipv6-address-lexer.slfasl")
+
+(%compile-library "net/helpers/ipv6-address-parser.sls"
+		  "net/helpers/ipv6-address-parser.slfasl")
+
+(%compile-library "net/ipv6-addresses.sls"
+		  "net/ipv6-addresses.slfasl")
+
+;;; --------------------------------------------------------------------
+
 (%compile-library "uri/low.sls"
 		  "uri/low.slfasl")
 

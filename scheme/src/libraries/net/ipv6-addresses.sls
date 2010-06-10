@@ -26,7 +26,7 @@
 
 
 #!r6rs
-(library (net ipv6-address)
+(library (net ipv6-addresses)
   (export
 
     ;; conditions
@@ -58,8 +58,14 @@
     <ipv6-address>-fifth
     <ipv6-address>-sixth
     <ipv6-address>-seventh
+
     <ipv6-address>-bignum
     <ipv6-address>-string
+    <ipv6-address>-unspecified?
+    <ipv6-address>-loopback?
+    <ipv6-address>-multicast?
+    <ipv6-address>-link-local-unicast?
+    <ipv6-address>-global-unicast?
 
     <ipv6-address-prefix>	<ipv6-address-prefix>?
     <ipv6-address-prefix>-prefix-length
@@ -115,7 +121,7 @@
 			   (lexer-make-IS (:procedure proc) (:counters 'all)))
 			  (else
 			   (syntax-violation 'make-ipv6-address-lexer
-			     "invalid or missing selection of input method")))))
+			     "invalid or missing selection of input method" #f)))))
 
 (define (make-ipv6-address-parser who lexer irritants)
   (lambda ()
@@ -222,12 +228,20 @@
 (define-class <ipv6-address>
   (protocol (lambda (make-top)
 	      (lambda (addr-ell)
-		(apply (make-top) #f #f addr-ell))))
+		(apply (make-top) #f #f #f #f #f addr-ell))))
   (fields (mutable cached-bignum)
 	  (mutable cached-string)
+	  (mutable cached-unspecified?)
+	  (mutable cached-loopback?)
+	  (mutable cached-global-unicast?)
 	  seventh  sixth   fifth  fourth
 	  third    second  first  zeroth)
-  (virtual-fields bignum string)
+  (virtual-fields bignum string
+		  unspecified?
+		  loopback?
+		  multicast?
+		  link-local-unicast?
+		  global-unicast?)
   (nongenerative nausicaa:net:ipv6-address:<ipv6-address>))
 
 (define (<ipv6-address>-bignum (o <ipv6-address>))
@@ -254,6 +268,47 @@
 		       (number->string o.first    16) ":"
 		       (number->string o.zeroth   16))))
 	(set! o.cached-string S))))
+
+;;; --------------------------------------------------------------------
+
+(define (<ipv6-address>-unspecified? (o <ipv6-address>))
+  (or o.cached-unspecified?
+      (begin0-let ((B (and (zero? o.zeroth)
+			   (zero? o.first)
+			   (zero? o.second)
+			   (zero? o.third)
+			   (zero? o.fourth)
+			   (zero? o.fifth)
+			   (zero? o.sixth)
+			   (zero? o.seventh))))
+	(set! o.cached-unspecified? B))))
+
+(define (<ipv6-address>-loopback? (o <ipv6-address>))
+  (or o.cached-unspecified?
+      (begin0-let ((B (and (= 1 o.zeroth)
+			   (zero? o.first)
+			   (zero? o.second)
+			   (zero? o.third)
+			   (zero? o.fourth)
+			   (zero? o.fifth)
+			   (zero? o.sixth)
+			   (zero? o.seventh))))
+	(set! o.cached-unspecified? B))))
+
+(define (<ipv6-address>-multicast? (o <ipv6-address>))
+;;;                        012345678
+  (= #xFF00 (bitwise-and #b11111111100000000 o.seventh)))
+
+(define (<ipv6-address>-link-local-unicast? (o <ipv6-address>))
+;;;                        0123456789
+  (= #xFE80 (bitwise-and #b11111111110000000 o.seventh)))
+
+(define (<ipv6-address>-global-unicast? (o <ipv6-address>))
+  (or o.cached-global-unicast?
+      (not (or o.unspecified?
+	       o.loopback?
+	       o.multicast?
+	       o.link-local-unicast?))))
 
 
 (define-class <ipv6-address-prefix>

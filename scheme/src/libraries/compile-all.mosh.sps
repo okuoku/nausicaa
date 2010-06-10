@@ -122,6 +122,7 @@
   (only (getopts))
   (only (json))
   (only (uri))
+  (only (net ipv6-addresses))
   (only (libraries))
 
   (only (armor conditions))

@@ -34303,7 +34303,7 @@ element: the offending string from the input.
 @section IPv6 address objects
 
 
-The library @library{net ipv6address} exports utilities to handle IPv6
+The library @library{net ipv6addresses} exports utilities to handle IPv6
 addresses specifications, according to @rfc{} 4291.
 
 @menu
@@ -34504,7 +34504,7 @@ all the bits not in the prefix must be zero.
 @subsection IPv6 address parsing utilities
 
 
-The following bindings are exported by the @library{net ipv6-address}
+The following bindings are exported by the @library{net ipv6-addresses}
 library.
 
 
@@ -34624,7 +34624,7 @@ objects of types @condition{ipv6-address-parser-error},
 @subsection Condition objects and error handlers
 
 
-The following bindings are exported by the @library{net ipv6-address}
+The following bindings are exported by the @library{net ipv6-addresses}
 library.
 
 
@@ -34666,7 +34666,7 @@ to tag the compound object as @condition{error} or
 @subsection IPv6 address and address prefix class objects
 
 
-The following bindings are exported by the @library{net ipv6-address}
+The following bindings are exported by the @library{net ipv6-addresses}
 library.
 
 
@@ -34708,6 +34708,17 @@ address number.
 
 @defcv {Immutable Virtual Field} @aclass{ipv6-address} string
 The string representation of the address.
+@end defcv
+
+
+@defcv {Immutable Virtual Field} @aclass{ipv6-address} unspecified?
+@defcvx {Immutable Virtual Field} @aclass{ipv6-address} loopback?
+@defcvx {Immutable Virtual Field} @aclass{ipv6-address} multicast?
+@defcvx {Immutable Virtual Field} @aclass{ipv6-address} link-local-unicast?
+@defcvx {Immutable Virtual Field} @aclass{ipv6-address} global-unicast?
+True if the address has type, respectively: unspecified, loopback,
+multicast, link--local unicast, global unicast.  See Section 2.4
+``Address Type Identification'' of @rfc{} 4291.
 @end defcv
 
 
