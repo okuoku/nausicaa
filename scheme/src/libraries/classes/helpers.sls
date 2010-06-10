@@ -602,7 +602,7 @@
   ;;in CLAUSES.
   ;;
   ;;THING-IDENTIFIER must be an identifier representing the thing (class
-  ;;or label) name tho which the  fields belong: it is used to build the
+  ;;or label) name  to which the fields belong: it is  used to build the
   ;;accessor and mutator names when not given in the input specs.
   ;;
   ;;Return null  or a validated  list of virtual fields  having elements
@@ -636,7 +636,7 @@
   ;;VIRTUAL-FIELDS clauses in CLAUSES.
   ;;
   ;;THING-IDENTIFIER must be an identifier representing the thing (class
-  ;;or label) name tho which the  fields belong: it is used to build the
+  ;;or label) name  to which the fields belong: it is  used to build the
   ;;accessor and mutator names when not given in the input specs.
   ;;
   ;;Return null  or a validated  list of virtual fields  having elements
@@ -670,7 +670,7 @@
   ;;clauses in CLAUSES.
   ;;
   ;;THING-IDENTIFIER must be an identifier representing the thing (class
-  ;;or label) name tho which the methods belong: it is used to build the
+  ;;or label) name to which the  methods belong: it is used to build the
   ;;method function or macro name when not given in the input specs.
   ;;
   ;;Return  null or  a validated  list of  method  specifications having
@@ -852,7 +852,7 @@
   ;;    (mutable   <field name> <accessor name> <mutator name>)
   ;;
   ;;THING-NAME must  be an identifier  representing the thing  (class or
-  ;;label) name  tho which the  fields belong: it  is used to  build the
+  ;;label) name  to which the  fields belong: it  is used to  build the
   ;;accessor and mutator names when not given in the input specs.
   ;;
   ;;SYNNER must  be the closure  used to raise  a syntax violation  if a
@@ -907,7 +907,7 @@
   ;;    (mutable   <field name> <accessor name> <mutator name>)
   ;;
   ;;THING-NAME must  be an identifier  representing the thing  (class or
-  ;;label) name  tho which the  fields belong: it  is used to  build the
+  ;;label) name  to which  the fields  belong: it is  used to  build the
   ;;accessor and mutator names when not given in the input specs.
   ;;
   ;;SYNNER must  be the closure  used to raise  a syntax violation  if a
