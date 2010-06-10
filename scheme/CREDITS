@@ -243,6 +243,12 @@ Written by Marco Maggi, with inspiration from the "msgcat" Tcl package.
 Written by Marco Maggi.  COND-EXPAND implementation by Derick Eddington.
 
 
+(net ---)
+---------
+
+Written by Marco Maggi.
+
+
 (object-properties)
 -------------------
 
