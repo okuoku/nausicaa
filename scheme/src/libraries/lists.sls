@@ -425,14 +425,12 @@
 ;;; --------------------------------------------------------------------
 
 (define (split-at ell k)
-  (let loop ((ell ell)
-	     (k   k))
-    (if (zero? k)
-	(values '() ell)
-      (receive (prefix suffix)
-	  (loop (cdr ell) (- k 1))
-	(values (cons (car ell) prefix)
-		suffix)))))
+  (if (zero? k)
+      (values '() ell)
+    (receive (prefix suffix)
+	(split-at (cdr ell) (- k 1))
+      (values (cons (car ell) prefix)
+	      suffix))))
 
 (define (split-at! x k)
   (if (zero? k) (values '() x)
