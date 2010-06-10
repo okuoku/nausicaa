@@ -20264,14 +20264,15 @@ argument for the macro.
 @meta{maker sexp} has one of the forms:
 
 @example
-@cmeta{maker expr}
-(@cmetao{maker expr} @cmeta{maker expr} ...)
+@cmeta{maker name}
+(@cmetao{maker name} @cmeta{maker expr} ...)
 @end example
 
 @noindent
-where each @meta{maker expr} is an expression evaluated at runtime, only
-once, in the lexical context of the @func{define-maker} macro use, even
-if the defined macro is never used.
+where @meta{maker name} must be an identifier and each @meta{maker expr}
+is an expression evaluated at runtime, only once, in the lexical context
+of the @func{define-maker} macro use, even if the defined macro is never
+used.
 
 @meta{keywords and defaults} defines optional arguments selected with a
 keyword and a value; it has the form:

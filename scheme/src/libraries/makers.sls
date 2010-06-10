@@ -60,15 +60,19 @@
 	 (syntax->datum stx) (syntax->datum #'(?var ...))))
 
       ((_ (?name ?var ...) (?maker ?arg ...) ((?keyword ?default) ...))
+       (identifier? #'?maker)
        #'(output-forms (?name ?var ...) (?maker ?arg ...) ((?keyword ?default) ...)))
 
       ((_ ?name (?maker ?arg ...) ((?keyword ?default) ...))
+       (identifier? #'?maker)
        #'(output-forms (?name) (?maker ?arg ...) ((?keyword ?default) ...)))
 
       ((_ (?name ?var ...) ?maker ((?keyword ?default) ...))
+       (identifier? #'?maker)
        #'(output-forms (?name ?var ...) (?maker) ((?keyword ?default) ...)))
 
       ((_ ?name ?maker ((?keyword ?default) ...))
+       (identifier? #'?maker)
        #'(output-forms (?name) (?maker) ((?keyword ?default) ...)))
 
       (_
