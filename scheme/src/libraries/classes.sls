@@ -119,6 +119,11 @@
     ((_ () ?body0 ?body ...)
      (begin ?body0 ?body ...))))
 
+(define (%vector-copy dst src len)
+  (do ((i 0 (+ 1 i)))
+      ((= i len))
+    (vector-set! dst i (vector-ref src i))))
+
 
 (define (%make-default-protocol rtd)
   (define (split-at l n)
@@ -774,8 +779,8 @@
 	      (define from-fields-protocol
 		(%make-default-protocol the-rtd))
 	      (define the-from-fields-cd
-		(make-from-fields-constructor-descriptor THE-PARENT-IS-A-CLASS? SUPERCLASS-NAME
-							 the-rtd from-fields-protocol))
+		(%define-class/output-forms/make-from-fields-constructor-descriptor
+		 THE-PARENT-IS-A-CLASS? SUPERCLASS-NAME the-rtd from-fields-protocol))
 	      (define from-fields-constructor
 		(record-constructor the-from-fields-cd))
 
@@ -817,6 +822,9 @@
 				  (record-parent-list the-parent-rtd)
 				'())))
 
+	      (%define-class/output-forms/make-virtual-methods-table
+	       THE-PARENT-IS-A-CLASS? SUPERCLASS-NAME)
+
 	      (define-syntax CLASS-NAME
 	      	(lambda (stx)
 	      	  (syntax-case stx (class-record-type-descriptor
@@ -831,7 +839,9 @@
 				    list-of-virtual-fields
 				    list-of-methods
 	      			    make make* make-from-fields is-a?
-	      			    with-class-bindings-of)
+	      			    with-class-bindings-of
+				    virtual-methods-vector-length
+				    virtual-methods-vector)
 
 	      	    ((_ class-record-type-descriptor)
 	      	     #'the-rtd)
@@ -900,6 +910,12 @@
 	      		 ?inherit-methods
 	      		 ?inherit-setter-and-getter)
 	      		?variable-name ?arg (... ...)))
+
+		    ((_ virtual-methods-vector-length)
+		     #'the-virtual-methods-vector-length)
+
+		    ((_ virtual-methods-vector)
+		     #'the-virtual-methods-vector)
 
 	      	    ((_ ?keyword . ?rest)
 	      	     (syntax-violation 'CLASS-NAME
@@ -1005,26 +1021,6 @@
 	 (syntax->datum #'?name-spec)))
       )))
 
-(define-syntax make-from-fields-constructor-descriptor
-  ;;We do  this to  allow inheritance from  non-class record  types.  We
-  ;;select the  appropriate clause  to make the  construction efficient:
-  ;;the constructor for  non-class record types is slow  compared to the
-  ;;one of class types.
-  ;;
-  (lambda (stx)
-    (syntax-case stx ()
-      ((_ #t ?superclass-name ?the-rtd ?from-fields-protocol)
-       (identifier? #'?superclass-name)
-       #'(make-record-constructor-descriptor ?the-rtd
-					     (?superclass-name from-fields-constructor-descriptor)
-					     ?from-fields-protocol))
-      ((_ #f ?superclass-name ?the-rtd ?from-fields-protocol)
-       #'(%make-from-fields-cd ?the-rtd ?from-fields-protocol))
-      (_
-       (syntax-violation 'make-from-fields-constructor-descriptor
-	 "invalid arguments"
-	 (syntax->datum stx))))))
-
 
 (define-syntax %define-class/output-forms/fields-accessors-and-mutators
   ;;Subroutine of  DEFINE-CLASS which expands to the  definitions of the
@@ -1075,6 +1071,55 @@
     ((_ class-name the-maker constructor (MAKER-POSITIONAL-ARG ...) (MAKER-OPTIONAL-ARG ...))
      (define-maker (the-maker MAKER-POSITIONAL-ARG ...)
        constructor (MAKER-OPTIONAL-ARG ...)))))
+
+(define-syntax %define-class/output-forms/make-from-fields-constructor-descriptor
+  ;;We do  this to  allow inheritance from  non-class record  types.  We
+  ;;select the  appropriate clause  to make the  construction efficient:
+  ;;the constructor for  non-class record types is slow  compared to the
+  ;;one of class types.
+  ;;
+  (lambda (stx)
+    (syntax-case stx ()
+      ((_ #t ?superclass-name ?the-rtd ?from-fields-protocol)
+       (identifier? #'?superclass-name)
+       #'(make-record-constructor-descriptor ?the-rtd
+					     (?superclass-name from-fields-constructor-descriptor)
+					     ?from-fields-protocol))
+      ((_ #f ?superclass-name ?the-rtd ?from-fields-protocol)
+       #'(%make-from-fields-cd ?the-rtd ?from-fields-protocol))
+      (_
+       (syntax-violation 'make-from-fields-constructor-descriptor
+	 "invalid arguments"
+	 (syntax->datum stx))))))
+
+(define-syntax %define-class/output-forms/make-virtual-methods-table
+  (lambda (stx)
+    (syntax-case stx ()
+
+      ((?k #t ?superclass-name)
+       (with-syntax ((VEC_LEN	(datum->syntax #'?k 'the-virtual-methods-vector-length))
+		     (VEC_FUN	(datum->syntax #'?k 'the-virtual-methods-vector-functions))
+		     (VEC_NAM	(datum->syntax #'?k 'the-virtual-methods-vector-names)))
+	 #'(begin
+	     (define VEC_LEN
+	       (+ (?superclass-name virtual-methods-vector-length)))
+	     (define VEC_NAM
+	       )
+	     (define VEC_FUN
+	       (let ((V (make-vector VEC_LEN)))
+		 (%vector-copy V (?superclass-name virtual-methods-vector)
+			       (?superclass-name virtual-methods-vector-length))
+		 V)))))
+
+      ((?k #f ?superclass-name)
+       (with-syntax ((VEC_LEN	(datum->syntax #'?k 'the-virtual-methods-vector-length))
+		     (VEC_FUN	(datum->syntax #'?k 'the-virtual-methods-vector-functions))
+		     (VEC_NAM	(datum->syntax #'?k 'the-virtual-methods-vector-names)))
+	 #'(begin
+	     (define VEC_LEN 0)
+	     (define VEC_NAM '#())
+	     (define VEC_FUN '#()))))
+      )))
 
 
 (define-syntax define-label
