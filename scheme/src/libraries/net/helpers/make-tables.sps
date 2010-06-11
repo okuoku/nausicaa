@@ -38,6 +38,34 @@
      (:table-name	'ipv6-address-lexer-table)
      (:counters		'all))
 
+(lex (:input-file	"ipv4-address-lexer.l")
+     (:output-file	"ipv4-address-lexer.sls")
+     (:library-spec	'(net helpers ipv4-address-lexer))
+     (:library-imports	'((silex default-error-handler)
+			  (parser-tools lexical-token)
+			  (parser-tools source-location)))
+     (:table-name	'ipv4-address-lexer-table)
+     (:counters		'all))
+
+
+(lalr-parser
+
+ (:output-file		"ipv4-address-parser.sls")
+ (:parser-name		'make-ipv4-address-parser)
+ (:library-spec		'(net helpers ipv4-address-parser))
+
+ (:terminals		'(DOT NUMBER PREFIX-LENGTH))
+
+ (:rules
+  '((ipv4-address
+     (NUMBER DOT NUMBER DOT NUMBER DOT NUMBER)
+		: (list $1 $3 $5 $7)
+     (NUMBER DOT NUMBER DOT NUMBER DOT NUMBER PREFIX-LENGTH)
+		: (list $1 $3 $5 $7 $8))
+    )))
+
+;;; end of file
+
 
 (lalr-parser
 

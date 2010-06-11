@@ -1,8 +1,8 @@
 ;;; -*- mode: scheme; coding: utf-8-unix -*-
 ;;;
 ;;;Part of: Nausicaa/Scheme
-;;;Contents: lexer for IPv6 address textual representation
-;;;Date: Wed Jun  9, 2010
+;;;Contents: lexer for Ipv4 address textual representation
+;;;Date: Fri Jun 11, 2010
 ;;;
 ;;;Abstract
 ;;;
@@ -26,48 +26,55 @@
 
 ;;; structural characters
 
-;; space, horizontal tab, line feed, carriage return
-;;WS			[ \9\10\13]*
-
 decdig			[0-9]
 hexdig			[0-9A-Fa-f]
+octdig			[0-7]
 
 decint5			25[0-5]
 decint4			2[0-4]{decdig}
-decint3			[01]{decdig}{decdig}
-decint2			{decdig}{decdig}
-decint1			{decdig}
+decint3			1{decdig}{decdig}
+decint2			[1-9]{decdig}
+decint1			[1-9]
 decint			{decint1}|{decint2}|{decint3}|{decint4}|{decint5}
 
-hexint4			{hexdig}{hexdig}{hexdig}{hexdig}
-hexint3			{hexdig}{hexdig}{hexdig}
-hexint2			{hexdig}{hexdig}
-hexint1			{hexdig}
-hexint			{hexint1}|{hexint2}|{hexint3}|{hexint4}
+lenint4			3[0-2]
+lenint3			2[0-9]
+lenint2			1[0-9]
+lenint1			[0-9]
+lenint			{lenint1}|{lenint2}|{lenint3}|{lenint4}
 
-number			{decint}|{hexint}
+hexint			0x{hexdig}{hexdig}?
 
-COLON			:
+octint			0{octdig}({octdig}({octdig})?)?
+
+prefix-length		/{lenint}
+
 DOT			\.
-SLASH			/
 
 %%
-
-{COLON}			(make-<lexical-token> 'COLON
-			 (make-<source-location> #f yyline yycolumn yyoffset)
-			 #\: 1)
 
 {DOT}			(make-<lexical-token> 'DOT
 			 (make-<source-location> #f yyline yycolumn yyoffset)
 			 #\. 1)
 
-{SLASH}			(make-<lexical-token> 'SLASH
+{decint}		(make-<lexical-token> 'NUMBER
 			 (make-<source-location> #f yyline yycolumn yyoffset)
-			 #\/ 1)
+			 (string->number yytext) (string-length yytext))
 
-{number}		(make-<lexical-token> 'NUMBER
+{hexint}		(make-<lexical-token> 'NUMBER
 			 (make-<source-location> #f yyline yycolumn yyoffset)
-			 yytext (string-length yytext))
+			 (string->number (substring yytext 2 (string-length yytext)) 16)
+			 (string-length yytext))
+
+{octint}		(make-<lexical-token> 'NUMBER
+			 (make-<source-location> #f yyline yycolumn yyoffset)
+			 (string->number (substring yytext 1 (string-length yytext)) 8)
+			 (string-length yytext))
+
+{prefix-length}		(make-<lexical-token> 'PREFIX-LENGTH
+			 (make-<source-location> #f yyline yycolumn yyoffset)
+			 (string->number (substring yytext 1 (string-length yytext)))
+			 (string-length yytext))
 
 <<EOF>>			(make-<lexical-token> '*eoi*
 			 (make-<source-location> #f yyline yycolumn yyoffset)
