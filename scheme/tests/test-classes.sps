@@ -2096,6 +2096,30 @@
     => '(1 2))
 
 ;;; --------------------------------------------------------------------
+;;; named let/with-class
+
+  (check
+      (let/with-class loop ((a 0) (b 3))
+	(if (zero? b)
+	    a
+	  (loop (+ 1 a) (- b 1))))
+    => 3)
+
+  (check
+      (let/with-class loop ((a 0) ((b <integer>) 3))
+		      (if b.zero?
+			  a
+			(loop (+ 1 a) (- b 1))))
+    => 3)
+
+  (check
+      (let/with-class loop (((a <number>) 0) ((b <integer>) 3))
+		      (if b.zero?
+			  a.odd?
+			(loop (+ 1 a) (- b 1))))
+    => #t)
+
+;;; --------------------------------------------------------------------
 ;;; let*/with-class
 
   (let ()
