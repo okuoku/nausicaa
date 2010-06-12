@@ -120,32 +120,32 @@
 
 ;;; --------------------------------------------------------------------
 
-  (check
-      (tokenise-address "0xa")
-    => `((NUMBER . 10)
-	 ,eoi))
+  ;; (check
+  ;;     (tokenise-address "0xa")
+  ;;   => `((NUMBER . 10)
+  ;; 	 ,eoi))
 
-  (check
-      (tokenise-address "0xFE")
-    => `((NUMBER . 254)
-	 ,eoi))
+  ;; (check
+  ;;     (tokenise-address "0xFE")
+  ;;   => `((NUMBER . 254)
+  ;; 	 ,eoi))
 
 ;;; --------------------------------------------------------------------
 
-  (check
-      (tokenise-address "02")
-    => `((NUMBER . 2)
-	 ,eoi))
+  ;; (check
+  ;;     (tokenise-address "02")
+  ;;   => `((NUMBER . 2)
+  ;; 	 ,eoi))
 
-  (check
-      (tokenise-address "012")
-    => `((NUMBER . 10)
-	 ,eoi))
+  ;; (check
+  ;;     (tokenise-address "012")
+  ;;   => `((NUMBER . 10)
+  ;; 	 ,eoi))
 
-  (check
-      (tokenise-address "0123")
-    => `((NUMBER . 83)
-	 ,eoi))
+  ;; (check
+  ;;     (tokenise-address "0123")
+  ;;   => `((NUMBER . 83)
+  ;; 	 ,eoi))
 
   #t)
 
@@ -180,13 +180,13 @@
       (parse-address "1.2.3.4")
     => '(1 2 3 4))
 
-  (check
-      (parse-address "0x1.0x2.0x3.0x4")
-    => '(1 2 3 4))
+  ;; (check
+  ;;     (parse-address "0x1.0x2.0x3.0x4")
+  ;;   => '(1 2 3 4))
 
-  (check
-      (parse-address "01.02.03.04")
-    => '(1 2 3 4))
+  ;; (check
+  ;;     (parse-address "01.02.03.04")
+  ;;   => '(1 2 3 4))
 
   (check
       (parse-address "192.168.99.1")
@@ -199,13 +199,13 @@
       (parse-address "1.2.3.4/8")
     => '(1 2 3 4 8))
 
-  (check
-      (parse-address "0x1.0x2.0x3.0x4/8")
-    => '(1 2 3 4 8))
+  ;; (check
+  ;;     (parse-address "0x1.0x2.0x3.0x4/8")
+  ;;   => '(1 2 3 4 8))
 
-  (check
-      (parse-address "01.02.03.04/8")
-    => '(1 2 3 4 8))
+  ;; (check
+  ;;     (parse-address "01.02.03.04/8")
+  ;;   => '(1 2 3 4 8))
 
   (check
       (parse-address "192.168.99.1/8")
@@ -265,11 +265,11 @@
 	(list o.third o.second o.first o.zeroth))
     => '(1 2 3 4))
 
-  (check
-      (let (((o <ipv4-address>)
-	     (make <ipv4-address> (ipv4-address-parse "0x1.0x2.0x3.0x4"))))
-	o.bignum)
-    => #x01020304)
+  ;; (check
+  ;;     (let (((o <ipv4-address>)
+  ;; 	     (make <ipv4-address> (ipv4-address-parse "0x1.0x2.0x3.0x4"))))
+  ;; 	o.bignum)
+  ;;   => #x01020304)
 
   (check
       (let (((o <ipv4-address>)

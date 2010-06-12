@@ -27,8 +27,8 @@
 ;;; structural characters
 
 decdig			[0-9]
-hexdig			[0-9A-Fa-f]
-octdig			[0-7]
+;; hexdig			[0-9A-Fa-f]
+;; octdig			[0-7]
 
 decint5			25[0-5]
 decint4			2[0-4]{decdig}
@@ -43,9 +43,9 @@ lenint2			1[0-9]
 lenint1			[0-9]
 lenint			{lenint1}|{lenint2}|{lenint3}|{lenint4}
 
-hexint			0x{hexdig}{hexdig}?
+;; hexint			0x{hexdig}{hexdig}?
 
-octint			0{octdig}({octdig}({octdig})?)?
+;; octint			0{octdig}({octdig}({octdig})?)?
 
 prefix-length		/{lenint}
 
@@ -61,15 +61,15 @@ DOT			\.
 			 (make-<source-location> #f yyline yycolumn yyoffset)
 			 (string->number yytext) (string-length yytext))
 
-{hexint}		(make-<lexical-token> 'NUMBER
-			 (make-<source-location> #f yyline yycolumn yyoffset)
-			 (string->number (substring yytext 2 (string-length yytext)) 16)
-			 (string-length yytext))
+;; {hexint}		(make-<lexical-token> 'NUMBER
+;; 			 (make-<source-location> #f yyline yycolumn yyoffset)
+;; 			 (string->number (substring yytext 2 (string-length yytext)) 16)
+;; 			 (string-length yytext))
 
-{octint}		(make-<lexical-token> 'NUMBER
-			 (make-<source-location> #f yyline yycolumn yyoffset)
-			 (string->number (substring yytext 1 (string-length yytext)) 8)
-			 (string-length yytext))
+;; {octint}		(make-<lexical-token> 'NUMBER
+;; 			 (make-<source-location> #f yyline yycolumn yyoffset)
+;; 			 (string->number (substring yytext 1 (string-length yytext)) 8)
+;; 			 (string-length yytext))
 
 {prefix-length}		(make-<lexical-token> 'PREFIX-LENGTH
 			 (make-<source-location> #f yyline yycolumn yyoffset)
