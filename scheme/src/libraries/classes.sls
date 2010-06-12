@@ -1919,7 +1919,103 @@
   (predicate list?)
   (virtual-fields (immutable car car)
 		  (immutable cdr cdr)
-		  (immutable length length)))
+		  (immutable length length))
+
+  (method-syntax find
+    (syntax-rules ()
+      ((_ o proc)
+       (find proc o))))
+
+  (method-syntax for-all
+    (syntax-rules ()
+      ((_ o proc)
+       (for-all proc o))))
+
+  (method-syntax exists
+    (syntax-rules ()
+      ((_ o proc)
+       (exists proc o))))
+
+  (method-syntax filter
+    (syntax-rules ()
+      ((_ o proc)
+       (filter proc o))))
+
+  (method-syntax partition
+    (syntax-rules ()
+      ((_ o proc)
+       (partition proc o))))
+
+  (method-syntax fold-left
+    (syntax-rules ()
+      ((_ o nil proc)
+       (fold-left proc nil o))))
+
+  (method-syntax fold-right
+    (syntax-rules ()
+      ((_ o nil proc)
+       (fold-right proc nil o))))
+
+  (method-syntax remp
+    (syntax-rules ()
+      ((_ o proc)
+       (remp proc o))))
+
+  (method-syntax remove
+    (syntax-rules ()
+      ((_ o proc)
+       (remove proc o))))
+
+  (method-syntax remv
+    (syntax-rules ()
+      ((_ o proc)
+       (remv proc o))))
+
+  (method-syntax remq
+    (syntax-rules ()
+      ((_ o proc)
+       (remq proc o))))
+
+  (method-syntax memp
+    (syntax-rules ()
+      ((_ o proc)
+       (memp proc o))))
+
+  (method-syntax member
+    (syntax-rules ()
+      ((_ o proc)
+       (member proc o))))
+
+  (method-syntax memv
+    (syntax-rules ()
+      ((_ o proc)
+       (memv proc o))))
+
+  (method-syntax memq
+    (syntax-rules ()
+      ((_ o proc)
+       (memq proc o))))
+
+  (method-syntax assp
+    (syntax-rules ()
+      ((_ o proc)
+       (assp proc o))))
+
+  (method-syntax assoc
+    (syntax-rules ()
+      ((_ o proc)
+       (assoc proc o))))
+
+  (method-syntax assv
+    (syntax-rules ()
+      ((_ o proc)
+       (assv proc o))))
+
+  (method-syntax assq
+    (syntax-rules ()
+      ((_ o proc)
+       (assq proc o))))
+  )
 
 (define-builtin-class <char>
   (predicate char?)

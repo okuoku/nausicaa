@@ -22370,6 +22370,57 @@ Access the cdr of the list.
 Access the length of the list.
 @end defcv
 
+
+@defmethod @aclass{list} find @var{proc}
+Apply @func{find} to the list.
+@end defmethod
+
+
+@defmethod @aclass{list} for-all @var{proc}
+@defmethodx @aclass{lits} exists @var{proc}
+Apply @func{for-all} and @func{exists} to the list.
+@end defmethod
+
+
+@defmethod @aclass{list} filter @var{proc}
+@defmethodx @aclass{list} partition @var{proc}
+Apply @func{filter} and @func{partition} to the list.
+@end defmethod
+
+
+@defmethod @aclass{list} fold-left @var{nil} @var{combine}
+Apply @func{fold-left} to the list.
+@end defmethod
+
+
+@defmethod @aclass{list} fold-right @var{nil} @var{combine}
+Apply @func{fold-right} to the list.
+@end defmethod
+
+
+@defmethod @aclass{list} remp @var{proc}
+@defmethodx @aclass{list} remove @var{obj}
+@defmethodx @aclass{list} remv @var{obj}
+@defmethodx @aclass{list} remq @var{obj}
+Apply @func{remp}, @func{remove}, @func{remv}, @func{remq} to the list.
+@end defmethod
+
+
+@defmethod @aclass{list} memp @var{proc} @var{list}
+@defmethodx @aclass{list} member @var{obj} @var{list}
+@defmethodx @aclass{list} memv @var{obj} @var{list}
+@defmethodx @aclass{list} memq @var{obj} @var{list}
+Apply @func{memp}, @func{member}, @func{memv}, @func{memq} to the list.
+@end defmethod
+
+
+@defmethod @aclass{list} assp @var{proc}
+@defmethodx @aclass{list} assoc @var{obj}
+@defmethodx @aclass{list} assv @var{obj}
+@defmethodx @aclass{list} assq @var{obj}
+Apply @func{assp}, @func{assoc}, @func{assv}, @func{assq} to the list.
+@end defmethod
+
 @c page
 @node classes builtin compound
 @subsection Non--list compound types

@@ -39,7 +39,7 @@
     circular-list->list!	circular-list-copy
     circular-list-length	circular-list=
 
-    ;; predicats
+    ;; predicates
     circular-list?		circular-list?/or-null
     dotted-list?		dotted-list?/or-null
     not-pair?
