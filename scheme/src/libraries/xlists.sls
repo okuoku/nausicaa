@@ -31,7 +31,7 @@
     (lists))
 
 
-(define-virtual-class <xlist>
+(define-foreign-class <xlist>
   (inherit <list>)
   (nongenerative nausicaa:xlists:<xlist>)
 
@@ -47,12 +47,12 @@
        (tree-copy o))))
 
   ;; circular lists
-  (method-syntax list->circular-list!
+  (method-syntax circular-list!
     (syntax-rules ()
       ((_ o)
        (list->circular-list! o))))
 
-  (method-syntax circular-list->list!
+  (method-syntax break-circular-list!
     (syntax-rules ()
       ((_ o)
        (circular-list->list! o))))
@@ -185,7 +185,7 @@
   (method-syntax split-at!
     (syntax-rules ()
       ((_ o i)
-       (set! o (split-at! o i)))))
+       (split-at! o i))))
 
   (method-syntax last
     (syntax-rules ()
@@ -208,42 +208,30 @@
       ((_ o . ?rest)
        (set! o (append! o . ?rest)))))
 
-;;; --------------------------------------------------------------------
-
-  (method-syntax concatenate
-    (syntax-rules ()
-      ((_ o)
-       (concatenate o))))
-
-  (method-syntax concatenate!
-    (syntax-rules ()
-      ((_ o)
-       (concatenate! o))))
-
   (method-syntax reverse!
     (syntax-rules ()
       ((_ o)
-       (reverse! o))))
+       (set! o (reverse! o)))))
 
   (method-syntax append-reverse
     (syntax-rules ()
-      ((_ o)
-       (append-reverse o))))
+      ((_ o ?tail)
+       (append-reverse o ?tail))))
 
   (method-syntax append-reverse!
     (syntax-rules ()
-      ((_ o)
-       (append-reverse! o))))
+      ((_ o ?tail)
+       (set! o (append-reverse! o ?tail)))))
 
   (method-syntax zip
     (syntax-rules ()
-      ((_ o)
-       (zip o))))
+      ((_ o . ?rest)
+       (zip o . ?rest))))
 
   (method-syntax zip*
     (syntax-rules ()
-      ((_ o)
-       (zip* o))))
+      ((_ o . ?rest)
+       (zip* o . ?rest))))
 
   (method-syntax unzip1
     (syntax-rules ()
@@ -272,234 +260,198 @@
 
   (method-syntax count
     (syntax-rules ()
-      ((_ o)
-       (count o))))
+      ((_ o ?proc)
+       (count ?proc o))))
 
   ;; fold
   (method-syntax and-fold-left*
     (syntax-rules ()
-      ((_ o)
-       (and-fold-left* o))))
+      ((_ o ?knil ?kombine)
+       (and-fold-left* ?kombine ?knil o))))
 
   (method-syntax and-fold-right*
     (syntax-rules ()
-      ((_ o)
-       (and-fold-right* o))))
+      ((_ o ?knil ?kombine)
+       (and-fold-right* ?kombine ?knil o))))
 
   (method-syntax fold-left/pred
     (syntax-rules ()
-      ((_ o)
-       (fold-left/pred o))))
+      ((_ o ?knil ?pred)
+       (fold-left/pred ?pred ?knil o))))
 
   (method-syntax pair-fold
     (syntax-rules ()
-      ((_ o)
-       (pair-fold o))))
+      ((_ o ?knil ?kombine)
+       (pair-fold ?kombine ?knil o))))
 
   (method-syntax pair-fold*
     (syntax-rules ()
-      ((_ o)
-       (pair-fold* o))))
+      ((_ o ?knil ?kombine)
+       (pair-fold* ?kombine ?knil o))))
 
   (method-syntax reduce
     (syntax-rules ()
-      ((_ o)
-       (reduce o))))
+      ((_ o ?knil ?combine)
+       (reduce ?combine ?knil o))))
 
   (method-syntax reduce*
     (syntax-rules ()
-      ((_ o)
-       (reduce* o))))
+      ((_ o ?knil ?combine)
+       (reduce* ?combine ?knil o))))
 
   ;; map
-  (method-syntax map*
-    (syntax-rules ()
-      ((_ o)
-       (map* o))))
-
   (method-syntax map-in-order*
     (syntax-rules ()
-      ((_ o)
-       (map-in-order* o))))
+      ((_ o ?proc)
+       (map-in-order* ?proc o))))
 
   (method-syntax map!
     (syntax-rules ()
-      ((_ o)
-       (map! o))))
-
-  (method-syntax map*!
-    (syntax-rules ()
-      ((_ o)
-       (map*! o))))
-
-  (method-syntax for-each*
-    (syntax-rules ()
-      ((_ o)
-       (for-each* o))))
-
-  (method-syntax append-map
-    (syntax-rules ()
-      ((_ o)
-       (append-map o))))
-
-  (method-syntax append-map!
-    (syntax-rules ()
-      ((_ o)
-       (append-map! o))))
+      ((_ o ?proc)
+       (set! o (map! ?proc o)))))
 
   (method-syntax pair-for-each
     (syntax-rules ()
-      ((_ o)
-       (pair-for-each o))))
-
-  (method-syntax pair-for-each*
-    (syntax-rules ()
-      ((_ o)
-       (pair-for-each* o))))
+      ((_ o ?proc)
+       (pair-for-each ?proc o))))
 
   (method-syntax filter-map
     (syntax-rules ()
-      ((_ o)
-       (filter-map o))))
-
-  (method-syntax filter-map*
-    (syntax-rules ()
-      ((_ o)
-       (filter-map* o))))
+      ((_ o ?proc)
+       (filter-map ?proc o))))
 
   ;; filtering
   (method-syntax filter!
     (syntax-rules ()
-      ((_ o)
-       (filter! o))))
-
-  (method-syntax partition!
-    (syntax-rules ()
-      ((_ o)
-       (partition! o))))
+      ((_ o ?pred)
+       (set! o (filter! ?pred o)))))
 
   (method-syntax remove*
     (syntax-rules ()
-      ((_ o)
-       (remove* o))))
+      ((_ o ?pred)
+       (remove* ?pred o))))
 
   (method-syntax remove*!
     (syntax-rules ()
-      ((_ o)
-       (remove*! o))))
+      ((_ o ?pred)
+       (set! o (remove*! ?pred o)))))
 
   ;;searching
   (method-syntax find-tail
     (syntax-rules ()
-      ((_ o)
-       (find-tail o))))
+      ((_ o ?pred)
+       (find-tail ?pred o))))
 
   (method-syntax take-while
     (syntax-rules ()
-      ((_ o)
-       (take-while o))))
+      ((_ o ?pred)
+       (take-while ?pred o))))
 
   (method-syntax take-while!
     (syntax-rules ()
-      ((_ o)
-       (take-while! o))))
+      ((_ o ?pred)
+       (take-while! ?pred o))))
 
   (method-syntax drop-while
     (syntax-rules ()
-      ((_ o)
-       (drop-while o))))
+      ((_ o ?pred)
+       (drop-while ?pred o))))
+
+  (method-syntax drop-while!
+    (syntax-rules ()
+      ((_ o ?pred)
+       (set! o (drop-while ?pred o)))))
 
   (method-syntax span
     (syntax-rules ()
-      ((_ o)
-       (span o))))
-
-  (method-syntax span!
-    (syntax-rules ()
-      ((_ o)
-       (span! o))))
+      ((_ o ?pred)
+       (span ?pred o))))
 
   (method-syntax break
     (syntax-rules ()
-      ((_ o)
-       (break o))))
-
-  (method-syntax break!
-    (syntax-rules ()
-      ((_ o)
-       (break! o))))
+      ((_ o ?pred)
+       (break ?pred o))))
 
   (method-syntax any
     (syntax-rules ()
-      ((_ o)
-       (any o))))
-
-  (method-syntax any*
-    (syntax-rules ()
-      ((_ o)
-       (any* o))))
+      ((_ o ?pred)
+       (any ?pred o))))
 
   (method-syntax every
     (syntax-rules ()
-      ((_ o)
-       (every o))))
-
-  (method-syntax every*
-    (syntax-rules ()
-      ((_ o)
-       (every* o))))
+      ((_ o ?pred)
+       (every ?pred o))))
 
   (method-syntax list-index
     (syntax-rules ()
-      ((_ o)
-       (list-index o))))
-
-  (method-syntax list-index*
-    (syntax-rules ()
-      ((_ o)
-       (list-index* o))))
+      ((_ o ?pred)
+       (list-index ?pred o))))
 
   (method-syntax member*
     (syntax-rules ()
-      ((_ o)
-       (member* o))))
+      ((_ o ?obj)
+       (member* ?obj o))
+      ((_ o ?obj ?item=)
+       (member* ?obj o ?item=))))
 
   (method-syntax position
     (syntax-rules ()
-      ((_ o)
-       (position o))))
+      ((_ o ?obj)
+       (position ?obj o))))
 
   ;; deletion
   (method-syntax delete
     (syntax-rules ()
-      ((_ o)
-       (delete o))))
+      ((_ o ?obj)
+       (delete ?obj o))
+      ((_ o ?obj ?item=)
+       (delete ?obj o ?item=))
+      ))
 
   (method-syntax delete!
     (syntax-rules ()
-      ((_ o)
-       (delete! o))))
+      ((_ o ?obj)
+       (set! o (delete! ?obj o)))
+      ((_ o ?obj ?item=)
+       (set! o (delete! ?obj o ?item=)))
+      ))
 
   (method-syntax delete-duplicates
     (syntax-rules ()
       ((_ o)
-       (delete-duplicates o))))
+       (delete-duplicates o))
+      ((_ o ?item=)
+       (delete-duplicates o ?item=))
+      ))
 
   (method-syntax delete-duplicates!
     (syntax-rules ()
       ((_ o)
-       (delete-duplicates! o))))
+       (set! o (delete-duplicates! o)))
+      ((_ o ?item=)
+       (set! o (delete-duplicates o ?item=)))
+      ))
 
   ;; sorted lists
   (method-syntax sorted-list-insert
     (syntax-rules ()
-      ((_ o)
-       (sorted-list-insert o))))
+      ((_ o ?obj ?item>)
+       (sorted-list-insert ?obj o ?item>))))
+
+  (method-syntax sorted-list-insert!
+    (syntax-rules ()
+      ((_ o ?obj ?item>)
+       (set! o (sorted-list-insert ?obj o ?item>)))))
 
   (method-syntax sorted-list-insert/uniq
     (syntax-rules ()
-      ((_ o)
-       (sorted-list-insert/uniq o))))
+      ((_ o ?obj ?item< ?item>)
+       (sorted-list-insert/uniq ?obj o ?item< ?item>))))
+
+  (method-syntax sorted-list-insert/uniq!
+    (syntax-rules ()
+      ((_ o ?obj ?item< ?item>)
+       (set! o (sorted-list-insert/uniq ?obj o ?item< ?item>)))))
 
   (method-syntax union-of-sorted-lists
     (syntax-rules ()

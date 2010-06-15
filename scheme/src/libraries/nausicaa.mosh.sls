@@ -822,7 +822,7 @@
      (receive/with-class	receive))
 
     ;; usage macros
-    define-class			define-virtual-class
+    define-class			define-foreign-class
     define-label			is-a?
     make				make-from-fields
     make*

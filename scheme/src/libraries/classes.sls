@@ -30,7 +30,7 @@
   (export
 
     ;; usage macros
-    define-class			define-virtual-class
+    define-class			define-foreign-class
     define-label			is-a?
     make				make-from-fields
     make*
@@ -358,16 +358,16 @@
        (syntax-violation 'is-a? "invalid syntax use" (syntax->datum #'?input-form))))))
 
 
-(define-syntax define-virtual-class
-  ;;A virtual class  is just a tag  we slap on any value  to use virtual
+(define-syntax define-foreign-class
+  ;;A foreign class  is just a tag  we slap on any value  to use virtual
   ;;fields  and methods  with dot  notation,  but nevertheless  it is  a
   ;;proper record type.
   ;;
   (syntax-rules ()
     ((_ ?name ?clause ...)
-     (%define-virtual-class (define-class ?name ?clause ...) ?name () ?clause ...))))
+     (%define-foreign-class (define-class ?name ?clause ...) ?name () ?clause ...))))
 
-(define-syntax %define-virtual-class
+(define-syntax %define-foreign-class
   ;;Raise an error if  a PUBLIC-PROTOCOL, MAKER-PROTOCOL or FIELD clause
   ;;is present in the body of the definition; else define the class with
   ;;DEFINE-CLASS specifying a public protocol which raises an error when
@@ -382,14 +382,14 @@
 	   (public-protocol (lambda (make-parent)
 			      (lambda args
 				(syntax-violation #f
-				  "attempt to instantiate virtual class" (quote ?name)))))
+				  "attempt to instantiate foreign class" (quote ?name)))))
 	   ?collected-clause ...))
 
       ;;found PUBLIC-PROTOCOL clause
       ((_ ?input-form ?name (?collected-clause ...) (?keyword ?pro ...) ?clause ...)
        (free-identifier=? #'?keyword #'public-protocol)
        (syntax-violation 'define-class
-	 "public-protocol clause used in definition of virtual class"
+	 "public-protocol clause used in definition of foreign class"
 	 (syntax->datum stx)
 	 (syntax->datum #'(public-protocol ?pro ...))))
 
@@ -397,7 +397,7 @@
       ((_ ?input-form ?name (?collected-clause ...) (?keyword ?pro ...) ?clause ...)
        (free-identifier=? #'?keyword #'maker-protocol)
        (syntax-violation 'define-class
-	 "maker-protocol clause used in definition of virtual class"
+	 "maker-protocol clause used in definition of foreign class"
 	 (syntax->datum #'?input-form)
 	 (syntax->datum #'(public-protocol ?pro ...))))
 
@@ -405,13 +405,13 @@
       ((_ ?input-form ?name (?collected-clause ...) (?keyword ?fie ...) ?clause ...)
        (free-identifier=? #'?keyword #'fields)
        (syntax-violation 'define-class
-	 "fields clause used in definition of virtual class"
+	 "fields clause used in definition of foreign class"
 	 (syntax->datum #'?input-form)
 	 (syntax->datum #'(fields ?fie ...))))
 
       ;;other clauses
       ((_ ?input-form ?name (?collected-clause ...) ?clause0 ?clause ...)
-       #'(%define-virtual-class ?input-form ?name (?collected-clause ... ?clause0) ?clause ...))
+       #'(%define-foreign-class ?input-form ?name (?collected-clause ... ?clause0) ?clause ...))
 
       )))
 
@@ -1898,14 +1898,14 @@
 
 ;;;; builtin classes
 
-(define-virtual-class <builtin>
+(define-foreign-class <builtin>
   (nongenerative nausicaa:builtin:<builtin>))
 
 (define-syntax define-builtin-class
   (lambda (stx)
     (syntax-case stx ()
       ((_ ?class-name ?clause ...)
-       #`(define-virtual-class ?class-name
+       #`(define-foreign-class ?class-name
 	   (inherit <builtin>)
 	   (nongenerative #,(identifier-prefix "nausicaa:builtin:" #'?class-name))
 	   ?clause ...)))))
@@ -2160,12 +2160,12 @@
 		  (immutable input? input-port?)
 		  (immutable output? output-port?)))
 
-(define-virtual-class <input-port>
+(define-foreign-class <input-port>
   (inherit <port>)
   (predicate input-port?)
   (nongenerative nausicaa:builtin:<input-port>))
 
-(define-virtual-class <output-port>
+(define-foreign-class <output-port>
   (inherit <port>)
   (predicate output-port?)
   (nongenerative nausicaa:builtin:<output-port>))
@@ -2178,7 +2178,7 @@
 (define (%binary-port? obj)
   (and (port? obj) (binary-port? obj)))
 
-(define-virtual-class <binary-port>
+(define-foreign-class <binary-port>
   (inherit <port>)
   (predicate %binary-port?)
   (nongenerative nausicaa:builtin:<binary-port>))
@@ -2191,7 +2191,7 @@
 (define (%textual-port? obj)
   (and (port? obj) (textual-port? obj)))
 
-(define-virtual-class <textual-port>
+(define-foreign-class <textual-port>
   (inherit <port>)
   (predicate %textual-port?)
   (nongenerative nausicaa:builtin:<textual-port>))
@@ -2223,7 +2223,7 @@
 		  (immutable truncate	truncate)
 		  (immutable round	round)))
 
-(define-virtual-class <complex>
+(define-foreign-class <complex>
   (inherit <number>)
   (predicate complex?)
   (virtual-fields (immutable real-part	real-part)
@@ -2232,7 +2232,7 @@
 		  (immutable angle	angle))
   (nongenerative nausicaa:builtin:<complex>))
 
-(define-virtual-class <real-valued>
+(define-foreign-class <real-valued>
   (inherit <complex>)
   (predicate real-valued?)
   (virtual-fields (immutable positive?		positive?)
@@ -2241,38 +2241,38 @@
 		  (immutable non-negative?	non-negative?))
   (nongenerative nausicaa:builtin:<real-valued>))
 
-(define-virtual-class <real>
+(define-foreign-class <real>
   (inherit <real-valued>)
   (predicate real?)
   (nongenerative nausicaa:builtin:<real>)
   (virtual-fields (immutable abs)))
 
-(define-virtual-class <rational-valued>
+(define-foreign-class <rational-valued>
   (inherit <real>)
   (predicate rational-valued?)
   (nongenerative nausicaa:builtin:<rational-valued>))
 
-(define-virtual-class <flonum>
+(define-foreign-class <flonum>
   (inherit <real>)
   (predicate flonum?)
   (nongenerative nausicaa:builtin:<flonum>))
 
-(define-virtual-class <rational>
+(define-foreign-class <rational>
   (inherit <rational-valued>)
   (predicate rational?)
   (nongenerative nausicaa:builtin:<rational>))
 
-(define-virtual-class <integer-valued>
+(define-foreign-class <integer-valued>
   (inherit <rational-valued>)
   (predicate integer-valued?)
   (nongenerative nausicaa:builtin:<integer-valued>))
 
-(define-virtual-class <integer>
+(define-foreign-class <integer>
   (inherit <integer-valued>)
   (predicate integer?)
   (nongenerative nausicaa:builtin:<integer>))
 
-(define-virtual-class <fixnum>
+(define-foreign-class <fixnum>
   (inherit <integer>)
   (predicate fixnum?)
   (nongenerative nausicaa:builtin:<fixnum>))

@@ -20353,7 +20353,7 @@ The facilities of the library work only on records of type defined with
 A @dfn{class type}, as defined by the @library{classes} library, is a
 regular record type as defined by @rsixlibrary{records procedural}, with
 the constraint of being nongenerative; new class types are defined by
-@func{define-class} and @func{define-virtual-class}, which generate
+@func{define-class} and @func{define-foreign-class}, which generate
 auxiliary syntaxes to allow for virtual fields, methods and dot
 notation.
 
@@ -20411,25 +20411,25 @@ unique identifier.
 @end deffn
 
 
-@deffn Syntax define-virtual-class @ameta{name spec} @ameta{class clause}*
+@deffn Syntax define-foreign-class @ameta{name spec} @ameta{class clause}*
 Like @func{define-class}, but inserts a @func{public-protocol} clause
 and a @func{maker-protocol} clause whose constructors raise an assertion
-violation if called.  Virtual classes are not meant to be instantiated,
+violation if called.  Foreign classes are not meant to be instantiated,
 their purpose is only to provide virtual fields and methods to instances
 of other types; for example: all the classes for builtin types are
 virtual.
 
-Virtual classes can be used in the hierarchy of concrete classes:
-virtual classes can have a proper superclass constructor protocol.
-Virtual classes can be used to dispatch generic functions defined by the
+Foreign classes can be used in the hierarchy of concrete classes:
+foreign classes can have a proper superclass constructor protocol.
+foreign classes can be used to dispatch generic functions defined by the
 @library{generics} library.
 
-It is meaningful, but not mandatory, to define a virtual class only if
+It is meaningful, but not mandatory, to define a foreign class only if
 we use the @func{predicate} clause described below; else there is no way
-to establish if an object matches the type of a virtual class.
+to establish if an object matches the type of a foreign class.
 
-Virtual classes can have virtual fields and methods; it is a syntax
-violation to declare concrete fields in the body of a virtual class
+Foreign classes can have virtual fields and methods; it is a syntax
+violation to declare concrete fields in the body of a foreign class
 definition.
 @end deffn
 
@@ -20534,7 +20534,7 @@ clause and the high--level macro @func{make*}.  @ref{classes define
 maker} for details on the maker constructor.
 
 
-The @func{define-virtual-class} macro defines only the superclass and
+The @func{define-foreign-class} macro defines only the superclass and
 the from--fields constructors.
 
 The superclass and public constructors are built using the parent's
@@ -20668,7 +20668,7 @@ especially to select custom predicates for the builtin class types;
 example:
 
 @example
-(define-virtual-class <complex>
+(define-foreign-class <complex>
   (inherit <number>)
   (predicate complex?)
   (nongenerative nausicaa:builtin:<complex>))
@@ -20998,7 +20998,7 @@ new value.  Example:
 another example:
 
 @example
-(define-virtual-class <vector>
+(define-foreign-class <vector>
   (inherit <builtin>)
   (predicate vector?)
   (virtual-fields (immutable length vector-length))
@@ -21074,7 +21074,7 @@ and a getter, a parent label.  Labels cannot be used in the inheritance
 hierarchy of classes, and vice versa.  Labels can be used by
 @func{with-class} and all its derived syntaxes; labels @strong{cannot}
 be used to dispatch generic functions defined by the @library{generics}
-library (virtual classes can).
+library (foreign classes can).
 
 
 @deffn Syntax define-label @ameta{name} @ameta{clause}*
@@ -22326,7 +22326,7 @@ explicitly a parent with the @func{inherit} clause.
 @end deftp
 
 
-@deftp {Virtual Class} @aclass{builtin}
+@deftp {Foreign Class} @aclass{builtin}
 The parent of all the conventional @rtd{}s, with the exception of
 @class{top}.
 @end deftp
@@ -22336,7 +22336,7 @@ The parent of all the conventional @rtd{}s, with the exception of
 @subsection Pairs and lists types
 
 
-@deftp {Virtual Class} @aclass{pair}
+@deftp {Foreign Class} @aclass{pair}
 Conventional type of objects satisfying @func{pair?}.
 @end deftp
 
@@ -22351,7 +22351,7 @@ Access the cdr of the pair.
 @end defcv
 
 
-@deftp {Virtual Class} @aclass{list}
+@deftp {Foreign Class} @aclass{list}
 Conventional type of objects satisfying @func{list?}.
 @end deftp
 
@@ -22429,7 +22429,7 @@ Apply @func{assp}, @func{assoc}, @func{assv}, @func{assq} to the list.
 @subsubheading Vectors
 
 
-@deftp {Virtual Class} @aclass{vector}
+@deftp {Foreign Class} @aclass{vector}
 Conventional type for objects satisfying @func{vector?}.
 @end deftp
 
@@ -22454,7 +22454,7 @@ an expression.
 
 @subsubheading Bytevectors
 
-@deftp {Virtual Class} @aclass{bytevector}
+@deftp {Foreign Class} @aclass{bytevector}
 Conventional type for objects satisfying @func{bytevector?}.
 @end deftp
 
@@ -22545,7 +22545,7 @@ singlen doublen
 
 @subsubheading Hashtables
 
-@deftp {Virtual Class} @aclass{hashtable}
+@deftp {Foreign Class} @aclass{hashtable}
 Conventional type for objects satisfying @func{hashtable?}.
 @end deftp
 
@@ -22587,7 +22587,7 @@ given.  @var{key} and @var{default} are expressions.
 
 @subsubheading Number objects
 
-@deftp {Virtual Class} @aclass{number}
+@deftp {Foreign Class} @aclass{number}
 Conventional type for objects satisfying @func{number?}.
 @end deftp
 
@@ -22675,7 +22675,7 @@ Accessing this field is like applying @func{round} to the number.
 
 @subsubheading Complex numbers
 
-@deftp {Virtual Class} @aclass{complex}
+@deftp {Foreign Class} @aclass{complex}
 Convenctional type for objects satisfying @func{complex?}.
 @end deftp
 
@@ -22703,7 +22703,7 @@ Accessing this field is like applying @func{angle} to the number.
 
 @subsubheading Real valued numbers
 
-@deftp {Virtual Class} @aclass{real-valued}
+@deftp {Foreign Class} @aclass{real-valued}
 Conventioanl type for objects satisfying @func{real-valued?}.
 @end deftp
 
@@ -22733,7 +22733,7 @@ number.
 
 @subsubheading Real numbers
 
-@deftp {Virtual Class} @aclass{real}
+@deftp {Foreign Class} @aclass{real}
 Conventional for objects satisfying @func{real?}.
 @end deftp
 
@@ -22746,7 +22746,7 @@ Accessing this field is like applying @func{abs} to the number.
 
 @subsubheading Rational numbers
 
-@deftp {Virtual Class} @aclass{rational}
+@deftp {Foreign Class} @aclass{rational}
 Conventional type for objects satisfying @func{rational?}.
 @end deftp
 
@@ -22754,7 +22754,7 @@ Conventional type for objects satisfying @func{rational?}.
 
 @subsubheading Rational valued numbers
 
-@deftp {Virtual Class} @aclass{rational-valued}
+@deftp {Foreign Class} @aclass{rational-valued}
 Conventional type for objects satisfying @func{rational-valued?}.
 @end deftp
 
@@ -22762,7 +22762,7 @@ Conventional type for objects satisfying @func{rational-valued?}.
 
 @subsubheading Integer valued numbers
 
-@deftp {Virtual Class} @aclass{integer-valued}
+@deftp {Foreign Class} @aclass{integer-valued}
 Conventional type for objects satisfying @func{integer-valued?}.
 @end deftp
 
@@ -22770,7 +22770,7 @@ Conventional type for objects satisfying @func{integer-valued?}.
 
 @subsubheading Integer numbers
 
-@deftp {Virtual Class} @aclass{integer}
+@deftp {Foreign Class} @aclass{integer}
 Conventional type for objects satisfying @func{integer?}.
 @end deftp
 
@@ -22779,7 +22779,7 @@ Conventional type for objects satisfying @func{integer?}.
 @subsubheading Fixnum numbers
 
 
-@deftp {Virtual Class} @aclass{fixnum}
+@deftp {Foreign Class} @aclass{fixnum}
 Conventional type for objects satisfying @func{fixnum?}.
 @end deftp
 
@@ -22787,7 +22787,7 @@ Conventional type for objects satisfying @func{fixnum?}.
 
 @subsubheading Flonum numbers
 
-@deftp {Virtual Class} @aclass{flonum}
+@deftp {Foreign Class} @aclass{flonum}
 Conventional type for objects satisfying @func{flonum?}.
 @end deftp
 
@@ -22800,7 +22800,7 @@ The binary/textual attributes are not mututally exclusive with the
 input/output attributes.
 
 
-@deftp {Virtual Class} @aclass{port}
+@deftp {Foreign Class} @aclass{port}
 Conventional type for objects satisfying @func{port?}.
 @end deftp
 
@@ -22855,22 +22855,22 @@ Accessing this field is like applying @func{output-port?} to the port.
 @end defcv
 
 
-@deftp {Virtual Class} @aclass{input-port}
+@deftp {Foreign Class} @aclass{input-port}
 Conventional type for objects satisfying @func{input-port?}.
 @end deftp
 
 
-@deftp {Virtual Class} @aclass{output-port}
+@deftp {Foreign Class} @aclass{output-port}
 Conventional type for objects satisfying @func{output-port?}.
 @end deftp
 
 
-@deftp {Virtual Class} @aclass{textual-port}
+@deftp {Foreign Class} @aclass{textual-port}
 Conventional type for objects satisfying @func{textual-port?}.
 @end deftp
 
 
-@deftp {Virtual Class} @aclass{binary-port}
+@deftp {Foreign Class} @aclass{binary-port}
 Conventional type for objects satisfying @func{binary-port?}.
 @end deftp
 
@@ -22882,7 +22882,7 @@ Conventional type for objects satisfying @func{binary-port?}.
 @subsubheading String type
 
 
-@deftp {Virtual Class} @aclass{string}
+@deftp {Foreign Class} @aclass{string}
 Conventional type for objects satisfying @func{string?}.
 @end deftp
 
@@ -22933,7 +22933,7 @@ expression.
 @subsubheading Character type
 
 
-@deftp {Virtual Class} @aclass{char}
+@deftp {Foreign Class} @aclass{char}
 Conventional type for objects satisfying @func{char?}.
 @end deftp
 
@@ -22962,7 +22962,7 @@ Accessing this field is like applying @func{char-foldcase} to the char.
 @subsection Miscellaneous conventional types
 
 
-@deftp {Virtual Class} @aclass{condition}
+@deftp {Foreign Class} @aclass{condition}
 Conventional type for objects satisfying @func{condition?}.
 @end deftp
 
@@ -22985,7 +22985,7 @@ condition object.
 @end defcv
 
 
-@deftp {Virtual Class} @aclass{record}
+@deftp {Foreign Class} @aclass{record}
 Conventional type for objects satisfying @func{record?}.
 @end deftp
 

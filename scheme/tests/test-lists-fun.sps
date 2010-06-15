@@ -7,7 +7,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2008, 2009 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2008, 2009, 2010 Marco Maggi <marcomaggi@gna.org>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -4598,6 +4598,10 @@
 
   (check
       (circular-list-length (circular-list 1 2 3 4 5))
+    => 5)
+
+  (check
+      (circular-list-length (list->circular-list! (list-copy '(1 2 3 4 5))))
     => 5)
 
 ;;; --------------------------------------------------------------------
