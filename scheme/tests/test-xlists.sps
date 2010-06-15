@@ -539,13 +539,6 @@
   #t)
 
 
-(parametrise ((check-test-name	'alists))
-
-
-
-  #t)
-
-
 ;;;; done
 
 (check-report)
