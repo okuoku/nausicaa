@@ -78,7 +78,9 @@ Notes for --- tag 0.2a0
 
 * Added (net ipv6-addresses) library.
 
-* Added (xlists) library
+* Added (net ipv4-addresses) library.
+
+* Added (xlists) library.
 
 
 Notes for 2010-03-28 tag 0.1a11

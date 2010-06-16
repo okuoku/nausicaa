@@ -120,37 +120,35 @@
      (make-ipv4-address-parser-error-handler who irritants))))
 
 (define (ipv4-address-parse the-string)
-  (let* ((who		'ipv4-address-parse)
-	 (irritants	(list the-string))
-	 (%error	(lambda ()
-			  (raise
-			   (condition (make-ipv4-address-parser-error-condition)
-				      (make-who-condition who)
-				      (make-message-condition "invalid Ipv4 address string")
-				      (make-irritants-condition irritants)))))
-	 (lexer		(make-ipv4-address-lexer  (:string the-string)))
+  (define who 'ipv4-address-parse)
+  (define irritants (list the-string))
+  (define (%error)
+    (raise (condition (make-ipv4-address-parser-error-condition)
+		      (make-who-condition who)
+		      (make-message-condition "invalid IPv4 address string")
+		      (make-irritants-condition irritants))))
+  (let* ((lexer		(make-ipv4-address-lexer  (:string the-string)))
 	 (parser	(make-ipv4-address-parser who lexer irritants))
 	 (ell		(parser)))
-    (unless (= 4 (length ell))
-      (%error))
-    ell))
+    (if (= 4 (length ell))
+	ell
+      (%error))))
 
 (define (ipv4-address-prefix-parse the-string)
-  (let* ((who		'ipv4-address-parse)
-	 (irritants	(list the-string))
-	 (%error	(lambda ()
-			  (raise
-			   (condition (make-ipv4-address-parser-error-condition)
-				      (make-who-condition who)
-				      (make-message-condition "invalid Ipv4 address prefix string")
-				      (make-irritants-condition irritants)))))
-	 (lexer		(make-ipv4-address-lexer  (:string the-string)))
+  (define who 'ipv4-address-prefix-parse)
+  (define irritants (list the-string))
+  (define (%error)
+    (raise (condition (make-ipv4-address-parser-error-condition)
+		      (make-who-condition who)
+		      (make-message-condition "invalid IPv4 address prefix string")
+		      (make-irritants-condition irritants))))
+  (let* ((lexer		(make-ipv4-address-lexer  (:string the-string)))
 	 (parser	(make-ipv4-address-parser who lexer irritants))
 	 (ell		(parser)))
-    (unless (= 5 (length ell))
-      (%error))
-    (let ((rell (reverse ell)))
-      (values (reverse (cdr rell)) (car rell)))))
+    (if (= 5 (length ell))
+	(let ((rell (reverse ell)))
+	  (values (reverse (cdr rell)) (caar rell)))
+      (%error))))
 
 
 (define-class <ipv4-address>
@@ -164,11 +162,18 @@
 	  ;; (mutable cached-global-unicast?)
 	  third second first zeroth)
   (virtual-fields bignum string
-		  ;; unspecified?
-		  ;; loopback?
-		  ;; multicast?
-		  ;; link-local-unicast?
-		  ;; global-unicast?
+		  private?
+		  loopback?
+		  localhost?
+		  link-local?
+		  reserved?
+		  test-net-1?
+		  six-to-four-relay-anycast?
+		  benchmark-tests?
+		  test-net-2?
+		  test-net-3?
+		  multicast?
+		  limited-broadcast?
 		  )
   (nongenerative nausicaa:net:ipv4-address:<ipv4-address>))
 
@@ -189,6 +194,62 @@
     (set! o.cached-string S)))
 
 ;;; --------------------------------------------------------------------
+
+(define (<ipv4-address>-private? (o <ipv4-address>))
+  (or (= 10 o.third)
+      (and (= 172 o.third) (= #b00010000 (bitwise-and #b11110000 o.second)))
+      (and (= 192 o.third) (= 168 o.second))))
+
+(define (<ipv4-address>-loopback? (o <ipv4-address>))
+  (= 127 o.third))
+
+(define (<ipv4-address>-localhost? (o <ipv4-address>))
+  (and (= 127 o.third)
+       (=   0 o.second)
+       (=   0 o.first)
+       (=   1 o.zeroth)))
+
+(define (<ipv4-address>-link-local? (o <ipv4-address>))
+  (and (= 169 o.third)
+       (= 254 o.second)))
+
+(define (<ipv4-address>-reserved? (o <ipv4-address>))
+  (or (and (= 192 o.third)
+	   (=   0 o.second)
+	   (=   0 o.first))
+      (= 240 (bitwise-and #b11110000 o.third))))
+
+(define (<ipv4-address>-test-net-1? (o <ipv4-address>))
+  (and (= 192 o.third)
+       (=   0 o.second)
+       (=   2 o.first)))
+
+(define (<ipv4-address>-six-to-four-relay-anycast? (o <ipv4-address>))
+  (and (= 192 o.third)
+       (=  88 o.second)
+       (=  99 o.first)))
+
+(define (<ipv4-address>-benchmark-tests? (o <ipv4-address>))
+  (and (= 198 o.third) (= 18 (bitwise-and #b11111110 o.second))))
+
+(define (<ipv4-address>-test-net-2? (o <ipv4-address>))
+  (and (= 198 o.third)
+       (=  51 o.second)
+       (= 100 o.first)))
+
+(define (<ipv4-address>-test-net-3? (o <ipv4-address>))
+  (and (= 203 o.third)
+       (=   0 o.second)
+       (= 113 o.first)))
+
+(define (<ipv4-address>-multicast? (o <ipv4-address>))
+  (= 224 (bitwise-and #b11110000 o.third)))
+
+(define (<ipv4-address>-limited-broadcast? (o <ipv4-address>))
+  (and (= 255 o.third)
+       (= 255 o.second)
+       (= 255 o.first)
+       (= 255 o.zeroth)))
 
 
 (define-class <ipv4-address-prefix>

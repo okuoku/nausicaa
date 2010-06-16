@@ -61,7 +61,7 @@
      (NUMBER DOT NUMBER DOT NUMBER DOT NUMBER)
 		: (list $1 $3 $5 $7)
      (NUMBER DOT NUMBER DOT NUMBER DOT NUMBER PREFIX-LENGTH)
-		: (list $1 $3 $5 $7 $8))
+		: (list $1 $3 $5 $7 (list $8)))
     )))
 
 ;;; end of file

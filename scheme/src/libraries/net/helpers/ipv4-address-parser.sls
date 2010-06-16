@@ -36,5 +36,6 @@
           (yy-reduce-pop-and-push yypushback yycustom
            yy-stack-states $8 $7 $6 $5 $4 $3 $2 $1
            . yy-stack-values)
-          (yy-reduce-pop-and-push 8 1 (list $1 $3 $5 $7 $8)
-            yy-stack-states yy-stack-values))))))
+          (yy-reduce-pop-and-push 8 1
+            (list $1 $3 $5 $7 (list $8)) yy-stack-states
+            yy-stack-values))))))

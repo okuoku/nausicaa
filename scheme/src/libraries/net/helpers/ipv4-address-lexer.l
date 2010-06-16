@@ -34,7 +34,7 @@ decint5			25[0-5]
 decint4			2[0-4]{decdig}
 decint3			1{decdig}{decdig}
 decint2			[1-9]{decdig}
-decint1			[1-9]
+decint1			{decdig}
 decint			{decint1}|{decint2}|{decint3}|{decint4}|{decint5}
 
 lenint4			3[0-2]
