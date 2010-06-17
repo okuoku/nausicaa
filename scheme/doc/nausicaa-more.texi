@@ -35444,7 +35444,7 @@ See Section 3 ``Global and Other Specialized Address Blocks'' of @rfc{}
 @end defcv
 
 
-@defcv {Immutable Virtual Field} @aclass{ipv4-address}-limited-broadcast?
+@defcv {Immutable Virtual Field} @aclass{ipv4-address} limited-broadcast?
 True if the address prefix is @code{255.255.255.255}.
 
 See Section 3 ``Global and Other Specialized Address Blocks'' of @rfc{}
