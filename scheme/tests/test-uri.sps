@@ -34,19 +34,22 @@
 (display "*** testing URI\n")
 
 
+(parametrise ((check-test-name	'string/bytevector))
+
+  (check (uri:to-string (uri:to-bytevector ""))			=> "")
+  (check (uri:to-string (uri:to-bytevector "ciao"))		=> "ciao")
+  (check (uri:to-string (uri:to-bytevector "ci%3fa%3do"))	=> "ci%3fa%3do")
+
+  #t)
+
+
 (parametrise ((check-test-name	'percent-encoding))
-
-  (check (uri:to-string (uri:to-utf8 ""))		=> "")
-  (check (uri:to-string (uri:to-utf8 "ciao"))		=> "ciao")
-  (check (uri:to-string (uri:to-utf8 "ci%3fa%3do"))	=> "ci%3fa%3do")
-
-;;; --------------------------------------------------------------------
 
   (let ()
 
     (define-inline (doit ch str)
-      (check (uri:percent-encode ch)  => str)
-      (check (uri:percent-decode str) => (string ch)))
+      (check (uri:percent-encode ch  (:string-result? #t)) => str)
+      (check (uri:percent-decode str (:string-result? #t)) => (string ch)))
 
     (doit #\. ".")
     (doit #\- "-")
@@ -63,7 +66,9 @@
 
     (define-inline (doit ch str)
       (check
-	  (uri:percent-encode ch (:char-selector (lambda (chi)
+	  (uri:percent-encode ch
+			      (:string-result? #t)
+			      (:char-selector (lambda (chi)
 						   (memv (integer->char chi)
 							 '(#\. #\- #\_ #\~ #\%
 							   #\: #\/ #\?
@@ -75,7 +80,7 @@
 							   #\=))
 						   )))
 	=> str)
-      (check (uri:percent-decode str) => (string ch)))
+      (check (uri:percent-decode str (:string-result? #t)) => (string ch)))
 
     (doit #\. "%2e")
     (doit #\- "%2d")
@@ -93,8 +98,8 @@
   (let ()
 
     (define-inline (doit dec enc)
-      (check (uri:percent-encode dec) => enc)
-      (check (uri:percent-decode enc) => dec))
+      (check (uri:percent-encode dec (:string-result? #t)) => enc)
+      (check (uri:percent-decode enc (:string-result? #t)) => dec))
 
     (doit "" "")
     (doit "ciao" "ciao")
@@ -104,8 +109,16 @@
     #f)
 
   (check
-      (uri:percent-encode "ciao" (:bytevector-result? #t))
+      (uri:percent-encode "ciao")
     => '#vu8(99 105 97 111))
+
+  (check
+      (uri:percent-decode '#vu8(99 105 97 111))
+    => '#vu8(99 105 97 111))
+
+  (check
+      (uri:percent-decode '#vu8(99 105 97 111) (:string-result? #t))
+    => "ciao")
 
 ;;; --------------------------------------------------------------------
 
@@ -132,6 +145,68 @@
   (check
       (uri:normalise-percent-encoded-string "ci%5fao")
     => "ci_ao")
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (uri:normalise-percent-encoded-bytevector (uri:to-bytevector ""))
+    => (uri:to-bytevector ""))
+
+  (check
+      (uri:normalise-percent-encoded-bytevector (uri:to-bytevector "ciao"))
+    => (uri:to-bytevector "ciao"))
+
+  (check
+      (uri:normalise-percent-encoded-bytevector (uri:to-bytevector "cia%3do"))
+    => (uri:to-bytevector "cia%3do"))
+
+  (check
+      (uri:normalise-percent-encoded-bytevector (uri:to-bytevector "ci%3fa%3do"))
+    => (uri:to-bytevector "ci%3fa%3do"))
+
+  (check
+      (uri:normalise-percent-encoded-bytevector (uri:to-bytevector "%7eciao"))
+    => (uri:to-bytevector "~ciao"))
+
+  (check
+      (uri:normalise-percent-encoded-bytevector (uri:to-bytevector "ci%5fao"))
+    => (uri:to-bytevector "ci_ao"))
+
+  #t)
+
+
+(parametrise ((check-test-name	'class-output))
+
+  (define scheme	(string->utf8 "http"))
+  (define authority	(string->utf8 "www.spiffy.org"))
+  (define path		(map string->utf8 '("the" "path" "name")))
+  (define query		(string->utf8 "question=answer"))
+  (define fragment	(string->utf8 "anchor-point"))
+
+  (define uri-string	"http://www.spiffy.org/the/path/name?question%3danswer#anchor-point")
+  (define uri-bv	(string->utf8 uri-string))
+
+  (define-syntax doit
+    (syntax-rules ()
+      ((_ ?var ?expected . ?body)
+       (check
+	   (let (((?var <uri>)
+		  (make* <uri>
+		    (:decoded-scheme	scheme)
+		    (:decoded-authority	authority)
+		    (:decoded-path	path)
+		    (:decoded-query	query)
+		    (:decoded-fragment	fragment))))
+	     . ?body)
+	 => ?expected))))
+
+;;; --------------------------------------------------------------------
+
+  (doit o uri-string
+	o.string)
+
+  (doit o uri-bv
+	o.bytevector)
 
   #t)
 

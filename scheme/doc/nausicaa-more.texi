@@ -35925,11 +35925,41 @@ The string representation of the address prefix.
 
 
 The @library{uri} library implements a parser and class type to handle
-@uri{}s compliant with @rfc{} 3986.
+@uri{}s compliant with @rfc{} 3986.@footnote{@aurl{} last verified Thu
+Jun 17, 2010:
+
+@center @url{http://datatracker.ietf.org/doc/rfc3986/}
+}
 
 @menu
+* uri string::                  Plain conversion between strings
+                                and bytevectors.
 * uri percent::                 Percent encoding of characters.
 @end menu
+
+@c page
+@node uri string
+@section Plain conversion between strings and bytevectors
+
+
+The following bindings are exported by the @library{uri low} library; it
+is suggested to prefix them when importing this library.
+
+
+@defun to-bytevector @var{obj}
+If @var{obj} is a bytevector: @var{obj} itself is returned.  If
+@var{obj} is a string: convert it to a bytevector representation;
+characters are taken from @var{obj} and inserted into the resulting
+bytevector after decoding them, char to byte, as @ascii{}.
+@end defun
+
+
+@defun to-string @var{obj}
+If @var{obj} is a string: @var{obj} itself is returned.  If @var{obj} is
+a bytevector: convert it to a string representation; bytes are taken
+from @var{obj} and inserted into the resulting string after encoding
+them, byte to char, as @ascii{}.
+@end defun
 
 @c page
 @node uri percent
@@ -35971,24 +36001,8 @@ is suggested to prefix them when importing this library.
 
 @defun unreserved-char? @var{obj}
 Return true if @var{obj} represents an unreserved character according to
-the @rfc{}.  @var{obj} can be either a character or an integer
+@rfc{} 3986.  @var{obj} can be either a character or an integer
 representing a character according to @func{char->integer}.
-@end defun
-
-
-@defun to-utf8 @var{obj}
-If @var{obj} is a bytevector: @var{obj} itself is returned.  If
-@var{obj} is a string: convert it to a bytevector representation;
-characters are taken from @var{obj} and inserted into the resulting
-bytevector after decoding them, char to byte, as @ascii{}.
-@end defun
-
-
-@defun to-string @var{obj}
-If @var{obj} is a string: @var{obj} itself is returned.  If @var{obj} is
-a bytevector: convert it to a string representation; bytes are taken
-from @var{obj} and inserted into the resulting string after encoding
-them, byte to char, as @ascii{}.
 @end defun
 
 
@@ -36010,9 +36024,9 @@ representing a character according to @func{char->integer}, returns true
 if the character must be percent encoded.  The default is to encode all
 the character not unreserved.
 
-@item :bytevector-result? @var{bool}
-If @var{bool} is true: return a bytevector, else return a string; the
-default is to return a string.
+@item :string-result? @var{bool}
+If @var{bool} is true: return a string, else return a bytevector; the
+default is to return a bytevector.
 @end table
 @end deffn
 
@@ -36027,11 +36041,21 @@ the string is converted to a bytevector with @func{string->utf8}.
 The following clauses are supported:
 
 @table @code
-@item :bytevector-result? @var{bool}
-If @var{bool} is true: return a bytevector, else return a string; the
-default is to return a string.
+@item :string-result? @var{bool}
+If @var{bool} is true: return a string, else return a bytevector; the
+default is to return a bytevector.
 @end table
 @end deffn
+
+
+@defun normalise-percent-encoded-bytevector @var{bv}
+Normalise the given percent--encoded bytevector; bytes that are encoded
+but should not are decoded; return the normalised bytevector.  Assume
+that @var{bv} is composed by bytes in the valid range for @uri{}s.
+
+Notice that this function does @strong{not} percent--encode bytes which
+are already not so.
+@end defun
 
 
 @defun normalise-percent-encoded-string @var{str}

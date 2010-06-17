@@ -2,7 +2,7 @@
 ;;;
 ;;;Part of: Nausicaa/Scheme
 ;;;Contents: lexer for generic URI grammar
-;;;Date: Wed Jun  2, 2010
+;;;Date: Thu Jun 17, 2010
 ;;;
 ;;;Abstract
 ;;;
@@ -26,86 +26,33 @@
 
 ;;; structural characters
 
-ALPHA			[a-zA-Z]
-DIGIT			[0-9]
-HEXDIG			[0-9a-fA-F]
-LF			\10
-CR			\13
-SP			\32
-DQUOTE			\"
-
-AT			@
 COLON			:
-QUESTION		\?
-SHARP			#
 SLASH			/
-DOUBLE_SLASH		{SLASH}{SLASH}
-OPEN_BRACKET		\[
-CLOSE_BRACKET		\]
-
-pct-encoded		%{HEXDIG}{HEXDIG}
-
-gen-delims		[{COLON}{QUESTION}{SHARP}{SLASH}\[\]@]
-sub-delims		[\!\$&\'()\*\+,\;=]
-
-reserved		{gen-delims}|{sub-delims}
-unreserved		{ALPHA}|{DIGIT}|[\-\._~]
-
-SCHEME_STRING		{ALPHA}({ALPHA}|{DIGIT}|[+\-/.])*
-USERINFO_STRING		({unreserved}|{pct-encoded}|{sub-delims}|:)*
-IPvFuture		[vV]{HEXDIG}\.({unreserved}|{sub-delims}|:)*
+QUESTION		\?
+NUMBER-SIGN		#
+COMPONENT		[^{COLON}{SLASH}{QUESTION}{NUMBER-SIGN}]+
 
 %%
-
-{AT}			(make-<lexical-token> 'AT
-			 (make-<source-location> #f yyline yycolumn yyoffset)
-			 #\@ 1)
 
 {COLON}			(make-<lexical-token> 'COLON
 			 (make-<source-location> #f yyline yycolumn yyoffset)
 			 #\: 1)
 
-{QUESTION}		(make-<lexical-token> 'QUESTION
-			 (make-<source-location> #f yyline yycolumn yyoffset)
-			 #\? 1)
-
-{SHARP}			(make-<lexical-token> 'SHARP
-			 (make-<source-location> #f yyline yycolumn yyoffset)
-			 #\# 1)
-
 {SLASH}			(make-<lexical-token> 'SLASH
 			 (make-<source-location> #f yyline yycolumn yyoffset)
 			 #\/ 1)
 
-{DOUBLE_SLASH}		(make-<lexical-token> 'DOUBLE_SLASH
+{QUESTION}		(make-<lexical-token> 'QUESTION
 			 (make-<source-location> #f yyline yycolumn yyoffset)
-			 "//" 2)
+			 #\? 1)
 
-{OPEN_BRACKET}		(make-<lexical-token> 'OPEN_BRACKE
+{NUMBER-SIGN}		(make-<lexical-token> 'NUMBER-SIGN
 			 (make-<source-location> #f yyline yycolumn yyoffset)
-			 #\] 1)
+			 #\# 1)
 
-{CLOSE_BRACKET}		(make-<lexical-token> 'CLOSE_BRACKET
+{COMPONENT}		(make-<lexical-token> 'COMPONENT
 			 (make-<source-location> #f yyline yycolumn yyoffset)
-			 #\[ 1)
-
-
-{SCHEME_STRING}		(make-<lexical-token> 'SCHEME_STRING
-			 (make-<source-location> #f yyline yycolumn yyoffset)
-			 yytext (string-length yytext))
-
-{USERINFO_STRING}	(make-<lexical-token> 'USERINFO_STRING
-			 (make-<source-location> #f yyline yycolumn yyoffset)
-			 yytext (string-length yytext))
-
-{IPvFuture}		(make-<lexical-token> 'IPVFUTURE_STRING
-			 (make-<source-location> #f yyline yycolumn yyoffset)
-			 yytext (string-length yytext))
-
-;; {NUMBER}		(make-<lexical-token> 'NUMBER
-;; 			 (make-<source-location> #f yyline yycolumn yyoffset)
-;; 			 (string->number yytext) (string-length yytext))
-
+			 yystring (string-length yystring))
 
 <<EOF>>			(make-<lexical-token> '*eoi*
 			 (make-<source-location> #f yyline yycolumn yyoffset)

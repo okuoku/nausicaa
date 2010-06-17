@@ -45,6 +45,56 @@
  (:parser-name		'make-uri-generic-parser)
  (:library-spec		'(uri generic-parser))
 
+ (:terminals		'(COLON SLASH QUESTION NUMBER-SIGN COMPONENT))
+
+ (:rules
+  '((uri
+
+;;;      scheme                   authority       path              query              fragment
+;;;          $1    $2    $3    $4        $5    $6   $7       $8        $9         $10       $11
+     (COMPONENT COLON SLASH SLASH COMPONENT SLASH path QUESTION COMPONENT NUMBER-SIGN COMPONENT)
+     : (values $1 $5 $7 $8 $10)
+
+;;;      scheme                   authority       path              query
+;;;          $1    $2    $3    $4        $5    $6   $7       $8        $9
+     (COMPONENT COLON SLASH SLASH COMPONENT SLASH path QUESTION COMPONENT)
+     : (values $1 $5 $7 $8 #f)
+
+;;;      scheme                   authority       path              fragment
+;;;          $1    $2    $3    $4        $5    $6   $7          $8        $9
+     (COMPONENT COLON SLASH SLASH COMPONENT SLASH path NUMBER-SIGN COMPONENT)
+     : (values $1 $5 $7 #f $9)
+
+;;;      scheme                   authority       path
+;;;          $1    $2    $3    $4        $5    $6   $7
+     (COMPONENT COLON SLASH SLASH COMPONENT SLASH path)
+     : (values $1 $5 $7 #f #f)
+
+;;;      scheme                   authority
+;;;          $1    $2    $3    $4        $5    $6
+     (COMPONENT COLON SLASH SLASH COMPONENT SLASH)
+     : (values $1 $5 #f #f #f)
+
+;;;      scheme                   authority
+;;;          $1    $2    $3    $4        $5
+     (COMPONENT COLON SLASH SLASH COMPONENT)
+     : (values $1 $5 #f #f #f)
+
+
+     )
+
+    (path		(COMPONENT SLASH path)	: (cons $1 $3)
+			(COMPONENT SLASH)	: (list $1)
+			(COMPONENT)		: (list $1))
+    )))
+
+
+#;(lalr-parser
+
+ (:output-file		"generic-parser.sls")
+ (:parser-name		'make-uri-generic-parser)
+ (:library-spec		'(uri generic-parser))
+
  (:terminals		'(AT COLON QUESTION SHARP SLASH DOUBLE_SLASH OPEN_BRACKET CLOSE_BRACKET
 			     SCHEME_STRING USERINFO_STRING IPVFUTURE_STRING))
 
