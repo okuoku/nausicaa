@@ -165,13 +165,13 @@
   #t)
 
 
-(parametrise ((check-test-name	'definition-virtual-class))
+(parametrise ((check-test-name	'definition-foreign-class))
 
 
 ;;; --------------------------------------------------------------------
 ;;; errors
 
-  (check	;attempt to instantiate virtual class
+  (check	;attempt to instantiate foreign class
       (guard (E ((syntax-violation? E)
 ;;;		   (write (condition-message E))(newline)
 ;;;		   (write E)(newline)
@@ -180,13 +180,13 @@
 ;;;		   (write E)(newline)
 		 #f))
 	(eval '(let ()
-		 (define-virtual-class <alpha>
+		 (define-foreign-class <alpha>
 		   (predicate integer?))
 		 (make <alpha>))
 	      (environment '(nausicaa))))
     => #t)
 
-  (check	;attempt to instantiate virtual class
+  (check	;attempt to instantiate foreign class
       (guard (E ((syntax-violation? E)
 ;;;		   (write (condition-message E))(newline)
 ;;;		   (write E)(newline)
@@ -476,11 +476,11 @@
 
 ;;; --------------------------------------------------------------------
 
-  (check	;PUBLIC-PROTOCOL in virtual class definition is bad
+  (check	;PUBLIC-PROTOCOL in foreign class definition is bad
       (guard (E ((syntax-violation? E) #t)
 		(else #f))
 	(eval '(let ()
-		 (define-virtual-class <alpha>
+		 (define-foreign-class <alpha>
 		   (public-protocol (lambda (n) (lambda () (n)))))
 		 #f)
 	      (environment '(nausicaa))))
