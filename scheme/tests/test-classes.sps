@@ -3438,6 +3438,24 @@
 
     #f)
 
+  (let ()	;virtual fields
+
+    (define-label <alpha>
+      (virtual-fields (mutable a)
+		      (immutable b)
+		      (immutable c)))
+
+    (define (<alpha>-a o) 1)
+    (define (<alpha>-b o) 2)
+    (define (<alpha>-c o) 3)
+
+    (check
+	(let/with-class (((o <alpha>) #t))
+	  (list o o.a o.b o.c))
+      => '(#t 1 2 3))
+
+    #f)
+
   (let ()	;methods
 
     (define-label <alpha>
