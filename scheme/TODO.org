@@ -97,7 +97,8 @@
 
 * interp
 
-  Implement the interpreters library.
+  Fix usage of DEFINE-GLOBAL: it must  be possible only at the top level
+  of an evaluated sexp.
 
 * irregex
 
