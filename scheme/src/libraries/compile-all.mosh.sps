@@ -76,8 +76,6 @@
   (only (stacks))
 
   ;;High level libraries
-  (only (libraries))
-
   (only (scmobj))
   (only (scmobj utils))
 
@@ -124,6 +122,7 @@
   (only (uri))
   (only (net ipv6-addresses))
   (only (libraries))
+  (only (interps))
 
   (only (armor conditions))
   (only (armor base16))

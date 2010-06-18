@@ -122,6 +122,7 @@
   (only (uri))
   (only (net ipv6-addresses))
   (only (libraries))
+  (only (interps))
 
   (only (armor conditions))
   (only (armor base16))

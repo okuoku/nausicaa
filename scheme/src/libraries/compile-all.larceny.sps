@@ -403,6 +403,14 @@
 
 ;;; --------------------------------------------------------------------
 
+(%compile-library "interps/variables.sls"
+		  "interps/variables.slfasl")
+
+(%compile-library "interps.sls"
+		  "interps.slfasl")
+
+;;; --------------------------------------------------------------------
+
 (%compile-library "armor/conditions.sls"
 		  "armor/conditions.slfasl")
 
