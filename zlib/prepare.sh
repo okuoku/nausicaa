@@ -22,7 +22,7 @@ set -x
     --disable-larceny                           \
     --enable-mosh                               \
     --enable-vicare                             \
-    --enable-ypsilon                            \
+    --disable-ypsilon                           \
     --enable-doc-ps                             \
     --enable-time-tests                         \
     "$@"
