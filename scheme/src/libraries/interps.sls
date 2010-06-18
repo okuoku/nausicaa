@@ -26,15 +26,31 @@
 
 
 (library (interps)
-  (export <interp>)
+  (export
+
+    &interp-error
+    make-interp-error-condition
+    interp-error-condition?
+    condition-interp-error/interp
+
+    <interp>			<interp>?
+    <interp>-eval
+    <interp>-variable-set!	<interp>-variable-ref
+    )
   (import (nausicaa)
+    (conditions)
     (interps variables)
     (rnrs eval)
     (sentinel))
 
 
+(define-condition &interp-error
+  (parent &error)
+  (fields interp))
+
+
 (define-constant $default-import-specs
-  '((prefix (only (interps variables) define-variable) interps:)))
+  '((only (interps variables) define-variable)))
 
 (define-class <interp>
   (nongenerative nausicaa:interps:<interp>)
@@ -59,23 +75,29 @@
 	(let loop ((i 0) (defs '()))
 	  (if (= i number-of-variables)
 	      (reverse defs)
-	    (loop (+ 1 i) (cons `(define-variable ,(vector-ref keys i) (quote ,(vector-ref vals i)))
+	    (loop (+ 1 i) (cons `(define-global ,(vector-ref keys i) (quote ,(vector-ref vals i)))
 				defs)))))))
 
   (let* ((the-sentinel	(make-sentinel))
 	 (expression	`(call/cc (lambda (eval-kont)
-				    (define-syntax define-variable
+				    (define-syntax define-global
 				      (syntax-rules ()
 					((_ . ?args)
-					 (interps:define-variable eval-kont . ?args))))
+					 (define-variable eval-kont . ?args))))
 				    (let ()
-				      (define interps:define-variable) ;shadows the binding
-				      (let () ;allows redefinition of INTERPS:DEFINE-VARIABLE
+				      (define define-variable) ;shadows the binding
+				      (define eval-kont) ;shadows the binding
+				      (let () ;allows redefinition of bindings
 					,@vars-body
 					(values (quote ,the-sentinel) #f ,body)))))))
-;;;  (write expression)(newline)
     (receive (keyword meta return-value)
-	(eval expression o.eval-environment)
+	(with-exception-handler
+	    (lambda (E)
+	      (if (interp-error-condition? E)
+		  E
+		(raise (condition E (make-interp-error-condition o)))))
+	  (lambda ()
+	    (eval expression o.eval-environment)))
       (if (eq? keyword the-sentinel)
 	  return-value
 	(let ((variable-kont	(car    meta))
@@ -86,13 +108,17 @@
 	      (begin
 		(hashtable-set! o.table-of-variables variable-name variable-value)
 		(variable-kont))
-	    (variable-kont (let* ((default (make-sentinel))
-				  (value   (hashtable-ref o.table-of-variables variable-name default)))
-			     (if (eq? value default)
-				 (error 'interp-eval
-				   "attempt to access subinterpreter unset variable"
-				   o variable-name)
-			       value)))))))))
+	    (variable-kont
+	     (let* ((default (make-sentinel))
+		    (value   (hashtable-ref o.table-of-variables variable-name default)))
+	       (if (eq? value default)
+		   (raise
+		    (condition
+		     (make-who-condition 'interp-eval)
+		     (make-message-condition "attempt to access unset variable in interpreter")
+		     (make-interp-error-condition o)
+		     (make-irritants-condition (list variable-name))))
+		 value)))))))))
 
 
 (define (<interp>-variable-set! (o <interp>) variable-name variable-value)

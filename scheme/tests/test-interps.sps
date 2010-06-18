@@ -25,7 +25,9 @@
 
 
 (import (nausicaa)
+  (rnrs eval)
   (interps)
+  (only (sentinel) sentinel?)
   (checks))
 
 (check-set-mode! 'report-failed)
@@ -60,8 +62,8 @@
       ;;
       (let* (((o <interp>) (make <interp> '((rnrs))))
 	     (return-value (o.eval '(let ()
-				      (define-variable woppa)
-				      (define-variable wippa 456)
+				      (define-global woppa)
+				      (define-global wippa 456)
 				      (set! woppa 123)
 				      (list woppa wippa)))))
 	(list (o.variable-ref 'woppa #f)
@@ -75,7 +77,7 @@
       ;;
       (let (((o <interp>) (make <interp> '((rnrs)))))
 	(o.eval '(let ()
-		   (define-variable woppa 123)
+		   (define-global woppa 123)
 		   #f))
 	(o.eval '(begin woppa)))
     => 123)
@@ -98,6 +100,14 @@
 	(o.eval 'woppa))
     => 123)
 
+  (check
+      ;;Access defined but non-initialised variable.
+      ;;
+      (let (((o <interp>) (make <interp> '((rnrs)))))
+	(o.eval '(let () (define-global ciao) #f))
+	(sentinel? (o.eval 'ciao)))
+    => #t)
+
 ;;; --------------------------------------------------------------------
 ;;; functions
 
@@ -107,7 +117,7 @@
       ;;
       (let (((o <interp>) (make <interp> '((rnrs)))))
 	(o.eval '(let ()
-		   (define-variable (woppa a)
+		   (define-global (woppa a)
 		     (cons 123 a))
 		   #f))
 	(o.eval '(woppa #\b)))
@@ -122,6 +132,10 @@
 				  (cons 123 a)))
 	(o.eval '(woppa #\b)))
     => '(123 . #\b))
+
+;;; --------------------------------------------------------------------
+;;; errors
+
 
   #t)
 
