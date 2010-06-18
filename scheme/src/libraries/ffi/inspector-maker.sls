@@ -155,7 +155,7 @@
 		     ,@$sizeof-lib-exports
 		     ,@$structs-lib-exports)
 		   (import (rnrs)
-		     (only (classes) define-label)
+		     (classes)
 		     (for ,libname-clang-types expand)
 		     (ffi syntax-helpers)
 		     (prefix (ffi pointers)		ffi:)
