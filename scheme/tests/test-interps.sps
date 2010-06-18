@@ -25,9 +25,8 @@
 
 
 (import (nausicaa)
-  (checks)
-  (rnrs eval)
-  (sentinel))
+  (interps)
+  (checks))
 
 (check-set-mode! 'report-failed)
 (display "*** testing interpreters\n")
@@ -36,36 +35,93 @@
 (parametrise ((check-test-name	'basic))
 
   (check
-      (let ((table (make-eq-hashtable))
-	    (result (eval
-		     '(call/cc
-			  (lambda (k)
-			    (define-syntax define
-			      (syntax-rules ()
-				((_ . ?args)
-				 (interps:define-variable k . ?args))))
-			    (define-variable woppa)
-			    (define-variable wippa)
-			    (set! woppa 123)
-			    (set! wippa 456)
-			    (list woppa wippa)))
-		     (environment '(except (rnrs) define)
-				  '(prefix (only (interps variables) define-variable) interps:)
-				  '(sentinel)))))
-	(if (and (list? result)
-		 (sentinel? (car result)))
-	    (let ((kk      (cadr result))
-		  (varname (caddr result))
-		  (value   (cadddr result)))
-	      (if (sentinel? value)
-		  (kk (hashtable-ref table varname sentinel))
-		(begin
-		  (hashtable-set! table varname value)
-		  (kk sentinel))))
-	  (list (hashtable-ref table 'woppa #f)
-		(hashtable-ref table 'wippa #f)
-		result)))
+      (let (((o <interp>) (make <interp> '((rnrs)))))
+	(o.eval '(+ 1 2)))
+    => 3)
+
+  (check
+      (let (((o <interp>) (make <interp> '((rnrs)))))
+	(o.eval '(begin (+ 1 2))))
+    => 3)
+
+  (check
+      (let (((o <interp>) (make <interp> '((rnrs)))))
+	(o.eval '(+ 1 2))
+	(o.eval '(+ 1 4)))
+    => 5)
+
+  #t)
+
+
+(parametrise ((check-test-name	'variables))
+
+  (check
+      ;;Set variables and query their values.
+      ;;
+      (let* (((o <interp>) (make <interp> '((rnrs))))
+	     (return-value (o.eval '(let ()
+				      (define-variable woppa)
+				      (define-variable wippa 456)
+				      (set! woppa 123)
+				      (list woppa wippa)))))
+	(list (o.variable-ref 'woppa #f)
+	      (o.variable-ref 'wippa #f)
+	      return-value))
     => '(123 456 (123 456)))
+
+  (check
+      ;;Set a variable  in one EVAL, retrieve its  value in a subsequent
+      ;;EVAL.
+      ;;
+      (let (((o <interp>) (make <interp> '((rnrs)))))
+	(o.eval '(let ()
+		   (define-variable woppa 123)
+		   #f))
+	(o.eval '(begin woppa)))
+    => 123)
+
+  (check
+      ;;Predefine  a variable  and retrieve  its value  in  a subsequent
+      ;;EVAL.
+      ;;
+      (let (((o <interp>) (make <interp> '((rnrs)))))
+	(o.variable-set! 'woppa 123)
+	(o.eval '(begin woppa)))
+    => 123)
+
+  (check
+      ;;Predefine  a variable  and retrieve  its value  in  a subsequent
+      ;;EVAL.
+      ;;
+      (let (((o <interp>) (make <interp> '((rnrs)))))
+	(o.variable-set! 'woppa 123)
+	(o.eval 'woppa))
+    => 123)
+
+;;; --------------------------------------------------------------------
+;;; functions
+
+  (check
+      ;;Set a variable  in one EVAL, retrieve its  value in a subsequent
+      ;;EVAL.
+      ;;
+      (let (((o <interp>) (make <interp> '((rnrs)))))
+	(o.eval '(let ()
+		   (define-variable (woppa a)
+		     (cons 123 a))
+		   #f))
+	(o.eval '(woppa #\b)))
+    => '(123 . #\b))
+
+  (check
+      ;;Predefine  a variable  and retrieve  its value  in  a subsequent
+      ;;EVAL.
+      ;;
+      (let (((o <interp>) (make <interp> '((rnrs)))))
+	(o.variable-set! 'woppa (lambda (a)
+				  (cons 123 a)))
+	(o.eval '(woppa #\b)))
+    => '(123 . #\b))
 
   #t)
 

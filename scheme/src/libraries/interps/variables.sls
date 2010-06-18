@@ -35,23 +35,27 @@
   (lambda (stx)
     (syntax-case stx ()
 
-      ((_ ?variable)
-       (syntax (define-variable ?variable sentinel)))
+      ((?keyword ?eval-kont ?variable)
+       #'(?keyword ?eval-kont ?variable sentinel))
 
-      ((_ ?variable ?expression)
-       #'(define-syntax ?variable
-	   (identifier-syntax
-	    (_
-	     (call/cc (lambda (kk)
-			(k (list sentinel kk (quote ?variable) sentinel)))))
-	    ((set! _ ?e)
-	     (call/cc (lambda (kk)
-			(k (list sentinel kk (quote ?variable) ?e))))))))
+      ((?keyword ?eval-kont (?variable . ?formals) . ?body)
+       #'(?keyword ?eval-kont ?variable (lambda ?formals . ?body)))
 
-       ((_ (?variable . ?formals) . ?body)
-	)
-
-       ))))
+      ((_ ?eval-kont ?variable ?expression)
+       #'(begin
+	   (define-syntax ?variable
+	     (identifier-syntax
+	      (_
+	       (call/cc (lambda (identifier-accessor-kont)
+			  (?eval-kont #f (list identifier-accessor-kont '?variable #f #f) #f))))
+	      ((set! _ ?e)
+	       (call/cc (lambda (identifier-mutator-kont)
+			  (?eval-kont #f (list identifier-mutator-kont  '?variable #t ?e) #f))))))
+	   (define dummy
+	     (begin
+	       (set! ?variable ?expression)
+	       #f))))
+      )))
 
 
 ;;;; done
