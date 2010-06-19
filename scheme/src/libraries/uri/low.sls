@@ -34,9 +34,123 @@
     ;; percent character encoding/decoding
     unreserved-char?
     percent-encode			percent-decode
-    normalise-percent-encoded-string	normalise-percent-encoded-bytevector)
+    normalise-percent-encoded-string	normalise-percent-encoded-bytevector
+
+    ;; parser functions
+    parse-scheme	parse-hier-part
+    valid-segment?
+    )
   (import (nausicaa)
     (rnrs mutable-strings))
+
+
+;;;; constants
+
+(define-constant $int-a		(char->integer #\a))
+(define-constant $int-f		(char->integer #\f))
+(define-constant $int-z		(char->integer #\z))
+(define-constant $int-A		(char->integer #\A))
+(define-constant $int-F		(char->integer #\F))
+(define-constant $int-Z		(char->integer #\Z))
+(define-constant $int-0		(char->integer #\0))
+(define-constant $int-9		(char->integer #\9))
+
+(define-constant $int-percent		(char->integer #\%))
+(define-constant $int-minus		(char->integer #\-))
+
+;; gen-delims
+(define-constant $int-colon		(char->integer #\:))
+(define-constant $int-slash		(char->integer #\/))
+(define-constant $int-question		(char->integer #\?))
+(define-constant $int-number-sign	(char->integer #\#))
+(define-constant $int-open-bracket	(char->integer #\[))
+(define-constant $int-close-bracket	(char->integer #\]))
+(define-constant $int-at-sign		(char->integer #\@))
+
+;; (define-constant $gen-delims
+;;   (list $int-colon		$int-slash
+;; 	$int-question		$int-number-sign
+;; 	$int-open-bracket	$int-close-bracket
+;; 	$int-at-sign))
+
+;; sub-delims
+(define-constant $int-bang		(char->integer #\!))
+(define-constant $int-dollar		(char->integer #\$))
+(define-constant $int-ampersand		(char->integer #\&))
+(define-constant $int-quote		(char->integer #\'))
+(define-constant $int-open-paren	(char->integer #\())
+(define-constant $int-close-paren	(char->integer #\)))
+(define-constant $int-star		(char->integer #\*))
+(define-constant $int-plus		(char->integer #\+))
+(define-constant $int-comma		(char->integer #\,))
+(define-constant $int-semicolon		(char->integer #\;))
+(define-constant $int-equal		(char->integer #\=))
+
+;; (define-constant $sub-delims
+;;   (list $int-bang		$int-dollar
+;; 	$int-ampersand		$int-quote
+;; 	$int-open-paren		$int-close-paren
+;; 	$int-star		$int-plus
+;; 	$int-comma		$int-semicolon
+;; 	$int-equal))
+
+;; unreserved
+(define-constant $int-dash		(char->integer #\-))
+(define-constant $int-dot		(char->integer #\.))
+(define-constant $int-underscore	(char->integer #\_))
+(define-constant $int-tilde		(char->integer #\~))
+
+
+;;;; char integer predicates
+
+(define-inline (is-alpha? chi)
+  (or (<= $int-A chi $int-Z)
+      (<= $int-a chi $int-z)))
+
+(define-inline (is-dec-digit? chi)
+  (<= $int-0 chi $int-9))
+
+(define-inline (is-hex-digit? chi)
+  (or (is-dec-digit? chi)
+      (<= $int-A chi $int-F)
+      (<= $int-a chi $int-f)))
+
+(define-inline (is-alpha-digit? chi)
+  (or (is-alpha? chi)
+      (is-dec-digit? chi)))
+
+(define-inline (is-gen-delim? chi)
+  (or (= chi $int-colon)
+      (= chi $int-slash)
+      (= chi $int-question)
+      (= chi $int-number-sign)
+      (= chi $int-open-bracket)
+      (= chi $int-close-bracket)
+      (= chi $int-at-sign)))
+
+(define-inline (is-sub-delim? chi)
+  (or (= chi $int-bang)
+      (= chi $int-dollar)
+      (= chi $int-ampersand)
+      (= chi $int-quote)
+      (= chi $int-open-paren)
+      (= chi $int-close-paren)
+      (= chi $int-star)
+      (= chi $int-plus)
+      (= chi $int-comma)
+      (= chi $int-semicolon)
+      (= chi $int-equal)))
+
+(define-inline (is-reserved? chi)
+  (or (is-gen-delim? chi)
+      (is-sub-delim? chi)))
+
+(define-inline (is-unreserved? chi)
+  (or (is-alpha-digit? chi)
+      (= chi $int-dash)
+      (= chi $int-dot)
+      (= chi $int-underscore)
+      (= chi $int-tilde)))
 
 
 ;;;; plain string <-> bytevector conversion
@@ -70,18 +184,6 @@
 
 ;;;; percent encoding/decoding
 
-(define-constant $int-%		(char->integer #\%))
-(define-constant $int-a		(char->integer #\a))
-(define-constant $int-z		(char->integer #\z))
-(define-constant $int-A		(char->integer #\A))
-(define-constant $int-Z		(char->integer #\Z))
-(define-constant $int-0		(char->integer #\0))
-(define-constant $int-9		(char->integer #\9))
-(define-constant $int-dash	(char->integer #\-))
-(define-constant $int-dot	(char->integer #\.))
-(define-constant $int-underscore(char->integer #\_))
-(define-constant $int-tilde	(char->integer #\~))
-
 (define-constant $percent-encoder-table
   (list->vector
    (map to-bytevector
@@ -113,14 +215,7 @@
 		    obj)
 		   (else
 		    #f))))
-    (and obj
-	 (or (<= $int-a chi $int-z)
-	     (<= $int-A chi $int-Z)
-	     (<= $int-0 chi $int-9)
-	     (= chi $int-dash)
-	     (= chi $int-dot)
-	     (= chi $int-underscore)
-	     (= chi $int-tilde)))))
+    (and chi (is-unreserved? chi))))
 
 (define (not-unreserved-char? obj)
   (not (unreserved-char? obj)))
@@ -179,7 +274,7 @@
 		(to-string (getter))
 	      (getter))
 	  (let ((chi (bytevector-u8-ref bv i)))
-	    (put-u8 port (if (= chi $int-%)
+	    (put-u8 port (if (= chi $int-percent)
 			     (begin
 			       (incr! i)
 			       (string-set! buf 0 (integer->char (bytevector-u8-ref bv i)))
@@ -230,7 +325,7 @@
 	((= i len)
 	 (getter))
       (let ((chi (bytevector-u8-ref in-bv i)))
-	(if (= chi $int-%)
+	(if (= chi $int-percent)
 	    (begin
 	      (incr! i)
 	      (string-set! buf 0 (integer->char (bytevector-u8-ref in-bv i)))
@@ -240,9 +335,107 @@
 		(if (unreserved-char? chi)
 		    (put-u8 port chi)
 		  (begin
-		    (put-u8 port $int-%)
+		    (put-u8 port $int-percent)
 		    (put-bytevector port in-bv (- i 1) 2)))))
 	  (put-u8 port chi))))))
+
+
+;;;; element parsers
+
+(define (parse-scheme in-port)
+  ;;Accumulate bytes from IN-PORT while  they are valid for a scheme URI
+  ;;element.   If a  colon is  found:  return a  bytevector holding  the
+  ;;accumulated bytes, colon excluded; else return false.
+  ;;
+  (receive (ou-port getter)
+      (open-bytevector-output-port)
+    (let ((chi (get-u8 in-port)))
+      (cond ((eof-object? chi)
+	     #f)
+	    ((is-alpha-digit? chi)
+	     (put-u8 ou-port chi)
+	     (let loop ((chi (get-u8 in-port)))
+	       (if (eof-object? chi)
+		   #f
+		 (cond ((or (is-alpha-digit? chi)
+			    (= chi $int-plus)
+			    (= chi $int-minus)
+			    (= chi $int-dot))
+			(put-u8 ou-port chi)
+			(loop (get-u8 in-port)))
+		       ((= chi $int-colon)
+			(getter))
+		       (else
+			#f)))))
+	    (else #f)))))
+
+(define (parse-hier-part in-port)
+  ;;Accumulate bytes from  IN-PORT while they are valid  for a hier-part
+  ;;URI segment.  If a EOF or a question mark or a number sign is found:
+  ;;return a bytevector holding  the accumulated bytes, question mark or
+  ;;number sign excluded; else return false.  Leave the port position to
+  ;;the byte after the last byte of the hier-part.
+  ;;
+  ;;An empty hier-part is not accepted: if the first value from the port
+  ;;is EOF, the return value is false.
+  ;;
+  (receive (ou-port getter)
+      (open-bytevector-output-port)
+    (let ((chi (get-u8 in-port)))
+      (if (eof-object? chi)
+	  #f ;forbid empty hier-part
+	(begin
+	  (put-u8 ou-port chi)
+	  (let loop ((chi (get-u8 in-port)))
+	    (cond ((eof-object? chi)
+		   (getter))
+		  ((or (= chi $int-question)
+		       (= chi $int-number-sign))
+		   (set-port-position! in-port (- (port-position in-port) 1))
+		   (getter))
+		  (else
+		   (put-u8 ou-port chi)
+		   (loop (get-u8 in-port))))))))))
+
+(define (valid-segment? port)
+  ;;Scan bytes  from PORT until  EOF is found;  return true if  the read
+  ;;bytes are valid for a segment, false otherwise.  Ensure that:
+  ;;
+  ;;*  A percent  character is  followed by  two bytes  representing hex
+  ;;digits.
+  ;;
+  ;;*  All the  non  percent-encoded  bytes are  in  the unreserved  set
+  ;;defined by RFC 3986.
+  ;;
+  (let ((start-position (port-position port)))
+    (dynamic-wind
+	(lambda () #f)
+	(lambda ()
+	  (define-inline (return bool)
+	    (values bool (port-position port)))
+	  (let loop ((chi (get-u8 port)))
+	    (cond ((eof-object? chi)
+		   (return #t))
+		  ((= chi $int-percent)
+		   (let ((chi1 (get-u8 port)))
+		     (cond ((eof-object? chi1)
+			    (return #f))
+			   ((is-hex-digit? chi1)
+			    (let ((chi2 (get-u8 port)))
+			      (cond ((eof-object? chi2)
+				     (return #f))
+				    ((is-hex-digit? chi2)
+				     (loop (get-u8 port)))
+				    (else
+				     (return #f)))))
+			   (else
+			    (return #f)))))
+		  ((is-unreserved? chi)
+		   (loop (get-u8 port)))
+		  (else
+		   (return #f)))))
+	(lambda ()
+	  (set-port-position! port start-position)))))
 
 
 ;;;; done

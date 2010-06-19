@@ -175,6 +175,85 @@
   #t)
 
 
+(parametrise ((check-test-name	'parsing))
+
+  (define (make-lexer-port obj)
+    (cond ((string? obj)
+	   (open-bytevector-input-port (uri:to-bytevector obj)))
+	  ((bytevector? obj)
+	   (open-bytevector-input-port obj))
+	  (else
+	   #f)))
+
+  (define uri
+    (uri:to-bytevector "http://www.spiffy.org/the/path/name?question%3danswer#anchor-point"))
+
+;;; --------------------------------------------------------------------
+;;; valid segment
+
+  (let-syntax ((doit	(syntax-rules ()
+			  ((_ ?expected ?input)
+			   (check
+			       (receive (bool pos)
+				   (uri:valid-segment? (make-lexer-port ?input))
+				 (list bool pos))
+			     => ?expected)))))
+
+    (doit '(#t  4) "ciao")
+    (doit '(#t  4) "ciao")
+    (doit '(#t  3) "%3d")
+    (doit '(#t  9) "%3d%3d%3d")
+    (doit '(#t 11) "ciao%3dciao")
+    (doit '(#f  1) "?")
+    (doit '(#f  5) "ciao?")
+
+    )
+
+;;; --------------------------------------------------------------------
+;;; scheme
+
+  (check
+      (uri:to-string (uri:parse-scheme (make-lexer-port "http://ciao")))
+    => "http")
+
+  (check
+      (uri:parse-scheme (make-lexer-port ""))
+    => #f)
+
+  (check
+      (uri:parse-scheme (make-lexer-port "hello"))
+    => #f)
+
+  (check
+      (uri:parse-scheme (make-lexer-port "hel/lo:"))
+    => #f)
+
+;;; --------------------------------------------------------------------
+;;; hier-part
+
+  (check
+      (uri:parse-hier-part (make-lexer-port ""))
+    => #f)
+
+  (check
+      (uri:to-string (uri:parse-hier-part (make-lexer-port "//ciao")))
+    => "//ciao")
+
+  (check
+      (let* ((p (make-lexer-port "//ciao?query"))
+  	     (r (uri:to-string (uri:parse-hier-part p))))
+  	(list r (get-u8 p)))
+    => `("//ciao" ,(char->integer #\?)))
+
+  (check
+      (let* ((p (make-lexer-port "//ciao#fragment"))
+  	     (r (uri:to-string (uri:parse-hier-part p))))
+  	(list r (get-u8 p)))
+    => `("//ciao" ,(char->integer #\#)))
+
+  #t)
+
+
 (parametrise ((check-test-name	'class-output))
 
   (define scheme	(string->utf8 "http"))

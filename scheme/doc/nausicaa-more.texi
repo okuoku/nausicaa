@@ -229,6 +229,10 @@ Revised^6 Report on the algorithmic language Scheme
 @code{#:\NAME\}
 @end macro
 
+@macro eof{}
+@acronym{EOF}
+@end macro
+
 @c ------------------------------------------------------------
 @c C language macros.
 @c ------------------------------------------------------------
@@ -666,6 +670,7 @@ List library
 * lists circ::                  Circular lists.
 * lists set::                   Set operations on lists.
 * lists low::                   Low level utilities.
+* lists class::                 Class interface.
 
 Fold, unfold and map
 
@@ -1303,16 +1308,39 @@ Error handlers and condition objects
 
 Network--related libraries
 
+* net ipv4address::             IPv4 address objects.
 * net ipv6address::             IPv6 address objects.
+
+Ipv4 address objects
+
+* net ipv4address lexer::       Tokenising an IPv4 address.
+* net ipv4address parser::      Parsing an IPv4 address.
+* net ipv4address errors::      Condition objects and error handlers.
+* net ipv4address class::       IPv4 address and address prefix
+                                class objects.
 
 IPv6 address objects
 
 * net ipv6address lexer::       Tokenising an IPv6 address.
 * net ipv6address parser::      Parsing an IPv6 address.
+* net ipv6address utilities::   IPv6 address parsing utilities.
+* net ipv6address errors::      Condition objects and error handlers.
+* net ipv6address class::       IPv6 address and address prefix
+                                class objects.
 
 Uniform resource identifiers
 
+* uri string::                  Plain conversion between strings
+                                and bytevectors.
 * uri percent::                 Percent encoding of characters.
+* uri parser::                  @uri{} parser functions.
+
+Evaluating code in a limited environment
+
+* interps conditions::          Errors in limited evaluation.
+* interps class::               Interpreter objects.
+* interps eval::                Semantics of code evaluation.
+* interps examples::            Interpreter user examples.
 
 Libraries inspection
 
@@ -35936,6 +35964,7 @@ Jun 17, 2010:
 * uri string::                  Plain conversion between strings
                                 and bytevectors.
 * uri percent::                 Percent encoding of characters.
+* uri parser::                  @uri{} parser functions.
 @end menu
 
 @c page
@@ -36067,6 +36096,62 @@ but should not are decoded; return the normalised string.  Assume that
 Notice that this function does @strong{not} percent--encode characters
 which are already not so.
 @end defun
+
+@c page
+@node uri parser
+@section @uri{} parser functions
+
+
+The following bindings are exported by the @library{uri low} library; it
+is suggested to prefix them when importing this library.  The functions
+can be used to parse the elements of an @uri{}; all the functions accept
+a @var{port} argument: it must be a binary input port drawing characters
+from an @uri{} bytevector.
+
+
+@defun valid-segment? @var{port}
+Scan bytes from @var{port} until @eof{} is found; return two values: a
+boolean, true if the read bytes are valid for a segment, false
+otherwise; an exact integer representing the port position of last byte
+read from the port.  The port position is left unchanged when this
+function returns.
+
+Ensure that:
+
+@itemize
+@item
+A byte representing the percent character in @ascii{} encoding is
+followed by two bytes representing hexadecimal digits in @ascii{}
+encoding.
+
+@item
+All the non percent--encoded bytes are in the unreserved set defined by
+@rfc{} 3986.
+@end itemize
+@end defun
+
+
+@defun parse-scheme @var{port}
+Accumulate bytes from @var{port} while they are valid for the
+@code{scheme} segment of an @uri{}.  If a colon is found: return a
+bytevector holding the accumulated bytes, colon excluded; else return
+false.
+@end defun
+
+
+@defun parse-hier-part @var{port}
+Accumulate bytes from @var{port} while they are valid for a
+@code{hier-part} @uri{} segment.  If an @eof{} or a question mark or a
+number sign is found: return a bytevector holding the accumulated bytes,
+question mark or number sign excluded; else return false.
+
+Leave the port position to the byte after the last byte of the
+@code{hier-part}.  An empty @code{hier-part} is not accepted: if the
+first value from the port is @eof{}, the return value is false.
+
+No validation is performed on the returned bytevector.
+@end defun
+
 
 @c page
 @node interps
