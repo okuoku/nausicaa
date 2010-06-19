@@ -38,6 +38,7 @@
 
     ;; parser functions
     parse-scheme	parse-hier-part
+    parse-query		parse-fragment
     valid-segment?
     )
   (import (nausicaa)
@@ -61,17 +62,11 @@
 ;; gen-delims
 (define-constant $int-colon		(char->integer #\:))
 (define-constant $int-slash		(char->integer #\/))
-(define-constant $int-question		(char->integer #\?))
+(define-constant $int-question-mark	(char->integer #\?))
 (define-constant $int-number-sign	(char->integer #\#))
 (define-constant $int-open-bracket	(char->integer #\[))
 (define-constant $int-close-bracket	(char->integer #\]))
 (define-constant $int-at-sign		(char->integer #\@))
-
-;; (define-constant $gen-delims
-;;   (list $int-colon		$int-slash
-;; 	$int-question		$int-number-sign
-;; 	$int-open-bracket	$int-close-bracket
-;; 	$int-at-sign))
 
 ;; sub-delims
 (define-constant $int-bang		(char->integer #\!))
@@ -85,14 +80,6 @@
 (define-constant $int-comma		(char->integer #\,))
 (define-constant $int-semicolon		(char->integer #\;))
 (define-constant $int-equal		(char->integer #\=))
-
-;; (define-constant $sub-delims
-;;   (list $int-bang		$int-dollar
-;; 	$int-ampersand		$int-quote
-;; 	$int-open-paren		$int-close-paren
-;; 	$int-star		$int-plus
-;; 	$int-comma		$int-semicolon
-;; 	$int-equal))
 
 ;; unreserved
 (define-constant $int-dash		(char->integer #\-))
@@ -122,7 +109,7 @@
 (define-inline (is-gen-delim? chi)
   (or (= chi $int-colon)
       (= chi $int-slash)
-      (= chi $int-question)
+      (= chi $int-question-mark)
       (= chi $int-number-sign)
       (= chi $int-open-bracket)
       (= chi $int-close-bracket)
@@ -347,27 +334,39 @@
   ;;element.   If a  colon is  found:  return a  bytevector holding  the
   ;;accumulated bytes, colon excluded; else return false.
   ;;
-  (receive (ou-port getter)
-      (open-bytevector-output-port)
-    (let ((chi (get-u8 in-port)))
-      (cond ((eof-object? chi)
-	     #f)
-	    ((is-alpha-digit? chi)
-	     (put-u8 ou-port chi)
-	     (let loop ((chi (get-u8 in-port)))
-	       (if (eof-object? chi)
-		   #f
-		 (cond ((or (is-alpha-digit? chi)
-			    (= chi $int-plus)
-			    (= chi $int-minus)
-			    (= chi $int-dot))
-			(put-u8 ou-port chi)
-			(loop (get-u8 in-port)))
-		       ((= chi $int-colon)
-			(getter))
-		       (else
-			#f)))))
-	    (else #f)))))
+  ;;When successful: leave  the port position to the  byte after the one
+  ;;representing the colon; if an error occurs: rewind the port position
+  ;;to the one before this function call.
+  ;;
+  (let ((start-position (port-position in-port)))
+    (define-inline (set-position-start!)
+      (set-port-position! in-port start-position))
+    (define-inline (return-failure)
+      (begin
+	(set-position-start!)
+	#f))
+    (receive (ou-port getter)
+	(open-bytevector-output-port)
+      (let ((chi (get-u8 in-port)))
+	(cond ((eof-object? chi)
+	       #f)
+	      ((is-alpha-digit? chi)
+	       (put-u8 ou-port chi)
+	       (let loop ((chi (get-u8 in-port)))
+		 (if (eof-object? chi)
+		     (return-failure)
+		   (cond ((or (is-alpha-digit? chi)
+			      (= chi $int-plus)
+			      (= chi $int-minus)
+			      (= chi $int-dot))
+			  (put-u8 ou-port chi)
+			  (loop (get-u8 in-port)))
+			 ((= chi $int-colon)
+			  (getter))
+			 (else
+			  (return-failure))))))
+	      (else
+	       (return-failure)))))))
 
 (define (parse-hier-part in-port)
   ;;Accumulate bytes from  IN-PORT while they are valid  for a hier-part
@@ -379,6 +378,8 @@
   ;;An empty hier-part is not accepted: if the first value from the port
   ;;is EOF, the return value is false.
   ;;
+  (define-inline (set-position-back-one!)
+    (set-port-position! in-port (- (port-position in-port) 1)))
   (receive (ou-port getter)
       (open-bytevector-output-port)
     (let ((chi (get-u8 in-port)))
@@ -389,13 +390,139 @@
 	  (let loop ((chi (get-u8 in-port)))
 	    (cond ((eof-object? chi)
 		   (getter))
-		  ((or (= chi $int-question)
+		  ((or (= chi $int-question-mark)
 		       (= chi $int-number-sign))
-		   (set-port-position! in-port (- (port-position in-port) 1))
+		   (set-position-back-one!)
 		   (getter))
 		  (else
 		   (put-u8 ou-port chi)
 		   (loop (get-u8 in-port))))))))))
+
+(define (parse-query in-port)
+  ;;Accumulate bytes from  IN-PORT while they are valid  for a query URI
+  ;;segment; the first  byte read from IN-PORT must  be a question mark.
+  ;;If an EOF or a number  sign is read: return a bytevector holding the
+  ;;accumulated bytes, starting question mark excluded and ending number
+  ;;sign excluded; else return false.
+  ;;
+  ;;If successful:  leave the port position  to the byte  after the last
+  ;;byte  of the  query segment;  if an  error occurs:  rewind  the port
+  ;;position to the one before this function call.
+  ;;
+  ;;Notice  that  an empty  query  segment  is  valid (a  question  mark
+  ;;followed by EOF).
+  ;;
+  (let ((start-position (port-position in-port)))
+    (define-inline (set-position-start!)
+      (set-port-position! in-port start-position))
+    (define-inline (set-position-back-one!)
+      (set-port-position! in-port (- (port-position in-port) 1)))
+    (define-inline (return-failure)
+      (begin
+	(set-position-start!)
+	#f))
+    (let ((chi (get-u8 in-port)))
+      (cond ((eof-object? chi)
+	     #f)
+	    ((= chi $int-question-mark)
+	     (receive (ou-port getter)
+		 (open-bytevector-output-port)
+	       (let loop ((chi (get-u8 in-port)))
+		 (cond ((eof-object? chi)
+			(getter))
+		       ((= chi $int-number-sign)
+			(set-position-back-one!)
+			(getter))
+		       ((or (is-unreserved? chi)
+			    (is-sub-delim? chi)
+			    (= chi $int-slash)
+			    (= chi $int-question-mark)
+			    (= chi $int-colon)
+			    (= chi $int-at-sign))
+			(put-u8 ou-port chi)
+			(loop (get-u8 in-port)))
+		       ((= chi $int-percent)
+			(let ((chi1 (get-u8 in-port)))
+			  (cond ((eof-object? chi1)
+				 (return-failure))
+				((is-hex-digit? chi1)
+				 (let ((chi2 (get-u8 in-port)))
+				   (cond ((eof-object? chi2)
+					  (return-failure))
+					 ((is-hex-digit? chi2)
+					  (put-u8 ou-port $int-percent)
+					  (put-u8 ou-port chi1)
+					  (put-u8 ou-port chi2)
+					  (loop (get-u8 in-port)))
+					 (else
+					  (return-failure)))))
+				(else
+				 (return-failure)))))
+		       (else
+			(return-failure))))))
+	     (else ;does not start with a question mark
+	      (return-failure))))))
+
+(define (parse-fragment in-port)
+  ;;Accumulate bytes  from IN-PORT while  they are valid for  a fragment
+  ;;URI segment; the first byte read from IN-PORT must be a number sign.
+  ;;If  an EOF  is read:  return  a bytevector  holding the  accumulated
+  ;;bytes, starting number sign excluded; else return false.
+  ;;
+  ;;If successful:  leave the port position  to the byte  after the last
+  ;;byte of  the fragment segment; if  an error occurs:  rewind the port
+  ;;position to the one before this function call.
+  ;;
+  ;;Notice  that an  empty  fragment  segment is  valid  (a number  sign
+  ;;followed by EOF).
+  ;;
+  (let ((start-position (port-position in-port)))
+    (define-inline (set-position-start!)
+      (set-port-position! in-port start-position))
+    (define-inline (set-position-back-one!)
+      (set-port-position! in-port (- (port-position in-port) 1)))
+    (define-inline (return-failure)
+      (begin
+	(set-position-start!)
+	#f))
+    (let ((chi (get-u8 in-port)))
+      (cond ((eof-object? chi)
+	     #f)
+	    ((= chi $int-number-sign)
+	     (receive (ou-port getter)
+		 (open-bytevector-output-port)
+	       (let loop ((chi (get-u8 in-port)))
+		 (cond ((eof-object? chi)
+			(getter))
+		       ((or (is-unreserved? chi)
+			    (is-sub-delim? chi)
+			    (= chi $int-slash)
+			    (= chi $int-question-mark)
+			    (= chi $int-colon)
+			    (= chi $int-at-sign))
+			(put-u8 ou-port chi)
+			(loop (get-u8 in-port)))
+		       ((= chi $int-percent)
+			(let ((chi1 (get-u8 in-port)))
+			  (cond ((eof-object? chi1)
+				 (return-failure))
+				((is-hex-digit? chi1)
+				 (let ((chi2 (get-u8 in-port)))
+				   (cond ((eof-object? chi2)
+					  (return-failure))
+					 ((is-hex-digit? chi2)
+					  (put-u8 ou-port $int-percent)
+					  (put-u8 ou-port chi1)
+					  (put-u8 ou-port chi2)
+					  (loop (get-u8 in-port)))
+					 (else
+					  (return-failure)))))
+				(else
+				 (return-failure)))))
+		       (else
+			(return-failure))))))
+	     (else ;does not start with a number sign
+	      (return-failure))))))
 
 (define (valid-segment? port)
   ;;Scan bytes  from PORT until  EOF is found;  return true if  the read

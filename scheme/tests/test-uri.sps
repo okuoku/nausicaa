@@ -251,6 +251,64 @@
   	(list r (get-u8 p)))
     => `("//ciao" ,(char->integer #\#)))
 
+;;; --------------------------------------------------------------------
+;;; query
+
+  (check
+      (uri:to-string (uri:parse-query (make-lexer-port "?the-query???")))
+    => "the-query???")
+
+  (check
+      (uri:to-string (uri:parse-query (make-lexer-port "?ciao%3dciao#fragment")))
+    => "ciao%3dciao")
+
+  (check
+      (uri:to-string (uri:parse-query (make-lexer-port "?")))
+    => "")
+
+  (check
+      (uri:parse-query (make-lexer-port ""))
+    => #f)
+
+  (check
+      (uri:parse-query (make-lexer-port "hello"))
+    => #f)
+
+  (check
+      (uri:parse-query (make-lexer-port "#hello"))
+    => #f)
+
+;;; --------------------------------------------------------------------
+;;; fragment
+
+  (check
+      (uri:to-string (uri:parse-fragment (make-lexer-port "#the-fragment???")))
+    => "the-fragment???")
+
+  (check
+      (uri:to-string (uri:parse-fragment (make-lexer-port "#ciao%3dciao")))
+    => "ciao%3dciao")
+
+  (check
+      (uri:to-string (uri:parse-fragment (make-lexer-port "#")))
+    => "")
+
+  (check
+      (uri:parse-fragment (make-lexer-port ""))
+    => #f)
+
+  (check
+      (uri:parse-fragment (make-lexer-port "#hello#"))
+    => #f)
+
+  (check
+      (uri:parse-fragment (make-lexer-port "hello"))
+    => #f)
+
+  (check
+      (uri:parse-fragment (make-lexer-port "?hello"))
+    => #f)
+
   #t)
 
 
