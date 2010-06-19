@@ -42,7 +42,7 @@
   (define-syntax define-auxiliary-syntax
     (syntax-rules ()
       ((_ ?name)
-       (define-syntax ?name (identifier-syntax #f)))))
+       (define-syntax ?name (syntax-rules ())))))
 
   (define-auxiliary-syntax parent)
   (define-auxiliary-syntax sealed)
