@@ -309,6 +309,80 @@
       (uri:parse-fragment (make-lexer-port "?hello"))
     => #f)
 
+;;; --------------------------------------------------------------------
+;;; userinfo
+
+  (check
+      (uri:to-string (uri:parse-userinfo (make-lexer-port "the-userinfo@")))
+    => "the-userinfo")
+
+  (check
+      (uri:to-string (uri:parse-userinfo (make-lexer-port "ciao%3dciao@")))
+    => "ciao%3dciao")
+
+  (check
+      (uri:to-string (uri:parse-userinfo (make-lexer-port "@")))
+    => "")
+
+  (check
+      (uri:parse-userinfo (make-lexer-port ""))
+    => #f)
+
+  (check
+      (uri:parse-userinfo (make-lexer-port "#hello#"))
+    => #f)
+
+  (check
+      (uri:parse-userinfo (make-lexer-port "hello"))
+    => #f)
+
+  (check
+      (uri:parse-userinfo (make-lexer-port "?hello"))
+    => #f)
+
+;;; --------------------------------------------------------------------
+;;; reg-name
+
+  (check
+      (uri:to-string (uri:parse-reg-name (make-lexer-port "the-reg-name")))
+    => "the-reg-name")
+
+  (check
+      (uri:to-string (uri:parse-reg-name (make-lexer-port "ciao%3dciao")))
+    => "ciao%3dciao")
+
+  (check
+      (uri:to-string (uri:parse-reg-name (make-lexer-port "the-reg-name:80")))
+    => "the-reg-name")
+
+  (check
+      (uri:to-string (uri:parse-reg-name (make-lexer-port "the-reg-name/ciao")))
+    => "the-reg-name")
+
+  (check
+      (uri:to-string (uri:parse-reg-name (make-lexer-port ":80")))
+    => "")
+
+  (check
+      (uri:to-string (uri:parse-reg-name (make-lexer-port "/ciao")))
+    => "")
+
+  (check
+      (uri:to-string (uri:parse-reg-name (make-lexer-port "")))
+    => "")
+
+  (check
+      (uri:parse-reg-name (make-lexer-port "#hello#"))
+    => #f)
+
+  (check
+      (uri:to-string (uri:parse-reg-name (make-lexer-port "hello")))
+    => "hello")
+
+  (check
+      (uri:parse-reg-name (make-lexer-port "?hello"))
+    => #f)
+
   #t)
 
 

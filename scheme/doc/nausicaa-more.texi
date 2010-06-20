@@ -1330,6 +1330,7 @@ IPv6 address objects
 
 Uniform resource identifiers
 
+* uri intro::                   Introduction to @uri{} elements.
 * uri string::                  Plain conversion between strings
                                 and bytevectors.
 * uri percent::                 Percent encoding of characters.
@@ -35961,11 +35962,103 @@ Jun 17, 2010:
 }
 
 @menu
+* uri intro::                   Introduction to @uri{} elements.
 * uri string::                  Plain conversion between strings
                                 and bytevectors.
 * uri percent::                 Percent encoding of characters.
 * uri parser::                  @uri{} parser functions.
 @end menu
+
+@c page
+@node uri intro
+@section Introduction to @uri{} elements
+
+
+@rfc{} 3986 defines the following @uri{} grammar (from ``Appendix A''):
+
+@example
+URI           = scheme ":" hier-part [ "?" query ] [ "#" fragment ]
+
+hier-part     = "//" authority path-abempty
+              / path-absolute
+              / path-rootless
+              / path-empty
+
+URI-reference = URI / relative-ref
+
+absolute-URI  = scheme ":" hier-part [ "?" query ]
+
+relative-ref  = relative-part [ "?" query ] [ "#" fragment ]
+
+relative-part = "//" authority path-abempty
+              / path-absolute
+              / path-noscheme
+              / path-empty
+
+scheme        = ALPHA *( ALPHA / DIGIT / "+" / "-" / "." )
+
+authority     = [ userinfo "@@" ] host [ ":" port ]
+userinfo      = *( unreserved / pct-encoded / sub-delims / ":" )
+host          = IP-literal / IPv4address / reg-name
+port          = *DIGIT
+
+IP-literal    = "[" ( IPv6address / IPvFuture  ) "]"
+
+IPvFuture     = "v" 1*HEXDIG "." 1*( unreserved / sub-delims / ":" )
+
+IPv6address   =                            6( h16 ":" ) ls32
+              /                       "::" 5( h16 ":" ) ls32
+              / [               h16 ] "::" 4( h16 ":" ) ls32
+              / [ *1( h16 ":" ) h16 ] "::" 3( h16 ":" ) ls32
+              / [ *2( h16 ":" ) h16 ] "::" 2( h16 ":" ) ls32
+              / [ *3( h16 ":" ) h16 ] "::"    h16 ":"   ls32
+              / [ *4( h16 ":" ) h16 ] "::"              ls32
+              / [ *5( h16 ":" ) h16 ] "::"              h16
+              / [ *6( h16 ":" ) h16 ] "::"
+
+h16           = 1*4HEXDIG
+ls32          = ( h16 ":" h16 ) / IPv4address
+IPv4address   = dec-octet "." dec-octet "." dec-octet "." dec-octet
+
+dec-octet     = DIGIT                 ; 0-9
+              / %x31-39 DIGIT         ; 10-99
+              / "1" 2DIGIT            ; 100-199
+              / "2" %x30-34 DIGIT     ; 200-249
+              / "25" %x30-35          ; 250-255
+
+reg-name      = *( unreserved / pct-encoded / sub-delims )
+
+path          = path-abempty    ; begins with "/" or is empty
+              / path-absolute   ; begins with "/" but not "//"
+              / path-noscheme   ; begins with a non-colon segment
+              / path-rootless   ; begins with a segment
+              / path-empty      ; zero characters
+
+path-abempty  = *( "/" segment )
+path-absolute = "/" [ segment-nz *( "/" segment ) ]
+path-noscheme = segment-nz-nc *( "/" segment )
+path-rootless = segment-nz *( "/" segment )
+path-empty    = 0<pchar>
+
+segment       = *pchar
+segment-nz    = 1*pchar
+segment-nz-nc = 1*( unreserved / pct-encoded / sub-delims / "@@" )
+              ; non-zero-length segment without any colon ":"
+
+pchar         = unreserved / pct-encoded / sub-delims / ":" / "@@"
+
+query         = *( pchar / "/" / "?" )
+
+fragment      = *( pchar / "/" / "?" )
+
+pct-encoded   = "%" HEXDIG HEXDIG
+
+unreserved    = ALPHA / DIGIT / "-" / "." / "_" / "~"
+reserved      = gen-delims / sub-delims
+gen-delims    = ":" / "/" / "?" / "#" / "[" / "]" / "@@"
+sub-delims    = "!" / "$" / "&" / "'" / "(" / ")"
+              / "*" / "+" / "," / ";" / "="
+@end example
 
 @c page
 @node uri string
@@ -36185,6 +36278,37 @@ position to the one before this function call.
 
 Notice that an empty @code{fragment} segment is valid (a question mark
 followed by @eof{}).
+@end defun
+
+
+@defun parse-userinfo @var{port}
+Accumulate bytes from @var{port} while they are valid for an
+@code{userinfo} segment in the @code{hier-part} of an @uri{}.  If a byte
+representing an at sign (@samp{@@}), in @ascii{} encoding, is read:
+return a bytevector holding the accumulated bytes, ending at sign
+excluded; else return false.
+
+If successful: leave the port position to the byte after the ending at
+sign; if an error occurs: rewind the port position to the one before
+this function call.
+
+Notice that an empty @code{authinfo} segment is valid (an at sign
+preceded by nothing).
+@end defun
+
+
+@defun parse-reg-name @var{port}
+Accumulate bytes from @var{port} while they are valid for a
+@code{reg-name} segment in the @code{authority} of an @uri{}.  If @eof{}
+or a byte representing a colon or a slash, in @ascii{} encoding, is
+read: return a bytevector holding the accumulated bytes, ending colon or
+slash excluded; else return false.
+
+If successful: leave the port position to the byte after last one read
+from the port, ending colon or slash excluded; if an error occurs:
+rewind the port position to the one before this function call.
+
+Notice that an empty @code{reg-name} segment is valid.
 @end defun
 
 @c page
