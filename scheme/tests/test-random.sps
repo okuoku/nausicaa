@@ -66,7 +66,7 @@
     (define (integer) (make-integer 100))
 
     (check-for-true (integer? (integer)))
-    (check-for-true (positive? (integer)))
+    (check-for-true (non-negative? (integer)))
     (check-for-true (let ((n (integer)))
 		      (and (<= 0 n) (< n 100)))))
 
@@ -133,7 +133,7 @@
     (define (integer) (make-integer 100))
 
     (check-for-true (integer? (integer)))
-    (check-for-true (positive? (integer)))
+    (check-for-true (non-negative? (integer)))
     (check-for-true (let ((n (integer)))
 		      (and (<= 0 n) (< n 100)))))
 
@@ -205,7 +205,7 @@
     (define (integer) (make-integer 100))
 
     (check-for-true (integer? (integer)))
-    (check-for-true (positive? (integer)))
+    (check-for-true (non-negative? (integer)))
     (check-for-true (let ((n (integer)))
 		      (and (<= 0 n) (< n 100)))))
 
@@ -276,7 +276,7 @@
     (define (integer) (make-integer 100))
 
     (check-for-true (integer? (integer)))
-    (check-for-true (positive? (integer)))
+    (check-for-true (non-negative? (integer)))
     (check-for-true (let ((n (integer)))
 		      (and (<= 0 n) (< n 100)))))
 
@@ -1347,7 +1347,7 @@
 ;;       (newline))
 
     (check-for-true (integer? (integer)))
-    (check-for-true (positive? (integer)))
+    (check-for-true (non-negative? (integer)))
     (check-for-true (let ((n (integer)))
 		      (and (<= 0 n) (< n 100)))))
 
@@ -1423,7 +1423,7 @@
 ;;       (newline))
 
     (check-for-true (integer? (integer)))
-    (check-for-true (positive? (integer)))
+    (check-for-true (non-negative? (integer)))
     (check-for-true (let ((n (integer)))
 		      (and (<= 0 n) (< n 100)))))
 
@@ -1509,7 +1509,7 @@
 ;;       (newline))
 
     (check-for-true (integer? (integer)))
-    (check-for-true (positive? (integer)))
+    (check-for-true (non-negative? (integer)))
     (check-for-true (let ((n (integer)))
 		      (and (<= 0 n) (< n 100))))
     )
