@@ -383,6 +383,36 @@
       (uri:parse-reg-name (make-lexer-port "?hello"))
     => #f)
 
+;;; --------------------------------------------------------------------
+;;; path segment
+
+  (check
+      (uri:to-string (uri:parse-segment (make-lexer-port "")))
+    => "")
+
+  (check
+      (uri:to-string (uri:parse-segment (make-lexer-port "ciao")))
+    => "ciao")
+
+  (check
+      (uri:to-string (uri:parse-segment (make-lexer-port "ciao/hello")))
+    => "ciao")
+
+  (check
+      (uri:parse-segment (make-lexer-port "?ciao"))
+    => '#vu8())
+
+;;; --------------------------------------------------------------------
+;;; path-empty
+
+  (check
+      (uri:to-string (uri:parse-path-empty (make-lexer-port "")))
+    => "")
+
+  (check
+      (uri:parse-path-empty (make-lexer-port "ciao"))
+    => #f)
+
   #t)
 
 

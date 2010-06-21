@@ -36195,16 +36195,176 @@ which are already not so.
 @section @uri{} parser functions
 
 
+@menu
+* uri parser basic::            Basic @uri{} component parser functions.
+* uri parser authority::        Authority @uri{} components parser
+                                functions.
+* uri parser path::             Path @uri{} component parser functions.
+* uri parser misc::             Miscellaneous @uri{} parser functions.
+@end menu
+
+@c page
+@node uri parser basic
+@subsection Basic @uri{} component parser functions
+
+
+The functions can be used to parse the elements of an @uri{}; all the
+functions accept a @var{port} argument: it must be a binary input port
+drawing characters from an @uri{} bytevector.
+
 The following bindings are exported by the @library{uri low} library; it
-is suggested to prefix them when importing this library.  The functions
-can be used to parse the elements of an @uri{}; all the functions accept
-a @var{port} argument: it must be a binary input port drawing characters
-from an @uri{} bytevector.
+is suggested to prefix them when importing this library.
+
+
+@defun parse-scheme @var{port}
+Accumulate bytes from @var{port} while they are valid for the
+@code{scheme} component of an @uri{}.  If a colon is found: return a
+bytevector holding the accumulated bytes, colon excluded; else return
+false.
+
+When successful: leave the port position to the byte after the one
+representing the colon; if an error occurs: rewind the port position to
+the one before this function call.
+@end defun
+
+
+@defun parse-hier-part @var{port}
+Accumulate bytes from @var{port} while they are valid for a
+@code{hier-part} @uri{} component.  If an @eof{} or a question mark or a
+number sign is found: return a bytevector holding the accumulated bytes,
+question mark or number sign excluded; else return false.
+
+Leave the port position to the byte after the last byte of the
+@code{hier-part}.  An empty @code{hier-part} is not accepted: if the
+first value from the port is @eof{}, the return value is false.
+
+No validation is performed on the returned bytevector.
+@end defun
+
+
+@defun parse-query @var{port}
+Accumulate bytes from @var{port} while they are valid for a @code{query}
+@uri{} component; the first byte read from @var{port} must be a question
+mark.  If an @eof{} or a number sign (@samp{#}) is read: return a
+bytevector holding the accumulated bytes, starting question mark
+excluded and ending number sign excluded; else return false.
+
+If successful: leave the port position to the byte after the last byte
+of the @code{query} component; if an error occurs: rewind the port
+position to the one before this function call.
+
+Notice that an empty @code{query} component is valid (a question mark
+followed by @eof{}).
+@end defun
+
+
+@defun parse-fragment @var{port}
+Accumulate bytes from @var{port} while they are valid for a
+@code{fragment} @uri{} component; the first byte read from @var{port}
+must be a number sign.  If an @eof{} is read: return a bytevector
+holding the accumulated bytes, starting number sign excluded; else
+return false.
+
+If successful: leave the port position to the byte after the last byte
+of the @code{fragment} component; if an error occurs: rewind the port
+position to the one before this function call.
+
+Notice that an empty @code{fragment} component is valid (a question mark
+followed by @eof{}).
+@end defun
+
+@c page
+@node uri parser authority
+@subsection Authority @uri{} components parser functions
+
+
+The functions can be used to parse the elements of an @uri{}; all the
+functions accept a @var{port} argument: it must be a binary input port
+drawing characters from an @uri{} bytevector.
+
+The following bindings are exported by the @library{uri low} library; it
+is suggested to prefix them when importing this library.
+
+
+@defun parse-userinfo @var{port}
+Accumulate bytes from @var{port} while they are valid for an
+@code{userinfo} component in the @code{hier-part} of an @uri{}.  If a
+byte representing an at sign (@samp{@@}), in @ascii{} encoding, is read:
+return a bytevector holding the accumulated bytes, ending at sign
+excluded; else return false.
+
+If successful: leave the port position to the byte after the ending at
+sign; if an error occurs: rewind the port position to the one before
+this function call.
+
+Notice that an empty @code{userinfo} component is valid (an at sign
+preceded by nothing).
+@end defun
+
+
+@defun parse-reg-name @var{port}
+Accumulate bytes from @var{port} while they are valid for a
+@code{reg-name} component in the @code{authority} of an @uri{}.  If
+@eof{} or a byte representing a colon or a slash, in @ascii{} encoding,
+is read: return a bytevector holding the accumulated bytes, ending colon
+or slash excluded; else return false.
+
+If successful: leave the port position to the byte after last one read
+from the port, ending colon or slash excluded; if an error occurs:
+rewind the port position to the one before this function call.
+
+Notice that an empty @code{reg-name} component is valid.
+@end defun
+
+@c page
+@node uri parser path
+@subsection Path @uri{} component parser functions
+
+
+The functions can be used to parse the elements of an @uri{}; all the
+functions accept a @var{port} argument: it must be a binary input port
+drawing characters from an @uri{} bytevector.
+
+The following bindings are exported by the @library{uri low} library; it
+is suggested to prefix them when importing this library.
+
+
+@defun parse-segment @var{port}
+Accumulate bytes from @var{port} while they are valid for a path
+@code{segment} in the @code{hier-part} of an @uri{}.  If @eof{} or a
+byte not valid for a @code{segment} is read: return a bytevector holding
+the accumulated bytes, ending byte excluded; else return false.
+
+If successful: leave the port position to the byte after the last
+accumulated byte; if an error occurs: rewind the port position to the
+one before this function call.
+
+Notice that an empty @code{segment} is valid.
+@end defun
+
+
+@defun parse-path-empty @var{port}
+Parse a @code{path-empty} @uri{} component; read one byte from
+@var{port}: if it is @eof{} return the empty string, else restore the
+position to the initial value and return false.
+@end defun
+
+@c page
+@node uri parser misc
+@subsection Miscellaneous @uri{} parser functions
+
+
+The functions can be used to parse the elements of an @uri{}; all the
+functions accept a @var{port} argument: it must be a binary input port
+drawing characters from an @uri{} bytevector.
+
+The following bindings are exported by the @library{uri low} library; it
+is suggested to prefix them when importing this library.
 
 
 @defun valid-segment? @var{port}
 Scan bytes from @var{port} until @eof{} is found; return two values: a
-boolean, true if the read bytes are valid for a segment, false
+boolean, true if the read bytes are valid for a @uri{} component, false
 otherwise; an exact integer representing the port position of last byte
 read from the port.  The port position is left unchanged when this
 function returns.
@@ -36221,94 +36381,6 @@ encoding.
 All the non percent--encoded bytes are in the unreserved set defined by
 @rfc{} 3986.
 @end itemize
-@end defun
-
-
-@defun parse-scheme @var{port}
-Accumulate bytes from @var{port} while they are valid for the
-@code{scheme} segment of an @uri{}.  If a colon is found: return a
-bytevector holding the accumulated bytes, colon excluded; else return
-false.
-
-When successful: leave the port position to the byte after the one
-representing the colon; if an error occurs: rewind the port position to
-the one before this function call.
-@end defun
-
-
-@defun parse-hier-part @var{port}
-Accumulate bytes from @var{port} while they are valid for a
-@code{hier-part} @uri{} segment.  If an @eof{} or a question mark or a
-number sign is found: return a bytevector holding the accumulated bytes,
-question mark or number sign excluded; else return false.
-
-Leave the port position to the byte after the last byte of the
-@code{hier-part}.  An empty @code{hier-part} is not accepted: if the
-first value from the port is @eof{}, the return value is false.
-
-No validation is performed on the returned bytevector.
-@end defun
-
-
-@defun parse-query @var{port}
-Accumulate bytes from @var{port} while they are valid for a @code{query}
-@uri{} segment; the first byte read from @var{port} must be a question
-mark.  If an @eof{} or a number sign (@samp{#}) is read: return a
-bytevector holding the accumulated bytes, starting question mark
-excluded and ending number sign excluded; else return false.
-
-If successful: leave the port position to the byte after the last byte
-of the @code{query} segment; if an error occurs: rewind the port
-position to the one before this function call.
-
-Notice that an empty @code{query} segment is valid (a question mark
-followed by @eof{}).
-@end defun
-
-
-@defun parse-fragment @var{port}
-Accumulate bytes from @var{port} while they are valid for a
-@code{fragment} @uri{} segment; the first byte read from @var{port} must
-be a number sign.  If an @eof{} is read: return a bytevector holding the
-accumulated bytes, starting number sign excluded; else return false.
-
-If successful: leave the port position to the byte after the last byte
-of the @code{fragment} segment; if an error occurs: rewind the port
-position to the one before this function call.
-
-Notice that an empty @code{fragment} segment is valid (a question mark
-followed by @eof{}).
-@end defun
-
-
-@defun parse-userinfo @var{port}
-Accumulate bytes from @var{port} while they are valid for an
-@code{userinfo} segment in the @code{hier-part} of an @uri{}.  If a byte
-representing an at sign (@samp{@@}), in @ascii{} encoding, is read:
-return a bytevector holding the accumulated bytes, ending at sign
-excluded; else return false.
-
-If successful: leave the port position to the byte after the ending at
-sign; if an error occurs: rewind the port position to the one before
-this function call.
-
-Notice that an empty @code{authinfo} segment is valid (an at sign
-preceded by nothing).
-@end defun
-
-
-@defun parse-reg-name @var{port}
-Accumulate bytes from @var{port} while they are valid for a
-@code{reg-name} segment in the @code{authority} of an @uri{}.  If @eof{}
-or a byte representing a colon or a slash, in @ascii{} encoding, is
-read: return a bytevector holding the accumulated bytes, ending colon or
-slash excluded; else return false.
-
-If successful: leave the port position to the byte after last one read
-from the port, ending colon or slash excluded; if an error occurs:
-rewind the port position to the one before this function call.
-
-Notice that an empty @code{reg-name} segment is valid.
 @end defun
 
 @c page

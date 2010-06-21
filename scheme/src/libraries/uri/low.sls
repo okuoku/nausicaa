@@ -41,6 +41,9 @@
     parse-query		parse-fragment
     parse-userinfo	parse-reg-name
 
+    parse-segment
+    parse-path-empty
+
     ;; validation
     valid-segment?
     )
@@ -332,6 +335,25 @@
 
 ;;;; URI segment parsers
 
+(define-syntax define-parser-macros
+  (lambda (stx)
+    (syntax-case stx ()
+      ((?k ?port)
+       (with-syntax ((SET-POSITION-START!	(datum->syntax #'?k 'set-position-start!))
+		     (SET-POSITION-BACK-ONE!	(datum->syntax #'?k 'set-position-back-one!))
+		     (RETURN-FAILURE		(datum->syntax #'?k 'return-failure)))
+	 #'(begin
+	     (define start-position
+	       (port-position ?port))
+	     (define-inline (SET-POSITION-START!)
+	       (set-port-position! ?port start-position))
+	     (define-inline (SET-POSITION-BACK-ONE!)
+	       (set-port-position! ?port (- (port-position ?port) 1)))
+	     (define-inline (RETURN-FAILURE)
+	       (begin
+		 (SET-POSITION-START!)
+		 #f))))))))
+
 (define (parse-scheme in-port)
   ;;Accumulate bytes from IN-PORT while  they are valid for a scheme URI
   ;;element.   If a  colon is  found:  return a  bytevector holding  the
@@ -341,50 +363,43 @@
   ;;representing the colon; if an error occurs: rewind the port position
   ;;to the one before this function call.
   ;;
-  (let ((start-position (port-position in-port)))
-    (define-inline (set-position-start!)
-      (set-port-position! in-port start-position))
-    (define-inline (return-failure)
-      (begin
-	(set-position-start!)
-	#f))
-    (receive (ou-port getter)
-	(open-bytevector-output-port)
-      (let ((chi (get-u8 in-port)))
-	(cond ((eof-object? chi)
-	       #f)
-	      ;;A "scheme" segment starts with an alpha and goes on with
-	      ;;alpha, digit or "+", "-", ".".
-	      ((is-alpha? chi)
-	       (put-u8 ou-port chi)
-	       (let read-next-byte ((chi (get-u8 in-port)))
-		 (if (eof-object? chi)
-		     (return-failure)
-		   (cond ((or (is-alpha-digit? chi)
-			      (= chi $int-plus)
-			      (= chi $int-minus)
-			      (= chi $int-dot))
-			  (put-u8 ou-port chi)
-			  (read-next-byte (get-u8 in-port)))
-			 ((= chi $int-colon)
-			  (getter))
-			 (else
-			  (return-failure))))))
-	      (else
-	       (return-failure)))))))
+  (define-parser-macros in-port)
+  (receive (ou-port getter)
+      (open-bytevector-output-port)
+    (let ((chi (get-u8 in-port)))
+      (cond ((eof-object? chi)
+	     #f)
+	    ;;A "scheme" component starts with an alpha and goes on with
+	    ;;alpha, digit or "+", "-", ".".
+	    ((is-alpha? chi)
+	     (put-u8 ou-port chi)
+	     (let read-next-byte ((chi (get-u8 in-port)))
+	       (if (eof-object? chi)
+		   (return-failure)
+		 (cond ((or (is-alpha-digit? chi)
+			    (= chi $int-plus)
+			    (= chi $int-minus)
+			    (= chi $int-dot))
+			(put-u8 ou-port chi)
+			(read-next-byte (get-u8 in-port)))
+		       ((= chi $int-colon)
+			(getter))
+		       (else
+			(return-failure))))))
+	    (else
+	     (return-failure))))))
 
 (define (parse-hier-part in-port)
-  ;;Accumulate bytes from  IN-PORT while they are valid  for a hier-part
-  ;;URI segment.  If a EOF or a question mark or a number sign is found:
-  ;;return a bytevector holding  the accumulated bytes, question mark or
-  ;;number sign excluded; else return false.  Leave the port position to
-  ;;the byte after the last byte of the hier-part.
+  ;;Accumulate bytes from IN-PORT while they are valid for a "hier-part"
+  ;;URI component.   If a  EOF or a  question mark  or a number  sign is
+  ;;found: return  a bytevector holding the  accumulated bytes, question
+  ;;mark or  number sign  excluded; else return  false.  Leave  the port
+  ;;position to the byte after the last byte of the "hier-part".
   ;;
   ;;An empty hier-part is not accepted: if the first value from the port
   ;;is EOF, the return value is false.
   ;;
-  (define-inline (set-position-back-one!)
-    (set-port-position! in-port (- (port-position in-port) 1)))
+  (define-parser-macros in-port)
   (receive (ou-port getter)
       (open-bytevector-output-port)
     (let ((chi (get-u8 in-port)))
@@ -404,159 +419,143 @@
 		   (read-next-byte (get-u8 in-port))))))))))
 
 (define (parse-query in-port)
-  ;;Accumulate bytes from  IN-PORT while they are valid  for a query URI
-  ;;segment; the first  byte read from IN-PORT must  be a question mark.
+  ;;Accumulate bytes from IN-PORT while they are valid for a "query" URI
+  ;;component; the first byte read from IN-PORT must be a question mark.
   ;;If an EOF or a number  sign is read: return a bytevector holding the
   ;;accumulated bytes, starting question mark excluded and ending number
   ;;sign excluded; else return false.
   ;;
   ;;If successful:  leave the port position  to the byte  after the last
-  ;;byte  of the  query segment;  if an  error occurs:  rewind  the port
+  ;;byte of the  "query" component; if an error  occurs: rewind the port
   ;;position to the one before this function call.
   ;;
-  ;;Notice  that  an empty  query  segment  is  valid (a  question  mark
+  ;;Notice that  an empty  "query" component is  valid (a  question mark
   ;;followed by EOF).
   ;;
-  (let ((start-position (port-position in-port)))
-    (define-inline (set-position-start!)
-      (set-port-position! in-port start-position))
-    (define-inline (set-position-back-one!)
-      (set-port-position! in-port (- (port-position in-port) 1)))
-    (define-inline (return-failure)
-      (begin
-	(set-position-start!)
-	#f))
-    (let ((chi (get-u8 in-port)))
-      (cond ((eof-object? chi)
-	     #f)
+  (define-parser-macros in-port)
+  (let ((chi (get-u8 in-port)))
+    (cond ((eof-object? chi)
+	   #f)
 
-	    ;;A "query" segment must begin with a question mark.
-	    ((= chi $int-question-mark)
-	     (receive (ou-port getter)
-		 (open-bytevector-output-port)
-	       (let read-next-byte ((chi (get-u8 in-port)))
-		 (cond ((eof-object? chi)
-			(getter))
+	  ;;A "query" component must begin with a question mark.
+	  ((= chi $int-question-mark)
+	   (receive (ou-port getter)
+	       (open-bytevector-output-port)
+	     (let read-next-byte ((chi (get-u8 in-port)))
+	       (cond ((eof-object? chi)
+		      (getter))
 
-		       ;;If a  number sign  if found, it  terminates the
-		       ;;"query"   segment  and   starts   a  "fragment"
-		       ;;segment.
-		       ((= chi $int-number-sign)
-			(set-position-back-one!)
-			(getter))
+		     ;;If  a number  sign  if found,  it terminates  the
+		     ;;"query"   component  and   starts   a  "fragment"
+		     ;;component.
+		     ((= chi $int-number-sign)
+		      (set-position-back-one!)
+		      (getter))
 
-		       ;;Characters    in    categories    "unreserved",
-		       ;;"sub-delim" or "/", "?", ":", "@" are valid.
-		       ((or (is-unreserved? chi)
-			    (is-sub-delim? chi)
-			    (= chi $int-slash)
-			    (= chi $int-question-mark)
-			    (= chi $int-colon)
-			    (= chi $int-at-sign))
-			(put-u8 ou-port chi)
-			(read-next-byte (get-u8 in-port)))
+		     ;;Characters     in     categories    "unreserved",
+		     ;;"sub-delim" or "/", "?", ":", "@" are valid.
+		     ((or (is-unreserved? chi)
+			  (is-sub-delim? chi)
+			  (= chi $int-slash)
+			  (= chi $int-question-mark)
+			  (= chi $int-colon)
+			  (= chi $int-at-sign))
+		      (put-u8 ou-port chi)
+		      (read-next-byte (get-u8 in-port)))
 
-		       ;;A percent-encoded sequence is valid.
-		       ((= chi $int-percent)
-			(let ((chi1 (get-u8 in-port)))
-			  (cond ((eof-object? chi1)
-				 (return-failure))
-				((is-hex-digit? chi1)
-				 (let ((chi2 (get-u8 in-port)))
-				   (cond ((eof-object? chi2)
-					  (return-failure))
-					 ((is-hex-digit? chi2)
-					  (put-u8 ou-port $int-percent)
-					  (put-u8 ou-port chi1)
-					  (put-u8 ou-port chi2)
-					  (read-next-byte (get-u8 in-port)))
-					 (else
-					  (return-failure)))))
-				(else
-				 (return-failure)))))
-		       (else
-			(return-failure))))))
+		     ;;A percent-encoded sequence is valid.
+		     ((= chi $int-percent)
+		      (let ((chi1 (get-u8 in-port)))
+			(cond ((eof-object? chi1)
+			       (return-failure))
+			      ((is-hex-digit? chi1)
+			       (let ((chi2 (get-u8 in-port)))
+				 (cond ((eof-object? chi2)
+					(return-failure))
+				       ((is-hex-digit? chi2)
+					(put-u8 ou-port $int-percent)
+					(put-u8 ou-port chi1)
+					(put-u8 ou-port chi2)
+					(read-next-byte (get-u8 in-port)))
+				       (else
+					(return-failure)))))
+			      (else
+			       (return-failure)))))
+		     (else
+		      (return-failure))))))
 
-	    ;;Does not start with a question mark.
-	    (else
-	     (return-failure))))))
+	  ;;Does not start with a question mark.
+	  (else
+	   (return-failure)))))
 
 (define (parse-fragment in-port)
-  ;;Accumulate bytes  from IN-PORT while  they are valid for  a fragment
-  ;;URI segment; the first byte read from IN-PORT must be a number sign.
-  ;;If  an EOF  is read:  return  a bytevector  holding the  accumulated
-  ;;bytes, starting number sign excluded; else return false.
+  ;;Accumulate bytes from IN-PORT while  they are valid for a "fragment"
+  ;;URI component;  the first  byte read from  IN-PORT must be  a number
+  ;;sign.   If  an  EOF  is   read:  return  a  bytevector  holding  the
+  ;;accumulated bytes, starting number sign excluded; else return false.
   ;;
   ;;If successful:  leave the port position  to the byte  after the last
-  ;;byte of  the fragment segment; if  an error occurs:  rewind the port
-  ;;position to the one before this function call.
+  ;;byte of  the "fragment"  component; if an  error occurs:  rewind the
+  ;;port position to the one before this function call.
   ;;
-  ;;Notice  that an  empty  fragment  segment is  valid  (a number  sign
+  ;;Notice that  an empty "fragment"  component is valid (a  number sign
   ;;followed by EOF).
   ;;
-  (let ((start-position (port-position in-port)))
-    (define-inline (set-position-start!)
-      (set-port-position! in-port start-position))
-    (define-inline (set-position-back-one!)
-      (set-port-position! in-port (- (port-position in-port) 1)))
-    (define-inline (return-failure)
-      (begin
-	(set-position-start!)
-	#f))
-    (let ((chi (get-u8 in-port)))
-      (cond ((eof-object? chi)
-	     #f)
+  (define-parser-macros in-port)
+  (let ((chi (get-u8 in-port)))
+    (cond ((eof-object? chi)
+	   #f)
 
-	    ;;A "fragment" segment starts with a number sign.
-	    ((= chi $int-number-sign)
-	     (receive (ou-port getter)
-		 (open-bytevector-output-port)
-	       (let read-next-byte ((chi (get-u8 in-port)))
-		 (cond ((eof-object? chi)
-			(getter))
+	  ;;A "fragment" component starts with a number sign.
+	  ((= chi $int-number-sign)
+	   (receive (ou-port getter)
+	       (open-bytevector-output-port)
+	     (let read-next-byte ((chi (get-u8 in-port)))
+	       (cond ((eof-object? chi)
+		      (getter))
 
-		       ;;Characters  in   the  categories  "unreserved",
-		       ;;"sub-delim" or "/", "?", ":", "@" are valid.
-		       ((or (is-unreserved? chi)
-			    (is-sub-delim? chi)
-			    (= chi $int-slash)
-			    (= chi $int-question-mark)
-			    (= chi $int-colon)
-			    (= chi $int-at-sign))
-			(put-u8 ou-port chi)
-			(read-next-byte (get-u8 in-port)))
+		     ;;Characters   in   the  categories   "unreserved",
+		     ;;"sub-delim" or "/", "?", ":", "@" are valid.
+		     ((or (is-unreserved? chi)
+			  (is-sub-delim? chi)
+			  (= chi $int-slash)
+			  (= chi $int-question-mark)
+			  (= chi $int-colon)
+			  (= chi $int-at-sign))
+		      (put-u8 ou-port chi)
+		      (read-next-byte (get-u8 in-port)))
 
-		       ;;A percent-encoded sequence is valid.
-		       ((= chi $int-percent)
-			(let ((chi1 (get-u8 in-port)))
-			  (cond ((eof-object? chi1)
-				 (return-failure))
-				((is-hex-digit? chi1)
-				 (let ((chi2 (get-u8 in-port)))
-				   (cond ((eof-object? chi2)
-					  (return-failure))
-					 ((is-hex-digit? chi2)
-					  (put-u8 ou-port $int-percent)
-					  (put-u8 ou-port chi1)
-					  (put-u8 ou-port chi2)
-					  (read-next-byte (get-u8 in-port)))
-					 (else
-					  (return-failure)))))
-				(else
-				 (return-failure)))))
-		       (else
-			(return-failure))))))
+		     ;;A percent-encoded sequence is valid.
+		     ((= chi $int-percent)
+		      (let ((chi1 (get-u8 in-port)))
+			(cond ((eof-object? chi1)
+			       (return-failure))
+			      ((is-hex-digit? chi1)
+			       (let ((chi2 (get-u8 in-port)))
+				 (cond ((eof-object? chi2)
+					(return-failure))
+				       ((is-hex-digit? chi2)
+					(put-u8 ou-port $int-percent)
+					(put-u8 ou-port chi1)
+					(put-u8 ou-port chi2)
+					(read-next-byte (get-u8 in-port)))
+				       (else
+					(return-failure)))))
+			      (else
+			       (return-failure)))))
+		     (else
+		      (return-failure))))))
 
-	    ;;Does not start with a number sign.
-	    (else
-	     (return-failure))))))
+	  ;;Does not start with a number sign.
+	  (else
+	   (return-failure)))))
 
 
 ;;;; hier-part segment parsers
 
 (define (parse-userinfo in-port)
-  ;;Accumulate bytes from  IN-PORT while they are valid  for an userinfo
-  ;;segment in  the hier-part of an  URI.  If a byte  representing an at
+  ;;Accumulate bytes from IN-PORT while they are valid for an "userinfo"
+  ;;component in the hier-part of an  URI.  If a byte representing an at
   ;;sign, in  ASCII encoding, is  read: return a bytevector  holding the
   ;;accumulated bytes, ending at sign excluded; else return false.
   ;;
@@ -564,126 +563,178 @@
   ;;at sign;  if an error  occurs: rewind the  port position to  the one
   ;;before this function call.
   ;;
-  ;;Notice that an empty authinfo  segment is valid (an at sign preceded
-  ;;by nothing).
+  ;;Notice  that an  empty "userinfo"  component  is valid  (an at  sign
+  ;;preceded by nothing).
   ;;
-  (let ((start-position (port-position in-port)))
-    (define-inline (set-position-start!)
-      (set-port-position! in-port start-position))
-    (define-inline (return-failure)
-      (begin
-	(set-position-start!)
-	#f))
-    (receive (ou-port getter)
-	(open-bytevector-output-port)
-      (let read-next-byte ((chi (get-u8 in-port)))
-	(cond ((eof-object? chi)
-	       (return-failure))
+  (define-parser-macros in-port)
+  (receive (ou-port getter)
+      (open-bytevector-output-port)
+    (let read-next-byte ((chi (get-u8 in-port)))
+      (cond ((eof-object? chi)
+	     (return-failure))
 
-	      ;;An at sign terminates the userinfo segment.
-	      ((= chi $int-at-sign)
-	       (getter))
+	    ;;An at sign terminates the "userinfo" component.
+	    ((= chi $int-at-sign)
+	     (getter))
 
-	      ;;Characters   in    the   categories   "unreserved"   and
-	      ;;"sub-delims" or ":" are valid.
-	      ((or (is-unreserved? chi) (is-sub-delim? chi) (= chi $int-colon))
-	       (put-u8 ou-port chi)
-	       (read-next-byte (get-u8 in-port)))
+	    ;;Characters   in    the   categories   "unreserved"   and
+	    ;;"sub-delims" or ":" are valid.
+	    ((or (is-unreserved? chi) (is-sub-delim? chi) (= chi $int-colon))
+	     (put-u8 ou-port chi)
+	     (read-next-byte (get-u8 in-port)))
 
-	      ;;A percent-encoded sequence is valid.
-	      ((= chi $int-percent)
-	       (let ((chi1 (get-u8 in-port)))
-		 (cond ((eof-object? chi1)
-			(return-failure))
-		       ((is-hex-digit? chi1)
-			(let ((chi2 (get-u8 in-port)))
-			  (cond ((eof-object? chi2)
-				 (return-failure))
-				((is-hex-digit? chi2)
-				 (put-u8 ou-port $int-percent)
-				 (put-u8 ou-port chi1)
-				 (put-u8 ou-port chi2)
-				 (read-next-byte (get-u8 in-port)))
-				(else
-				 (return-failure)))))
-		       ;;Invalid byte in percent-encoded sequence.
-		       (else
-			(return-failure)))))
+	    ;;A percent-encoded sequence is valid.
+	    ((= chi $int-percent)
+	     (let ((chi1 (get-u8 in-port)))
+	       (cond ((eof-object? chi1)
+		      (return-failure))
+		     ((is-hex-digit? chi1)
+		      (let ((chi2 (get-u8 in-port)))
+			(cond ((eof-object? chi2)
+			       (return-failure))
+			      ((is-hex-digit? chi2)
+			       (put-u8 ou-port $int-percent)
+			       (put-u8 ou-port chi1)
+			       (put-u8 ou-port chi2)
+			       (read-next-byte (get-u8 in-port)))
+			      (else
+			       (return-failure)))))
+		     ;;Invalid byte in percent-encoded sequence.
+		     (else
+		      (return-failure)))))
 
-	      ;;Invalid byte.
-	      (else
-	       (return-failure)))))))
+	    ;;Invalid byte.
+	    (else
+	     (return-failure))))))
 
 (define (parse-reg-name in-port)
   ;;Accumulate bytes from IN-PORT while  they are valid for a "reg-name"
-  ;;segment in the "hier-part" of an URI.  If EOF or a byte representing
-  ;;a colon or a slash, in  ASCII encoding, is read: return a bytevector
-  ;;holding the accumulated bytes,  ending colon or slash excluded; else
-  ;;return false.
+  ;;component  in  the  "hier-part"  of  an  URI.   If  EOF  or  a  byte
+  ;;representing a colon or a  slash, in ASCII encoding, is read: return
+  ;;a bytevector  holding the accumulated  bytes, ending colon  or slash
+  ;;excluded; else return false.
   ;;
   ;;If successful:  leave the port position  to the byte  after last one
   ;;read from the port; if an  error occurs: rewind the port position to
   ;;the one before this function call.
   ;;
-  ;;Notice that an empty "reg-name" segment is valid.
+  ;;Notice that an empty "reg-name" component is valid.
   ;;
-  (let ((start-position (port-position in-port)))
-    (define-inline (set-position-start!)
-      (set-port-position! in-port start-position))
-    (define-inline (set-position-back-one!)
-      (set-port-position! in-port (- (port-position in-port) 1)))
-    (define-inline (return-failure)
-      (begin
-	(set-position-start!)
-	#f))
-    (receive (ou-port getter)
-	(open-bytevector-output-port)
-      (let read-next-byte ((chi (get-u8 in-port)))
-	(cond ((eof-object? chi)
-	       (getter))
+  (define-parser-macros in-port)
+  (receive (ou-port getter)
+      (open-bytevector-output-port)
+    (let read-next-byte ((chi (get-u8 in-port)))
+      (cond ((eof-object? chi)
+	     (getter))
 
-	      ((or (eof-object? chi)
-		   (= chi $int-colon)
-		   (= chi $int-slash))
-	       (set-position-back-one!)
-	       (getter))
+	    ((or (eof-object? chi)
+		 (= chi $int-colon)
+		 (= chi $int-slash))
+	     (set-position-back-one!)
+	     (getter))
 
-	      ;;Characters   in    the   categories   "unreserved"   and
-	      ;;"sub-delims" or ":" are valid.
-	      ((or (is-unreserved? chi) (is-sub-delim? chi))
-	       (put-u8 ou-port chi)
-	       (read-next-byte (get-u8 in-port)))
+	    ;;Characters in the categories "unreserved" and "sub-delims"
+	    ;;or ":" are valid.
+	    ((or (is-unreserved? chi) (is-sub-delim? chi))
+	     (put-u8 ou-port chi)
+	     (read-next-byte (get-u8 in-port)))
 
-	      ;;A percent-encoded sequence is valid.
-	      ((= chi $int-percent)
-	       (let ((chi1 (get-u8 in-port)))
-		 (cond ((eof-object? chi1)
-			(return-failure))
-		       ((is-hex-digit? chi1)
-			(let ((chi2 (get-u8 in-port)))
-			  (cond ((eof-object? chi2)
-				 (return-failure))
-				((is-hex-digit? chi2)
-				 (put-u8 ou-port $int-percent)
-				 (put-u8 ou-port chi1)
-				 (put-u8 ou-port chi2)
-				 (read-next-byte (get-u8 in-port)))
-				(else
-				 (return-failure)))))
-		       ;;Invalid byte in percent-encoded sequence.
-		       (else
-			(return-failure)))))
+	    ;;A percent-encoded sequence is valid.
+	    ((= chi $int-percent)
+	     (let ((chi1 (get-u8 in-port)))
+	       (cond ((eof-object? chi1)
+		      (return-failure))
+		     ((is-hex-digit? chi1)
+		      (let ((chi2 (get-u8 in-port)))
+			(cond ((eof-object? chi2)
+			       (return-failure))
+			      ((is-hex-digit? chi2)
+			       (put-u8 ou-port $int-percent)
+			       (put-u8 ou-port chi1)
+			       (put-u8 ou-port chi2)
+			       (read-next-byte (get-u8 in-port)))
+			      (else
+			       (return-failure)))))
+		     ;;Invalid byte in percent-encoded sequence.
+		     (else
+		      (return-failure)))))
 
-	      ;;Invalid byte.
-	      (else
-	       (return-failure)))))))
+	    ;;Invalid byte.
+	    (else
+	     (return-failure))))))
+
+
+;;;; pathname segment parsers
+
+(define (parse-path-empty in-port)
+  ;;Parse a "path-empty"  URI component; read one byte  from IN-PORT: if
+  ;;it is EOF return the empty  string, else restore the position to the
+  ;;initial value and return false.
+  ;;
+  (define-parser-macros in-port)
+  (if (eof-object? (get-u8 in-port))
+      ""
+    (return-failure)))
+
+(define (parse-segment in-port)
+  ;;Accumulate  bytes from  IN-PORT  while  they are  valid  for a  path
+  ;;"segment" in  the hier-part of an URI.   If EOF or a  byte not valid
+  ;;for a "segment" is read: return a bytevector holding the accumulated
+  ;;bytes, ending byte excluded; else return false.
+  ;;
+  ;;If successful:  leave the port position  to the byte  after the last
+  ;;accumulated byte;  if an error  occurs: rewind the port  position to
+  ;;the one before this function call.
+  ;;
+  ;;Notice that an empty "segment" is valid.
+  ;;
+  (define-parser-macros in-port)
+  (receive (ou-port getter)
+      (open-bytevector-output-port)
+    (let read-next-byte ((chi (get-u8 in-port)))
+      (cond ((eof-object? chi)
+	     (getter))
+
+	    ;;Characters in the categories "unreserved" and "sub-delims"
+	    ;;or ":" or "@" are valid.
+	    ((or (is-unreserved? chi)
+		 (is-sub-delim? chi)
+		 (= chi $int-colon)
+		 (= chi $int-at-sign))
+	     (put-u8 ou-port chi)
+	     (read-next-byte (get-u8 in-port)))
+
+	    ;;A percent-encoded sequence is valid.
+	    ((= chi $int-percent)
+	     (let ((chi1 (get-u8 in-port)))
+	       (cond ((eof-object? chi1)
+		      (return-failure))
+		     ((is-hex-digit? chi1)
+		      (let ((chi2 (get-u8 in-port)))
+			(cond ((eof-object? chi2)
+			       (return-failure))
+			      ((is-hex-digit? chi2)
+			       (put-u8 ou-port $int-percent)
+			       (put-u8 ou-port chi1)
+			       (put-u8 ou-port chi2)
+			       (read-next-byte (get-u8 in-port)))
+			      (else
+			       (return-failure)))))
+		     ;;Invalid byte in percent-encoded sequence.
+		     (else
+		      (return-failure)))))
+
+	    ;;Any other character terminates the segment.
+	    (else
+	     (set-position-back-one!)
+	     (getter))))))
 
 
 ;;;; validation
 
 (define (valid-segment? port)
   ;;Scan bytes  from PORT until  EOF is found;  return true if  the read
-  ;;bytes are valid for a segment, false otherwise.  Ensure that:
+  ;;bytes are valid for a component, false otherwise.  Ensure that:
   ;;
   ;;*  A percent  character is  followed by  two bytes  representing hex
   ;;digits.
