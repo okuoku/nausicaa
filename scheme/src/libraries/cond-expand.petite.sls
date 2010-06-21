@@ -98,7 +98,7 @@
 		(else	?body ...))))
 
       ((_ (?feature-id ?body ...) ?more-clauses ...)
-       (if (member (syntax->datum (syntax ?feature-id)) (cons 'ikarus registry-features))
+       (if (member (syntax->datum (syntax ?feature-id)) (cons 'petite registry-features))
            (syntax (begin ?body ...))
 	 (syntax (cond-expand ?more-clauses ...)))))))
 
