@@ -40,7 +40,8 @@
     parse-scheme		parse-hier-part
     parse-query			parse-fragment
     parse-userinfo		parse-reg-name
-    parse-authority
+    parse-authority		parse-ip-literal
+    parse-ipvfuture
 
     parse-segment		parse-segment-nz
     parse-segment-nz-nc		parse-slash-and-segment
@@ -66,6 +67,8 @@
 (define-constant $int-Z		(char->integer #\Z))
 (define-constant $int-0		(char->integer #\0))
 (define-constant $int-9		(char->integer #\9))
+
+(define-constant $int-v		(char->integer #\v))
 
 (define-constant $int-percent		(char->integer #\%))
 (define-constant $int-minus		(char->integer #\-))
@@ -338,7 +341,7 @@
 	  (put-u8 port chi))))))
 
 
-;;;; URI segment parsers
+;;;; URI component parsers
 
 (define-syntax define-parser-macros
   (lambda (stx)
@@ -556,7 +559,28 @@
 	   (return-failure)))))
 
 
-;;;; hier-part segment parsers
+;;;; relative-ref components
+
+(define (parse-relative-part in-port)
+  (define-parser-macros in-port)
+  (let ((authority (parse-authority in-port)))
+    (if authority
+	(let ((bv (parse-path-abempty in-port)))
+	  (if bv
+	      (values authority 'path-abempty bv)
+	    (values (return-failure) #f #f)))
+      (cond ((parse-path-absolute in-port)
+	     => (lambda (segments)
+		  (values #f 'path-absolute segments)))
+	    ((parse-path-noscheme in-port)
+	     => (lambda (segments)
+		  (values #f 'path-noscheme segments)))
+	    (else
+	     (values #f 'path-empty '#vu8()))))))
+
+
+
+;;;; hier-part component parsers
 
 (define (parse-authority in-port)
   ;;Accumulate  bytes   from  IN-PORT  while  they  are   valid  for  an
@@ -653,6 +677,84 @@
 	    (else
 	     (return-failure))))))
 
+(define (parse-ip-literal in-port)
+  ;;Accumulate  bytes   from  IN-PORT  while  they  are   valid  for  an
+  ;;"IP-literal" component in the "hier-part" of an URI.  The first byte
+  ;;must represent  an open  bracket character in  ASCII encoding;  if a
+  ;;byte  representing a  closed bracket  is read:  return  a bytevector
+  ;;holding the accumulated bytes, brackets excluded; else return false.
+  ;;
+  ;;If successful:  leave the port position  to the byte  after last one
+  ;;read from the port; if an  error occurs: rewind the port position to
+  ;;the one before this function call.
+  ;;
+  ;;No validation is performed  on the returned bytevector contents; the
+  ;;returned  bytevector  can  be  empty  even  though  an  "IP-literal"
+  ;;component cannot be of zero length inside the brackets.
+  ;;
+  (define-parser-macros in-port)
+  (let ((chi (get-u8 in-port)))
+    (cond ((eof-object? chi)
+	   (return-failure))
+	  ((= chi $int-open-bracket)
+	   (receive (ou-port getter)
+	       (open-bytevector-output-port)
+	     (let read-next-byte ((chi (get-u8 in-port)))
+	       (cond ((eof-object? chi)
+		      (return-failure))
+		     ((= chi $int-close-bracket)
+		      (getter))
+		     (else
+		      (put-u8 ou-port chi)
+		      (read-next-byte (get-u8 in-port)))))))
+	  (else
+	   (return-failure)))))
+
+(define (parse-ipvfuture in-port)
+  ;;Accumulate  bytes   from  IN-PORT  while  they  are   valid  for  an
+  ;;"IPvFuture" component  in the "authority" component of  an URI.  The
+  ;;first byte must represent "v"  in ASCII encoding and the second byte
+  ;;must represent  a single hexadecimal digit in  ASCII encoding; after
+  ;;the  prolog is  read,  bytes  are accumulated  until  EOF is  found.
+  ;;
+  ;;Return  two values:  an exact  integer representing  the hexadecimal
+  ;;digit in ASCII encoding; a bytevector holding the accumulated bytes;
+  ;;else return false and false.
+  ;;
+  ;;If successful:  leave the port position  to the byte  after last one
+  ;;read from the port; if an  error occurs: rewind the port position to
+  ;;the one before this function call.
+  ;;
+  ;;No  specific  validation is  performed  on  the returned  bytevector
+  ;;contents, bytes are  only tested to be valid  for the component; the
+  ;;returned  bytevector  can  be   empty  even  though  an  "IPvFuture"
+  ;;component cannot be of zero length inside the brackets.
+  ;;
+  (define-parser-macros in-port)
+  (define (%error)
+    (values (return-failure) #f))
+  (let ((chi (get-u8 in-port)))
+    (cond ((eof-object? chi)
+	   (%error))
+	  ((= chi $int-v)
+	   (let ((version-chi (get-u8 in-port)))
+	     (if (is-hex-digit? version-chi)
+		 (receive (ou-port getter)
+		     (open-bytevector-output-port)
+		   (let read-next-byte ((chi (get-u8 in-port)))
+		     (cond ((eof-object? chi)
+			    (values version-chi (getter)))
+			   ((or (is-unreserved? chi)
+				(is-sub-delim? chi)
+				(= chi $int-colon))
+			    (put-u8 ou-port chi)
+			    (read-next-byte (get-u8 in-port)))
+			   (else
+			    (%error)))))
+	       (%error))))
+	  (else
+	   (%error)))))
+
 (define (parse-reg-name in-port)
   ;;Accumulate bytes from IN-PORT while  they are valid for a "reg-name"
   ;;component  in  the  "hier-part"  of  an  URI.   If  EOF  or  a  byte
@@ -710,7 +812,7 @@
 	     (return-failure))))))
 
 
-;;;; pathname segment parsers
+;;;; path segment component parsers
 
 (define (parse-segment in-port)
   ;;Accumulate  bytes from  IN-PORT  while  they are  valid  for a  path
@@ -961,8 +1063,8 @@
   ;;read byte; if  an error occurs: rewind the port  position to the one
   ;;before this function call.
   ;;
-  ;;Notice that a "path-absolute" must start with a slash character, but
-  ;;then it must have at least one non-empty "segment" component.
+  ;;Notice that a "path-absolute" can  be only a slash character with no
+  ;;segments attached.
   ;;
   (define-parser-macros in-port)
   (let ((chi (get-u8 in-port)))
@@ -975,7 +1077,7 @@
 		   (if segments
 		       (cons bv segments)
 		     (list bv)))
-	       (return-failure))))
+	       '())))
 	  (else
 	   (return-failure)))))
 

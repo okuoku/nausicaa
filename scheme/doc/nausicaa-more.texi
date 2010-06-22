@@ -36320,6 +36320,46 @@ preceded by nothing).
 @end defun
 
 
+@defun parse-ip-literal @var{port}
+Accumulate bytes from @var{port} while they are valid for an
+@code{IP-literal} component in the @code{hier-part} of an @uri{}.  The
+first byte must represent an open bracket (@samp{[}) character in
+@ascii{} encoding; if a byte representing a closed bracket (@samp{]}) is
+read: return a bytevector holding the accumulated bytes, brackets
+excluded; else return false.
+
+If successful: leave the port position to the byte after the closing
+bracket; if an error occurs: rewind the port position to the one before
+this function call.
+
+No validation is performed on the returned bytevector contents; the
+returned bytevector can be empty even though an @code{IP-literal}
+component cannot be of zero length inside the brackets.
+@end defun
+
+
+@defun parse-ipvfuture @var{port}
+Accumulate bytes from @var{port} while they are valid for an
+@code{IPvFuture} component in the @code{authority} component of an
+@uri{}.  The first byte must represent the character @code{v} in
+@ascii{} encoding and the second byte must represent a single
+hexadecimal digit in @ascii{} encoding; after the prolog is read, bytes
+are accumulated until @eof{} is found.
+
+Return two values: an exact integer representing the hexadecimal digit
+in @ascii{} encoding, a bytevector holding the accumulated bytes; else
+return false and false.
+
+If successful: leave the port position to the byte after last one read
+from the port; if an error occurs: rewind the port position to the one
+before this function call.
+
+No validation is performed on the returned bytevector contents; the
+returned bytevector can be empty even though an @code{IPvFuture}
+component cannot be of zero length inside the brackets.
+@end defun
+
+
 @defun parse-reg-name @var{port}
 Accumulate bytes from @var{port} while they are valid for a
 @code{reg-name} component in the @code{authority} of an @uri{}; a
@@ -36416,8 +36456,8 @@ If successful: leave the port position to the byte after the last read
 byte; if an error occurs: rewind the port position to the one before
 this function call.
 
-Notice that a @code{path-absolute} must start with a slash character,
-and then must have at least one non--empty @code{segment} component.
+Notice that a @code{path-absolute} can be just a slash character, with
+no segments attached.
 @end defun
 
 

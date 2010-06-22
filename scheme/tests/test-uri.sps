@@ -349,6 +349,57 @@
     => "marco@ciao.it:8080")
 
 ;;; --------------------------------------------------------------------
+;;; IP-literal
+
+  (check
+      (uri:parse-ip-literal (make-lexer-port ""))
+    => #f)
+
+  (check
+      (uri:parse-ip-literal (make-lexer-port "ciao"))
+    => #f)
+
+  (check
+      (uri:to-string (uri:parse-ip-literal (make-lexer-port "[]")))
+    => "")
+
+  (check
+      (uri:to-string (uri:parse-ip-literal (make-lexer-port "[::0:1:2]")))
+    => "::0:1:2")
+
+;;; --------------------------------------------------------------------
+;;; IPvFuture
+
+  (check
+      (call-with-values
+	  (lambda ()
+	    (uri:parse-ipvfuture (make-lexer-port "")))
+	list)
+    => '(#f #f))
+
+  (check
+      (call-with-values
+	  (lambda ()
+	    (uri:parse-ipvfuture (make-lexer-port "ciao")))
+	list)
+    => '(#f #f))
+
+  (check
+      (call-with-values
+	  (lambda ()
+	    (uri:parse-ipvfuture (make-lexer-port "v1")))
+	list)
+    => '(49 #vu8()))
+
+  (check
+      (call-with-values
+	  (lambda ()
+	    (uri:parse-ipvfuture (make-lexer-port "v9ciao")))
+	(lambda (version bv)
+	  (list version (uri:to-string bv))))
+    => '(57 "ciao"))
+
+;;; --------------------------------------------------------------------
 ;;; userinfo
 
   (check
@@ -546,7 +597,7 @@
 
   (check
       (uri:parse-path-absolute (make-lexer-port "/"))
-    => #f)
+    => '())
 
   (check
       (map uri:to-string (uri:parse-path-absolute (make-lexer-port "/ciao")))
@@ -668,8 +719,8 @@
   (check
       (receive (type segments)
 	  (uri:parse-path (make-lexer-port "/"))
-	(vector type (map uri:to-string segments)))
-    => '#(#f ()))
+	(vector type segments))
+    => '#(path-absolute ()))
 
   #t)
 
