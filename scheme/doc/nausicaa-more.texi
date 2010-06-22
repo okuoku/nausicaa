@@ -36286,6 +36286,24 @@ The following bindings are exported by the @library{uri low} library; it
 is suggested to prefix them when importing this library.
 
 
+@defun parse-authority @var{port}
+Accumulate bytes from @var{port} while they are valid for an
+@code{authority} component in the @code{hier-part} of an @uri{}.  The
+first two bytes read must represent, in @ascii{} encoding, two slash
+characters; after the two slashes, if @eof{} or a byte representing a
+slash is read: return a bytevector holding the accumulated bytes, ending
+slash excluded; else return false.
+
+If successful: leave the port position to the byte after the last
+accumulated byte; if an error occurs: rewind the port position to the
+one before this function call.
+
+Notice that an empty @code{authority} (after the two slashes) is valid,
+corresponding to the case of @code{authority} equal to a @code{host}
+component, equal to a @code{reg-name} component which can be empty.
+@end defun
+
+
 @defun parse-userinfo @var{port}
 Accumulate bytes from @var{port} while they are valid for an
 @code{userinfo} component in the @code{hier-part} of an @uri{}.  If a
@@ -36304,10 +36322,11 @@ preceded by nothing).
 
 @defun parse-reg-name @var{port}
 Accumulate bytes from @var{port} while they are valid for a
-@code{reg-name} component in the @code{authority} of an @uri{}.  If
-@eof{} or a byte representing a colon or a slash, in @ascii{} encoding,
-is read: return a bytevector holding the accumulated bytes, ending colon
-or slash excluded; else return false.
+@code{reg-name} component in the @code{authority} of an @uri{}; a
+@code{reg-name} is one of the alternatives for a @code{host} component.
+If @eof{} or a byte representing a colon or a slash, in @ascii{}
+encoding, is read: return a bytevector holding the accumulated bytes,
+ending colon or slash excluded; else return false.
 
 If successful: leave the port position to the byte after last one read
 from the port, ending colon or slash excluded; if an error occurs:
@@ -36343,10 +36362,102 @@ Notice that an empty @code{segment} is valid.
 @end defun
 
 
+@defun parse-segment-nz @var{port}
+Like @func{parse-segment}, but parses the @code{segment-nz} component
+which cannot be empty.
+@end defun
+
+
+@defun parse-segment-nz-nc @var{port}
+Like @func{parse-segment-nz}, but parses the @code{segment-nz-nc}
+component which cannot be empty and cannot hold bytes representing colon
+characters (@samp{:}) in @ascii{} encoding.
+@end defun
+
+
+@defun parse-slash-and-segment @var{port}
+Attempty to read from @var{port} the sequence slash character plus
+@code{segment} component.  If these components are successfully read:
+return a bytevector holding the accumulated @code{segment} bytes; else
+return false.
+
+If successful: leave the port position to the byte after the last
+accumulated byte from the @code{segment}; if an error occurs: rewind the
+port position to the one before this function call.
+
+Notice that an empty @code{segment} is not valid.
+@end defun
+
+
 @defun parse-path-empty @var{port}
 Parse a @code{path-empty} @uri{} component; read one byte from
-@var{port}: if it is @eof{} return the empty string, else restore the
-position to the initial value and return false.
+@var{port}: if it is @eof{} return null, else restore the position to
+the initial value and return false.
+@end defun
+
+
+@defun parse-path-abempty @var{port}
+Parse from @var{port} a, possibly empty, sequence of sequences of bytes
+representing slash characters (@samp{/}) in @ascii{} encoding followed
+by a @code{segment} @uri{} component.  Return a list holding bytevectors
+representing the segments, or false.
+
+If successful: leave the port position to the byte after the last read
+byte; if an error occurs: rewind the port position to the one before
+this function call.
+@end defun
+
+
+@defun parse-path-absolute @var{port}
+Parse from @var{port} a @code{path-absolute} @uri{} component.  Return a
+list holding bytevectors representing the segments, or false.
+
+If successful: leave the port position to the byte after the last read
+byte; if an error occurs: rewind the port position to the one before
+this function call.
+
+Notice that a @code{path-absolute} must start with a slash character,
+and then must have at least one non--empty @code{segment} component.
+@end defun
+
+
+@defun parse-path-noscheme @var{port}
+Parse from @var{port} a @code{path-noscheme} @uri{} component.  Return a
+list holding bytevectors representing the segments, or false.
+
+If successful: leave the port position to the byte after the last read
+byte; if an error occurs: rewind the port position to the one before
+this function call.
+
+Notice that a @code{path-noscheme} must not start with a slash
+character, and then it must have at least one non--empty @code{segment}
+component.
+@end defun
+
+
+@defun parse-path-rootless @var{port}
+Parse from @var{port} a @code{path-rootless} @uri{} component.  Return a
+list holding bytevectors representing the segments, or false.
+
+If successful: leave the port position to the byte after the last read
+byte; if an error occurs: rewind the port position to the one before
+this function call.
+
+Notice that a @code{path-rootless} must not start with a slash
+character, and then it must have at least one non--empty @code{segment}
+component.
+@end defun
+
+
+@defun parse-path @var{port}
+Parse from @var{port} a @code{path} @uri{} component.  Return two
+values: false or one of the symbols @code{path-absolute},
+@code{path-rootless}; the list of bytevectors representing the segments,
+possibly null.
+
+If successful: leave the port position to the byte after the last read
+byte; if an error occurs: rewind the port position to the one before
+this function call.
 @end defun
 
 @c page
@@ -36362,7 +36473,7 @@ The following bindings are exported by the @library{uri low} library; it
 is suggested to prefix them when importing this library.
 
 
-@defun valid-segment? @var{port}
+@defun valid-component? @var{port}
 Scan bytes from @var{port} until @eof{} is found; return two values: a
 boolean, true if the read bytes are valid for a @uri{} component, false
 otherwise; an exact integer representing the port position of last byte
