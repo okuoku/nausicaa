@@ -1085,33 +1085,45 @@
 
 (define (parse-path-empty in-port)
   ;;Parse a "path-empty"  URI component; read one byte  from IN-PORT: if
-  ;;it is EOF return the  empty bytevector, else restore the position to
-  ;;the initial value and return false.
+  ;;it is  EOF return EOF;  if it represents  a question mark  or number
+  ;;sign in ASCII encoding: return null; else return false.
+  ;;
+  ;;In any case leave the port position where it was before the function
+  ;;call.
   ;;
   (define-parser-macros in-port)
-  (if (eof-object? (get-u8 in-port))
-      '()
-    (return-failure)))
+  (let ((chi (get-u8 in-port)))
+    (if (eof-object? chi)
+	chi
+      (begin
+	(set-position-back-one! chi)
+	'()))))
 
 (define (parse-path-abempty in-port)
-  ;;Parse from IN-PORT a, possibly empty, sequence of sequences of bytes
-  ;;representing slash  characters in  ASCII encoding and  "segment" URI
-  ;;components; the sequence  must end with EOF.  Return  a list holding
-  ;;bytevectors representing the segments, or false.
+  ;;Parse from  IN-PORT a, possibly  empty, sequence of  sequences: byte
+  ;;representing  the  slash  character  in  ASCII  encoding,  "segment"
+  ;;component.   Return  a,  possibly  empty, list  holding  bytevectors
+  ;;representing the segments.
   ;;
   ;;If successful:  leave the port position  to the byte  after the last
   ;;read byte; if  an error occurs: rewind the port  position to the one
   ;;before this function call.
   ;;
+  ;;If  an invalid  percent-encoded sequence  is read,  an  exception is
+  ;;raised with type "&parser-error"; the port position is rewind to the
+  ;;one before this function call.
+  ;;
   (define-parser-macros in-port)
-  (let read-next-segment ((segments '()))
-    (let ((bv (parse-slash-and-segment in-port)))
-      (cond ((eof-object? bv)
-	     (reverse segments))
-	    (bv
-	     (read-next-segment (cons bv segments)))
-	    (else
-	     (return-failure))))))
+  (with-exception-handler
+      (lambda (E)
+	(set-position-start!)
+	(raise E))
+    (lambda ()
+      (let read-next-segment ((segments '()))
+	(let ((bv (parse-slash-and-segment in-port)))
+	  (if (bytevector? bv)
+	      (read-next-segment (cons bv segments))
+	    (reverse segments)))))))
 
 (define (parse-path-absolute in-port)
   ;;Parse from  IN-PORT a "path-absolute" URI component,  after this the

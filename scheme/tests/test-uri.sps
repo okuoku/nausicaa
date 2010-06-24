@@ -705,6 +705,14 @@
 
   (check
       (uri:parse-path-empty (make-lexer-port ""))
+    => (eof-object))
+
+  (check
+      (uri:parse-path-empty (make-lexer-port "?ciao"))
+    => '())
+
+  (check
+      (uri:parse-path-empty (make-lexer-port "#ciao"))
     => '())
 
   (check
@@ -719,7 +727,23 @@
     => '())
 
   (check
+      (uri:parse-path-abempty (make-lexer-port "?query"))
+    => '())
+
+  (check
+      (uri:parse-path-abempty (make-lexer-port "#fragment"))
+    => '())
+
+  (check
       (map uri:to-string (uri:parse-path-abempty (make-lexer-port "/ciao")))
+    => '("ciao"))
+
+  (check
+      (map uri:to-string (uri:parse-path-abempty (make-lexer-port "/ciao?query")))
+    => '("ciao"))
+
+  (check
+      (map uri:to-string (uri:parse-path-abempty (make-lexer-port "/ciao#fragment")))
     => '("ciao"))
 
   (check
@@ -728,6 +752,14 @@
 
   (check
       (map uri:to-string (uri:parse-path-abempty (make-lexer-port "/ciao/hello/salut")))
+    => '("ciao" "hello" "salut"))
+
+  (check
+      (map uri:to-string (uri:parse-path-abempty (make-lexer-port "/ciao/hello/salut?query")))
+    => '("ciao" "hello" "salut"))
+
+  (check
+      (map uri:to-string (uri:parse-path-abempty (make-lexer-port "/ciao/hello/salut#fragment")))
     => '("ciao" "hello" "salut"))
 
   (check

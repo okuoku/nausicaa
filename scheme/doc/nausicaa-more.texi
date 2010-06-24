@@ -36261,6 +36261,31 @@ which are already not so.
 @section @uri{} parser functions
 
 
+All the parser functions attempt to read an @uri{} component from a
+binry input port; all of them follow this protocol:
+
+@itemize
+@item
+If the result of the first read operation is @eof{}: the return value is
+@eof{}, which means that the component is not there and it is useless to
+try alternatives.
+
+@item
+If the result of the read operations matches the desired component or
+components: a bytevector or a possibly empty list of bytevectors is
+returned; the operation is successful.
+
+@item
+If the result of the read operations does not match the desired
+component: the return value is the boolean false.
+
+@item
+If an invalid input is read, for example an incomplete percent--encoded
+sequence, an exception is raised with compound condition object of type
+@condition{parser-error}.
+@end itemize
+
+
 @menu
 * uri parser basic::            Basic @uri{} component parser functions.
 * uri parser authority::        Authority @uri{} components parser
@@ -36510,13 +36535,14 @@ one before this function call.
 @defun parse-segment-nz-nc @var{port}
 Like @func{parse-segment-nz}, but parses the @code{segment-nz-nc}
 component which cannot be empty and cannot hold bytes representing colon
-characters (@samp{:}) in @ascii{} encoding.
+characters in @ascii{} encoding.
 @end defun
 
 
 @defun parse-slash-and-segment @var{port}
-Attempt to read from @var{port} the sequence slash character plus
-@code{segment} component; notice that an empty @code{segment} is valid.
+Attempt to read from @var{port} the sequence: byte representing a slash
+character in @ascii{} encoding, @code{segment} component; notice that an
+empty @code{segment} is valid.
 
 If these components are successfully read: return a bytevector (possibly
 empty) holding the accumulated @code{segment} bytes; the port position
@@ -36542,30 +36568,55 @@ one before this function call.
 @subsection Path @uri{} component parser functions
 
 
-The functions can be used to parse the elements of an @uri{}; all the
+The functions can be used to parse the @code{path-abempty},
+@code{path-absolute}, @code{path-noscheme}, @code{path-rootless} and
+@code{path-empty} components of an @uri{}; the relevant portion of the
+grammar is:
+
+@example
+path-abempty  = *( "/" segment )
+path-absolute = "/" [ segment-nz *( "/" segment ) ]
+path-noscheme = segment-nz-nc *( "/" segment )
+path-rootless = segment-nz *( "/" segment )
+path-empty    = 0<pchar>
+@end example
+
+@noindent
+notice that all the @code{path-*} components appear in the grammar as
+last components of a @code{hier-part} or @code{relative-part} component,
+which in turn can be followed only by a query (starting with a @samp{?}
+byte) or a fragment (starting with a @samp{#} byte).
+
+The following bindings are exported by the @library{uri low} library; it
+is suggested to prefix them when importing this library.  All the
 functions accept a @var{port} argument: it must be a binary input port
 drawing characters from an @uri{} bytevector.
 
-The following bindings are exported by the @library{uri low} library; it
-is suggested to prefix them when importing this library.
-
 
 @defun parse-path-empty @var{port}
-Parse a @code{path-empty} @uri{} component; read one byte from
-@var{port}: if it is @eof{} return null, else restore the position to
-the initial value and return false.
+Parse a @code{path-empty} @uri{} component.  Read one byte from
+@var{port}: if it is @eof{} return @eof{}; if it represents a question
+mark (@samp{?}) or number sign (@samp{#}) in @ascii{} encoding: return
+null; else return false.
+
+In any case leave the port position where it was before the function
+call.
 @end defun
 
 
 @defun parse-path-abempty @var{port}
-Parse from @var{port} a, possibly empty, sequence of sequences of bytes
-representing slash characters (@samp{/}) in @ascii{} encoding followed
-by a @code{segment} @uri{} component.  Return a list holding bytevectors
-representing the segments, or false.
+Parse from @var{port} a, possibly empty, sequence of sequences: byte
+representing the slash character in @ascii{} encoding, @code{segment}
+component.  Return a, possibly empty, list holding bytevectors
+representing the segments.
 
 If successful: leave the port position to the byte after the last read
 byte; if an error occurs: rewind the port position to the one before
 this function call.
+
+If an invalid percent--encoded sequence is read, an exception is raised
+with type @condition{parser-error}; the port position is rewind to the
+one before this function call.
 @end defun
 
 
