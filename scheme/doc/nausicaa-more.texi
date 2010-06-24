@@ -1331,10 +1331,25 @@ IPv6 address objects
 Uniform resource identifiers
 
 * uri intro::                   Introduction to @uri{} elements.
+* uri conditions::              Condition object types.
 * uri string::                  Plain conversion between strings
                                 and bytevectors.
 * uri percent::                 Percent encoding of characters.
 * uri parser::                  @uri{} parser functions.
+
+Condition object types
+
+* uri conditions parser::       @uri{} parser error condition type.
+
+@uri{} parser functions
+
+* uri parser basic::            Basic @uri{} component parser functions.
+* uri parser authority::        Authority @uri{} components parser
+                                functions.
+* uri parser segment::          Path segment @uri{} component parser
+                                functions.
+* uri parser path::             Path @uri{} component parser functions.
+* uri parser misc::             Miscellaneous @uri{} parser functions.
 
 Evaluating code in a limited environment
 
@@ -35963,6 +35978,7 @@ Jun 17, 2010:
 
 @menu
 * uri intro::                   Introduction to @uri{} elements.
+* uri conditions::              Condition object types.
 * uri string::                  Plain conversion between strings
                                 and bytevectors.
 * uri percent::                 Percent encoding of characters.
@@ -35980,59 +35996,59 @@ Jun 17, 2010:
 URI           = scheme ":" hier-part [ "?" query ] [ "#" fragment ]
 
 hier-part     = "//" authority path-abempty
-              / path-absolute
-              / path-rootless
-              / path-empty
+              | path-absolute
+              | path-rootless
+              | path-empty
 
-URI-reference = URI / relative-ref
+URI-reference = URI | relative-ref
 
 absolute-URI  = scheme ":" hier-part [ "?" query ]
 
 relative-ref  = relative-part [ "?" query ] [ "#" fragment ]
 
 relative-part = "//" authority path-abempty
-              / path-absolute
-              / path-noscheme
-              / path-empty
+              | path-absolute
+              | path-noscheme
+              | path-empty
 
-scheme        = ALPHA *( ALPHA / DIGIT / "+" / "-" / "." )
+scheme        = ALPHA *( ALPHA | DIGIT | "+" | "-" | "." )
 
 authority     = [ userinfo "@@" ] host [ ":" port ]
-userinfo      = *( unreserved / pct-encoded / sub-delims / ":" )
-host          = IP-literal / IPv4address / reg-name
+userinfo      = *( unreserved | pct-encoded | sub-delims | ":" )
+host          = IP-literal | IPv4address | reg-name
 port          = *DIGIT
 
-IP-literal    = "[" ( IPv6address / IPvFuture  ) "]"
+IP-literal    = "[" ( IPv6address | IPvFuture  ) "]"
 
-IPvFuture     = "v" 1*HEXDIG "." 1*( unreserved / sub-delims / ":" )
+IPvFuture     = "v" 1*HEXDIG "." 1*( unreserved | sub-delims | ":" )
 
 IPv6address   =                            6( h16 ":" ) ls32
-              /                       "::" 5( h16 ":" ) ls32
-              / [               h16 ] "::" 4( h16 ":" ) ls32
-              / [ *1( h16 ":" ) h16 ] "::" 3( h16 ":" ) ls32
-              / [ *2( h16 ":" ) h16 ] "::" 2( h16 ":" ) ls32
-              / [ *3( h16 ":" ) h16 ] "::"    h16 ":"   ls32
-              / [ *4( h16 ":" ) h16 ] "::"              ls32
-              / [ *5( h16 ":" ) h16 ] "::"              h16
-              / [ *6( h16 ":" ) h16 ] "::"
+              |                       "::" 5( h16 ":" ) ls32
+              | [               h16 ] "::" 4( h16 ":" ) ls32
+              | [ *1( h16 ":" ) h16 ] "::" 3( h16 ":" ) ls32
+              | [ *2( h16 ":" ) h16 ] "::" 2( h16 ":" ) ls32
+              | [ *3( h16 ":" ) h16 ] "::"    h16 ":"   ls32
+              | [ *4( h16 ":" ) h16 ] "::"              ls32
+              | [ *5( h16 ":" ) h16 ] "::"              h16
+              | [ *6( h16 ":" ) h16 ] "::"
 
 h16           = 1*4HEXDIG
-ls32          = ( h16 ":" h16 ) / IPv4address
+ls32          = ( h16 ":" h16 ) | IPv4address
 IPv4address   = dec-octet "." dec-octet "." dec-octet "." dec-octet
 
 dec-octet     = DIGIT                 ; 0-9
-              / %x31-39 DIGIT         ; 10-99
-              / "1" 2DIGIT            ; 100-199
-              / "2" %x30-34 DIGIT     ; 200-249
-              / "25" %x30-35          ; 250-255
+              | %x31-39 DIGIT         ; 10-99
+              | "1" 2DIGIT            ; 100-199
+              | "2" %x30-34 DIGIT     ; 200-249
+              | "25" %x30-35          ; 250-255
 
-reg-name      = *( unreserved / pct-encoded / sub-delims )
+reg-name      = *( unreserved | pct-encoded | sub-delims )
 
 path          = path-abempty    ; begins with "/" or is empty
-              / path-absolute   ; begins with "/" but not "//"
-              / path-noscheme   ; begins with a non-colon segment
-              / path-rootless   ; begins with a segment
-              / path-empty      ; zero characters
+              | path-absolute   ; begins with "/" but not "//"
+              | path-noscheme   ; begins with a non-colon segment
+              | path-rootless   ; begins with a segment
+              | path-empty      ; zero characters
 
 path-abempty  = *( "/" segment )
 path-absolute = "/" [ segment-nz *( "/" segment ) ]
@@ -36042,23 +36058,73 @@ path-empty    = 0<pchar>
 
 segment       = *pchar
 segment-nz    = 1*pchar
-segment-nz-nc = 1*( unreserved / pct-encoded / sub-delims / "@@" )
+segment-nz-nc = 1*( unreserved | pct-encoded | sub-delims | "@@" )
               ; non-zero-length segment without any colon ":"
 
-pchar         = unreserved / pct-encoded / sub-delims / ":" / "@@"
+pchar         = unreserved | pct-encoded | sub-delims | ":" | "@@"
 
-query         = *( pchar / "/" / "?" )
+query         = *( pchar | "/" | "?" )
 
-fragment      = *( pchar / "/" / "?" )
+fragment      = *( pchar | "/" | "?" )
 
 pct-encoded   = "%" HEXDIG HEXDIG
 
-unreserved    = ALPHA / DIGIT / "-" / "." / "_" / "~"
-reserved      = gen-delims / sub-delims
-gen-delims    = ":" / "/" / "?" / "#" / "[" / "]" / "@@"
-sub-delims    = "!" / "$" / "&" / "'" / "(" / ")"
-              / "*" / "+" / "," / ";" / "="
+unreserved    = ALPHA | DIGIT | "-" | "." | "_" | "~"
+reserved      = gen-delims | sub-delims
+gen-delims    = ":" | "/" | "?" | "#" | "[" | "]" | "@@"
+sub-delims    = "!" | "$" | "&" | "'" | "(" | ")"
+              | "*" | "+" | "," | ";" | "="
 @end example
+
+@c page
+@node uri conditions
+@section Condition object types
+
+
+@menu
+* uri conditions parser::       @uri{} parser error condition type.
+@end menu
+
+@c page
+@node uri conditions parser
+@subsection @uri{} parser error condition type
+
+
+The following bindings are exported by the @library{uri conditions}
+library; it is suggested to prefix the bindings when importing the
+library.
+
+
+@deftp {Condition Type} &parser-error
+Tag a compound condition object as being an @uri{} parser error; it is
+derived from @condition{error}.  It has the following fields:
+
+@table @code
+@item offset
+Zero--based offset of the byte which caused the error from the beginning
+of the input.  Whether it is the offset from the beginning of a full
+@uri{} or @uri{} reference or other input depends on the function
+raising the exception.
+@end table
+@end deftp
+
+
+@defun make-parser-error @var{offset}
+Build and return a new condition object of type
+@condition{parser-error}.
+@end defun
+
+
+@defun parser-error-condition? @var{obj}
+Return true if @var{obj} is a condition object of type
+@condition{parser-error}.
+@end defun
+
+
+@defun condition-parser-error/offset @var{obj}
+Getter for the field of condition objects of type
+@condition{parser-error}.
+@end defun
 
 @c page
 @node uri string
@@ -36198,6 +36264,8 @@ which are already not so.
 @menu
 * uri parser basic::            Basic @uri{} component parser functions.
 * uri parser authority::        Authority @uri{} components parser
+                                functions.
+* uri parser segment::          Path segment @uri{} component parser
                                 functions.
 * uri parser path::             Path @uri{} component parser functions.
 * uri parser misc::             Miscellaneous @uri{} parser functions.
@@ -36376,35 +36444,66 @@ Notice that an empty @code{reg-name} component is valid.
 @end defun
 
 @c page
-@node uri parser path
-@subsection Path @uri{} component parser functions
+@node uri parser segment
+@subsection Path segment @uri{} component parser functions
 
 
-The functions can be used to parse the elements of an @uri{}; all the
+The following functions can be used to parse the @code{segment},
+@code{segment-nz} and @code{segment-nz-nc} components of an @uri{}; the
+relevant portion of the grammar is:
+
+@example
+segment       = *pchar
+segment-nz    = 1*pchar
+segment-nz-nc = 1*( unreserved | pct-encoded | sub-delims | "@@" )
+
+pchar         = unreserved | pct-encoded | sub-delims | ":" | "@@"
+
+unreserved    = ALPHA | DIGIT | "-" | "." | "_" | "~"
+pct-encoded   = "%" HEXDIG HEXDIG
+sub-delims    = "!" | "$" | "&" | "'" | "(" | ")"
+              | "*" | "+" | "," | ";" | "="
+@end example
+
+The following bindings are exported by the @library{uri low} library; it
+is suggested to prefix them when importing this library.  All the
 functions accept a @var{port} argument: it must be a binary input port
 drawing characters from an @uri{} bytevector.
 
-The following bindings are exported by the @library{uri low} library; it
-is suggested to prefix them when importing this library.
-
 
 @defun parse-segment @var{port}
-Accumulate bytes from @var{port} while they are valid for a path
-@code{segment} in the @code{hier-part} of an @uri{}.  If @eof{} or a
-byte not valid for a @code{segment} is read: return a bytevector holding
-the accumulated bytes, ending byte excluded; else return false.
+Accumulate bytes from @var{port} while they are valid for a
+@code{segment} @uri{} component; notice that an empty @code{segment} is
+valid.
 
-If successful: leave the port position to the byte after the last
-accumulated byte; if an error occurs: rewind the port position to the
+If @eof{} or a byte not valid for a @code{segment} is read: return a
+bytevector holding the bytes accumulated so far, invalid byte excluded;
+the port position is left pointing to the byte after the last
+accumulated one.
+
+If an invalid percent--encoded sequence is read, an exception is raised
+with type @condition{parser-error}; the port position is rewind to the
 one before this function call.
-
-Notice that an empty @code{segment} is valid.
 @end defun
 
 
 @defun parse-segment-nz @var{port}
-Like @func{parse-segment}, but parses the @code{segment-nz} component
-which cannot be empty.
+Accumulate bytes from @var{port} while they are valid for a
+@code{segment-nz} @uri{} component; notice that an empty
+@code{segment-nz} is @strong{not} valid.
+
+If the first read operation returns @eof{} or an invalid byte: the port
+position is restored to the one before this function call and the return
+value is false.
+
+If, after at least one valid byte is read, @eof{} or an invalid byte is
+read: return a bytevector holding the bytes accumulated so far, invalid
+byte excluded; the port position is left pointing to the byte after the
+last accumulated one.
+
+If an invalid percent--encoded sequence is read, an exception is raised
+with type @condition{parser-error}; the port position is rewind to the
+one before this function call.
 @end defun
 
 
@@ -36416,17 +36515,39 @@ characters (@samp{:}) in @ascii{} encoding.
 
 
 @defun parse-slash-and-segment @var{port}
-Attempty to read from @var{port} the sequence slash character plus
-@code{segment} component.  If these components are successfully read:
-return a bytevector holding the accumulated @code{segment} bytes; else
-return false.
+Attempt to read from @var{port} the sequence slash character plus
+@code{segment} component; notice that an empty @code{segment} is valid.
 
-If successful: leave the port position to the byte after the last
-accumulated byte from the @code{segment}; if an error occurs: rewind the
-port position to the one before this function call.
+If these components are successfully read: return a bytevector (possibly
+empty) holding the accumulated @code{segment} bytes; the port position
+is left pointing to the byte after the last accumulated byte from the
+@code{segment}.  Otherwise:
 
-Notice that an empty @code{segment} is not valid.
+@itemize
+@item
+If @eof{} is read as first byte: return @eof{}.
+
+@item
+If a byte different from slash is read as first byte: return false.
+
+@item
+If an invalid percent--encoded sequence is read, an exception is raised
+with type @condition{parser-error}; the port position is rewind to the
+one before this function call.
+@end itemize
 @end defun
+
+@c page
+@node uri parser path
+@subsection Path @uri{} component parser functions
+
+
+The functions can be used to parse the elements of an @uri{}; all the
+functions accept a @var{port} argument: it must be a binary input port
+drawing characters from an @uri{} bytevector.
+
+The following bindings are exported by the @library{uri low} library; it
+is suggested to prefix them when importing this library.
 
 
 @defun parse-path-empty @var{port}

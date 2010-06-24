@@ -28,10 +28,22 @@
 (import (nausicaa)
   (uri)
   (prefix (uri low) uri:)
+  (prefix (uri conditions) uri:)
   (checks))
 
 (check-set-mode! 'report-failed)
 (display "*** testing URI\n")
+
+
+;;;; helpers
+
+(define (make-lexer-port obj)
+  (cond ((string? obj)
+	 (open-bytevector-input-port (uri:to-bytevector obj)))
+	((bytevector? obj)
+	 (open-bytevector-input-port obj))
+	(else
+	 #f)))
 
 
 (parametrise ((check-test-name	'string/bytevector))
@@ -175,21 +187,9 @@
   #t)
 
 
-(parametrise ((check-test-name	'parsing))
+(parametrise ((check-test-name	'parsing-misc))
 
-  (define (make-lexer-port obj)
-    (cond ((string? obj)
-	   (open-bytevector-input-port (uri:to-bytevector obj)))
-	  ((bytevector? obj)
-	   (open-bytevector-input-port obj))
-	  (else
-	   #f)))
-
-  (define uri
-    (uri:to-bytevector "http://www.spiffy.org/the/path/name?question%3danswer#anchor-point"))
-
-;;; --------------------------------------------------------------------
-;;; valid segment
+;;; valid component
 
   (let-syntax ((doit	(syntax-rules ()
 			  ((_ ?expected ?input)
@@ -207,9 +207,13 @@
     (doit '(#f  1) "?")
     (doit '(#f  5) "ciao?")
 
-    )
+    #f)
 
-;;; --------------------------------------------------------------------
+  #t)
+
+
+(parametrise ((check-test-name	'parsing-splitting-uri))
+
 ;;; scheme
 
   (check
@@ -309,7 +313,11 @@
       (uri:parse-fragment (make-lexer-port "?hello"))
     => #f)
 
-;;; --------------------------------------------------------------------
+  #t)
+
+
+(parametrise ((check-test-name	'parsing-authority))
+
 ;;; authority
 
   (check
@@ -347,6 +355,37 @@
   (check
       (uri:to-string (uri:parse-authority (make-lexer-port "//marco@ciao.it:8080/")))
     => "marco@ciao.it:8080")
+
+;;; --------------------------------------------------------------------
+;;; userinfo
+
+  (check
+      (uri:to-string (uri:parse-userinfo (make-lexer-port "the-userinfo@")))
+    => "the-userinfo")
+
+  (check
+      (uri:to-string (uri:parse-userinfo (make-lexer-port "ciao%3dciao@")))
+    => "ciao%3dciao")
+
+  (check
+      (uri:to-string (uri:parse-userinfo (make-lexer-port "@")))
+    => "")
+
+  (check
+      (uri:parse-userinfo (make-lexer-port ""))
+    => #f)
+
+  (check
+      (uri:parse-userinfo (make-lexer-port "#hello#"))
+    => #f)
+
+  (check
+      (uri:parse-userinfo (make-lexer-port "hello"))
+    => #f)
+
+  (check
+      (uri:parse-userinfo (make-lexer-port "?hello"))
+    => #f)
 
 ;;; --------------------------------------------------------------------
 ;;; IP-literal
@@ -400,37 +439,6 @@
     => '(57 "ciao"))
 
 ;;; --------------------------------------------------------------------
-;;; userinfo
-
-  (check
-      (uri:to-string (uri:parse-userinfo (make-lexer-port "the-userinfo@")))
-    => "the-userinfo")
-
-  (check
-      (uri:to-string (uri:parse-userinfo (make-lexer-port "ciao%3dciao@")))
-    => "ciao%3dciao")
-
-  (check
-      (uri:to-string (uri:parse-userinfo (make-lexer-port "@")))
-    => "")
-
-  (check
-      (uri:parse-userinfo (make-lexer-port ""))
-    => #f)
-
-  (check
-      (uri:parse-userinfo (make-lexer-port "#hello#"))
-    => #f)
-
-  (check
-      (uri:parse-userinfo (make-lexer-port "hello"))
-    => #f)
-
-  (check
-      (uri:parse-userinfo (make-lexer-port "?hello"))
-    => #f)
-
-;;; --------------------------------------------------------------------
 ;;; reg-name
 
   (check
@@ -473,7 +481,11 @@
       (uri:parse-reg-name (make-lexer-port "?hello"))
     => #f)
 
-;;; --------------------------------------------------------------------
+  #t)
+
+
+(parametrise ((check-test-name	'parsing-path-segments))
+
 ;;; path segment
 
   (check
@@ -493,14 +505,40 @@
     => "ciao%3dciao")
 
   (check
+      (uri:to-string (uri:parse-segment (make-lexer-port "ciao%3d%3dciao")))
+    => "ciao%3d%3dciao")
+
+  (check
       (uri:parse-segment (make-lexer-port "?ciao"))
     => '#vu8())
+
+  (check
+      (guard (E ((uri:parser-error-condition? E)
+		 #t)
+		(else #f))
+	(uri:to-string (uri:parse-segment (make-lexer-port "ciao%3d%3,ciao"))))
+    => #t)
+
+  (check
+      (guard (E ((uri:parser-error-condition? E)
+		 #t)
+		(else #f))
+	(uri:to-string (uri:parse-segment (make-lexer-port "ciao%,3%3dciao"))))
+    => #t)
 
 ;;; --------------------------------------------------------------------
 ;;; path segment-nz
 
   (check
       (uri:parse-segment-nz (make-lexer-port ""))
+    => #f)
+
+  (check
+      (uri:parse-segment-nz (make-lexer-port "{"))
+    => #f)
+
+  (check
+      (uri:parse-segment-nz (make-lexer-port "/"))
     => #f)
 
   (check
@@ -520,14 +558,40 @@
     => "ciao%3dciao")
 
   (check
+      (uri:to-string (uri:parse-segment-nz (make-lexer-port "ciao%3d%3dciao")))
+    => "ciao%3d%3dciao")
+
+  (check
       (uri:parse-segment-nz (make-lexer-port "?ciao"))
     => #f)
+
+  (check
+      (guard (E ((uri:parser-error-condition? E)
+		 #t)
+		(else #f))
+	(uri:to-string (uri:parse-segment-nz (make-lexer-port "ciao%3d%3,ciao"))))
+    => #t)
+
+  (check
+      (guard (E ((uri:parser-error-condition? E)
+		 #t)
+		(else #f))
+	(uri:to-string (uri:parse-segment-nz (make-lexer-port "ciao%,3%3dciao"))))
+    => #t)
 
 ;;; --------------------------------------------------------------------
 ;;; path segment-nz-nc
 
   (check
       (uri:parse-segment-nz-nc (make-lexer-port ""))
+    => #f)
+
+  (check
+      (uri:parse-segment-nz-nc (make-lexer-port "{"))
+    => #f)
+
+  (check
+      (uri:parse-segment-nz-nc (make-lexer-port "/"))
     => #f)
 
   (check
@@ -547,6 +611,10 @@
     => "ciao%3dciao")
 
   (check
+      (uri:to-string (uri:parse-segment-nz-nc (make-lexer-port "ciao%3d%3dciao")))
+    => "ciao%3d%3dciao")
+
+  (check
       (uri:parse-segment-nz-nc (make-lexer-port "?ciao"))
     => #f)
 
@@ -554,7 +622,85 @@
       (uri:parse-segment-nz-nc (make-lexer-port ":ciao"))
     => #f)
 
+  (check
+      (guard (E ((uri:parser-error-condition? E)
+		 #t)
+		(else #f))
+	(uri:to-string (uri:parse-segment-nz-nc (make-lexer-port "ciao%3d%3,ciao"))))
+    => #t)
+
+  (check
+      (guard (E ((uri:parser-error-condition? E)
+		 #t)
+		(else #f))
+	(uri:to-string (uri:parse-segment-nz-nc (make-lexer-port "ciao%,3%3dciao"))))
+    => #t)
+
 ;;; --------------------------------------------------------------------
+;;; slash and segment
+
+  (check
+      (uri:parse-slash-and-segment (make-lexer-port ""))
+    => (eof-object))
+
+  (check
+      (uri:parse-slash-and-segment (make-lexer-port "ciao"))
+    => #f)
+
+  (check
+      (uri:parse-slash-and-segment (make-lexer-port "?ciao"))
+    => '#f)
+
+  (check
+      (uri:parse-slash-and-segment (make-lexer-port "/"))
+    => '#vu8())
+
+  (check
+      (uri:to-string (uri:parse-slash-and-segment (make-lexer-port "/ciao/hello")))
+    => "ciao")
+
+  (check
+      (let* ((p (make-lexer-port "/ciao/hello"))
+	     (a (uri:to-string (uri:parse-slash-and-segment p)))
+	     (b (uri:to-string (uri:parse-slash-and-segment p))))
+	(list a b))
+    => '("ciao" "hello"))
+
+  (check
+      (let* ((p (make-lexer-port "/ciao/hello/"))
+	     (a (uri:to-string (uri:parse-slash-and-segment p)))
+	     (b (uri:to-string (uri:parse-slash-and-segment p)))
+	     (c (uri:to-string (uri:parse-slash-and-segment p))))
+	(list a b c (uri:parse-slash-and-segment p)))
+    => `("ciao" "hello" "" ,(eof-object)))
+
+  (check
+      (uri:to-string (uri:parse-slash-and-segment (make-lexer-port "/ciao%3dciao")))
+    => "ciao%3dciao")
+
+  (check
+      (uri:to-string (uri:parse-slash-and-segment (make-lexer-port "/ciao%3d%3dciao")))
+    => "ciao%3d%3dciao")
+
+  (check
+      (guard (E ((uri:parser-error-condition? E)
+		 #t)
+		(else #f))
+	(uri:to-string (uri:parse-slash-and-segment (make-lexer-port "/ciao%3d%3,ciao"))))
+    => #t)
+
+  (check
+      (guard (E ((uri:parser-error-condition? E)
+		 #t)
+		(else #f))
+	(uri:to-string (uri:parse-slash-and-segment (make-lexer-port "/ciao%,3%3dciao"))))
+    => #t)
+
+  #t)
+
+
+(parametrise ((check-test-name	'parsing-path))
+
 ;;; path-empty
 
   (check
@@ -570,7 +716,7 @@
 
   (check
       (uri:parse-path-abempty (make-lexer-port ""))
-    => #f)
+    => '())
 
   (check
       (map uri:to-string (uri:parse-path-abempty (make-lexer-port "/ciao")))
@@ -583,6 +729,10 @@
   (check
       (map uri:to-string (uri:parse-path-abempty (make-lexer-port "/ciao/hello/salut")))
     => '("ciao" "hello" "salut"))
+
+  (check
+      (map uri:to-string (uri:parse-path-abempty (make-lexer-port "///")))
+    => '("" "" ""))
 
 ;;; --------------------------------------------------------------------
 ;;; path-absolute
@@ -721,6 +871,39 @@
 	  (uri:parse-path (make-lexer-port "/"))
 	(vector type segments))
     => '#(path-absolute ()))
+
+  #t)
+
+
+(parametrise ((check-test-name	'parse-uri-reference))
+
+  (define (make-lexer-port obj)
+    (cond ((string? obj)
+	   (open-bytevector-input-port (uri:to-bytevector obj)))
+	  ((bytevector? obj)
+	   (open-bytevector-input-port obj))
+	  (else
+	   #f)))
+
+;;; --------------------------------------------------------------------
+;;; relative-part
+
+  (let-syntax ((doit	(syntax-rules ()
+			  ((_ ?input ?expected-vector)
+			   (check
+			       (receive (authority path-kind segments)
+				   (uri:parse-relative-part (make-lexer-port ?input))
+				 (vector authority path-kind (map uri:to-string segments)))
+			     => '?expected-vector)))))
+
+    (doit ""
+	  #(#f path-empty ()))
+
+    (doit "//"
+	  #(#f path-abempty ()))
+
+    #f)
+
 
   #t)
 

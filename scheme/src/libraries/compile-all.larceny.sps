@@ -367,6 +367,9 @@
 
 ;;; --------------------------------------------------------------------
 
+(%compile-library "uri/conditions.sls"
+		  "uri/conditions.slfasl")
+
 (%compile-library "uri/low.sls"
 		  "uri/low.slfasl")
 
