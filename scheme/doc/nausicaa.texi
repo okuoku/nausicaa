@@ -2607,7 +2607,7 @@ representations @true{} and @false{}.
 
 
 Characters are represented using the notation @code{#\<character>} or
-@code{#<character name>} or @code{#x<hex scalar value>}.
+@code{#\<character name>} or @code{#\x<hex scalar value>}.
 
 For example:
 
