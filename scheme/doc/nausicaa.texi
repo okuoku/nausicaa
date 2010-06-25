@@ -20324,11 +20324,11 @@ defaults}.
 The @library{classes} library is an alternative to the
 @rsixlibrary{records syntactic} library; it is built upon
 @rsixlibrary{records procedural} but adds some features like dot
-notation to access fields.  The library is designed to work with class
-type definitions imported for the @code{run} phase.
+notation to access fields.
 
-The facilities of the library work only on records of type defined with
-@func{define-class}.
+The library is designed to work with class type definitions imported for
+the @code{run} phase.  The facilities of the library work only on
+records of type defined with @func{define-class}.
 
 @menu
 * classes define::              Defining new class types.
@@ -20354,8 +20354,8 @@ A @dfn{class type}, as defined by the @library{classes} library, is a
 regular record type as defined by @rsixlibrary{records procedural}, with
 the constraint of being nongenerative; new class types are defined by
 @func{define-class} and @func{define-foreign-class}, which generate
-auxiliary syntaxes to allow for virtual fields, methods and dot
-notation.
+auxiliary syntaxes to allow for virtual fields, methods, dot notation
+and multiple construction protocols.
 
 A @dfn{label type}, as defined by the @library{classes} library, is a
 special interface to the syntaxes which define dot notation for virtual
@@ -20383,6 +20383,12 @@ it is @strong{not} associated to a record type as defined by
 @c page
 @node classes define class
 @subsection Defining class types
+
+
+@cindex Class types definition
+@cindex Foreign class types definition
+@cindex Definition, class types
+@cindex Definition, Foreign class types
 
 
 @deffn Syntax define-class @ameta{name spec} @ameta{class clause}*
@@ -20417,7 +20423,7 @@ and a @func{maker-protocol} clause whose constructors raise an assertion
 violation if called.  Foreign classes are not meant to be instantiated,
 their purpose is only to provide virtual fields and methods to instances
 of other types; for example: all the classes for builtin types are
-virtual.
+foreign.
 
 Foreign classes can be used in the hierarchy of concrete classes:
 foreign classes can have a proper superclass constructor protocol.
@@ -20438,7 +20444,12 @@ definition.
 @subsection Defining hierarchies of classes
 
 
-Inheritance is driven by the following clauses:
+@cindex Defining inheritance for class types
+@cindex Class types, defining inheritance
+@cindex Inheritance, class types
+
+
+Inheritance (or subclassing) is driven by the following clauses:
 
 @table @func
 @item inherit
@@ -20520,18 +20531,19 @@ of options are equivalent:
 @subsection Defining constructor protocols
 
 
-Three constructor descriptors are built by @func{define-class}: the
-@dfn{public constructor} is used when instantiating a class through the
-@func{make} macro; the @dfn{superclass constructor} is used when
-instantiating a subclass, it is the function handed as argument to the
-protocol function; the @dfn{from--fields constructor} is automatically
-generated to be used by the @func{make-from-fields} macro and it builds
-instances from raw field values.
+The following constructor descriptors are be built by
+@func{define-class}: the @dfn{public constructor} is used when
+instantiating a class through the @func{make} macro; the @dfn{superclass
+constructor} is used when instantiating a subclass, it is the function
+handed as argument to the subclass' protocol function; the
+@dfn{from--fields constructor} is automatically generated to be used by
+the @func{make-from-fields} macro and it builds instances from raw field
+values.
 
-Additionally a fourth constructor can be optionally defined: the maker
-constructor to be used by the maker specified with the @code{maker}
-clause and the high--level macro @func{make*}.  @ref{classes define
-maker} for details on the maker constructor.
+Additionally another constructor can be optionally defined: the
+@dfn{maker constructor} to be used by the maker specified with the
+@code{maker} clause and the high--level macro @func{make*}; @ref{classes
+define maker} for details on the maker constructor.
 
 
 The @func{define-foreign-class} macro defines only the superclass and
@@ -20545,7 +20557,7 @@ superclass constructor descriptor:
 When inheritance is specified through the @func{inherit} clause: the
 superclass constructor is acquired with
 @func{class-superclass-constructor-descriptor} applied to the superclass
-name.
+name (or an equivalent operation).
 
 @item
 When inheritance is specified through the @func{parent} clause: the
@@ -20617,8 +20629,8 @@ and can be used as:
 @noindent
 where the @func{make*} macro will expand to an use of the
 @func{the-maker} macro.  See the documentation of @func{define-maker}
-for details on the arguments of @func{maker}.  @ref{makers api, Defining
-makers}
+for details on the arguments of @func{maker}; @ref{makers api, Defining
+makers}.
 
 The maker will use the maker--specific constructor if one was specified
 with the @code{maker-protocol} clause, else it will default to the
@@ -20959,10 +20971,10 @@ argument to the macro will be the class instance.
 @end deffn
 
 
-@deffn Syntax define-virtual-method @ameta{class} @ameta{name}
-@deffnx Syntax define-virtual-method @ameta{class} @ameta{name} @ameta{expr}
-Define a virtual method for @meta{class}; the virtual methods of a class
-can be overridden by implementations in subclasses.  For example:
+@deffn Syntax define-virtual-method @ameta{class name} @ameta{method name}
+@deffnx Syntax define-virtual-method @ameta{class name} @ameta{method name} @ameta{expr}
+Define a virtual method for @meta{class name}; the virtual methods of a
+class can be overridden by implementations in subclasses.  For example:
 
 @example
 (import (nausicaa))
@@ -20991,15 +21003,16 @@ mostly it is still faster than a call to a generic function as
 implemented by the @library{classes} library; @naumoreref{generics,
 Multimethod dispatching}.
 
-A virtual method must be declared in the definition of @meta{class} as
-an ordinary method with the @code{methods} clause; @meta{name} must be
-an identifier specifying the name of the method and @meta{expr} must be
-an expression evaluating to the method implementation.  When @meta{expr}
-is missing: the virtual method exists, but it has no implementation for
-@meta{class}.
+A virtual method must be declared in the definition of @meta{class name}
+as an ordinary method with the @code{methods} clause; @meta{method name}
+must be an identifier specifying the name of the method and @meta{expr}
+must be an expression evaluating to the method implementation.  When
+@meta{expr} is missing: the virtual method exists, but it has no
+implementation for @meta{class name}.
 
 A virtual method without implementation does not forbid the
-instantiation of a class.
+instantiation of a class.  Only classes can have virtual methods, labels
+cannot.
 @end deffn
 
 @c page
@@ -21124,8 +21137,8 @@ library (foreign classes can).
 @deffn Syntax define-label @ameta{name} @ameta{clause}*
 @deffnx Syntax define-label (@ameta{name} @ameta{predicate}) @ameta{clause}*
 Define a new label type.  Labels are somewhat like classes, but with no
-concrete fields, no underlying record type and no constructor protocols;
-labels cannot be instantiated.
+concrete fields, no underlying record type and no constructor protocols,
+no virtual methods; labels cannot be instantiated.
 
 The following clauses are available in the body of a label definition:
 
@@ -21211,10 +21224,9 @@ Example:
 @end deffn
 
 
-@deffn Syntax make* @ameta{class name} @ameta{expression} ...
+@deffn Syntax make* @ameta{class name} @ameta{maker clause} ...
 Expand to the application of the maker constructor of @meta{class name}
-to the results of evaluating the @meta{expression} arguments, which can
-be any expression and are evaluated only once.
+to the results of parsing the @meta{maker clause} arguments.
 
 This macro allows both mandatory, positional arguments and optional
 arguments as specified with the @code{maker} clause of
