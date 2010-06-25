@@ -63,6 +63,9 @@
 		((make-top) (make-eq-hashtable)
 		 (apply environment (append $default-import-specs list-of-import-specs))))))
 
+  (maker ()
+	 (:imports '((rnrs))))
+
   (methods eval variable-ref variable-set!))
 
 
