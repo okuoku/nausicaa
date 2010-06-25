@@ -24,6 +24,28 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
+;;;Copyright (C) Michael Sperber (2005). All Rights Reserved.
+;;;
+;;;Permission is hereby granted, free of charge, to any person obtaining
+;;;a  copy of  this  software and  associated  documentation files  (the
+;;;"Software"), to  deal in the Software  without restriction, including
+;;;without limitation  the rights to use, copy,  modify, merge, publish,
+;;;distribute, sublicense,  and/or sell copies  of the Software,  and to
+;;;permit persons to whom the Software is furnished to do so, subject to
+;;;the following conditions:
+;;;
+;;;The  above  copyright notice  and  this  permission  notice shall  be
+;;;included in all copies or substantial portions of the Software.
+;;;
+;;;THE  SOFTWARE IS  PROVIDED "AS  IS",  WITHOUT WARRANTY  OF ANY  KIND,
+;;;EXPRESS OR  IMPLIED, INCLUDING BUT  NOT LIMITED TO THE  WARRANTIES OF
+;;;MERCHANTABILITY,    FITNESS   FOR    A    PARTICULAR   PURPOSE    AND
+;;;NONINFRINGEMENT. IN  NO EVENT SHALL THE AUTHORS  OR COPYRIGHT HOLDERS
+;;;BE LIABLE  FOR ANY CLAIM, DAMAGES  OR OTHER LIABILITY,  WHETHER IN AN
+;;;ACTION OF  CONTRACT, TORT  OR OTHERWISE, ARISING  FROM, OUT OF  OR IN
+;;;CONNECTION  WITH THE SOFTWARE  OR THE  USE OR  OTHER DEALINGS  IN THE
+;;;SOFTWARE.
+
 
 #!r6rs
 (library (classes)
@@ -96,6 +118,52 @@
        (with-accessor-and-mutator (?spec ...) ?body0 ?body ...)))
     ((_ () ?body0 ?body ...)
      (begin ?body0 ?body ...))))
+
+(define (%vector-copy dst src len)
+  (do ((i 0 (+ 1 i)))
+      ((= i len))
+    (vector-set! dst i (vector-ref src i))))
+
+
+(define (%make-default-protocol rtd)
+  (define (split-at l n)
+    (if (zero? n)
+	(values '() l)
+      (let-values (((a b) (split-at (cdr l) (- n 1))))
+	(values (cons (car l) a) b))))
+  (define (field-count rtd count)
+    (if (or (not rtd) (eq? 'nausicaa:builtin:<top> (record-type-uid rtd)))
+	count
+      (field-count (record-type-parent rtd)
+		   (+ count (vector-length (record-type-field-names rtd))))))
+  (let ((parent (record-type-parent rtd)))
+    (if (not parent)
+	(lambda (p)
+	  (lambda field-values
+	    (apply p field-values)))
+      (let ((parent-field-count (field-count parent 0)))
+	(lambda (p)
+	  (lambda all-field-values
+	    (call-with-values
+		(lambda () (split-at all-field-values parent-field-count))
+	      (lambda (parent-field-values this-field-values)
+		(apply (apply p parent-field-values) this-field-values)))))))))
+
+(define (%make-from-fields-cd rtd protocol)
+  ;;Given a  record type  descriptor and a  protocol function  build and
+  ;;return a  default constructor descriptor: the one  accepting the raw
+  ;;field   values.    The   returned   descriptor  is   used   by   the
+  ;;MAKE-FROM-FIELDS syntax.
+  ;;
+  (make-record-constructor-descriptor
+   rtd
+   (let ((parent-rtd (record-type-parent rtd)))
+     (if parent-rtd
+	 (if (eq? 'nausicaa:builtin:<top> (record-type-uid parent-rtd))
+	     (record-constructor-descriptor <top>)
+	   (%make-from-fields-cd parent-rtd (%make-default-protocol parent-rtd)))
+       #f))
+   protocol))
 
 
 ;;;; inspection procedures
@@ -216,18 +284,6 @@
     (cond ((list?	obj)	(class-uid-list <list>))
 	  (else			(class-uid-list <pair>))))
    (else '(nausicaa:builtin:<top>))))
-
-(define (%make-from-fields-cd rtd)
-  ;;Given  a  record  type  descriptor  build  and  return  its  default
-  ;;constructor descriptor: the one accepting the raw field values.  The
-  ;;returned descriptor is used by the MAKE-FROM-FIELDS syntax.
-  ;;
-  (make-record-constructor-descriptor rtd
-				      (let ((parent-rtd (record-type-parent rtd)))
-					(if parent-rtd
-					    (%make-from-fields-cd parent-rtd)
-					  #f))
-				      #f))
 
 
 ;;;; inspection macros
@@ -455,8 +511,8 @@
        clauses %synner)
 
       (let-values
-	  ;;The superlabel  identifier or false;  the inherit options:
-	  ;;all boolean values.
+	  ;;The superclass identifier or false; the inherit options: all
+	  ;;boolean values.
 	  (((superclass-identifier inherit-concrete-fields? inherit-virtual-fields?
 				   inherit-methods? inherit-setter-and-getter?)
 	    (%collect-clause/class/inherit clauses %synner))
@@ -594,6 +650,7 @@
 	   ((syntax-methods syntax-definitions)
 	    (%collect-clause/method-syntax class-identifier clauses %synner)))
 
+	(define the-parent-is-a-class? (identifier? superclass-identifier))
 	(set! methods		(append methods methods-from-methods syntax-methods))
 	(set! definitions	(append definitions syntax-definitions))
 
@@ -672,6 +729,7 @@
 	(with-syntax
 	    ((CLASS-NAME			class-identifier)
 	     (SUPERCLASS-NAME			superclass-identifier)
+	     (THE-PARENT-IS-A-CLASS?		the-parent-is-a-class?)
 	     (PARENT-RTD			parent-rtd)
 	     (PARENT-CD				parent-cd)
 	     (UID				uid-symbol)
@@ -718,13 +776,16 @@
 
 	      DEFINITION ...
 
+	      (define from-fields-protocol
+		(%make-default-protocol the-rtd))
 	      (define the-from-fields-cd
-		(%make-from-fields-cd the-rtd))
+		(%define-class/output-forms/make-from-fields-constructor-descriptor
+		 THE-PARENT-IS-A-CLASS? SUPERCLASS-NAME the-rtd from-fields-protocol))
 	      (define from-fields-constructor
 		(record-constructor the-from-fields-cd))
 
 	      (define the-common-protocol
-		COMMON-PROTOCOL)
+		(or COMMON-PROTOCOL from-fields-protocol))
 
 	      (define the-public-protocol
 		(or PUBLIC-PROTOCOL the-common-protocol))
@@ -761,6 +822,9 @@
 				  (record-parent-list the-parent-rtd)
 				'())))
 
+	      (%define-class/output-forms/make-virtual-methods-table
+	       THE-PARENT-IS-A-CLASS? SUPERCLASS-NAME)
+
 	      (define-syntax CLASS-NAME
 	      	(lambda (stx)
 	      	  (syntax-case stx (class-record-type-descriptor
@@ -775,7 +839,9 @@
 				    list-of-virtual-fields
 				    list-of-methods
 	      			    make make* make-from-fields is-a?
-	      			    with-class-bindings-of)
+	      			    with-class-bindings-of
+				    virtual-methods-vector-length
+				    virtual-methods-vector)
 
 	      	    ((_ class-record-type-descriptor)
 	      	     #'the-rtd)
@@ -844,6 +910,12 @@
 	      		 ?inherit-methods
 	      		 ?inherit-setter-and-getter)
 	      		?variable-name ?arg (... ...)))
+
+		    ((_ virtual-methods-vector-length)
+		     #'the-virtual-methods-vector-length)
+
+		    ((_ virtual-methods-vector)
+		     #'the-virtual-methods-vector)
 
 	      	    ((_ ?keyword . ?rest)
 	      	     (syntax-violation 'CLASS-NAME
@@ -999,6 +1071,55 @@
     ((_ class-name the-maker constructor (MAKER-POSITIONAL-ARG ...) (MAKER-OPTIONAL-ARG ...))
      (define-maker (the-maker MAKER-POSITIONAL-ARG ...)
        constructor (MAKER-OPTIONAL-ARG ...)))))
+
+(define-syntax %define-class/output-forms/make-from-fields-constructor-descriptor
+  ;;We do  this to  allow inheritance from  non-class record  types.  We
+  ;;select the  appropriate clause  to make the  construction efficient:
+  ;;the constructor for  non-class record types is slow  compared to the
+  ;;one of class types.
+  ;;
+  (lambda (stx)
+    (syntax-case stx ()
+      ((_ #t ?superclass-name ?the-rtd ?from-fields-protocol)
+       (identifier? #'?superclass-name)
+       #'(make-record-constructor-descriptor ?the-rtd
+					     (?superclass-name from-fields-constructor-descriptor)
+					     ?from-fields-protocol))
+      ((_ #f ?superclass-name ?the-rtd ?from-fields-protocol)
+       #'(%make-from-fields-cd ?the-rtd ?from-fields-protocol))
+      (_
+       (syntax-violation 'make-from-fields-constructor-descriptor
+	 "invalid arguments"
+	 (syntax->datum stx))))))
+
+(define-syntax %define-class/output-forms/make-virtual-methods-table
+  (lambda (stx)
+    (syntax-case stx ()
+
+      ((?k #t ?superclass-name)
+       (with-syntax ((VEC_LEN	(datum->syntax #'?k 'the-virtual-methods-vector-length))
+		     (VEC_FUN	(datum->syntax #'?k 'the-virtual-methods-vector-functions))
+		     (VEC_NAM	(datum->syntax #'?k 'the-virtual-methods-vector-names)))
+	 #'(begin
+	     (define VEC_LEN
+	       (+ (?superclass-name virtual-methods-vector-length)))
+	     (define VEC_NAM
+	       )
+	     (define VEC_FUN
+	       (let ((V (make-vector VEC_LEN)))
+		 (%vector-copy V (?superclass-name virtual-methods-vector)
+			       (?superclass-name virtual-methods-vector-length))
+		 V)))))
+
+      ((?k #f ?superclass-name)
+       (with-syntax ((VEC_LEN	(datum->syntax #'?k 'the-virtual-methods-vector-length))
+		     (VEC_FUN	(datum->syntax #'?k 'the-virtual-methods-vector-functions))
+		     (VEC_NAM	(datum->syntax #'?k 'the-virtual-methods-vector-names)))
+	 #'(begin
+	     (define VEC_LEN 0)
+	     (define VEC_NAM '#())
+	     (define VEC_FUN '#()))))
+      )))
 
 
 (define-syntax define-label
