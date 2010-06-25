@@ -831,6 +831,7 @@
     define-label			is-a?
     make				make-from-fields
     make*
+    define-virtual-method
 
     ;; inspection macros
     class-record-type-descriptor

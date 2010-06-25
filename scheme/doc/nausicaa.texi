@@ -20958,6 +20958,50 @@ built by appending a dash and @meta{name} to the class type name.
 argument to the macro will be the class instance.
 @end deffn
 
+
+@deffn Syntax define-virtual-method @ameta{class} @ameta{name}
+@deffnx Syntax define-virtual-method @ameta{class} @ameta{name} @ameta{expr}
+Define a virtual method for @meta{class}; the virtual methods of a class
+can be overridden by implementations in subclasses.  For example:
+
+@example
+(import (nausicaa))
+
+(define-class <alpha>
+  (fields a)
+  (methods the-method))
+
+(define-class <beta>
+  (inherit <alpha>)
+  (methods the-method))
+
+(define-virtual-method <alpha> the-method
+  (lambda (o) 'alpha))
+
+(define-virtual-method <beta> the-method
+  (lambda (o) 'beta))
+
+(let (((o <alpha>) (make <beta> 2)))
+  (o.the-method))
+@result{} beta
+@end example
+
+A virtual method call is much slower than a concrete method call, but
+mostly it is still faster than a call to a generic function as
+implemented by the @library{classes} library; @naumoreref{generics,
+Multimethod dispatching}.
+
+A virtual method must be declared in the definition of @meta{class} as
+an ordinary method with the @code{methods} clause; @meta{name} must be
+an identifier specifying the name of the method and @meta{expr} must be
+an expression evaluating to the method implementation.  When @meta{expr}
+is missing: the virtual method exists, but it has no implementation for
+@meta{class}.
+
+A virtual method without implementation does not forbid the
+instantiation of a class.
+@end deffn
+
 @c page
 @node classes define setter
 @subsection Defining classes having custom setters and getters

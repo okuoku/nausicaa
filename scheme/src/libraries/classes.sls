@@ -56,6 +56,7 @@
     define-label			is-a?
     make				make-from-fields
     make*
+    define-virtual-method
 
     ;; inspection macros
     class-record-type-descriptor
@@ -126,28 +127,34 @@
 
 
 (define (%make-default-protocol rtd)
+  ;;Given  a   record  type  descriptor  build  and   return  a  default
+  ;;constructor: a function accepting the raw field values and returning
+  ;;a record instance.
+  ;;
   (define (split-at l n)
     (if (zero? n)
 	(values '() l)
       (let-values (((a b) (split-at (cdr l) (- n 1))))
 	(values (cons (car l) a) b))))
   (define (field-count rtd count)
+    ;;We know that <top> has no fields and no parent.
     (if (or (not rtd) (eq? 'nausicaa:builtin:<top> (record-type-uid rtd)))
 	count
       (field-count (record-type-parent rtd)
 		   (+ count (vector-length (record-type-field-names rtd))))))
   (let ((parent (record-type-parent rtd)))
     (if (not parent)
-	(lambda (p)
+	(lambda (make-record)
 	  (lambda field-values
-	    (apply p field-values)))
+	    (apply make-record field-values)))
       (let ((parent-field-count (field-count parent 0)))
-	(lambda (p)
+	(lambda (make-parent)
 	  (lambda all-field-values
 	    (call-with-values
-		(lambda () (split-at all-field-values parent-field-count))
+		(lambda ()
+		  (split-at all-field-values parent-field-count))
 	      (lambda (parent-field-values this-field-values)
-		(apply (apply p parent-field-values) this-field-values)))))))))
+		(apply (apply make-parent parent-field-values) this-field-values)))))))))
 
 (define (%make-from-fields-cd rtd protocol)
   ;;Given a  record type  descriptor and a  protocol function  build and
@@ -822,9 +829,6 @@
 				  (record-parent-list the-parent-rtd)
 				'())))
 
-	      (%define-class/output-forms/make-virtual-methods-table
-	       THE-PARENT-IS-A-CLASS? SUPERCLASS-NAME)
-
 	      (define-syntax CLASS-NAME
 	      	(lambda (stx)
 	      	  (syntax-case stx (class-record-type-descriptor
@@ -839,9 +843,7 @@
 				    list-of-virtual-fields
 				    list-of-methods
 	      			    make make* make-from-fields is-a?
-	      			    with-class-bindings-of
-				    virtual-methods-vector-length
-				    virtual-methods-vector)
+	      			    with-class-bindings-of)
 
 	      	    ((_ class-record-type-descriptor)
 	      	     #'the-rtd)
@@ -910,12 +912,6 @@
 	      		 ?inherit-methods
 	      		 ?inherit-setter-and-getter)
 	      		?variable-name ?arg (... ...)))
-
-		    ((_ virtual-methods-vector-length)
-		     #'the-virtual-methods-vector-length)
-
-		    ((_ virtual-methods-vector)
-		     #'the-virtual-methods-vector)
 
 	      	    ((_ ?keyword . ?rest)
 	      	     (syntax-violation 'CLASS-NAME
@@ -1091,35 +1087,6 @@
        (syntax-violation 'make-from-fields-constructor-descriptor
 	 "invalid arguments"
 	 (syntax->datum stx))))))
-
-(define-syntax %define-class/output-forms/make-virtual-methods-table
-  (lambda (stx)
-    (syntax-case stx ()
-
-      ((?k #t ?superclass-name)
-       (with-syntax ((VEC_LEN	(datum->syntax #'?k 'the-virtual-methods-vector-length))
-		     (VEC_FUN	(datum->syntax #'?k 'the-virtual-methods-vector-functions))
-		     (VEC_NAM	(datum->syntax #'?k 'the-virtual-methods-vector-names)))
-	 #'(begin
-	     (define VEC_LEN
-	       (+ (?superclass-name virtual-methods-vector-length)))
-	     (define VEC_NAM
-	       )
-	     (define VEC_FUN
-	       (let ((V (make-vector VEC_LEN)))
-		 (%vector-copy V (?superclass-name virtual-methods-vector)
-			       (?superclass-name virtual-methods-vector-length))
-		 V)))))
-
-      ((?k #f ?superclass-name)
-       (with-syntax ((VEC_LEN	(datum->syntax #'?k 'the-virtual-methods-vector-length))
-		     (VEC_FUN	(datum->syntax #'?k 'the-virtual-methods-vector-functions))
-		     (VEC_NAM	(datum->syntax #'?k 'the-virtual-methods-vector-names)))
-	 #'(begin
-	     (define VEC_LEN 0)
-	     (define VEC_NAM '#())
-	     (define VEC_FUN '#()))))
-      )))
 
 
 (define-syntax define-label
@@ -1364,6 +1331,68 @@
 	 (syntax->datum (syntax ?input-form))
 	 (syntax->datum (syntax ?name-spec))))
       )))
+
+
+(define $virtual-methods-table
+  (make-eq-hashtable))
+
+(define-syntax define-virtual-method
+  (lambda (stx)
+    (define who 'define-virtual-method)
+    (syntax-case stx ()
+
+      ((_ ?class ?name)
+       #'(define-virtual-method ?class ?name #f))
+
+      ((_ ?class ?name ?lambda)
+       (not (identifier? #'?class))
+       (syntax-violation who "expected class identifier as first argument" (syntax->datum stx)))
+
+      ((_ ?class ?name ?lambda)
+       (not (identifier? #'?name))
+       (syntax-violation who "expected method name identifier as second argument" (syntax->datum stx)))
+
+      ((_ ?class ?name ?lambda)
+       #`(begin
+	   (define implementation
+	     (let ((implementation ?lambda))
+	       (when implementation
+		 (hashtable-set! (or (hashtable-ref $virtual-methods-table '?name #f)
+				     (let ((table (make-eq-hashtable)))
+				       (hashtable-set! $virtual-methods-table '?name table)
+				       table))
+				 (class-type-uid ?class) implementation))
+	       implementation))
+	   (define-syntax #,(syntax-method-identifier #'?class #'?name)
+	     (syntax-rules ()
+	       ;;This  is  a  method,  so  we  know  that  ?self  is  an
+	       ;;identifier: we can safely use it multiple times.
+	       ((_ ?self . ?args)
+		((%retrieve-virtual-method-implementation (record-type-of ?self) '?name)
+		 ?self . ?args))))
+	   ))
+      )))
+
+(define (%retrieve-virtual-method-implementation rtd method-symbol-name)
+  (define (%error-missing-implementation)
+    (syntax-violation 'retrieve-virtual-method-implementation
+      (string-append "missing virtual method implementation for "
+		     (symbol->string method-symbol-name)
+		     " for class "  (symbol->string (record-type-name rtd))
+		     " having uid " (symbol->string (record-type-uid  rtd)))
+      #f))
+  (define table
+    (hashtable-ref $virtual-methods-table method-symbol-name #f))
+  (if table
+      (let next-rtd ((rtd rtd))
+	(if rtd
+	    (let ((uid (record-type-uid rtd)))
+	      (if (eq? uid 'nausicaa:builtin:<top>)
+		  (%error-missing-implementation)
+		(or (hashtable-ref table uid #f)
+		    (next-rtd (record-type-parent rtd)))))
+	  (%error-missing-implementation)))
+    (%error-missing-implementation)))
 
 
 (define-syntax %with-class-fields
@@ -2036,11 +2065,11 @@
   (virtual-fields (immutable car car)
 		  (immutable cdr cdr)))
 
-(define-builtin-class <list>
+(define-foreign-class <list>
+  (nongenerative nausicaa:builtin:<list>)
+  (inherit <pair>)
   (predicate list?)
-  (virtual-fields (immutable car car)
-		  (immutable cdr cdr)
-		  (immutable length length))
+  (virtual-fields (immutable length length))
 
   (method-syntax find
     (syntax-rules ()

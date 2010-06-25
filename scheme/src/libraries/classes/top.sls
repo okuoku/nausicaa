@@ -26,30 +26,12 @@
 
 
 (library (classes top)
-  (export <top> <top>-superclass <top>-superlabel <top>-bindings
-	  current-virtual-methods-vector)
-  (import (rnrs)
-    (parameters))
+  (export <top> <top>-superclass <top>-superlabel <top>-bindings)
+  (import (rnrs))
 
 
 (define-record-type <top>
-  (protocol (lambda (make-record)
-	      (lambda ()
-		(make-record (current-virtual-methods-vector)))))
-  (fields __virtual_methods_vector__)
   (nongenerative nausicaa:builtin:<top>))
-
-(define <top>-virtual-methods-functions
-  '#())
-
-(define <top>-virtual-methods-names
-  '#())
-
-(define current-virtual-methods-vector
-  (make-parameter <top>-virtual-methods
-    (lambda (table)
-      (assert (vector? table))
-      table)))
 
 (define-syntax <top>-superclass
   (lambda (stx)
@@ -61,10 +43,7 @@
 		      from-fields-constructor-descriptor
 		      parent-rtd-list
 		      make make-from-fields is-a?
-		      with-class-bindings-of
-		      virtual-methods-vector-length
-		      virtual-methods-vector-names
-		      virtual-methods-vector-functions)
+		      with-class-bindings-of)
 
       ((_ class-record-type-descriptor)
        #'(record-type-descriptor <top>))
@@ -92,15 +71,6 @@
 
       ((_ with-class-bindings-of ?inherit-options ?variable-name ?body0 ?body ...)
        #'(begin ?body0 ?body ...))
-
-      ((_ virtual-methods-vector-length)
-       0)
-
-      ((_ virtual-methods-vector-functions)
-       #'<top>-virtual-methods-functions)
-
-      ((_ virtual-methods-vector-names)
-       #'<top>-virtual-methods-names)
 
       ((_ ?keyword . ?rest)
        (syntax-violation '<top>
