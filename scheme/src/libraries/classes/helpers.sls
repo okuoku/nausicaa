@@ -60,6 +60,7 @@
     %collect-clause/bindings
     )
   (import (rnrs)
+    (for (only (rnrs base) define-syntax) (meta -1))
     (gensym)
     (syntax-utilities)
     (for (classes top) (meta -1))
