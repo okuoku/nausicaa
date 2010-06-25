@@ -36075,20 +36075,22 @@ which are already not so.
 
 The @library{interps} library exports an interface to @rsixlibrary{eval}
 which allows evaluation of code in chunks with retention of global
-variables.  Evaluation of code is handled by ``interpreter'' objects;
-examples:
+variables; @library{interps} uses the facilities of @library{classes}.
+Evaluation of code is handled by ``interpreter'' objects; examples:
 
 @example
 (import (nausicaa) (interps))
 
-(let (((o <interp>) (make <interp> '((rnrs)))))
+(let (((o <interp>) (make* <interp>
+                      (:imports '((rnrs))))))
   (o.eval '(let ()
              (define a 1)
              (define b 2)
              (+ a b))))
 @result{} 3
 
-(let (((o <interp>) (make <interp> '((rnrs)))))
+(let (((o <interp>) (make* <interp>
+                      (:imports '((rnrs))))))
   (o.eval '(let ()
              (define-global a 1)
              #f))
@@ -36151,8 +36153,8 @@ Hold the state of subsequent code evaluations.
 
 
 @defcv {Immutable Field} @aclass{interp} table-of-variables
-A hash table mapping Scheme symbols to values; one for each variable
-currently in the interpreter.
+A hash table mapping Scheme symbols to values; one for each persistent
+variable currently in the interpreter.
 @end defcv
 
 
@@ -36168,6 +36170,21 @@ Expand to an expression which evaluates to a new @class{interp} object.
 @meta{import specs} must be an expression evaluating to a list of
 library import specifications; the list is used to build the environment
 in which code will be evaluated.  The environment cannot be modified.
+@end deffn
+
+
+@deffn Syntax {make* @aclass{interp}} @ameta{clause}
+This syntax is a maker, @nauref{makers, Makers}.  Expand to an
+expression which evaluates to a new @class{interp} object.  The
+following clauses are recognised:
+
+@table @code
+@item :imports @cmeta{import specs}
+@meta{import specs} must be an expression evaluating to a list of
+library import specifications; the list is used to build the environment
+in which code will be evaluated.  The environment cannot be modified.
+The default value causes the @library{rnrs} library to be imported.
+@end table
 @end deffn
 
 
@@ -36200,13 +36217,16 @@ interpreter.
 @deffn Syntax define-global @ameta{varname}
 @deffnx Syntax define-global @ameta{varname} @ameta{expression}
 @deffnx Syntax define-global (@ameta{varname} . @ameta{formals}) @ameta{expression}
-Define a global variable which will persists between successive code
+Define a global variable which will persist between successive code
 evaluations.  The first form binds @meta{varname} to the sentinel value,
 @ref{sentinel} for details.
 
-When @func{define-global} is used: the definition has the same region as
-if @func{define} was used; but when successive evaluations of code
-happen, the binding will be at top level.
+What @func{define-global} does is to create an identifier macro which
+accesses and mutates an entry in the interp's table of variables; by
+default: when code is evaluated in an interp, all the global variables
+are bound at the top level, but @func{define-global} can be used
+anywhere definitions are allowed to define, access and mutate global
+variables.
 @end deffn
 
 @c page

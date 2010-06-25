@@ -52,6 +52,27 @@
 	(o.eval '(+ 1 4)))
     => 5)
 
+;;; --------------------------------------------------------------------
+
+  (check
+      (let (((o <interp>) (make* <interp>
+			    (:imports '((rnrs))))))
+	(o.eval '(+ 1 2)))
+    => 3)
+
+  (check
+      (let (((o <interp>) (make* <interp>
+			    (:imports '((rnrs))))))
+	(o.eval '(begin (+ 1 2))))
+    => 3)
+
+  (check
+      (let (((o <interp>) (make* <interp>
+			    (:imports '((rnrs))))))
+	(o.eval '(+ 1 2))
+	(o.eval '(+ 1 4)))
+    => 5)
+
   #t)
 
 

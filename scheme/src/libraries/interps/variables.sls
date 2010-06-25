@@ -28,7 +28,8 @@
 (library (interps variables)
   (export define-variable)
   (import (rnrs)
-    (sentinel))
+    (sentinel)
+    (syntax-utilities))
 
 
 (define-syntax define-variable
