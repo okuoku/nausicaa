@@ -35,42 +35,45 @@
 (check-set-mode! 'report-failed)
 (display "*** testing bytevectors u8\n")
 
+(define S string->utf8)
+(define B utf8->string)
+
 
 (parameterise ((check-test-name 'views))
 
   (check
-      (subbytevector-u8* (string->utf8 "ciao"))
-    => (string->utf8 "ciao"))
+      (subbytevector-u8* (S "ciao"))
+    => (S "ciao"))
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (subbytevector-u8* (view (string->utf8 "ciao")))
-    => (string->utf8 "ciao"))
+      (subbytevector-u8* (view (S "ciao")))
+    => (S "ciao"))
 
   (check
-      (subbytevector-u8* (view (string->utf8 "ciao") (start 2)))
-    => "ao")
+      (subbytevector-u8* (view (S "ciao") (start 2)))
+    => (S "ao"))
 
   (check
-      (subbytevector-u8* (view (string->utf8 "ciao") (start 0) (past 4)))
-    => (string->utf8 "ciao"))
+      (subbytevector-u8* (view (S "ciao") (start 0) (past 4)))
+    => (S "ciao"))
 
   (check
-      (subbytevector-u8* (view (string->utf8 "ciao") (start 0) (past 0)))
-    => "")
+      (subbytevector-u8* (view (S "ciao") (start 0) (past 0)))
+    => '#vu8())
 
   (check
-      (subbytevector-u8* (view (string->utf8 "ciao") (start 1) (past 1)))
-    => "")
+      (subbytevector-u8* (view (S "ciao") (start 1) (past 1)))
+    => '#vu8())
 
   (check
-      (subbytevector-u8* (view (string->utf8 "ciao") (start 0) (past 1)))
-    => "c")
+      (subbytevector-u8* (view (S "ciao") (start 0) (past 1)))
+    => (S "c"))
 
   (check
-      (subbytevector-u8* (view (string->utf8 "ciao") (past 2)))
-    => "ci")
+      (subbytevector-u8* (view (S "ciao") (past 2)))
+    => (S "ci"))
 
   )
 
@@ -78,58 +81,60 @@
 (parameterise ((check-test-name 'constructors))
 
   (check
-      (bytevector-u8-append "0123")
-    => "0123")
+      (bytevector-u8-append (S "0123"))
+    => (S "0123"))
 
   (check
-      (bytevector-u8-append "0123" "45678")
-    => "012345678")
+      (bytevector-u8-append (S "0123") (S "45678"))
+    => (S "012345678"))
 
   (check
-      (bytevector-u8-append "")
-    => "")
+      (bytevector-u8-append '#vu8())
+    => '#vu8())
 
   (check
-      (bytevector-u8-append "" "")
-    => "")
+      (bytevector-u8-append '#vu8() '#vu8())
+    => '#vu8())
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (bytevector-u8-tabulate (lambda (idx) (integer->char (+ 65 idx))) 4)
-    => "ABCD")
+      (bytevector-u8-tabulate (lambda (idx) (+ 65 idx)) 4)
+    => (S "ABCD"))
 
   (check
-      (bytevector-u8-tabulate integer->char 0)
-    => "")
+      (bytevector-u8-tabulate (lambda (x) x) 0)
+    => '#vu8())
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (bytevector-u8-concatenate '((string->utf8 "ciao") " " "hello" " " "salut"))
-    => "ciao hello salut")
+      (bytevector-u8-concatenate '((S "ciao") (S " ") (S "hello") (S " ") (S "salut")))
+    => (S "ciao hello salut"))
 
   (check
       (bytevector-u8-concatenate '())
-    => "")
+    => '#vu8())
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (bytevector-u8-concatenate-reverse '((string->utf8 "ciao") " " "hello" " " "salut") " hola" 3)
-    => "salut hello ciao ho")
+      (bytevector-u8-concatenate-reverse `(,(S "ciao") ,(S " ") ,(S "hello") ,(S " ") ,(S "salut"))
+					 (S " hola") 3)
+    => (S "salut hello ciao ho"))
 
   (check
-      (bytevector-u8-concatenate-reverse '((string->utf8 "ciao") " " "hello" " " "salut") " hola")
-    => "salut hello ciao hola")
+      (bytevector-u8-concatenate-reverse `(,(S "ciao") ,(S " ") ,(S "hello") ,(S " ") (S "salut"))
+					 (S " hola"))
+    => (S "salut hello ciao hola"))
 
   (check
-      (bytevector-u8-concatenate-reverse '((string->utf8 "ciao") " " "hello" " " "salut"))
-    => "salut hello ciao")
+      (bytevector-u8-concatenate-reverse `(,(S "ciao") ,(S " ") ,(S "hello") ,(S " ") ,(S "salut")))
+    => (S "salut hello ciao"))
 
   (check
       (bytevector-u8-concatenate-reverse '())
-    => "")
+    => '#vu8())
 
   )
 
@@ -137,11 +142,11 @@
 (parameterise ((check-test-name 'predicates))
 
   (check
-      (bytevector-u8-null? (string->utf8 "ciao"))
+      (bytevector-u8-null? (S "ciao"))
     => #f)
 
   (check
-      (bytevector-u8-null? "")
+      (bytevector-u8-null? '#vu8())
     => #t)
 
 ;;; --------------------------------------------------------------------
@@ -149,72 +154,72 @@
   (check
       (guard (exc ((assertion-violation? exc)
 		   (condition-who exc)))
-	(bytevector-u8-every 123 "abc"))
+	(bytevector-u8-every 123 (S "abc")))
     => '%bytevector-u8-every)
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (let* ((str "aaaa"))
+      (let* ((str (S "aaaa")))
 	(bytevector-u8-every #\a str))
     => #t)
 
   (check
-      (let* ((str "aaaab"))
+      (let* ((str (S "aaaab")))
 	(bytevector-u8-every #\a str))
     => #f)
 
   (check
-      (let* ((str "aabaa"))
+      (let* ((str (S "aabaa")))
 	(bytevector-u8-every #\a str))
     => #f)
 
   (check
-      (let* ((str ""))
+      (let* ((str '#vu8()))
 	(bytevector-u8-every #\a str))
     => #f)
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (let* ((str "aaaa"))
+      (let* ((str (S "aaaa")))
 	(bytevector-u8-every (char-set #\a) str))
     => #t)
 
   (check
-      (let* ((str "aaaab"))
+      (let* ((str (S "aaaab")))
 	(bytevector-u8-every (char-set #\a) str))
     => #f)
 
   (check
-      (let* ((str "aabaa"))
+      (let* ((str (S "aabaa")))
 	(bytevector-u8-every (char-set #\a) str))
     => #f)
 
   (check
-      (let* ((str ""))
+      (let* ((str '#vu8()))
 	(bytevector-u8-every (char-set #\a) str))
     => #f)
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (let* ((str "aaaa"))
+      (let* ((str (S "aaaa")))
 	(bytevector-u8-every char-alphabetic? str))
     => #t)
 
   (check
-      (let* ((str "aaaa2"))
+      (let* ((str (S "aaaa2")))
 	(bytevector-u8-every char-alphabetic? str))
     => #f)
 
   (check
-      (let* ((str "aa2aa"))
+      (let* ((str (S "aa2aa")))
 	(bytevector-u8-every char-alphabetic? str))
     => #f)
 
   (check
-      (let* ((str ""))
+      (let* ((str '#vu8()))
 	(bytevector-u8-every char-alphabetic? str))
     => #f)
 
@@ -228,77 +233,77 @@
   (check
       (guard (exc ((assertion-violation? exc)
 		   (condition-who exc)))
-	(bytevector-u8-any 123 "abc"))
+	(bytevector-u8-any 123 (S "abc")))
     => '%bytevector-u8-any)
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (let* ((str "ddadd"))
+      (let* ((str (S "ddadd")))
 	(bytevector-u8-any #\a str))
     => #t)
 
   (check
-      (let* ((str "dddda"))
+      (let* ((str (S "dddda")))
 	(bytevector-u8-any #\a str))
     => #t)
 
   (check
-      (let* ((str "ddd"))
+      (let* ((str (S "ddd")))
 	(bytevector-u8-any #\a str))
     => #f)
 
   (check
-      (let* ((str ""))
+      (let* ((str '#vu8()))
 	(bytevector-u8-any #\a str))
     => #f)
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (let* ((str "dddaddd"))
+      (let* ((str (S "dddaddd")))
 	(bytevector-u8-any (char-set #\a) str))
     => #t)
 
   (check
-      (let* ((str "ddda"))
+      (let* ((str (S "ddda")))
 	(bytevector-u8-any (char-set #\a) str))
     => #t)
 
   (check
-      (let* ((str "dddd"))
+      (let* ((str (S "dddd")))
 	(bytevector-u8-any (char-set #\a) str))
     => #f)
 
   (check
-      (let* ((str ""))
+      (let* ((str '#vu8()))
 	(bytevector-u8-any (char-set #\a) str))
     => #f)
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (let* ((str "11a11"))
+      (let* ((str (S "11a11")))
 	(bytevector-u8-any char-alphabetic? str))
     => #t)
 
   (check
-      (let* ((str "11111a"))
+      (let* ((str (S "11111a")))
 	(bytevector-u8-any char-alphabetic? str))
     => #t)
 
   (check
-      (let* ((str "1111"))
+      (let* ((str (S "1111")))
 	(bytevector-u8-any char-alphabetic? str))
     => #f)
 
   (check
-      (let* ((str ""))
+      (let* ((str '#vu8()))
 	(bytevector-u8-any char-alphabetic? str))
     => #f)
 
   (check
-      (let* ((str "1234"))
+      (let* ((str (S "1234")))
 	(bytevector-u8-any (lambda (x) x) str))
     => #\1)
 
@@ -308,41 +313,41 @@
 (parameterise ((check-test-name 'comparison-case-sensitive))
 
   (check
-      (bytevector-u8-compare "abcdefg" "abcd123" values values values)
+      (bytevector-u8-compare (S "abcdefg") (S "abcd123") values values values)
     => 4)
 
   (check
-      (bytevector-u8-compare "abcdef" "abcd123" values values values)
+      (bytevector-u8-compare (S "abcdef") (S "abcd123") values values values)
     => 4)
 
   (check
-      (bytevector-u8-compare "efg" "123" values values values)
+      (bytevector-u8-compare (S "efg") (S "123") values values values)
     => 0)
 
   (check
-      (bytevector-u8-compare "" "abcd" values values values)
+      (bytevector-u8-compare '#vu8() (S "abcd") values values values)
     => 0)
 
   (check
-      (bytevector-u8-compare "abcd" "" values values values)
+      (bytevector-u8-compare (S "abcd") '#vu8() values values values)
     => 0)
 
   (check
-      (bytevector-u8-compare "abcdA" "abcdA"
+      (bytevector-u8-compare (S "abcdA") (S "abcdA")
 		      (lambda (idx) 'less)
 		      (lambda (idx) 'equal)
 		      (lambda (idx) 'greater))
     => 'equal)
 
   (check
-      (bytevector-u8-compare "abcdA" "abcdB"
+      (bytevector-u8-compare (S "abcdA") (S "abcdB")
 		      (lambda (idx) 'less)
 		      (lambda (idx) 'equal)
 		      (lambda (idx) 'greater))
     => 'less)
 
   (check
-      (bytevector-u8-compare "abcdB" "abcdA"
+      (bytevector-u8-compare (S "abcdB") (S "abcdA")
 		      (lambda (idx) 'less)
 		      (lambda (idx) 'equal)
 		      (lambda (idx) 'greater))
@@ -351,1466 +356,164 @@
 ;;; --------------------------------------------------------------------
 
   (check-for-true
-   (let* ((str "abcd"))
+   (let* ((str (S "abcd")))
      (bytevector-u8= str str)))
 
   (check-for-true
-   (bytevector-u8= (view "12abcd" (start 2)) "abcd"))
+   (bytevector-u8= (view (S "12abcd") (start 2)) (S "abcd")))
 
   (check-for-false
-   (bytevector-u8= "abc" "abcd"))
+   (bytevector-u8= (S "abc") (S "abcd")))
 
   (check-for-false
-   (bytevector-u8= "abcd" "abc"))
+   (bytevector-u8= (S "abcd") (S "abc")))
 
   (check-for-false
-   (bytevector-u8= "ABcd" "abcd"))
+   (bytevector-u8= (S "ABcd") (S "abcd")))
 
   (check-for-false
-   (bytevector-u8= "abcd" "a2cd"))
+   (bytevector-u8= (S "abcd") (S "a2cd")))
 
 ;;; --------------------------------------------------------------------
 
   (check-for-false
-   (bytevector-u8<> "abcd" "abcd"))
+   (bytevector-u8<> (S "abcd") (S "abcd")))
 
   (check-for-true
-   (bytevector-u8<> "abc" "abcd"))
+   (bytevector-u8<> (S "abc") (S "abcd")))
 
   (check-for-true
-   (bytevector-u8<> "abcd" "abc"))
+   (bytevector-u8<> (S "abcd") (S "abc")))
 
   (check-for-true
-   (bytevector-u8<> "ABcd" "abcd"))
+   (bytevector-u8<> (S "ABcd") (S "abcd")))
 
   (check-for-true
-   (bytevector-u8<> "abcd" "a2cd"))
+   (bytevector-u8<> (S "abcd") (S "a2cd")))
 
 ;;; --------------------------------------------------------------------
 
   (check-for-false
-   (bytevector-u8< "abcd" "abcd"))
+   (bytevector-u8< (S "abcd") (S "abcd")))
 
   (check-for-true
-   (bytevector-u8< "abc" "abcd"))
+   (bytevector-u8< (S "abc") (S "abcd")))
 
   (check-for-false
-   (bytevector-u8< "abcd" "abc"))
+   (bytevector-u8< (S "abcd") (S "abc")))
 
   (check-for-true
-   (bytevector-u8< "ABcd" "abcd"))
+   (bytevector-u8< (S "ABcd") (S "abcd")))
 
   (check-for-false
-   (bytevector-u8< "abcd" "a2cd"))
-
-;;; --------------------------------------------------------------------
-
-  (check-for-true
-   (bytevector-u8<= "abcd" "abcd"))
-
-  (check-for-true
-   (bytevector-u8<= "abc" "abcd"))
-
-  (check-for-false
-   (bytevector-u8<= "abcd" "abc"))
-
-  (check-for-true
-   (bytevector-u8<= "ABcd" "abcd"))
-
-  (check-for-false
-   (bytevector-u8<= "abcd" "a2cd"))
-
-;;; --------------------------------------------------------------------
-
-  (check-for-false
-   (bytevector-u8> "abcd" "abcd"))
-
-  (check-for-true
-   (bytevector-u8> "abcd" "abc"))
-
-  (check-for-false
-   (bytevector-u8> "abc" "abcd"))
-
-  (check-for-true
-   (bytevector-u8> "abcd" "ABcd"))
-
-  (check-for-false
-   (bytevector-u8> "a2cd" "abcd"))
+   (bytevector-u8< (S "abcd") (S "a2cd")))
 
 ;;; --------------------------------------------------------------------
 
   (check-for-true
-   (bytevector-u8>= "abcd" "abcd"))
+   (bytevector-u8<= (S "abcd") (S "abcd")))
 
   (check-for-true
-   (bytevector-u8>= "abcd" "abc"))
+   (bytevector-u8<= (S "abc") (S "abcd")))
 
   (check-for-false
-   (bytevector-u8>= "abc" "abcd"))
+   (bytevector-u8<= (S "abcd") (S "abc")))
 
   (check-for-true
-   (bytevector-u8>= "abcd" "ABcd"))
+   (bytevector-u8<= (S "ABcd") (S "abcd")))
 
   (check-for-false
-   (bytevector-u8>= "a2cd" "abcd"))
+   (bytevector-u8<= (S "abcd") (S "a2cd")))
 
-  )
+;;; --------------------------------------------------------------------
 
-
-(parameterise ((check-test-name 'comparison-case-insensitive))
+  (check-for-false
+   (bytevector-u8> (S "abcd") (S "abcd")))
 
-  (check
-      (bytevector-u8-compare-ci "aBcdefg" "abcd123" values values values)
-    => 4)
+  (check-for-true
+   (bytevector-u8> (S "abcd") (S "abc")))
 
-  (check
-      (bytevector-u8-compare-ci "efg" "123" values values values)
-    => 0)
+  (check-for-false
+   (bytevector-u8> (S "abc") (S "abcd")))
 
-  (check
-      (bytevector-u8-compare-ci "" "abcd" values values values)
-    => 0)
+  (check-for-true
+   (bytevector-u8> (S "abcd") (S "ABcd")))
 
-  (check
-      (bytevector-u8-compare-ci "abcd" "" values values values)
-    => 0)
-
-  (check
-      (bytevector-u8-compare-ci "abcdA" "abcda"
-			 (lambda (idx) 'less) (lambda (idx) 'equal) (lambda (idx) 'greater))
-    => 'equal)
-
-  (check
-      (bytevector-u8-compare-ci "abcdA" "abcdb"
-			 (lambda (idx) 'less) (lambda (idx) 'equal) (lambda (idx) 'greater))
-    => 'less)
-
-  (check
-      (bytevector-u8-compare-ci "abcdb" "abcdA"
-			 (lambda (idx) 'less) (lambda (idx) 'equal) (lambda (idx) 'greater))
-    => 'greater)
+  (check-for-false
+   (bytevector-u8> (S "a2cd") (S "abcd")))
 
 ;;; --------------------------------------------------------------------
 
   (check-for-true
-   (bytevector-u8-ci= "abcd" "abcd"))
+   (bytevector-u8>= (S "abcd") (S "abcd")))
 
   (check-for-true
-   (bytevector-u8-ci= (view "12abcd" (start 2)) "abcd"))
+   (bytevector-u8>= (S "abcd") (S "abc")))
 
   (check-for-false
-   (bytevector-u8-ci= "abc" "abcd"))
-
-  (check-for-false
-   (bytevector-u8-ci= "abcd" "abc"))
+   (bytevector-u8>= (S "abc") (S "abcd")))
 
   (check-for-true
-   (bytevector-u8-ci= "ABcd" "abcd"))
+   (bytevector-u8>= (S "abcd") (S "ABcd")))
 
   (check-for-false
-   (bytevector-u8-ci= "abcd" "a2cd"))
+   (bytevector-u8>= (S "a2cd") (S "abcd")))
 
-;;; --------------------------------------------------------------------
-
-  (check-for-false
-   (bytevector-u8-ci<> "abcd" "abcd"))
-
-  (check-for-true
-   (bytevector-u8-ci<> "abc" "abcd"))
-
-  (check-for-true
-   (bytevector-u8-ci<> "abcd" "abc"))
-
-  (check-for-false
-   (bytevector-u8-ci<> "ABcd" "abcd"))
-
-  (check-for-true
-   (bytevector-u8-ci<> "abcd" "a2cd"))
-
-;;; --------------------------------------------------------------------
-
-  (check-for-false
-   (bytevector-u8-ci< "abcd" "abcd"))
-
-  (check-for-true
-   (bytevector-u8-ci< "abc" "abcd"))
-
-  (check-for-false
-   (bytevector-u8-ci< "abcd" "abc"))
-
-  (check-for-false
-   (bytevector-u8-ci< "ABcd" "abcd"))
-
-  (check-for-false
-   (bytevector-u8-ci< "abcd" "a2cd"))
-
-;;; --------------------------------------------------------------------
-
-  (check-for-true
-   (bytevector-u8-ci<= "abcd" "abcd"))
-
-  (check-for-true
-   (bytevector-u8-ci<= "abc" "abcd"))
-
-  (check-for-false
-   (bytevector-u8-ci<= "abcd" "abc"))
-
-  (check-for-true
-   (bytevector-u8-ci<= "ABcd" "abcd"))
-
-  (check-for-false
-   (bytevector-u8-ci<= "abcd" "a2cd"))
-
-;;; --------------------------------------------------------------------
-
-  (check-for-false
-   (bytevector-u8-ci> "abcd" "abcd"))
-
-  (check-for-true
-   (bytevector-u8-ci> "abcd" "abc"))
-
-  (check-for-false
-   (bytevector-u8-ci> "abc" "abcd"))
-
-  (check-for-false
-   (bytevector-u8-ci> "abcd" "ABcd"))
-
-  (check-for-false
-   (bytevector-u8-ci> "a2cd" "abcd"))
-
-;;; --------------------------------------------------------------------
-
-  (check-for-true
-   (bytevector-u8-ci>= "abcd" "abcd"))
-
-  (check-for-true
-   (bytevector-u8-ci>= "abcd" "abc"))
-
-  (check-for-false
-   (bytevector-u8-ci>= "abc" "abcd"))
-
-  (check-for-true
-   (bytevector-u8-ci>= "abcd" "ABcd"))
-
-  (check-for-false
-   (bytevector-u8-ci>= "a2cd" "abcd"))
-
-  #t)
-
-
-(parameterise ((check-test-name 'comparison-dictionary-case-sensitive))
-
-  (check (bytevector-u8-dictionary=? "" "")				=> #t)
-  (check (bytevector-u8-dictionary=? "a" "")				=> #f)
-  (check (bytevector-u8-dictionary=? "" "a")				=> #f)
-  (check (bytevector-u8-dictionary=? "ab" "a")				=> #f)
-  (check (bytevector-u8-dictionary=? "a" "ab")				=> #f)
-  (check (bytevector-u8-dictionary=? (string->utf8 "ciao") (string->utf8 "ciao"))			=> #t)
-  (check (bytevector-u8-dictionary=? "ciao1" (string->utf8 "ciao"))			=> #f)
-  (check (bytevector-u8-dictionary=? (string->utf8 "ciao") "ciao1")			=> #f)
-
-  (check (bytevector-u8-dictionary=? "ci ao" (string->utf8 "ciao"))			=> #t)
-  (check (bytevector-u8-dictionary=? (string->utf8 "ciao") "ci ao")			=> #t)
-  (check (bytevector-u8-dictionary=? "ci\tao" (string->utf8 "ciao"))			=> #t)
-  (check (bytevector-u8-dictionary=? (string->utf8 "ciao") "ci\tao")			=> #t)
-  (check (bytevector-u8-dictionary=? "ci\nao" (string->utf8 "ciao"))			=> #t)
-  (check (bytevector-u8-dictionary=? (string->utf8 "ciao") "ci\nao")			=> #t)
-  (check (bytevector-u8-dictionary=? "ci\vao" (string->utf8 "ciao"))			=> #t)
-  (check (bytevector-u8-dictionary=? (string->utf8 "ciao") "ci\tao")			=> #t)
-  (check (bytevector-u8-dictionary=? "ci\fao" (string->utf8 "ciao"))			=> #t)
-  (check (bytevector-u8-dictionary=? (string->utf8 "ciao") "ci\fao")			=> #t)
-  (check (bytevector-u8-dictionary=? "ci\rao" (string->utf8 "ciao"))			=> #t)
-  (check (bytevector-u8-dictionary=? (string->utf8 "ciao") "ci\rao")			=> #t)
-
-;;; --------------------------------------------------------------------
-
-  (check (bytevector-u8-dictionary<? "" "")				=> #f)
-  (check (bytevector-u8-dictionary<? "a" "")				=> #f)
-  (check (bytevector-u8-dictionary<? "" "a")				=> #t)
-  (check (bytevector-u8-dictionary<? "ab" "a")				=> #f)
-  (check (bytevector-u8-dictionary<? "a" "ab")				=> #t)
-  (check (bytevector-u8-dictionary<? (string->utf8 "ciao") (string->utf8 "ciao"))			=> #f)
-  (check (bytevector-u8-dictionary<? "ciao1" (string->utf8 "ciao"))			=> #f)
-  (check (bytevector-u8-dictionary<? (string->utf8 "ciao") "ciao1")			=> #t)
-
-  (check (bytevector-u8-dictionary<? "ci ao" (string->utf8 "ciao"))			=> #f)
-  (check (bytevector-u8-dictionary<? (string->utf8 "ciao") "ci ao")			=> #f)
-  (check (bytevector-u8-dictionary<? "ci\tao" (string->utf8 "ciao"))			=> #f)
-  (check (bytevector-u8-dictionary<? (string->utf8 "ciao") "ci\tao")			=> #f)
-  (check (bytevector-u8-dictionary<? "ci\nao" (string->utf8 "ciao"))			=> #f)
-  (check (bytevector-u8-dictionary<? (string->utf8 "ciao") "ci\nao")			=> #f)
-  (check (bytevector-u8-dictionary<? "ci\vao" (string->utf8 "ciao"))			=> #f)
-  (check (bytevector-u8-dictionary<? (string->utf8 "ciao") "ci\tao")			=> #f)
-  (check (bytevector-u8-dictionary<? "ci\fao" (string->utf8 "ciao"))			=> #f)
-  (check (bytevector-u8-dictionary<? (string->utf8 "ciao") "ci\fao")			=> #f)
-  (check (bytevector-u8-dictionary<? "ci\rao" (string->utf8 "ciao"))			=> #f)
-  (check (bytevector-u8-dictionary<? (string->utf8 "ciao") "ci\rao")			=> #f)
-
-;;; --------------------------------------------------------------------
-
-  (check (bytevector-u8-dictionary<=? "" "")				=> #t)
-  (check (bytevector-u8-dictionary<=? "a" "")				=> #f)
-  (check (bytevector-u8-dictionary<=? "" "a")				=> #t)
-  (check (bytevector-u8-dictionary<=? "ab" "a")			=> #f)
-  (check (bytevector-u8-dictionary<=? "a" "ab")			=> #t)
-  (check (bytevector-u8-dictionary<=? (string->utf8 "ciao") (string->utf8 "ciao"))			=> #t)
-  (check (bytevector-u8-dictionary<=? "ciao1" (string->utf8 "ciao"))			=> #f)
-  (check (bytevector-u8-dictionary<=? (string->utf8 "ciao") "ciao1")			=> #t)
-
-  (check (bytevector-u8-dictionary<=? "ci ao" (string->utf8 "ciao"))			=> #t)
-  (check (bytevector-u8-dictionary<=? (string->utf8 "ciao") "ci ao")			=> #t)
-  (check (bytevector-u8-dictionary<=? "ci\tao" (string->utf8 "ciao"))			=> #t)
-  (check (bytevector-u8-dictionary<=? (string->utf8 "ciao") "ci\tao")			=> #t)
-  (check (bytevector-u8-dictionary<=? "ci\nao" (string->utf8 "ciao"))			=> #t)
-  (check (bytevector-u8-dictionary<=? (string->utf8 "ciao") "ci\nao")			=> #t)
-  (check (bytevector-u8-dictionary<=? "ci\vao" (string->utf8 "ciao"))			=> #t)
-  (check (bytevector-u8-dictionary<=? (string->utf8 "ciao") "ci\tao")			=> #t)
-  (check (bytevector-u8-dictionary<=? "ci\fao" (string->utf8 "ciao"))			=> #t)
-  (check (bytevector-u8-dictionary<=? (string->utf8 "ciao") "ci\fao")			=> #t)
-  (check (bytevector-u8-dictionary<=? "ci\rao" (string->utf8 "ciao"))			=> #t)
-  (check (bytevector-u8-dictionary<=? (string->utf8 "ciao") "ci\rao")			=> #t)
-
-;;; --------------------------------------------------------------------
-
-  (check (bytevector-u8-dictionary>? "" "")				=> #f)
-  (check (bytevector-u8-dictionary>? "a" "")				=> #t)
-  (check (bytevector-u8-dictionary>? "" "a")				=> #f)
-  (check (bytevector-u8-dictionary>? "ab" "a")				=> #t)
-  (check (bytevector-u8-dictionary>? "a" "ab")				=> #f)
-  (check (bytevector-u8-dictionary>? (string->utf8 "ciao") (string->utf8 "ciao"))			=> #f)
-  (check (bytevector-u8-dictionary>? "ciao1" (string->utf8 "ciao"))			=> #t)
-  (check (bytevector-u8-dictionary>? (string->utf8 "ciao") "ciao1")			=> #f)
-
-  (check (bytevector-u8-dictionary>? "ci ao" (string->utf8 "ciao"))			=> #f)
-  (check (bytevector-u8-dictionary>? (string->utf8 "ciao") "ci ao")			=> #f)
-  (check (bytevector-u8-dictionary>? "ci\tao" (string->utf8 "ciao"))			=> #f)
-  (check (bytevector-u8-dictionary>? (string->utf8 "ciao") "ci\tao")			=> #f)
-  (check (bytevector-u8-dictionary>? "ci\nao" (string->utf8 "ciao"))			=> #f)
-  (check (bytevector-u8-dictionary>? (string->utf8 "ciao") "ci\nao")			=> #f)
-  (check (bytevector-u8-dictionary>? "ci\vao" (string->utf8 "ciao"))			=> #f)
-  (check (bytevector-u8-dictionary>? (string->utf8 "ciao") "ci\tao")			=> #f)
-  (check (bytevector-u8-dictionary>? "ci\fao" (string->utf8 "ciao"))			=> #f)
-  (check (bytevector-u8-dictionary>? (string->utf8 "ciao") "ci\fao")			=> #f)
-  (check (bytevector-u8-dictionary>? "ci\rao" (string->utf8 "ciao"))			=> #f)
-  (check (bytevector-u8-dictionary>? (string->utf8 "ciao") "ci\rao")			=> #f)
-
-;;; --------------------------------------------------------------------
-
-  (check (bytevector-u8-dictionary>=? "" "")				=> #t)
-  (check (bytevector-u8-dictionary>=? "a" "")				=> #t)
-  (check (bytevector-u8-dictionary>=? "" "a")				=> #f)
-  (check (bytevector-u8-dictionary>=? "ab" "a")			=> #t)
-  (check (bytevector-u8-dictionary>=? "a" "ab")			=> #f)
-  (check (bytevector-u8-dictionary>=? (string->utf8 "ciao") (string->utf8 "ciao"))			=> #t)
-  (check (bytevector-u8-dictionary>=? "ciao1" (string->utf8 "ciao"))			=> #t)
-  (check (bytevector-u8-dictionary>=? (string->utf8 "ciao") "ciao1")			=> #f)
-
-  (check (bytevector-u8-dictionary>=? "ci ao" (string->utf8 "ciao"))			=> #t)
-  (check (bytevector-u8-dictionary>=? (string->utf8 "ciao") "ci ao")			=> #t)
-  (check (bytevector-u8-dictionary>=? "ci\tao" (string->utf8 "ciao"))			=> #t)
-  (check (bytevector-u8-dictionary>=? (string->utf8 "ciao") "ci\tao")			=> #t)
-  (check (bytevector-u8-dictionary>=? "ci\nao" (string->utf8 "ciao"))			=> #t)
-  (check (bytevector-u8-dictionary>=? (string->utf8 "ciao") "ci\nao")			=> #t)
-  (check (bytevector-u8-dictionary>=? "ci\vao" (string->utf8 "ciao"))			=> #t)
-  (check (bytevector-u8-dictionary>=? (string->utf8 "ciao") "ci\tao")			=> #t)
-  (check (bytevector-u8-dictionary>=? "ci\fao" (string->utf8 "ciao"))			=> #t)
-  (check (bytevector-u8-dictionary>=? (string->utf8 "ciao") "ci\fao")			=> #t)
-  (check (bytevector-u8-dictionary>=? "ci\rao" (string->utf8 "ciao"))			=> #t)
-  (check (bytevector-u8-dictionary>=? (string->utf8 "ciao") "ci\rao")			=> #t)
-
-  #t)
-
-
-(parameterise ((check-test-name 'comparison-dictionary-case-insensitive))
-
-  (check (bytevector-u8-dictionary-ci=? "" "")				=> #t)
-  (check (bytevector-u8-dictionary-ci=? "a" "")			=> #f)
-  (check (bytevector-u8-dictionary-ci=? "" "a")			=> #f)
-  (check (bytevector-u8-dictionary-ci=? "ab" "a")			=> #f)
-  (check (bytevector-u8-dictionary-ci=? "a" "ab")			=> #f)
-  (check (bytevector-u8-dictionary-ci=? (string->utf8 "ciao") (string->utf8 "ciao"))			=> #t)
-  (check (bytevector-u8-dictionary-ci=? "ciao1" (string->utf8 "ciao"))		=> #f)
-  (check (bytevector-u8-dictionary-ci=? (string->utf8 "ciao") "ciao1")		=> #f)
-  (check (bytevector-u8-dictionary-ci=? (STRING->UTF8 "CIAO") (string->utf8 "ciao"))			=> #t)
-  (check (bytevector-u8-dictionary-ci=? "CIAO1" (string->utf8 "ciao"))		=> #f)
-  (check (bytevector-u8-dictionary-ci=? (STRING->UTF8 "CIAO") "ciao1")		=> #f)
-
-  (check (bytevector-u8-dictionary-ci=? "ci ao" (string->utf8 "ciao"))		=> #t)
-  (check (bytevector-u8-dictionary-ci=? (string->utf8 "ciao") "ci ao")		=> #t)
-  (check (bytevector-u8-dictionary-ci=? "ci\tao" (string->utf8 "ciao"))		=> #t)
-  (check (bytevector-u8-dictionary-ci=? (string->utf8 "ciao") "ci\tao")		=> #t)
-  (check (bytevector-u8-dictionary-ci=? "ci\nao" (string->utf8 "ciao"))		=> #t)
-  (check (bytevector-u8-dictionary-ci=? (string->utf8 "ciao") "ci\nao")		=> #t)
-  (check (bytevector-u8-dictionary-ci=? "ci\vao" (string->utf8 "ciao"))		=> #t)
-  (check (bytevector-u8-dictionary-ci=? (string->utf8 "ciao") "ci\tao")		=> #t)
-  (check (bytevector-u8-dictionary-ci=? "ci\fao" (string->utf8 "ciao"))		=> #t)
-  (check (bytevector-u8-dictionary-ci=? (string->utf8 "ciao") "ci\fao")		=> #t)
-  (check (bytevector-u8-dictionary-ci=? "ci\rao" (string->utf8 "ciao"))		=> #t)
-  (check (bytevector-u8-dictionary-ci=? (string->utf8 "ciao") "ci\rao")		=> #t)
-
-;;; --------------------------------------------------------------------
-
-  (check (bytevector-u8-dictionary-ci<? "" "")				=> #f)
-  (check (bytevector-u8-dictionary-ci<? "a" "")			=> #f)
-  (check (bytevector-u8-dictionary-ci<? "" "a")			=> #t)
-  (check (bytevector-u8-dictionary-ci<? "ab" "a")			=> #f)
-  (check (bytevector-u8-dictionary-ci<? "a" "ab")			=> #t)
-  (check (bytevector-u8-dictionary-ci<? (string->utf8 "ciao") (string->utf8 "ciao"))			=> #f)
-  (check (bytevector-u8-dictionary-ci<? "ciao1" (string->utf8 "ciao"))		=> #f)
-  (check (bytevector-u8-dictionary-ci<? (string->utf8 "ciao") "ciao1")		=> #t)
-  (check (bytevector-u8-dictionary-ci<? (STRING->UTF8 "CIAO") (string->utf8 "ciao"))			=> #f)
-  (check (bytevector-u8-dictionary-ci<? "CIAO1" (string->utf8 "ciao"))		=> #f)
-  (check (bytevector-u8-dictionary-ci<? (STRING->UTF8 "CIAO") "ciao1")		=> #t)
-
-  (check (bytevector-u8-dictionary-ci<? "ci ao" (string->utf8 "ciao"))		=> #f)
-  (check (bytevector-u8-dictionary-ci<? (string->utf8 "ciao") "ci ao")		=> #f)
-  (check (bytevector-u8-dictionary-ci<? "ci\tao" (string->utf8 "ciao"))		=> #f)
-  (check (bytevector-u8-dictionary-ci<? (string->utf8 "ciao") "ci\tao")		=> #f)
-  (check (bytevector-u8-dictionary-ci<? "ci\nao" (string->utf8 "ciao"))		=> #f)
-  (check (bytevector-u8-dictionary-ci<? (string->utf8 "ciao") "ci\nao")		=> #f)
-  (check (bytevector-u8-dictionary-ci<? "ci\vao" (string->utf8 "ciao"))		=> #f)
-  (check (bytevector-u8-dictionary-ci<? (string->utf8 "ciao") "ci\tao")		=> #f)
-  (check (bytevector-u8-dictionary-ci<? "ci\fao" (string->utf8 "ciao"))		=> #f)
-  (check (bytevector-u8-dictionary-ci<? (string->utf8 "ciao") "ci\fao")		=> #f)
-  (check (bytevector-u8-dictionary-ci<? "ci\rao" (string->utf8 "ciao"))		=> #f)
-  (check (bytevector-u8-dictionary-ci<? (string->utf8 "ciao") "ci\rao")		=> #f)
-
-;;; --------------------------------------------------------------------
-
-  (check (bytevector-u8-dictionary-ci<=? "" "")			=> #t)
-  (check (bytevector-u8-dictionary-ci<=? "a" "")			=> #f)
-  (check (bytevector-u8-dictionary-ci<=? "" "a")			=> #t)
-  (check (bytevector-u8-dictionary-ci<=? "ab" "a")			=> #f)
-  (check (bytevector-u8-dictionary-ci<=? "a" "ab")			=> #t)
-  (check (bytevector-u8-dictionary-ci<=? (string->utf8 "ciao") (string->utf8 "ciao"))		=> #t)
-  (check (bytevector-u8-dictionary-ci<=? "ciao1" (string->utf8 "ciao"))		=> #f)
-  (check (bytevector-u8-dictionary-ci<=? (string->utf8 "ciao") "ciao1")		=> #t)
-  (check (bytevector-u8-dictionary-ci<=? (STRING->UTF8 "CIAO") (string->utf8 "ciao"))		=> #t)
-  (check (bytevector-u8-dictionary-ci<=? "CIAO1" (string->utf8 "ciao"))		=> #f)
-  (check (bytevector-u8-dictionary-ci<=? (STRING->UTF8 "CIAO") "ciao1")		=> #t)
-
-  (check (bytevector-u8-dictionary-ci<=? "ci ao" (string->utf8 "ciao"))		=> #t)
-  (check (bytevector-u8-dictionary-ci<=? (string->utf8 "ciao") "ci ao")		=> #t)
-  (check (bytevector-u8-dictionary-ci<=? "ci\tao" (string->utf8 "ciao"))		=> #t)
-  (check (bytevector-u8-dictionary-ci<=? (string->utf8 "ciao") "ci\tao")		=> #t)
-  (check (bytevector-u8-dictionary-ci<=? "ci\nao" (string->utf8 "ciao"))		=> #t)
-  (check (bytevector-u8-dictionary-ci<=? (string->utf8 "ciao") "ci\nao")		=> #t)
-  (check (bytevector-u8-dictionary-ci<=? "ci\vao" (string->utf8 "ciao"))		=> #t)
-  (check (bytevector-u8-dictionary-ci<=? (string->utf8 "ciao") "ci\tao")		=> #t)
-  (check (bytevector-u8-dictionary-ci<=? "ci\fao" (string->utf8 "ciao"))		=> #t)
-  (check (bytevector-u8-dictionary-ci<=? (string->utf8 "ciao") "ci\fao")		=> #t)
-  (check (bytevector-u8-dictionary-ci<=? "ci\rao" (string->utf8 "ciao"))		=> #t)
-  (check (bytevector-u8-dictionary-ci<=? (string->utf8 "ciao") "ci\rao")		=> #t)
-
-;;; --------------------------------------------------------------------
-
-  (check (bytevector-u8-dictionary-ci>? "" "")				=> #f)
-  (check (bytevector-u8-dictionary-ci>? "a" "")			=> #t)
-  (check (bytevector-u8-dictionary-ci>? "" "a")			=> #f)
-  (check (bytevector-u8-dictionary-ci>? "ab" "a")			=> #t)
-  (check (bytevector-u8-dictionary-ci>? "a" "ab")			=> #f)
-  (check (bytevector-u8-dictionary-ci>? (string->utf8 "ciao") (string->utf8 "ciao"))			=> #f)
-  (check (bytevector-u8-dictionary-ci>? "ciao1" (string->utf8 "ciao"))		=> #t)
-  (check (bytevector-u8-dictionary-ci>? (string->utf8 "ciao") "ciao1")		=> #f)
-  (check (bytevector-u8-dictionary-ci>? (STRING->UTF8 "CIAO") (string->utf8 "ciao"))			=> #f)
-  (check (bytevector-u8-dictionary-ci>? "CIAO1" (string->utf8 "ciao"))		=> #t)
-  (check (bytevector-u8-dictionary-ci>? (STRING->UTF8 "CIAO") "ciao1")		=> #f)
-
-  (check (bytevector-u8-dictionary-ci>? "ci ao" (string->utf8 "ciao"))		=> #f)
-  (check (bytevector-u8-dictionary-ci>? (string->utf8 "ciao") "ci ao")		=> #f)
-  (check (bytevector-u8-dictionary-ci>? "ci\tao" (string->utf8 "ciao"))		=> #f)
-  (check (bytevector-u8-dictionary-ci>? (string->utf8 "ciao") "ci\tao")		=> #f)
-  (check (bytevector-u8-dictionary-ci>? "ci\nao" (string->utf8 "ciao"))		=> #f)
-  (check (bytevector-u8-dictionary-ci>? (string->utf8 "ciao") "ci\nao")		=> #f)
-  (check (bytevector-u8-dictionary-ci>? "ci\vao" (string->utf8 "ciao"))		=> #f)
-  (check (bytevector-u8-dictionary-ci>? (string->utf8 "ciao") "ci\tao")		=> #f)
-  (check (bytevector-u8-dictionary-ci>? "ci\fao" (string->utf8 "ciao"))		=> #f)
-  (check (bytevector-u8-dictionary-ci>? (string->utf8 "ciao") "ci\fao")		=> #f)
-  (check (bytevector-u8-dictionary-ci>? "ci\rao" (string->utf8 "ciao"))		=> #f)
-  (check (bytevector-u8-dictionary-ci>? (string->utf8 "ciao") "ci\rao")		=> #f)
-
-;;; --------------------------------------------------------------------
-
-  (check (bytevector-u8-dictionary-ci>=? "" "")			=> #t)
-  (check (bytevector-u8-dictionary-ci>=? "a" "")			=> #t)
-  (check (bytevector-u8-dictionary-ci>=? "" "a")			=> #f)
-  (check (bytevector-u8-dictionary-ci>=? "ab" "a")			=> #t)
-  (check (bytevector-u8-dictionary-ci>=? "a" "ab")			=> #f)
-  (check (bytevector-u8-dictionary-ci>=? (string->utf8 "ciao") (string->utf8 "ciao"))		=> #t)
-  (check (bytevector-u8-dictionary-ci>=? "ciao1" (string->utf8 "ciao"))		=> #t)
-  (check (bytevector-u8-dictionary-ci>=? (string->utf8 "ciao") "ciao1")		=> #f)
-  (check (bytevector-u8-dictionary-ci>=? (STRING->UTF8 "CIAO") (string->utf8 "ciao"))		=> #t)
-  (check (bytevector-u8-dictionary-ci>=? "CIAO1" (string->utf8 "ciao"))		=> #t)
-  (check (bytevector-u8-dictionary-ci>=? (STRING->UTF8 "CIAO") "ciao1")		=> #f)
-
-  (check (bytevector-u8-dictionary-ci>=? "ci ao" (string->utf8 "ciao"))		=> #t)
-  (check (bytevector-u8-dictionary-ci>=? (string->utf8 "ciao") "ci ao")		=> #t)
-  (check (bytevector-u8-dictionary-ci>=? "ci\tao" (string->utf8 "ciao"))		=> #t)
-  (check (bytevector-u8-dictionary-ci>=? (string->utf8 "ciao") "ci\tao")		=> #t)
-  (check (bytevector-u8-dictionary-ci>=? "ci\nao" (string->utf8 "ciao"))		=> #t)
-  (check (bytevector-u8-dictionary-ci>=? (string->utf8 "ciao") "ci\nao")		=> #t)
-  (check (bytevector-u8-dictionary-ci>=? "ci\vao" (string->utf8 "ciao"))		=> #t)
-  (check (bytevector-u8-dictionary-ci>=? (string->utf8 "ciao") "ci\tao")		=> #t)
-  (check (bytevector-u8-dictionary-ci>=? "ci\fao" (string->utf8 "ciao"))		=> #t)
-  (check (bytevector-u8-dictionary-ci>=? (string->utf8 "ciao") "ci\fao")		=> #t)
-  (check (bytevector-u8-dictionary-ci>=? "ci\rao" (string->utf8 "ciao"))		=> #t)
-  (check (bytevector-u8-dictionary-ci>=? (string->utf8 "ciao") "ci\rao")		=> #t)
-
-  #t)
-
-
-(parameterise ((check-test-name 'comparison-bytevector-u8/number-case-sensitive))
-
-  (check (bytevector-u8/numbers=? "" "")				=> #t)
-  (check (bytevector-u8/numbers=? "a" "")				=> #f)
-  (check (bytevector-u8/numbers=? "" "a")				=> #f)
-  (check (bytevector-u8/numbers=? "a" "a")				=> #t)
-  (check (bytevector-u8/numbers=? "1" "")				=> #f)
-  (check (bytevector-u8/numbers=? "" "1")				=> #f)
-  (check (bytevector-u8/numbers=? "1" "1")				=> #t)
-  (check (bytevector-u8/numbers=? "1" "2")				=> #f)
-  (check (bytevector-u8/numbers=? "2" "1")				=> #f)
-  (check (bytevector-u8/numbers=? "a" "ab")				=> #f)
-  (check (bytevector-u8/numbers=? "ab" "a")				=> #f)
-  (check (bytevector-u8/numbers=? "a" "a1")				=> #f)
-  (check (bytevector-u8/numbers=? "a1" "a")				=> #f)
-  (check (bytevector-u8/numbers=? "1" "1a")				=> #f)
-  (check (bytevector-u8/numbers=? "1a" "1")				=> #f)
-
-  (check (bytevector-u8/numbers=? "123" "45")				=> #f)
-  (check (bytevector-u8/numbers=? "45" "123")				=> #f)
-  (check (bytevector-u8/numbers=? "ciao3" "ciao10")			=> #f)
-  (check (bytevector-u8/numbers=? "ciao10" "ciao3")			=> #f)
-  (check (bytevector-u8/numbers=? "foo4bar3zab10" "foo4bar3zab2")	=> #f)
-  (check (bytevector-u8/numbers=? "foo4bar3zab2" "foo4bar3zab10")	=> #f)
-  (check (bytevector-u8/numbers=? "foo4bar3zab" "foo4bar10")		=> #f)
-  (check (bytevector-u8/numbers=? "foo4bar10" "foo4bar3zab")		=> #f)
-  (check (bytevector-u8/numbers=? "foo12" "12foo")			=> #f)
-  (check (bytevector-u8/numbers=? "12foo" "foo12")			=> #f)
-  (check (bytevector-u8/numbers=? "12bar" "foobar")			=> #f)
-  (check (bytevector-u8/numbers=? "12.3" "12.3")			=> #t)
-  (check (bytevector-u8/numbers=? "12.3" "12.10")			=> #f)
-  (check (bytevector-u8/numbers=? "12.10" "12.3")			=> #f)
-  (check (bytevector-u8/numbers=? "12.3" "12,10")			=> #f)
-  (check (bytevector-u8/numbers=? "12,10" "12.3")			=> #f)
-
-;;; --------------------------------------------------------------------
-
-  (check (bytevector-u8/numbers<>? "" "")				=> #f)
-  (check (bytevector-u8/numbers<>? "a" "")				=> #t)
-  (check (bytevector-u8/numbers<>? "" "a")				=> #t)
-  (check (bytevector-u8/numbers<>? "a" "a")				=> #f)
-  (check (bytevector-u8/numbers<>? "1" "")				=> #t)
-  (check (bytevector-u8/numbers<>? "" "1")				=> #t)
-  (check (bytevector-u8/numbers<>? "1" "1")				=> #f)
-  (check (bytevector-u8/numbers<>? "1" "2")				=> #t)
-  (check (bytevector-u8/numbers<>? "2" "1")				=> #t)
-  (check (bytevector-u8/numbers<>? "a" "ab")				=> #t)
-  (check (bytevector-u8/numbers<>? "ab" "a")				=> #t)
-  (check (bytevector-u8/numbers<>? "a" "a1")				=> #t)
-  (check (bytevector-u8/numbers<>? "a1" "a")				=> #t)
-  (check (bytevector-u8/numbers<>? "1" "1a")				=> #t)
-  (check (bytevector-u8/numbers<>? "1a" "1")				=> #t)
-
-  (check (bytevector-u8/numbers<>? "123" "45")				=> #t)
-  (check (bytevector-u8/numbers<>? "45" "123")				=> #t)
-  (check (bytevector-u8/numbers<>? "ciao3" "ciao10")			=> #t)
-  (check (bytevector-u8/numbers<>? "ciao10" "ciao3")			=> #t)
-  (check (bytevector-u8/numbers<>? "foo4bar3zab10" "foo4bar3zab2")	=> #t)
-  (check (bytevector-u8/numbers<>? "foo4bar3zab2" "foo4bar3zab10")	=> #t)
-  (check (bytevector-u8/numbers<>? "foo4bar3zab" "foo4bar10")		=> #t)
-  (check (bytevector-u8/numbers<>? "foo4bar10" "foo4bar3zab")		=> #t)
-  (check (bytevector-u8/numbers<>? "foo12" "12foo")			=> #t)
-  (check (bytevector-u8/numbers<>? "12foo" "foo12")			=> #t)
-  (check (bytevector-u8/numbers<>? "12bar" "foobar")			=> #t)
-  (check (bytevector-u8/numbers<>? "12.3" "12.3")			=> #f)
-  (check (bytevector-u8/numbers<>? "12.3" "12.10")			=> #t)
-  (check (bytevector-u8/numbers<>? "12.10" "12.3")			=> #t)
-  (check (bytevector-u8/numbers<>? "12.3" "12,10")			=> #t)
-  (check (bytevector-u8/numbers<>? "12,10" "12.3")			=> #t)
-
-;;; --------------------------------------------------------------------
-
-  (check (bytevector-u8/numbers<? "" "")				=> #f)
-  (check (bytevector-u8/numbers<? "a" "")				=> #f)
-  (check (bytevector-u8/numbers<? "" "a")				=> #t)
-  (check (bytevector-u8/numbers<? "a" "a")				=> #f)
-  (check (bytevector-u8/numbers<? "1" "")				=> #f)
-  (check (bytevector-u8/numbers<? "" "1")				=> #t)
-  (check (bytevector-u8/numbers<? "1" "1")				=> #f)
-  (check (bytevector-u8/numbers<? "1" "2")				=> #t)
-  (check (bytevector-u8/numbers<? "2" "1")				=> #f)
-  (check (bytevector-u8/numbers<? "a" "ab")				=> #t)
-  (check (bytevector-u8/numbers<? "ab" "a")				=> #f)
-  (check (bytevector-u8/numbers<? "a" "a1")				=> #t)
-  (check (bytevector-u8/numbers<? "a1" "a")				=> #f)
-  (check (bytevector-u8/numbers<? "1" "1a")				=> #t)
-  (check (bytevector-u8/numbers<? "1a" "1")				=> #f)
-
-  (check (bytevector-u8/numbers<? "123" "45")				=> #f)
-  (check (bytevector-u8/numbers<? "45" "123")				=> #t)
-  (check (bytevector-u8/numbers<? "ciao3" "ciao10")			=> #t)
-  (check (bytevector-u8/numbers<? "ciao10" "ciao3")			=> #f)
-  (check (bytevector-u8/numbers<? "foo4bar3zab10" "foo4bar3zab2")	=> #f)
-  (check (bytevector-u8/numbers<? "foo4bar3zab2" "foo4bar3zab10")	=> #t)
-  (check (bytevector-u8/numbers<? "foo4bar3zab" "foo4bar10")		=> #t)
-  (check (bytevector-u8/numbers<? "foo4bar10" "foo4bar3zab")		=> #f)
-  (check (bytevector-u8/numbers<? "foo12" "12foo")			=> #f)
-  (check (bytevector-u8/numbers<? "12foo" "foo12")			=> #t)
-  (check (bytevector-u8/numbers<? "12bar" "foobar")			=> #t)
-  (check (bytevector-u8/numbers<? "12.3" "12.3")			=> #f)
-  (check (bytevector-u8/numbers<? "12.3" "12.10")			=> #t)
-  (check (bytevector-u8/numbers<? "12.10" "12.3")			=> #f)
-  (check (bytevector-u8/numbers<? "12.3" "12,10")			=> #f)
-  (check (bytevector-u8/numbers<? "12,10" "12.3")			=> #t)
-
-;;; --------------------------------------------------------------------
-
-  (check (bytevector-u8/numbers<=? "" "")				=> #t)
-  (check (bytevector-u8/numbers<=? "a" "")				=> #f)
-  (check (bytevector-u8/numbers<=? "" "a")				=> #t)
-  (check (bytevector-u8/numbers<=? "a" "a")				=> #t)
-  (check (bytevector-u8/numbers<=? "1" "")				=> #f)
-  (check (bytevector-u8/numbers<=? "" "1")				=> #t)
-  (check (bytevector-u8/numbers<=? "1" "1")				=> #t)
-  (check (bytevector-u8/numbers<=? "1" "2")				=> #t)
-  (check (bytevector-u8/numbers<=? "2" "1")				=> #f)
-  (check (bytevector-u8/numbers<=? "a" "ab")				=> #t)
-  (check (bytevector-u8/numbers<=? "ab" "a")				=> #f)
-  (check (bytevector-u8/numbers<=? "a" "a1")				=> #t)
-  (check (bytevector-u8/numbers<=? "a1" "a")				=> #f)
-  (check (bytevector-u8/numbers<=? "1" "1a")				=> #t)
-  (check (bytevector-u8/numbers<=? "1a" "1")				=> #f)
-
-  (check (bytevector-u8/numbers<=? "123" "45")				=> #f)
-  (check (bytevector-u8/numbers<=? "45" "123")				=> #t)
-  (check (bytevector-u8/numbers<=? "ciao3" "ciao10")			=> #t)
-  (check (bytevector-u8/numbers<=? "ciao10" "ciao3")			=> #f)
-  (check (bytevector-u8/numbers<=? "foo4bar3zab10" "foo4bar3zab2")	=> #f)
-  (check (bytevector-u8/numbers<=? "foo4bar3zab2" "foo4bar3zab10")	=> #t)
-  (check (bytevector-u8/numbers<=? "foo4bar3zab" "foo4bar10")		=> #t)
-  (check (bytevector-u8/numbers<=? "foo4bar10" "foo4bar3zab")		=> #f)
-  (check (bytevector-u8/numbers<=? "foo12" "12foo")			=> #f)
-  (check (bytevector-u8/numbers<=? "12foo" "foo12")			=> #t)
-  (check (bytevector-u8/numbers<=? "12bar" "foobar")			=> #t)
-  (check (bytevector-u8/numbers<=? "12.3" "12.3")			=> #t)
-  (check (bytevector-u8/numbers<=? "12.3" "12.10")			=> #t)
-  (check (bytevector-u8/numbers<=? "12.10" "12.3")			=> #f)
-  (check (bytevector-u8/numbers<=? "12.3" "12,10")			=> #f)
-  (check (bytevector-u8/numbers<=? "12,10" "12.3")			=> #t)
-
-;;; --------------------------------------------------------------------
-
-  (check (bytevector-u8/numbers>? "" "")				=> #f)
-  (check (bytevector-u8/numbers>? "a" "")				=> #t)
-  (check (bytevector-u8/numbers>? "" "a")				=> #f)
-  (check (bytevector-u8/numbers>? "a" "a")				=> #f)
-  (check (bytevector-u8/numbers>? "1" "")				=> #t)
-  (check (bytevector-u8/numbers>? "" "1")				=> #f)
-  (check (bytevector-u8/numbers>? "1" "1")				=> #f)
-  (check (bytevector-u8/numbers>? "1" "2")				=> #f)
-  (check (bytevector-u8/numbers>? "2" "1")				=> #t)
-  (check (bytevector-u8/numbers>? "a" "ab")				=> #f)
-  (check (bytevector-u8/numbers>? "ab" "a")				=> #t)
-  (check (bytevector-u8/numbers>? "a" "a1")				=> #f)
-  (check (bytevector-u8/numbers>? "a1" "a")				=> #t)
-  (check (bytevector-u8/numbers>? "1" "1a")				=> #f)
-  (check (bytevector-u8/numbers>? "1a" "1")				=> #t)
-
-  (check (bytevector-u8/numbers>? "123" "45")				=> #t)
-  (check (bytevector-u8/numbers>? "45" "123")				=> #f)
-  (check (bytevector-u8/numbers>? "ciao3" "ciao10")			=> #f)
-  (check (bytevector-u8/numbers>? "ciao10" "ciao3")			=> #t)
-  (check (bytevector-u8/numbers>? "foo4bar3zab10" "foo4bar3zab2")	=> #t)
-  (check (bytevector-u8/numbers>? "foo4bar3zab2" "foo4bar3zab10")	=> #f)
-  (check (bytevector-u8/numbers>? "foo4bar3zab" "foo4bar10")		=> #f)
-  (check (bytevector-u8/numbers>? "foo4bar10" "foo4bar3zab")		=> #t)
-  (check (bytevector-u8/numbers>? "foo12" "12foo")			=> #t)
-  (check (bytevector-u8/numbers>? "12foo" "foo12")			=> #f)
-  (check (bytevector-u8/numbers>? "12bar" "foobar")			=> #f)
-  (check (bytevector-u8/numbers>? "12.3" "12.3")			=> #f)
-  (check (bytevector-u8/numbers>? "12.3" "12.10")			=> #f)
-  (check (bytevector-u8/numbers>? "12.10" "12.3")			=> #t)
-  (check (bytevector-u8/numbers>? "12.3" "12,10")			=> #t)
-  (check (bytevector-u8/numbers>? "12,10" "12.3")			=> #f)
-
-;;; --------------------------------------------------------------------
-
-  (check (bytevector-u8/numbers>=? "" "")				=> #t)
-  (check (bytevector-u8/numbers>=? "a" "")				=> #t)
-  (check (bytevector-u8/numbers>=? "" "a")				=> #f)
-  (check (bytevector-u8/numbers>=? "a" "a")				=> #t)
-  (check (bytevector-u8/numbers>=? "1" "")				=> #t)
-  (check (bytevector-u8/numbers>=? "" "1")				=> #f)
-  (check (bytevector-u8/numbers>=? "1" "1")				=> #t)
-  (check (bytevector-u8/numbers>=? "1" "2")				=> #f)
-  (check (bytevector-u8/numbers>=? "2" "1")				=> #t)
-  (check (bytevector-u8/numbers>=? "a" "ab")				=> #f)
-  (check (bytevector-u8/numbers>=? "ab" "a")				=> #t)
-  (check (bytevector-u8/numbers>=? "a" "a1")				=> #f)
-  (check (bytevector-u8/numbers>=? "a1" "a")				=> #t)
-  (check (bytevector-u8/numbers>=? "1" "1a")				=> #f)
-  (check (bytevector-u8/numbers>=? "1a" "1")				=> #t)
-
-  (check (bytevector-u8/numbers>=? "123" "45")				=> #t)
-  (check (bytevector-u8/numbers>=? "45" "123")				=> #f)
-  (check (bytevector-u8/numbers>=? "ciao3" "ciao10")			=> #f)
-  (check (bytevector-u8/numbers>=? "ciao10" "ciao3")			=> #t)
-  (check (bytevector-u8/numbers>=? "foo4bar3zab10" "foo4bar3zab2")	=> #t)
-  (check (bytevector-u8/numbers>=? "foo4bar3zab2" "foo4bar3zab10")	=> #f)
-  (check (bytevector-u8/numbers>=? "foo4bar3zab" "foo4bar10")		=> #f)
-  (check (bytevector-u8/numbers>=? "foo4bar10" "foo4bar3zab")		=> #t)
-  (check (bytevector-u8/numbers>=? "foo12" "12foo")			=> #t)
-  (check (bytevector-u8/numbers>=? "12foo" "foo12")			=> #f)
-  (check (bytevector-u8/numbers>=? "12bar" "foobar")			=> #f)
-  (check (bytevector-u8/numbers>=? "12.3" "12.3")			=> #t)
-  (check (bytevector-u8/numbers>=? "12.3" "12.10")			=> #f)
-  (check (bytevector-u8/numbers>=? "12.10" "12.3")			=> #t)
-  (check (bytevector-u8/numbers>=? "12.3" "12,10")			=> #t)
-  (check (bytevector-u8/numbers>=? "12,10" "12.3")			=> #f)
-
-;;; --------------------------------------------------------------------
-
-  (check
-      (list-sort bytevector-u8/numbers<? (quote ("foo123" "foo42" "foo7")))
-    => '("foo7" "foo42" "foo123"))
-
-  #t)
-
-
-(parameterise ((check-test-name 'comparison-bytevector-u8/number-case-insensitive))
-
-  (check (bytevector-u8/numbers-ci=? "" "")				=> #t)
-  (check (bytevector-u8/numbers-ci=? "a" "")				=> #f)
-  (check (bytevector-u8/numbers-ci=? "" "a")				=> #f)
-  (check (bytevector-u8/numbers-ci=? "a" "a")				=> #t)
-  (check (bytevector-u8/numbers-ci=? "1" "")				=> #f)
-  (check (bytevector-u8/numbers-ci=? "" "1")				=> #f)
-  (check (bytevector-u8/numbers-ci=? "1" "1")				=> #t)
-  (check (bytevector-u8/numbers-ci=? "1" "2")				=> #f)
-  (check (bytevector-u8/numbers-ci=? "2" "1")				=> #f)
-  (check (bytevector-u8/numbers-ci=? "a" "ab")				=> #f)
-  (check (bytevector-u8/numbers-ci=? "ab" "a")				=> #f)
-  (check (bytevector-u8/numbers-ci=? "a" "a1")				=> #f)
-  (check (bytevector-u8/numbers-ci=? "a1" "a")				=> #f)
-  (check (bytevector-u8/numbers-ci=? "1" "1a")				=> #f)
-  (check (bytevector-u8/numbers-ci=? "1a" "1")				=> #f)
-  (check (bytevector-u8/numbers-ci=? "a" "A")				=> #t)
-  (check (bytevector-u8/numbers-ci=? "A" "a")				=> #t)
-
-  (check (bytevector-u8/numbers-ci=? "123" "45")			=> #f)
-  (check (bytevector-u8/numbers-ci=? "45" "123")			=> #f)
-  (check (bytevector-u8/numbers-ci=? "ciao3" "ciao10")			=> #f)
-  (check (bytevector-u8/numbers-ci=? "ciao10" "ciao3")			=> #f)
-  (check (bytevector-u8/numbers-ci=? "foo4bar3zab10" "foo4bar3zab2")	=> #f)
-  (check (bytevector-u8/numbers-ci=? "foo4bar3zab2" "foo4bar3zab10")	=> #f)
-  (check (bytevector-u8/numbers-ci=? "foo4bar3zab" "foo4bar10")	=> #f)
-  (check (bytevector-u8/numbers-ci=? "foo4bar10" "foo4bar3zab")	=> #f)
-  (check (bytevector-u8/numbers-ci=? "foo12" "12foo")			=> #f)
-  (check (bytevector-u8/numbers-ci=? "12foo" "foo12")			=> #f)
-  (check (bytevector-u8/numbers-ci=? "12bar" "foobar")			=> #f)
-  (check (bytevector-u8/numbers-ci=? "12.3" "12.3")			=> #t)
-  (check (bytevector-u8/numbers-ci=? "12.3" "12.10")			=> #f)
-  (check (bytevector-u8/numbers-ci=? "12.10" "12.3")			=> #f)
-  (check (bytevector-u8/numbers-ci=? "12.3" "12,10")			=> #f)
-  (check (bytevector-u8/numbers-ci=? "12,10" "12.3")			=> #f)
-
-;;; --------------------------------------------------------------------
-
-  (check (bytevector-u8/numbers-ci<>? "" "")				=> #f)
-  (check (bytevector-u8/numbers-ci<>? "a" "")				=> #t)
-  (check (bytevector-u8/numbers-ci<>? "" "a")				=> #t)
-  (check (bytevector-u8/numbers-ci<>? "a" "a")				=> #f)
-  (check (bytevector-u8/numbers-ci<>? "1" "")				=> #t)
-  (check (bytevector-u8/numbers-ci<>? "" "1")				=> #t)
-  (check (bytevector-u8/numbers-ci<>? "1" "1")				=> #f)
-  (check (bytevector-u8/numbers-ci<>? "1" "2")				=> #t)
-  (check (bytevector-u8/numbers-ci<>? "2" "1")				=> #t)
-  (check (bytevector-u8/numbers-ci<>? "a" "ab")			=> #t)
-  (check (bytevector-u8/numbers-ci<>? "ab" "a")			=> #t)
-  (check (bytevector-u8/numbers-ci<>? "a" "a1")			=> #t)
-  (check (bytevector-u8/numbers-ci<>? "a1" "a")			=> #t)
-  (check (bytevector-u8/numbers-ci<>? "1" "1a")			=> #t)
-  (check (bytevector-u8/numbers-ci<>? "1a" "1")			=> #t)
-  (check (bytevector-u8/numbers-ci<>? "A" "a")				=> #f)
-  (check (bytevector-u8/numbers-ci<>? "a" "A")				=> #f)
-
-  (check (bytevector-u8/numbers-ci<>? "123" "45")			=> #t)
-  (check (bytevector-u8/numbers-ci<>? "45" "123")			=> #t)
-  (check (bytevector-u8/numbers-ci<>? "ciao3" "ciao10")		=> #t)
-  (check (bytevector-u8/numbers-ci<>? "ciao10" "ciao3")		=> #t)
-  (check (bytevector-u8/numbers-ci<>? "foo4bar3zab10" "foo4bar3zab2")	=> #t)
-  (check (bytevector-u8/numbers-ci<>? "foo4bar3zab2" "foo4bar3zab10")	=> #t)
-  (check (bytevector-u8/numbers-ci<>? "foo4bar3zab" "foo4bar10")	=> #t)
-  (check (bytevector-u8/numbers-ci<>? "foo4bar10" "foo4bar3zab")	=> #t)
-  (check (bytevector-u8/numbers-ci<>? "foo12" "12foo")			=> #t)
-  (check (bytevector-u8/numbers-ci<>? "12foo" "foo12")			=> #t)
-  (check (bytevector-u8/numbers-ci<>? "12bar" "foobar")		=> #t)
-  (check (bytevector-u8/numbers-ci<>? "12.3" "12.3")			=> #f)
-  (check (bytevector-u8/numbers-ci<>? "12.3" "12.10")			=> #t)
-  (check (bytevector-u8/numbers-ci<>? "12.10" "12.3")			=> #t)
-  (check (bytevector-u8/numbers-ci<>? "12.3" "12,10")			=> #t)
-  (check (bytevector-u8/numbers-ci<>? "12,10" "12.3")			=> #t)
-
-;;; --------------------------------------------------------------------
-
-  (check (bytevector-u8/numbers-ci<? "" "")				=> #f)
-  (check (bytevector-u8/numbers-ci<? "a" "")				=> #f)
-  (check (bytevector-u8/numbers-ci<? "" "a")				=> #t)
-  (check (bytevector-u8/numbers-ci<? "a" "a")				=> #f)
-  (check (bytevector-u8/numbers-ci<? "1" "")				=> #f)
-  (check (bytevector-u8/numbers-ci<? "" "1")				=> #t)
-  (check (bytevector-u8/numbers-ci<? "1" "1")				=> #f)
-  (check (bytevector-u8/numbers-ci<? "1" "2")				=> #t)
-  (check (bytevector-u8/numbers-ci<? "2" "1")				=> #f)
-  (check (bytevector-u8/numbers-ci<? "a" "ab")				=> #t)
-  (check (bytevector-u8/numbers-ci<? "ab" "a")				=> #f)
-  (check (bytevector-u8/numbers-ci<? "a" "a1")				=> #t)
-  (check (bytevector-u8/numbers-ci<? "a1" "a")				=> #f)
-  (check (bytevector-u8/numbers-ci<? "1" "1a")				=> #t)
-  (check (bytevector-u8/numbers-ci<? "1a" "1")				=> #f)
-  (check (bytevector-u8/numbers-ci<? "a" "A")				=> #f)
-  (check (bytevector-u8/numbers-ci<? "A" "a")				=> #f)
-
-  (check (bytevector-u8/numbers-ci<? "123" "45")			=> #f)
-  (check (bytevector-u8/numbers-ci<? "45" "123")			=> #t)
-  (check (bytevector-u8/numbers-ci<? "ciao3" "ciao10")			=> #t)
-  (check (bytevector-u8/numbers-ci<? "ciao10" "ciao3")			=> #f)
-  (check (bytevector-u8/numbers-ci<? "foo4bar3zab10" "foo4bar3zab2")	=> #f)
-  (check (bytevector-u8/numbers-ci<? "foo4bar3zab2" "foo4bar3zab10")	=> #t)
-  (check (bytevector-u8/numbers-ci<? "foo4bar3zab" "foo4bar10")	=> #t)
-  (check (bytevector-u8/numbers-ci<? "foo4bar10" "foo4bar3zab")	=> #f)
-  (check (bytevector-u8/numbers-ci<? "foo12" "12foo")			=> #f)
-  (check (bytevector-u8/numbers-ci<? "12foo" "foo12")			=> #t)
-  (check (bytevector-u8/numbers-ci<? "12bar" "foobar")			=> #t)
-  (check (bytevector-u8/numbers-ci<? "12.3" "12.3")			=> #f)
-  (check (bytevector-u8/numbers-ci<? "12.3" "12.10")			=> #t)
-  (check (bytevector-u8/numbers-ci<? "12.10" "12.3")			=> #f)
-  (check (bytevector-u8/numbers-ci<? "12.3" "12,10")			=> #f)
-  (check (bytevector-u8/numbers-ci<? "12,10" "12.3")			=> #t)
-
-;;; --------------------------------------------------------------------
-
-  (check (bytevector-u8/numbers-ci<=? "" "")				=> #t)
-  (check (bytevector-u8/numbers-ci<=? "a" "")				=> #f)
-  (check (bytevector-u8/numbers-ci<=? "" "a")				=> #t)
-  (check (bytevector-u8/numbers-ci<=? "a" "a")				=> #t)
-  (check (bytevector-u8/numbers-ci<=? "1" "")				=> #f)
-  (check (bytevector-u8/numbers-ci<=? "" "1")				=> #t)
-  (check (bytevector-u8/numbers-ci<=? "1" "1")				=> #t)
-  (check (bytevector-u8/numbers-ci<=? "1" "2")				=> #t)
-  (check (bytevector-u8/numbers-ci<=? "2" "1")				=> #f)
-  (check (bytevector-u8/numbers-ci<=? "a" "ab")			=> #t)
-  (check (bytevector-u8/numbers-ci<=? "ab" "a")			=> #f)
-  (check (bytevector-u8/numbers-ci<=? "a" "a1")			=> #t)
-  (check (bytevector-u8/numbers-ci<=? "a1" "a")			=> #f)
-  (check (bytevector-u8/numbers-ci<=? "1" "1a")			=> #t)
-  (check (bytevector-u8/numbers-ci<=? "1a" "1")			=> #f)
-  (check (bytevector-u8/numbers-ci<=? "a" "A")				=> #t)
-  (check (bytevector-u8/numbers-ci<=? "A" "a")				=> #t)
-
-  (check (bytevector-u8/numbers-ci<=? "123" "45")			=> #f)
-  (check (bytevector-u8/numbers-ci<=? "45" "123")			=> #t)
-  (check (bytevector-u8/numbers-ci<=? "ciao3" "ciao10")		=> #t)
-  (check (bytevector-u8/numbers-ci<=? "ciao10" "ciao3")		=> #f)
-  (check (bytevector-u8/numbers-ci<=? "foo4bar3zab10" "foo4bar3zab2")	=> #f)
-  (check (bytevector-u8/numbers-ci<=? "foo4bar3zab2" "foo4bar3zab10")	=> #t)
-  (check (bytevector-u8/numbers-ci<=? "foo4bar3zab" "foo4bar10")	=> #t)
-  (check (bytevector-u8/numbers-ci<=? "foo4bar10" "foo4bar3zab")	=> #f)
-  (check (bytevector-u8/numbers-ci<=? "foo12" "12foo")			=> #f)
-  (check (bytevector-u8/numbers-ci<=? "12foo" "foo12")			=> #t)
-  (check (bytevector-u8/numbers-ci<=? "12bar" "foobar")		=> #t)
-  (check (bytevector-u8/numbers-ci<=? "12.3" "12.3")			=> #t)
-  (check (bytevector-u8/numbers-ci<=? "12.3" "12.10")			=> #t)
-  (check (bytevector-u8/numbers-ci<=? "12.10" "12.3")			=> #f)
-  (check (bytevector-u8/numbers-ci<=? "12.3" "12,10")			=> #f)
-  (check (bytevector-u8/numbers-ci<=? "12,10" "12.3")			=> #t)
-
-;;; --------------------------------------------------------------------
-
-  (check (bytevector-u8/numbers-ci>? "" "")				=> #f)
-  (check (bytevector-u8/numbers-ci>? "a" "")				=> #t)
-  (check (bytevector-u8/numbers-ci>? "" "a")				=> #f)
-  (check (bytevector-u8/numbers-ci>? "a" "a")				=> #f)
-  (check (bytevector-u8/numbers-ci>? "1" "")				=> #t)
-  (check (bytevector-u8/numbers-ci>? "" "1")				=> #f)
-  (check (bytevector-u8/numbers-ci>? "1" "1")				=> #f)
-  (check (bytevector-u8/numbers-ci>? "1" "2")				=> #f)
-  (check (bytevector-u8/numbers-ci>? "2" "1")				=> #t)
-  (check (bytevector-u8/numbers-ci>? "a" "ab")				=> #f)
-  (check (bytevector-u8/numbers-ci>? "ab" "a")				=> #t)
-  (check (bytevector-u8/numbers-ci>? "a" "a1")				=> #f)
-  (check (bytevector-u8/numbers-ci>? "a1" "a")				=> #t)
-  (check (bytevector-u8/numbers-ci>? "1" "1a")				=> #f)
-  (check (bytevector-u8/numbers-ci>? "1a" "1")				=> #t)
-  (check (bytevector-u8/numbers-ci>? "a" "A")				=> #f)
-  (check (bytevector-u8/numbers-ci>? "A" "a")				=> #f)
-
-  (check (bytevector-u8/numbers-ci>? "123" "45")			=> #t)
-  (check (bytevector-u8/numbers-ci>? "45" "123")			=> #f)
-  (check (bytevector-u8/numbers-ci>? "ciao3" "ciao10")			=> #f)
-  (check (bytevector-u8/numbers-ci>? "ciao10" "ciao3")			=> #t)
-  (check (bytevector-u8/numbers-ci>? "foo4bar3zab10" "foo4bar3zab2")	=> #t)
-  (check (bytevector-u8/numbers-ci>? "foo4bar3zab2" "foo4bar3zab10")	=> #f)
-  (check (bytevector-u8/numbers-ci>? "foo4bar3zab" "foo4bar10")	=> #f)
-  (check (bytevector-u8/numbers-ci>? "foo4bar10" "foo4bar3zab")	=> #t)
-  (check (bytevector-u8/numbers-ci>? "foo12" "12foo")			=> #t)
-  (check (bytevector-u8/numbers-ci>? "12foo" "foo12")			=> #f)
-  (check (bytevector-u8/numbers-ci>? "12bar" "foobar")			=> #f)
-  (check (bytevector-u8/numbers-ci>? "12.3" "12.3")			=> #f)
-  (check (bytevector-u8/numbers-ci>? "12.3" "12.10")			=> #f)
-  (check (bytevector-u8/numbers-ci>? "12.10" "12.3")			=> #t)
-  (check (bytevector-u8/numbers-ci>? "12.3" "12,10")			=> #t)
-  (check (bytevector-u8/numbers-ci>? "12,10" "12.3")			=> #f)
-
-;;; --------------------------------------------------------------------
-
-  (check (bytevector-u8/numbers-ci>=? "" "")				=> #t)
-  (check (bytevector-u8/numbers-ci>=? "a" "")				=> #t)
-  (check (bytevector-u8/numbers-ci>=? "" "a")				=> #f)
-  (check (bytevector-u8/numbers-ci>=? "a" "a")				=> #t)
-  (check (bytevector-u8/numbers-ci>=? "1" "")				=> #t)
-  (check (bytevector-u8/numbers-ci>=? "" "1")				=> #f)
-  (check (bytevector-u8/numbers-ci>=? "1" "1")				=> #t)
-  (check (bytevector-u8/numbers-ci>=? "1" "2")				=> #f)
-  (check (bytevector-u8/numbers-ci>=? "2" "1")				=> #t)
-  (check (bytevector-u8/numbers-ci>=? "a" "ab")			=> #f)
-  (check (bytevector-u8/numbers-ci>=? "ab" "a")			=> #t)
-  (check (bytevector-u8/numbers-ci>=? "a" "a1")			=> #f)
-  (check (bytevector-u8/numbers-ci>=? "a1" "a")			=> #t)
-  (check (bytevector-u8/numbers-ci>=? "1" "1a")			=> #f)
-  (check (bytevector-u8/numbers-ci>=? "1a" "1")			=> #t)
-  (check (bytevector-u8/numbers-ci>=? "a" "A")				=> #t)
-  (check (bytevector-u8/numbers-ci>=? "A" "a")				=> #t)
-
-  (check (bytevector-u8/numbers-ci>=? "123" "45")			=> #t)
-  (check (bytevector-u8/numbers-ci>=? "45" "123")			=> #f)
-  (check (bytevector-u8/numbers-ci>=? "ciao3" "ciao10")		=> #f)
-  (check (bytevector-u8/numbers-ci>=? "ciao10" "ciao3")		=> #t)
-  (check (bytevector-u8/numbers-ci>=? "foo4bar3zab10" "foo4bar3zab2")	=> #t)
-  (check (bytevector-u8/numbers-ci>=? "foo4bar3zab2" "foo4bar3zab10")	=> #f)
-  (check (bytevector-u8/numbers-ci>=? "foo4bar3zab" "foo4bar10")	=> #f)
-  (check (bytevector-u8/numbers-ci>=? "foo4bar10" "foo4bar3zab")	=> #t)
-  (check (bytevector-u8/numbers-ci>=? "foo12" "12foo")			=> #t)
-  (check (bytevector-u8/numbers-ci>=? "12foo" "foo12")			=> #f)
-  (check (bytevector-u8/numbers-ci>=? "12bar" "foobar")		=> #f)
-  (check (bytevector-u8/numbers-ci>=? "12.3" "12.3")			=> #t)
-  (check (bytevector-u8/numbers-ci>=? "12.3" "12.10")			=> #f)
-  (check (bytevector-u8/numbers-ci>=? "12.10" "12.3")			=> #t)
-  (check (bytevector-u8/numbers-ci>=? "12.3" "12,10")			=> #t)
-  (check (bytevector-u8/numbers-ci>=? "12,10" "12.3")			=> #f)
-
-  #t)
-
-
-(parameterise ((check-test-name 'comparison-dictionary-bytevector-u8/number-case-sensitive))
-
-  (check (bytevector-u8/numbers-dictionary=? "" "")				=> #t)
-  (check (bytevector-u8/numbers-dictionary=? "a" "")				=> #f)
-  (check (bytevector-u8/numbers-dictionary=? "" "a")				=> #f)
-  (check (bytevector-u8/numbers-dictionary=? "a" "a")				=> #t)
-  (check (bytevector-u8/numbers-dictionary=? "1" "")				=> #f)
-  (check (bytevector-u8/numbers-dictionary=? "" "1")				=> #f)
-  (check (bytevector-u8/numbers-dictionary=? "1" "1")				=> #t)
-  (check (bytevector-u8/numbers-dictionary=? "1" "2")				=> #f)
-  (check (bytevector-u8/numbers-dictionary=? "2" "1")				=> #f)
-  (check (bytevector-u8/numbers-dictionary=? "a" "ab")				=> #f)
-  (check (bytevector-u8/numbers-dictionary=? "ab" "a")				=> #f)
-  (check (bytevector-u8/numbers-dictionary=? "a" "a1")				=> #f)
-  (check (bytevector-u8/numbers-dictionary=? "a1" "a")				=> #f)
-  (check (bytevector-u8/numbers-dictionary=? "1" "1a")				=> #f)
-  (check (bytevector-u8/numbers-dictionary=? "1a" "1")				=> #f)
-
-  (check (bytevector-u8/numbers-dictionary=? "123" "45")			=> #f)
-  (check (bytevector-u8/numbers-dictionary=? "45" "123")			=> #f)
-  (check (bytevector-u8/numbers-dictionary=? "ciao3" "ciao10")			=> #f)
-  (check (bytevector-u8/numbers-dictionary=? "ciao10" "ciao3")			=> #f)
-  (check (bytevector-u8/numbers-dictionary=? "foo4bar3zab10" "foo4bar3zab2")	=> #f)
-  (check (bytevector-u8/numbers-dictionary=? "foo4bar3zab2" "foo4bar3zab10")	=> #f)
-  (check (bytevector-u8/numbers-dictionary=? "foo4bar3zab" "foo4bar10")	=> #f)
-  (check (bytevector-u8/numbers-dictionary=? "foo4bar10" "foo4bar3zab")	=> #f)
-  (check (bytevector-u8/numbers-dictionary=? "foo12" "12foo")			=> #f)
-  (check (bytevector-u8/numbers-dictionary=? "12foo" "foo12")			=> #f)
-  (check (bytevector-u8/numbers-dictionary=? "12bar" "foobar")			=> #f)
-  (check (bytevector-u8/numbers-dictionary=? "12.3" "12.3")			=> #t)
-  (check (bytevector-u8/numbers-dictionary=? "12.3" "12.10")			=> #f)
-  (check (bytevector-u8/numbers-dictionary=? "12.10" "12.3")			=> #f)
-  (check (bytevector-u8/numbers-dictionary=? "12.3" "12,10")			=> #f)
-  (check (bytevector-u8/numbers-dictionary=? "12,10" "12.3")			=> #f)
-
-  (check (bytevector-u8/numbers-dictionary=? "fo o4b\tar3\nza\rb10" "foo4bar3zab2")	=> #f)
-  (check (bytevector-u8/numbers-dictionary=? "foo4bar3zab2" "fo o4b\tar3\nza\rb10")	=> #f)
-
-;;; --------------------------------------------------------------------
-
-  (check (bytevector-u8/numbers-dictionary<>? "" "")				=> #f)
-  (check (bytevector-u8/numbers-dictionary<>? "a" "")				=> #t)
-  (check (bytevector-u8/numbers-dictionary<>? "" "a")				=> #t)
-  (check (bytevector-u8/numbers-dictionary<>? "a" "a")				=> #f)
-  (check (bytevector-u8/numbers-dictionary<>? "1" "")				=> #t)
-  (check (bytevector-u8/numbers-dictionary<>? "" "1")				=> #t)
-  (check (bytevector-u8/numbers-dictionary<>? "1" "1")				=> #f)
-  (check (bytevector-u8/numbers-dictionary<>? "1" "2")				=> #t)
-  (check (bytevector-u8/numbers-dictionary<>? "2" "1")				=> #t)
-  (check (bytevector-u8/numbers-dictionary<>? "a" "ab")			=> #t)
-  (check (bytevector-u8/numbers-dictionary<>? "ab" "a")			=> #t)
-  (check (bytevector-u8/numbers-dictionary<>? "a" "a1")			=> #t)
-  (check (bytevector-u8/numbers-dictionary<>? "a1" "a")			=> #t)
-  (check (bytevector-u8/numbers-dictionary<>? "1" "1a")			=> #t)
-  (check (bytevector-u8/numbers-dictionary<>? "1a" "1")			=> #t)
-
-  (check (bytevector-u8/numbers-dictionary<>? "123" "45")			=> #t)
-  (check (bytevector-u8/numbers-dictionary<>? "45" "123")			=> #t)
-  (check (bytevector-u8/numbers-dictionary<>? "ciao3" "ciao10")		=> #t)
-  (check (bytevector-u8/numbers-dictionary<>? "ciao10" "ciao3")		=> #t)
-  (check (bytevector-u8/numbers-dictionary<>? "foo4bar3zab10" "foo4bar3zab2")	=> #t)
-  (check (bytevector-u8/numbers-dictionary<>? "foo4bar3zab2" "foo4bar3zab10")	=> #t)
-  (check (bytevector-u8/numbers-dictionary<>? "foo4bar3zab" "foo4bar10")	=> #t)
-  (check (bytevector-u8/numbers-dictionary<>? "foo4bar10" "foo4bar3zab")	=> #t)
-  (check (bytevector-u8/numbers-dictionary<>? "foo12" "12foo")			=> #t)
-  (check (bytevector-u8/numbers-dictionary<>? "12foo" "foo12")			=> #t)
-  (check (bytevector-u8/numbers-dictionary<>? "12bar" "foobar")		=> #t)
-  (check (bytevector-u8/numbers-dictionary<>? "12.3" "12.3")			=> #f)
-  (check (bytevector-u8/numbers-dictionary<>? "12.3" "12.10")			=> #t)
-  (check (bytevector-u8/numbers-dictionary<>? "12.10" "12.3")			=> #t)
-  (check (bytevector-u8/numbers-dictionary<>? "12.3" "12,10")			=> #t)
-  (check (bytevector-u8/numbers-dictionary<>? "12,10" "12.3")			=> #t)
-
-  (check (bytevector-u8/numbers-dictionary<>? "fo o4b\tar3\nza\rb10" "foo4bar3zab2")	=> #t)
-  (check (bytevector-u8/numbers-dictionary<>? "foo4bar3zab2" "fo o4b\tar3\nza\rb10")	=> #t)
-
-;;; --------------------------------------------------------------------
-
-  (check (bytevector-u8/numbers-dictionary<? "" "")				=> #f)
-  (check (bytevector-u8/numbers-dictionary<? "a" "")				=> #f)
-  (check (bytevector-u8/numbers-dictionary<? "" "a")				=> #t)
-  (check (bytevector-u8/numbers-dictionary<? "a" "a")				=> #f)
-  (check (bytevector-u8/numbers-dictionary<? "1" "")				=> #f)
-  (check (bytevector-u8/numbers-dictionary<? "" "1")				=> #t)
-  (check (bytevector-u8/numbers-dictionary<? "1" "1")				=> #f)
-  (check (bytevector-u8/numbers-dictionary<? "1" "2")				=> #t)
-  (check (bytevector-u8/numbers-dictionary<? "2" "1")				=> #f)
-  (check (bytevector-u8/numbers-dictionary<? "a" "ab")				=> #t)
-  (check (bytevector-u8/numbers-dictionary<? "ab" "a")				=> #f)
-  (check (bytevector-u8/numbers-dictionary<? "a" "a1")				=> #t)
-  (check (bytevector-u8/numbers-dictionary<? "a1" "a")				=> #f)
-  (check (bytevector-u8/numbers-dictionary<? "1" "1a")				=> #t)
-  (check (bytevector-u8/numbers-dictionary<? "1a" "1")				=> #f)
-
-  (check (bytevector-u8/numbers-dictionary<? "123" "45")			=> #f)
-  (check (bytevector-u8/numbers-dictionary<? "45" "123")			=> #t)
-  (check (bytevector-u8/numbers-dictionary<? "ciao3" "ciao10")			=> #t)
-  (check (bytevector-u8/numbers-dictionary<? "ciao10" "ciao3")			=> #f)
-  (check (bytevector-u8/numbers-dictionary<? "foo4bar3zab10" "foo4bar3zab2")	=> #f)
-  (check (bytevector-u8/numbers-dictionary<? "foo4bar3zab2" "foo4bar3zab10")	=> #t)
-  (check (bytevector-u8/numbers-dictionary<? "foo4bar3zab" "foo4bar10")	=> #t)
-  (check (bytevector-u8/numbers-dictionary<? "foo4bar10" "foo4bar3zab")	=> #f)
-  (check (bytevector-u8/numbers-dictionary<? "foo12" "12foo")			=> #f)
-  (check (bytevector-u8/numbers-dictionary<? "12foo" "foo12")			=> #t)
-  (check (bytevector-u8/numbers-dictionary<? "12bar" "foobar")			=> #t)
-  (check (bytevector-u8/numbers-dictionary<? "12.3" "12.3")			=> #f)
-  (check (bytevector-u8/numbers-dictionary<? "12.3" "12.10")			=> #t)
-  (check (bytevector-u8/numbers-dictionary<? "12.10" "12.3")			=> #f)
-  (check (bytevector-u8/numbers-dictionary<? "12.3" "12,10")			=> #f)
-  (check (bytevector-u8/numbers-dictionary<? "12,10" "12.3")			=> #t)
-
-  (check 'this (bytevector-u8/numbers-dictionary<? "fo o4b\tar3\nza\rb10" "foo4bar3zab2")	=> #f)
-  (check (bytevector-u8/numbers-dictionary<? "foo4bar3zab2" "fo o4b\tar3\nza\rb10")	=> #t)
-
-;;; --------------------------------------------------------------------
-
-  (check (bytevector-u8/numbers-dictionary<=? "" "")				=> #t)
-  (check (bytevector-u8/numbers-dictionary<=? "a" "")				=> #f)
-  (check (bytevector-u8/numbers-dictionary<=? "" "a")				=> #t)
-  (check (bytevector-u8/numbers-dictionary<=? "a" "a")				=> #t)
-  (check (bytevector-u8/numbers-dictionary<=? "1" "")				=> #f)
-  (check (bytevector-u8/numbers-dictionary<=? "" "1")				=> #t)
-  (check (bytevector-u8/numbers-dictionary<=? "1" "1")				=> #t)
-  (check (bytevector-u8/numbers-dictionary<=? "1" "2")				=> #t)
-  (check (bytevector-u8/numbers-dictionary<=? "2" "1")				=> #f)
-  (check (bytevector-u8/numbers-dictionary<=? "a" "ab")			=> #t)
-  (check (bytevector-u8/numbers-dictionary<=? "ab" "a")			=> #f)
-  (check (bytevector-u8/numbers-dictionary<=? "a" "a1")			=> #t)
-  (check (bytevector-u8/numbers-dictionary<=? "a1" "a")			=> #f)
-  (check (bytevector-u8/numbers-dictionary<=? "1" "1a")			=> #t)
-  (check (bytevector-u8/numbers-dictionary<=? "1a" "1")			=> #f)
-
-  (check (bytevector-u8/numbers-dictionary<=? "123" "45")			=> #f)
-  (check (bytevector-u8/numbers-dictionary<=? "45" "123")			=> #t)
-  (check (bytevector-u8/numbers-dictionary<=? "ciao3" "ciao10")		=> #t)
-  (check (bytevector-u8/numbers-dictionary<=? "ciao10" "ciao3")		=> #f)
-  (check (bytevector-u8/numbers-dictionary<=? "foo4bar3zab10" "foo4bar3zab2")	=> #f)
-  (check (bytevector-u8/numbers-dictionary<=? "foo4bar3zab2" "foo4bar3zab10")	=> #t)
-  (check (bytevector-u8/numbers-dictionary<=? "foo4bar3zab" "foo4bar10")	=> #t)
-  (check (bytevector-u8/numbers-dictionary<=? "foo4bar10" "foo4bar3zab")	=> #f)
-  (check (bytevector-u8/numbers-dictionary<=? "foo12" "12foo")			=> #f)
-  (check (bytevector-u8/numbers-dictionary<=? "12foo" "foo12")			=> #t)
-  (check (bytevector-u8/numbers-dictionary<=? "12bar" "foobar")		=> #t)
-  (check (bytevector-u8/numbers-dictionary<=? "12.3" "12.3")			=> #t)
-  (check (bytevector-u8/numbers-dictionary<=? "12.3" "12.10")			=> #t)
-  (check (bytevector-u8/numbers-dictionary<=? "12.10" "12.3")			=> #f)
-  (check (bytevector-u8/numbers-dictionary<=? "12.3" "12,10")			=> #f)
-  (check (bytevector-u8/numbers-dictionary<=? "12,10" "12.3")			=> #t)
-
-  (check (bytevector-u8/numbers-dictionary<=? "fo o4b\tar3\nza\rb10" "foo4bar3zab2")	=> #f)
-  (check (bytevector-u8/numbers-dictionary<=? "foo4bar3zab2" "fo o4b\tar3\nza\rb10")	=> #t)
-
-;;; --------------------------------------------------------------------
-
-  (check (bytevector-u8/numbers-dictionary>? "" "")				=> #f)
-  (check (bytevector-u8/numbers-dictionary>? "a" "")				=> #t)
-  (check (bytevector-u8/numbers-dictionary>? "" "a")				=> #f)
-  (check (bytevector-u8/numbers-dictionary>? "a" "a")				=> #f)
-  (check (bytevector-u8/numbers-dictionary>? "1" "")				=> #t)
-  (check (bytevector-u8/numbers-dictionary>? "" "1")				=> #f)
-  (check (bytevector-u8/numbers-dictionary>? "1" "1")				=> #f)
-  (check (bytevector-u8/numbers-dictionary>? "1" "2")				=> #f)
-  (check (bytevector-u8/numbers-dictionary>? "2" "1")				=> #t)
-  (check (bytevector-u8/numbers-dictionary>? "a" "ab")				=> #f)
-  (check (bytevector-u8/numbers-dictionary>? "ab" "a")				=> #t)
-  (check (bytevector-u8/numbers-dictionary>? "a" "a1")				=> #f)
-  (check (bytevector-u8/numbers-dictionary>? "a1" "a")				=> #t)
-  (check (bytevector-u8/numbers-dictionary>? "1" "1a")				=> #f)
-  (check (bytevector-u8/numbers-dictionary>? "1a" "1")				=> #t)
-
-  (check (bytevector-u8/numbers-dictionary>? "123" "45")			=> #t)
-  (check (bytevector-u8/numbers-dictionary>? "45" "123")			=> #f)
-  (check (bytevector-u8/numbers-dictionary>? "ciao3" "ciao10")			=> #f)
-  (check (bytevector-u8/numbers-dictionary>? "ciao10" "ciao3")			=> #t)
-  (check (bytevector-u8/numbers-dictionary>? "foo4bar3zab10" "foo4bar3zab2")	=> #t)
-  (check (bytevector-u8/numbers-dictionary>? "foo4bar3zab2" "foo4bar3zab10")	=> #f)
-  (check (bytevector-u8/numbers-dictionary>? "foo4bar3zab" "foo4bar10")	=> #f)
-  (check (bytevector-u8/numbers-dictionary>? "foo4bar10" "foo4bar3zab")	=> #t)
-  (check (bytevector-u8/numbers-dictionary>? "foo12" "12foo")			=> #t)
-  (check (bytevector-u8/numbers-dictionary>? "12foo" "foo12")			=> #f)
-  (check (bytevector-u8/numbers-dictionary>? "12bar" "foobar")			=> #f)
-  (check (bytevector-u8/numbers-dictionary>? "12.3" "12.3")			=> #f)
-  (check (bytevector-u8/numbers-dictionary>? "12.3" "12.10")			=> #f)
-  (check (bytevector-u8/numbers-dictionary>? "12.10" "12.3")			=> #t)
-  (check (bytevector-u8/numbers-dictionary>? "12.3" "12,10")			=> #t)
-  (check (bytevector-u8/numbers-dictionary>? "12,10" "12.3")			=> #f)
-
-  (check (bytevector-u8/numbers-dictionary>? "fo o4b\tar3\nza\rb10" "foo4bar3zab2")	=> #t)
-  (check (bytevector-u8/numbers-dictionary>? "foo4bar3zab2" "fo o4b\tar3\nza\rb10")	=> #f)
-
-;;; --------------------------------------------------------------------
-
-  (check (bytevector-u8/numbers-dictionary>=? "" "")				=> #t)
-  (check (bytevector-u8/numbers-dictionary>=? "a" "")				=> #t)
-  (check (bytevector-u8/numbers-dictionary>=? "" "a")				=> #f)
-  (check (bytevector-u8/numbers-dictionary>=? "a" "a")				=> #t)
-  (check (bytevector-u8/numbers-dictionary>=? "1" "")				=> #t)
-  (check (bytevector-u8/numbers-dictionary>=? "" "1")				=> #f)
-  (check (bytevector-u8/numbers-dictionary>=? "1" "1")				=> #t)
-  (check (bytevector-u8/numbers-dictionary>=? "1" "2")				=> #f)
-  (check (bytevector-u8/numbers-dictionary>=? "2" "1")				=> #t)
-  (check (bytevector-u8/numbers-dictionary>=? "a" "ab")			=> #f)
-  (check (bytevector-u8/numbers-dictionary>=? "ab" "a")			=> #t)
-  (check (bytevector-u8/numbers-dictionary>=? "a" "a1")			=> #f)
-  (check (bytevector-u8/numbers-dictionary>=? "a1" "a")			=> #t)
-  (check (bytevector-u8/numbers-dictionary>=? "1" "1a")			=> #f)
-  (check (bytevector-u8/numbers-dictionary>=? "1a" "1")			=> #t)
-
-  (check (bytevector-u8/numbers-dictionary>=? "123" "45")			=> #t)
-  (check (bytevector-u8/numbers-dictionary>=? "45" "123")			=> #f)
-  (check (bytevector-u8/numbers-dictionary>=? "ciao3" "ciao10")		=> #f)
-  (check (bytevector-u8/numbers-dictionary>=? "ciao10" "ciao3")		=> #t)
-  (check (bytevector-u8/numbers-dictionary>=? "foo4bar3zab10" "foo4bar3zab2")	=> #t)
-  (check (bytevector-u8/numbers-dictionary>=? "foo4bar3zab2" "foo4bar3zab10")	=> #f)
-  (check (bytevector-u8/numbers-dictionary>=? "foo4bar3zab" "foo4bar10")	=> #f)
-  (check (bytevector-u8/numbers-dictionary>=? "foo4bar10" "foo4bar3zab")	=> #t)
-  (check (bytevector-u8/numbers-dictionary>=? "foo12" "12foo")			=> #t)
-  (check (bytevector-u8/numbers-dictionary>=? "12foo" "foo12")			=> #f)
-  (check (bytevector-u8/numbers-dictionary>=? "12bar" "foobar")		=> #f)
-  (check (bytevector-u8/numbers-dictionary>=? "12.3" "12.3")			=> #t)
-  (check (bytevector-u8/numbers-dictionary>=? "12.3" "12.10")			=> #f)
-  (check (bytevector-u8/numbers-dictionary>=? "12.10" "12.3")			=> #t)
-  (check (bytevector-u8/numbers-dictionary>=? "12.3" "12,10")			=> #t)
-  (check (bytevector-u8/numbers-dictionary>=? "12,10" "12.3")			=> #f)
-
-  (check (bytevector-u8/numbers-dictionary>=? "fo o4b\tar3\nza\rb10" "foo4bar3zab2")	=> #t)
-  (check (bytevector-u8/numbers-dictionary>=? "foo4bar3zab2" "fo o4b\tar3\nza\rb10")	=> #f)
-
-  #t)
-
-
-(parameterise ((check-test-name 'comparison-dictionary-bytevector-u8/number-case-insensitive))
-
-  (check (bytevector-u8/numbers-dictionary-ci=? "" "")				=> #t)
-  (check (bytevector-u8/numbers-dictionary-ci=? "a" "")			=> #f)
-  (check (bytevector-u8/numbers-dictionary-ci=? "" "a")			=> #f)
-  (check (bytevector-u8/numbers-dictionary-ci=? "a" "a")			=> #t)
-  (check (bytevector-u8/numbers-dictionary-ci=? "1" "")			=> #f)
-  (check (bytevector-u8/numbers-dictionary-ci=? "" "1")			=> #f)
-  (check (bytevector-u8/numbers-dictionary-ci=? "1" "1")			=> #t)
-  (check (bytevector-u8/numbers-dictionary-ci=? "1" "2")			=> #f)
-  (check (bytevector-u8/numbers-dictionary-ci=? "2" "1")			=> #f)
-  (check (bytevector-u8/numbers-dictionary-ci=? "a" "ab")			=> #f)
-  (check (bytevector-u8/numbers-dictionary-ci=? "ab" "a")			=> #f)
-  (check (bytevector-u8/numbers-dictionary-ci=? "a" "a1")			=> #f)
-  (check (bytevector-u8/numbers-dictionary-ci=? "a1" "a")			=> #f)
-  (check (bytevector-u8/numbers-dictionary-ci=? "1" "1a")			=> #f)
-  (check (bytevector-u8/numbers-dictionary-ci=? "1a" "1")			=> #f)
-  (check (bytevector-u8/numbers-dictionary-ci=? "a" "A")			=> #t)
-  (check (bytevector-u8/numbers-dictionary-ci=? "A" "a")			=> #t)
-
-  (check (bytevector-u8/numbers-dictionary-ci=? "123" "45")			=> #f)
-  (check (bytevector-u8/numbers-dictionary-ci=? "45" "123")			=> #f)
-  (check (bytevector-u8/numbers-dictionary-ci=? "ciao3" "ciao10")		=> #f)
-  (check (bytevector-u8/numbers-dictionary-ci=? "ciao10" "ciao3")		=> #f)
-  (check (bytevector-u8/numbers-dictionary-ci=? "foo4bar3zab10" "foo4bar3zab2")	=> #f)
-  (check (bytevector-u8/numbers-dictionary-ci=? "foo4bar3zab2" "foo4bar3zab10")	=> #f)
-  (check (bytevector-u8/numbers-dictionary-ci=? "foo4bar3zab" "foo4bar10")	=> #f)
-  (check (bytevector-u8/numbers-dictionary-ci=? "foo4bar10" "foo4bar3zab")	=> #f)
-  (check (bytevector-u8/numbers-dictionary-ci=? "foo12" "12foo")		=> #f)
-  (check (bytevector-u8/numbers-dictionary-ci=? "12foo" "foo12")		=> #f)
-  (check (bytevector-u8/numbers-dictionary-ci=? "12bar" "foobar")		=> #f)
-  (check (bytevector-u8/numbers-dictionary-ci=? "12.3" "12.3")			=> #t)
-  (check (bytevector-u8/numbers-dictionary-ci=? "12.3" "12.10")		=> #f)
-  (check (bytevector-u8/numbers-dictionary-ci=? "12.10" "12.3")		=> #f)
-  (check (bytevector-u8/numbers-dictionary-ci=? "12.3" "12,10")		=> #f)
-  (check (bytevector-u8/numbers-dictionary-ci=? "12,10" "12.3")		=> #f)
-
-;;; --------------------------------------------------------------------
-
-  (check (bytevector-u8/numbers-dictionary-ci<>? "" "")			=> #f)
-  (check (bytevector-u8/numbers-dictionary-ci<>? "a" "")			=> #t)
-  (check (bytevector-u8/numbers-dictionary-ci<>? "" "a")			=> #t)
-  (check (bytevector-u8/numbers-dictionary-ci<>? "a" "a")			=> #f)
-  (check (bytevector-u8/numbers-dictionary-ci<>? "1" "")			=> #t)
-  (check (bytevector-u8/numbers-dictionary-ci<>? "" "1")			=> #t)
-  (check (bytevector-u8/numbers-dictionary-ci<>? "1" "1")			=> #f)
-  (check (bytevector-u8/numbers-dictionary-ci<>? "1" "2")			=> #t)
-  (check (bytevector-u8/numbers-dictionary-ci<>? "2" "1")			=> #t)
-  (check (bytevector-u8/numbers-dictionary-ci<>? "a" "ab")			=> #t)
-  (check (bytevector-u8/numbers-dictionary-ci<>? "ab" "a")			=> #t)
-  (check (bytevector-u8/numbers-dictionary-ci<>? "a" "a1")			=> #t)
-  (check (bytevector-u8/numbers-dictionary-ci<>? "a1" "a")			=> #t)
-  (check (bytevector-u8/numbers-dictionary-ci<>? "1" "1a")			=> #t)
-  (check (bytevector-u8/numbers-dictionary-ci<>? "1a" "1")			=> #t)
-  (check (bytevector-u8/numbers-dictionary-ci<>? "A" "a")			=> #f)
-  (check (bytevector-u8/numbers-dictionary-ci<>? "a" "A")			=> #f)
-
-  (check (bytevector-u8/numbers-dictionary-ci<>? "123" "45")			=> #t)
-  (check (bytevector-u8/numbers-dictionary-ci<>? "45" "123")			=> #t)
-  (check (bytevector-u8/numbers-dictionary-ci<>? "ciao3" "ciao10")		=> #t)
-  (check (bytevector-u8/numbers-dictionary-ci<>? "ciao10" "ciao3")		=> #t)
-  (check (bytevector-u8/numbers-dictionary-ci<>? "foo4bar3zab10" "foo4bar3zab2")	=> #t)
-  (check (bytevector-u8/numbers-dictionary-ci<>? "foo4bar3zab2" "foo4bar3zab10")	=> #t)
-  (check (bytevector-u8/numbers-dictionary-ci<>? "foo4bar3zab" "foo4bar10")	=> #t)
-  (check (bytevector-u8/numbers-dictionary-ci<>? "foo4bar10" "foo4bar3zab")	=> #t)
-  (check (bytevector-u8/numbers-dictionary-ci<>? "foo12" "12foo")		=> #t)
-  (check (bytevector-u8/numbers-dictionary-ci<>? "12foo" "foo12")		=> #t)
-  (check (bytevector-u8/numbers-dictionary-ci<>? "12bar" "foobar")		=> #t)
-  (check (bytevector-u8/numbers-dictionary-ci<>? "12.3" "12.3")		=> #f)
-  (check (bytevector-u8/numbers-dictionary-ci<>? "12.3" "12.10")		=> #t)
-  (check (bytevector-u8/numbers-dictionary-ci<>? "12.10" "12.3")		=> #t)
-  (check (bytevector-u8/numbers-dictionary-ci<>? "12.3" "12,10")		=> #t)
-  (check (bytevector-u8/numbers-dictionary-ci<>? "12,10" "12.3")		=> #t)
-
-;;; --------------------------------------------------------------------
-
-  (check (bytevector-u8/numbers-dictionary-ci<? "" "")				=> #f)
-  (check (bytevector-u8/numbers-dictionary-ci<? "a" "")			=> #f)
-  (check (bytevector-u8/numbers-dictionary-ci<? "" "a")			=> #t)
-  (check (bytevector-u8/numbers-dictionary-ci<? "a" "a")			=> #f)
-  (check (bytevector-u8/numbers-dictionary-ci<? "1" "")			=> #f)
-  (check (bytevector-u8/numbers-dictionary-ci<? "" "1")			=> #t)
-  (check (bytevector-u8/numbers-dictionary-ci<? "1" "1")			=> #f)
-  (check (bytevector-u8/numbers-dictionary-ci<? "1" "2")			=> #t)
-  (check (bytevector-u8/numbers-dictionary-ci<? "2" "1")			=> #f)
-  (check (bytevector-u8/numbers-dictionary-ci<? "a" "ab")			=> #t)
-  (check (bytevector-u8/numbers-dictionary-ci<? "ab" "a")			=> #f)
-  (check (bytevector-u8/numbers-dictionary-ci<? "a" "a1")			=> #t)
-  (check (bytevector-u8/numbers-dictionary-ci<? "a1" "a")			=> #f)
-  (check (bytevector-u8/numbers-dictionary-ci<? "1" "1a")			=> #t)
-  (check (bytevector-u8/numbers-dictionary-ci<? "1a" "1")			=> #f)
-  (check (bytevector-u8/numbers-dictionary-ci<? "a" "A")			=> #f)
-  (check (bytevector-u8/numbers-dictionary-ci<? "A" "a")			=> #f)
-
-  (check (bytevector-u8/numbers-dictionary-ci<? "123" "45")			=> #f)
-  (check (bytevector-u8/numbers-dictionary-ci<? "45" "123")			=> #t)
-  (check (bytevector-u8/numbers-dictionary-ci<? "ciao3" "ciao10")		=> #t)
-  (check (bytevector-u8/numbers-dictionary-ci<? "ciao10" "ciao3")		=> #f)
-  (check (bytevector-u8/numbers-dictionary-ci<? "foo4bar3zab10" "foo4bar3zab2")	=> #f)
-  (check (bytevector-u8/numbers-dictionary-ci<? "foo4bar3zab2" "foo4bar3zab10")	=> #t)
-  (check (bytevector-u8/numbers-dictionary-ci<? "foo4bar3zab" "foo4bar10")	=> #t)
-  (check (bytevector-u8/numbers-dictionary-ci<? "foo4bar10" "foo4bar3zab")	=> #f)
-  (check (bytevector-u8/numbers-dictionary-ci<? "foo12" "12foo")		=> #f)
-  (check (bytevector-u8/numbers-dictionary-ci<? "12foo" "foo12")		=> #t)
-  (check (bytevector-u8/numbers-dictionary-ci<? "12bar" "foobar")		=> #t)
-  (check (bytevector-u8/numbers-dictionary-ci<? "12.3" "12.3")			=> #f)
-  (check (bytevector-u8/numbers-dictionary-ci<? "12.3" "12.10")		=> #t)
-  (check (bytevector-u8/numbers-dictionary-ci<? "12.10" "12.3")		=> #f)
-  (check (bytevector-u8/numbers-dictionary-ci<? "12.3" "12,10")		=> #f)
-  (check (bytevector-u8/numbers-dictionary-ci<? "12,10" "12.3")		=> #t)
-
-;;; --------------------------------------------------------------------
-
-  (check (bytevector-u8/numbers-dictionary-ci<=? "" "")			=> #t)
-  (check (bytevector-u8/numbers-dictionary-ci<=? "a" "")			=> #f)
-  (check (bytevector-u8/numbers-dictionary-ci<=? "" "a")			=> #t)
-  (check (bytevector-u8/numbers-dictionary-ci<=? "a" "a")			=> #t)
-  (check (bytevector-u8/numbers-dictionary-ci<=? "1" "")			=> #f)
-  (check (bytevector-u8/numbers-dictionary-ci<=? "" "1")			=> #t)
-  (check (bytevector-u8/numbers-dictionary-ci<=? "1" "1")			=> #t)
-  (check (bytevector-u8/numbers-dictionary-ci<=? "1" "2")			=> #t)
-  (check (bytevector-u8/numbers-dictionary-ci<=? "2" "1")			=> #f)
-  (check (bytevector-u8/numbers-dictionary-ci<=? "a" "ab")			=> #t)
-  (check (bytevector-u8/numbers-dictionary-ci<=? "ab" "a")			=> #f)
-  (check (bytevector-u8/numbers-dictionary-ci<=? "a" "a1")			=> #t)
-  (check (bytevector-u8/numbers-dictionary-ci<=? "a1" "a")			=> #f)
-  (check (bytevector-u8/numbers-dictionary-ci<=? "1" "1a")			=> #t)
-  (check (bytevector-u8/numbers-dictionary-ci<=? "1a" "1")			=> #f)
-  (check (bytevector-u8/numbers-dictionary-ci<=? "a" "A")			=> #t)
-  (check (bytevector-u8/numbers-dictionary-ci<=? "A" "a")			=> #t)
-
-  (check (bytevector-u8/numbers-dictionary-ci<=? "123" "45")			=> #f)
-  (check (bytevector-u8/numbers-dictionary-ci<=? "45" "123")			=> #t)
-  (check (bytevector-u8/numbers-dictionary-ci<=? "ciao3" "ciao10")		=> #t)
-  (check (bytevector-u8/numbers-dictionary-ci<=? "ciao10" "ciao3")		=> #f)
-  (check (bytevector-u8/numbers-dictionary-ci<=? "foo4bar3zab10" "foo4bar3zab2")	=> #f)
-  (check (bytevector-u8/numbers-dictionary-ci<=? "foo4bar3zab2" "foo4bar3zab10")	=> #t)
-  (check (bytevector-u8/numbers-dictionary-ci<=? "foo4bar3zab" "foo4bar10")	=> #t)
-  (check (bytevector-u8/numbers-dictionary-ci<=? "foo4bar10" "foo4bar3zab")	=> #f)
-  (check (bytevector-u8/numbers-dictionary-ci<=? "foo12" "12foo")		=> #f)
-  (check (bytevector-u8/numbers-dictionary-ci<=? "12foo" "foo12")		=> #t)
-  (check (bytevector-u8/numbers-dictionary-ci<=? "12bar" "foobar")		=> #t)
-  (check (bytevector-u8/numbers-dictionary-ci<=? "12.3" "12.3")		=> #t)
-  (check (bytevector-u8/numbers-dictionary-ci<=? "12.3" "12.10")		=> #t)
-  (check (bytevector-u8/numbers-dictionary-ci<=? "12.10" "12.3")		=> #f)
-  (check (bytevector-u8/numbers-dictionary-ci<=? "12.3" "12,10")		=> #f)
-  (check (bytevector-u8/numbers-dictionary-ci<=? "12,10" "12.3")		=> #t)
-
-;;; --------------------------------------------------------------------
-
-  (check (bytevector-u8/numbers-dictionary-ci>? "" "")				=> #f)
-  (check (bytevector-u8/numbers-dictionary-ci>? "a" "")			=> #t)
-  (check (bytevector-u8/numbers-dictionary-ci>? "" "a")			=> #f)
-  (check (bytevector-u8/numbers-dictionary-ci>? "a" "a")			=> #f)
-  (check (bytevector-u8/numbers-dictionary-ci>? "1" "")			=> #t)
-  (check (bytevector-u8/numbers-dictionary-ci>? "" "1")			=> #f)
-  (check (bytevector-u8/numbers-dictionary-ci>? "1" "1")			=> #f)
-  (check (bytevector-u8/numbers-dictionary-ci>? "1" "2")			=> #f)
-  (check (bytevector-u8/numbers-dictionary-ci>? "2" "1")			=> #t)
-  (check (bytevector-u8/numbers-dictionary-ci>? "a" "ab")			=> #f)
-  (check (bytevector-u8/numbers-dictionary-ci>? "ab" "a")			=> #t)
-  (check (bytevector-u8/numbers-dictionary-ci>? "a" "a1")			=> #f)
-  (check (bytevector-u8/numbers-dictionary-ci>? "a1" "a")			=> #t)
-  (check (bytevector-u8/numbers-dictionary-ci>? "1" "1a")			=> #f)
-  (check (bytevector-u8/numbers-dictionary-ci>? "1a" "1")			=> #t)
-  (check (bytevector-u8/numbers-dictionary-ci>? "a" "A")			=> #f)
-  (check (bytevector-u8/numbers-dictionary-ci>? "A" "a")			=> #f)
-
-  (check (bytevector-u8/numbers-dictionary-ci>? "123" "45")			=> #t)
-  (check (bytevector-u8/numbers-dictionary-ci>? "45" "123")			=> #f)
-  (check (bytevector-u8/numbers-dictionary-ci>? "ciao3" "ciao10")		=> #f)
-  (check (bytevector-u8/numbers-dictionary-ci>? "ciao10" "ciao3")		=> #t)
-  (check (bytevector-u8/numbers-dictionary-ci>? "foo4bar3zab10" "foo4bar3zab2")	=> #t)
-  (check (bytevector-u8/numbers-dictionary-ci>? "foo4bar3zab2" "foo4bar3zab10")	=> #f)
-  (check (bytevector-u8/numbers-dictionary-ci>? "foo4bar3zab" "foo4bar10")	=> #f)
-  (check (bytevector-u8/numbers-dictionary-ci>? "foo4bar10" "foo4bar3zab")	=> #t)
-  (check (bytevector-u8/numbers-dictionary-ci>? "foo12" "12foo")		=> #t)
-  (check (bytevector-u8/numbers-dictionary-ci>? "12foo" "foo12")		=> #f)
-  (check (bytevector-u8/numbers-dictionary-ci>? "12bar" "foobar")		=> #f)
-  (check (bytevector-u8/numbers-dictionary-ci>? "12.3" "12.3")			=> #f)
-  (check (bytevector-u8/numbers-dictionary-ci>? "12.3" "12.10")		=> #f)
-  (check (bytevector-u8/numbers-dictionary-ci>? "12.10" "12.3")		=> #t)
-  (check (bytevector-u8/numbers-dictionary-ci>? "12.3" "12,10")		=> #t)
-  (check (bytevector-u8/numbers-dictionary-ci>? "12,10" "12.3")		=> #f)
-
-;;; --------------------------------------------------------------------
-
-  (check (bytevector-u8/numbers-dictionary-ci>=? "" "")			=> #t)
-  (check (bytevector-u8/numbers-dictionary-ci>=? "a" "")			=> #t)
-  (check (bytevector-u8/numbers-dictionary-ci>=? "" "a")			=> #f)
-  (check (bytevector-u8/numbers-dictionary-ci>=? "a" "a")			=> #t)
-  (check (bytevector-u8/numbers-dictionary-ci>=? "1" "")			=> #t)
-  (check (bytevector-u8/numbers-dictionary-ci>=? "" "1")			=> #f)
-  (check (bytevector-u8/numbers-dictionary-ci>=? "1" "1")			=> #t)
-  (check (bytevector-u8/numbers-dictionary-ci>=? "1" "2")			=> #f)
-  (check (bytevector-u8/numbers-dictionary-ci>=? "2" "1")			=> #t)
-  (check (bytevector-u8/numbers-dictionary-ci>=? "a" "ab")			=> #f)
-  (check (bytevector-u8/numbers-dictionary-ci>=? "ab" "a")			=> #t)
-  (check (bytevector-u8/numbers-dictionary-ci>=? "a" "a1")			=> #f)
-  (check (bytevector-u8/numbers-dictionary-ci>=? "a1" "a")			=> #t)
-  (check (bytevector-u8/numbers-dictionary-ci>=? "1" "1a")			=> #f)
-  (check (bytevector-u8/numbers-dictionary-ci>=? "1a" "1")			=> #t)
-  (check (bytevector-u8/numbers-dictionary-ci>=? "a" "A")			=> #t)
-  (check (bytevector-u8/numbers-dictionary-ci>=? "A" "a")			=> #t)
-
-  (check (bytevector-u8/numbers-dictionary-ci>=? "123" "45")			=> #t)
-  (check (bytevector-u8/numbers-dictionary-ci>=? "45" "123")			=> #f)
-  (check (bytevector-u8/numbers-dictionary-ci>=? "ciao3" "ciao10")		=> #f)
-  (check (bytevector-u8/numbers-dictionary-ci>=? "ciao10" "ciao3")		=> #t)
-  (check (bytevector-u8/numbers-dictionary-ci>=? "foo4bar3zab10" "foo4bar3zab2")	=> #t)
-  (check (bytevector-u8/numbers-dictionary-ci>=? "foo4bar3zab2" "foo4bar3zab10")	=> #f)
-  (check (bytevector-u8/numbers-dictionary-ci>=? "foo4bar3zab" "foo4bar10")	=> #f)
-  (check (bytevector-u8/numbers-dictionary-ci>=? "foo4bar10" "foo4bar3zab")	=> #t)
-  (check (bytevector-u8/numbers-dictionary-ci>=? "foo12" "12foo")		=> #t)
-  (check (bytevector-u8/numbers-dictionary-ci>=? "12foo" "foo12")		=> #f)
-  (check (bytevector-u8/numbers-dictionary-ci>=? "12bar" "foobar")		=> #f)
-  (check (bytevector-u8/numbers-dictionary-ci>=? "12.3" "12.3")		=> #t)
-  (check (bytevector-u8/numbers-dictionary-ci>=? "12.3" "12.10")		=> #f)
-  (check (bytevector-u8/numbers-dictionary-ci>=? "12.10" "12.3")		=> #t)
-  (check (bytevector-u8/numbers-dictionary-ci>=? "12.3" "12,10")		=> #t)
-  (check (bytevector-u8/numbers-dictionary-ci>=? "12,10" "12.3")		=> #f)
-
-  #t)
+  #f)
 
 
 (parameterise ((check-test-name 'mapping))
 
   (check
-      (let ((str (bytevector-u8-copy "abcd")))
+      (let ((str (bytevector-u8-copy (S "abcd"))))
 	(bytevector-u8-map! (lambda (i ch) (char-upcase ch))
-		     str)
+			    str)
 	str)
-    => "ABCD")
+    => (S "ABCD"))
 
   (check
-      (let ((str (bytevector-u8-copy "abcd")))
+      (let ((str (bytevector-u8-copy (S "abcd"))))
 	(bytevector-u8-map! (lambda (i ch-a ch-b) (if (even? i) ch-a ch-b))
-		     str "0123")
+			    str (S "0123"))
 	str)
-    => "a1c3")
+    => (S "a1c3"))
 
   (check
-      (let ((str (bytevector-u8-copy "")))
+      (let ((str (bytevector-u8-copy '#vu8())))
 	(bytevector-u8-map! (lambda (i ch) (char-upcase ch))
-		     str)
+			    str)
 	str)
-    => "")
+    => '#vu8())
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (let ((str (bytevector-u8-copy "abcd")))
+      (let ((str (bytevector-u8-copy (S "abcd"))))
 	(bytevector-u8-map*! (lambda (i ch) (char-upcase ch))
-		      str)
+			     str)
 	str)
-    => "ABCD")
+    => (S "ABCD"))
 
   (check
-      (let ((str (bytevector-u8-copy "abcd")))
+      (let ((str (bytevector-u8-copy (S "abcd"))))
 	(bytevector-u8-map*! (lambda (i ch-a ch-b) (if (even? i) ch-a ch-b))
-		      str "01234")
+			     str (S "01234"))
 	str)
-    => "a1c3")
+    => (S "a1c3"))
 
   (check
-      (let ((str (bytevector-u8-copy "")))
+      (let ((str (bytevector-u8-copy '#vu8())))
 	(bytevector-u8-map*! (lambda (i ch) (char-upcase ch))
-		      str)
+			     str)
 	str)
-    => "")
+    => '#vu8())
 
 ;;; --------------------------------------------------------------------
 
   (check
       (cadr (with-result
 	     (bytevector-u8-for-each* (lambda (i ch) (add-result (list i ch)))
-			       "abcd")))
+				      (S "abcd"))))
     => '((0 #\a)
 	 (1 #\b)
 	 (2 #\c)
@@ -1819,7 +522,7 @@
   (check
       (cadr (with-result
 	     (bytevector-u8-for-each* (lambda (i ch-a ch-b) (add-result (list i ch-a ch-b)))
-			       "abcd" "01234")))
+				      (S "abcd") (S "01234"))))
     => '((0 #\a #\0)
 	 (1 #\b #\1)
 	 (2 #\c #\2)
@@ -1828,214 +531,212 @@
   (check
       (cadr (with-result
 	     (bytevector-u8-for-each* (lambda (i ch) (add-result (list i ch)))
-			       "")))
+				      '#vu8())))
     => '())
 
 ;;; --------------------------------------------------------------------
 
   (check
       (subbytevector-u8-map (lambda (ch) (char-upcase ch))
-		     "abcd")
-    => "ABCD")
-
-
-  (check
-      (subbytevector-u8-map (lambda (ch) (char-upcase ch))
-		     (view "abcd" (start 1) (past 3)))
-    => "BC")
+			    (S "abcd"))
+    => (S "ABCD"))
 
   (check
       (subbytevector-u8-map (lambda (ch) (char-upcase ch))
-		     "")
-    => "")
+			    (view (S "abcd") (start 1) (past 3)))
+    => (S "BC"))
+
+  (check
+      (subbytevector-u8-map (lambda (ch) (char-upcase ch))
+			    '#vu8())
+    => '#vu8())
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (let ((str (bytevector-u8-copy "abcd")))
+      (let ((str (bytevector-u8-copy (S "abcd"))))
 	(subbytevector-u8-map! (lambda (ch) (char-upcase ch))
-			str)
+			       str)
 	str)
-    => "ABCD")
+    => (S "ABCD"))
 
   (check
-      (let ((str (bytevector-u8-copy "abcd")))
+      (let ((str (bytevector-u8-copy (S "abcd"))))
 	(subbytevector-u8-map! (lambda (ch) (char-upcase ch))
-			(view str (start 1) (past 3)))
+			       (view str (start 1) (past 3)))
 	str)
-    => "aBCd")
+    => (S "aBCd"))
 
   (check
-      (let ((str ""))
+      (let ((str '#vu8()))
 	(subbytevector-u8-map! (lambda (ch) (char-upcase ch))
-			str)
+			       str)
 	str)
-    => "")
+    => '#vu8())
 
 ;;; --------------------------------------------------------------------
 
   (check
       (cadr (with-result
 	     (subbytevector-u8-for-each add-result
-				 "abcd")))
+					(S "abcd"))))
     => '(#\a #\b #\c #\d))
 
   (check
       (cadr (with-result
 	     (subbytevector-u8-for-each add-result
-				 (view "abcd" (start 1) (past 3)))))
+					(view (S "abcd") (start 1) (past 3)))))
     => '(#\b #\c))
 
   (check
       (cadr (with-result
-	     (subbytevector-u8-for-each add-result "")))
+	     (subbytevector-u8-for-each add-result '#vu8())))
     => '())
 
-
-  )
+  #f)
 
 
 (parameterise ((check-test-name 'case))
 
   (check
-      (bytevector-u8-upcase* "abcd")
-    => "ABCD")
+      (bytevector-u8-upcase* (S "abcd"))
+    => (S "ABCD"))
 
   (check
-      (bytevector-u8-upcase* "123abcd")
-    => "123ABCD")
+      (bytevector-u8-upcase* (S "123abcd"))
+    => (S "123ABCD"))
 
   (check
-      (bytevector-u8-upcase* "---abcd")
-    => "---ABCD")
+      (bytevector-u8-upcase* (S "---abcd"))
+    => (S "---ABCD"))
 
   (check
-      (bytevector-u8-upcase* "abcd efgh")
-    => "ABCD EFGH")
+      (bytevector-u8-upcase* (S "abcd efgh"))
+    => (S "ABCD EFGH"))
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (let* ((str (bytevector-u8-copy "abcd")))
+      (let* ((str (bytevector-u8-copy (S "abcd"))))
 	(bytevector-u8-upcase*! str)
 	str)
-    => "ABCD")
+    => (S "ABCD"))
 
   (check
-      (let* ((str (bytevector-u8-copy "123abcd")))
+      (let* ((str (bytevector-u8-copy (S "123abcd"))))
 	(bytevector-u8-upcase*! str)
 	str)
-    => "123ABCD")
+    => (S "123ABCD"))
 
   (check
-      (let* ((str (bytevector-u8-copy "---abcd")))
+      (let* ((str (bytevector-u8-copy (S "---abcd"))))
 	(bytevector-u8-upcase*! str)
 	str)
-    => "---ABCD")
+    => (S "---ABCD"))
 
   (check
-      (let* ((str (bytevector-u8-copy "abcd efgh")))
+      (let* ((str (bytevector-u8-copy (S "abcd efgh"))))
 	(bytevector-u8-upcase*! str)
 	str)
-    => "ABCD EFGH")
+    => (S "ABCD EFGH"))
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (bytevector-u8-downcase* "ABCD")
-    => "abcd")
+      (bytevector-u8-downcase* (S "ABCD"))
+    => (S "abcd"))
 
   (check
-      (bytevector-u8-downcase* "123AbcD")
-    => "123abcd")
+      (bytevector-u8-downcase* (S "123AbcD"))
+    => (S "123abcd"))
 
   (check
-      (bytevector-u8-downcase* "---aBCd")
-    => "---abcd")
+      (bytevector-u8-downcase* (S "---aBCd"))
+    => (S "---abcd"))
 
   (check
-      (bytevector-u8-downcase* "abcd EFGH")
-    => "abcd efgh")
+      (bytevector-u8-downcase* (S "abcd EFGH"))
+    => (S "abcd efgh"))
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (let* ((str (bytevector-u8-copy "aBCd")))
+      (let* ((str (bytevector-u8-copy (S "aBCd"))))
 	(bytevector-u8-downcase*! str)
 	str)
-    => "abcd")
+    => (S "abcd"))
 
   (check
-      (let* ((str (bytevector-u8-copy "123ABcd")))
+      (let* ((str (bytevector-u8-copy (S "123ABcd"))))
 	(bytevector-u8-downcase*! str)
 	str)
-    => "123abcd")
+    => (S "123abcd"))
 
   (check
-      (let* ((str (bytevector-u8-copy "---aBCD")))
+      (let* ((str (bytevector-u8-copy (S "---aBCD"))))
 	(bytevector-u8-downcase*! str)
 	str)
-    => "---abcd")
+    => (S "---abcd"))
 
   (check
-      (let* ((str (bytevector-u8-copy "abCD Efgh")))
+      (let* ((str (bytevector-u8-copy (S "abCD Efgh"))))
 	(bytevector-u8-downcase*! str)
 	str)
-    => "abcd efgh")
+    => (S "abcd efgh"))
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (bytevector-u8-titlecase* "abcd")
-    => "Abcd")
+      (bytevector-u8-titlecase* (S "abcd"))
+    => (S "Abcd"))
 
   (check
-      (bytevector-u8-titlecase* "123abcd")
-    => "123Abcd")
+      (bytevector-u8-titlecase* (S "123abcd"))
+    => (S "123Abcd"))
 
   (check
-      (bytevector-u8-titlecase* "---abcd")
-    => "---Abcd")
+      (bytevector-u8-titlecase* (S "---abcd"))
+    => (S "---Abcd"))
 
   (check
-      (bytevector-u8-titlecase* "abcd efgh")
+      (bytevector-u8-titlecase* (S "abcd efgh"))
     => "Abcd Efgh")
 
   (check
       (bytevector-u8-titlecase* (view "greasy fried chicken" (start 2)))
-    => "Easy Fried Chicken")
+    => (S "Easy Fried Chicken"))
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (let* ((str (bytevector-u8-copy "abcd")))
+      (let* ((str (bytevector-u8-copy (S "abcd"))))
 	(bytevector-u8-titlecase*! str)
 	str)
-    => "Abcd")
+    => (S "Abcd"))
 
   (check
-      (let* ((str (bytevector-u8-copy "123abcd")))
+      (let* ((str (bytevector-u8-copy (S "123abcd"))))
 	(bytevector-u8-titlecase*! str)
 	str)
-    => "123Abcd")
+    => (S "123Abcd"))
 
   (check
-      (let* ((str (bytevector-u8-copy "---abcd")))
+      (let* ((str (bytevector-u8-copy (S "---abcd"))))
 	(bytevector-u8-titlecase*! str)
 	str)
-    => "---Abcd")
+    => (S "---Abcd"))
 
   (check
-      (let* ((str (bytevector-u8-copy "abcd efgh")))
+      (let* ((str (bytevector-u8-copy (S "abcd efgh"))))
 	(bytevector-u8-titlecase*! str)
 	str)
-    => "Abcd Efgh")
+    => (S "Abcd Efgh"))
 
   (check
-      (let ((str (bytevector-u8-copy "greasy fried chicken")))
+      (let ((str (bytevector-u8-copy (S "greasy fried chicken"))))
 	(bytevector-u8-titlecase*! (view str (start 2)))
 	str)
-    => "grEasy Fried Chicken")
+    => (S "grEasy Fried Chicken"))
 
   )
 
@@ -2043,20 +744,20 @@
 (parameterise ((check-test-name 'folding))
 
   (check
-      (bytevector-u8-fold-left (lambda (i nil x) (cons x nil)) '() "abcd")
+      (bytevector-u8-fold-left (lambda (i nil x) (cons x nil)) '() (S "abcd"))
     => '(#\d #\c #\b #\a))
 
   (check
       (bytevector-u8-fold-left (lambda (i nil x y) (cons (cons x y) nil)) '()
-			"abcd"
-			"ABCD")
+			       (S "abcd")
+			       (S "ABCD"))
     => '((#\d . #\D)
 	 (#\c . #\C)
 	 (#\b . #\B)
 	 (#\a . #\A)))
 
   (check
-      (bytevector-u8-fold-left (lambda (i nil x) (cons x nil)) '() "")
+      (bytevector-u8-fold-left (lambda (i nil x) (cons x nil)) '() '#vu8())
     => '())
 
   (check
@@ -2065,45 +766,45 @@
 			      (+ count 1)
 			    count))
 			0
-			"ABCdefGHi")
+			(S "ABCdefGHi"))
     => 5)
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (bytevector-u8-fold-right (lambda (i nil x) (cons x nil)) '() "abcd")
+      (bytevector-u8-fold-right (lambda (i nil x) (cons x nil)) '() (S "abcd"))
     => '(#\a #\b #\c #\d))
 
   (check
       (bytevector-u8-fold-right (lambda (i nil x y) (cons (cons x y) nil)) '()
-			 "abcd"
-			 "ABCD")
+				(S "abcd")
+				(S "ABCD"))
     => '((#\a . #\A)
 	 (#\b . #\B)
 	 (#\c . #\C)
 	 (#\d . #\D)))
 
   (check
-      (bytevector-u8-fold-right (lambda (i nil x) (cons x nil)) '() "")
+      (bytevector-u8-fold-right (lambda (i nil x) (cons x nil)) '() '#vu8())
     => '())
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (bytevector-u8-fold-left* (lambda (i nil x) (cons x nil)) '() "abcd")
+      (bytevector-u8-fold-left* (lambda (i nil x) (cons x nil)) '() (S "abcd"))
     => '(#\d #\c #\b #\a))
 
   (check
       (bytevector-u8-fold-left* (lambda (i nil x y) (cons (cons x y) nil)) '()
-			 "abcd"
-			 "ABCDE")
+				(S "abcd")
+				(S "ABCDE"))
     => '((#\d . #\D)
 	 (#\c . #\C)
 	 (#\b . #\B)
 	 (#\a . #\A)))
 
   (check
-      (bytevector-u8-fold-left* (lambda (i nil x) (cons x nil)) '() "")
+      (bytevector-u8-fold-left* (lambda (i nil x) (cons x nil)) '() '#vu8())
     => '())
 
   (check
@@ -2112,49 +813,49 @@
 			       (+ count 1)
 			     count))
 			 0
-			 "ABCdefGHi")
+			 (S "ABCdefGHi"))
     => 5)
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (bytevector-u8-fold-right* (lambda (i nil x) (cons x nil)) '() "abcd")
+      (bytevector-u8-fold-right* (lambda (i nil x) (cons x nil)) '() (S "abcd"))
     => '(#\a #\b #\c #\d))
 
   (check
       (bytevector-u8-fold-right* (lambda (i nil x y) (cons (cons x y) nil)) '()
-			  "abcd"
-			  "ABCDE")
+				 (S "abcd")
+				 (S "ABCDE"))
     => '((#\a . #\A)
 	 (#\b . #\B)
 	 (#\c . #\C)
 	 (#\d . #\D)))
 
   (check
-      (bytevector-u8-fold-right* (lambda (i nil x) (cons x nil)) '() "")
+      (bytevector-u8-fold-right* (lambda (i nil x) (cons x nil)) '() '#vu8())
     => '())
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (subbytevector-u8-fold-left cons '() "abcd")
+      (subbytevector-u8-fold-left cons '() (S "abcd"))
     => '(#\d #\c #\b #\a))
 
   (check
-      (subbytevector-u8-fold-left cons '() "")
+      (subbytevector-u8-fold-left cons '() '#vu8())
     => '())
 
   (check
       (subbytevector-u8-fold-left (lambda (c count)
-			     (if (char-upper-case? c)
-				 (+ count 1)
-			       count))
-			   0
-			   "ABCdefGHi")
+				    (if (char-upper-case? c)
+					(+ count 1)
+				      count))
+				  0
+				  (S "ABCdefGHi"))
     => 5)
 
   (check
-      (let* ((str "abc\\de\\f\\ghi")
+      (let* ((str (S "abc\\de\\f\\ghi"))
 	     (ans-len (subbytevector-u8-fold-left
 		       (lambda (c sum)
 			 (+ sum (if (char=? c #\\) 2 1)))
@@ -2171,937 +872,937 @@
 	     (+ i 1)))
 	 0 str)
 	ans)
-    => "abc\\\\de\\\\f\\\\ghi")
+    => (S "abc\\\\de\\\\f\\\\ghi"))
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (subbytevector-u8-fold-right cons '() "abcd")
+      (subbytevector-u8-fold-right cons '() (S "abcd"))
     => '(#\a #\b #\c #\d))
 
   (check
-      (subbytevector-u8-fold-right cons '() "")
+      (subbytevector-u8-fold-right cons '() '#vu8())
     => '())
 
 ;;; --------------------------------------------------------------------
 
   (check
       (bytevector-u8-unfold null? car cdr '(#\a #\b #\c #\d))
-    => "abcd")
+    => (S "abcd"))
 
   (check
       (bytevector-u8-unfold null? car cdr '())
-    => "")
+    => '#vu8())
 
 ;;; --------------------------------------------------------------------
 
   (check
       (bytevector-u8-unfold-right null? car cdr '(#\a #\b #\c #\d))
-    => "dcba")
+    => (S "dcba"))
 
   (check
       (bytevector-u8-unfold-right null? car cdr '())
-    => "")
+    => '#vu8())
 
-  )
+  #f)
 
 
 (parameterise ((check-test-name 'selecting))
 
   (check
-      (bytevector-u8-take "abcd" 2)
-    => "ab")
+      (bytevector-u8-take (S "abcd") 2)
+    => (S "ab"))
 
   (check
-      (bytevector-u8-take "" 0)
-    => "")
+      (bytevector-u8-take '#vu8() 0)
+    => '#vu8())
 
   (check
       (guard (exc ((assertion-violation? exc) #t))
-	(bytevector-u8-take "abcd" 5))
+	(bytevector-u8-take (S "abcd") 5))
     => #t)
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (bytevector-u8-take-right "abcd" 2)
-    => "cd")
+      (bytevector-u8-take-right (S "abcd") 2)
+    => (S "cd"))
 
   (check
-      (bytevector-u8-take-right "" 0)
-    => "")
+      (bytevector-u8-take-right '#vu8() 0)
+    => '#vu8())
 
   (check
       (guard (exc ((assertion-violation? exc) #t))
-	(bytevector-u8-take-right "abcd" 5))
+	(bytevector-u8-take-right (S "abcd") 5))
     => #t)
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (bytevector-u8-drop "abcd" 2)
-    => "cd")
+      (bytevector-u8-drop (S "abcd") 2)
+    => (S "cd"))
 
   (check
-      (bytevector-u8-drop "" 0)
-    => "")
+      (bytevector-u8-drop '#vu8() 0)
+    => '#vu8())
 
   (check
       (guard (exc ((assertion-violation? exc) #t))
-	(bytevector-u8-drop "abcd" 5))
+	(bytevector-u8-drop (S "abcd") 5))
     => #t)
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (bytevector-u8-drop-right "abcd" 2)
-    => "ab")
+      (bytevector-u8-drop-right (S "abcd") 2)
+    => (S "ab"))
 
   (check
-      (bytevector-u8-drop-right "" 0)
-    => "")
+      (bytevector-u8-drop-right '#vu8() 0)
+    => '#vu8())
 
   (check
       (guard (exc ((assertion-violation? exc) #t))
-	(bytevector-u8-drop-right "abcd" 5))
+	(bytevector-u8-drop-right (S "abcd") 5))
     => #t)
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (bytevector-u8-trim "aaabcd" #\a)
-    => "bcd")
+      (bytevector-u8-trim (S "aaabcd") #\a)
+    => (S "bcd"))
 
   (check
-      (bytevector-u8-trim "bcd" #\a)
-    => "bcd")
+      (bytevector-u8-trim (S "bcd") #\a)
+    => (S "bcd"))
 
   (check
-      (bytevector-u8-trim "" #\a)
-    => "")
+      (bytevector-u8-trim '#vu8() #\a)
+    => '#vu8())
 
   (check
-      (bytevector-u8-trim "aaabcd" (char-set #\a #\b))
-    => "cd")
+      (bytevector-u8-trim (S "aaabcd") (char-set #\a #\b))
+    => (S "cd"))
 
   (check
-      (bytevector-u8-trim "bcd" (char-set #\a #\b))
-    => "cd")
+      (bytevector-u8-trim (S "bcd") (char-set #\a #\b))
+    => (S "cd"))
 
   (check
-      (bytevector-u8-trim "" (char-set #\a #\b))
-    => "")
+      (bytevector-u8-trim '#vu8() (char-set #\a #\b))
+    => '#vu8())
 
   (check
-      (bytevector-u8-trim "AAAbcd" char-upper-case?)
-    => "bcd")
+      (bytevector-u8-trim (S "AAAbcd") char-upper-case?)
+    => (S "bcd"))
 
   (check
-      (bytevector-u8-trim "bcd" char-upper-case?)
-    => "bcd")
+      (bytevector-u8-trim (S "bcd") char-upper-case?)
+    => (S "bcd"))
 
   (check
-      (bytevector-u8-trim "" char-upper-case?)
-    => "")
+      (bytevector-u8-trim '#vu8() char-upper-case?)
+    => '#vu8())
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (bytevector-u8-trim-right "bcdaaa" #\a)
-    => "bcd")
+      (bytevector-u8-trim-right (S "bcdaaa") #\a)
+    => (S "bcd"))
 
   (check
-      (bytevector-u8-trim-right "bcd" #\a)
-    => "bcd")
+      (bytevector-u8-trim-right (S "bcd") #\a)
+    => (S "bcd"))
 
   (check
-      (bytevector-u8-trim-right "" #\a)
-    => "")
+      (bytevector-u8-trim-right '#vu8() #\a)
+    => '#vu8())
 
   (check
-      (bytevector-u8-trim-right "cdbaaa" (char-set #\a #\b))
-    => "cd")
+      (bytevector-u8-trim-right (S "cdbaaa") (char-set #\a #\b))
+    => (S "cd"))
 
   (check
-      (bytevector-u8-trim-right "cdb" (char-set #\a #\b))
-    => "cd")
+      (bytevector-u8-trim-right (S "cdb") (char-set #\a #\b))
+    => (S "cd"))
 
   (check
-      (bytevector-u8-trim-right "" (char-set #\a #\b))
-    => "")
+      (bytevector-u8-trim-right '#vu8() (char-set #\a #\b))
+    => '#vu8())
 
   (check
-      (bytevector-u8-trim-right "bcdAAA" char-upper-case?)
-    => "bcd")
+      (bytevector-u8-trim-right (S "bcdAAA") char-upper-case?)
+    => (S "bcd"))
 
   (check
-      (bytevector-u8-trim-right "bcd" char-upper-case?)
-    => "bcd")
+      (bytevector-u8-trim-right (S "bcd") char-upper-case?)
+    => (S "bcd"))
 
   (check
-      (bytevector-u8-trim-right "" char-upper-case?)
-    => "")
+      (bytevector-u8-trim-right '#vu8() char-upper-case?)
+    => '#vu8())
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (bytevector-u8-trim-both "aaabcdaaa" #\a)
-    => "bcd")
+      (bytevector-u8-trim-both (S "aaabcdaaa") #\a)
+    => (S "bcd"))
 
   (check
-      (bytevector-u8-trim-both "bcd" #\a)
-    => "bcd")
+      (bytevector-u8-trim-both (S "bcd") #\a)
+    => (S "bcd"))
 
   (check
-      (bytevector-u8-trim-both "" #\a)
-    => "")
+      (bytevector-u8-trim-both '#vu8() #\a)
+    => '#vu8())
 
   (check
-      (bytevector-u8-trim-both "aaabcdaa" (char-set #\a #\b))
-    => "cd")
+      (bytevector-u8-trim-both (S "aaabcdaa") (char-set #\a #\b))
+    => (S "cd"))
 
   (check
-      (bytevector-u8-trim-both "bcdb" (char-set #\a #\b))
-    => "cd")
+      (bytevector-u8-trim-both (S "bcdb") (char-set #\a #\b))
+    => (S "cd"))
 
   (check
-      (bytevector-u8-trim-both "" (char-set #\a #\b))
-    => "")
+      (bytevector-u8-trim-both '#vu8() (char-set #\a #\b))
+    => '#vu8())
 
   (check
-      (bytevector-u8-trim-both "AAAbcdAAA" char-upper-case?)
-    => "bcd")
+      (bytevector-u8-trim-both (S "AAAbcdAAA") char-upper-case?)
+    => (S "bcd"))
 
   (check
-      (bytevector-u8-trim-both "bcd" char-upper-case?)
-    => "bcd")
+      (bytevector-u8-trim-both (S "bcd") char-upper-case?)
+    => (S "bcd"))
 
   (check
-      (bytevector-u8-trim-both "" char-upper-case?)
-    => "")
+      (bytevector-u8-trim-both '#vu8() char-upper-case?)
+    => '#vu8())
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (bytevector-u8-pad "abc" 3 #\0)
-    => "abc")
+      (bytevector-u8-pad (S "abc") 3 #\0)
+    => (S "abc"))
 
   (check
-      (bytevector-u8-pad "abc" 5 #\0)
-    => "00abc")
+      (bytevector-u8-pad (S "abc") 5 #\0)
+    => (S "00abc"))
 
   (check
-      (bytevector-u8-pad "abc" 5)
-    => "  abc")
+      (bytevector-u8-pad (S "abc") 5)
+    => (S "  abc"))
 
   (check
-      (bytevector-u8-pad "abc" 2 #\0)
-    => "bc")
+      (bytevector-u8-pad (S "abc") 2 #\0)
+    => (S "bc"))
 
   (check
-      (bytevector-u8-pad "abc" 0 #\0)
-    => "")
+      (bytevector-u8-pad (S "abc") 0 #\0)
+    => '#vu8())
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (bytevector-u8-pad-right "abc" 3 #\0)
-    => "abc")
+      (bytevector-u8-pad-right (S "abc") 3 #\0)
+    => (S "abc"))
 
   (check
-      (bytevector-u8-pad-right "abc" 5 #\0)
-    => "abc00")
+      (bytevector-u8-pad-right (S "abc") 5 #\0)
+    => (S "abc00"))
 
   (check
-      (bytevector-u8-pad-right "abc" 2 #\0)
-    => "ab")
+      (bytevector-u8-pad-right (S "abc") 2 #\0)
+    => (S "ab"))
 
   (check
-      (bytevector-u8-pad-right "abc" 0 #\0)
-    => "")
+      (bytevector-u8-pad-right (S "abc") 0 #\0)
+    => '#vu8())
 
-  )
+  #f)
 
 
 (parameterise ((check-test-name 'prefix))
 
   (check
-      (bytevector-u8-prefix-length "abcdefg" "abcd123")
+      (bytevector-u8-prefix-length (S "abcdefg") (S "abcd123"))
     => 4)
 
   (check
-      (bytevector-u8-prefix-length "aBcdefg" "abcd123")
+      (bytevector-u8-prefix-length (S "aBcdefg") (S "abcd123"))
     => 1)
 
   (check
-      (bytevector-u8-prefix-length "efg" "123")
+      (bytevector-u8-prefix-length (S "efg") (S "123"))
     => 0)
 
   (check
-      (bytevector-u8-prefix-length "a" "a")
+      (bytevector-u8-prefix-length (S "a") (S "a"))
     => 1)
 
   (check
-      (bytevector-u8-prefix-length "1" "2")
+      (bytevector-u8-prefix-length (S "1") (S "2"))
     => 0)
 
   (check
-      (bytevector-u8-prefix-length "" "abcd123")
+      (bytevector-u8-prefix-length '#vu8() (S "abcd123"))
     => 0)
 
   (check
-      (bytevector-u8-prefix-length "abcdefg" "")
+      (bytevector-u8-prefix-length (S "abcdefg") '#vu8())
     => 0)
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (bytevector-u8-suffix-length "efgabcd" "123abcd")
+      (bytevector-u8-suffix-length (S "efgabcd") (S "123abcd"))
     => 4)
 
   (check
-      (bytevector-u8-suffix-length "efgabcd" "123abCd")
+      (bytevector-u8-suffix-length (S "efgabcd") (S "123abCd"))
     => 1)
 
   (check
-      (bytevector-u8-suffix-length "efg" "123")
+      (bytevector-u8-suffix-length (S "efg") (S "123"))
     => 0)
 
   (check
-      (bytevector-u8-suffix-length "a" "a")
+      (bytevector-u8-suffix-length (S "a") (S "a"))
     => 1)
 
   (check
-      (bytevector-u8-suffix-length "1" "2")
+      (bytevector-u8-suffix-length (S "1") (S "2"))
     => 0)
 
   (check
-      (bytevector-u8-suffix-length "" "abcd123")
+      (bytevector-u8-suffix-length '#vu8() (S "abcd123"))
     => 0)
 
   (check
-      (bytevector-u8-suffix-length "abcdefg" "")
+      (bytevector-u8-suffix-length (S "abcdefg") '#vu8())
     => 0)
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (bytevector-u8-prefix-length-ci "aBcdefg" "aBcd123")
+      (bytevector-u8-prefix-length-ci (S "aBcdefg") (S "aBcd123"))
     => 4)
 
   (check
-      (bytevector-u8-prefix-length-ci "aBcdefg" "abcd123")
+      (bytevector-u8-prefix-length-ci (S "aBcdefg") (S "abcd123"))
     => 4)
 
   (check
-      (bytevector-u8-prefix-length-ci "efg" "123")
+      (bytevector-u8-prefix-length-ci (S "efg") (S "123"))
     => 0)
 
   (check
-      (bytevector-u8-prefix-length-ci "a" "a")
+      (bytevector-u8-prefix-length-ci (S "a") (S "a"))
     => 1)
 
   (check
-      (bytevector-u8-prefix-length-ci "1" "2")
+      (bytevector-u8-prefix-length-ci (S "1") (S "2"))
     => 0)
 
   (check
-      (bytevector-u8-prefix-length-ci "" "abcd123")
+      (bytevector-u8-prefix-length-ci '#vu8() (S "abcd123"))
     => 0)
 
   (check
-      (bytevector-u8-prefix-length-ci "abcdefg" "")
+      (bytevector-u8-prefix-length-ci (S "abcdefg") '#vu8())
     => 0)
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (bytevector-u8-suffix-length-ci "efgabCd" "123abCd")
+      (bytevector-u8-suffix-length-ci (S "efgabCd") (S "123abCd"))
     => 4)
 
   (check
-      (bytevector-u8-suffix-length-ci "efgabCd" "123abcd")
+      (bytevector-u8-suffix-length-ci (S "efgabCd") (S "123abcd"))
     => 4)
 
   (check
-      (bytevector-u8-suffix-length-ci "efg" "123")
+      (bytevector-u8-suffix-length-ci (S "efg") (S "123"))
     => 0)
 
   (check
-      (bytevector-u8-suffix-length-ci "a" "a")
+      (bytevector-u8-suffix-length-ci (S "a") (S "a"))
     => 1)
 
   (check
-      (bytevector-u8-suffix-length-ci "1" "2")
+      (bytevector-u8-suffix-length-ci (S "1") (S "2"))
     => 0)
 
   (check
-      (bytevector-u8-suffix-length-ci "" "abcd123")
+      (bytevector-u8-suffix-length-ci '#vu8() (S "abcd123"))
     => 0)
 
   (check
-      (bytevector-u8-suffix-length-ci "abcdefg" "")
+      (bytevector-u8-suffix-length-ci (S "abcdefg") '#vu8())
     => 0)
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (bytevector-u8-prefix? "abcd" "abcd123")
+      (bytevector-u8-prefix? (S "abcd") (S "abcd123"))
     => #t)
 
   (check
-      (bytevector-u8-prefix? "abcd" "aBcd123")
+      (bytevector-u8-prefix? (S "abcd") (S "aBcd123"))
     => #f)
 
   (check
-      (bytevector-u8-prefix? "efg" "123")
+      (bytevector-u8-prefix? (S "efg") (S "123"))
     => #f)
 
   (check
-      (bytevector-u8-prefix? "" "123")
+      (bytevector-u8-prefix? '#vu8() (S "123"))
     => #t)
 
   (check
-      (bytevector-u8-prefix? "efg" "")
+      (bytevector-u8-prefix? (S "efg") '#vu8())
     => #f)
 
   (check
-      (bytevector-u8-prefix? "" "")
+      (bytevector-u8-prefix? '#vu8() '#vu8())
     => #t)
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (bytevector-u8-prefix-ci? "aBcd" "aBcd123")
+      (bytevector-u8-prefix-ci? (S "aBcd") (S "aBcd123"))
     => #t)
 
   (check
-      (bytevector-u8-prefix-ci? "abcd" "aBcd123")
+      (bytevector-u8-prefix-ci? (S "abcd") (S "aBcd123"))
     => #t)
 
   (check
-      (bytevector-u8-prefix-ci? "efg" "123")
+      (bytevector-u8-prefix-ci? (S "efg") (S "123"))
     => #f)
 
   (check
-      (bytevector-u8-prefix-ci? "" "123")
+      (bytevector-u8-prefix-ci? '#vu8() (S "123"))
     => #t)
 
   (check
-      (bytevector-u8-prefix-ci? "efg" "")
+      (bytevector-u8-prefix-ci? (S "efg") '#vu8())
     => #f)
 
   (check
-      (bytevector-u8-prefix-ci? "" "")
+      (bytevector-u8-prefix-ci? '#vu8() '#vu8())
     => #t)
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (bytevector-u8-suffix? "abcd" "123abcd")
+      (bytevector-u8-suffix? (S "abcd") (S "123abcd"))
     => #t)
 
   (check
-      (bytevector-u8-suffix? "abcd" "123aBcd")
+      (bytevector-u8-suffix? (S "abcd") (S "123aBcd"))
     => #f)
 
   (check
-      (bytevector-u8-suffix? "efg" "123")
+      (bytevector-u8-suffix? (S "efg") (S "123"))
     => #f)
 
   (check
-      (bytevector-u8-suffix? "" "123")
+      (bytevector-u8-suffix? '#vu8() (S "123"))
     => #t)
 
   (check
-      (bytevector-u8-suffix? "efg" "")
+      (bytevector-u8-suffix? (S "efg") '#vu8())
     => #f)
 
   (check
-      (bytevector-u8-suffix? "" "")
+      (bytevector-u8-suffix? '#vu8() '#vu8())
     => #t)
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (bytevector-u8-suffix-ci? "aBcd" "123aBcd")
+      (bytevector-u8-suffix-ci? (S "aBcd") (S "123aBcd"))
     => #t)
 
   (check
-      (bytevector-u8-suffix-ci? "abcd" "123aBcd")
+      (bytevector-u8-suffix-ci? (S "abcd") (S "123aBcd"))
     => #t)
 
   (check
-      (bytevector-u8-suffix-ci? "efg" "123")
+      (bytevector-u8-suffix-ci? (S "efg") (S "123"))
     => #f)
 
   (check
-      (bytevector-u8-suffix-ci? "" "123")
+      (bytevector-u8-suffix-ci? '#vu8() (S "123"))
     => #t)
 
   (check
-      (bytevector-u8-suffix-ci? "efg" "")
+      (bytevector-u8-suffix-ci? (S "efg") '#vu8())
     => #f)
 
   (check
-      (bytevector-u8-suffix-ci? "" "")
+      (bytevector-u8-suffix-ci? '#vu8() '#vu8())
     => #t)
 
-  )
+  #f)
 
 
 (parameterise ((check-test-name 'searching))
 
   (check
-      (bytevector-u8-index "abcd" #\b)
+      (bytevector-u8-index (S "abcd") #\b)
     => 1)
 
   (check
-      (bytevector-u8-index (view "abcd" (start 1)) #\b)
+      (bytevector-u8-index (view (S "abcd") (start 1)) #\b)
     => 1)
 
   (check
-      (bytevector-u8-index "abcd" #\1)
+      (bytevector-u8-index (S "abcd") #\1)
     => #f)
 
   (check
-      (bytevector-u8-index "" #\1)
-    => #f)
-
-;;; --------------------------------------------------------------------
-
-  (check
-      (bytevector-u8-index "abcd" (char-set #\b #\B))
-    => 1)
-
-  (check
-      (bytevector-u8-index (view "abcd" (start 1)) (char-set #\b #\B))
-    => 1)
-
-  (check
-      (bytevector-u8-index "abcd" (char-set #\0 #\1))
-    => #f)
-
-  (check
-      (bytevector-u8-index "" (char-set #\0 #\1))
+      (bytevector-u8-index '#vu8() #\1)
     => #f)
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (bytevector-u8-index "aBcd" char-upper-case?)
+      (bytevector-u8-index (S "abcd") (char-set #\b #\B))
     => 1)
 
   (check
-      (bytevector-u8-index (view "aBcd" (start 1)) char-upper-case?)
+      (bytevector-u8-index (view (S "abcd") (start 1)) (char-set #\b #\B))
     => 1)
 
   (check
-      (bytevector-u8-index "abcd" char-upper-case?)
+      (bytevector-u8-index (S "abcd") (char-set #\0 #\1))
     => #f)
 
   (check
-      (bytevector-u8-index "" char-upper-case?)
-    => #f)
-
-;;; --------------------------------------------------------------------
-
-  (check
-      (bytevector-u8-index-right "abcd" #\b)
-    => 1)
-
-  (check
-      (bytevector-u8-index-right (view "abcd" (start 1)) #\b)
-    => 1)
-
-  (check
-      (bytevector-u8-index-right "abcd" #\1)
-    => #f)
-
-  (check
-      (bytevector-u8-index-right "" #\1)
+      (bytevector-u8-index '#vu8() (char-set #\0 #\1))
     => #f)
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (bytevector-u8-index-right "abcd" (char-set #\b #\B))
+      (bytevector-u8-index (S "aBcd") char-upper-case?)
     => 1)
 
   (check
-      (bytevector-u8-index-right (view "abcd" (start 1)) (char-set #\b #\B))
+      (bytevector-u8-index (view (S "aBcd") (start 1)) char-upper-case?)
     => 1)
 
   (check
-      (bytevector-u8-index-right "abcd" (char-set #\0 #\1))
+      (bytevector-u8-index (S "abcd") char-upper-case?)
     => #f)
 
   (check
-      (bytevector-u8-index-right "" (char-set #\0 #\1))
-    => #f)
-
-;;; --------------------------------------------------------------------
-
-  (check
-      (bytevector-u8-index-right "aBcd" char-upper-case?)
-    => 1)
-
-  (check
-      (bytevector-u8-index-right (view "aBcd" (start 1)) char-upper-case?)
-    => 1)
-
-  (check
-      (bytevector-u8-index-right "abcd" char-upper-case?)
-    => #f)
-
-  (check
-      (bytevector-u8-index-right "" char-upper-case?)
+      (bytevector-u8-index '#vu8() char-upper-case?)
     => #f)
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (bytevector-u8-skip "bacd" #\b)
+      (bytevector-u8-index-right (S "abcd") #\b)
     => 1)
 
   (check
-      (bytevector-u8-skip (view "bacd" (start 1)) #\b)
+      (bytevector-u8-index-right (view (S "abcd") (start 1)) #\b)
     => 1)
 
   (check
-      (bytevector-u8-skip "1111" #\1)
+      (bytevector-u8-index-right (S "abcd") #\1)
     => #f)
 
   (check
-      (bytevector-u8-skip "" #\1)
-    => #f)
-
-;;; --------------------------------------------------------------------
-
-  (check
-      (bytevector-u8-skip "bacd" (char-set #\b #\B))
-    => 1)
-
-  (check
-      (bytevector-u8-skip (view "bacd" (start 1)) (char-set #\b #\B))
-    => 1)
-
-  (check
-      (bytevector-u8-skip "1010" (char-set #\0 #\1))
-    => #f)
-
-  (check
-      (bytevector-u8-skip "" (char-set #\0 #\1))
+      (bytevector-u8-index-right '#vu8() #\1)
     => #f)
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (bytevector-u8-skip "Bacd" char-upper-case?)
+      (bytevector-u8-index-right (S "abcd") (char-set #\b #\B))
     => 1)
 
   (check
-      (bytevector-u8-skip (view "Bacd" (start 1)) char-upper-case?)
+      (bytevector-u8-index-right (view (S "abcd") (start 1)) (char-set #\b #\B))
     => 1)
 
   (check
-      (bytevector-u8-skip "ABCD" char-upper-case?)
+      (bytevector-u8-index-right (S "abcd") (char-set #\0 #\1))
     => #f)
 
   (check
-      (bytevector-u8-skip "" char-upper-case?)
+      (bytevector-u8-index-right '#vu8() (char-set #\0 #\1))
     => #f)
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (bytevector-u8-skip-right "acdb" #\b)
+      (bytevector-u8-index-right (S "aBcd") char-upper-case?)
+    => 1)
+
+  (check
+      (bytevector-u8-index-right (view (S "aBcd") (start 1)) char-upper-case?)
+    => 1)
+
+  (check
+      (bytevector-u8-index-right (S "abcd") char-upper-case?)
+    => #f)
+
+  (check
+      (bytevector-u8-index-right '#vu8() char-upper-case?)
+    => #f)
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (bytevector-u8-skip (S "bacd") #\b)
+    => 1)
+
+  (check
+      (bytevector-u8-skip (view (S "bacd") (start 1)) #\b)
+    => 1)
+
+  (check
+      (bytevector-u8-skip (S "1111") #\1)
+    => #f)
+
+  (check
+      (bytevector-u8-skip '#vu8() #\1)
+    => #f)
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (bytevector-u8-skip (S "bacd") (char-set #\b #\B))
+    => 1)
+
+  (check
+      (bytevector-u8-skip (view (S "bacd") (start 1)) (char-set #\b #\B))
+    => 1)
+
+  (check
+      (bytevector-u8-skip (S "1010") (char-set #\0 #\1))
+    => #f)
+
+  (check
+      (bytevector-u8-skip '#vu8() (char-set #\0 #\1))
+    => #f)
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (bytevector-u8-skip (S "Bacd") char-upper-case?)
+    => 1)
+
+  (check
+      (bytevector-u8-skip (view (S "Bacd") (start 1)) char-upper-case?)
+    => 1)
+
+  (check
+      (bytevector-u8-skip (S "ABCD") char-upper-case?)
+    => #f)
+
+  (check
+      (bytevector-u8-skip '#vu8() char-upper-case?)
+    => #f)
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (bytevector-u8-skip-right (S "acdb") #\b)
     => 2)
 
   (check
-      (bytevector-u8-skip-right (view "acdb" (start 1)) #\b)
+      (bytevector-u8-skip-right (view (S "acdb") (start 1)) #\b)
     => 2)
 
   (check
-      (bytevector-u8-skip-right "1111" #\1)
+      (bytevector-u8-skip-right (S "1111") #\1)
     => #f)
 
   (check
-      (bytevector-u8-skip-right "" #\1)
-    => #f)
-
-;;; --------------------------------------------------------------------
-
-  (check
-      (bytevector-u8-skip-right "acdb" (char-set #\b #\B))
-    => 2)
-
-  (check
-      (bytevector-u8-skip-right (view "acdb" (start 1)) (char-set #\b #\B))
-    => 2)
-
-  (check
-      (bytevector-u8-skip-right "0101" (char-set #\0 #\1))
-    => #f)
-
-  (check
-      (bytevector-u8-skip-right "" (char-set #\0 #\1))
+      (bytevector-u8-skip-right '#vu8() #\1)
     => #f)
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (bytevector-u8-skip-right "acdB" char-upper-case?)
+      (bytevector-u8-skip-right (S "acdb") (char-set #\b #\B))
     => 2)
 
   (check
-      (bytevector-u8-skip-right (view "acdB" (start 1)) char-upper-case?)
+      (bytevector-u8-skip-right (view (S "acdb") (start 1)) (char-set #\b #\B))
     => 2)
 
   (check
-      (bytevector-u8-skip-right "ABCD" char-upper-case?)
+      (bytevector-u8-skip-right (S "0101") (char-set #\0 #\1))
     => #f)
 
   (check
-      (bytevector-u8-skip-right "" char-upper-case?)
+      (bytevector-u8-skip-right '#vu8() (char-set #\0 #\1))
     => #f)
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (bytevector-u8-count "abcbd" #\b)
+      (bytevector-u8-skip-right (S "acdB") char-upper-case?)
     => 2)
 
   (check
-      (bytevector-u8-count (view "abcd" (start 1)) #\b)
+      (bytevector-u8-skip-right (view (S "acdB") (start 1)) char-upper-case?)
+    => 2)
+
+  (check
+      (bytevector-u8-skip-right (S "ABCD") char-upper-case?)
+    => #f)
+
+  (check
+      (bytevector-u8-skip-right '#vu8() char-upper-case?)
+    => #f)
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (bytevector-u8-count (S "abcbd") #\b)
+    => 2)
+
+  (check
+      (bytevector-u8-count (view (S "abcd") (start 1)) #\b)
     => 1)
 
   (check
-      (bytevector-u8-count "abcd" #\1)
+      (bytevector-u8-count (S "abcd") #\1)
     => 0)
 
   (check
-      (bytevector-u8-count "" #\1)
-    => 0)
-
-;;; --------------------------------------------------------------------
-
-  (check
-      (bytevector-u8-count "abcBd" (char-set #\b #\B))
-    => 2)
-
-  (check
-      (bytevector-u8-count (view "abcd" (start 1)) (char-set #\b #\B))
-    => 1)
-
-  (check
-      (bytevector-u8-count "abcd" (char-set #\0 #\1))
-    => 0)
-
-  (check
-      (bytevector-u8-count "" (char-set #\0 #\1))
+      (bytevector-u8-count '#vu8() #\1)
     => 0)
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (bytevector-u8-count "aBcAd" char-upper-case?)
+      (bytevector-u8-count (S "abcBd") (char-set #\b #\B))
     => 2)
 
   (check
-      (bytevector-u8-count (view "aBcd" (start 1)) char-upper-case?)
+      (bytevector-u8-count (view (S "abcd") (start 1)) (char-set #\b #\B))
     => 1)
 
   (check
-      (bytevector-u8-count "abcd" char-upper-case?)
+      (bytevector-u8-count (S "abcd") (char-set #\0 #\1))
     => 0)
 
   (check
-      (bytevector-u8-count "" char-upper-case?)
+      (bytevector-u8-count '#vu8() (char-set #\0 #\1))
     => 0)
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (bytevector-u8-contains "ciao hello salut" "hello")
+      (bytevector-u8-count (S "aBcAd") char-upper-case?)
+    => 2)
+
+  (check
+      (bytevector-u8-count (view (S "aBcd") (start 1)) char-upper-case?)
+    => 1)
+
+  (check
+      (bytevector-u8-count (S "abcd") char-upper-case?)
+    => 0)
+
+  (check
+      (bytevector-u8-count '#vu8() char-upper-case?)
+    => 0)
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (bytevector-u8-contains (S "ciao hello salut") (S "hello"))
     => 5)
 
   (check
-      (bytevector-u8-contains "ciao hello salut" "hola")
+      (bytevector-u8-contains (S "ciao hello salut") (S "hola"))
     => #f)
 
   (check
-      (bytevector-u8-contains "ciao hello salut" "")
+      (bytevector-u8-contains (S "ciao hello salut") '#vu8())
     => 0)
 
   (check
-      (bytevector-u8-contains "" "hello")
+      (bytevector-u8-contains '#vu8() (S "hello"))
     => #f)
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (bytevector-u8-contains-ci "ciAO HELLO saLUT" "hello")
+      (bytevector-u8-contains-ci (S "ciAO HELLO saLUT") (S "hello"))
     => 5)
 
   (check
-      (bytevector-u8-contains-ci "ciao hello salut" "HOLA")
+      (bytevector-u8-contains-ci (S "ciao hello salut") (S "HOLA"))
     => #f)
 
   (check
-      (bytevector-u8-contains-ci "ciao hello salut" "")
+      (bytevector-u8-contains-ci (S "ciao hello salut") '#vu8())
     => 0)
 
   (check
-      (bytevector-u8-contains-ci "" "hello")
+      (bytevector-u8-contains-ci '#vu8() (S "hello"))
     => #f)
 
-  )
+  #f)
 
 
 (parameterise ((check-test-name 'filtering))
 
   (check
-      (bytevector-u8-delete "abcbd" #\b)
-    => "acd")
+      (bytevector-u8-delete (S "abcbd") #\b)
+    => (S "acd"))
 
   (check
-      (bytevector-u8-delete "abcbd" #\0)
-    => "abcbd")
+      (bytevector-u8-delete (S "abcbd") #\0)
+    => (S "abcbd"))
 
   (check
-      (bytevector-u8-delete "" #\b)
-    => "")
+      (bytevector-u8-delete '#vu8() #\b)
+    => '#vu8())
 
   (check
-      (bytevector-u8-delete "bbb" #\b)
-    => "")
+      (bytevector-u8-delete (S "bbb") #\b)
+    => '#vu8())
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (bytevector-u8-delete "abcbd" (char-set #\b #\B))
-    => "acd")
+      (bytevector-u8-delete (S "abcbd") (char-set #\b #\B))
+    => (S "acd"))
 
   (check
-      (bytevector-u8-delete "abcbd" (char-set #\0 #\1))
-    => "abcbd")
+      (bytevector-u8-delete (S "abcbd") (char-set #\0 #\1))
+    => (S "abcbd"))
 
   (check
-      (bytevector-u8-delete "" (char-set #\b #\B))
-    => "")
+      (bytevector-u8-delete '#vu8() (char-set #\b #\B))
+    => '#vu8())
 
   (check
-      (bytevector-u8-delete "BbB" (char-set #\b #\B))
-    => "")
+      (bytevector-u8-delete (S "BbB") (char-set #\b #\B))
+    => '#vu8())
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (bytevector-u8-delete "aBcBd" char-upper-case?)
-    => "acd")
+      (bytevector-u8-delete (S "aBcBd") char-upper-case?)
+    => (S "acd"))
 
   (check
-      (bytevector-u8-delete "abcbd" char-upper-case?)
-    => "abcbd")
+      (bytevector-u8-delete (S "abcbd") char-upper-case?)
+    => (S "abcbd"))
 
   (check
-      (bytevector-u8-delete "" char-upper-case?)
-    => "")
+      (bytevector-u8-delete '#vu8() char-upper-case?)
+    => '#vu8())
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (bytevector-u8-filter "abcbd" #\b)
-    => "bb")
+      (bytevector-u8-filter (S "abcbd") #\b)
+    => (S "bb"))
 
   (check
-      (bytevector-u8-filter "abcbd" #\0)
-    => "")
+      (bytevector-u8-filter (S "abcbd") #\0)
+    => '#vu8())
 
   (check
-      (bytevector-u8-filter "" #\b)
-    => "")
+      (bytevector-u8-filter '#vu8() #\b)
+    => '#vu8())
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (bytevector-u8-filter "abcbd" (char-set #\b #\B))
-    => "bb")
+      (bytevector-u8-filter (S "abcbd") (char-set #\b #\B))
+    => (S "bb"))
 
   (check
-      (bytevector-u8-filter "abcbd" (char-set #\0 #\1))
-    => "")
+      (bytevector-u8-filter (S "abcbd") (char-set #\0 #\1))
+    => '#vu8())
 
   (check
-      (bytevector-u8-filter "" (char-set #\b #\B))
-    => "")
+      (bytevector-u8-filter '#vu8() (char-set #\b #\B))
+    => '#vu8())
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (bytevector-u8-filter "aBcBd" char-upper-case?)
-    => "BB")
+      (bytevector-u8-filter (S "aBcBd") char-upper-case?)
+    => (S "BB"))
 
   (check
-      (bytevector-u8-filter "abcbd" char-upper-case?)
-    => "")
+      (bytevector-u8-filter (S "abcbd") char-upper-case?)
+    => '#vu8())
 
   (check
-      (bytevector-u8-filter "" char-upper-case?)
-    => "")
+      (bytevector-u8-filter '#vu8() char-upper-case?)
+    => '#vu8())
 
-  )
+  #f)
 
 
 (parameterise ((check-test-name 'lists))
 
   (check
-      (bytevector-u8->list* "abcd")
+      (bytevector-u8->list* (S "abcd"))
     => '(#\a #\b #\c #\d))
 
   (check
-      (bytevector-u8->list* (view "abcd" (start 1) (past 3)))
+      (bytevector-u8->list* (view (S "abcd") (start 1) (past 3)))
     => '(#\b #\c))
 
   (check
-      (bytevector-u8->list* "")
+      (bytevector-u8->list* '#vu8())
     => '())
 
 ;;; --------------------------------------------------------------------
 
   (check
       (reverse-list->bytevector-u8 '(#\a #\b #\c #\d))
-    => "dcba")
+    => (S "dcba"))
 
   (check
       (reverse-list->bytevector-u8 '())
-    => "")
+    => '#vu8())
 
-  )
+  #f)
 
 ;;; --------------------------------------------------------------------
 
 (parameterise ((check-test-name 'tokenize))
 
   (check
-      (bytevector-u8-tokenize "ciao hello salut"
-		       (char-set #\a #\c #\e #\i #\h #\l #\o #\s #\t #\u))
-    => '((string->utf8 "ciao") "hello" "salut"))
+      (bytevector-u8-tokenize (S "ciao hello salut")
+			      (char-set #\a #\c #\e #\i #\h #\l #\o #\s #\t #\u))
+    => `(,(S "ciao") ,(S "hello") ,(S "salut")))
 
   (check
-      (bytevector-u8-tokenize "" (char-set #\a #\c #\e #\i #\h #\l #\o #\s #\t #\u))
+      (bytevector-u8-tokenize '#vu8() (char-set #\a #\c #\e #\i #\h #\l #\o #\s #\t #\u))
     => '())
 
   (check
-      (bytevector-u8-tokenize "ciao hello salut" (char-set))
+      (bytevector-u8-tokenize (S "ciao hello salut") (char-set))
     => '())
 
   (check
-      (bytevector-u8-tokenize "Help make programs run, run, RUN!"
-		       (char-set-complement (char-set #\space)
-					    char-set:ascii))
-    => '("Help" "make" "programs" "run," "run," "RUN!"))
+      (bytevector-u8-tokenize (S "Help make programs run, run, RUN!")
+			      (char-set-complement (char-set #\space)
+						   char-set:ascii))
+    => `(,(S "Help") ,(S "make") ,(S "programs") ,(S "run,") ,(S "run,") ,(S "RUN!")))
 
   #f)
 
@@ -3110,481 +1811,481 @@
 (parameterise ((check-test-name 'join))
 
   (check
-      (bytevector-u8-join '("c" "i" "a" "o") "," 'infix)
-    => "c,i,a,o")
+      (bytevector-u8-join `(,(S "c") ,(S "i") ,(S "a") ,(S "o")) ,(S ",") 'infix)
+    => (S "c,i,a,o"))
 
   (check
-      (bytevector-u8-join '("c" "i" "a" "o") "," 'strict-infix)
-    => "c,i,a,o")
+      (bytevector-u8-join `(,(S "c") ,(S "i") ,(S "a") ,(S "o")) (S ",") 'strict-infix)
+    => (S "c,i,a,o"))
 
   (check
-      (bytevector-u8-join '("c" "i" "a" "o") "," 'suffix)
-    => "c,i,a,o,")
+      (bytevector-u8-join `(,(S "c") ,(S "i") ,(S "a") ,(S "o")) (S ",") 'suffix)
+    => (S "c,i,a,o,"))
 
   (check
-      (bytevector-u8-join '("c" "i" "a" "o") "," 'prefix)
-    => ",c,i,a,o")
+      (bytevector-u8-join `(,(S "c") ,(S "i") ,(S "a") ,(S "o")) (S ",") 'prefix)
+    => (S ",c,i,a,o"))
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (bytevector-u8-join '() "," 'infix)
-    => "")
+      (bytevector-u8-join '() (S ",") 'infix)
+    => '#vu8())
 
   (check
       (guard (exc ((assertion-violation? exc)
 		   #t))
-	(bytevector-u8-join '() "," 'strict-infix))
+	(bytevector-u8-join '() (S ",") 'strict-infix))
     => #t)
 
   (check
-      (bytevector-u8-join '() "," 'suffix)
-    => "")
+      (bytevector-u8-join '() (S ",") 'suffix)
+    => '#vu8())
 
   (check
-      (bytevector-u8-join '() "," 'prefix)
-    => "")
+      (bytevector-u8-join '() (S ",") 'prefix)
+    => '#vu8())
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (bytevector-u8-join '("c") "," 'infix)
-    => "c")
+      (bytevector-u8-join `(,(S "c")) (S ",") 'infix)
+    => (S "c"))
 
   (check
-      (bytevector-u8-join '("c") "," 'strict-infix)
-    => "c")
+      (bytevector-u8-join `(,(S "c")) (S ",") 'strict-infix)
+    => (S "c"))
 
   (check
-      (bytevector-u8-join '("c") "," 'suffix)
-    => "c,")
+      (bytevector-u8-join `(,(S "c")) ,(S ",") 'suffix)
+    => (S "c,"))
 
   (check
-      (bytevector-u8-join '("c") "," 'prefix)
-    => ",c")
+      (bytevector-u8-join `(,(S "c")) (S ",") 'prefix)
+    => (S ",c"))
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (bytevector-u8-join '("") "," 'infix)
-    => "")
+      (bytevector-u8-join '(#vu8()) (S ",") 'infix)
+    => '#vu8())
 
   (check
-      (bytevector-u8-join '("") "," 'strict-infix)
-    => "")
+      (bytevector-u8-join '(#vu8()) (S ",") 'strict-infix)
+    => '#vu8())
 
   (check
-      (bytevector-u8-join '("") "," 'suffix)
-    => ",")
+      (bytevector-u8-join '(#vu8()) (S ",") 'suffix)
+    => (S ","))
 
   (check
-      (bytevector-u8-join '("") "," 'prefix)
-    => ",")
+      (bytevector-u8-join '(#vu8()) (S ",") 'prefix)
+    => (S ","))
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (bytevector-u8-join '("c" "i" "a" "o") "" 'infix)
-    => (string->utf8 "ciao"))
+      (bytevector-u8-join `(,(S "c") ,(S "i") ,(S "a") ,(S "o")) '#vu8() 'infix)
+    => (S "ciao"))
 
   (check
-      (bytevector-u8-join '("c" "i" "a" "o") "" 'strict-infix)
-    => (string->utf8 "ciao"))
+      (bytevector-u8-join `(,(S "c") ,(S "i") ,(S "a") ,(S "o")) '#vu8() 'strict-infix)
+    => (S "ciao"))
 
   (check
-      (bytevector-u8-join '("c" "i" "a" "o") "" 'suffix)
-    => (string->utf8 "ciao"))
+      (bytevector-u8-join `(,(S "c") ,(S "i") ,(S "a") ,(S "o")) '#vu8() 'suffix)
+    => (S "ciao"))
 
   (check
-      (bytevector-u8-join '("c" "i" "a" "o") "" 'prefix)
-    => (string->utf8 "ciao"))
+      (bytevector-u8-join `(,(S "c") ,(S "i") ,(S "a") ,(S "o")) '#vu8() 'prefix)
+    => (S "ciao"))
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (bytevector-u8-join '("c" "i" "a" "o") ",;;" 'infix)
-    => "c,;;i,;;a,;;o")
+      (bytevector-u8-join `(,(S "c") ,(S "i") ,(S "a") ,(S "o")) (S ",;;") 'infix)
+    => (S "c,;;i,;;a,;;o"))
 
   (check
-      (bytevector-u8-join '("c" "i" "a" "o") ",;;" 'strict-infix)
-    => "c,;;i,;;a,;;o")
+      (bytevector-u8-join `(,(S "c") ,(S "i") ,(S "a") ,(S "o")) (S ",;;") 'strict-infix)
+    => (S "c,;;i,;;a,;;o"))
 
   (check
-      (bytevector-u8-join '("c" "i" "a" "o") ",;;" 'suffix)
-    => "c,;;i,;;a,;;o,;;")
+      (bytevector-u8-join `(,(S "c") ,(S "i") ,(S "a") ,(S "o")) (S ",;;") 'suffix)
+    => (S "c,;;i,;;a,;;o,;;"))
 
   (check
-      (bytevector-u8-join '("c" "i" "a" "o") ",;;" 'prefix)
-    => ",;;c,;;i,;;a,;;o")
+      (bytevector-u8-join `(,(S "c") ,(S "i") ,(S "a") ,(S "o")) (S ",;;") 'prefix)
+    => (S ",;;c,;;i,;;a,;;o"))
 
-  )
+  #f)
 
 
 (parameterise ((check-test-name 'xsubbytevector-u8))
 
   (check
-      (xsubbytevector-u8 "ciao " 0 5)
-    => "ciao ")
+      (xsubbytevector-u8 (S "ciao ") 0 5)
+    => (S "ciao "))
 
   (check
-      (xsubbytevector-u8 "ciao " 0 9)
-    => "ciao ciao")
+      (xsubbytevector-u8 (S "ciao ") 0 9)
+    => (S "ciao ciao"))
 
   (check
-      (xsubbytevector-u8 "ciao " -5 5)
-    => "ciao ciao ")
+      (xsubbytevector-u8 (S "ciao ") -5 5)
+    => (S "ciao ciao "))
 
   (check
-      (xsubbytevector-u8 "ciao " 2 4)
-    => "ao")
+      (xsubbytevector-u8 (S "ciao ") 2 4)
+    => (S "ao"))
 
   (check
-      (xsubbytevector-u8 "ciao " -3 7)
-    => "ao ciao ci")
+      (xsubbytevector-u8 (S "ciao ") -3 7)
+    => (S "ao ciao ci"))
 
-  (check (xsubbytevector-u8 "abcdef" 1 7) => "bcdefa")
-  (check (xsubbytevector-u8 "abcdef" 2 8) => "cdefab")
-  (check (xsubbytevector-u8 "abcdef" 3 9) => "defabc")
-  (check (xsubbytevector-u8 "abcdef" 4 10) => "efabcd")
-  (check (xsubbytevector-u8 "abcdef" 5 11) => "fabcde")
+  (check (xsubbytevector-u8 (S "abcdef") 1 7) => (S "bcdefa"))
+  (check (xsubbytevector-u8 (S "abcdef") 2 8) => (S "cdefab"))
+  (check (xsubbytevector-u8 (S "abcdef") 3 9) => (S "defabc"))
+  (check (xsubbytevector-u8 (S "abcdef") 4 10) => (S "efabcd"))
+  (check (xsubbytevector-u8 (S "abcdef") 5 11) => (S "fabcde"))
 
-  (check (xsubbytevector-u8 "abcdef" -1 5) => "fabcde")
-  (check (xsubbytevector-u8 "abcdef" -2 4) => "efabcd")
-  (check (xsubbytevector-u8 "abcdef" -3 3) => "defabc")
-  (check (xsubbytevector-u8 "abcdef" -4 2) => "cdefab")
-  (check (xsubbytevector-u8 "abcdef" -5 1) => "bcdefa")
+  (check (xsubbytevector-u8 (S "abcdef") -1 5) => (S "fabcde"))
+  (check (xsubbytevector-u8 (S "abcdef") -2 4) => (S "efabcd"))
+  (check (xsubbytevector-u8 (S "abcdef") -3 3) => (S "defabc"))
+  (check (xsubbytevector-u8 (S "abcdef") -4 2) => (S "cdefab"))
+  (check (xsubbytevector-u8 (S "abcdef") -5 1) => (S "bcdefa"))
 
   (check
-      (xsubbytevector-u8 "ciao " 3 3)
-    => "")
+      (xsubbytevector-u8 (S "ciao ") 3 3)
+    => '#vu8())
 
   (check
       (guard (exc ((assertion-violation? exc)
 		   #t))
-	(xsubbytevector-u8 "" 0 5))
+	(xsubbytevector-u8 '#vu8() 0 5))
     => #t)
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (let ((result (bytevector-u8-copy "01234")))
-	(bytevector-u8-xcopy! result "ciao " 0 5)
+      (let ((result (bytevector-u8-copy (S "01234"))))
+	(bytevector-u8-xcopy! result (S "ciao ") 0 5)
 	result)
-    => "ciao ")
+    => (S "ciao "))
 
   (check
-      (let ((result (bytevector-u8-copy "012345678")))
-	(bytevector-u8-xcopy! result "ciao " 0 9)
+      (let ((result (bytevector-u8-copy (S "012345678"))))
+	(bytevector-u8-xcopy! result (S "ciao ") 0 9)
 	result)
-    => "ciao ciao")
+    => (S "ciao ciao"))
 
   (check
-      (let ((result (bytevector-u8-copy "0123456789")))
-	(bytevector-u8-xcopy! result "ciao " -5 5)
+      (let ((result (bytevector-u8-copy (S "0123456789"))))
+	(bytevector-u8-xcopy! result (S "ciao ") -5 5)
 	result)
-    => "ciao ciao ")
+    => (S "ciao ciao "))
 
   (check
-      (let ((result (bytevector-u8-copy "01")))
-	(bytevector-u8-xcopy! result "ciao " 2 4)
+      (let ((result (bytevector-u8-copy (S "01"))))
+	(bytevector-u8-xcopy! result (S "ciao ") 2 4)
 	result)
-    => "ao")
+    => (S "ao"))
 
   (check
-      (let ((result (bytevector-u8-copy "0123456789")))
-	(bytevector-u8-xcopy! result "ciao " -3 7)
+      (let ((result (bytevector-u8-copy (S "0123456789"))))
+	(bytevector-u8-xcopy! result (S "ciao ") -3 7)
 	result)
-    => "ao ciao ci")
+    => (S "ao ciao ci"))
 
   (check
       (guard (exc ((assertion-violation? exc) #t))
-	  (bytevector-u8-xcopy! "" "" 0 5))
+	  (bytevector-u8-xcopy! '#vu8() '#vu8() 0 5))
     => #t)
 
-  )
+  #f)
 
 
 (parameterise ((check-test-name 'filling))
 
   (check
-      (let* ((str (bytevector-u8-copy "abcd")))
+      (let* ((str (bytevector-u8-copy (S "abcd"))))
 	(bytevector-u8-fill*! str #\b)
 	str)
-    => "bbbb")
+    => (S "bbbb"))
 
   (check
-      (let* ((str (bytevector-u8-copy "accd")))
+      (let* ((str (bytevector-u8-copy (S "accd"))))
 	(bytevector-u8-fill*! (view str (start 1) (past 3)) #\b)
 	str)
-    => "abbd")
+    => (S "abbd"))
 
   (check
-      (let* ((str (bytevector-u8-copy "")))
+      (let* ((str (bytevector-u8-copy '#vu8())))
 	(bytevector-u8-fill*! (view str (start 0) (past 0)) #\b)
 	str)
-    => "")
+    => '#vu8())
 
-  )
+  #f)
 
 
 (parameterise ((check-test-name 'reverse))
 
   (check
-      (bytevector-u8-reverse "abcd")
-    => "dcba")
+      (bytevector-u8-reverse (S "abcd"))
+    => (S "dcba"))
 
   (check
-      (bytevector-u8-reverse "")
-    => "")
+      (bytevector-u8-reverse '#vu8())
+    => '#vu8())
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (let* ((str (bytevector-u8-copy "abcd")))
+      (let* ((str (bytevector-u8-copy (S "abcd"))))
 	(bytevector-u8-reverse! str)
 	str)
-    => "dcba")
+    => (S "dcba"))
 
   (check
-      (let* ((str (bytevector-u8-copy "")))
+      (let* ((str (bytevector-u8-copy '#vu8())))
 	(bytevector-u8-reverse! str)
 	str)
-    => "")
+    => '#vu8())
 
-  )
+  #f)
 
 
 (parameterise ((check-test-name 'replace))
 
   (check
-      (bytevector-u8-replace "abcd" "1234")
-    => "1234")
+      (bytevector-u8-replace (S "abcd") (S "1234"))
+    => (S "1234"))
 
   (check
-      (bytevector-u8-replace (view "abcd" (start 2) (past 2)) "1234")
-    => "ab1234cd")
+      (bytevector-u8-replace (view (S "abcd") (start 2) (past 2)) (S "1234"))
+    => (S "ab1234cd"))
 
   (check
-      (bytevector-u8-replace (view "abcd" (start 2) (past 2)) "")
-    => "abcd")
+      (bytevector-u8-replace (view (S "abcd") (start 2) (past 2)) '#vu8())
+    => (S "abcd"))
 
   (check
-      (bytevector-u8-replace (view "abcd" (start 1) (past 3)) "1234")
-    => "a1234d")
+      (bytevector-u8-replace (view (S "abcd") (start 1) (past 3)) (S "1234"))
+    => (S "a1234d"))
 
   (check
-      (bytevector-u8-replace (view "abcd" (start 0) (past 3)) "1234")
-    => "1234d")
+      (bytevector-u8-replace (view (S "abcd") (start 0) (past 3)) (S "1234"))
+    => (S "1234d"))
 
   (check
-      (bytevector-u8-replace (view "abcd" (start 1) (past 4)) "1234")
-    => "a1234")
+      (bytevector-u8-replace (view (S "abcd") (start 1) (past 4)) (S "1234"))
+    => (S "a1234"))
 
-  )
+  #f)
 
 
 (parameterise ((check-test-name 'mutating))
 
   (check
-      (let* ((str (bytevector-u8-copy "12")))
+      (let* ((str (bytevector-u8-copy (S "12"))))
 	;; not enough room in destination bytevector-u8
 	(guard (exc ((assertion-violation? exc) #t))
 	  (bytevector-u8-copy*! (view str (start 3))
-			 (view "abcd" (past 2)))))
+				(view (S "abcd") (past 2)))))
     => #t)
 
   (check
       ;; whole bytevector-u8 copy
-      (let* ((str (bytevector-u8-copy "123")))
-	(bytevector-u8-copy*! str "abc")
+      (let* ((str (bytevector-u8-copy (S "123"))))
+	(bytevector-u8-copy*! str (S "abc"))
 	str)
-    => "abc")
+    => (S "abc"))
 
   (check
       ;; zero-elements bytevector-u8 copy
-      (let* ((str (bytevector-u8-copy "123")))
-	(bytevector-u8-copy*! str (view "abc" (start 2) (past 2)))
+      (let* ((str (bytevector-u8-copy (S "123"))))
+	(bytevector-u8-copy*! str (view (S "abc") (start 2) (past 2)))
 	str)
-    => "123")
+    => (S "123"))
 
   (check
       ;; one-element bytevector-u8 copy
-      (let* ((str (bytevector-u8-copy "123")))
-	(bytevector-u8-copy*! str (view "abc" (start 1) (past 2)))
+      (let* ((str (bytevector-u8-copy (S "123"))))
+	(bytevector-u8-copy*! str (view (S "abc") (start 1) (past 2)))
 	str)
-    => "b23")
+    => (S "b23"))
 
   (check
       ;; two-elements bytevector-u8 copy
-      (let* ((str (bytevector-u8-copy "12")))
-	(bytevector-u8-copy*! str (view "abcd" (past 2)))
+      (let* ((str (bytevector-u8-copy (S "12"))))
+	(bytevector-u8-copy*! str (view (S "abcd") (past 2)))
 	str)
-    => "ab")
+    => (S "ab"))
 
   (check
-      (let ((str ""))
-	(bytevector-u8-copy*! str (view "abcd" (start 0) (past 0)))
+      (let ((str '#vu8()))
+	(bytevector-u8-copy*! str (view (S "abcd") (start 0) (past 0)))
 	str)
-    => "")
+    => '#vu8())
 
   (check
       ;; over the same bytevector-u8, full
-      (let* ((str (bytevector-u8-copy "0123456789")))
+      (let* ((str (bytevector-u8-copy (S "0123456789"))))
 	(bytevector-u8-copy*! str str)
 	str)
-    => "0123456789")
+    => (S "0123456789"))
 
   (check
       ;; over the same bytevector-u8, in place
-      (let* ((str (bytevector-u8-copy "0123456789")))
+      (let* ((str (bytevector-u8-copy (S "0123456789"))))
 	(bytevector-u8-copy*! (view str (start 5)) (view str (start 5)))
 	str)
-    => "0123456789")
+    => (S "0123456789"))
 
   (check
       ;; over the same bytevector-u8, backwards
-      (let* ((str (bytevector-u8-copy "0123456789")))
+      (let* ((str (bytevector-u8-copy (S "0123456789"))))
 	(bytevector-u8-copy*! (view str (start 2))
-		       (view str (start 4) (past 8)))
+			      (view str (start 4) (past 8)))
 	str)
-    => "0145676789")
+    => (S "0145676789"))
 
   (check
       ;; over the same bytevector-u8, backwards
-      (let* ((str (bytevector-u8-copy "0123456789")))
+      (let* ((str (bytevector-u8-copy (S "0123456789"))))
 	(bytevector-u8-copy*! (view str (start 0))
-		       (view str (start 4) (past 8)))
+			      (view str (start 4) (past 8)))
 	str)
-    => "4567456789")
+    => (S "4567456789"))
 
   (check
       ;; over the same bytevector-u8, forwards
-      (let* ((str (bytevector-u8-copy "0123456789")))
+      (let* ((str (bytevector-u8-copy (S "0123456789"))))
 	(bytevector-u8-copy*! (view str (start 4))
-		       (view str (start 2) (past 6)))
+			      (view str (start 2) (past 6)))
 	str)
-    => "0123234589")
+    => (S "0123234589"))
 
   (check
       ;; over the same bytevector-u8, forwards
-      (let* ((str (bytevector-u8-copy "0123456789")))
+      (let* ((str (bytevector-u8-copy (S "0123456789"))))
 	(bytevector-u8-copy*! (view str (start 6))
-		       (view str (start 2) (past 6)))
+			      (view str (start 2) (past 6)))
 	str)
-    => "0123452345")
+    => (S "0123452345"))
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (let* ((str (bytevector-u8-copy "12")))
+      (let* ((str (bytevector-u8-copy (S "12"))))
 	;; not enough room in destination bytevector-u8
 	;;(bytevector-u8-reverse-copy*! (str 3) (view '#(#\a #\b #\c #\d) (past 2)))
 	(guard (exc ((assertion-violation? exc) #t))
 	  (bytevector-u8-reverse-copy*! (view str (start 3))
-				 (view "abcd" (past 2)))))
+					(view (S "abcd") (past 2)))))
     => #t)
 
   (check
       ;; whole bytevector-u8 copy
-      (let* ((str (bytevector-u8-copy "123")))
-	(bytevector-u8-reverse-copy*! str "abc")
+      (let* ((str (bytevector-u8-copy (S "123"))))
+	(bytevector-u8-reverse-copy*! str (S "abc"))
 	str)
-    => "cba")
+    => (S "cba"))
 
   (check
       ;; zero-elements bytevector-u8 copy
-      (let* ((str (bytevector-u8-copy "123")))
-	(bytevector-u8-reverse-copy*! str (view "abc" (start 2) (past 2)))
+      (let* ((str (bytevector-u8-copy (S "123"))))
+	(bytevector-u8-reverse-copy*! str (view (S "abc") (start 2) (past 2)))
 	str)
-    => "123")
+    => (S "123"))
 
   (check
       ;; one-element bytevector-u8 copy
-      (let* ((str (bytevector-u8-copy "123")))
-	(bytevector-u8-reverse-copy*! str (view "abc" (start 1) (past 2)))
+      (let* ((str (bytevector-u8-copy (S "123"))))
+	(bytevector-u8-reverse-copy*! str (view (S "abc") (start 1) (past 2)))
 	str)
-    => "b23")
+    => (S "b23"))
 
   (check
       ;; two-elements bytevector-u8 copy
-      (let* ((str (bytevector-u8-copy "12")))
+      (let* ((str (bytevector-u8-copy (S "12"))))
 	(bytevector-u8-reverse-copy*! str (view "abcd" (past 2)))
 	str)
-    => "ba")
+    => (S "ba"))
 
   (check
-      (let ((str ""))
-	(bytevector-u8-reverse-copy*! str (view "abcd" (start 0) (past 0)))
+      (let ((str '#vu8()))
+	(bytevector-u8-reverse-copy*! str (view (S "abcd") (start 0) (past 0)))
 	str)
-    => "")
+    => '#vu8())
 
   (check
       ;; over the same bytevector-u8, full
-      (let* ((str (bytevector-u8-copy "0123456789")))
+      (let* ((str (bytevector-u8-copy (S "0123456789"))))
 	(bytevector-u8-reverse-copy*! str str)
 	str)
-    => "9876543210")
+    => (S "9876543210"))
 
   (check
       ;; over the same bytevector-u8
-      (let* ((str (bytevector-u8-copy "0123456789")))
+      (let* ((str (bytevector-u8-copy (S "0123456789"))))
 	(bytevector-u8-reverse-copy*! (view str (start 5))
-			       (view str (start 5)))
+				      (view str (start 5)))
 	str)
-    => "0123498765")
+    => (S "0123498765"))
 
   (check
       ;; over the same bytevector-u8, backwards
-      (let* ((str (bytevector-u8-copy "0123456789")))
+      (let* ((str (bytevector-u8-copy (S "0123456789"))))
 	(bytevector-u8-reverse-copy*! (view str (start 2))
-			       (view str (start 4) (past 8)))
+				      (view str (start 4) (past 8)))
 	str)
-    => "0176546789")
+    => (S "0176546789"))
 
   (check
       ;; over the same bytevector-u8, backwards
-      (let* ((str (bytevector-u8-copy "0123456789")))
+      (let* ((str (bytevector-u8-copy (S "0123456789"))))
 	(bytevector-u8-reverse-copy*! (view str (start 0))
-			       (view str (start 4) (past 8)))
+				      (view str (start 4) (past 8)))
 	str)
-    => "7654456789")
+    => (S "7654456789"))
 
   (check
       ;; over the same bytevector-u8, forwards
-      (let* ((str (bytevector-u8-copy "0123456789")))
+      (let* ((str (bytevector-u8-copy (S "0123456789"))))
 	(bytevector-u8-reverse-copy*! (view str (start 4))
-			       (view str (start 2) (past 6)))
+				      (view str (start 2) (past 6)))
 	str)
-    => "0123543289")
+    => (S "0123543289"))
 
   (check
       ;; over the same bytevector-u8, forwards
-      (let* ((str (bytevector-u8-copy "0123456789")))
+      (let* ((str (bytevector-u8-copy (S "0123456789"))))
 	(bytevector-u8-reverse-copy*! (view str (start 6))
-			       (view str (start 2) (past 6)))
+				      (view str (start 2) (past 6)))
 	str)
-    => "0123455432")
+    => (S "0123455432"))
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (let ((str (bytevector-u8-copy "012345")))
+      (let ((str (bytevector-u8-copy (S "012345"))))
 	(bytevector-u8-swap! str 2 4)
 	str)
-    => "014325")
+    => (S "014325"))
 
   (check
-      (let ((str (bytevector-u8-copy "012345")))
+      (let ((str (bytevector-u8-copy (S "012345"))))
 	(bytevector-u8-swap! str 2 2)
 	str)
-    => "012345")
+    => (S "012345"))
 
   (check
       (guard (exc ((assertion-violation? exc) #t))
-	(bytevector-u8-swap! "" 0 1))
+	(bytevector-u8-swap! '#vu8() 0 1))
     => #t)
 
-  )
+  #f)
 
 
 ;;;; done
