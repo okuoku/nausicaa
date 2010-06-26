@@ -40,6 +40,7 @@ $(eval $(call nau-libraries,core))
 
 # Lexicographic order please.
 $(eval $(call nau-libraries,armor,armor))
+$(eval $(call nau-libraries,bytevectors,bytevectors))
 $(eval $(call nau-libraries,char-sets,char-sets))
 $(eval $(call nau-libraries,cond-expand,cond-expand))
 $(eval $(call nau-libraries,classes,classes))

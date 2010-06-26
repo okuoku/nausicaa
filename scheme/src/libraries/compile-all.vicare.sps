@@ -52,6 +52,7 @@
   (only (strings))
   (only (streams))
   (only (vectors))
+  (only (bytevectors u8))
   (only (debugging))
   (only (checks))
   (only (loops))
