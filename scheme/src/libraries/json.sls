@@ -42,7 +42,7 @@
   (import (nausicaa)
     (makers)
     (conditions)
-    (syntax-utilities)
+    (for (syntax-utilities) run expand)
     (silex lexer)
     (json string-lexer)
     (json rfc-lexer)

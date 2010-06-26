@@ -53,6 +53,9 @@
 (%compile-library "syntax-utilities.sls"
 		  "syntax-utilities.slfasl")
 
+(%compile-library "classes/auxiliary-syntaxes.larceny.sls"
+		  "classes/auxiliary-syntaxes.larceny.slfasl")
+
 (%compile-library "conditions.sls"
 		  "conditions.slfasl")
 
@@ -73,9 +76,6 @@
 
 (%compile-library "makers.sls"
 		  "makers.slfasl")
-
-(%compile-library "classes/auxiliary-syntaxes.larceny.sls"
-		  "classes/auxiliary-syntaxes.larceny.slfasl")
 
 (%compile-library "classes/top.sls"
 		  "classes/top.slfasl")

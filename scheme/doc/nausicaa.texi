@@ -19294,6 +19294,10 @@ character from the name, then prepending @samp{raise-} and appending
 Select the parent condition type for the enclosing definition.  This
 clause can be omitted and can be used at most once.  When not used, the
 parent defaults to @condition{error}.
+
+The @code{parent} identifier is the one exported by
+@rsixlibrary{syntactic} or @library{classes auxiliary-syntaxes} for the
+implementations that do not define it.
 @end deffn
 
 
@@ -19307,6 +19311,10 @@ condition type name as follows: the @samp{&} character is stripped from
 the type name, a slash is appended to the name, the field name is
 appended to the result, the string @samp{condition-} is prepended to the
 result.
+
+The @code{fields} identifier is the one exported by
+@rsixlibrary{syntactic} or @library{classes auxiliary-syntaxes} for the
+implementations that do not define it.
 @end deffn
 
 @c page

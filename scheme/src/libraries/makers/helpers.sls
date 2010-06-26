@@ -27,7 +27,8 @@
 
 (library (makers helpers)
   (export syntax->list invalid-keywords-and-values? parse-input-form-stx)
-  (import (rnrs))
+  (import (rnrs)
+    (for (only (rnrs) quote quasiquote syntax quasisyntax) (meta -1)))
 
 
 (define (syntax->list stx)
