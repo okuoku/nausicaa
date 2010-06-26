@@ -100,6 +100,9 @@
 
 ;;Basic libraries
 
+(%compile-library "sentinel.sls"
+		  "sentinel.slfasl")
+
 (%compile-library "generics.sls"
 		  "generics.slfasl")
 
@@ -192,9 +195,6 @@
 		  "times-and-dates.slfasl")
 
 ;;; --------------------------------------------------------------------
-
-(%compile-library "sentinel.sls"
-		  "sentinel.slfasl")
 
 (%compile-library "variables.sls"
 		  "variables.slfasl")
