@@ -103,12 +103,32 @@
 (%compile-library "sentinel.sls"
 		  "sentinel.slfasl")
 
+(%compile-library "parser-tools/source-location.sls"
+		  "parser-tools/source-location.slfasl")
+
+(%compile-library "parser-tools/lexical-token.sls"
+		  "parser-tools/lexical-token.slfasl")
+
+(%compile-library "infix/helpers.sls"
+		  "infix/helpers.slfasl")
+
+(%compile-library "infix/string-lexer.sls"
+		  "infix/string-lexer.slfasl")
+
+(%compile-library "infix/sexp-parser.sls"
+		  "infix/sexp-parser.slfasl")
+
+(%compile-library "infix/string-parser.sls"
+		  "infix/string-parser.slfasl")
+
+(%compile-library "infix.sls"
+		  "infix.slfasl")
+
 (%compile-library "generics.sls"
 		  "generics.slfasl")
 
 (%compile-library "enumerations.sls"
 		  "enumerations.slfasl")
-
 
 (%compile-library "formations.sls"
 		  "formations.slfasl")
@@ -247,14 +267,6 @@
 
 ;;; --------------------------------------------------------------------
 
-(%compile-library "parser-tools/source-location.sls"
-		  "parser-tools/source-location.slfasl")
-
-(%compile-library "parser-tools/lexical-token.sls"
-		  "parser-tools/lexical-token.slfasl")
-
-;;; --------------------------------------------------------------------
-
 (%compile-library "silex/default-error-handler.sls"
 		  "silex/default-error-handler.slfasl")
 
@@ -291,23 +303,6 @@
 
 (%compile-library "csv.sls"
 		  "csv.slfasl")
-
-;;; --------------------------------------------------------------------
-
-(%compile-library "infix/helpers.sls"
-		  "infix/helpers.slfasl")
-
-(%compile-library "infix/string-lexer.sls"
-		  "infix/string-lexer.slfasl")
-
-(%compile-library "infix/sexp-parser.sls"
-		  "infix/sexp-parser.slfasl")
-
-(%compile-library "infix/string-parser.sls"
-		  "infix/string-parser.slfasl")
-
-(%compile-library "infix.sls"
-		  "infix.slfasl")
 
 ;;; --------------------------------------------------------------------
 
