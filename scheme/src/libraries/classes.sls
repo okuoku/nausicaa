@@ -1354,26 +1354,27 @@
 
       ((_ ?class ?name ?lambda)
        #`(begin
-	   (define implementation
-	     (let ((implementation ?lambda))
-	       (when implementation
-		 (hashtable-set! (or (hashtable-ref $virtual-methods-table '?name #f)
-				     (let ((table (make-eq-hashtable)))
-				       (hashtable-set! $virtual-methods-table '?name table)
-				       table))
-				 (class-type-uid ?class) implementation))
-	       implementation))
+	   (define the-table
+	     (or (hashtable-ref $virtual-methods-table '?name #f)
+		 (let ((table (make-eq-hashtable)))
+		   (hashtable-set! $virtual-methods-table '?name table)
+		   table)))
+	   (define the-implementation
+	     (let ((f ?lambda))
+	       (when f
+		 (hashtable-set! the-table (class-type-uid ?class) f))
+	       f))
 	   (define-syntax #,(syntax-method-identifier #'?class #'?name)
 	     (syntax-rules ()
 	       ;;This  is  a  method,  so  we  know  that  ?self  is  an
 	       ;;identifier: we can safely use it multiple times.
 	       ((_ ?self . ?args)
-		((%retrieve-virtual-method-implementation (record-type-of ?self) '?name)
+		((%retrieve-virtual-method-implementation the-table (record-type-of ?self) '?name)
 		 ?self . ?args))))
 	   ))
       )))
 
-(define (%retrieve-virtual-method-implementation rtd method-symbol-name)
+(define (%retrieve-virtual-method-implementation method-table rtd method-symbol-name)
   (define (%error-missing-implementation)
     (syntax-violation 'retrieve-virtual-method-implementation
       (string-append "missing virtual method implementation for "
@@ -1381,18 +1382,14 @@
 		     " for class "  (symbol->string (record-type-name rtd))
 		     " having uid " (symbol->string (record-type-uid  rtd)))
       #f))
-  (define table
-    (hashtable-ref $virtual-methods-table method-symbol-name #f))
-  (if table
-      (let next-rtd ((rtd rtd))
-	(if rtd
-	    (let ((uid (record-type-uid rtd)))
-	      (if (eq? uid 'nausicaa:builtin:<top>)
-		  (%error-missing-implementation)
-		(or (hashtable-ref table uid #f)
-		    (next-rtd (record-type-parent rtd)))))
-	  (%error-missing-implementation)))
-    (%error-missing-implementation)))
+  (let next-rtd ((rtd rtd))
+    (if rtd
+	(let ((uid (record-type-uid rtd)))
+	  (if (eq? uid 'nausicaa:builtin:<top>)
+	      (%error-missing-implementation)
+	    (or (hashtable-ref method-table uid #f)
+		(next-rtd (record-type-parent rtd)))))
+      (%error-missing-implementation))))
 
 
 (define-syntax %with-class-fields
