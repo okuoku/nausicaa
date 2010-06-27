@@ -1,6 +1,6 @@
 ;;; strings library --
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;Derived from the SRFI 13 reference implementation.
 ;;;
@@ -101,10 +101,12 @@
 ;;;Copyright (c) 2008 Derick Eddington.  Ported to R6RS.
 
 
-
 #!r6rs
 (library (strings)
   (export
+
+    ;; auxiliary syntaxes
+    view start past
 
     ;; constructors
     string-concatenate  string-concatenate-reverse  string-tabulate
@@ -228,6 +230,9 @@
     (strings low))
 
 
+(define-syntax view  (syntax-rules ()))
+(define-syntax start (syntax-rules ()))
+(define-syntax past  (syntax-rules ()))
 
 (define-syntax unpack
   (syntax-rules (view start past)
