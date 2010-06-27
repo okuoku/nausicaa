@@ -127,8 +127,12 @@
 (library (bytevectors u8)
   (export
 
+    ;; auxiliary syntaxes
+    view start past
+
     ;; constructors
     bytevector-u8-concatenate  bytevector-u8-concatenate-reverse  bytevector-u8-tabulate
+    subbytevector-u8
 
     ;; predicates
     bytevector-u8-null?  bytevector-u8-every  bytevector-u8-any
@@ -200,6 +204,9 @@
     (bytevectors u8low))
 
 
+(define-syntax view  (syntax-rules ()))
+(define-syntax start (syntax-rules ()))
+(define-syntax past  (syntax-rules ()))
 
 (define-syntax unpack
   (syntax-rules (view start past)

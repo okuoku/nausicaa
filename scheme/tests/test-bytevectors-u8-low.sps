@@ -34,15 +34,17 @@
 (check-set-mode! 'report-failed)
 (display "*** testing bytevectors u8 - low level\n")
 
+(define S string->utf8)
+
 
 (parameterise ((check-test-name 'predicates))
 
   (check
-      (bytevector-u8-null? "ciao")
+      (bytevector-u8-null? (S "ciao"))
     => #f)
 
   (check
-      (bytevector-u8-null? "")
+      (bytevector-u8-null? '#vu8())
     => #t)
 
 ;;; --------------------------------------------------------------------
@@ -50,75 +52,75 @@
   (check
       (guard (exc ((assertion-violation? exc)
 		   (condition-who exc)))
-	(%bytevector-u8-every 123 "abc" 0 2))
+	(%bytevector-u8-every 123 (S "abc") 0 2))
     => '%bytevector-u8-every)
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (let* ((str "aaaa")
+      (let* ((str (S "aaaa"))
 	     (beg 0)
-	     (end (bytevector-u8-length str)))
+	     (end (bytevector-length str)))
 	(%bytevector-u8-every #\a str beg end))
     => #t)
 
   (check
-      (let* ((str "aaaab")
+      (let* ((str (S "aaaab"))
 	     (beg 0)
-	     (end (bytevector-u8-length str)))
+	     (end (bytevector-length str)))
 	(%bytevector-u8-every #\a str beg end))
     => #f)
 
   (check
-      (let* ((str "aabaa")
+      (let* ((str (S "aabaa"))
 	     (beg 0)
-	     (end (bytevector-u8-length str)))
+	     (end (bytevector-length str)))
 	(%bytevector-u8-every #\a str beg end))
     => #f)
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (let* ((str "aaaa")
+      (let* ((str (S "aaaa"))
 	     (beg 0)
-	     (end (bytevector-u8-length str)))
+	     (end (bytevector-length str)))
 	(%bytevector-u8-every (char-set #\a) str beg end))
     => #t)
 
   (check
-      (let* ((str "aaaab")
+      (let* ((str (S "aaaab"))
 	     (beg 0)
-	     (end (bytevector-u8-length str)))
+	     (end (bytevector-length str)))
 	(%bytevector-u8-every (char-set #\a) str beg end))
     => #f)
 
   (check
-      (let* ((str "aabaa")
+      (let* ((str (S "aabaa"))
 	     (beg 0)
-	     (end (bytevector-u8-length str)))
+	     (end (bytevector-length str)))
 	(%bytevector-u8-every (char-set #\a) str beg end))
     => #f)
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (let* ((str "aaaa")
+      (let* ((str (S "aaaa"))
 	     (beg 0)
-	     (end (bytevector-u8-length str)))
+	     (end (bytevector-length str)))
 	(%bytevector-u8-every char-alphabetic? str beg end))
     => #t)
 
   (check
-      (let* ((str "aaaa2")
+      (let* ((str (S "aaaa2"))
 	     (beg 0)
-	     (end (bytevector-u8-length str)))
+	     (end (bytevector-length str)))
 	(%bytevector-u8-every char-alphabetic? str beg end))
     => #f)
 
   (check
-      (let* ((str "aa2aa")
+      (let* ((str (S "aa2aa"))
 	     (beg 0)
-	     (end (bytevector-u8-length str)))
+	     (end (bytevector-length str)))
 	(%bytevector-u8-every char-alphabetic? str beg end))
     => #f)
 
@@ -127,29 +129,29 @@
   (check
       (guard (exc ((assertion-violation? exc)
 		   (condition-who exc)))
-	(%bytevector-u8-any 123 "abc" 0 2))
+	(%bytevector-u8-any 123 (S "abc") 0 2))
     => '%bytevector-u8-any)
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (let* ((str "ddadd")
+      (let* ((str (S "ddadd"))
 	     (beg 0)
-	     (end (bytevector-u8-length str)))
+	     (end (bytevector-length str)))
 	(%bytevector-u8-any #\a str beg end))
     => #t)
 
   (check
-      (let* ((str "dddda")
+      (let* ((str (S "dddda"))
 	     (beg 0)
-	     (end (bytevector-u8-length str)))
+	     (end (bytevector-length str)))
 	(%bytevector-u8-any #\a str beg end))
     => #t)
 
   (check
-      (let* ((str "ddd")
+      (let* ((str (S "ddd"))
 	     (beg 0)
-	     (end (bytevector-u8-length str)))
+	     (end (bytevector-length str)))
 	(%bytevector-u8-any #\a str beg end))
     => #f)
 
@@ -157,163 +159,163 @@
 ;;; --------------------------------------------------------------------
 
   (check
-      (let* ((str "dddaddd")
+      (let* ((str (S "dddaddd"))
 	     (beg 0)
-	     (end (bytevector-u8-length str)))
+	     (end (bytevector-length str)))
 	(%bytevector-u8-any (char-set #\a) str beg end))
     => #t)
 
   (check
-      (let* ((str "ddda")
+      (let* ((str (S "ddda"))
 	     (beg 0)
-	     (end (bytevector-u8-length str)))
+	     (end (bytevector-length str)))
 	(%bytevector-u8-any (char-set #\a) str beg end))
     => #t)
 
   (check
-      (let* ((str "dddd")
+      (let* ((str (S "dddd"))
 	     (beg 0)
-	     (end (bytevector-u8-length str)))
+	     (end (bytevector-length str)))
 	(%bytevector-u8-any (char-set #\a) str beg end))
     => #f)
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (let* ((str "11a11")
+      (let* ((str (S "11a11"))
 	     (beg 0)
-	     (end (bytevector-u8-length str)))
+	     (end (bytevector-length str)))
 	(%bytevector-u8-any char-alphabetic? str beg end))
     => #t)
 
   (check
-      (let* ((str "11111a")
+      (let* ((str (S "11111a"))
 	     (beg 0)
-	     (end (bytevector-u8-length str)))
+	     (end (bytevector-length str)))
 	(%bytevector-u8-any char-alphabetic? str beg end))
     => #t)
 
   (check
-      (let* ((str "1111")
+      (let* ((str (S "1111"))
 	     (beg 0)
-	     (end (bytevector-u8-length str)))
+	     (end (bytevector-length str)))
 	(%bytevector-u8-any char-alphabetic? str beg end))
     => #f)
 
-  )
+  #f)
 
 
 (parameterise ((check-test-name 'comparison-lexicographic-case-sensitive))
 
   (check
-      (let* ((str1 "abcdefg") (beg1 0) (end1 (bytevector-u8-length str1))
-	     (str2 "abcd123") (beg2 0) (end2 (bytevector-u8-length str2)))
+      (let* ((str1 (S "abcdefg")) (beg1 0) (end1 (bytevector-length str1))
+	     (str2 (S "abcd123")) (beg2 0) (end2 (bytevector-length str2)))
 	(%bytevector-u8-compare str1 beg1 end1 str2 beg2 end2 values values values))
     => 4)
 
   (check
-      (let* ((str1 "abcdef") (beg1 0) (end1 (bytevector-u8-length str1))
-	     (str2 "abcd123") (beg2 0) (end2 (bytevector-u8-length str2)))
+      (let* ((str1 (S "abcdef")) (beg1 0) (end1 (bytevector-length str1))
+	     (str2 (S "abcd123")) (beg2 0) (end2 (bytevector-length str2)))
 	(%bytevector-u8-compare str1 beg1 end1 str2 beg2 end2 values values values))
     => 4)
 
   (check
-      (let* ((str1 "efg") (beg1 0) (end1 (bytevector-u8-length str1))
-	     (str2 "123") (beg2 0) (end2 (bytevector-u8-length str2)))
+      (let* ((str1 (S "efg")) (beg1 0) (end1 (bytevector-length str1))
+	     (str2 (S "123")) (beg2 0) (end2 (bytevector-length str2)))
 	(%bytevector-u8-compare str1 beg1 end1 str2 beg2 end2 values values values))
     => 0)
 
   (check
-      (let* ((str1 "") (beg1 0) (end1 (bytevector-u8-length str1))
-	     (str2 "abcd") (beg2 0) (end2 (bytevector-u8-length str2)))
+      (let* ((str1 '#vu8()) (beg1 0) (end1 (bytevector-length str1))
+	     (str2 (S "abcd")) (beg2 0) (end2 (bytevector-length str2)))
 	(%bytevector-u8-compare str1 beg1 end1 str2 beg2 end2 values values values))
     => 0)
 
   (check
-      (let* ((str1 "abcd") (beg1 0) (end1 (bytevector-u8-length str1))
-	     (str2 "") (beg2 0) (end2 (bytevector-u8-length str2)))
+      (let* ((str1 (S "abcd")) (beg1 0) (end1 (bytevector-length str1))
+	     (str2 '#vu8()) (beg2 0) (end2 (bytevector-length str2)))
 	(%bytevector-u8-compare str1 beg1 end1 str2 beg2 end2 values values values))
     => 0)
 
   (check
-      (let* ((str1 "abcdA") (beg1 0) (end1 (bytevector-u8-length str1))
-	     (str2 "abcdA") (beg2 0) (end2 (bytevector-u8-length str2)))
+      (let* ((str1 (S "abcdA")) (beg1 0) (end1 (bytevector-length str1))
+	     (str2 (S "abcdA")) (beg2 0) (end2 (bytevector-length str2)))
 	(%bytevector-u8-compare str1 beg1 end1 str2 beg2 end2
-			 (lambda (idx) 'less) (lambda (idx) 'equal) (lambda (idx) 'greater)))
+				(lambda (idx) 'less) (lambda (idx) 'equal) (lambda (idx) 'greater)))
     => 'equal)
 
   (check
-      (let* ((str1 "abcdA") (beg1 0) (end1 (bytevector-u8-length str1))
-	     (str2 "abcdB") (beg2 0) (end2 (bytevector-u8-length str2)))
+      (let* ((str1 (S "abcdA")) (beg1 0) (end1 (bytevector-length str1))
+	     (str2 (S "abcdB")) (beg2 0) (end2 (bytevector-length str2)))
 	(%bytevector-u8-compare str1 beg1 end1 str2 beg2 end2
-			 (lambda (idx) 'less) (lambda (idx) 'equal) (lambda (idx) 'greater)))
+				(lambda (idx) 'less) (lambda (idx) 'equal) (lambda (idx) 'greater)))
     => 'less)
 
   (check
-      (let* ((str1 "abcdB") (beg1 0) (end1 (bytevector-u8-length str1))
-	     (str2 "abcdA") (beg2 0) (end2 (bytevector-u8-length str2)))
+      (let* ((str1 (S "abcdB")) (beg1 0) (end1 (bytevector-length str1))
+	     (str2 (S "abcdA")) (beg2 0) (end2 (bytevector-length str2)))
 	(%bytevector-u8-compare str1 beg1 end1 str2 beg2 end2
-			 (lambda (idx) 'less) (lambda (idx) 'equal) (lambda (idx) 'greater)))
+				(lambda (idx) 'less) (lambda (idx) 'equal) (lambda (idx) 'greater)))
     => 'greater)
 
 ;;; --------------------------------------------------------------------
 
   (check-for-true
-   (let* ((str "abcd")
-	  (beg1 0) (end1 (bytevector-u8-length str))
-	  (beg2 0) (end2 (bytevector-u8-length str)))
+   (let* ((str (S "abcd"))
+	  (beg1 0) (end1 (bytevector-length str))
+	  (beg2 0) (end2 (bytevector-length str)))
      (%bytevector-u8= str beg1 end1 str beg2 end2)))
 
   (check-for-true
-   (let* ((str1 "12abcd") (beg1 2) (end1 (bytevector-u8-length str1))
-	  (str2 "abcd") (beg2 0) (end2 (bytevector-u8-length str2)))
+   (let* ((str1 (S "12abcd")) (beg1 2) (end1 (bytevector-length str1))
+	  (str2 (S "abcd")) (beg2 0) (end2 (bytevector-length str2)))
      (%bytevector-u8= str1 beg1 end1 str2 beg2 end2)))
 
   (check-for-false
-   (let* ((str1 "abc") (beg1 0) (end1 (bytevector-u8-length str1))
-	  (str2 "abcd") (beg2 0) (end2 (bytevector-u8-length str2)))
+   (let* ((str1 (S "abc")) (beg1 0) (end1 (bytevector-length str1))
+	  (str2 (S "abcd")) (beg2 0) (end2 (bytevector-length str2)))
      (%bytevector-u8= str1 beg1 end1 str2 beg2 end2)))
 
   (check-for-false
-   (let* ((str1 "abcd") (beg1 0) (end1 (bytevector-u8-length str1))
-	  (str2 "abc") (beg2 0) (end2 (bytevector-u8-length str2)))
+   (let* ((str1 (S "abcd")) (beg1 0) (end1 (bytevector-length str1))
+	  (str2 (S "abc")) (beg2 0) (end2 (bytevector-length str2)))
      (%bytevector-u8= str1 beg1 end1 str2 beg2 end2)))
 
   (check-for-false
-   (let* ((str1 "ABcd") (beg1 0) (end1 (bytevector-u8-length str1))
-	  (str2 "abcd") (beg2 0) (end2 (bytevector-u8-length str2)))
+   (let* ((str1 (S "abcd")) (beg1 0) (end1 (bytevector-length str1))
+	  (str2 (S "abcd")) (beg2 0) (end2 (bytevector-length str2)))
      (%bytevector-u8= str1 beg1 end1 str2 beg2 end2)))
 
   (check-for-false
-   (let* ((str1 "abcd") (beg1 0) (end1 (bytevector-u8-length str1))
-	  (str2 "a2cd") (beg2 0) (end2 (bytevector-u8-length str2)))
+   (let* ((str1 (S "abcd")) (beg1 0) (end1 (bytevector-length str1))
+	  (str2 (S "a2cd")) (beg2 0) (end2 (bytevector-length str2)))
      (%bytevector-u8= str1 beg1 end1 str2 beg2 end2)))
 
 ;;; --------------------------------------------------------------------
 
   (check-for-false
-   (let* ((str1 "abcd") (beg1 0) (end1 (bytevector-u8-length str1))
-	  (str2 "abcd") (beg2 0) (end2 (bytevector-u8-length str2)))
+   (let* ((str1 (S "abcd")) (beg1 0) (end1 (bytevector-length str1))
+	  (str2 (S "abcd")) (beg2 0) (end2 (bytevector-length str2)))
      (%bytevector-u8<> str1 beg1 end1 str2 beg2 end2)))
 
   (check-for-true
-   (let* ((str1 "abc") (beg1 0) (end1 (bytevector-u8-length str1))
-	  (str2 "abcd") (beg2 0) (end2 (bytevector-u8-length str2)))
+   (let* ((str1 (S "abc")) (beg1 0) (end1 (bytevector-length str1))
+	  (str2 (S "abcd")) (beg2 0) (end2 (bytevector-length str2)))
      (%bytevector-u8<> str1 beg1 end1 str2 beg2 end2)))
 
   (check-for-true
-   (let* ((str1 "abcd") (beg1 0) (end1 (bytevector-u8-length str1))
-	  (str2 "abc") (beg2 0) (end2 (bytevector-u8-length str2)))
+   (let* ((str1 (S "abcd")) (beg1 0) (end1 (bytevector-length str1))
+	  (str2 (S "abc")) (beg2 0) (end2 (bytevector-length str2)))
      (%bytevector-u8<> str1 beg1 end1 str2 beg2 end2)))
 
   (check-for-true
-   (let* ((str1 "ABcd") (beg1 0) (end1 (bytevector-u8-length str1))
-	  (str2 "abcd") (beg2 0) (end2 (bytevector-u8-length str2)))
+   (let* ((str1 (S "abcd")) (beg1 0) (end1 (bytevector-length str1))
+	  (str2 (S "abcd")) (beg2 0) (end2 (bytevector-length str2)))
      (%bytevector-u8<> str1 beg1 end1 str2 beg2 end2)))
 
   (check-for-true
-   (let* ((str1 "abcd") (beg1 0) (end1 (bytevector-u8-length str1))
-	  (str2 "a2cd") (beg2 0) (end2 (bytevector-u8-length str2)))
+   (let* ((str1 (S "abcd")) (beg1 0) (end1 (bytevector-length str1))
+	  (str2 (S "a2cd")) (beg2 0) (end2 (bytevector-length str2)))
      (%bytevector-u8<> str1 beg1 end1 str2 beg2 end2)))
 
 ;;; --------------------------------------------------------------------
@@ -326,33 +328,33 @@
   ;;* The bytevector-u8s are equal up to the end of STR1 and STR2 is longer.
 
   (check-for-false
-   (let* ((str1 "abcd") (beg1 0) (end1 (bytevector-u8-length str1))
-	  (str2 "abcd") (beg2 0) (end2 (bytevector-u8-length str2)))
+   (let* ((str1 (S "abcd")) (beg1 0) (end1 (bytevector-length str1))
+	  (str2 (S "abcd")) (beg2 0) (end2 (bytevector-length str2)))
      (%bytevector-u8< str1 beg1 end1 str2 beg2 end2)))
 
   (check-for-true
-   (let* ((str1 "abc")  (beg1 0) (end1 (bytevector-u8-length str1))
-	  (str2 "abcd") (beg2 0) (end2 (bytevector-u8-length str2)))
+   (let* ((str1 (S "abc"))  (beg1 0) (end1 (bytevector-length str1))
+	  (str2 (S "abcd")) (beg2 0) (end2 (bytevector-length str2)))
      (%bytevector-u8< str1 beg1 end1 str2 beg2 end2)))
 
   (check-for-false
-   (let* ((str1 "abcd") (beg1 0) (end1 (bytevector-u8-length str1))
-	  (str2 "abc") (beg2 0) (end2 (bytevector-u8-length str2)))
+   (let* ((str1 (S "abcd")) (beg1 0) (end1 (bytevector-length str1))
+	  (str2 (S "abc")) (beg2 0) (end2 (bytevector-length str2)))
      (%bytevector-u8< str1 beg1 end1 str2 beg2 end2)))
 
   (check-for-true
-   (let* ((str1 "ABcd") (beg1 0) (end1 (bytevector-u8-length str1))
-	  (str2 "abcd") (beg2 0) (end2 (bytevector-u8-length str2)))
+   (let* ((str1 (S "abcd")) (beg1 0) (end1 (bytevector-length str1))
+	  (str2 (S "abcd")) (beg2 0) (end2 (bytevector-length str2)))
      (%bytevector-u8< str1 beg1 end1 str2 beg2 end2)))
 
   (check-for-true
-   (let* ((str1 "ABCD") (beg1 0) (end1 (bytevector-u8-length str1))
-	  (str2 "abcd") (beg2 0) (end2 (bytevector-u8-length str2)))
+   (let* ((str1 (S "ABCD")) (beg1 0) (end1 (bytevector-length str1))
+	  (str2 (S "abcd")) (beg2 0) (end2 (bytevector-length str2)))
      (%bytevector-u8< str1 beg1 end1 str2 beg2 end2)))
 
   (check-for-false
-   (let* ((str1 "ABCD") (beg1 0) (end1 (bytevector-u8-length str1))
-	  (str2 "A2CD") (beg2 0) (end2 (bytevector-u8-length str2)))
+   (let* ((str1 (S "ABCD")) (beg1 0) (end1 (bytevector-length str1))
+	  (str2 (S "A2CD")) (beg2 0) (end2 (bytevector-length str2)))
      (%bytevector-u8< str1 beg1 end1 str2 beg2 end2)))
 
 ;;; --------------------------------------------------------------------
@@ -367,28 +369,28 @@
   ;;* The bytevector-u8s are equal up to the end of STR1 and STR2 is longer.
 
   (check-for-true
-   (let* ((str1 "abcd") (beg1 0) (end1 (bytevector-u8-length str1))
-	  (str2 "abcd") (beg2 0) (end2 (bytevector-u8-length str2)))
+   (let* ((str1 (S "abcd")) (beg1 0) (end1 (bytevector-length str1))
+	  (str2 (S "abcd")) (beg2 0) (end2 (bytevector-length str2)))
      (%bytevector-u8<= str1 beg1 end1 str2 beg2 end2)))
 
   (check-for-true
-   (let* ((str1 "abc") (beg1 0) (end1 (bytevector-u8-length str1))
-	  (str2 "abcd") (beg2 0) (end2 (bytevector-u8-length str2)))
+   (let* ((str1 (S "abc")) (beg1 0) (end1 (bytevector-length str1))
+	  (str2 (S "abcd")) (beg2 0) (end2 (bytevector-length str2)))
      (%bytevector-u8<= str1 beg1 end1 str2 beg2 end2)))
 
   (check-for-false
-   (let* ((str1 "abcd") (beg1 0) (end1 (bytevector-u8-length str1))
-	  (str2 "abc")  (beg2 0) (end2 (bytevector-u8-length str2)))
+   (let* ((str1 (S "abcd")) (beg1 0) (end1 (bytevector-length str1))
+	  (str2 (S "abc"))  (beg2 0) (end2 (bytevector-length str2)))
      (%bytevector-u8<= str1 beg1 end1 str2 beg2 end2)))
 
   (check-for-true
-   (let* ((str1 "ABcd") (beg1 0) (end1 (bytevector-u8-length str1))
-	  (str2 "abcd") (beg2 0) (end2 (bytevector-u8-length str2)))
+   (let* ((str1 (S "abcd")) (beg1 0) (end1 (bytevector-length str1))
+	  (str2 (S "abcd")) (beg2 0) (end2 (bytevector-length str2)))
      (%bytevector-u8<= str1 beg1 end1 str2 beg2 end2)))
 
   (check-for-false
-   (let* ((str1 "abcd") (beg1 0) (end1 (bytevector-u8-length str1))
-	  (str2 "a2cd") (beg2 0) (end2 (bytevector-u8-length str2)))
+   (let* ((str1 (S "abcd")) (beg1 0) (end1 (bytevector-length str1))
+	  (str2 (S "a2cd")) (beg2 0) (end2 (bytevector-length str2)))
      (%bytevector-u8<= str1 beg1 end1 str2 beg2 end2)))
 
 ;;; --------------------------------------------------------------------
@@ -401,28 +403,28 @@
   ;;* The bytevector-u8s are equal up to the end of STR2 and STR1 is longer.
 
   (check-for-false
-   (let* ((str1 "abcd") (beg1 0) (end1 (bytevector-u8-length str1))
-	  (str2 "abcd") (beg2 0) (end2 (bytevector-u8-length str2)))
+   (let* ((str1 (S "abcd")) (beg1 0) (end1 (bytevector-length str1))
+	  (str2 (S "abcd")) (beg2 0) (end2 (bytevector-length str2)))
      (%bytevector-u8> str1 beg1 end1 str2 beg2 end2)))
 
   (check-for-true
-   (let* ((str1 "abcd") (beg1 0) (end1 (bytevector-u8-length str1))
-	  (str2 "abc") (beg2 0) (end2 (bytevector-u8-length str2)))
+   (let* ((str1 (S "abcd")) (beg1 0) (end1 (bytevector-length str1))
+	  (str2 (S "abc")) (beg2 0) (end2 (bytevector-length str2)))
      (%bytevector-u8> str1 beg1 end1 str2 beg2 end2)))
 
   (check-for-false
-   (let* ((str1 "abc") (beg1 0) (end1 (bytevector-u8-length str1))
-	  (str2 "abcd") (beg2 0) (end2 (bytevector-u8-length str2)))
+   (let* ((str1 (S "abc")) (beg1 0) (end1 (bytevector-length str1))
+	  (str2 (S "abcd")) (beg2 0) (end2 (bytevector-length str2)))
      (%bytevector-u8> str1 beg1 end1 str2 beg2 end2)))
 
   (check-for-true
-   (let* ((str1 "abcd") (beg1 0) (end1 (bytevector-u8-length str1))
-	  (str2 "ABcd") (beg2 0) (end2 (bytevector-u8-length str2)))
+   (let* ((str1 (S "abcd")) (beg1 0) (end1 (bytevector-length str1))
+	  (str2 (S "abcd")) (beg2 0) (end2 (bytevector-length str2)))
      (%bytevector-u8> str1 beg1 end1 str2 beg2 end2)))
 
   (check-for-false
-   (let* ((str1 "a2cd") (beg1 0) (end1 (bytevector-u8-length str1))
-	  (str2 "abcd") (beg2 0) (end2 (bytevector-u8-length str2)))
+   (let* ((str1 (S "a2cd")) (beg1 0) (end1 (bytevector-length str1))
+	  (str2 (S "abcd")) (beg2 0) (end2 (bytevector-length str2)))
      (%bytevector-u8> str1 beg1 end1 str2 beg2 end2)))
 
 ;;; --------------------------------------------------------------------
@@ -437,33 +439,33 @@
   ;;* The bytevector-u8s are equal up to the end of STR2 and STR1 is longer.
 
   (check-for-true
-   (let* ((str1 "abcd") (beg1 0) (end1 (bytevector-u8-length str1))
-	  (str2 "abcd") (beg2 0) (end2 (bytevector-u8-length str2)))
+   (let* ((str1 (S "abcd")) (beg1 0) (end1 (bytevector-length str1))
+	  (str2 (S "abcd")) (beg2 0) (end2 (bytevector-length str2)))
      (%bytevector-u8>= str1 beg1 end1 str2 beg2 end2)))
 
   (check-for-true
-   (let* ((str1 "abcd") (beg1 0) (end1 (bytevector-u8-length str1))
-	  (str2 "abc") (beg2 0) (end2 (bytevector-u8-length str2)))
+   (let* ((str1 (S "abcd")) (beg1 0) (end1 (bytevector-length str1))
+	  (str2 (S "abc")) (beg2 0) (end2 (bytevector-length str2)))
      (%bytevector-u8>= str1 beg1 end1 str2 beg2 end2)))
 
   (check-for-false
-   (let* ((str1 "abc") (beg1 0) (end1 (bytevector-u8-length str1))
-	  (str2 "abcd") (beg2 0) (end2 (bytevector-u8-length str2)))
+   (let* ((str1 (S "abc")) (beg1 0) (end1 (bytevector-length str1))
+	  (str2 (S "abcd")) (beg2 0) (end2 (bytevector-length str2)))
      (%bytevector-u8>= str1 beg1 end1 str2 beg2 end2)))
 
   (check-for-true
-   (let* ((str1 "abcd") (beg1 0) (end1 (bytevector-u8-length str1))
-	  (str2 "ABcd") (beg2 0) (end2 (bytevector-u8-length str2)))
+   (let* ((str1 (S "abcd")) (beg1 0) (end1 (bytevector-length str1))
+	  (str2 (S "abcd")) (beg2 0) (end2 (bytevector-length str2)))
      (%bytevector-u8>= str1 beg1 end1 str2 beg2 end2)))
 
   (check-for-true
-   (let* ((str1 "abcd") (beg1 0) (end1 (bytevector-u8-length str1))
-	  (str2 "ABCD") (beg2 0) (end2 (bytevector-u8-length str2)))
+   (let* ((str1 (S "abcd")) (beg1 0) (end1 (bytevector-length str1))
+	  (str2 (S "ABCD")) (beg2 0) (end2 (bytevector-length str2)))
      (%bytevector-u8>= str1 beg1 end1 str2 beg2 end2)))
 
   (check-for-false
-   (let* ((str1 "a2cd") (beg1 0) (end1 (bytevector-u8-length str1))
-	  (str2 "abcd") (beg2 0) (end2 (bytevector-u8-length str2)))
+   (let* ((str1 (S "a2cd")) (beg1 0) (end1 (bytevector-length str1))
+	  (str2 (S "abcd")) (beg2 0) (end2 (bytevector-length str2)))
      (%bytevector-u8>= str1 beg1 end1 str2 beg2 end2)))
 
   #t)
@@ -472,216 +474,216 @@
 (parameterise ((check-test-name 'comparison-lexicographic-case-insensitive))
 
   (check
-      (let* ((str1 "aBcdefg") (beg1 0) (end1 (bytevector-u8-length str1))
-	     (str2 "abcd123") (beg2 0) (end2 (bytevector-u8-length str2)))
+      (let* ((str1 (S "aBcdefg")) (beg1 0) (end1 (bytevector-length str1))
+	     (str2 (S "abcd123")) (beg2 0) (end2 (bytevector-length str2)))
 	(%bytevector-u8-compare-ci str1 beg1 end1 str2 beg2 end2 values values values))
     => 4)
 
   (check
-      (let* ((str1 "efg") (beg1 0) (end1 (bytevector-u8-length str1))
-	     (str2 "123") (beg2 0) (end2 (bytevector-u8-length str2)))
+      (let* ((str1 (S "efg")) (beg1 0) (end1 (bytevector-length str1))
+	     (str2 (S "123")) (beg2 0) (end2 (bytevector-length str2)))
 	(%bytevector-u8-compare-ci str1 beg1 end1 str2 beg2 end2 values values values))
     => 0)
 
   (check
-      (let* ((str1 "") (beg1 0) (end1 (bytevector-u8-length str1))
-	     (str2 "abcd") (beg2 0) (end2 (bytevector-u8-length str2)))
+      (let* ((str1 '#vu8()) (beg1 0) (end1 (bytevector-length str1))
+	     (str2 (S "abcd")) (beg2 0) (end2 (bytevector-length str2)))
 	(%bytevector-u8-compare-ci str1 beg1 end1 str2 beg2 end2 values values values))
     => 0)
 
   (check
-      (let* ((str1 "abcd") (beg1 0) (end1 (bytevector-u8-length str1))
-	     (str2 "") (beg2 0) (end2 (bytevector-u8-length str2)))
+      (let* ((str1 (S "abcd")) (beg1 0) (end1 (bytevector-length str1))
+	     (str2 '#vu8()) (beg2 0) (end2 (bytevector-length str2)))
 	(%bytevector-u8-compare-ci str1 beg1 end1 str2 beg2 end2 values values values))
     => 0)
 
   (check
-      (let* ((str1 "abcdA") (beg1 0) (end1 (bytevector-u8-length str1))
-	     (str2 "abcda") (beg2 0) (end2 (bytevector-u8-length str2)))
+      (let* ((str1 (S "abcdA")) (beg1 0) (end1 (bytevector-length str1))
+	     (str2 (S "abcda")) (beg2 0) (end2 (bytevector-length str2)))
 	(%bytevector-u8-compare-ci str1 beg1 end1 str2 beg2 end2
-			    (lambda (idx) 'less) (lambda (idx) 'equal) (lambda (idx) 'greater)))
+				   (lambda (idx) 'less) (lambda (idx) 'equal) (lambda (idx) 'greater)))
     => 'equal)
 
   (check
-      (let* ((str1 "abcdA") (beg1 0) (end1 (bytevector-u8-length str1))
-	     (str2 "abcdb") (beg2 0) (end2 (bytevector-u8-length str2)))
+      (let* ((str1 (S "abcdA")) (beg1 0) (end1 (bytevector-length str1))
+	     (str2 (S "abcdb")) (beg2 0) (end2 (bytevector-length str2)))
 	(%bytevector-u8-compare-ci str1 beg1 end1 str2 beg2 end2
-			    (lambda (idx) 'less) (lambda (idx) 'equal) (lambda (idx) 'greater)))
+				   (lambda (idx) 'less) (lambda (idx) 'equal) (lambda (idx) 'greater)))
     => 'less)
 
   (check
-      (let* ((str1 "abcdb") (beg1 0) (end1 (bytevector-u8-length str1))
-	     (str2 "abcdA") (beg2 0) (end2 (bytevector-u8-length str2)))
+      (let* ((str1 (S "abcdb")) (beg1 0) (end1 (bytevector-length str1))
+	     (str2 (S "abcdA")) (beg2 0) (end2 (bytevector-length str2)))
 	(%bytevector-u8-compare-ci str1 beg1 end1 str2 beg2 end2
-			    (lambda (idx) 'less) (lambda (idx) 'equal) (lambda (idx) 'greater)))
+				   (lambda (idx) 'less) (lambda (idx) 'equal) (lambda (idx) 'greater)))
     => 'greater)
 
 ;;; --------------------------------------------------------------------
 
   (check-for-true
-   (let* ((str "abcd")
-	  (beg1 0) (end1 (bytevector-u8-length str))
-	  (beg2 0) (end2 (bytevector-u8-length str)))
+   (let* ((str (S "abcd"))
+	  (beg1 0) (end1 (bytevector-length str))
+	  (beg2 0) (end2 (bytevector-length str)))
      (%bytevector-u8-ci= str beg1 end1 str beg2 end2)))
 
   (check-for-true
-   (let* ((str1 "12abcd") (beg1 2) (end1 (bytevector-u8-length str1))
-	  (str2 "abcd") (beg2 0) (end2 (bytevector-u8-length str2)))
+   (let* ((str1 (S "12abcd")) (beg1 2) (end1 (bytevector-length str1))
+	  (str2 (S "abcd")) (beg2 0) (end2 (bytevector-length str2)))
      (%bytevector-u8-ci= str1 beg1 end1 str2 beg2 end2)))
 
   (check-for-false
-   (let* ((str1 "abc") (beg1 0) (end1 (bytevector-u8-length str1))
-	  (str2 "abcd") (beg2 0) (end2 (bytevector-u8-length str2)))
+   (let* ((str1 (S "abc")) (beg1 0) (end1 (bytevector-length str1))
+	  (str2 (S "abcd")) (beg2 0) (end2 (bytevector-length str2)))
      (%bytevector-u8-ci= str1 beg1 end1 str2 beg2 end2)))
 
   (check-for-false
-   (let* ((str1 "abcd") (beg1 0) (end1 (bytevector-u8-length str1))
-	  (str2 "abc") (beg2 0) (end2 (bytevector-u8-length str2)))
+   (let* ((str1 (S "abcd")) (beg1 0) (end1 (bytevector-length str1))
+	  (str2 (S "abc")) (beg2 0) (end2 (bytevector-length str2)))
      (%bytevector-u8-ci= str1 beg1 end1 str2 beg2 end2)))
 
   (check-for-true
-   (let* ((str1 "ABcd") (beg1 0) (end1 (bytevector-u8-length str1))
-	  (str2 "abcd") (beg2 0) (end2 (bytevector-u8-length str2)))
+   (let* ((str1 (S "abcd")) (beg1 0) (end1 (bytevector-length str1))
+	  (str2 (S "abcd")) (beg2 0) (end2 (bytevector-length str2)))
      (%bytevector-u8-ci= str1 beg1 end1 str2 beg2 end2)))
 
   (check-for-false
-   (let* ((str1 "abcd") (beg1 0) (end1 (bytevector-u8-length str1))
-	  (str2 "a2cd") (beg2 0) (end2 (bytevector-u8-length str2)))
+   (let* ((str1 (S "abcd")) (beg1 0) (end1 (bytevector-length str1))
+	  (str2 (S "a2cd")) (beg2 0) (end2 (bytevector-length str2)))
      (%bytevector-u8-ci= str1 beg1 end1 str2 beg2 end2)))
 
 ;;; --------------------------------------------------------------------
 
   (check-for-false
-   (let* ((str1 "abcd") (beg1 0) (end1 (bytevector-u8-length str1))
-	  (str2 "abcd") (beg2 0) (end2 (bytevector-u8-length str2)))
+   (let* ((str1 (S "abcd")) (beg1 0) (end1 (bytevector-length str1))
+	  (str2 (S "abcd")) (beg2 0) (end2 (bytevector-length str2)))
      (%bytevector-u8-ci<> str1 beg1 end1 str2 beg2 end2)))
 
   (check-for-true
-   (let* ((str1 "abc") (beg1 0) (end1 (bytevector-u8-length str1))
-	  (str2 "abcd") (beg2 0) (end2 (bytevector-u8-length str2)))
+   (let* ((str1 (S "abc")) (beg1 0) (end1 (bytevector-length str1))
+	  (str2 (S "abcd")) (beg2 0) (end2 (bytevector-length str2)))
      (%bytevector-u8-ci<> str1 beg1 end1 str2 beg2 end2)))
 
   (check-for-true
-   (let* ((str1 "abcd") (beg1 0) (end1 (bytevector-u8-length str1))
-	  (str2 "abc") (beg2 0) (end2 (bytevector-u8-length str2)))
+   (let* ((str1 (S "abcd")) (beg1 0) (end1 (bytevector-length str1))
+	  (str2 (S "abc")) (beg2 0) (end2 (bytevector-length str2)))
      (%bytevector-u8-ci<> str1 beg1 end1 str2 beg2 end2)))
 
   (check-for-false
-   (let* ((str1 "ABcd") (beg1 0) (end1 (bytevector-u8-length str1))
-	  (str2 "abcd") (beg2 0) (end2 (bytevector-u8-length str2)))
+   (let* ((str1 (S "abcd")) (beg1 0) (end1 (bytevector-length str1))
+	  (str2 (S "abcd")) (beg2 0) (end2 (bytevector-length str2)))
      (%bytevector-u8-ci<> str1 beg1 end1 str2 beg2 end2)))
 
   (check-for-true
-   (let* ((str1 "abcd") (beg1 0) (end1 (bytevector-u8-length str1))
-	  (str2 "a2cd") (beg2 0) (end2 (bytevector-u8-length str2)))
+   (let* ((str1 (S "abcd")) (beg1 0) (end1 (bytevector-length str1))
+	  (str2 (S "a2cd")) (beg2 0) (end2 (bytevector-length str2)))
      (%bytevector-u8-ci<> str1 beg1 end1 str2 beg2 end2)))
 
 ;;; --------------------------------------------------------------------
 
   (check-for-false
-   (let* ((str1 "abcd") (beg1 0) (end1 (bytevector-u8-length str1))
-	  (str2 "abcd") (beg2 0) (end2 (bytevector-u8-length str2)))
+   (let* ((str1 (S "abcd")) (beg1 0) (end1 (bytevector-length str1))
+	  (str2 (S "abcd")) (beg2 0) (end2 (bytevector-length str2)))
      (%bytevector-u8-ci< str1 beg1 end1 str2 beg2 end2)))
 
   (check-for-true
-   (let* ((str1 "abc") (beg1 0) (end1 (bytevector-u8-length str1))
-	  (str2 "abcd") (beg2 0) (end2 (bytevector-u8-length str2)))
+   (let* ((str1 (S "abc")) (beg1 0) (end1 (bytevector-length str1))
+	  (str2 (S "abcd")) (beg2 0) (end2 (bytevector-length str2)))
      (%bytevector-u8-ci< str1 beg1 end1 str2 beg2 end2)))
 
   (check-for-false
-   (let* ((str1 "abcd") (beg1 0) (end1 (bytevector-u8-length str1))
-	  (str2 "abc") (beg2 0) (end2 (bytevector-u8-length str2)))
+   (let* ((str1 (S "abcd")) (beg1 0) (end1 (bytevector-length str1))
+	  (str2 (S "abc")) (beg2 0) (end2 (bytevector-length str2)))
      (%bytevector-u8-ci< str1 beg1 end1 str2 beg2 end2)))
 
   (check-for-false
-   (let* ((str1 "ABcd") (beg1 0) (end1 (bytevector-u8-length str1))
-	  (str2 "abcd") (beg2 0) (end2 (bytevector-u8-length str2)))
+   (let* ((str1 (S "abcd")) (beg1 0) (end1 (bytevector-length str1))
+	  (str2 (S "abcd")) (beg2 0) (end2 (bytevector-length str2)))
      (%bytevector-u8-ci< str1 beg1 end1 str2 beg2 end2)))
 
   (check-for-false
-   (let* ((str1 "abcd") (beg1 0) (end1 (bytevector-u8-length str1))
-	  (str2 "a2cd") (beg2 0) (end2 (bytevector-u8-length str2)))
+   (let* ((str1 (S "abcd")) (beg1 0) (end1 (bytevector-length str1))
+	  (str2 (S "a2cd")) (beg2 0) (end2 (bytevector-length str2)))
      (%bytevector-u8-ci< str1 beg1 end1 str2 beg2 end2)))
 
 ;;; --------------------------------------------------------------------
 
   (check-for-true
-   (let* ((str1 "abcd") (beg1 0) (end1 (bytevector-u8-length str1))
-	  (str2 "abcd") (beg2 0) (end2 (bytevector-u8-length str2)))
+   (let* ((str1 (S "abcd")) (beg1 0) (end1 (bytevector-length str1))
+	  (str2 (S "abcd")) (beg2 0) (end2 (bytevector-length str2)))
      (%bytevector-u8-ci<= str1 beg1 end1 str2 beg2 end2)))
 
   (check-for-true
-   (let* ((str1 "abc") (beg1 0) (end1 (bytevector-u8-length str1))
-	  (str2 "abcd") (beg2 0) (end2 (bytevector-u8-length str2)))
+   (let* ((str1 (S "abc")) (beg1 0) (end1 (bytevector-length str1))
+	  (str2 (S "abcd")) (beg2 0) (end2 (bytevector-length str2)))
      (%bytevector-u8-ci<= str1 beg1 end1 str2 beg2 end2)))
 
   (check-for-false
-   (let* ((str1 "abcd") (beg1 0) (end1 (bytevector-u8-length str1))
-	  (str2 "abc") (beg2 0) (end2 (bytevector-u8-length str2)))
+   (let* ((str1 (S "abcd")) (beg1 0) (end1 (bytevector-length str1))
+	  (str2 (S "abc")) (beg2 0) (end2 (bytevector-length str2)))
      (%bytevector-u8-ci<= str1 beg1 end1 str2 beg2 end2)))
 
   (check-for-true
-   (let* ((str1 "ABcd") (beg1 0) (end1 (bytevector-u8-length str1))
-	  (str2 "abcd") (beg2 0) (end2 (bytevector-u8-length str2)))
+   (let* ((str1 (S "abcd")) (beg1 0) (end1 (bytevector-length str1))
+	  (str2 (S "abcd")) (beg2 0) (end2 (bytevector-length str2)))
      (%bytevector-u8-ci<= str1 beg1 end1 str2 beg2 end2)))
 
   (check-for-false
-   (let* ((str1 "abcd") (beg1 0) (end1 (bytevector-u8-length str1))
-	  (str2 "a2cd") (beg2 0) (end2 (bytevector-u8-length str2)))
+   (let* ((str1 (S "abcd")) (beg1 0) (end1 (bytevector-length str1))
+	  (str2 (S "a2cd")) (beg2 0) (end2 (bytevector-length str2)))
      (%bytevector-u8-ci<= str1 beg1 end1 str2 beg2 end2)))
 
 ;;; --------------------------------------------------------------------
 
   (check-for-false
-   (let* ((str1 "abcd") (beg1 0) (end1 (bytevector-u8-length str1))
-	  (str2 "abcd") (beg2 0) (end2 (bytevector-u8-length str2)))
+   (let* ((str1 (S "abcd")) (beg1 0) (end1 (bytevector-length str1))
+	  (str2 (S "abcd")) (beg2 0) (end2 (bytevector-length str2)))
      (%bytevector-u8-ci> str1 beg1 end1 str2 beg2 end2)))
 
   (check-for-true
-   (let* ((str1 "abcd") (beg1 0) (end1 (bytevector-u8-length str1))
-	  (str2 "abc") (beg2 0) (end2 (bytevector-u8-length str2)))
+   (let* ((str1 (S "abcd")) (beg1 0) (end1 (bytevector-length str1))
+	  (str2 (S "abc")) (beg2 0) (end2 (bytevector-length str2)))
      (%bytevector-u8-ci> str1 beg1 end1 str2 beg2 end2)))
 
   (check-for-false
-   (let* ((str1 "abc") (beg1 0) (end1 (bytevector-u8-length str1))
-	  (str2 "abcd") (beg2 0) (end2 (bytevector-u8-length str2)))
+   (let* ((str1 (S "abc")) (beg1 0) (end1 (bytevector-length str1))
+	  (str2 (S "abcd")) (beg2 0) (end2 (bytevector-length str2)))
      (%bytevector-u8-ci> str1 beg1 end1 str2 beg2 end2)))
 
   (check-for-false
-   (let* ((str1 "abcd") (beg1 0) (end1 (bytevector-u8-length str1))
-	  (str2 "ABcd") (beg2 0) (end2 (bytevector-u8-length str2)))
+   (let* ((str1 (S "abcd")) (beg1 0) (end1 (bytevector-length str1))
+	  (str2 (S "abcd")) (beg2 0) (end2 (bytevector-length str2)))
      (%bytevector-u8-ci> str1 beg1 end1 str2 beg2 end2)))
 
   (check-for-false
-   (let* ((str1 "a2cd") (beg1 0) (end1 (bytevector-u8-length str1))
-	  (str2 "abcd") (beg2 0) (end2 (bytevector-u8-length str2)))
+   (let* ((str1 (S "a2cd")) (beg1 0) (end1 (bytevector-length str1))
+	  (str2 (S "abcd")) (beg2 0) (end2 (bytevector-length str2)))
      (%bytevector-u8-ci> str1 beg1 end1 str2 beg2 end2)))
 
 ;;; --------------------------------------------------------------------
 
   (check-for-true
-   (let* ((str1 "abcd") (beg1 0) (end1 (bytevector-u8-length str1))
-	  (str2 "abcd") (beg2 0) (end2 (bytevector-u8-length str2)))
+   (let* ((str1 (S "abcd")) (beg1 0) (end1 (bytevector-length str1))
+	  (str2 (S "abcd")) (beg2 0) (end2 (bytevector-length str2)))
      (%bytevector-u8-ci>= str1 beg1 end1 str2 beg2 end2)))
 
   (check-for-true
-   (let* ((str1 "abcd") (beg1 0) (end1 (bytevector-u8-length str1))
-	  (str2 "abc") (beg2 0) (end2 (bytevector-u8-length str2)))
+   (let* ((str1 (S "abcd")) (beg1 0) (end1 (bytevector-length str1))
+	  (str2 (S "abc")) (beg2 0) (end2 (bytevector-length str2)))
      (%bytevector-u8-ci>= str1 beg1 end1 str2 beg2 end2)))
 
   (check-for-false
-   (let* ((str1 "abc") (beg1 0) (end1 (bytevector-u8-length str1))
-	  (str2 "abcd") (beg2 0) (end2 (bytevector-u8-length str2)))
+   (let* ((str1 (S "abc")) (beg1 0) (end1 (bytevector-length str1))
+	  (str2 (S "abcd")) (beg2 0) (end2 (bytevector-length str2)))
      (%bytevector-u8-ci>= str1 beg1 end1 str2 beg2 end2)))
 
   (check-for-true
-   (let* ((str1 "abcd") (beg1 0) (end1 (bytevector-u8-length str1))
-	  (str2 "ABcd") (beg2 0) (end2 (bytevector-u8-length str2)))
+   (let* ((str1 (S "abcd")) (beg1 0) (end1 (bytevector-length str1))
+	  (str2 (S "abcd")) (beg2 0) (end2 (bytevector-length str2)))
      (%bytevector-u8-ci>= str1 beg1 end1 str2 beg2 end2)))
 
   (check-for-false
-   (let* ((str1 "a2cd") (beg1 0) (end1 (bytevector-u8-length str1))
-	  (str2 "abcd") (beg2 0) (end2 (bytevector-u8-length str2)))
+   (let* ((str1 (S "a2cd")) (beg1 0) (end1 (bytevector-length str1))
+	  (str2 (S "abcd")) (beg2 0) (end2 (bytevector-length str2)))
      (%bytevector-u8-ci>= str1 beg1 end1 str2 beg2 end2)))
 
   #t)
@@ -689,1161 +691,1161 @@
 
 (parameterise ((check-test-name 'comparison-dictionary-case-sensitive))
 
-  (check (%bytevector-u8-dictionary=? "" "")				=> #t)
-  (check (%bytevector-u8-dictionary=? "a" "")				=> #f)
-  (check (%bytevector-u8-dictionary=? "" "a")				=> #f)
-  (check (%bytevector-u8-dictionary=? "ab" "a")			=> #f)
-  (check (%bytevector-u8-dictionary=? "a" "ab")			=> #f)
-  (check (%bytevector-u8-dictionary=? "ciao" "ciao")			=> #t)
-  (check (%bytevector-u8-dictionary=? "ciao1" "ciao")			=> #f)
-  (check (%bytevector-u8-dictionary=? "ciao" "ciao1")			=> #f)
+  (check (%bytevector-u8-dictionary=? '#vu8() '#vu8())				=> #t)
+  (check (%bytevector-u8-dictionary=? (S "a") '#vu8())				=> #f)
+  (check (%bytevector-u8-dictionary=? '#vu8() (S "a"))				=> #f)
+  (check (%bytevector-u8-dictionary=? (S "ab") (S "a"))			=> #f)
+  (check (%bytevector-u8-dictionary=? (S "a") (S "ab"))			=> #f)
+  (check (%bytevector-u8-dictionary=? (S "ciao") (S "ciao"))			=> #t)
+  (check (%bytevector-u8-dictionary=? (S "ciao1") (S "ciao"))			=> #f)
+  (check (%bytevector-u8-dictionary=? (S "ciao") (S "ciao1"))			=> #f)
 
-  (check (%bytevector-u8-dictionary=? "ci ao" "ciao")			=> #t)
-  (check (%bytevector-u8-dictionary=? "ciao" "ci ao")			=> #t)
-  (check (%bytevector-u8-dictionary=? "ci\tao" "ciao")			=> #t)
-  (check (%bytevector-u8-dictionary=? "ciao" "ci\tao")			=> #t)
-  (check (%bytevector-u8-dictionary=? "ci\nao" "ciao")			=> #t)
-  (check (%bytevector-u8-dictionary=? "ciao" "ci\nao")			=> #t)
-  (check (%bytevector-u8-dictionary=? "ci\vao" "ciao")			=> #t)
-  (check (%bytevector-u8-dictionary=? "ciao" "ci\tao")			=> #t)
-  (check (%bytevector-u8-dictionary=? "ci\fao" "ciao")			=> #t)
-  (check (%bytevector-u8-dictionary=? "ciao" "ci\fao")			=> #t)
-  (check (%bytevector-u8-dictionary=? "ci\rao" "ciao")			=> #t)
-  (check (%bytevector-u8-dictionary=? "ciao" "ci\rao")			=> #t)
-
-;;; --------------------------------------------------------------------
-
-  (check (%bytevector-u8-dictionary<? "" "")				=> #f)
-  (check (%bytevector-u8-dictionary<? "a" "")				=> #f)
-  (check (%bytevector-u8-dictionary<? "" "a")				=> #t)
-  (check (%bytevector-u8-dictionary<? "ab" "a")			=> #f)
-  (check (%bytevector-u8-dictionary<? "a" "ab")			=> #t)
-  (check (%bytevector-u8-dictionary<? "ciao" "ciao")			=> #f)
-  (check (%bytevector-u8-dictionary<? "ciao1" "ciao")			=> #f)
-  (check (%bytevector-u8-dictionary<? "ciao" "ciao1")			=> #t)
-
-  (check (%bytevector-u8-dictionary<? "ci ao" "ciao")			=> #f)
-  (check (%bytevector-u8-dictionary<? "ciao" "ci ao")			=> #f)
-  (check (%bytevector-u8-dictionary<? "ci\tao" "ciao")			=> #f)
-  (check (%bytevector-u8-dictionary<? "ciao" "ci\tao")			=> #f)
-  (check (%bytevector-u8-dictionary<? "ci\nao" "ciao")			=> #f)
-  (check (%bytevector-u8-dictionary<? "ciao" "ci\nao")			=> #f)
-  (check (%bytevector-u8-dictionary<? "ci\vao" "ciao")			=> #f)
-  (check (%bytevector-u8-dictionary<? "ciao" "ci\tao")			=> #f)
-  (check (%bytevector-u8-dictionary<? "ci\fao" "ciao")			=> #f)
-  (check (%bytevector-u8-dictionary<? "ciao" "ci\fao")			=> #f)
-  (check (%bytevector-u8-dictionary<? "ci\rao" "ciao")			=> #f)
-  (check (%bytevector-u8-dictionary<? "ciao" "ci\rao")			=> #f)
+  (check (%bytevector-u8-dictionary=? (S "ci ao") (S "ciao"))			=> #t)
+  (check (%bytevector-u8-dictionary=? (S "ciao") (S "ci ao"))			=> #t)
+  (check (%bytevector-u8-dictionary=? (S "ci\tao") (S "ciao"))			=> #t)
+  (check (%bytevector-u8-dictionary=? (S "ciao") (S "ci\tao"))			=> #t)
+  (check (%bytevector-u8-dictionary=? (S "ci\nao") (S "ciao"))			=> #t)
+  (check (%bytevector-u8-dictionary=? (S "ciao") (S "ci\nao"))			=> #t)
+  (check (%bytevector-u8-dictionary=? (S "ci\vao") (S "ciao"))			=> #t)
+  (check (%bytevector-u8-dictionary=? (S "ciao") (S "ci\tao"))			=> #t)
+  (check (%bytevector-u8-dictionary=? (S "ci\fao") (S "ciao"))			=> #t)
+  (check (%bytevector-u8-dictionary=? (S "ciao") (S "ci\fao"))			=> #t)
+  (check (%bytevector-u8-dictionary=? (S "ci\rao") (S "ciao"))			=> #t)
+  (check (%bytevector-u8-dictionary=? (S "ciao") (S "ci\rao"))			=> #t)
 
 ;;; --------------------------------------------------------------------
 
-  (check (%bytevector-u8-dictionary<=? "" "")				=> #t)
-  (check (%bytevector-u8-dictionary<=? "a" "")				=> #f)
-  (check (%bytevector-u8-dictionary<=? "" "a")				=> #t)
-  (check (%bytevector-u8-dictionary<=? "ab" "a")			=> #f)
-  (check (%bytevector-u8-dictionary<=? "a" "ab")			=> #t)
-  (check (%bytevector-u8-dictionary<=? "ciao" "ciao")			=> #t)
-  (check (%bytevector-u8-dictionary<=? "ciao1" "ciao")			=> #f)
-  (check (%bytevector-u8-dictionary<=? "ciao" "ciao1")			=> #t)
+  (check (%bytevector-u8-dictionary<? '#vu8() '#vu8())				=> #f)
+  (check (%bytevector-u8-dictionary<? (S "a") '#vu8())				=> #f)
+  (check (%bytevector-u8-dictionary<? '#vu8() (S "a"))				=> #t)
+  (check (%bytevector-u8-dictionary<? (S "ab") (S "a"))			=> #f)
+  (check (%bytevector-u8-dictionary<? (S "a") (S "ab"))			=> #t)
+  (check (%bytevector-u8-dictionary<? (S "ciao") (S "ciao"))			=> #f)
+  (check (%bytevector-u8-dictionary<? (S "ciao1") (S "ciao"))			=> #f)
+  (check (%bytevector-u8-dictionary<? (S "ciao") (S "ciao1"))			=> #t)
 
-  (check (%bytevector-u8-dictionary<=? "ci ao" "ciao")			=> #t)
-  (check (%bytevector-u8-dictionary<=? "ciao" "ci ao")			=> #t)
-  (check (%bytevector-u8-dictionary<=? "ci\tao" "ciao")		=> #t)
-  (check (%bytevector-u8-dictionary<=? "ciao" "ci\tao")		=> #t)
-  (check (%bytevector-u8-dictionary<=? "ci\nao" "ciao")		=> #t)
-  (check (%bytevector-u8-dictionary<=? "ciao" "ci\nao")		=> #t)
-  (check (%bytevector-u8-dictionary<=? "ci\vao" "ciao")		=> #t)
-  (check (%bytevector-u8-dictionary<=? "ciao" "ci\tao")		=> #t)
-  (check (%bytevector-u8-dictionary<=? "ci\fao" "ciao")		=> #t)
-  (check (%bytevector-u8-dictionary<=? "ciao" "ci\fao")		=> #t)
-  (check (%bytevector-u8-dictionary<=? "ci\rao" "ciao")		=> #t)
-  (check (%bytevector-u8-dictionary<=? "ciao" "ci\rao")		=> #t)
-
-;;; --------------------------------------------------------------------
-
-  (check (%bytevector-u8-dictionary>? "" "")				=> #f)
-  (check (%bytevector-u8-dictionary>? "a" "")				=> #t)
-  (check (%bytevector-u8-dictionary>? "" "a")				=> #f)
-  (check (%bytevector-u8-dictionary>? "ab" "a")			=> #t)
-  (check (%bytevector-u8-dictionary>? "a" "ab")			=> #f)
-  (check (%bytevector-u8-dictionary>? "ciao" "ciao")			=> #f)
-  (check (%bytevector-u8-dictionary>? "ciao1" "ciao")			=> #t)
-  (check (%bytevector-u8-dictionary>? "ciao" "ciao1")			=> #f)
-
-  (check (%bytevector-u8-dictionary>? "ci ao" "ciao")			=> #f)
-  (check (%bytevector-u8-dictionary>? "ciao" "ci ao")			=> #f)
-  (check (%bytevector-u8-dictionary>? "ci\tao" "ciao")			=> #f)
-  (check (%bytevector-u8-dictionary>? "ciao" "ci\tao")			=> #f)
-  (check (%bytevector-u8-dictionary>? "ci\nao" "ciao")			=> #f)
-  (check (%bytevector-u8-dictionary>? "ciao" "ci\nao")			=> #f)
-  (check (%bytevector-u8-dictionary>? "ci\vao" "ciao")			=> #f)
-  (check (%bytevector-u8-dictionary>? "ciao" "ci\tao")			=> #f)
-  (check (%bytevector-u8-dictionary>? "ci\fao" "ciao")			=> #f)
-  (check (%bytevector-u8-dictionary>? "ciao" "ci\fao")			=> #f)
-  (check (%bytevector-u8-dictionary>? "ci\rao" "ciao")			=> #f)
-  (check (%bytevector-u8-dictionary>? "ciao" "ci\rao")			=> #f)
+  (check (%bytevector-u8-dictionary<? (S "ci ao") (S "ciao"))			=> #f)
+  (check (%bytevector-u8-dictionary<? (S "ciao") (S "ci ao"))			=> #f)
+  (check (%bytevector-u8-dictionary<? (S "ci\tao") (S "ciao"))			=> #f)
+  (check (%bytevector-u8-dictionary<? (S "ciao") (S "ci\tao"))			=> #f)
+  (check (%bytevector-u8-dictionary<? (S "ci\nao") (S "ciao"))			=> #f)
+  (check (%bytevector-u8-dictionary<? (S "ciao") (S "ci\nao"))			=> #f)
+  (check (%bytevector-u8-dictionary<? (S "ci\vao") (S "ciao"))			=> #f)
+  (check (%bytevector-u8-dictionary<? (S "ciao") (S "ci\tao"))			=> #f)
+  (check (%bytevector-u8-dictionary<? (S "ci\fao") (S "ciao"))			=> #f)
+  (check (%bytevector-u8-dictionary<? (S "ciao") (S "ci\fao"))			=> #f)
+  (check (%bytevector-u8-dictionary<? (S "ci\rao") (S "ciao"))			=> #f)
+  (check (%bytevector-u8-dictionary<? (S "ciao") (S "ci\rao"))			=> #f)
 
 ;;; --------------------------------------------------------------------
 
-  (check (%bytevector-u8-dictionary>=? "" "")				=> #t)
-  (check (%bytevector-u8-dictionary>=? "a" "")				=> #t)
-  (check (%bytevector-u8-dictionary>=? "" "a")				=> #f)
-  (check (%bytevector-u8-dictionary>=? "ab" "a")			=> #t)
-  (check (%bytevector-u8-dictionary>=? "a" "ab")			=> #f)
-  (check (%bytevector-u8-dictionary>=? "ciao" "ciao")			=> #t)
-  (check (%bytevector-u8-dictionary>=? "ciao1" "ciao")			=> #t)
-  (check (%bytevector-u8-dictionary>=? "ciao" "ciao1")			=> #f)
+  (check (%bytevector-u8-dictionary<=? '#vu8() '#vu8())				=> #t)
+  (check (%bytevector-u8-dictionary<=? (S "a") '#vu8())				=> #f)
+  (check (%bytevector-u8-dictionary<=? '#vu8() (S "a"))				=> #t)
+  (check (%bytevector-u8-dictionary<=? (S "ab") (S "a"))			=> #f)
+  (check (%bytevector-u8-dictionary<=? (S "a") (S "ab"))			=> #t)
+  (check (%bytevector-u8-dictionary<=? (S "ciao") (S "ciao"))			=> #t)
+  (check (%bytevector-u8-dictionary<=? (S "ciao1") (S "ciao"))			=> #f)
+  (check (%bytevector-u8-dictionary<=? (S "ciao") (S "ciao1"))			=> #t)
 
-  (check (%bytevector-u8-dictionary>=? "ci ao" "ciao")			=> #t)
-  (check (%bytevector-u8-dictionary>=? "ciao" "ci ao")			=> #t)
-  (check (%bytevector-u8-dictionary>=? "ci\tao" "ciao")		=> #t)
-  (check (%bytevector-u8-dictionary>=? "ciao" "ci\tao")		=> #t)
-  (check (%bytevector-u8-dictionary>=? "ci\nao" "ciao")		=> #t)
-  (check (%bytevector-u8-dictionary>=? "ciao" "ci\nao")		=> #t)
-  (check (%bytevector-u8-dictionary>=? "ci\vao" "ciao")		=> #t)
-  (check (%bytevector-u8-dictionary>=? "ciao" "ci\tao")		=> #t)
-  (check (%bytevector-u8-dictionary>=? "ci\fao" "ciao")		=> #t)
-  (check (%bytevector-u8-dictionary>=? "ciao" "ci\fao")		=> #t)
-  (check (%bytevector-u8-dictionary>=? "ci\rao" "ciao")		=> #t)
-  (check (%bytevector-u8-dictionary>=? "ciao" "ci\rao")		=> #t)
+  (check (%bytevector-u8-dictionary<=? (S "ci ao") (S "ciao"))			=> #t)
+  (check (%bytevector-u8-dictionary<=? (S "ciao") (S "ci ao"))			=> #t)
+  (check (%bytevector-u8-dictionary<=? (S "ci\tao") (S "ciao"))		=> #t)
+  (check (%bytevector-u8-dictionary<=? (S "ciao") (S "ci\tao"))		=> #t)
+  (check (%bytevector-u8-dictionary<=? (S "ci\nao") (S "ciao"))		=> #t)
+  (check (%bytevector-u8-dictionary<=? (S "ciao") (S "ci\nao"))		=> #t)
+  (check (%bytevector-u8-dictionary<=? (S "ci\vao") (S "ciao"))		=> #t)
+  (check (%bytevector-u8-dictionary<=? (S "ciao") (S "ci\tao"))		=> #t)
+  (check (%bytevector-u8-dictionary<=? (S "ci\fao") (S "ciao"))		=> #t)
+  (check (%bytevector-u8-dictionary<=? (S "ciao") (S "ci\fao"))		=> #t)
+  (check (%bytevector-u8-dictionary<=? (S "ci\rao") (S "ciao"))		=> #t)
+  (check (%bytevector-u8-dictionary<=? (S "ciao") (S "ci\rao"))		=> #t)
+
+;;; --------------------------------------------------------------------
+
+  (check (%bytevector-u8-dictionary>? '#vu8() '#vu8())				=> #f)
+  (check (%bytevector-u8-dictionary>? (S "a") '#vu8())				=> #t)
+  (check (%bytevector-u8-dictionary>? '#vu8() (S "a"))				=> #f)
+  (check (%bytevector-u8-dictionary>? (S "ab") (S "a"))			=> #t)
+  (check (%bytevector-u8-dictionary>? (S "a") (S "ab"))			=> #f)
+  (check (%bytevector-u8-dictionary>? (S "ciao") (S "ciao"))			=> #f)
+  (check (%bytevector-u8-dictionary>? (S "ciao1") (S "ciao"))			=> #t)
+  (check (%bytevector-u8-dictionary>? (S "ciao") (S "ciao1"))			=> #f)
+
+  (check (%bytevector-u8-dictionary>? (S "ci ao") (S "ciao"))			=> #f)
+  (check (%bytevector-u8-dictionary>? (S "ciao") (S "ci ao"))			=> #f)
+  (check (%bytevector-u8-dictionary>? (S "ci\tao") (S "ciao"))			=> #f)
+  (check (%bytevector-u8-dictionary>? (S "ciao") (S "ci\tao"))			=> #f)
+  (check (%bytevector-u8-dictionary>? (S "ci\nao") (S "ciao"))			=> #f)
+  (check (%bytevector-u8-dictionary>? (S "ciao") (S "ci\nao"))			=> #f)
+  (check (%bytevector-u8-dictionary>? (S "ci\vao") (S "ciao"))			=> #f)
+  (check (%bytevector-u8-dictionary>? (S "ciao") (S "ci\tao"))			=> #f)
+  (check (%bytevector-u8-dictionary>? (S "ci\fao") (S "ciao"))			=> #f)
+  (check (%bytevector-u8-dictionary>? (S "ciao") (S "ci\fao"))			=> #f)
+  (check (%bytevector-u8-dictionary>? (S "ci\rao") (S "ciao"))			=> #f)
+  (check (%bytevector-u8-dictionary>? (S "ciao") (S "ci\rao"))			=> #f)
+
+;;; --------------------------------------------------------------------
+
+  (check (%bytevector-u8-dictionary>=? '#vu8() '#vu8())				=> #t)
+  (check (%bytevector-u8-dictionary>=? (S "a") '#vu8())				=> #t)
+  (check (%bytevector-u8-dictionary>=? '#vu8() (S "a"))				=> #f)
+  (check (%bytevector-u8-dictionary>=? (S "ab") (S "a"))			=> #t)
+  (check (%bytevector-u8-dictionary>=? (S "a") (S "ab"))			=> #f)
+  (check (%bytevector-u8-dictionary>=? (S "ciao") (S "ciao"))			=> #t)
+  (check (%bytevector-u8-dictionary>=? (S "ciao1") (S "ciao"))			=> #t)
+  (check (%bytevector-u8-dictionary>=? (S "ciao") (S "ciao1"))			=> #f)
+
+  (check (%bytevector-u8-dictionary>=? (S "ci ao") (S "ciao"))			=> #t)
+  (check (%bytevector-u8-dictionary>=? (S "ciao") (S "ci ao"))			=> #t)
+  (check (%bytevector-u8-dictionary>=? (S "ci\tao") (S "ciao"))		=> #t)
+  (check (%bytevector-u8-dictionary>=? (S "ciao") (S "ci\tao"))		=> #t)
+  (check (%bytevector-u8-dictionary>=? (S "ci\nao") (S "ciao"))		=> #t)
+  (check (%bytevector-u8-dictionary>=? (S "ciao") (S "ci\nao"))		=> #t)
+  (check (%bytevector-u8-dictionary>=? (S "ci\vao") (S "ciao"))		=> #t)
+  (check (%bytevector-u8-dictionary>=? (S "ciao") (S "ci\tao"))		=> #t)
+  (check (%bytevector-u8-dictionary>=? (S "ci\fao") (S "ciao"))		=> #t)
+  (check (%bytevector-u8-dictionary>=? (S "ciao") (S "ci\fao"))		=> #t)
+  (check (%bytevector-u8-dictionary>=? (S "ci\rao") (S "ciao"))		=> #t)
+  (check (%bytevector-u8-dictionary>=? (S "ciao") (S "ci\rao"))		=> #t)
 
   #t)
 
 
 (parameterise ((check-test-name 'comparison-dictionary-case-insensitive))
 
-  (check (%bytevector-u8-dictionary-ci=? "" "")			=> #t)
-  (check (%bytevector-u8-dictionary-ci=? "a" "")			=> #f)
-  (check (%bytevector-u8-dictionary-ci=? "" "a")			=> #f)
-  (check (%bytevector-u8-dictionary-ci=? "ab" "a")			=> #f)
-  (check (%bytevector-u8-dictionary-ci=? "a" "ab")			=> #f)
-  (check (%bytevector-u8-dictionary-ci=? "ciao" "ciao")		=> #t)
-  (check (%bytevector-u8-dictionary-ci=? "ciao1" "ciao")		=> #f)
-  (check (%bytevector-u8-dictionary-ci=? "ciao" "ciao1")		=> #f)
-  (check (%bytevector-u8-dictionary-ci=? "CIAO" "ciao")		=> #t)
-  (check (%bytevector-u8-dictionary-ci=? "CIAO1" "ciao")		=> #f)
-  (check (%bytevector-u8-dictionary-ci=? "CIAO" "ciao1")		=> #f)
+  (check (%bytevector-u8-dictionary-ci=? '#vu8() '#vu8())		=> #t)
+  (check (%bytevector-u8-dictionary-ci=? (S "a") '#vu8())			=> #f)
+  (check (%bytevector-u8-dictionary-ci=? '#vu8() (S "a"))			=> #f)
+  (check (%bytevector-u8-dictionary-ci=? (S "ab") (S "a"))			=> #f)
+  (check (%bytevector-u8-dictionary-ci=? (S "a") (S "ab"))			=> #f)
+  (check (%bytevector-u8-dictionary-ci=? (S "ciao") (S "ciao"))		=> #t)
+  (check (%bytevector-u8-dictionary-ci=? (S "ciao1") (S "ciao"))		=> #f)
+  (check (%bytevector-u8-dictionary-ci=? (S "ciao") "ciao1")		=> #f)
+  (check (%bytevector-u8-dictionary-ci=? (S "CIAO") (S "ciao"))		=> #t)
+  (check (%bytevector-u8-dictionary-ci=? (S "CIAO1") (S "ciao"))		=> #f)
+  (check (%bytevector-u8-dictionary-ci=? (S "CIAO") "ciao1")		=> #f)
 
-  (check (%bytevector-u8-dictionary-ci=? "ci ao" "ciao")		=> #t)
-  (check (%bytevector-u8-dictionary-ci=? "ciao" "ci ao")		=> #t)
-  (check (%bytevector-u8-dictionary-ci=? "ci\tao" "ciao")		=> #t)
-  (check (%bytevector-u8-dictionary-ci=? "ciao" "ci\tao")		=> #t)
-  (check (%bytevector-u8-dictionary-ci=? "ci\nao" "ciao")		=> #t)
-  (check (%bytevector-u8-dictionary-ci=? "ciao" "ci\nao")		=> #t)
-  (check (%bytevector-u8-dictionary-ci=? "ci\vao" "ciao")		=> #t)
-  (check (%bytevector-u8-dictionary-ci=? "ciao" "ci\tao")		=> #t)
-  (check (%bytevector-u8-dictionary-ci=? "ci\fao" "ciao")		=> #t)
-  (check (%bytevector-u8-dictionary-ci=? "ciao" "ci\fao")		=> #t)
-  (check (%bytevector-u8-dictionary-ci=? "ci\rao" "ciao")		=> #t)
-  (check (%bytevector-u8-dictionary-ci=? "ciao" "ci\rao")		=> #t)
-
-;;; --------------------------------------------------------------------
-
-  (check (%bytevector-u8-dictionary-ci<? "" "")			=> #f)
-  (check (%bytevector-u8-dictionary-ci<? "a" "")			=> #f)
-  (check (%bytevector-u8-dictionary-ci<? "" "a")			=> #t)
-  (check (%bytevector-u8-dictionary-ci<? "ab" "a")			=> #f)
-  (check (%bytevector-u8-dictionary-ci<? "a" "ab")			=> #t)
-  (check (%bytevector-u8-dictionary-ci<? "ciao" "ciao")		=> #f)
-  (check (%bytevector-u8-dictionary-ci<? "ciao1" "ciao")		=> #f)
-  (check (%bytevector-u8-dictionary-ci<? "ciao" "ciao1")		=> #t)
-  (check (%bytevector-u8-dictionary-ci<? "CIAO" "ciao")		=> #f)
-  (check (%bytevector-u8-dictionary-ci<? "CIAO1" "ciao")		=> #f)
-  (check (%bytevector-u8-dictionary-ci<? "CIAO" "ciao1")		=> #t)
-
-  (check (%bytevector-u8-dictionary-ci<? "ci ao" "ciao")		=> #f)
-  (check (%bytevector-u8-dictionary-ci<? "ciao" "ci ao")		=> #f)
-  (check (%bytevector-u8-dictionary-ci<? "ci\tao" "ciao")		=> #f)
-  (check (%bytevector-u8-dictionary-ci<? "ciao" "ci\tao")		=> #f)
-  (check (%bytevector-u8-dictionary-ci<? "ci\nao" "ciao")		=> #f)
-  (check (%bytevector-u8-dictionary-ci<? "ciao" "ci\nao")		=> #f)
-  (check (%bytevector-u8-dictionary-ci<? "ci\vao" "ciao")		=> #f)
-  (check (%bytevector-u8-dictionary-ci<? "ciao" "ci\tao")		=> #f)
-  (check (%bytevector-u8-dictionary-ci<? "ci\fao" "ciao")		=> #f)
-  (check (%bytevector-u8-dictionary-ci<? "ciao" "ci\fao")		=> #f)
-  (check (%bytevector-u8-dictionary-ci<? "ci\rao" "ciao")		=> #f)
-  (check (%bytevector-u8-dictionary-ci<? "ciao" "ci\rao")		=> #f)
+  (check (%bytevector-u8-dictionary-ci=? (S "ci ao") (S "ciao"))		=> #t)
+  (check (%bytevector-u8-dictionary-ci=? (S "ciao") (S "ci ao"))		=> #t)
+  (check (%bytevector-u8-dictionary-ci=? (S "ci\tao") (S "ciao"))		=> #t)
+  (check (%bytevector-u8-dictionary-ci=? (S "ciao") (S "ci\tao"))		=> #t)
+  (check (%bytevector-u8-dictionary-ci=? (S "ci\nao") (S "ciao"))		=> #t)
+  (check (%bytevector-u8-dictionary-ci=? (S "ciao") (S "ci\nao"))		=> #t)
+  (check (%bytevector-u8-dictionary-ci=? (S "ci\vao") (S "ciao"))		=> #t)
+  (check (%bytevector-u8-dictionary-ci=? (S "ciao") (S "ci\tao"))		=> #t)
+  (check (%bytevector-u8-dictionary-ci=? (S "ci\fao") (S "ciao"))		=> #t)
+  (check (%bytevector-u8-dictionary-ci=? (S "ciao") (S "ci\fao"))		=> #t)
+  (check (%bytevector-u8-dictionary-ci=? (S "ci\rao") (S "ciao"))		=> #t)
+  (check (%bytevector-u8-dictionary-ci=? (S "ciao") (S "ci\rao"))		=> #t)
 
 ;;; --------------------------------------------------------------------
 
-  (check (%bytevector-u8-dictionary-ci<=? "" "")			=> #t)
-  (check (%bytevector-u8-dictionary-ci<=? "a" "")			=> #f)
-  (check (%bytevector-u8-dictionary-ci<=? "" "a")			=> #t)
-  (check (%bytevector-u8-dictionary-ci<=? "ab" "a")			=> #f)
-  (check (%bytevector-u8-dictionary-ci<=? "a" "ab")			=> #t)
-  (check (%bytevector-u8-dictionary-ci<=? "ciao" "ciao")		=> #t)
-  (check (%bytevector-u8-dictionary-ci<=? "ciao1" "ciao")		=> #f)
-  (check (%bytevector-u8-dictionary-ci<=? "ciao" "ciao1")		=> #t)
-  (check (%bytevector-u8-dictionary-ci<=? "CIAO" "ciao")		=> #t)
-  (check (%bytevector-u8-dictionary-ci<=? "CIAO1" "ciao")		=> #f)
-  (check (%bytevector-u8-dictionary-ci<=? "CIAO" "ciao1")		=> #t)
+  (check (%bytevector-u8-dictionary-ci<? '#vu8() '#vu8())			=> #f)
+  (check (%bytevector-u8-dictionary-ci<? (S "a") '#vu8())			=> #f)
+  (check (%bytevector-u8-dictionary-ci<? '#vu8() (S "a"))			=> #t)
+  (check (%bytevector-u8-dictionary-ci<? (S "ab") (S "a"))			=> #f)
+  (check (%bytevector-u8-dictionary-ci<? (S "a") (S "ab"))			=> #t)
+  (check (%bytevector-u8-dictionary-ci<? (S "ciao") (S "ciao"))		=> #f)
+  (check (%bytevector-u8-dictionary-ci<? (S "ciao1") (S "ciao"))		=> #f)
+  (check (%bytevector-u8-dictionary-ci<? (S "ciao") (S "ciao1"))		=> #t)
+  (check (%bytevector-u8-dictionary-ci<? (S "CIAO") (S "ciao"))		=> #f)
+  (check (%bytevector-u8-dictionary-ci<? (S "CIAO1") (S "ciao"))		=> #f)
+  (check (%bytevector-u8-dictionary-ci<? (S "CIAO") (S "ciao1"))		=> #t)
 
-  (check (%bytevector-u8-dictionary-ci<=? "ci ao" "ciao")		=> #t)
-  (check (%bytevector-u8-dictionary-ci<=? "ciao" "ci ao")		=> #t)
-  (check (%bytevector-u8-dictionary-ci<=? "ci\tao" "ciao")		=> #t)
-  (check (%bytevector-u8-dictionary-ci<=? "ciao" "ci\tao")		=> #t)
-  (check (%bytevector-u8-dictionary-ci<=? "ci\nao" "ciao")		=> #t)
-  (check (%bytevector-u8-dictionary-ci<=? "ciao" "ci\nao")		=> #t)
-  (check (%bytevector-u8-dictionary-ci<=? "ci\vao" "ciao")		=> #t)
-  (check (%bytevector-u8-dictionary-ci<=? "ciao" "ci\tao")		=> #t)
-  (check (%bytevector-u8-dictionary-ci<=? "ci\fao" "ciao")		=> #t)
-  (check (%bytevector-u8-dictionary-ci<=? "ciao" "ci\fao")		=> #t)
-  (check (%bytevector-u8-dictionary-ci<=? "ci\rao" "ciao")		=> #t)
-  (check (%bytevector-u8-dictionary-ci<=? "ciao" "ci\rao")		=> #t)
-
-;;; --------------------------------------------------------------------
-
-  (check (%bytevector-u8-dictionary-ci>? "" "")			=> #f)
-  (check (%bytevector-u8-dictionary-ci>? "a" "")			=> #t)
-  (check (%bytevector-u8-dictionary-ci>? "" "a")			=> #f)
-  (check (%bytevector-u8-dictionary-ci>? "ab" "a")			=> #t)
-  (check (%bytevector-u8-dictionary-ci>? "a" "ab")			=> #f)
-  (check (%bytevector-u8-dictionary-ci>? "ciao" "ciao")		=> #f)
-  (check (%bytevector-u8-dictionary-ci>? "ciao1" "ciao")		=> #t)
-  (check (%bytevector-u8-dictionary-ci>? "ciao" "ciao1")		=> #f)
-  (check (%bytevector-u8-dictionary-ci>? "CIAO" "ciao")		=> #f)
-  (check (%bytevector-u8-dictionary-ci>? "CIAO1" "ciao")		=> #t)
-  (check (%bytevector-u8-dictionary-ci>? "CIAO" "ciao1")		=> #f)
-
-  (check (%bytevector-u8-dictionary-ci>? "ci ao" "ciao")		=> #f)
-  (check (%bytevector-u8-dictionary-ci>? "ciao" "ci ao")		=> #f)
-  (check (%bytevector-u8-dictionary-ci>? "ci\tao" "ciao")		=> #f)
-  (check (%bytevector-u8-dictionary-ci>? "ciao" "ci\tao")		=> #f)
-  (check (%bytevector-u8-dictionary-ci>? "ci\nao" "ciao")		=> #f)
-  (check (%bytevector-u8-dictionary-ci>? "ciao" "ci\nao")		=> #f)
-  (check (%bytevector-u8-dictionary-ci>? "ci\vao" "ciao")		=> #f)
-  (check (%bytevector-u8-dictionary-ci>? "ciao" "ci\tao")		=> #f)
-  (check (%bytevector-u8-dictionary-ci>? "ci\fao" "ciao")		=> #f)
-  (check (%bytevector-u8-dictionary-ci>? "ciao" "ci\fao")		=> #f)
-  (check (%bytevector-u8-dictionary-ci>? "ci\rao" "ciao")		=> #f)
-  (check (%bytevector-u8-dictionary-ci>? "ciao" "ci\rao")		=> #f)
+  (check (%bytevector-u8-dictionary-ci<? (S "ci ao")  (S "ciao"))		=> #f)
+  (check (%bytevector-u8-dictionary-ci<? (S "ciao")   (S "ci ao"))		=> #f)
+  (check (%bytevector-u8-dictionary-ci<? (S "ci\tao") (S "ciao"))		=> #f)
+  (check (%bytevector-u8-dictionary-ci<? (S "ciao")   (S "ci\tao"))		=> #f)
+  (check (%bytevector-u8-dictionary-ci<? (S "ci\nao") (S "ciao"))		=> #f)
+  (check (%bytevector-u8-dictionary-ci<? (S "ciao")   (S "ci\nao"))		=> #f)
+  (check (%bytevector-u8-dictionary-ci<? (S "ci\vao") (S "ciao"))		=> #f)
+  (check (%bytevector-u8-dictionary-ci<? (S "ciao")   (S "ci\tao"))		=> #f)
+  (check (%bytevector-u8-dictionary-ci<? (S "ci\fao") (S "ciao"))		=> #f)
+  (check (%bytevector-u8-dictionary-ci<? (S "ciao")   (S "ci\fao"))		=> #f)
+  (check (%bytevector-u8-dictionary-ci<? (S "ci\rao") (S "ciao"))		=> #f)
+  (check (%bytevector-u8-dictionary-ci<? (S "ciao")   (S "ci\rao"))		=> #f)
 
 ;;; --------------------------------------------------------------------
 
-  (check (%bytevector-u8-dictionary-ci>=? "" "")			=> #t)
-  (check (%bytevector-u8-dictionary-ci>=? "a" "")			=> #t)
-  (check (%bytevector-u8-dictionary-ci>=? "" "a")			=> #f)
-  (check (%bytevector-u8-dictionary-ci>=? "ab" "a")			=> #t)
-  (check (%bytevector-u8-dictionary-ci>=? "a" "ab")			=> #f)
-  (check (%bytevector-u8-dictionary-ci>=? "ciao" "ciao")		=> #t)
-  (check (%bytevector-u8-dictionary-ci>=? "ciao1" "ciao")		=> #t)
-  (check (%bytevector-u8-dictionary-ci>=? "ciao" "ciao1")		=> #f)
-  (check (%bytevector-u8-dictionary-ci>=? "CIAO" "ciao")		=> #t)
-  (check (%bytevector-u8-dictionary-ci>=? "CIAO1" "ciao")		=> #t)
-  (check (%bytevector-u8-dictionary-ci>=? "CIAO" "ciao1")		=> #f)
+  (check (%bytevector-u8-dictionary-ci<=? '#vu8() '#vu8())			=> #t)
+  (check (%bytevector-u8-dictionary-ci<=? (S "a") '#vu8())			=> #f)
+  (check (%bytevector-u8-dictionary-ci<=? '#vu8() (S "a"))			=> #t)
+  (check (%bytevector-u8-dictionary-ci<=? (S "ab") (S "a"))			=> #f)
+  (check (%bytevector-u8-dictionary-ci<=? (S "a") (S "ab"))			=> #t)
+  (check (%bytevector-u8-dictionary-ci<=? (S "ciao") (S "ciao"))		=> #t)
+  (check (%bytevector-u8-dictionary-ci<=? (S "ciao1") (S "ciao"))		=> #f)
+  (check (%bytevector-u8-dictionary-ci<=? (S "ciao") (S "ciao1"))		=> #t)
+  (check (%bytevector-u8-dictionary-ci<=? (S "CIAO") (S "ciao"))		=> #t)
+  (check (%bytevector-u8-dictionary-ci<=? (S "CIAO1") (S "ciao"))		=> #f)
+  (check (%bytevector-u8-dictionary-ci<=? (S "CIAO") (S "ciao1"))		=> #t)
 
-  (check (%bytevector-u8-dictionary-ci>=? "ci ao" "ciao")		=> #t)
-  (check (%bytevector-u8-dictionary-ci>=? "ciao" "ci ao")		=> #t)
-  (check (%bytevector-u8-dictionary-ci>=? "ci\tao" "ciao")		=> #t)
-  (check (%bytevector-u8-dictionary-ci>=? "ciao" "ci\tao")		=> #t)
-  (check (%bytevector-u8-dictionary-ci>=? "ci\nao" "ciao")		=> #t)
-  (check (%bytevector-u8-dictionary-ci>=? "ciao" "ci\nao")		=> #t)
-  (check (%bytevector-u8-dictionary-ci>=? "ci\vao" "ciao")		=> #t)
-  (check (%bytevector-u8-dictionary-ci>=? "ciao" "ci\tao")		=> #t)
-  (check (%bytevector-u8-dictionary-ci>=? "ci\fao" "ciao")		=> #t)
-  (check (%bytevector-u8-dictionary-ci>=? "ciao" "ci\fao")		=> #t)
-  (check (%bytevector-u8-dictionary-ci>=? "ci\rao" "ciao")		=> #t)
-  (check (%bytevector-u8-dictionary-ci>=? "ciao" "ci\rao")		=> #t)
+  (check (%bytevector-u8-dictionary-ci<=? (S "ci ao")  (S "ciao"))		=> #t)
+  (check (%bytevector-u8-dictionary-ci<=? (S "ciao")   (S "ci ao"))		=> #t)
+  (check (%bytevector-u8-dictionary-ci<=? (S "ci\tao") (S "ciao"))		=> #t)
+  (check (%bytevector-u8-dictionary-ci<=? (S "ciao")   (S "ci\tao"))		=> #t)
+  (check (%bytevector-u8-dictionary-ci<=? (S "ci\nao") (S "ciao"))		=> #t)
+  (check (%bytevector-u8-dictionary-ci<=? (S "ciao")   (S "ci\nao"))		=> #t)
+  (check (%bytevector-u8-dictionary-ci<=? (S "ci\vao") (S "ciao"))		=> #t)
+  (check (%bytevector-u8-dictionary-ci<=? (S "ciao")   (S "ci\tao"))		=> #t)
+  (check (%bytevector-u8-dictionary-ci<=? (S "ci\fao") (S "ciao"))		=> #t)
+  (check (%bytevector-u8-dictionary-ci<=? (S "ciao")   (S "ci\fao"))		=> #t)
+  (check (%bytevector-u8-dictionary-ci<=? (S "ci\rao") (S "ciao"))		=> #t)
+  (check (%bytevector-u8-dictionary-ci<=? (S "ciao")   (S "ci\rao"))		=> #t)
+
+;;; --------------------------------------------------------------------
+
+  (check (%bytevector-u8-dictionary-ci>? '#vu8() '#vu8())			=> #f)
+  (check (%bytevector-u8-dictionary-ci>? (S "a") '#vu8())			=> #t)
+  (check (%bytevector-u8-dictionary-ci>? '#vu8()     (S "a"))			=> #f)
+  (check (%bytevector-u8-dictionary-ci>? (S "ab")    (S "a"))			=> #t)
+  (check (%bytevector-u8-dictionary-ci>? (S "a")     (S "ab"))			=> #f)
+  (check (%bytevector-u8-dictionary-ci>? (S "ciao")  (S "ciao"))		=> #f)
+  (check (%bytevector-u8-dictionary-ci>? (S "ciao1") (S "ciao"))		=> #t)
+  (check (%bytevector-u8-dictionary-ci>? (S "ciao")  (S "ciao1"))		=> #f)
+  (check (%bytevector-u8-dictionary-ci>? (S "CIAO")  (S "ciao"))		=> #f)
+  (check (%bytevector-u8-dictionary-ci>? (S "CIAO1") (S "ciao"))		=> #t)
+  (check (%bytevector-u8-dictionary-ci>? (S "CIAO")  (S "ciao1"))		=> #f)
+
+  (check (%bytevector-u8-dictionary-ci>? (S "ci ao") (S "ciao"))		=> #f)
+  (check (%bytevector-u8-dictionary-ci>? (S "ciao") (S "ci ao"))		=> #f)
+  (check (%bytevector-u8-dictionary-ci>? (S "ci\tao") (S "ciao"))		=> #f)
+  (check (%bytevector-u8-dictionary-ci>? (S "ciao") (S "ci\tao"))		=> #f)
+  (check (%bytevector-u8-dictionary-ci>? (S "ci\nao") (S "ciao"))		=> #f)
+  (check (%bytevector-u8-dictionary-ci>? (S "ciao") (S "ci\nao"))		=> #f)
+  (check (%bytevector-u8-dictionary-ci>? (S "ci\vao") (S "ciao"))		=> #f)
+  (check (%bytevector-u8-dictionary-ci>? (S "ciao") (S "ci\tao"))		=> #f)
+  (check (%bytevector-u8-dictionary-ci>? (S "ci\fao") (S "ciao"))		=> #f)
+  (check (%bytevector-u8-dictionary-ci>? (S "ciao") (S "ci\fao"))		=> #f)
+  (check (%bytevector-u8-dictionary-ci>? (S "ci\rao") (S "ciao"))		=> #f)
+  (check (%bytevector-u8-dictionary-ci>? (S "ciao") (S "ci\rao"))		=> #f)
+
+;;; --------------------------------------------------------------------
+
+  (check (%bytevector-u8-dictionary-ci>=? '#vu8() '#vu8())			=> #t)
+  (check (%bytevector-u8-dictionary-ci>=? (S "a") '#vu8())			=> #t)
+  (check (%bytevector-u8-dictionary-ci>=? '#vu8() (S "a"))			=> #f)
+  (check (%bytevector-u8-dictionary-ci>=? (S "ab") (S "a"))			=> #t)
+  (check (%bytevector-u8-dictionary-ci>=? (S "a") (S "ab"))			=> #f)
+  (check (%bytevector-u8-dictionary-ci>=? (S "ciao") (S "ciao"))		=> #t)
+  (check (%bytevector-u8-dictionary-ci>=? (S "ciao1") (S "ciao"))		=> #t)
+  (check (%bytevector-u8-dictionary-ci>=? (S "ciao") (S "ciao1"))		=> #f)
+  (check (%bytevector-u8-dictionary-ci>=? (S "CIAO") (S "ciao"))		=> #t)
+  (check (%bytevector-u8-dictionary-ci>=? (S "CIAO1") (S "ciao"))		=> #t)
+  (check (%bytevector-u8-dictionary-ci>=? (S "CIAO") (S "ciao1"))		=> #f)
+
+  (check (%bytevector-u8-dictionary-ci>=? (S "ci ao")  (S "ciao"))		=> #t)
+  (check (%bytevector-u8-dictionary-ci>=? (S "ciao")   (S "ci ao"))		=> #t)
+  (check (%bytevector-u8-dictionary-ci>=? (S "ci\tao") (S "ciao"))		=> #t)
+  (check (%bytevector-u8-dictionary-ci>=? (S "ciao")   (S "ci\tao"))		=> #t)
+  (check (%bytevector-u8-dictionary-ci>=? (S "ci\nao") (S "ciao"))		=> #t)
+  (check (%bytevector-u8-dictionary-ci>=? (S "ciao")   (S "ci\nao"))		=> #t)
+  (check (%bytevector-u8-dictionary-ci>=? (S "ci\vao") (S "ciao"))		=> #t)
+  (check (%bytevector-u8-dictionary-ci>=? (S "ciao")   (S "ci\tao"))		=> #t)
+  (check (%bytevector-u8-dictionary-ci>=? (S "ci\fao") (S "ciao"))		=> #t)
+  (check (%bytevector-u8-dictionary-ci>=? (S "ciao")   (S "ci\fao"))		=> #t)
+  (check (%bytevector-u8-dictionary-ci>=? (S "ci\rao") (S "ciao"))		=> #t)
+  (check (%bytevector-u8-dictionary-ci>=? (S "ciao")   (S "ci\rao"))		=> #t)
 
   #t)
 
 
 (parameterise ((check-test-name 'comparison-lexicographic-bytevector-u8/number-case-sensitive))
 
-  (check (%bytevector-u8/numbers=? "" "")				=> #t)
-  (check (%bytevector-u8/numbers=? "a" "")				=> #f)
-  (check (%bytevector-u8/numbers=? "" "a")				=> #f)
-  (check (%bytevector-u8/numbers=? "a" "a")				=> #t)
-  (check (%bytevector-u8/numbers=? "1" "")				=> #f)
-  (check (%bytevector-u8/numbers=? "" "1")				=> #f)
-  (check (%bytevector-u8/numbers=? "1" "1")				=> #t)
-  (check (%bytevector-u8/numbers=? "1" "2")				=> #f)
-  (check (%bytevector-u8/numbers=? "2" "1")				=> #f)
-  (check (%bytevector-u8/numbers=? "a" "ab")				=> #f)
-  (check (%bytevector-u8/numbers=? "ab" "a")				=> #f)
-  (check (%bytevector-u8/numbers=? "a" "a1")				=> #f)
-  (check (%bytevector-u8/numbers=? "a1" "a")				=> #f)
-  (check (%bytevector-u8/numbers=? "1" "1a")				=> #f)
-  (check (%bytevector-u8/numbers=? "1a" "1")				=> #f)
+  (check (%bytevector-u8/numbers=? '#vu8() '#vu8())				=> #t)
+  (check (%bytevector-u8/numbers=? (S "a") '#vu8())				=> #f)
+  (check (%bytevector-u8/numbers=? '#vu8() (S "a"))				=> #f)
+  (check (%bytevector-u8/numbers=? (S "a") (S "a"))				=> #t)
+  (check (%bytevector-u8/numbers=? (S "1") '#vu8())				=> #f)
+  (check (%bytevector-u8/numbers=? '#vu8() (S "1"))				=> #f)
+  (check (%bytevector-u8/numbers=? (S "1") (S "1"))				=> #t)
+  (check (%bytevector-u8/numbers=? (S "1") (S "2"))				=> #f)
+  (check (%bytevector-u8/numbers=? (S "2") (S "1"))				=> #f)
+  (check (%bytevector-u8/numbers=? (S "a") (S "ab"))				=> #f)
+  (check (%bytevector-u8/numbers=? (S "ab") (S "a"))				=> #f)
+  (check (%bytevector-u8/numbers=? (S "a") (S "a1"))				=> #f)
+  (check (%bytevector-u8/numbers=? (S "a1") (S "a"))				=> #f)
+  (check (%bytevector-u8/numbers=? (S "1") (S "1a"))				=> #f)
+  (check (%bytevector-u8/numbers=? (S "1a") (S "1"))				=> #f)
 
-  (check (%bytevector-u8/numbers=? "123" "45")				=> #f)
-  (check (%bytevector-u8/numbers=? "45" "123")				=> #f)
-  (check (%bytevector-u8/numbers=? "ciao3" "ciao10")			=> #f)
-  (check (%bytevector-u8/numbers=? "ciao10" "ciao3")			=> #f)
-  (check (%bytevector-u8/numbers=? "foo4bar3zab10" "foo4bar3zab2")	=> #f)
-  (check (%bytevector-u8/numbers=? "foo4bar3zab2" "foo4bar3zab10")	=> #f)
-  (check (%bytevector-u8/numbers=? "foo4bar3zab" "foo4bar10")		=> #f)
-  (check (%bytevector-u8/numbers=? "foo4bar10" "foo4bar3zab")		=> #f)
-  (check (%bytevector-u8/numbers=? "foo12" "12foo")			=> #f)
-  (check (%bytevector-u8/numbers=? "12foo" "foo12")			=> #f)
-  (check (%bytevector-u8/numbers=? "12bar" "foobar")			=> #f)
-  (check (%bytevector-u8/numbers=? "12.3" "12.3")			=> #t)
-  (check (%bytevector-u8/numbers=? "12.3" "12.10")			=> #f)
-  (check (%bytevector-u8/numbers=? "12.10" "12.3")			=> #f)
-  (check (%bytevector-u8/numbers=? "12.3" "12,10")			=> #f)
-  (check (%bytevector-u8/numbers=? "12,10" "12.3")			=> #f)
-
-;;; --------------------------------------------------------------------
-
-  (check (%bytevector-u8/numbers<>? "" "")				=> #f)
-  (check (%bytevector-u8/numbers<>? "a" "")				=> #t)
-  (check (%bytevector-u8/numbers<>? "" "a")				=> #t)
-  (check (%bytevector-u8/numbers<>? "a" "a")				=> #f)
-  (check (%bytevector-u8/numbers<>? "1" "")				=> #t)
-  (check (%bytevector-u8/numbers<>? "" "1")				=> #t)
-  (check (%bytevector-u8/numbers<>? "1" "1")				=> #f)
-  (check (%bytevector-u8/numbers<>? "1" "2")				=> #t)
-  (check (%bytevector-u8/numbers<>? "2" "1")				=> #t)
-  (check (%bytevector-u8/numbers<>? "a" "ab")				=> #t)
-  (check (%bytevector-u8/numbers<>? "ab" "a")				=> #t)
-  (check (%bytevector-u8/numbers<>? "a" "a1")				=> #t)
-  (check (%bytevector-u8/numbers<>? "a1" "a")				=> #t)
-  (check (%bytevector-u8/numbers<>? "1" "1a")				=> #t)
-  (check (%bytevector-u8/numbers<>? "1a" "1")				=> #t)
-
-  (check (%bytevector-u8/numbers<>? "123" "45")			=> #t)
-  (check (%bytevector-u8/numbers<>? "45" "123")			=> #t)
-  (check (%bytevector-u8/numbers<>? "ciao3" "ciao10")			=> #t)
-  (check (%bytevector-u8/numbers<>? "ciao10" "ciao3")			=> #t)
-  (check (%bytevector-u8/numbers<>? "foo4bar3zab10" "foo4bar3zab2")	=> #t)
-  (check (%bytevector-u8/numbers<>? "foo4bar3zab2" "foo4bar3zab10")	=> #t)
-  (check (%bytevector-u8/numbers<>? "foo4bar3zab" "foo4bar10")		=> #t)
-  (check (%bytevector-u8/numbers<>? "foo4bar10" "foo4bar3zab")		=> #t)
-  (check (%bytevector-u8/numbers<>? "foo12" "12foo")			=> #t)
-  (check (%bytevector-u8/numbers<>? "12foo" "foo12")			=> #t)
-  (check (%bytevector-u8/numbers<>? "12bar" "foobar")			=> #t)
-  (check (%bytevector-u8/numbers<>? "12.3" "12.3")			=> #f)
-  (check (%bytevector-u8/numbers<>? "12.3" "12.10")			=> #t)
-  (check (%bytevector-u8/numbers<>? "12.10" "12.3")			=> #t)
-  (check (%bytevector-u8/numbers<>? "12.3" "12,10")			=> #t)
-  (check (%bytevector-u8/numbers<>? "12,10" "12.3")			=> #t)
+  (check (%bytevector-u8/numbers=? (S "123") (S "45"))				=> #f)
+  (check (%bytevector-u8/numbers=? (S "45") (S "123"))				=> #f)
+  (check (%bytevector-u8/numbers=? (S "ciao3") (S "ciao10"))			=> #f)
+  (check (%bytevector-u8/numbers=? (S "ciao10") (S "ciao3"))			=> #f)
+  (check (%bytevector-u8/numbers=? (S "foo4bar3zab10") (S "foo4bar3zab2"))	=> #f)
+  (check (%bytevector-u8/numbers=? (S "foo4bar3zab2") (S "foo4bar3zab10"))	=> #f)
+  (check (%bytevector-u8/numbers=? (S "foo4bar3zab") (S "foo4bar10"))		=> #f)
+  (check (%bytevector-u8/numbers=? (S "foo4bar10") (S "foo4bar3zab"))		=> #f)
+  (check (%bytevector-u8/numbers=? (S "foo12") (S "12foo"))			=> #f)
+  (check (%bytevector-u8/numbers=? (S "12foo") (S "foo12"))			=> #f)
+  (check (%bytevector-u8/numbers=? (S "12bar") (S "foobar"))			=> #f)
+  (check (%bytevector-u8/numbers=? (S "12.3") (S "12.3"))			=> #t)
+  (check (%bytevector-u8/numbers=? (S "12.3") (S "12.10"))			=> #f)
+  (check (%bytevector-u8/numbers=? (S "12.10") (S "12.3"))			=> #f)
+  (check (%bytevector-u8/numbers=? (S "12.3") (S "12,10"))			=> #f)
+  (check (%bytevector-u8/numbers=? (S "12,10") (S "12.3"))			=> #f)
 
 ;;; --------------------------------------------------------------------
 
-  (check (%bytevector-u8/numbers<? "" "")				=> #f)
-  (check (%bytevector-u8/numbers<? "a" "")				=> #f)
-  (check (%bytevector-u8/numbers<? "" "a")				=> #t)
-  (check (%bytevector-u8/numbers<? "a" "a")				=> #f)
-  (check (%bytevector-u8/numbers<? "1" "")				=> #f)
-  (check (%bytevector-u8/numbers<? "" "1")				=> #t)
-  (check (%bytevector-u8/numbers<? "1" "1")				=> #f)
-  (check (%bytevector-u8/numbers<? "1" "2")				=> #t)
-  (check (%bytevector-u8/numbers<? "2" "1")				=> #f)
-  (check (%bytevector-u8/numbers<? "a" "ab")				=> #t)
-  (check (%bytevector-u8/numbers<? "ab" "a")				=> #f)
-  (check (%bytevector-u8/numbers<? "a" "a1")				=> #t)
-  (check (%bytevector-u8/numbers<? "a1" "a")				=> #f)
-  (check (%bytevector-u8/numbers<? "1" "1a")				=> #t)
-  (check (%bytevector-u8/numbers<? "1a" "1")				=> #f)
+  (check (%bytevector-u8/numbers<>? '#vu8() '#vu8())				=> #f)
+  (check (%bytevector-u8/numbers<>? (S "a") '#vu8())				=> #t)
+  (check (%bytevector-u8/numbers<>? '#vu8() (S "a"))				=> #t)
+  (check (%bytevector-u8/numbers<>? (S "a") (S "a"))				=> #f)
+  (check (%bytevector-u8/numbers<>? (S "1") '#vu8())				=> #t)
+  (check (%bytevector-u8/numbers<>? '#vu8() (S "1"))				=> #t)
+  (check (%bytevector-u8/numbers<>? (S "1") (S "1"))				=> #f)
+  (check (%bytevector-u8/numbers<>? (S "1") (S "2"))				=> #t)
+  (check (%bytevector-u8/numbers<>? (S "2") (S "1"))				=> #t)
+  (check (%bytevector-u8/numbers<>? (S "a") (S "ab"))				=> #t)
+  (check (%bytevector-u8/numbers<>? (S "ab") (S "a"))				=> #t)
+  (check (%bytevector-u8/numbers<>? (S "a") (S "a1"))				=> #t)
+  (check (%bytevector-u8/numbers<>? (S "a1") (S "a"))				=> #t)
+  (check (%bytevector-u8/numbers<>? (S "1") (S "1a"))				=> #t)
+  (check (%bytevector-u8/numbers<>? (S "1a") (S "1"))				=> #t)
 
-  (check (%bytevector-u8/numbers<? "123" "45")				=> #f)
-  (check (%bytevector-u8/numbers<? "45" "123")				=> #t)
-  (check (%bytevector-u8/numbers<? "ciao3" "ciao10")			=> #t)
-  (check (%bytevector-u8/numbers<? "ciao10" "ciao3")			=> #f)
-  (check (%bytevector-u8/numbers<? "foo4bar3zab10" "foo4bar3zab2")	=> #f)
-  (check (%bytevector-u8/numbers<? "foo4bar3zab2" "foo4bar3zab10")	=> #t)
-  (check (%bytevector-u8/numbers<? "foo4bar3zab" "foo4bar10")		=> #t)
-  (check (%bytevector-u8/numbers<? "foo4bar10" "foo4bar3zab")		=> #f)
-  (check (%bytevector-u8/numbers<? "foo12" "12foo")			=> #f)
-  (check (%bytevector-u8/numbers<? "12foo" "foo12")			=> #t)
-  (check (%bytevector-u8/numbers<? "12bar" "foobar")			=> #t)
-  (check (%bytevector-u8/numbers<? "12.3" "12.3")			=> #f)
-  (check (%bytevector-u8/numbers<? "12.3" "12.10")			=> #t)
-  (check (%bytevector-u8/numbers<? "12.10" "12.3")			=> #f)
-  (check (%bytevector-u8/numbers<? "12.3" "12,10")			=> #f)
-  (check (%bytevector-u8/numbers<? "12,10" "12.3")			=> #t)
-
-;;; --------------------------------------------------------------------
-
-  (check (%bytevector-u8/numbers<=? "" "")				=> #t)
-  (check (%bytevector-u8/numbers<=? "a" "")				=> #f)
-  (check (%bytevector-u8/numbers<=? "" "a")				=> #t)
-  (check (%bytevector-u8/numbers<=? "a" "a")				=> #t)
-  (check (%bytevector-u8/numbers<=? "1" "")				=> #f)
-  (check (%bytevector-u8/numbers<=? "" "1")				=> #t)
-  (check (%bytevector-u8/numbers<=? "1" "1")				=> #t)
-  (check (%bytevector-u8/numbers<=? "1" "2")				=> #t)
-  (check (%bytevector-u8/numbers<=? "2" "1")				=> #f)
-  (check (%bytevector-u8/numbers<=? "a" "ab")				=> #t)
-  (check (%bytevector-u8/numbers<=? "ab" "a")				=> #f)
-  (check (%bytevector-u8/numbers<=? "a" "a1")				=> #t)
-  (check (%bytevector-u8/numbers<=? "a1" "a")				=> #f)
-  (check (%bytevector-u8/numbers<=? "1" "1a")				=> #t)
-  (check (%bytevector-u8/numbers<=? "1a" "1")				=> #f)
-
-  (check (%bytevector-u8/numbers<=? "123" "45")			=> #f)
-  (check (%bytevector-u8/numbers<=? "45" "123")			=> #t)
-  (check (%bytevector-u8/numbers<=? "ciao3" "ciao10")			=> #t)
-  (check (%bytevector-u8/numbers<=? "ciao10" "ciao3")			=> #f)
-  (check (%bytevector-u8/numbers<=? "foo4bar3zab10" "foo4bar3zab2")	=> #f)
-  (check (%bytevector-u8/numbers<=? "foo4bar3zab2" "foo4bar3zab10")	=> #t)
-  (check (%bytevector-u8/numbers<=? "foo4bar3zab" "foo4bar10")		=> #t)
-  (check (%bytevector-u8/numbers<=? "foo4bar10" "foo4bar3zab")		=> #f)
-  (check (%bytevector-u8/numbers<=? "foo12" "12foo")			=> #f)
-  (check (%bytevector-u8/numbers<=? "12foo" "foo12")			=> #t)
-  (check (%bytevector-u8/numbers<=? "12bar" "foobar")			=> #t)
-  (check (%bytevector-u8/numbers<=? "12.3" "12.3")			=> #t)
-  (check (%bytevector-u8/numbers<=? "12.3" "12.10")			=> #t)
-  (check (%bytevector-u8/numbers<=? "12.10" "12.3")			=> #f)
-  (check (%bytevector-u8/numbers<=? "12.3" "12,10")			=> #f)
-  (check (%bytevector-u8/numbers<=? "12,10" "12.3")			=> #t)
+  (check (%bytevector-u8/numbers<>? (S "123") (S "45"))			=> #t)
+  (check (%bytevector-u8/numbers<>? (S "45") (S "123"))			=> #t)
+  (check (%bytevector-u8/numbers<>? (S "ciao3") (S "ciao10"))			=> #t)
+  (check (%bytevector-u8/numbers<>? (S "ciao10") (S "ciao3"))			=> #t)
+  (check (%bytevector-u8/numbers<>? (S "foo4bar3zab10") (S "foo4bar3zab2"))	=> #t)
+  (check (%bytevector-u8/numbers<>? (S "foo4bar3zab2") (S "foo4bar3zab10"))	=> #t)
+  (check (%bytevector-u8/numbers<>? (S "foo4bar3zab") (S "foo4bar10"))		=> #t)
+  (check (%bytevector-u8/numbers<>? (S "foo4bar10") (S "foo4bar3zab"))		=> #t)
+  (check (%bytevector-u8/numbers<>? (S "foo12") (S "12foo"))			=> #t)
+  (check (%bytevector-u8/numbers<>? (S "12foo") (S "foo12"))			=> #t)
+  (check (%bytevector-u8/numbers<>? (S "12bar") (S "foobar"))			=> #t)
+  (check (%bytevector-u8/numbers<>? (S "12.3") (S "12.3"))			=> #f)
+  (check (%bytevector-u8/numbers<>? (S "12.3") (S "12.10"))			=> #t)
+  (check (%bytevector-u8/numbers<>? (S "12.10") (S "12.3"))			=> #t)
+  (check (%bytevector-u8/numbers<>? (S "12.3") (S "12,10"))			=> #t)
+  (check (%bytevector-u8/numbers<>? (S "12,10") (S "12.3"))			=> #t)
 
 ;;; --------------------------------------------------------------------
 
-  (check (%bytevector-u8/numbers>? "" "")				=> #f)
-  (check (%bytevector-u8/numbers>? "a" "")				=> #t)
-  (check (%bytevector-u8/numbers>? "" "a")				=> #f)
-  (check (%bytevector-u8/numbers>? "a" "a")				=> #f)
-  (check (%bytevector-u8/numbers>? "1" "")				=> #t)
-  (check (%bytevector-u8/numbers>? "" "1")				=> #f)
-  (check (%bytevector-u8/numbers>? "1" "1")				=> #f)
-  (check (%bytevector-u8/numbers>? "1" "2")				=> #f)
-  (check (%bytevector-u8/numbers>? "2" "1")				=> #t)
-  (check (%bytevector-u8/numbers>? "a" "ab")				=> #f)
-  (check (%bytevector-u8/numbers>? "ab" "a")				=> #t)
-  (check (%bytevector-u8/numbers>? "a" "a1")				=> #f)
-  (check (%bytevector-u8/numbers>? "a1" "a")				=> #t)
-  (check (%bytevector-u8/numbers>? "1" "1a")				=> #f)
-  (check (%bytevector-u8/numbers>? "1a" "1")				=> #t)
+  (check (%bytevector-u8/numbers<? '#vu8() '#vu8())				=> #f)
+  (check (%bytevector-u8/numbers<? (S "a") '#vu8())				=> #f)
+  (check (%bytevector-u8/numbers<? '#vu8() (S "a"))				=> #t)
+  (check (%bytevector-u8/numbers<? (S "a") (S "a"))				=> #f)
+  (check (%bytevector-u8/numbers<? (S "1") '#vu8())				=> #f)
+  (check (%bytevector-u8/numbers<? '#vu8() (S "1"))				=> #t)
+  (check (%bytevector-u8/numbers<? (S "1") (S "1"))				=> #f)
+  (check (%bytevector-u8/numbers<? (S "1") (S "2"))				=> #t)
+  (check (%bytevector-u8/numbers<? (S "2") (S "1"))				=> #f)
+  (check (%bytevector-u8/numbers<? (S "a") (S "ab"))				=> #t)
+  (check (%bytevector-u8/numbers<? (S "ab") (S "a"))				=> #f)
+  (check (%bytevector-u8/numbers<? (S "a") (S "a1"))				=> #t)
+  (check (%bytevector-u8/numbers<? (S "a1") (S "a"))				=> #f)
+  (check (%bytevector-u8/numbers<? (S "1") (S "1a"))				=> #t)
+  (check (%bytevector-u8/numbers<? (S "1a") (S "1"))				=> #f)
 
-  (check (%bytevector-u8/numbers>? "123" "45")				=> #t)
-  (check (%bytevector-u8/numbers>? "45" "123")				=> #f)
-  (check (%bytevector-u8/numbers>? "ciao3" "ciao10")			=> #f)
-  (check (%bytevector-u8/numbers>? "ciao10" "ciao3")			=> #t)
-  (check (%bytevector-u8/numbers>? "foo4bar3zab10" "foo4bar3zab2")	=> #t)
-  (check (%bytevector-u8/numbers>? "foo4bar3zab2" "foo4bar3zab10")	=> #f)
-  (check (%bytevector-u8/numbers>? "foo4bar3zab" "foo4bar10")		=> #f)
-  (check (%bytevector-u8/numbers>? "foo4bar10" "foo4bar3zab")		=> #t)
-  (check (%bytevector-u8/numbers>? "foo12" "12foo")			=> #t)
-  (check (%bytevector-u8/numbers>? "12foo" "foo12")			=> #f)
-  (check (%bytevector-u8/numbers>? "12bar" "foobar")			=> #f)
-  (check (%bytevector-u8/numbers>? "12.3" "12.3")			=> #f)
-  (check (%bytevector-u8/numbers>? "12.3" "12.10")			=> #f)
-  (check (%bytevector-u8/numbers>? "12.10" "12.3")			=> #t)
-  (check (%bytevector-u8/numbers>? "12.3" "12,10")			=> #t)
-  (check (%bytevector-u8/numbers>? "12,10" "12.3")			=> #f)
+  (check (%bytevector-u8/numbers<? (S "123") (S "45"))				=> #f)
+  (check (%bytevector-u8/numbers<? (S "45") (S "123"))				=> #t)
+  (check (%bytevector-u8/numbers<? (S "ciao3") (S "ciao10"))			=> #t)
+  (check (%bytevector-u8/numbers<? (S "ciao10") (S "ciao3"))			=> #f)
+  (check (%bytevector-u8/numbers<? (S "foo4bar3zab10") (S "foo4bar3zab2"))	=> #f)
+  (check (%bytevector-u8/numbers<? (S "foo4bar3zab2") (S "foo4bar3zab10"))	=> #t)
+  (check (%bytevector-u8/numbers<? (S "foo4bar3zab") (S "foo4bar10"))		=> #t)
+  (check (%bytevector-u8/numbers<? (S "foo4bar10") (S "foo4bar3zab"))		=> #f)
+  (check (%bytevector-u8/numbers<? (S "foo12") (S "12foo"))			=> #f)
+  (check (%bytevector-u8/numbers<? (S "12foo") (S "foo12"))			=> #t)
+  (check (%bytevector-u8/numbers<? (S "12bar") (S "foobar"))			=> #t)
+  (check (%bytevector-u8/numbers<? (S "12.3") (S "12.3"))			=> #f)
+  (check (%bytevector-u8/numbers<? (S "12.3") (S "12.10"))			=> #t)
+  (check (%bytevector-u8/numbers<? (S "12.10") (S "12.3"))			=> #f)
+  (check (%bytevector-u8/numbers<? (S "12.3") (S "12,10"))			=> #f)
+  (check (%bytevector-u8/numbers<? (S "12,10") (S "12.3"))			=> #t)
 
 ;;; --------------------------------------------------------------------
 
-  (check (%bytevector-u8/numbers>=? "" "")				=> #t)
-  (check (%bytevector-u8/numbers>=? "a" "")				=> #t)
-  (check (%bytevector-u8/numbers>=? "" "a")				=> #f)
-  (check (%bytevector-u8/numbers>=? "a" "a")				=> #t)
-  (check (%bytevector-u8/numbers>=? "1" "")				=> #t)
-  (check (%bytevector-u8/numbers>=? "" "1")				=> #f)
-  (check (%bytevector-u8/numbers>=? "1" "1")				=> #t)
-  (check (%bytevector-u8/numbers>=? "1" "2")				=> #f)
-  (check (%bytevector-u8/numbers>=? "2" "1")				=> #t)
-  (check (%bytevector-u8/numbers>=? "a" "ab")				=> #f)
-  (check (%bytevector-u8/numbers>=? "ab" "a")				=> #t)
-  (check (%bytevector-u8/numbers>=? "a" "a1")				=> #f)
-  (check (%bytevector-u8/numbers>=? "a1" "a")				=> #t)
-  (check (%bytevector-u8/numbers>=? "1" "1a")				=> #f)
-  (check (%bytevector-u8/numbers>=? "1a" "1")				=> #t)
+  (check (%bytevector-u8/numbers<=? '#vu8() '#vu8())				=> #t)
+  (check (%bytevector-u8/numbers<=? (S "a") '#vu8())				=> #f)
+  (check (%bytevector-u8/numbers<=? '#vu8() (S "a"))				=> #t)
+  (check (%bytevector-u8/numbers<=? (S "a") (S "a"))				=> #t)
+  (check (%bytevector-u8/numbers<=? (S "1") '#vu8())				=> #f)
+  (check (%bytevector-u8/numbers<=? '#vu8() (S "1"))				=> #t)
+  (check (%bytevector-u8/numbers<=? (S "1") (S "1"))				=> #t)
+  (check (%bytevector-u8/numbers<=? (S "1") (S "2"))				=> #t)
+  (check (%bytevector-u8/numbers<=? (S "2") (S "1"))				=> #f)
+  (check (%bytevector-u8/numbers<=? (S "a") (S "ab"))				=> #t)
+  (check (%bytevector-u8/numbers<=? (S "ab") (S "a"))				=> #f)
+  (check (%bytevector-u8/numbers<=? (S "a") (S "a1"))				=> #t)
+  (check (%bytevector-u8/numbers<=? (S "a1") (S "a"))				=> #f)
+  (check (%bytevector-u8/numbers<=? (S "1") (S "1a"))				=> #t)
+  (check (%bytevector-u8/numbers<=? (S "1a") (S "1"))				=> #f)
 
-  (check (%bytevector-u8/numbers>=? "123" "45")			=> #t)
-  (check (%bytevector-u8/numbers>=? "45" "123")			=> #f)
-  (check (%bytevector-u8/numbers>=? "ciao3" "ciao10")			=> #f)
-  (check (%bytevector-u8/numbers>=? "ciao10" "ciao3")			=> #t)
-  (check (%bytevector-u8/numbers>=? "foo4bar3zab10" "foo4bar3zab2")	=> #t)
-  (check (%bytevector-u8/numbers>=? "foo4bar3zab2" "foo4bar3zab10")	=> #f)
-  (check (%bytevector-u8/numbers>=? "foo4bar3zab" "foo4bar10")		=> #f)
-  (check (%bytevector-u8/numbers>=? "foo4bar10" "foo4bar3zab")		=> #t)
-  (check (%bytevector-u8/numbers>=? "foo12" "12foo")			=> #t)
-  (check (%bytevector-u8/numbers>=? "12foo" "foo12")			=> #f)
-  (check (%bytevector-u8/numbers>=? "12bar" "foobar")			=> #f)
-  (check (%bytevector-u8/numbers>=? "12.3" "12.3")			=> #t)
-  (check (%bytevector-u8/numbers>=? "12.3" "12.10")			=> #f)
-  (check (%bytevector-u8/numbers>=? "12.10" "12.3")			=> #t)
-  (check (%bytevector-u8/numbers>=? "12.3" "12,10")			=> #t)
-  (check (%bytevector-u8/numbers>=? "12,10" "12.3")			=> #f)
+  (check (%bytevector-u8/numbers<=? (S "123") (S "45"))			=> #f)
+  (check (%bytevector-u8/numbers<=? (S "45") (S "123"))			=> #t)
+  (check (%bytevector-u8/numbers<=? (S "ciao3") (S "ciao10"))			=> #t)
+  (check (%bytevector-u8/numbers<=? (S "ciao10") (S "ciao3"))			=> #f)
+  (check (%bytevector-u8/numbers<=? (S "foo4bar3zab10") (S "foo4bar3zab2"))	=> #f)
+  (check (%bytevector-u8/numbers<=? (S "foo4bar3zab2") (S "foo4bar3zab10"))	=> #t)
+  (check (%bytevector-u8/numbers<=? (S "foo4bar3zab") (S "foo4bar10"))		=> #t)
+  (check (%bytevector-u8/numbers<=? (S "foo4bar10") (S "foo4bar3zab"))		=> #f)
+  (check (%bytevector-u8/numbers<=? (S "foo12") (S "12foo"))			=> #f)
+  (check (%bytevector-u8/numbers<=? (S "12foo") (S "foo12"))			=> #t)
+  (check (%bytevector-u8/numbers<=? (S "12bar") (S "foobar"))			=> #t)
+  (check (%bytevector-u8/numbers<=? (S "12.3") (S "12.3"))			=> #t)
+  (check (%bytevector-u8/numbers<=? (S "12.3") (S "12.10"))			=> #t)
+  (check (%bytevector-u8/numbers<=? (S "12.10") (S "12.3"))			=> #f)
+  (check (%bytevector-u8/numbers<=? (S "12.3") (S "12,10"))			=> #f)
+  (check (%bytevector-u8/numbers<=? (S "12,10") (S "12.3"))			=> #t)
+
+;;; --------------------------------------------------------------------
+
+  (check (%bytevector-u8/numbers>? '#vu8() '#vu8())				=> #f)
+  (check (%bytevector-u8/numbers>? (S "a") '#vu8())				=> #t)
+  (check (%bytevector-u8/numbers>? '#vu8() (S "a"))				=> #f)
+  (check (%bytevector-u8/numbers>? (S "a") (S "a"))				=> #f)
+  (check (%bytevector-u8/numbers>? (S "1") '#vu8())				=> #t)
+  (check (%bytevector-u8/numbers>? '#vu8() (S "1"))				=> #f)
+  (check (%bytevector-u8/numbers>? (S "1") (S "1"))				=> #f)
+  (check (%bytevector-u8/numbers>? (S "1") (S "2"))				=> #f)
+  (check (%bytevector-u8/numbers>? (S "2") (S "1"))				=> #t)
+  (check (%bytevector-u8/numbers>? (S "a") (S "ab"))				=> #f)
+  (check (%bytevector-u8/numbers>? (S "ab") (S "a"))				=> #t)
+  (check (%bytevector-u8/numbers>? (S "a") (S "a1"))				=> #f)
+  (check (%bytevector-u8/numbers>? (S "a1") (S "a"))				=> #t)
+  (check (%bytevector-u8/numbers>? (S "1") (S "1a"))				=> #f)
+  (check (%bytevector-u8/numbers>? (S "1a") (S "1"))				=> #t)
+
+  (check (%bytevector-u8/numbers>? (S "123") (S "45"))				=> #t)
+  (check (%bytevector-u8/numbers>? (S "45") (S "123"))				=> #f)
+  (check (%bytevector-u8/numbers>? (S "ciao3") (S "ciao10"))			=> #f)
+  (check (%bytevector-u8/numbers>? (S "ciao10") (S "ciao3"))			=> #t)
+  (check (%bytevector-u8/numbers>? (S "foo4bar3zab10") (S "foo4bar3zab2"))	=> #t)
+  (check (%bytevector-u8/numbers>? (S "foo4bar3zab2") (S "foo4bar3zab10"))	=> #f)
+  (check (%bytevector-u8/numbers>? (S "foo4bar3zab") (S "foo4bar10"))		=> #f)
+  (check (%bytevector-u8/numbers>? (S "foo4bar10") (S "foo4bar3zab"))		=> #t)
+  (check (%bytevector-u8/numbers>? (S "foo12") (S "12foo"))			=> #t)
+  (check (%bytevector-u8/numbers>? (S "12foo") (S "foo12"))			=> #f)
+  (check (%bytevector-u8/numbers>? (S "12bar") (S "foobar"))			=> #f)
+  (check (%bytevector-u8/numbers>? (S "12.3") (S "12.3"))			=> #f)
+  (check (%bytevector-u8/numbers>? (S "12.3") (S "12.10"))			=> #f)
+  (check (%bytevector-u8/numbers>? (S "12.10") (S "12.3"))			=> #t)
+  (check (%bytevector-u8/numbers>? (S "12.3") (S "12,10"))			=> #t)
+  (check (%bytevector-u8/numbers>? (S "12,10") (S "12.3"))			=> #f)
+
+;;; --------------------------------------------------------------------
+
+  (check (%bytevector-u8/numbers>=? '#vu8() '#vu8())				=> #t)
+  (check (%bytevector-u8/numbers>=? (S "a") '#vu8())				=> #t)
+  (check (%bytevector-u8/numbers>=? '#vu8() (S "a"))				=> #f)
+  (check (%bytevector-u8/numbers>=? (S "a") (S "a"))				=> #t)
+  (check (%bytevector-u8/numbers>=? (S "1") '#vu8())				=> #t)
+  (check (%bytevector-u8/numbers>=? '#vu8() (S "1"))				=> #f)
+  (check (%bytevector-u8/numbers>=? (S "1") (S "1"))				=> #t)
+  (check (%bytevector-u8/numbers>=? (S "1") (S "2"))				=> #f)
+  (check (%bytevector-u8/numbers>=? (S "2") (S "1"))				=> #t)
+  (check (%bytevector-u8/numbers>=? (S "a") (S "ab"))				=> #f)
+  (check (%bytevector-u8/numbers>=? (S "ab") (S "a"))				=> #t)
+  (check (%bytevector-u8/numbers>=? (S "a") (S "a1"))				=> #f)
+  (check (%bytevector-u8/numbers>=? (S "a1") (S "a"))				=> #t)
+  (check (%bytevector-u8/numbers>=? (S "1") (S "1a"))				=> #f)
+  (check (%bytevector-u8/numbers>=? (S "1a") (S "1"))				=> #t)
+
+  (check (%bytevector-u8/numbers>=? (S "123") (S "45"))			=> #t)
+  (check (%bytevector-u8/numbers>=? (S "45") (S "123"))			=> #f)
+  (check (%bytevector-u8/numbers>=? (S "ciao3") (S "ciao10"))			=> #f)
+  (check (%bytevector-u8/numbers>=? (S "ciao10") (S "ciao3"))			=> #t)
+  (check (%bytevector-u8/numbers>=? (S "foo4bar3zab10") (S "foo4bar3zab2"))	=> #t)
+  (check (%bytevector-u8/numbers>=? (S "foo4bar3zab2") (S "foo4bar3zab10"))	=> #f)
+  (check (%bytevector-u8/numbers>=? (S "foo4bar3zab") (S "foo4bar10"))		=> #f)
+  (check (%bytevector-u8/numbers>=? (S "foo4bar10") (S "foo4bar3zab"))		=> #t)
+  (check (%bytevector-u8/numbers>=? (S "foo12") (S "12foo"))			=> #t)
+  (check (%bytevector-u8/numbers>=? (S "12foo") (S "foo12"))			=> #f)
+  (check (%bytevector-u8/numbers>=? (S "12bar") (S "foobar"))			=> #f)
+  (check (%bytevector-u8/numbers>=? (S "12.3") (S "12.3"))			=> #t)
+  (check (%bytevector-u8/numbers>=? (S "12.3") (S "12.10"))			=> #f)
+  (check (%bytevector-u8/numbers>=? (S "12.10") (S "12.3"))			=> #t)
+  (check (%bytevector-u8/numbers>=? (S "12.3") (S "12,10"))			=> #t)
+  (check (%bytevector-u8/numbers>=? (S "12,10") (S "12.3"))			=> #f)
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (list-sort %bytevector-u8/numbers<? (quote ("foo123" "foo42" "foo7")))
-    => '("foo7" "foo42" "foo123"))
+      (list-sort %bytevector-u8/numbers<? `(,(S "foo123") ,(S "foo42") ,(S "foo7")))
+    => `(,(S "foo7") ,(S "foo42") ,(S "foo123")))
 
   #t)
 
 
 (parameterise ((check-test-name 'comparison-lexicographic-bytevector-u8/number-case-insensitive))
 
-  (check (%bytevector-u8/numbers-ci=? "" "")				=> #t)
-  (check (%bytevector-u8/numbers-ci=? "a" "")				=> #f)
-  (check (%bytevector-u8/numbers-ci=? "" "a")				=> #f)
-  (check (%bytevector-u8/numbers-ci=? "a" "a")				=> #t)
-  (check (%bytevector-u8/numbers-ci=? "1" "")				=> #f)
-  (check (%bytevector-u8/numbers-ci=? "" "1")				=> #f)
-  (check (%bytevector-u8/numbers-ci=? "1" "1")				=> #t)
-  (check (%bytevector-u8/numbers-ci=? "1" "2")				=> #f)
-  (check (%bytevector-u8/numbers-ci=? "2" "1")				=> #f)
-  (check (%bytevector-u8/numbers-ci=? "a" "ab")			=> #f)
-  (check (%bytevector-u8/numbers-ci=? "ab" "a")			=> #f)
-  (check (%bytevector-u8/numbers-ci=? "a" "a1")			=> #f)
-  (check (%bytevector-u8/numbers-ci=? "a1" "a")			=> #f)
-  (check (%bytevector-u8/numbers-ci=? "1" "1a")			=> #f)
-  (check (%bytevector-u8/numbers-ci=? "1a" "1")			=> #f)
-  (check (%bytevector-u8/numbers-ci=? "a" "A")				=> #t)
-  (check (%bytevector-u8/numbers-ci=? "A" "a")				=> #t)
+  (check (%bytevector-u8/numbers-ci=? '#vu8() '#vu8())				=> #t)
+  (check (%bytevector-u8/numbers-ci=? (S "a") '#vu8())				=> #f)
+  (check (%bytevector-u8/numbers-ci=? '#vu8() (S "a"))				=> #f)
+  (check (%bytevector-u8/numbers-ci=? (S "a") (S "a"))				=> #t)
+  (check (%bytevector-u8/numbers-ci=? (S "1") '#vu8())				=> #f)
+  (check (%bytevector-u8/numbers-ci=? '#vu8() (S "1"))				=> #f)
+  (check (%bytevector-u8/numbers-ci=? (S "1") (S "1"))				=> #t)
+  (check (%bytevector-u8/numbers-ci=? (S "1") (S "2"))				=> #f)
+  (check (%bytevector-u8/numbers-ci=? (S "2") (S "1"))				=> #f)
+  (check (%bytevector-u8/numbers-ci=? (S "a") (S "ab"))			=> #f)
+  (check (%bytevector-u8/numbers-ci=? (S "ab") (S "a"))			=> #f)
+  (check (%bytevector-u8/numbers-ci=? (S "a") (S "a1"))			=> #f)
+  (check (%bytevector-u8/numbers-ci=? (S "a1") (S "a"))			=> #f)
+  (check (%bytevector-u8/numbers-ci=? (S "1") (S "1a"))			=> #f)
+  (check (%bytevector-u8/numbers-ci=? (S "1a") (S "1"))			=> #f)
+  (check (%bytevector-u8/numbers-ci=? (S "a") (S "A"))				=> #t)
+  (check (%bytevector-u8/numbers-ci=? (S "A") (S "a"))				=> #t)
 
-  (check (%bytevector-u8/numbers-ci=? "123" "45")			=> #f)
-  (check (%bytevector-u8/numbers-ci=? "45" "123")			=> #f)
-  (check (%bytevector-u8/numbers-ci=? "ciao3" "ciao10")		=> #f)
-  (check (%bytevector-u8/numbers-ci=? "ciao10" "ciao3")		=> #f)
-  (check (%bytevector-u8/numbers-ci=? "foo4bar3zab10" "foo4bar3zab2")	=> #f)
-  (check (%bytevector-u8/numbers-ci=? "foo4bar3zab2" "foo4bar3zab10")	=> #f)
-  (check (%bytevector-u8/numbers-ci=? "foo4bar3zab" "foo4bar10")	=> #f)
-  (check (%bytevector-u8/numbers-ci=? "foo4bar10" "foo4bar3zab")	=> #f)
-  (check (%bytevector-u8/numbers-ci=? "foo12" "12foo")			=> #f)
-  (check (%bytevector-u8/numbers-ci=? "12foo" "foo12")			=> #f)
-  (check (%bytevector-u8/numbers-ci=? "12bar" "foobar")		=> #f)
-  (check (%bytevector-u8/numbers-ci=? "12.3" "12.3")			=> #t)
-  (check (%bytevector-u8/numbers-ci=? "12.3" "12.10")			=> #f)
-  (check (%bytevector-u8/numbers-ci=? "12.10" "12.3")			=> #f)
-  (check (%bytevector-u8/numbers-ci=? "12.3" "12,10")			=> #f)
-  (check (%bytevector-u8/numbers-ci=? "12,10" "12.3")			=> #f)
-
-;;; --------------------------------------------------------------------
-
-  (check (%bytevector-u8/numbers-ci<>? "" "")				=> #f)
-  (check (%bytevector-u8/numbers-ci<>? "a" "")				=> #t)
-  (check (%bytevector-u8/numbers-ci<>? "" "a")				=> #t)
-  (check (%bytevector-u8/numbers-ci<>? "a" "a")			=> #f)
-  (check (%bytevector-u8/numbers-ci<>? "1" "")				=> #t)
-  (check (%bytevector-u8/numbers-ci<>? "" "1")				=> #t)
-  (check (%bytevector-u8/numbers-ci<>? "1" "1")			=> #f)
-  (check (%bytevector-u8/numbers-ci<>? "1" "2")			=> #t)
-  (check (%bytevector-u8/numbers-ci<>? "2" "1")			=> #t)
-  (check (%bytevector-u8/numbers-ci<>? "a" "ab")			=> #t)
-  (check (%bytevector-u8/numbers-ci<>? "ab" "a")			=> #t)
-  (check (%bytevector-u8/numbers-ci<>? "a" "a1")			=> #t)
-  (check (%bytevector-u8/numbers-ci<>? "a1" "a")			=> #t)
-  (check (%bytevector-u8/numbers-ci<>? "1" "1a")			=> #t)
-  (check (%bytevector-u8/numbers-ci<>? "1a" "1")			=> #t)
-  (check (%bytevector-u8/numbers-ci<>? "A" "a")			=> #f)
-  (check (%bytevector-u8/numbers-ci<>? "a" "A")			=> #f)
-
-  (check (%bytevector-u8/numbers-ci<>? "123" "45")			=> #t)
-  (check (%bytevector-u8/numbers-ci<>? "45" "123")			=> #t)
-  (check (%bytevector-u8/numbers-ci<>? "ciao3" "ciao10")		=> #t)
-  (check (%bytevector-u8/numbers-ci<>? "ciao10" "ciao3")		=> #t)
-  (check (%bytevector-u8/numbers-ci<>? "foo4bar3zab10" "foo4bar3zab2")	=> #t)
-  (check (%bytevector-u8/numbers-ci<>? "foo4bar3zab2" "foo4bar3zab10")	=> #t)
-  (check (%bytevector-u8/numbers-ci<>? "foo4bar3zab" "foo4bar10")	=> #t)
-  (check (%bytevector-u8/numbers-ci<>? "foo4bar10" "foo4bar3zab")	=> #t)
-  (check (%bytevector-u8/numbers-ci<>? "foo12" "12foo")		=> #t)
-  (check (%bytevector-u8/numbers-ci<>? "12foo" "foo12")		=> #t)
-  (check (%bytevector-u8/numbers-ci<>? "12bar" "foobar")		=> #t)
-  (check (%bytevector-u8/numbers-ci<>? "12.3" "12.3")			=> #f)
-  (check (%bytevector-u8/numbers-ci<>? "12.3" "12.10")			=> #t)
-  (check (%bytevector-u8/numbers-ci<>? "12.10" "12.3")			=> #t)
-  (check (%bytevector-u8/numbers-ci<>? "12.3" "12,10")			=> #t)
-  (check (%bytevector-u8/numbers-ci<>? "12,10" "12.3")			=> #t)
+  (check (%bytevector-u8/numbers-ci=? (S "123") (S "45"))			=> #f)
+  (check (%bytevector-u8/numbers-ci=? (S "45") (S "123"))			=> #f)
+  (check (%bytevector-u8/numbers-ci=? (S "ciao3") (S "ciao10"))		=> #f)
+  (check (%bytevector-u8/numbers-ci=? (S "ciao10") (S "ciao3"))		=> #f)
+  (check (%bytevector-u8/numbers-ci=? (S "foo4bar3zab10") (S "foo4bar3zab2"))	=> #f)
+  (check (%bytevector-u8/numbers-ci=? (S "foo4bar3zab2") (S "foo4bar3zab10"))	=> #f)
+  (check (%bytevector-u8/numbers-ci=? (S "foo4bar3zab") (S "foo4bar10"))	=> #f)
+  (check (%bytevector-u8/numbers-ci=? (S "foo4bar10") (S "foo4bar3zab"))	=> #f)
+  (check (%bytevector-u8/numbers-ci=? (S "foo12") (S "12foo"))			=> #f)
+  (check (%bytevector-u8/numbers-ci=? (S "12foo") (S "foo12"))			=> #f)
+  (check (%bytevector-u8/numbers-ci=? (S "12bar") (S "foobar"))		=> #f)
+  (check (%bytevector-u8/numbers-ci=? (S "12.3") (S "12.3"))			=> #t)
+  (check (%bytevector-u8/numbers-ci=? (S "12.3") (S "12.10"))			=> #f)
+  (check (%bytevector-u8/numbers-ci=? (S "12.10") (S "12.3"))			=> #f)
+  (check (%bytevector-u8/numbers-ci=? (S "12.3") (S "12,10"))			=> #f)
+  (check (%bytevector-u8/numbers-ci=? (S "12,10") (S "12.3"))			=> #f)
 
 ;;; --------------------------------------------------------------------
 
-  (check (%bytevector-u8/numbers-ci<? "" "")				=> #f)
-  (check (%bytevector-u8/numbers-ci<? "a" "")				=> #f)
-  (check (%bytevector-u8/numbers-ci<? "" "a")				=> #t)
-  (check (%bytevector-u8/numbers-ci<? "a" "a")				=> #f)
-  (check (%bytevector-u8/numbers-ci<? "1" "")				=> #f)
-  (check (%bytevector-u8/numbers-ci<? "" "1")				=> #t)
-  (check (%bytevector-u8/numbers-ci<? "1" "1")				=> #f)
-  (check (%bytevector-u8/numbers-ci<? "1" "2")				=> #t)
-  (check (%bytevector-u8/numbers-ci<? "2" "1")				=> #f)
-  (check (%bytevector-u8/numbers-ci<? "a" "ab")			=> #t)
-  (check (%bytevector-u8/numbers-ci<? "ab" "a")			=> #f)
-  (check (%bytevector-u8/numbers-ci<? "a" "a1")			=> #t)
-  (check (%bytevector-u8/numbers-ci<? "a1" "a")			=> #f)
-  (check (%bytevector-u8/numbers-ci<? "1" "1a")			=> #t)
-  (check (%bytevector-u8/numbers-ci<? "1a" "1")			=> #f)
-  (check (%bytevector-u8/numbers-ci<? "a" "A")				=> #f)
-  (check (%bytevector-u8/numbers-ci<? "A" "a")				=> #f)
+  (check (%bytevector-u8/numbers-ci<>? '#vu8() '#vu8())				=> #f)
+  (check (%bytevector-u8/numbers-ci<>? (S "a") '#vu8())				=> #t)
+  (check (%bytevector-u8/numbers-ci<>? '#vu8() (S "a"))				=> #t)
+  (check (%bytevector-u8/numbers-ci<>? (S "a") (S "a"))			=> #f)
+  (check (%bytevector-u8/numbers-ci<>? (S "1") '#vu8())				=> #t)
+  (check (%bytevector-u8/numbers-ci<>? '#vu8() (S "1"))				=> #t)
+  (check (%bytevector-u8/numbers-ci<>? (S "1") (S "1"))			=> #f)
+  (check (%bytevector-u8/numbers-ci<>? (S "1") (S "2"))			=> #t)
+  (check (%bytevector-u8/numbers-ci<>? (S "2") (S "1"))			=> #t)
+  (check (%bytevector-u8/numbers-ci<>? (S "a") (S "ab"))			=> #t)
+  (check (%bytevector-u8/numbers-ci<>? (S "ab") (S "a"))			=> #t)
+  (check (%bytevector-u8/numbers-ci<>? (S "a") (S "a1"))			=> #t)
+  (check (%bytevector-u8/numbers-ci<>? (S "a1") (S "a"))			=> #t)
+  (check (%bytevector-u8/numbers-ci<>? (S "1") (S "1a"))			=> #t)
+  (check (%bytevector-u8/numbers-ci<>? (S "1a") (S "1"))			=> #t)
+  (check (%bytevector-u8/numbers-ci<>? (S "A") (S "a"))			=> #f)
+  (check (%bytevector-u8/numbers-ci<>? (S "a") (S "A"))			=> #f)
 
-  (check (%bytevector-u8/numbers-ci<? "123" "45")			=> #f)
-  (check (%bytevector-u8/numbers-ci<? "45" "123")			=> #t)
-  (check (%bytevector-u8/numbers-ci<? "ciao3" "ciao10")		=> #t)
-  (check (%bytevector-u8/numbers-ci<? "ciao10" "ciao3")		=> #f)
-  (check (%bytevector-u8/numbers-ci<? "foo4bar3zab10" "foo4bar3zab2")	=> #f)
-  (check (%bytevector-u8/numbers-ci<? "foo4bar3zab2" "foo4bar3zab10")	=> #t)
-  (check (%bytevector-u8/numbers-ci<? "foo4bar3zab" "foo4bar10")	=> #t)
-  (check (%bytevector-u8/numbers-ci<? "foo4bar10" "foo4bar3zab")	=> #f)
-  (check (%bytevector-u8/numbers-ci<? "foo12" "12foo")			=> #f)
-  (check (%bytevector-u8/numbers-ci<? "12foo" "foo12")			=> #t)
-  (check (%bytevector-u8/numbers-ci<? "12bar" "foobar")		=> #t)
-  (check (%bytevector-u8/numbers-ci<? "12.3" "12.3")			=> #f)
-  (check (%bytevector-u8/numbers-ci<? "12.3" "12.10")			=> #t)
-  (check (%bytevector-u8/numbers-ci<? "12.10" "12.3")			=> #f)
-  (check (%bytevector-u8/numbers-ci<? "12.3" "12,10")			=> #f)
-  (check (%bytevector-u8/numbers-ci<? "12,10" "12.3")			=> #t)
-
-;;; --------------------------------------------------------------------
-
-  (check (%bytevector-u8/numbers-ci<=? "" "")				=> #t)
-  (check (%bytevector-u8/numbers-ci<=? "a" "")				=> #f)
-  (check (%bytevector-u8/numbers-ci<=? "" "a")				=> #t)
-  (check (%bytevector-u8/numbers-ci<=? "a" "a")			=> #t)
-  (check (%bytevector-u8/numbers-ci<=? "1" "")				=> #f)
-  (check (%bytevector-u8/numbers-ci<=? "" "1")				=> #t)
-  (check (%bytevector-u8/numbers-ci<=? "1" "1")			=> #t)
-  (check (%bytevector-u8/numbers-ci<=? "1" "2")			=> #t)
-  (check (%bytevector-u8/numbers-ci<=? "2" "1")			=> #f)
-  (check (%bytevector-u8/numbers-ci<=? "a" "ab")			=> #t)
-  (check (%bytevector-u8/numbers-ci<=? "ab" "a")			=> #f)
-  (check (%bytevector-u8/numbers-ci<=? "a" "a1")			=> #t)
-  (check (%bytevector-u8/numbers-ci<=? "a1" "a")			=> #f)
-  (check (%bytevector-u8/numbers-ci<=? "1" "1a")			=> #t)
-  (check (%bytevector-u8/numbers-ci<=? "1a" "1")			=> #f)
-  (check (%bytevector-u8/numbers-ci<=? "a" "A")			=> #t)
-  (check (%bytevector-u8/numbers-ci<=? "A" "a")			=> #t)
-
-  (check (%bytevector-u8/numbers-ci<=? "123" "45")			=> #f)
-  (check (%bytevector-u8/numbers-ci<=? "45" "123")			=> #t)
-  (check (%bytevector-u8/numbers-ci<=? "ciao3" "ciao10")		=> #t)
-  (check (%bytevector-u8/numbers-ci<=? "ciao10" "ciao3")		=> #f)
-  (check (%bytevector-u8/numbers-ci<=? "foo4bar3zab10" "foo4bar3zab2")	=> #f)
-  (check (%bytevector-u8/numbers-ci<=? "foo4bar3zab2" "foo4bar3zab10")	=> #t)
-  (check (%bytevector-u8/numbers-ci<=? "foo4bar3zab" "foo4bar10")	=> #t)
-  (check (%bytevector-u8/numbers-ci<=? "foo4bar10" "foo4bar3zab")	=> #f)
-  (check (%bytevector-u8/numbers-ci<=? "foo12" "12foo")		=> #f)
-  (check (%bytevector-u8/numbers-ci<=? "12foo" "foo12")		=> #t)
-  (check (%bytevector-u8/numbers-ci<=? "12bar" "foobar")		=> #t)
-  (check (%bytevector-u8/numbers-ci<=? "12.3" "12.3")			=> #t)
-  (check (%bytevector-u8/numbers-ci<=? "12.3" "12.10")			=> #t)
-  (check (%bytevector-u8/numbers-ci<=? "12.10" "12.3")			=> #f)
-  (check (%bytevector-u8/numbers-ci<=? "12.3" "12,10")			=> #f)
-  (check (%bytevector-u8/numbers-ci<=? "12,10" "12.3")			=> #t)
+  (check (%bytevector-u8/numbers-ci<>? (S "123") (S "45"))			=> #t)
+  (check (%bytevector-u8/numbers-ci<>? (S "45") (S "123"))			=> #t)
+  (check (%bytevector-u8/numbers-ci<>? (S "ciao3") (S "ciao10"))		=> #t)
+  (check (%bytevector-u8/numbers-ci<>? (S "ciao10") (S "ciao3"))		=> #t)
+  (check (%bytevector-u8/numbers-ci<>? (S "foo4bar3zab10") (S "foo4bar3zab2"))	=> #t)
+  (check (%bytevector-u8/numbers-ci<>? (S "foo4bar3zab2") (S "foo4bar3zab10"))	=> #t)
+  (check (%bytevector-u8/numbers-ci<>? (S "foo4bar3zab") (S "foo4bar10"))	=> #t)
+  (check (%bytevector-u8/numbers-ci<>? (S "foo4bar10") (S "foo4bar3zab"))	=> #t)
+  (check (%bytevector-u8/numbers-ci<>? (S "foo12") (S "12foo"))		=> #t)
+  (check (%bytevector-u8/numbers-ci<>? (S "12foo") (S "foo12"))		=> #t)
+  (check (%bytevector-u8/numbers-ci<>? (S "12bar") (S "foobar"))		=> #t)
+  (check (%bytevector-u8/numbers-ci<>? (S "12.3") (S "12.3"))			=> #f)
+  (check (%bytevector-u8/numbers-ci<>? (S "12.3") (S "12.10"))			=> #t)
+  (check (%bytevector-u8/numbers-ci<>? (S "12.10") (S "12.3"))			=> #t)
+  (check (%bytevector-u8/numbers-ci<>? (S "12.3") (S "12,10"))			=> #t)
+  (check (%bytevector-u8/numbers-ci<>? (S "12,10") (S "12.3"))			=> #t)
 
 ;;; --------------------------------------------------------------------
 
-  (check (%bytevector-u8/numbers-ci>? "" "")				=> #f)
-  (check (%bytevector-u8/numbers-ci>? "a" "")				=> #t)
-  (check (%bytevector-u8/numbers-ci>? "" "a")				=> #f)
-  (check (%bytevector-u8/numbers-ci>? "a" "a")				=> #f)
-  (check (%bytevector-u8/numbers-ci>? "1" "")				=> #t)
-  (check (%bytevector-u8/numbers-ci>? "" "1")				=> #f)
-  (check (%bytevector-u8/numbers-ci>? "1" "1")				=> #f)
-  (check (%bytevector-u8/numbers-ci>? "1" "2")				=> #f)
-  (check (%bytevector-u8/numbers-ci>? "2" "1")				=> #t)
-  (check (%bytevector-u8/numbers-ci>? "a" "ab")			=> #f)
-  (check (%bytevector-u8/numbers-ci>? "ab" "a")			=> #t)
-  (check (%bytevector-u8/numbers-ci>? "a" "a1")			=> #f)
-  (check (%bytevector-u8/numbers-ci>? "a1" "a")			=> #t)
-  (check (%bytevector-u8/numbers-ci>? "1" "1a")			=> #f)
-  (check (%bytevector-u8/numbers-ci>? "1a" "1")			=> #t)
-  (check (%bytevector-u8/numbers-ci>? "a" "A")				=> #f)
-  (check (%bytevector-u8/numbers-ci>? "A" "a")				=> #f)
+  (check (%bytevector-u8/numbers-ci<? '#vu8() '#vu8())				=> #f)
+  (check (%bytevector-u8/numbers-ci<? (S "a") '#vu8())				=> #f)
+  (check (%bytevector-u8/numbers-ci<? '#vu8() (S "a"))				=> #t)
+  (check (%bytevector-u8/numbers-ci<? (S "a") (S "a"))				=> #f)
+  (check (%bytevector-u8/numbers-ci<? (S "1") '#vu8())				=> #f)
+  (check (%bytevector-u8/numbers-ci<? '#vu8() (S "1"))				=> #t)
+  (check (%bytevector-u8/numbers-ci<? (S "1") (S "1"))				=> #f)
+  (check (%bytevector-u8/numbers-ci<? (S "1") (S "2"))				=> #t)
+  (check (%bytevector-u8/numbers-ci<? (S "2") (S "1"))				=> #f)
+  (check (%bytevector-u8/numbers-ci<? (S "a") (S "ab"))			=> #t)
+  (check (%bytevector-u8/numbers-ci<? (S "ab") (S "a"))			=> #f)
+  (check (%bytevector-u8/numbers-ci<? (S "a") (S "a1"))			=> #t)
+  (check (%bytevector-u8/numbers-ci<? (S "a1") (S "a"))			=> #f)
+  (check (%bytevector-u8/numbers-ci<? (S "1") (S "1a"))			=> #t)
+  (check (%bytevector-u8/numbers-ci<? (S "1a") (S "1"))			=> #f)
+  (check (%bytevector-u8/numbers-ci<? (S "a") (S "A"))				=> #f)
+  (check (%bytevector-u8/numbers-ci<? (S "A") (S "a"))				=> #f)
 
-  (check (%bytevector-u8/numbers-ci>? "123" "45")			=> #t)
-  (check (%bytevector-u8/numbers-ci>? "45" "123")			=> #f)
-  (check (%bytevector-u8/numbers-ci>? "ciao3" "ciao10")		=> #f)
-  (check (%bytevector-u8/numbers-ci>? "ciao10" "ciao3")		=> #t)
-  (check (%bytevector-u8/numbers-ci>? "foo4bar3zab10" "foo4bar3zab2")	=> #t)
-  (check (%bytevector-u8/numbers-ci>? "foo4bar3zab2" "foo4bar3zab10")	=> #f)
-  (check (%bytevector-u8/numbers-ci>? "foo4bar3zab" "foo4bar10")	=> #f)
-  (check (%bytevector-u8/numbers-ci>? "foo4bar10" "foo4bar3zab")	=> #t)
-  (check (%bytevector-u8/numbers-ci>? "foo12" "12foo")			=> #t)
-  (check (%bytevector-u8/numbers-ci>? "12foo" "foo12")			=> #f)
-  (check (%bytevector-u8/numbers-ci>? "12bar" "foobar")		=> #f)
-  (check (%bytevector-u8/numbers-ci>? "12.3" "12.3")			=> #f)
-  (check (%bytevector-u8/numbers-ci>? "12.3" "12.10")			=> #f)
-  (check (%bytevector-u8/numbers-ci>? "12.10" "12.3")			=> #t)
-  (check (%bytevector-u8/numbers-ci>? "12.3" "12,10")			=> #t)
-  (check (%bytevector-u8/numbers-ci>? "12,10" "12.3")			=> #f)
+  (check (%bytevector-u8/numbers-ci<? (S "123") (S "45"))			=> #f)
+  (check (%bytevector-u8/numbers-ci<? (S "45") (S "123"))			=> #t)
+  (check (%bytevector-u8/numbers-ci<? (S "ciao3") (S "ciao10"))		=> #t)
+  (check (%bytevector-u8/numbers-ci<? (S "ciao10") (S "ciao3"))		=> #f)
+  (check (%bytevector-u8/numbers-ci<? (S "foo4bar3zab10") (S "foo4bar3zab2"))	=> #f)
+  (check (%bytevector-u8/numbers-ci<? (S "foo4bar3zab2") (S "foo4bar3zab10"))	=> #t)
+  (check (%bytevector-u8/numbers-ci<? (S "foo4bar3zab") (S "foo4bar10"))	=> #t)
+  (check (%bytevector-u8/numbers-ci<? (S "foo4bar10") (S "foo4bar3zab"))	=> #f)
+  (check (%bytevector-u8/numbers-ci<? (S "foo12") (S "12foo"))			=> #f)
+  (check (%bytevector-u8/numbers-ci<? (S "12foo") (S "foo12"))			=> #t)
+  (check (%bytevector-u8/numbers-ci<? (S "12bar") (S "foobar"))		=> #t)
+  (check (%bytevector-u8/numbers-ci<? (S "12.3") (S "12.3"))			=> #f)
+  (check (%bytevector-u8/numbers-ci<? (S "12.3") (S "12.10"))			=> #t)
+  (check (%bytevector-u8/numbers-ci<? (S "12.10") (S "12.3"))			=> #f)
+  (check (%bytevector-u8/numbers-ci<? (S "12.3") (S "12,10"))			=> #f)
+  (check (%bytevector-u8/numbers-ci<? (S "12,10") (S "12.3"))			=> #t)
 
 ;;; --------------------------------------------------------------------
 
-  (check (%bytevector-u8/numbers-ci>=? "" "")				=> #t)
-  (check (%bytevector-u8/numbers-ci>=? "a" "")				=> #t)
-  (check (%bytevector-u8/numbers-ci>=? "" "a")				=> #f)
-  (check (%bytevector-u8/numbers-ci>=? "a" "a")			=> #t)
-  (check (%bytevector-u8/numbers-ci>=? "1" "")				=> #t)
-  (check (%bytevector-u8/numbers-ci>=? "" "1")				=> #f)
-  (check (%bytevector-u8/numbers-ci>=? "1" "1")			=> #t)
-  (check (%bytevector-u8/numbers-ci>=? "1" "2")			=> #f)
-  (check (%bytevector-u8/numbers-ci>=? "2" "1")			=> #t)
-  (check (%bytevector-u8/numbers-ci>=? "a" "ab")			=> #f)
-  (check (%bytevector-u8/numbers-ci>=? "ab" "a")			=> #t)
-  (check (%bytevector-u8/numbers-ci>=? "a" "a1")			=> #f)
-  (check (%bytevector-u8/numbers-ci>=? "a1" "a")			=> #t)
-  (check (%bytevector-u8/numbers-ci>=? "1" "1a")			=> #f)
-  (check (%bytevector-u8/numbers-ci>=? "1a" "1")			=> #t)
-  (check (%bytevector-u8/numbers-ci>=? "a" "A")			=> #t)
-  (check (%bytevector-u8/numbers-ci>=? "A" "a")			=> #t)
+  (check (%bytevector-u8/numbers-ci<=? '#vu8() '#vu8())				=> #t)
+  (check (%bytevector-u8/numbers-ci<=? (S "a") '#vu8())				=> #f)
+  (check (%bytevector-u8/numbers-ci<=? '#vu8() (S "a"))				=> #t)
+  (check (%bytevector-u8/numbers-ci<=? (S "a") (S "a"))			=> #t)
+  (check (%bytevector-u8/numbers-ci<=? (S "1") '#vu8())				=> #f)
+  (check (%bytevector-u8/numbers-ci<=? '#vu8() (S "1"))				=> #t)
+  (check (%bytevector-u8/numbers-ci<=? (S "1") (S "1"))			=> #t)
+  (check (%bytevector-u8/numbers-ci<=? (S "1") (S "2"))			=> #t)
+  (check (%bytevector-u8/numbers-ci<=? (S "2") (S "1"))			=> #f)
+  (check (%bytevector-u8/numbers-ci<=? (S "a") (S "ab"))			=> #t)
+  (check (%bytevector-u8/numbers-ci<=? (S "ab") (S "a"))			=> #f)
+  (check (%bytevector-u8/numbers-ci<=? (S "a") (S "a1"))			=> #t)
+  (check (%bytevector-u8/numbers-ci<=? (S "a1") (S "a"))			=> #f)
+  (check (%bytevector-u8/numbers-ci<=? (S "1") (S "1a"))			=> #t)
+  (check (%bytevector-u8/numbers-ci<=? (S "1a") (S "1"))			=> #f)
+  (check (%bytevector-u8/numbers-ci<=? (S "a") (S "A"))			=> #t)
+  (check (%bytevector-u8/numbers-ci<=? (S "A") (S "a"))			=> #t)
 
-  (check (%bytevector-u8/numbers-ci>=? "123" "45")			=> #t)
-  (check (%bytevector-u8/numbers-ci>=? "45" "123")			=> #f)
-  (check (%bytevector-u8/numbers-ci>=? "ciao3" "ciao10")		=> #f)
-  (check (%bytevector-u8/numbers-ci>=? "ciao10" "ciao3")		=> #t)
-  (check (%bytevector-u8/numbers-ci>=? "foo4bar3zab10" "foo4bar3zab2")	=> #t)
-  (check (%bytevector-u8/numbers-ci>=? "foo4bar3zab2" "foo4bar3zab10")	=> #f)
-  (check (%bytevector-u8/numbers-ci>=? "foo4bar3zab" "foo4bar10")	=> #f)
-  (check (%bytevector-u8/numbers-ci>=? "foo4bar10" "foo4bar3zab")	=> #t)
-  (check (%bytevector-u8/numbers-ci>=? "foo12" "12foo")		=> #t)
-  (check (%bytevector-u8/numbers-ci>=? "12foo" "foo12")		=> #f)
-  (check (%bytevector-u8/numbers-ci>=? "12bar" "foobar")		=> #f)
-  (check (%bytevector-u8/numbers-ci>=? "12.3" "12.3")			=> #t)
-  (check (%bytevector-u8/numbers-ci>=? "12.3" "12.10")			=> #f)
-  (check (%bytevector-u8/numbers-ci>=? "12.10" "12.3")			=> #t)
-  (check (%bytevector-u8/numbers-ci>=? "12.3" "12,10")			=> #t)
-  (check (%bytevector-u8/numbers-ci>=? "12,10" "12.3")			=> #f)
+  (check (%bytevector-u8/numbers-ci<=? (S "123") (S "45"))			=> #f)
+  (check (%bytevector-u8/numbers-ci<=? (S "45") (S "123"))			=> #t)
+  (check (%bytevector-u8/numbers-ci<=? (S "ciao3") (S "ciao10"))		=> #t)
+  (check (%bytevector-u8/numbers-ci<=? (S "ciao10") (S "ciao3"))		=> #f)
+  (check (%bytevector-u8/numbers-ci<=? (S "foo4bar3zab10") (S "foo4bar3zab2"))	=> #f)
+  (check (%bytevector-u8/numbers-ci<=? (S "foo4bar3zab2") (S "foo4bar3zab10"))	=> #t)
+  (check (%bytevector-u8/numbers-ci<=? (S "foo4bar3zab") (S "foo4bar10"))	=> #t)
+  (check (%bytevector-u8/numbers-ci<=? (S "foo4bar10") (S "foo4bar3zab"))	=> #f)
+  (check (%bytevector-u8/numbers-ci<=? (S "foo12") (S "12foo"))		=> #f)
+  (check (%bytevector-u8/numbers-ci<=? (S "12foo") (S "foo12"))		=> #t)
+  (check (%bytevector-u8/numbers-ci<=? (S "12bar") (S "foobar"))		=> #t)
+  (check (%bytevector-u8/numbers-ci<=? (S "12.3") (S "12.3"))			=> #t)
+  (check (%bytevector-u8/numbers-ci<=? (S "12.3") (S "12.10"))			=> #t)
+  (check (%bytevector-u8/numbers-ci<=? (S "12.10") (S "12.3"))			=> #f)
+  (check (%bytevector-u8/numbers-ci<=? (S "12.3") (S "12,10"))			=> #f)
+  (check (%bytevector-u8/numbers-ci<=? (S "12,10") (S "12.3"))			=> #t)
+
+;;; --------------------------------------------------------------------
+
+  (check (%bytevector-u8/numbers-ci>? '#vu8() '#vu8())				=> #f)
+  (check (%bytevector-u8/numbers-ci>? (S "a") '#vu8())				=> #t)
+  (check (%bytevector-u8/numbers-ci>? '#vu8() (S "a"))				=> #f)
+  (check (%bytevector-u8/numbers-ci>? (S "a") (S "a"))				=> #f)
+  (check (%bytevector-u8/numbers-ci>? (S "1") '#vu8())				=> #t)
+  (check (%bytevector-u8/numbers-ci>? '#vu8() (S "1"))				=> #f)
+  (check (%bytevector-u8/numbers-ci>? (S "1") (S "1"))				=> #f)
+  (check (%bytevector-u8/numbers-ci>? (S "1") (S "2"))				=> #f)
+  (check (%bytevector-u8/numbers-ci>? (S "2") (S "1"))				=> #t)
+  (check (%bytevector-u8/numbers-ci>? (S "a") (S "ab"))			=> #f)
+  (check (%bytevector-u8/numbers-ci>? (S "ab") (S "a"))			=> #t)
+  (check (%bytevector-u8/numbers-ci>? (S "a") (S "a1"))			=> #f)
+  (check (%bytevector-u8/numbers-ci>? (S "a1") (S "a"))			=> #t)
+  (check (%bytevector-u8/numbers-ci>? (S "1") (S "1a"))			=> #f)
+  (check (%bytevector-u8/numbers-ci>? (S "1a") (S "1"))			=> #t)
+  (check (%bytevector-u8/numbers-ci>? (S "a") (S "A"))				=> #f)
+  (check (%bytevector-u8/numbers-ci>? (S "A") (S "a"))				=> #f)
+
+  (check (%bytevector-u8/numbers-ci>? (S "123") (S "45"))			=> #t)
+  (check (%bytevector-u8/numbers-ci>? (S "45") (S "123"))			=> #f)
+  (check (%bytevector-u8/numbers-ci>? (S "ciao3") (S "ciao10"))		=> #f)
+  (check (%bytevector-u8/numbers-ci>? (S "ciao10") (S "ciao3"))		=> #t)
+  (check (%bytevector-u8/numbers-ci>? (S "foo4bar3zab10") (S "foo4bar3zab2"))	=> #t)
+  (check (%bytevector-u8/numbers-ci>? (S "foo4bar3zab2") (S "foo4bar3zab10"))	=> #f)
+  (check (%bytevector-u8/numbers-ci>? (S "foo4bar3zab") (S "foo4bar10"))	=> #f)
+  (check (%bytevector-u8/numbers-ci>? (S "foo4bar10") (S "foo4bar3zab"))	=> #t)
+  (check (%bytevector-u8/numbers-ci>? (S "foo12") (S "12foo"))			=> #t)
+  (check (%bytevector-u8/numbers-ci>? (S "12foo") (S "foo12"))			=> #f)
+  (check (%bytevector-u8/numbers-ci>? (S "12bar") (S "foobar"))		=> #f)
+  (check (%bytevector-u8/numbers-ci>? (S "12.3") (S "12.3"))			=> #f)
+  (check (%bytevector-u8/numbers-ci>? (S "12.3") (S "12.10"))			=> #f)
+  (check (%bytevector-u8/numbers-ci>? (S "12.10") (S "12.3"))			=> #t)
+  (check (%bytevector-u8/numbers-ci>? (S "12.3") (S "12,10"))			=> #t)
+  (check (%bytevector-u8/numbers-ci>? (S "12,10") (S "12.3"))			=> #f)
+
+;;; --------------------------------------------------------------------
+
+  (check (%bytevector-u8/numbers-ci>=? '#vu8() '#vu8())				=> #t)
+  (check (%bytevector-u8/numbers-ci>=? (S "a") '#vu8())				=> #t)
+  (check (%bytevector-u8/numbers-ci>=? '#vu8() (S "a"))				=> #f)
+  (check (%bytevector-u8/numbers-ci>=? (S "a") (S "a"))			=> #t)
+  (check (%bytevector-u8/numbers-ci>=? (S "1") '#vu8())				=> #t)
+  (check (%bytevector-u8/numbers-ci>=? '#vu8() (S "1"))				=> #f)
+  (check (%bytevector-u8/numbers-ci>=? (S "1") (S "1"))			=> #t)
+  (check (%bytevector-u8/numbers-ci>=? (S "1") (S "2"))			=> #f)
+  (check (%bytevector-u8/numbers-ci>=? (S "2") (S "1"))			=> #t)
+  (check (%bytevector-u8/numbers-ci>=? (S "a") (S "ab"))			=> #f)
+  (check (%bytevector-u8/numbers-ci>=? (S "ab") (S "a"))			=> #t)
+  (check (%bytevector-u8/numbers-ci>=? (S "a") (S "a1"))			=> #f)
+  (check (%bytevector-u8/numbers-ci>=? (S "a1") (S "a"))			=> #t)
+  (check (%bytevector-u8/numbers-ci>=? (S "1") (S "1a"))			=> #f)
+  (check (%bytevector-u8/numbers-ci>=? (S "1a") (S "1"))			=> #t)
+  (check (%bytevector-u8/numbers-ci>=? (S "a") (S "A"))			=> #t)
+  (check (%bytevector-u8/numbers-ci>=? (S "A") (S "a"))			=> #t)
+
+  (check (%bytevector-u8/numbers-ci>=? (S "123") (S "45"))			=> #t)
+  (check (%bytevector-u8/numbers-ci>=? (S "45") (S "123"))			=> #f)
+  (check (%bytevector-u8/numbers-ci>=? (S "ciao3") (S "ciao10"))		=> #f)
+  (check (%bytevector-u8/numbers-ci>=? (S "ciao10") (S "ciao3"))		=> #t)
+  (check (%bytevector-u8/numbers-ci>=? (S "foo4bar3zab10") (S "foo4bar3zab2"))	=> #t)
+  (check (%bytevector-u8/numbers-ci>=? (S "foo4bar3zab2") (S "foo4bar3zab10"))	=> #f)
+  (check (%bytevector-u8/numbers-ci>=? (S "foo4bar3zab") (S "foo4bar10"))	=> #f)
+  (check (%bytevector-u8/numbers-ci>=? (S "foo4bar10") (S "foo4bar3zab"))	=> #t)
+  (check (%bytevector-u8/numbers-ci>=? (S "foo12") (S "12foo"))		=> #t)
+  (check (%bytevector-u8/numbers-ci>=? (S "12foo") (S "foo12"))		=> #f)
+  (check (%bytevector-u8/numbers-ci>=? (S "12bar") (S "foobar"))		=> #f)
+  (check (%bytevector-u8/numbers-ci>=? (S "12.3") (S "12.3"))			=> #t)
+  (check (%bytevector-u8/numbers-ci>=? (S "12.3") (S "12.10"))			=> #f)
+  (check (%bytevector-u8/numbers-ci>=? (S "12.10") (S "12.3"))			=> #t)
+  (check (%bytevector-u8/numbers-ci>=? (S "12.3") (S "12,10"))			=> #t)
+  (check (%bytevector-u8/numbers-ci>=? (S "12,10") (S "12.3"))			=> #f)
 
   #t)
 
 
 (parameterise ((check-test-name 'comparison-dictionary-bytevector-u8/number-case-sensitive))
 
-  (check (%bytevector-u8/numbers-dictionary=? "" "")				=> #t)
-  (check (%bytevector-u8/numbers-dictionary=? "a" "")				=> #f)
-  (check (%bytevector-u8/numbers-dictionary=? "" "a")				=> #f)
-  (check (%bytevector-u8/numbers-dictionary=? "a" "a")				=> #t)
-  (check (%bytevector-u8/numbers-dictionary=? "1" "")				=> #f)
-  (check (%bytevector-u8/numbers-dictionary=? "" "1")				=> #f)
-  (check (%bytevector-u8/numbers-dictionary=? "1" "1")				=> #t)
-  (check (%bytevector-u8/numbers-dictionary=? "1" "2")				=> #f)
-  (check (%bytevector-u8/numbers-dictionary=? "2" "1")				=> #f)
-  (check (%bytevector-u8/numbers-dictionary=? "a" "ab")			=> #f)
-  (check (%bytevector-u8/numbers-dictionary=? "ab" "a")			=> #f)
-  (check (%bytevector-u8/numbers-dictionary=? "a" "a1")			=> #f)
-  (check (%bytevector-u8/numbers-dictionary=? "a1" "a")			=> #f)
-  (check (%bytevector-u8/numbers-dictionary=? "1" "1a")			=> #f)
-  (check (%bytevector-u8/numbers-dictionary=? "1a" "1")			=> #f)
+  (check (%bytevector-u8/numbers-dictionary=? '#vu8() '#vu8())				=> #t)
+  (check (%bytevector-u8/numbers-dictionary=? (S "a") '#vu8())				=> #f)
+  (check (%bytevector-u8/numbers-dictionary=? '#vu8() (S "a"))				=> #f)
+  (check (%bytevector-u8/numbers-dictionary=? (S "a") (S "a"))				=> #t)
+  (check (%bytevector-u8/numbers-dictionary=? (S "1") '#vu8())				=> #f)
+  (check (%bytevector-u8/numbers-dictionary=? '#vu8() (S "1"))				=> #f)
+  (check (%bytevector-u8/numbers-dictionary=? (S "1") (S "1"))				=> #t)
+  (check (%bytevector-u8/numbers-dictionary=? (S "1") (S "2"))				=> #f)
+  (check (%bytevector-u8/numbers-dictionary=? (S "2") (S "1"))				=> #f)
+  (check (%bytevector-u8/numbers-dictionary=? (S "a") (S "ab"))			=> #f)
+  (check (%bytevector-u8/numbers-dictionary=? (S "ab") (S "a"))			=> #f)
+  (check (%bytevector-u8/numbers-dictionary=? (S "a") (S "a1"))			=> #f)
+  (check (%bytevector-u8/numbers-dictionary=? (S "a1") (S "a"))			=> #f)
+  (check (%bytevector-u8/numbers-dictionary=? (S "1") (S "1a"))			=> #f)
+  (check (%bytevector-u8/numbers-dictionary=? (S "1a") (S "1"))			=> #f)
 
-  (check (%bytevector-u8/numbers-dictionary=? "123" "45")			=> #f)
-  (check (%bytevector-u8/numbers-dictionary=? "45" "123")			=> #f)
-  (check (%bytevector-u8/numbers-dictionary=? "ciao3" "ciao10")		=> #f)
-  (check (%bytevector-u8/numbers-dictionary=? "ciao10" "ciao3")		=> #f)
-  (check (%bytevector-u8/numbers-dictionary=? "foo4bar3zab10" "foo4bar3zab2")	=> #f)
-  (check (%bytevector-u8/numbers-dictionary=? "foo4bar3zab2" "foo4bar3zab10")	=> #f)
-  (check (%bytevector-u8/numbers-dictionary=? "foo4bar3zab" "foo4bar10")	=> #f)
-  (check (%bytevector-u8/numbers-dictionary=? "foo4bar10" "foo4bar3zab")	=> #f)
-  (check (%bytevector-u8/numbers-dictionary=? "foo12" "12foo")			=> #f)
-  (check (%bytevector-u8/numbers-dictionary=? "12foo" "foo12")			=> #f)
-  (check (%bytevector-u8/numbers-dictionary=? "12bar" "foobar")		=> #f)
-  (check (%bytevector-u8/numbers-dictionary=? "12.3" "12.3")			=> #t)
-  (check (%bytevector-u8/numbers-dictionary=? "12.3" "12.10")			=> #f)
-  (check (%bytevector-u8/numbers-dictionary=? "12.10" "12.3")			=> #f)
-  (check (%bytevector-u8/numbers-dictionary=? "12.3" "12,10")			=> #f)
-  (check (%bytevector-u8/numbers-dictionary=? "12,10" "12.3")			=> #f)
+  (check (%bytevector-u8/numbers-dictionary=? (S "123") (S "45"))			=> #f)
+  (check (%bytevector-u8/numbers-dictionary=? (S "45") (S "123"))			=> #f)
+  (check (%bytevector-u8/numbers-dictionary=? (S "ciao3") (S "ciao10"))		=> #f)
+  (check (%bytevector-u8/numbers-dictionary=? (S "ciao10") (S "ciao3"))		=> #f)
+  (check (%bytevector-u8/numbers-dictionary=? (S "foo4bar3zab10") (S "foo4bar3zab2"))	=> #f)
+  (check (%bytevector-u8/numbers-dictionary=? (S "foo4bar3zab2") (S "foo4bar3zab10"))	=> #f)
+  (check (%bytevector-u8/numbers-dictionary=? (S "foo4bar3zab") (S "foo4bar10"))	=> #f)
+  (check (%bytevector-u8/numbers-dictionary=? (S "foo4bar10") (S "foo4bar3zab"))	=> #f)
+  (check (%bytevector-u8/numbers-dictionary=? (S "foo12") (S "12foo"))			=> #f)
+  (check (%bytevector-u8/numbers-dictionary=? (S "12foo") (S "foo12"))			=> #f)
+  (check (%bytevector-u8/numbers-dictionary=? (S "12bar") (S "foobar"))		=> #f)
+  (check (%bytevector-u8/numbers-dictionary=? (S "12.3") (S "12.3"))			=> #t)
+  (check (%bytevector-u8/numbers-dictionary=? (S "12.3") (S "12.10"))			=> #f)
+  (check (%bytevector-u8/numbers-dictionary=? (S "12.10") (S "12.3"))			=> #f)
+  (check (%bytevector-u8/numbers-dictionary=? (S "12.3") (S "12,10"))			=> #f)
+  (check (%bytevector-u8/numbers-dictionary=? (S "12,10") (S "12.3"))			=> #f)
 
-  (check (%bytevector-u8/numbers-dictionary=? "fo o4b\tar3\nza\rb10" "foo4bar3zab2")	=> #f)
-  (check (%bytevector-u8/numbers-dictionary=? "foo4bar3zab2" "fo o4b\tar3\nza\rb10")	=> #f)
-
-;;; --------------------------------------------------------------------
-
-  (check (%bytevector-u8/numbers-dictionary<>? "" "")				=> #f)
-  (check (%bytevector-u8/numbers-dictionary<>? "a" "")				=> #t)
-  (check (%bytevector-u8/numbers-dictionary<>? "" "a")				=> #t)
-  (check (%bytevector-u8/numbers-dictionary<>? "a" "a")			=> #f)
-  (check (%bytevector-u8/numbers-dictionary<>? "1" "")				=> #t)
-  (check (%bytevector-u8/numbers-dictionary<>? "" "1")				=> #t)
-  (check (%bytevector-u8/numbers-dictionary<>? "1" "1")			=> #f)
-  (check (%bytevector-u8/numbers-dictionary<>? "1" "2")			=> #t)
-  (check (%bytevector-u8/numbers-dictionary<>? "2" "1")			=> #t)
-  (check (%bytevector-u8/numbers-dictionary<>? "a" "ab")			=> #t)
-  (check (%bytevector-u8/numbers-dictionary<>? "ab" "a")			=> #t)
-  (check (%bytevector-u8/numbers-dictionary<>? "a" "a1")			=> #t)
-  (check (%bytevector-u8/numbers-dictionary<>? "a1" "a")			=> #t)
-  (check (%bytevector-u8/numbers-dictionary<>? "1" "1a")			=> #t)
-  (check (%bytevector-u8/numbers-dictionary<>? "1a" "1")			=> #t)
-
-  (check (%bytevector-u8/numbers-dictionary<>? "123" "45")			=> #t)
-  (check (%bytevector-u8/numbers-dictionary<>? "45" "123")			=> #t)
-  (check (%bytevector-u8/numbers-dictionary<>? "ciao3" "ciao10")		=> #t)
-  (check (%bytevector-u8/numbers-dictionary<>? "ciao10" "ciao3")		=> #t)
-  (check (%bytevector-u8/numbers-dictionary<>? "foo4bar3zab10" "foo4bar3zab2")	=> #t)
-  (check (%bytevector-u8/numbers-dictionary<>? "foo4bar3zab2" "foo4bar3zab10")	=> #t)
-  (check (%bytevector-u8/numbers-dictionary<>? "foo4bar3zab" "foo4bar10")	=> #t)
-  (check (%bytevector-u8/numbers-dictionary<>? "foo4bar10" "foo4bar3zab")	=> #t)
-  (check (%bytevector-u8/numbers-dictionary<>? "foo12" "12foo")		=> #t)
-  (check (%bytevector-u8/numbers-dictionary<>? "12foo" "foo12")		=> #t)
-  (check (%bytevector-u8/numbers-dictionary<>? "12bar" "foobar")		=> #t)
-  (check (%bytevector-u8/numbers-dictionary<>? "12.3" "12.3")			=> #f)
-  (check (%bytevector-u8/numbers-dictionary<>? "12.3" "12.10")			=> #t)
-  (check (%bytevector-u8/numbers-dictionary<>? "12.10" "12.3")			=> #t)
-  (check (%bytevector-u8/numbers-dictionary<>? "12.3" "12,10")			=> #t)
-  (check (%bytevector-u8/numbers-dictionary<>? "12,10" "12.3")			=> #t)
-
-  (check (%bytevector-u8/numbers-dictionary<>? "fo o4b\tar3\nza\rb10" "foo4bar3zab2")	=> #t)
-  (check (%bytevector-u8/numbers-dictionary<>? "foo4bar3zab2" "fo o4b\tar3\nza\rb10")	=> #t)
+  (check (%bytevector-u8/numbers-dictionary=? (S "fo o4b\tar3\nza\rb10") (S "foo4bar3zab2"))	=> #f)
+  (check (%bytevector-u8/numbers-dictionary=? (S "foo4bar3zab2") (S "fo o4b\tar3\nza\rb10"))	=> #f)
 
 ;;; --------------------------------------------------------------------
 
-  (check (%bytevector-u8/numbers-dictionary<? "" "")				=> #f)
-  (check (%bytevector-u8/numbers-dictionary<? "a" "")				=> #f)
-  (check (%bytevector-u8/numbers-dictionary<? "" "a")				=> #t)
-  (check (%bytevector-u8/numbers-dictionary<? "a" "a")				=> #f)
-  (check (%bytevector-u8/numbers-dictionary<? "1" "")				=> #f)
-  (check (%bytevector-u8/numbers-dictionary<? "" "1")				=> #t)
-  (check (%bytevector-u8/numbers-dictionary<? "1" "1")				=> #f)
-  (check (%bytevector-u8/numbers-dictionary<? "1" "2")				=> #t)
-  (check (%bytevector-u8/numbers-dictionary<? "2" "1")				=> #f)
-  (check (%bytevector-u8/numbers-dictionary<? "a" "ab")			=> #t)
-  (check (%bytevector-u8/numbers-dictionary<? "ab" "a")			=> #f)
-  (check (%bytevector-u8/numbers-dictionary<? "a" "a1")			=> #t)
-  (check (%bytevector-u8/numbers-dictionary<? "a1" "a")			=> #f)
-  (check (%bytevector-u8/numbers-dictionary<? "1" "1a")			=> #t)
-  (check (%bytevector-u8/numbers-dictionary<? "1a" "1")			=> #f)
+  (check (%bytevector-u8/numbers-dictionary<>? '#vu8() '#vu8())				=> #f)
+  (check (%bytevector-u8/numbers-dictionary<>? (S "a") '#vu8())				=> #t)
+  (check (%bytevector-u8/numbers-dictionary<>? '#vu8() (S "a"))				=> #t)
+  (check (%bytevector-u8/numbers-dictionary<>? (S "a") (S "a"))			=> #f)
+  (check (%bytevector-u8/numbers-dictionary<>? (S "1") '#vu8())				=> #t)
+  (check (%bytevector-u8/numbers-dictionary<>? '#vu8() (S "1"))				=> #t)
+  (check (%bytevector-u8/numbers-dictionary<>? (S "1") (S "1"))			=> #f)
+  (check (%bytevector-u8/numbers-dictionary<>? (S "1") (S "2"))			=> #t)
+  (check (%bytevector-u8/numbers-dictionary<>? (S "2") (S "1"))			=> #t)
+  (check (%bytevector-u8/numbers-dictionary<>? (S "a") (S "ab"))			=> #t)
+  (check (%bytevector-u8/numbers-dictionary<>? (S "ab") (S "a"))			=> #t)
+  (check (%bytevector-u8/numbers-dictionary<>? (S "a") (S "a1"))			=> #t)
+  (check (%bytevector-u8/numbers-dictionary<>? (S "a1") (S "a"))			=> #t)
+  (check (%bytevector-u8/numbers-dictionary<>? (S "1") (S "1a"))			=> #t)
+  (check (%bytevector-u8/numbers-dictionary<>? (S "1a") (S "1"))			=> #t)
 
-  (check (%bytevector-u8/numbers-dictionary<? "123" "45")			=> #f)
-  (check (%bytevector-u8/numbers-dictionary<? "45" "123")			=> #t)
-  (check (%bytevector-u8/numbers-dictionary<? "ciao3" "ciao10")		=> #t)
-  (check (%bytevector-u8/numbers-dictionary<? "ciao10" "ciao3")		=> #f)
-  (check (%bytevector-u8/numbers-dictionary<? "foo4bar3zab10" "foo4bar3zab2")	=> #f)
-  (check (%bytevector-u8/numbers-dictionary<? "foo4bar3zab2" "foo4bar3zab10")	=> #t)
-  (check (%bytevector-u8/numbers-dictionary<? "foo4bar3zab" "foo4bar10")	=> #t)
-  (check (%bytevector-u8/numbers-dictionary<? "foo4bar10" "foo4bar3zab")	=> #f)
-  (check (%bytevector-u8/numbers-dictionary<? "foo12" "12foo")			=> #f)
-  (check (%bytevector-u8/numbers-dictionary<? "12foo" "foo12")			=> #t)
-  (check (%bytevector-u8/numbers-dictionary<? "12bar" "foobar")		=> #t)
-  (check (%bytevector-u8/numbers-dictionary<? "12.3" "12.3")			=> #f)
-  (check (%bytevector-u8/numbers-dictionary<? "12.3" "12.10")			=> #t)
-  (check (%bytevector-u8/numbers-dictionary<? "12.10" "12.3")			=> #f)
-  (check (%bytevector-u8/numbers-dictionary<? "12.3" "12,10")			=> #f)
-  (check (%bytevector-u8/numbers-dictionary<? "12,10" "12.3")			=> #t)
+  (check (%bytevector-u8/numbers-dictionary<>? (S "123") (S "45"))			=> #t)
+  (check (%bytevector-u8/numbers-dictionary<>? (S "45") (S "123"))			=> #t)
+  (check (%bytevector-u8/numbers-dictionary<>? (S "ciao3") (S "ciao10"))		=> #t)
+  (check (%bytevector-u8/numbers-dictionary<>? (S "ciao10") (S "ciao3"))		=> #t)
+  (check (%bytevector-u8/numbers-dictionary<>? (S "foo4bar3zab10") (S "foo4bar3zab2"))	=> #t)
+  (check (%bytevector-u8/numbers-dictionary<>? (S "foo4bar3zab2") (S "foo4bar3zab10"))	=> #t)
+  (check (%bytevector-u8/numbers-dictionary<>? (S "foo4bar3zab") (S "foo4bar10"))	=> #t)
+  (check (%bytevector-u8/numbers-dictionary<>? (S "foo4bar10") (S "foo4bar3zab"))	=> #t)
+  (check (%bytevector-u8/numbers-dictionary<>? (S "foo12") (S "12foo"))		=> #t)
+  (check (%bytevector-u8/numbers-dictionary<>? (S "12foo") (S "foo12"))		=> #t)
+  (check (%bytevector-u8/numbers-dictionary<>? (S "12bar") (S "foobar"))		=> #t)
+  (check (%bytevector-u8/numbers-dictionary<>? (S "12.3") (S "12.3"))			=> #f)
+  (check (%bytevector-u8/numbers-dictionary<>? (S "12.3") (S "12.10"))			=> #t)
+  (check (%bytevector-u8/numbers-dictionary<>? (S "12.10") (S "12.3"))			=> #t)
+  (check (%bytevector-u8/numbers-dictionary<>? (S "12.3") (S "12,10"))			=> #t)
+  (check (%bytevector-u8/numbers-dictionary<>? (S "12,10") (S "12.3"))			=> #t)
 
-  (check 'this (%bytevector-u8/numbers-dictionary<? "fo o4b\tar3\nza\rb10" "foo4bar3zab2")	=> #f)
-  (check (%bytevector-u8/numbers-dictionary<? "foo4bar3zab2" "fo o4b\tar3\nza\rb10")	=> #t)
-
-;;; --------------------------------------------------------------------
-
-  (check (%bytevector-u8/numbers-dictionary<=? "" "")				=> #t)
-  (check (%bytevector-u8/numbers-dictionary<=? "a" "")				=> #f)
-  (check (%bytevector-u8/numbers-dictionary<=? "" "a")				=> #t)
-  (check (%bytevector-u8/numbers-dictionary<=? "a" "a")			=> #t)
-  (check (%bytevector-u8/numbers-dictionary<=? "1" "")				=> #f)
-  (check (%bytevector-u8/numbers-dictionary<=? "" "1")				=> #t)
-  (check (%bytevector-u8/numbers-dictionary<=? "1" "1")			=> #t)
-  (check (%bytevector-u8/numbers-dictionary<=? "1" "2")			=> #t)
-  (check (%bytevector-u8/numbers-dictionary<=? "2" "1")			=> #f)
-  (check (%bytevector-u8/numbers-dictionary<=? "a" "ab")			=> #t)
-  (check (%bytevector-u8/numbers-dictionary<=? "ab" "a")			=> #f)
-  (check (%bytevector-u8/numbers-dictionary<=? "a" "a1")			=> #t)
-  (check (%bytevector-u8/numbers-dictionary<=? "a1" "a")			=> #f)
-  (check (%bytevector-u8/numbers-dictionary<=? "1" "1a")			=> #t)
-  (check (%bytevector-u8/numbers-dictionary<=? "1a" "1")			=> #f)
-
-  (check (%bytevector-u8/numbers-dictionary<=? "123" "45")			=> #f)
-  (check (%bytevector-u8/numbers-dictionary<=? "45" "123")			=> #t)
-  (check (%bytevector-u8/numbers-dictionary<=? "ciao3" "ciao10")		=> #t)
-  (check (%bytevector-u8/numbers-dictionary<=? "ciao10" "ciao3")		=> #f)
-  (check (%bytevector-u8/numbers-dictionary<=? "foo4bar3zab10" "foo4bar3zab2")	=> #f)
-  (check (%bytevector-u8/numbers-dictionary<=? "foo4bar3zab2" "foo4bar3zab10")	=> #t)
-  (check (%bytevector-u8/numbers-dictionary<=? "foo4bar3zab" "foo4bar10")	=> #t)
-  (check (%bytevector-u8/numbers-dictionary<=? "foo4bar10" "foo4bar3zab")	=> #f)
-  (check (%bytevector-u8/numbers-dictionary<=? "foo12" "12foo")		=> #f)
-  (check (%bytevector-u8/numbers-dictionary<=? "12foo" "foo12")		=> #t)
-  (check (%bytevector-u8/numbers-dictionary<=? "12bar" "foobar")		=> #t)
-  (check (%bytevector-u8/numbers-dictionary<=? "12.3" "12.3")			=> #t)
-  (check (%bytevector-u8/numbers-dictionary<=? "12.3" "12.10")			=> #t)
-  (check (%bytevector-u8/numbers-dictionary<=? "12.10" "12.3")			=> #f)
-  (check (%bytevector-u8/numbers-dictionary<=? "12.3" "12,10")			=> #f)
-  (check (%bytevector-u8/numbers-dictionary<=? "12,10" "12.3")			=> #t)
-
-  (check (%bytevector-u8/numbers-dictionary<=? "fo o4b\tar3\nza\rb10" "foo4bar3zab2")	=> #f)
-  (check (%bytevector-u8/numbers-dictionary<=? "foo4bar3zab2" "fo o4b\tar3\nza\rb10")	=> #t)
+  (check (%bytevector-u8/numbers-dictionary<>? (S "fo o4b\tar3\nza\rb10") (S "foo4bar3zab2"))	=> #t)
+  (check (%bytevector-u8/numbers-dictionary<>? (S "foo4bar3zab2") (S "fo o4b\tar3\nza\rb10"))	=> #t)
 
 ;;; --------------------------------------------------------------------
 
-  (check (%bytevector-u8/numbers-dictionary>? "" "")				=> #f)
-  (check (%bytevector-u8/numbers-dictionary>? "a" "")				=> #t)
-  (check (%bytevector-u8/numbers-dictionary>? "" "a")				=> #f)
-  (check (%bytevector-u8/numbers-dictionary>? "a" "a")				=> #f)
-  (check (%bytevector-u8/numbers-dictionary>? "1" "")				=> #t)
-  (check (%bytevector-u8/numbers-dictionary>? "" "1")				=> #f)
-  (check (%bytevector-u8/numbers-dictionary>? "1" "1")				=> #f)
-  (check (%bytevector-u8/numbers-dictionary>? "1" "2")				=> #f)
-  (check (%bytevector-u8/numbers-dictionary>? "2" "1")				=> #t)
-  (check (%bytevector-u8/numbers-dictionary>? "a" "ab")			=> #f)
-  (check (%bytevector-u8/numbers-dictionary>? "ab" "a")			=> #t)
-  (check (%bytevector-u8/numbers-dictionary>? "a" "a1")			=> #f)
-  (check (%bytevector-u8/numbers-dictionary>? "a1" "a")			=> #t)
-  (check (%bytevector-u8/numbers-dictionary>? "1" "1a")			=> #f)
-  (check (%bytevector-u8/numbers-dictionary>? "1a" "1")			=> #t)
+  (check (%bytevector-u8/numbers-dictionary<? '#vu8() '#vu8())				=> #f)
+  (check (%bytevector-u8/numbers-dictionary<? (S "a") '#vu8())				=> #f)
+  (check (%bytevector-u8/numbers-dictionary<? '#vu8() (S "a"))				=> #t)
+  (check (%bytevector-u8/numbers-dictionary<? (S "a") (S "a"))				=> #f)
+  (check (%bytevector-u8/numbers-dictionary<? (S "1") '#vu8())				=> #f)
+  (check (%bytevector-u8/numbers-dictionary<? '#vu8() (S "1"))				=> #t)
+  (check (%bytevector-u8/numbers-dictionary<? (S "1") (S "1"))				=> #f)
+  (check (%bytevector-u8/numbers-dictionary<? (S "1") (S "2"))				=> #t)
+  (check (%bytevector-u8/numbers-dictionary<? (S "2") (S "1"))				=> #f)
+  (check (%bytevector-u8/numbers-dictionary<? (S "a") (S "ab"))			=> #t)
+  (check (%bytevector-u8/numbers-dictionary<? (S "ab") (S "a"))			=> #f)
+  (check (%bytevector-u8/numbers-dictionary<? (S "a") (S "a1"))			=> #t)
+  (check (%bytevector-u8/numbers-dictionary<? (S "a1") (S "a"))			=> #f)
+  (check (%bytevector-u8/numbers-dictionary<? (S "1") (S "1a"))			=> #t)
+  (check (%bytevector-u8/numbers-dictionary<? (S "1a") (S "1"))			=> #f)
 
-  (check (%bytevector-u8/numbers-dictionary>? "123" "45")			=> #t)
-  (check (%bytevector-u8/numbers-dictionary>? "45" "123")			=> #f)
-  (check (%bytevector-u8/numbers-dictionary>? "ciao3" "ciao10")		=> #f)
-  (check (%bytevector-u8/numbers-dictionary>? "ciao10" "ciao3")		=> #t)
-  (check (%bytevector-u8/numbers-dictionary>? "foo4bar3zab10" "foo4bar3zab2")	=> #t)
-  (check (%bytevector-u8/numbers-dictionary>? "foo4bar3zab2" "foo4bar3zab10")	=> #f)
-  (check (%bytevector-u8/numbers-dictionary>? "foo4bar3zab" "foo4bar10")	=> #f)
-  (check (%bytevector-u8/numbers-dictionary>? "foo4bar10" "foo4bar3zab")	=> #t)
-  (check (%bytevector-u8/numbers-dictionary>? "foo12" "12foo")			=> #t)
-  (check (%bytevector-u8/numbers-dictionary>? "12foo" "foo12")			=> #f)
-  (check (%bytevector-u8/numbers-dictionary>? "12bar" "foobar")		=> #f)
-  (check (%bytevector-u8/numbers-dictionary>? "12.3" "12.3")			=> #f)
-  (check (%bytevector-u8/numbers-dictionary>? "12.3" "12.10")			=> #f)
-  (check (%bytevector-u8/numbers-dictionary>? "12.10" "12.3")			=> #t)
-  (check (%bytevector-u8/numbers-dictionary>? "12.3" "12,10")			=> #t)
-  (check (%bytevector-u8/numbers-dictionary>? "12,10" "12.3")			=> #f)
+  (check (%bytevector-u8/numbers-dictionary<? (S "123") (S "45"))			=> #f)
+  (check (%bytevector-u8/numbers-dictionary<? (S "45") (S "123"))			=> #t)
+  (check (%bytevector-u8/numbers-dictionary<? (S "ciao3") (S "ciao10"))		=> #t)
+  (check (%bytevector-u8/numbers-dictionary<? (S "ciao10") (S "ciao3"))		=> #f)
+  (check (%bytevector-u8/numbers-dictionary<? (S "foo4bar3zab10") (S "foo4bar3zab2"))	=> #f)
+  (check (%bytevector-u8/numbers-dictionary<? (S "foo4bar3zab2") (S "foo4bar3zab10"))	=> #t)
+  (check (%bytevector-u8/numbers-dictionary<? (S "foo4bar3zab") (S "foo4bar10"))	=> #t)
+  (check (%bytevector-u8/numbers-dictionary<? (S "foo4bar10") (S "foo4bar3zab"))	=> #f)
+  (check (%bytevector-u8/numbers-dictionary<? (S "foo12") (S "12foo"))			=> #f)
+  (check (%bytevector-u8/numbers-dictionary<? (S "12foo") (S "foo12"))			=> #t)
+  (check (%bytevector-u8/numbers-dictionary<? (S "12bar") (S "foobar"))		=> #t)
+  (check (%bytevector-u8/numbers-dictionary<? (S "12.3") (S "12.3"))			=> #f)
+  (check (%bytevector-u8/numbers-dictionary<? (S "12.3") (S "12.10"))			=> #t)
+  (check (%bytevector-u8/numbers-dictionary<? (S "12.10") (S "12.3"))			=> #f)
+  (check (%bytevector-u8/numbers-dictionary<? (S "12.3") (S "12,10"))			=> #f)
+  (check (%bytevector-u8/numbers-dictionary<? (S "12,10") (S "12.3"))			=> #t)
 
-  (check (%bytevector-u8/numbers-dictionary>? "fo o4b\tar3\nza\rb10" "foo4bar3zab2")	=> #t)
-  (check (%bytevector-u8/numbers-dictionary>? "foo4bar3zab2" "fo o4b\tar3\nza\rb10")	=> #f)
+  (check 'this (%bytevector-u8/numbers-dictionary<? (S "fo o4b\tar3\nza\rb10") (S "foo4bar3zab2"))	=> #f)
+  (check (%bytevector-u8/numbers-dictionary<? (S "foo4bar3zab2") (S "fo o4b\tar3\nza\rb10"))	=> #t)
 
 ;;; --------------------------------------------------------------------
 
-  (check (%bytevector-u8/numbers-dictionary>=? "" "")				=> #t)
-  (check (%bytevector-u8/numbers-dictionary>=? "a" "")				=> #t)
-  (check (%bytevector-u8/numbers-dictionary>=? "" "a")				=> #f)
-  (check (%bytevector-u8/numbers-dictionary>=? "a" "a")			=> #t)
-  (check (%bytevector-u8/numbers-dictionary>=? "1" "")				=> #t)
-  (check (%bytevector-u8/numbers-dictionary>=? "" "1")				=> #f)
-  (check (%bytevector-u8/numbers-dictionary>=? "1" "1")			=> #t)
-  (check (%bytevector-u8/numbers-dictionary>=? "1" "2")			=> #f)
-  (check (%bytevector-u8/numbers-dictionary>=? "2" "1")			=> #t)
-  (check (%bytevector-u8/numbers-dictionary>=? "a" "ab")			=> #f)
-  (check (%bytevector-u8/numbers-dictionary>=? "ab" "a")			=> #t)
-  (check (%bytevector-u8/numbers-dictionary>=? "a" "a1")			=> #f)
-  (check (%bytevector-u8/numbers-dictionary>=? "a1" "a")			=> #t)
-  (check (%bytevector-u8/numbers-dictionary>=? "1" "1a")			=> #f)
-  (check (%bytevector-u8/numbers-dictionary>=? "1a" "1")			=> #t)
+  (check (%bytevector-u8/numbers-dictionary<=? '#vu8() '#vu8())				=> #t)
+  (check (%bytevector-u8/numbers-dictionary<=? (S "a") '#vu8())				=> #f)
+  (check (%bytevector-u8/numbers-dictionary<=? '#vu8() (S "a"))				=> #t)
+  (check (%bytevector-u8/numbers-dictionary<=? (S "a") (S "a"))			=> #t)
+  (check (%bytevector-u8/numbers-dictionary<=? (S "1") '#vu8())				=> #f)
+  (check (%bytevector-u8/numbers-dictionary<=? '#vu8() (S "1"))				=> #t)
+  (check (%bytevector-u8/numbers-dictionary<=? (S "1") (S "1"))			=> #t)
+  (check (%bytevector-u8/numbers-dictionary<=? (S "1") (S "2"))			=> #t)
+  (check (%bytevector-u8/numbers-dictionary<=? (S "2") (S "1"))			=> #f)
+  (check (%bytevector-u8/numbers-dictionary<=? (S "a") (S "ab"))			=> #t)
+  (check (%bytevector-u8/numbers-dictionary<=? (S "ab") (S "a"))			=> #f)
+  (check (%bytevector-u8/numbers-dictionary<=? (S "a") (S "a1"))			=> #t)
+  (check (%bytevector-u8/numbers-dictionary<=? (S "a1") (S "a"))			=> #f)
+  (check (%bytevector-u8/numbers-dictionary<=? (S "1") (S "1a"))			=> #t)
+  (check (%bytevector-u8/numbers-dictionary<=? (S "1a") (S "1"))			=> #f)
 
-  (check (%bytevector-u8/numbers-dictionary>=? "123" "45")			=> #t)
-  (check (%bytevector-u8/numbers-dictionary>=? "45" "123")			=> #f)
-  (check (%bytevector-u8/numbers-dictionary>=? "ciao3" "ciao10")		=> #f)
-  (check (%bytevector-u8/numbers-dictionary>=? "ciao10" "ciao3")		=> #t)
-  (check (%bytevector-u8/numbers-dictionary>=? "foo4bar3zab10" "foo4bar3zab2")	=> #t)
-  (check (%bytevector-u8/numbers-dictionary>=? "foo4bar3zab2" "foo4bar3zab10")	=> #f)
-  (check (%bytevector-u8/numbers-dictionary>=? "foo4bar3zab" "foo4bar10")	=> #f)
-  (check (%bytevector-u8/numbers-dictionary>=? "foo4bar10" "foo4bar3zab")	=> #t)
-  (check (%bytevector-u8/numbers-dictionary>=? "foo12" "12foo")		=> #t)
-  (check (%bytevector-u8/numbers-dictionary>=? "12foo" "foo12")		=> #f)
-  (check (%bytevector-u8/numbers-dictionary>=? "12bar" "foobar")		=> #f)
-  (check (%bytevector-u8/numbers-dictionary>=? "12.3" "12.3")			=> #t)
-  (check (%bytevector-u8/numbers-dictionary>=? "12.3" "12.10")			=> #f)
-  (check (%bytevector-u8/numbers-dictionary>=? "12.10" "12.3")			=> #t)
-  (check (%bytevector-u8/numbers-dictionary>=? "12.3" "12,10")			=> #t)
-  (check (%bytevector-u8/numbers-dictionary>=? "12,10" "12.3")			=> #f)
+  (check (%bytevector-u8/numbers-dictionary<=? (S "123") (S "45"))			=> #f)
+  (check (%bytevector-u8/numbers-dictionary<=? (S "45") (S "123"))			=> #t)
+  (check (%bytevector-u8/numbers-dictionary<=? (S "ciao3") (S "ciao10"))		=> #t)
+  (check (%bytevector-u8/numbers-dictionary<=? (S "ciao10") (S "ciao3"))		=> #f)
+  (check (%bytevector-u8/numbers-dictionary<=? (S "foo4bar3zab10") (S "foo4bar3zab2"))	=> #f)
+  (check (%bytevector-u8/numbers-dictionary<=? (S "foo4bar3zab2") (S "foo4bar3zab10"))	=> #t)
+  (check (%bytevector-u8/numbers-dictionary<=? (S "foo4bar3zab") (S "foo4bar10"))	=> #t)
+  (check (%bytevector-u8/numbers-dictionary<=? (S "foo4bar10") (S "foo4bar3zab"))	=> #f)
+  (check (%bytevector-u8/numbers-dictionary<=? (S "foo12") (S "12foo"))		=> #f)
+  (check (%bytevector-u8/numbers-dictionary<=? (S "12foo") (S "foo12"))		=> #t)
+  (check (%bytevector-u8/numbers-dictionary<=? (S "12bar") (S "foobar"))		=> #t)
+  (check (%bytevector-u8/numbers-dictionary<=? (S "12.3") (S "12.3"))			=> #t)
+  (check (%bytevector-u8/numbers-dictionary<=? (S "12.3") (S "12.10"))			=> #t)
+  (check (%bytevector-u8/numbers-dictionary<=? (S "12.10") (S "12.3"))			=> #f)
+  (check (%bytevector-u8/numbers-dictionary<=? (S "12.3") (S "12,10"))			=> #f)
+  (check (%bytevector-u8/numbers-dictionary<=? (S "12,10") (S "12.3"))			=> #t)
 
-  (check (%bytevector-u8/numbers-dictionary>=? "fo o4b\tar3\nza\rb10" "foo4bar3zab2")	=> #t)
-  (check (%bytevector-u8/numbers-dictionary>=? "foo4bar3zab2" "fo o4b\tar3\nza\rb10")	=> #f)
+  (check (%bytevector-u8/numbers-dictionary<=? (S "fo o4b\tar3\nza\rb10") (S "foo4bar3zab2"))	=> #f)
+  (check (%bytevector-u8/numbers-dictionary<=? (S "foo4bar3zab2") (S "fo o4b\tar3\nza\rb10"))	=> #t)
+
+;;; --------------------------------------------------------------------
+
+  (check (%bytevector-u8/numbers-dictionary>? '#vu8() '#vu8())				=> #f)
+  (check (%bytevector-u8/numbers-dictionary>? (S "a") '#vu8())				=> #t)
+  (check (%bytevector-u8/numbers-dictionary>? '#vu8() (S "a"))				=> #f)
+  (check (%bytevector-u8/numbers-dictionary>? (S "a") (S "a"))				=> #f)
+  (check (%bytevector-u8/numbers-dictionary>? (S "1") '#vu8())				=> #t)
+  (check (%bytevector-u8/numbers-dictionary>? '#vu8() (S "1"))				=> #f)
+  (check (%bytevector-u8/numbers-dictionary>? (S "1") (S "1"))				=> #f)
+  (check (%bytevector-u8/numbers-dictionary>? (S "1") (S "2"))				=> #f)
+  (check (%bytevector-u8/numbers-dictionary>? (S "2") (S "1"))				=> #t)
+  (check (%bytevector-u8/numbers-dictionary>? (S "a") (S "ab"))			=> #f)
+  (check (%bytevector-u8/numbers-dictionary>? (S "ab") (S "a"))			=> #t)
+  (check (%bytevector-u8/numbers-dictionary>? (S "a") (S "a1"))			=> #f)
+  (check (%bytevector-u8/numbers-dictionary>? (S "a1") (S "a"))			=> #t)
+  (check (%bytevector-u8/numbers-dictionary>? (S "1") (S "1a"))			=> #f)
+  (check (%bytevector-u8/numbers-dictionary>? (S "1a") (S "1"))			=> #t)
+
+  (check (%bytevector-u8/numbers-dictionary>? (S "123") (S "45"))			=> #t)
+  (check (%bytevector-u8/numbers-dictionary>? (S "45") (S "123"))			=> #f)
+  (check (%bytevector-u8/numbers-dictionary>? (S "ciao3") (S "ciao10"))		=> #f)
+  (check (%bytevector-u8/numbers-dictionary>? (S "ciao10") (S "ciao3"))		=> #t)
+  (check (%bytevector-u8/numbers-dictionary>? (S "foo4bar3zab10") (S "foo4bar3zab2"))	=> #t)
+  (check (%bytevector-u8/numbers-dictionary>? (S "foo4bar3zab2") (S "foo4bar3zab10"))	=> #f)
+  (check (%bytevector-u8/numbers-dictionary>? (S "foo4bar3zab") (S "foo4bar10"))	=> #f)
+  (check (%bytevector-u8/numbers-dictionary>? (S "foo4bar10") (S "foo4bar3zab"))	=> #t)
+  (check (%bytevector-u8/numbers-dictionary>? (S "foo12") (S "12foo"))			=> #t)
+  (check (%bytevector-u8/numbers-dictionary>? (S "12foo") (S "foo12"))			=> #f)
+  (check (%bytevector-u8/numbers-dictionary>? (S "12bar") (S "foobar"))		=> #f)
+  (check (%bytevector-u8/numbers-dictionary>? (S "12.3") (S "12.3"))			=> #f)
+  (check (%bytevector-u8/numbers-dictionary>? (S "12.3") (S "12.10"))			=> #f)
+  (check (%bytevector-u8/numbers-dictionary>? (S "12.10") (S "12.3"))			=> #t)
+  (check (%bytevector-u8/numbers-dictionary>? (S "12.3") (S "12,10"))			=> #t)
+  (check (%bytevector-u8/numbers-dictionary>? (S "12,10") (S "12.3"))			=> #f)
+
+  (check (%bytevector-u8/numbers-dictionary>? (S "fo o4b\tar3\nza\rb10") (S "foo4bar3zab2"))	=> #t)
+  (check (%bytevector-u8/numbers-dictionary>? (S "foo4bar3zab2") (S "fo o4b\tar3\nza\rb10"))	=> #f)
+
+;;; --------------------------------------------------------------------
+
+  (check (%bytevector-u8/numbers-dictionary>=? '#vu8() '#vu8())				=> #t)
+  (check (%bytevector-u8/numbers-dictionary>=? (S "a") '#vu8())				=> #t)
+  (check (%bytevector-u8/numbers-dictionary>=? '#vu8() (S "a"))				=> #f)
+  (check (%bytevector-u8/numbers-dictionary>=? (S "a") (S "a"))			=> #t)
+  (check (%bytevector-u8/numbers-dictionary>=? (S "1") '#vu8())				=> #t)
+  (check (%bytevector-u8/numbers-dictionary>=? '#vu8() (S "1"))				=> #f)
+  (check (%bytevector-u8/numbers-dictionary>=? (S "1") (S "1"))			=> #t)
+  (check (%bytevector-u8/numbers-dictionary>=? (S "1") (S "2"))			=> #f)
+  (check (%bytevector-u8/numbers-dictionary>=? (S "2") (S "1"))			=> #t)
+  (check (%bytevector-u8/numbers-dictionary>=? (S "a") (S "ab"))			=> #f)
+  (check (%bytevector-u8/numbers-dictionary>=? (S "ab") (S "a"))			=> #t)
+  (check (%bytevector-u8/numbers-dictionary>=? (S "a") (S "a1"))			=> #f)
+  (check (%bytevector-u8/numbers-dictionary>=? (S "a1") (S "a"))			=> #t)
+  (check (%bytevector-u8/numbers-dictionary>=? (S "1") (S "1a"))			=> #f)
+  (check (%bytevector-u8/numbers-dictionary>=? (S "1a") (S "1"))			=> #t)
+
+  (check (%bytevector-u8/numbers-dictionary>=? (S "123") (S "45"))			=> #t)
+  (check (%bytevector-u8/numbers-dictionary>=? (S "45") (S "123"))			=> #f)
+  (check (%bytevector-u8/numbers-dictionary>=? (S "ciao3") (S "ciao10"))		=> #f)
+  (check (%bytevector-u8/numbers-dictionary>=? (S "ciao10") (S "ciao3"))		=> #t)
+  (check (%bytevector-u8/numbers-dictionary>=? (S "foo4bar3zab10") (S "foo4bar3zab2"))	=> #t)
+  (check (%bytevector-u8/numbers-dictionary>=? (S "foo4bar3zab2") (S "foo4bar3zab10"))	=> #f)
+  (check (%bytevector-u8/numbers-dictionary>=? (S "foo4bar3zab") (S "foo4bar10"))	=> #f)
+  (check (%bytevector-u8/numbers-dictionary>=? (S "foo4bar10") (S "foo4bar3zab"))	=> #t)
+  (check (%bytevector-u8/numbers-dictionary>=? (S "foo12") (S "12foo"))		=> #t)
+  (check (%bytevector-u8/numbers-dictionary>=? (S "12foo") (S "foo12"))		=> #f)
+  (check (%bytevector-u8/numbers-dictionary>=? (S "12bar") (S "foobar"))		=> #f)
+  (check (%bytevector-u8/numbers-dictionary>=? (S "12.3") (S "12.3"))			=> #t)
+  (check (%bytevector-u8/numbers-dictionary>=? (S "12.3") (S "12.10"))			=> #f)
+  (check (%bytevector-u8/numbers-dictionary>=? (S "12.10") (S "12.3"))			=> #t)
+  (check (%bytevector-u8/numbers-dictionary>=? (S "12.3") (S "12,10"))			=> #t)
+  (check (%bytevector-u8/numbers-dictionary>=? (S "12,10") (S "12.3"))			=> #f)
+
+  (check (%bytevector-u8/numbers-dictionary>=? (S "fo o4b\tar3\nza\rb10") (S "foo4bar3zab2"))	=> #t)
+  (check (%bytevector-u8/numbers-dictionary>=? (S "foo4bar3zab2") (S "fo o4b\tar3\nza\rb10"))	=> #f)
 
   #t)
 
 
 (parameterise ((check-test-name 'comparison-dictionary-bytevector-u8/number-case-insensitive))
 
-  (check (%bytevector-u8/numbers-dictionary-ci=? "" "")				=> #t)
-  (check (%bytevector-u8/numbers-dictionary-ci=? "a" "")				=> #f)
-  (check (%bytevector-u8/numbers-dictionary-ci=? "" "a")				=> #f)
-  (check (%bytevector-u8/numbers-dictionary-ci=? "a" "a")				=> #t)
-  (check (%bytevector-u8/numbers-dictionary-ci=? "1" "")				=> #f)
-  (check (%bytevector-u8/numbers-dictionary-ci=? "" "1")				=> #f)
-  (check (%bytevector-u8/numbers-dictionary-ci=? "1" "1")				=> #t)
-  (check (%bytevector-u8/numbers-dictionary-ci=? "1" "2")				=> #f)
-  (check (%bytevector-u8/numbers-dictionary-ci=? "2" "1")				=> #f)
-  (check (%bytevector-u8/numbers-dictionary-ci=? "a" "ab")				=> #f)
-  (check (%bytevector-u8/numbers-dictionary-ci=? "ab" "a")				=> #f)
-  (check (%bytevector-u8/numbers-dictionary-ci=? "a" "a1")				=> #f)
-  (check (%bytevector-u8/numbers-dictionary-ci=? "a1" "a")				=> #f)
-  (check (%bytevector-u8/numbers-dictionary-ci=? "1" "1a")				=> #f)
-  (check (%bytevector-u8/numbers-dictionary-ci=? "1a" "1")				=> #f)
-  (check (%bytevector-u8/numbers-dictionary-ci=? "a" "A")				=> #t)
-  (check (%bytevector-u8/numbers-dictionary-ci=? "A" "a")				=> #t)
+  (check (%bytevector-u8/numbers-dictionary-ci=? '#vu8() '#vu8())				=> #t)
+  (check (%bytevector-u8/numbers-dictionary-ci=? (S "a") '#vu8())				=> #f)
+  (check (%bytevector-u8/numbers-dictionary-ci=? '#vu8() (S "a"))				=> #f)
+  (check (%bytevector-u8/numbers-dictionary-ci=? (S "a") (S "a"))				=> #t)
+  (check (%bytevector-u8/numbers-dictionary-ci=? (S "1") '#vu8())				=> #f)
+  (check (%bytevector-u8/numbers-dictionary-ci=? '#vu8() (S "1"))				=> #f)
+  (check (%bytevector-u8/numbers-dictionary-ci=? (S "1") (S "1"))				=> #t)
+  (check (%bytevector-u8/numbers-dictionary-ci=? (S "1") (S "2"))				=> #f)
+  (check (%bytevector-u8/numbers-dictionary-ci=? (S "2") (S "1"))				=> #f)
+  (check (%bytevector-u8/numbers-dictionary-ci=? (S "a") (S "ab"))				=> #f)
+  (check (%bytevector-u8/numbers-dictionary-ci=? (S "ab") (S "a"))				=> #f)
+  (check (%bytevector-u8/numbers-dictionary-ci=? (S "a") (S "a1"))				=> #f)
+  (check (%bytevector-u8/numbers-dictionary-ci=? (S "a1") (S "a"))				=> #f)
+  (check (%bytevector-u8/numbers-dictionary-ci=? (S "1") (S "1a"))				=> #f)
+  (check (%bytevector-u8/numbers-dictionary-ci=? (S "1a") (S "1"))				=> #f)
+  (check (%bytevector-u8/numbers-dictionary-ci=? (S "a") (S "A"))				=> #t)
+  (check (%bytevector-u8/numbers-dictionary-ci=? (S "A") (S "a"))				=> #t)
 
-  (check (%bytevector-u8/numbers-dictionary-ci=? "123" "45")				=> #f)
-  (check (%bytevector-u8/numbers-dictionary-ci=? "45" "123")				=> #f)
-  (check (%bytevector-u8/numbers-dictionary-ci=? "ciao3" "ciao10")			=> #f)
-  (check (%bytevector-u8/numbers-dictionary-ci=? "ciao10" "ciao3")			=> #f)
-  (check (%bytevector-u8/numbers-dictionary-ci=? "foo4bar3zab10" "foo4bar3zab2")	=> #f)
-  (check (%bytevector-u8/numbers-dictionary-ci=? "foo4bar3zab2" "foo4bar3zab10")	=> #f)
-  (check (%bytevector-u8/numbers-dictionary-ci=? "foo4bar3zab" "foo4bar10")		=> #f)
-  (check (%bytevector-u8/numbers-dictionary-ci=? "foo4bar10" "foo4bar3zab")		=> #f)
-  (check (%bytevector-u8/numbers-dictionary-ci=? "foo12" "12foo")			=> #f)
-  (check (%bytevector-u8/numbers-dictionary-ci=? "12foo" "foo12")			=> #f)
-  (check (%bytevector-u8/numbers-dictionary-ci=? "12bar" "foobar")			=> #f)
-  (check (%bytevector-u8/numbers-dictionary-ci=? "12.3" "12.3")			=> #t)
-  (check (%bytevector-u8/numbers-dictionary-ci=? "12.3" "12.10")			=> #f)
-  (check (%bytevector-u8/numbers-dictionary-ci=? "12.10" "12.3")			=> #f)
-  (check (%bytevector-u8/numbers-dictionary-ci=? "12.3" "12,10")			=> #f)
-  (check (%bytevector-u8/numbers-dictionary-ci=? "12,10" "12.3")			=> #f)
-
-;;; --------------------------------------------------------------------
-
-  (check (%bytevector-u8/numbers-dictionary-ci<>? "" "")				=> #f)
-  (check (%bytevector-u8/numbers-dictionary-ci<>? "a" "")				=> #t)
-  (check (%bytevector-u8/numbers-dictionary-ci<>? "" "a")				=> #t)
-  (check (%bytevector-u8/numbers-dictionary-ci<>? "a" "a")				=> #f)
-  (check (%bytevector-u8/numbers-dictionary-ci<>? "1" "")				=> #t)
-  (check (%bytevector-u8/numbers-dictionary-ci<>? "" "1")				=> #t)
-  (check (%bytevector-u8/numbers-dictionary-ci<>? "1" "1")				=> #f)
-  (check (%bytevector-u8/numbers-dictionary-ci<>? "1" "2")				=> #t)
-  (check (%bytevector-u8/numbers-dictionary-ci<>? "2" "1")				=> #t)
-  (check (%bytevector-u8/numbers-dictionary-ci<>? "a" "ab")				=> #t)
-  (check (%bytevector-u8/numbers-dictionary-ci<>? "ab" "a")				=> #t)
-  (check (%bytevector-u8/numbers-dictionary-ci<>? "a" "a1")				=> #t)
-  (check (%bytevector-u8/numbers-dictionary-ci<>? "a1" "a")				=> #t)
-  (check (%bytevector-u8/numbers-dictionary-ci<>? "1" "1a")				=> #t)
-  (check (%bytevector-u8/numbers-dictionary-ci<>? "1a" "1")				=> #t)
-  (check (%bytevector-u8/numbers-dictionary-ci<>? "A" "a")				=> #f)
-  (check (%bytevector-u8/numbers-dictionary-ci<>? "a" "A")				=> #f)
-
-  (check (%bytevector-u8/numbers-dictionary-ci<>? "123" "45")				=> #t)
-  (check (%bytevector-u8/numbers-dictionary-ci<>? "45" "123")				=> #t)
-  (check (%bytevector-u8/numbers-dictionary-ci<>? "ciao3" "ciao10")			=> #t)
-  (check (%bytevector-u8/numbers-dictionary-ci<>? "ciao10" "ciao3")			=> #t)
-  (check (%bytevector-u8/numbers-dictionary-ci<>? "foo4bar3zab10" "foo4bar3zab2")	=> #t)
-  (check (%bytevector-u8/numbers-dictionary-ci<>? "foo4bar3zab2" "foo4bar3zab10")	=> #t)
-  (check (%bytevector-u8/numbers-dictionary-ci<>? "foo4bar3zab" "foo4bar10")		=> #t)
-  (check (%bytevector-u8/numbers-dictionary-ci<>? "foo4bar10" "foo4bar3zab")		=> #t)
-  (check (%bytevector-u8/numbers-dictionary-ci<>? "foo12" "12foo")			=> #t)
-  (check (%bytevector-u8/numbers-dictionary-ci<>? "12foo" "foo12")			=> #t)
-  (check (%bytevector-u8/numbers-dictionary-ci<>? "12bar" "foobar")			=> #t)
-  (check (%bytevector-u8/numbers-dictionary-ci<>? "12.3" "12.3")			=> #f)
-  (check (%bytevector-u8/numbers-dictionary-ci<>? "12.3" "12.10")			=> #t)
-  (check (%bytevector-u8/numbers-dictionary-ci<>? "12.10" "12.3")			=> #t)
-  (check (%bytevector-u8/numbers-dictionary-ci<>? "12.3" "12,10")			=> #t)
-  (check (%bytevector-u8/numbers-dictionary-ci<>? "12,10" "12.3")			=> #t)
+  (check (%bytevector-u8/numbers-dictionary-ci=? (S "123") (S "45"))				=> #f)
+  (check (%bytevector-u8/numbers-dictionary-ci=? (S "45") (S "123"))				=> #f)
+  (check (%bytevector-u8/numbers-dictionary-ci=? (S "ciao3") (S "ciao10"))			=> #f)
+  (check (%bytevector-u8/numbers-dictionary-ci=? (S "ciao10") (S "ciao3"))			=> #f)
+  (check (%bytevector-u8/numbers-dictionary-ci=? (S "foo4bar3zab10") (S "foo4bar3zab2"))	=> #f)
+  (check (%bytevector-u8/numbers-dictionary-ci=? (S "foo4bar3zab2") (S "foo4bar3zab10"))	=> #f)
+  (check (%bytevector-u8/numbers-dictionary-ci=? (S "foo4bar3zab") (S "foo4bar10"))		=> #f)
+  (check (%bytevector-u8/numbers-dictionary-ci=? (S "foo4bar10") (S "foo4bar3zab"))		=> #f)
+  (check (%bytevector-u8/numbers-dictionary-ci=? (S "foo12") (S "12foo"))			=> #f)
+  (check (%bytevector-u8/numbers-dictionary-ci=? (S "12foo") (S "foo12"))			=> #f)
+  (check (%bytevector-u8/numbers-dictionary-ci=? (S "12bar") (S "foobar"))			=> #f)
+  (check (%bytevector-u8/numbers-dictionary-ci=? (S "12.3") (S "12.3"))			=> #t)
+  (check (%bytevector-u8/numbers-dictionary-ci=? (S "12.3") (S "12.10"))			=> #f)
+  (check (%bytevector-u8/numbers-dictionary-ci=? (S "12.10") (S "12.3"))			=> #f)
+  (check (%bytevector-u8/numbers-dictionary-ci=? (S "12.3") (S "12,10"))			=> #f)
+  (check (%bytevector-u8/numbers-dictionary-ci=? (S "12,10") (S "12.3"))			=> #f)
 
 ;;; --------------------------------------------------------------------
 
-  (check (%bytevector-u8/numbers-dictionary-ci<? "" "")				=> #f)
-  (check (%bytevector-u8/numbers-dictionary-ci<? "a" "")				=> #f)
-  (check (%bytevector-u8/numbers-dictionary-ci<? "" "a")				=> #t)
-  (check (%bytevector-u8/numbers-dictionary-ci<? "a" "a")				=> #f)
-  (check (%bytevector-u8/numbers-dictionary-ci<? "1" "")				=> #f)
-  (check (%bytevector-u8/numbers-dictionary-ci<? "" "1")				=> #t)
-  (check (%bytevector-u8/numbers-dictionary-ci<? "1" "1")				=> #f)
-  (check (%bytevector-u8/numbers-dictionary-ci<? "1" "2")				=> #t)
-  (check (%bytevector-u8/numbers-dictionary-ci<? "2" "1")				=> #f)
-  (check (%bytevector-u8/numbers-dictionary-ci<? "a" "ab")				=> #t)
-  (check (%bytevector-u8/numbers-dictionary-ci<? "ab" "a")				=> #f)
-  (check (%bytevector-u8/numbers-dictionary-ci<? "a" "a1")				=> #t)
-  (check (%bytevector-u8/numbers-dictionary-ci<? "a1" "a")				=> #f)
-  (check (%bytevector-u8/numbers-dictionary-ci<? "1" "1a")				=> #t)
-  (check (%bytevector-u8/numbers-dictionary-ci<? "1a" "1")				=> #f)
-  (check (%bytevector-u8/numbers-dictionary-ci<? "a" "A")				=> #f)
-  (check (%bytevector-u8/numbers-dictionary-ci<? "A" "a")				=> #f)
+  (check (%bytevector-u8/numbers-dictionary-ci<>? '#vu8() '#vu8())				=> #f)
+  (check (%bytevector-u8/numbers-dictionary-ci<>? (S "a") '#vu8())				=> #t)
+  (check (%bytevector-u8/numbers-dictionary-ci<>? '#vu8() (S "a"))				=> #t)
+  (check (%bytevector-u8/numbers-dictionary-ci<>? (S "a") (S "a"))				=> #f)
+  (check (%bytevector-u8/numbers-dictionary-ci<>? (S "1") '#vu8())				=> #t)
+  (check (%bytevector-u8/numbers-dictionary-ci<>? '#vu8() (S "1"))				=> #t)
+  (check (%bytevector-u8/numbers-dictionary-ci<>? (S "1") (S "1"))				=> #f)
+  (check (%bytevector-u8/numbers-dictionary-ci<>? (S "1") (S "2"))				=> #t)
+  (check (%bytevector-u8/numbers-dictionary-ci<>? (S "2") (S "1"))				=> #t)
+  (check (%bytevector-u8/numbers-dictionary-ci<>? (S "a") (S "ab"))				=> #t)
+  (check (%bytevector-u8/numbers-dictionary-ci<>? (S "ab") (S "a"))				=> #t)
+  (check (%bytevector-u8/numbers-dictionary-ci<>? (S "a") (S "a1"))				=> #t)
+  (check (%bytevector-u8/numbers-dictionary-ci<>? (S "a1") (S "a"))				=> #t)
+  (check (%bytevector-u8/numbers-dictionary-ci<>? (S "1") (S "1a"))				=> #t)
+  (check (%bytevector-u8/numbers-dictionary-ci<>? (S "1a") (S "1"))				=> #t)
+  (check (%bytevector-u8/numbers-dictionary-ci<>? (S "A") (S "a"))				=> #f)
+  (check (%bytevector-u8/numbers-dictionary-ci<>? (S "a") (S "A"))				=> #f)
 
-  (check (%bytevector-u8/numbers-dictionary-ci<? "123" "45")				=> #f)
-  (check (%bytevector-u8/numbers-dictionary-ci<? "45" "123")				=> #t)
-  (check (%bytevector-u8/numbers-dictionary-ci<? "ciao3" "ciao10")			=> #t)
-  (check (%bytevector-u8/numbers-dictionary-ci<? "ciao10" "ciao3")			=> #f)
-  (check (%bytevector-u8/numbers-dictionary-ci<? "foo4bar3zab10" "foo4bar3zab2")	=> #f)
-  (check (%bytevector-u8/numbers-dictionary-ci<? "foo4bar3zab2" "foo4bar3zab10")	=> #t)
-  (check (%bytevector-u8/numbers-dictionary-ci<? "foo4bar3zab" "foo4bar10")		=> #t)
-  (check (%bytevector-u8/numbers-dictionary-ci<? "foo4bar10" "foo4bar3zab")		=> #f)
-  (check (%bytevector-u8/numbers-dictionary-ci<? "foo12" "12foo")			=> #f)
-  (check (%bytevector-u8/numbers-dictionary-ci<? "12foo" "foo12")			=> #t)
-  (check (%bytevector-u8/numbers-dictionary-ci<? "12bar" "foobar")			=> #t)
-  (check (%bytevector-u8/numbers-dictionary-ci<? "12.3" "12.3")			=> #f)
-  (check (%bytevector-u8/numbers-dictionary-ci<? "12.3" "12.10")			=> #t)
-  (check (%bytevector-u8/numbers-dictionary-ci<? "12.10" "12.3")			=> #f)
-  (check (%bytevector-u8/numbers-dictionary-ci<? "12.3" "12,10")			=> #f)
-  (check (%bytevector-u8/numbers-dictionary-ci<? "12,10" "12.3")			=> #t)
-
-;;; --------------------------------------------------------------------
-
-  (check (%bytevector-u8/numbers-dictionary-ci<=? "" "")				=> #t)
-  (check (%bytevector-u8/numbers-dictionary-ci<=? "a" "")				=> #f)
-  (check (%bytevector-u8/numbers-dictionary-ci<=? "" "a")				=> #t)
-  (check (%bytevector-u8/numbers-dictionary-ci<=? "a" "a")				=> #t)
-  (check (%bytevector-u8/numbers-dictionary-ci<=? "1" "")				=> #f)
-  (check (%bytevector-u8/numbers-dictionary-ci<=? "" "1")				=> #t)
-  (check (%bytevector-u8/numbers-dictionary-ci<=? "1" "1")				=> #t)
-  (check (%bytevector-u8/numbers-dictionary-ci<=? "1" "2")				=> #t)
-  (check (%bytevector-u8/numbers-dictionary-ci<=? "2" "1")				=> #f)
-  (check (%bytevector-u8/numbers-dictionary-ci<=? "a" "ab")				=> #t)
-  (check (%bytevector-u8/numbers-dictionary-ci<=? "ab" "a")				=> #f)
-  (check (%bytevector-u8/numbers-dictionary-ci<=? "a" "a1")				=> #t)
-  (check (%bytevector-u8/numbers-dictionary-ci<=? "a1" "a")				=> #f)
-  (check (%bytevector-u8/numbers-dictionary-ci<=? "1" "1a")				=> #t)
-  (check (%bytevector-u8/numbers-dictionary-ci<=? "1a" "1")				=> #f)
-  (check (%bytevector-u8/numbers-dictionary-ci<=? "a" "A")				=> #t)
-  (check (%bytevector-u8/numbers-dictionary-ci<=? "A" "a")				=> #t)
-
-  (check (%bytevector-u8/numbers-dictionary-ci<=? "123" "45")				=> #f)
-  (check (%bytevector-u8/numbers-dictionary-ci<=? "45" "123")				=> #t)
-  (check (%bytevector-u8/numbers-dictionary-ci<=? "ciao3" "ciao10")			=> #t)
-  (check (%bytevector-u8/numbers-dictionary-ci<=? "ciao10" "ciao3")			=> #f)
-  (check (%bytevector-u8/numbers-dictionary-ci<=? "foo4bar3zab10" "foo4bar3zab2")	=> #f)
-  (check (%bytevector-u8/numbers-dictionary-ci<=? "foo4bar3zab2" "foo4bar3zab10")	=> #t)
-  (check (%bytevector-u8/numbers-dictionary-ci<=? "foo4bar3zab" "foo4bar10")		=> #t)
-  (check (%bytevector-u8/numbers-dictionary-ci<=? "foo4bar10" "foo4bar3zab")		=> #f)
-  (check (%bytevector-u8/numbers-dictionary-ci<=? "foo12" "12foo")			=> #f)
-  (check (%bytevector-u8/numbers-dictionary-ci<=? "12foo" "foo12")			=> #t)
-  (check (%bytevector-u8/numbers-dictionary-ci<=? "12bar" "foobar")			=> #t)
-  (check (%bytevector-u8/numbers-dictionary-ci<=? "12.3" "12.3")			=> #t)
-  (check (%bytevector-u8/numbers-dictionary-ci<=? "12.3" "12.10")			=> #t)
-  (check (%bytevector-u8/numbers-dictionary-ci<=? "12.10" "12.3")			=> #f)
-  (check (%bytevector-u8/numbers-dictionary-ci<=? "12.3" "12,10")			=> #f)
-  (check (%bytevector-u8/numbers-dictionary-ci<=? "12,10" "12.3")			=> #t)
+  (check (%bytevector-u8/numbers-dictionary-ci<>? (S "123") (S "45"))				=> #t)
+  (check (%bytevector-u8/numbers-dictionary-ci<>? (S "45") (S "123"))				=> #t)
+  (check (%bytevector-u8/numbers-dictionary-ci<>? (S "ciao3") (S "ciao10"))			=> #t)
+  (check (%bytevector-u8/numbers-dictionary-ci<>? (S "ciao10") (S "ciao3"))			=> #t)
+  (check (%bytevector-u8/numbers-dictionary-ci<>? (S "foo4bar3zab10") (S "foo4bar3zab2"))	=> #t)
+  (check (%bytevector-u8/numbers-dictionary-ci<>? (S "foo4bar3zab2") (S "foo4bar3zab10"))	=> #t)
+  (check (%bytevector-u8/numbers-dictionary-ci<>? (S "foo4bar3zab") (S "foo4bar10"))		=> #t)
+  (check (%bytevector-u8/numbers-dictionary-ci<>? (S "foo4bar10") (S "foo4bar3zab"))		=> #t)
+  (check (%bytevector-u8/numbers-dictionary-ci<>? (S "foo12") (S "12foo"))			=> #t)
+  (check (%bytevector-u8/numbers-dictionary-ci<>? (S "12foo") (S "foo12"))			=> #t)
+  (check (%bytevector-u8/numbers-dictionary-ci<>? (S "12bar") (S "foobar"))			=> #t)
+  (check (%bytevector-u8/numbers-dictionary-ci<>? (S "12.3") (S "12.3"))			=> #f)
+  (check (%bytevector-u8/numbers-dictionary-ci<>? (S "12.3") (S "12.10"))			=> #t)
+  (check (%bytevector-u8/numbers-dictionary-ci<>? (S "12.10") (S "12.3"))			=> #t)
+  (check (%bytevector-u8/numbers-dictionary-ci<>? (S "12.3") (S "12,10"))			=> #t)
+  (check (%bytevector-u8/numbers-dictionary-ci<>? (S "12,10") (S "12.3"))			=> #t)
 
 ;;; --------------------------------------------------------------------
 
-  (check (%bytevector-u8/numbers-dictionary-ci>? "" "")				=> #f)
-  (check (%bytevector-u8/numbers-dictionary-ci>? "a" "")				=> #t)
-  (check (%bytevector-u8/numbers-dictionary-ci>? "" "a")				=> #f)
-  (check (%bytevector-u8/numbers-dictionary-ci>? "a" "a")				=> #f)
-  (check (%bytevector-u8/numbers-dictionary-ci>? "1" "")				=> #t)
-  (check (%bytevector-u8/numbers-dictionary-ci>? "" "1")				=> #f)
-  (check (%bytevector-u8/numbers-dictionary-ci>? "1" "1")				=> #f)
-  (check (%bytevector-u8/numbers-dictionary-ci>? "1" "2")				=> #f)
-  (check (%bytevector-u8/numbers-dictionary-ci>? "2" "1")				=> #t)
-  (check (%bytevector-u8/numbers-dictionary-ci>? "a" "ab")				=> #f)
-  (check (%bytevector-u8/numbers-dictionary-ci>? "ab" "a")				=> #t)
-  (check (%bytevector-u8/numbers-dictionary-ci>? "a" "a1")				=> #f)
-  (check (%bytevector-u8/numbers-dictionary-ci>? "a1" "a")				=> #t)
-  (check (%bytevector-u8/numbers-dictionary-ci>? "1" "1a")				=> #f)
-  (check (%bytevector-u8/numbers-dictionary-ci>? "1a" "1")				=> #t)
-  (check (%bytevector-u8/numbers-dictionary-ci>? "a" "A")				=> #f)
-  (check (%bytevector-u8/numbers-dictionary-ci>? "A" "a")				=> #f)
+  (check (%bytevector-u8/numbers-dictionary-ci<? '#vu8() '#vu8())				=> #f)
+  (check (%bytevector-u8/numbers-dictionary-ci<? (S "a") '#vu8())				=> #f)
+  (check (%bytevector-u8/numbers-dictionary-ci<? '#vu8() (S "a"))				=> #t)
+  (check (%bytevector-u8/numbers-dictionary-ci<? (S "a") (S "a"))				=> #f)
+  (check (%bytevector-u8/numbers-dictionary-ci<? (S "1") '#vu8())				=> #f)
+  (check (%bytevector-u8/numbers-dictionary-ci<? '#vu8() (S "1"))				=> #t)
+  (check (%bytevector-u8/numbers-dictionary-ci<? (S "1") (S "1"))				=> #f)
+  (check (%bytevector-u8/numbers-dictionary-ci<? (S "1") (S "2"))				=> #t)
+  (check (%bytevector-u8/numbers-dictionary-ci<? (S "2") (S "1"))				=> #f)
+  (check (%bytevector-u8/numbers-dictionary-ci<? (S "a") (S "ab"))				=> #t)
+  (check (%bytevector-u8/numbers-dictionary-ci<? (S "ab") (S "a"))				=> #f)
+  (check (%bytevector-u8/numbers-dictionary-ci<? (S "a") (S "a1"))				=> #t)
+  (check (%bytevector-u8/numbers-dictionary-ci<? (S "a1") (S "a"))				=> #f)
+  (check (%bytevector-u8/numbers-dictionary-ci<? (S "1") (S "1a"))				=> #t)
+  (check (%bytevector-u8/numbers-dictionary-ci<? (S "1a") (S "1"))				=> #f)
+  (check (%bytevector-u8/numbers-dictionary-ci<? (S "a") (S "A"))				=> #f)
+  (check (%bytevector-u8/numbers-dictionary-ci<? (S "A") (S "a"))				=> #f)
 
-  (check (%bytevector-u8/numbers-dictionary-ci>? "123" "45")				=> #t)
-  (check (%bytevector-u8/numbers-dictionary-ci>? "45" "123")				=> #f)
-  (check (%bytevector-u8/numbers-dictionary-ci>? "ciao3" "ciao10")			=> #f)
-  (check (%bytevector-u8/numbers-dictionary-ci>? "ciao10" "ciao3")			=> #t)
-  (check (%bytevector-u8/numbers-dictionary-ci>? "foo4bar3zab10" "foo4bar3zab2")	=> #t)
-  (check (%bytevector-u8/numbers-dictionary-ci>? "foo4bar3zab2" "foo4bar3zab10")	=> #f)
-  (check (%bytevector-u8/numbers-dictionary-ci>? "foo4bar3zab" "foo4bar10")		=> #f)
-  (check (%bytevector-u8/numbers-dictionary-ci>? "foo4bar10" "foo4bar3zab")		=> #t)
-  (check (%bytevector-u8/numbers-dictionary-ci>? "foo12" "12foo")			=> #t)
-  (check (%bytevector-u8/numbers-dictionary-ci>? "12foo" "foo12")			=> #f)
-  (check (%bytevector-u8/numbers-dictionary-ci>? "12bar" "foobar")			=> #f)
-  (check (%bytevector-u8/numbers-dictionary-ci>? "12.3" "12.3")			=> #f)
-  (check (%bytevector-u8/numbers-dictionary-ci>? "12.3" "12.10")			=> #f)
-  (check (%bytevector-u8/numbers-dictionary-ci>? "12.10" "12.3")			=> #t)
-  (check (%bytevector-u8/numbers-dictionary-ci>? "12.3" "12,10")			=> #t)
-  (check (%bytevector-u8/numbers-dictionary-ci>? "12,10" "12.3")			=> #f)
+  (check (%bytevector-u8/numbers-dictionary-ci<? (S "123") (S "45"))				=> #f)
+  (check (%bytevector-u8/numbers-dictionary-ci<? (S "45") (S "123"))				=> #t)
+  (check (%bytevector-u8/numbers-dictionary-ci<? (S "ciao3") (S "ciao10"))			=> #t)
+  (check (%bytevector-u8/numbers-dictionary-ci<? (S "ciao10") (S "ciao3"))			=> #f)
+  (check (%bytevector-u8/numbers-dictionary-ci<? (S "foo4bar3zab10") (S "foo4bar3zab2"))	=> #f)
+  (check (%bytevector-u8/numbers-dictionary-ci<? (S "foo4bar3zab2") (S "foo4bar3zab10"))	=> #t)
+  (check (%bytevector-u8/numbers-dictionary-ci<? (S "foo4bar3zab") (S "foo4bar10"))		=> #t)
+  (check (%bytevector-u8/numbers-dictionary-ci<? (S "foo4bar10") (S "foo4bar3zab"))		=> #f)
+  (check (%bytevector-u8/numbers-dictionary-ci<? (S "foo12") (S "12foo"))			=> #f)
+  (check (%bytevector-u8/numbers-dictionary-ci<? (S "12foo") (S "foo12"))			=> #t)
+  (check (%bytevector-u8/numbers-dictionary-ci<? (S "12bar") (S "foobar"))			=> #t)
+  (check (%bytevector-u8/numbers-dictionary-ci<? (S "12.3") (S "12.3"))			=> #f)
+  (check (%bytevector-u8/numbers-dictionary-ci<? (S "12.3") (S "12.10"))			=> #t)
+  (check (%bytevector-u8/numbers-dictionary-ci<? (S "12.10") (S "12.3"))			=> #f)
+  (check (%bytevector-u8/numbers-dictionary-ci<? (S "12.3") (S "12,10"))			=> #f)
+  (check (%bytevector-u8/numbers-dictionary-ci<? (S "12,10") (S "12.3"))			=> #t)
 
 ;;; --------------------------------------------------------------------
 
-  (check (%bytevector-u8/numbers-dictionary-ci>=? "" "")				=> #t)
-  (check (%bytevector-u8/numbers-dictionary-ci>=? "a" "")				=> #t)
-  (check (%bytevector-u8/numbers-dictionary-ci>=? "" "a")				=> #f)
-  (check (%bytevector-u8/numbers-dictionary-ci>=? "a" "a")				=> #t)
-  (check (%bytevector-u8/numbers-dictionary-ci>=? "1" "")				=> #t)
-  (check (%bytevector-u8/numbers-dictionary-ci>=? "" "1")				=> #f)
-  (check (%bytevector-u8/numbers-dictionary-ci>=? "1" "1")				=> #t)
-  (check (%bytevector-u8/numbers-dictionary-ci>=? "1" "2")				=> #f)
-  (check (%bytevector-u8/numbers-dictionary-ci>=? "2" "1")				=> #t)
-  (check (%bytevector-u8/numbers-dictionary-ci>=? "a" "ab")				=> #f)
-  (check (%bytevector-u8/numbers-dictionary-ci>=? "ab" "a")				=> #t)
-  (check (%bytevector-u8/numbers-dictionary-ci>=? "a" "a1")				=> #f)
-  (check (%bytevector-u8/numbers-dictionary-ci>=? "a1" "a")				=> #t)
-  (check (%bytevector-u8/numbers-dictionary-ci>=? "1" "1a")				=> #f)
-  (check (%bytevector-u8/numbers-dictionary-ci>=? "1a" "1")				=> #t)
-  (check (%bytevector-u8/numbers-dictionary-ci>=? "a" "A")				=> #t)
-  (check (%bytevector-u8/numbers-dictionary-ci>=? "A" "a")				=> #t)
+  (check (%bytevector-u8/numbers-dictionary-ci<=? '#vu8() '#vu8())				=> #t)
+  (check (%bytevector-u8/numbers-dictionary-ci<=? (S "a") '#vu8())				=> #f)
+  (check (%bytevector-u8/numbers-dictionary-ci<=? '#vu8() (S "a"))				=> #t)
+  (check (%bytevector-u8/numbers-dictionary-ci<=? (S "a") (S "a"))				=> #t)
+  (check (%bytevector-u8/numbers-dictionary-ci<=? (S "1") '#vu8())				=> #f)
+  (check (%bytevector-u8/numbers-dictionary-ci<=? '#vu8() (S "1"))				=> #t)
+  (check (%bytevector-u8/numbers-dictionary-ci<=? (S "1") (S "1"))				=> #t)
+  (check (%bytevector-u8/numbers-dictionary-ci<=? (S "1") (S "2"))				=> #t)
+  (check (%bytevector-u8/numbers-dictionary-ci<=? (S "2") (S "1"))				=> #f)
+  (check (%bytevector-u8/numbers-dictionary-ci<=? (S "a") (S "ab"))				=> #t)
+  (check (%bytevector-u8/numbers-dictionary-ci<=? (S "ab") (S "a"))				=> #f)
+  (check (%bytevector-u8/numbers-dictionary-ci<=? (S "a") (S "a1"))				=> #t)
+  (check (%bytevector-u8/numbers-dictionary-ci<=? (S "a1") (S "a"))				=> #f)
+  (check (%bytevector-u8/numbers-dictionary-ci<=? (S "1") (S "1a"))				=> #t)
+  (check (%bytevector-u8/numbers-dictionary-ci<=? (S "1a") (S "1"))				=> #f)
+  (check (%bytevector-u8/numbers-dictionary-ci<=? (S "a") (S "A"))				=> #t)
+  (check (%bytevector-u8/numbers-dictionary-ci<=? (S "A") (S "a"))				=> #t)
 
-  (check (%bytevector-u8/numbers-dictionary-ci>=? "123" "45")				=> #t)
-  (check (%bytevector-u8/numbers-dictionary-ci>=? "45" "123")				=> #f)
-  (check (%bytevector-u8/numbers-dictionary-ci>=? "ciao3" "ciao10")			=> #f)
-  (check (%bytevector-u8/numbers-dictionary-ci>=? "ciao10" "ciao3")			=> #t)
-  (check (%bytevector-u8/numbers-dictionary-ci>=? "foo4bar3zab10" "foo4bar3zab2")	=> #t)
-  (check (%bytevector-u8/numbers-dictionary-ci>=? "foo4bar3zab2" "foo4bar3zab10")	=> #f)
-  (check (%bytevector-u8/numbers-dictionary-ci>=? "foo4bar3zab" "foo4bar10")		=> #f)
-  (check (%bytevector-u8/numbers-dictionary-ci>=? "foo4bar10" "foo4bar3zab")		=> #t)
-  (check (%bytevector-u8/numbers-dictionary-ci>=? "foo12" "12foo")			=> #t)
-  (check (%bytevector-u8/numbers-dictionary-ci>=? "12foo" "foo12")			=> #f)
-  (check (%bytevector-u8/numbers-dictionary-ci>=? "12bar" "foobar")			=> #f)
-  (check (%bytevector-u8/numbers-dictionary-ci>=? "12.3" "12.3")			=> #t)
-  (check (%bytevector-u8/numbers-dictionary-ci>=? "12.3" "12.10")			=> #f)
-  (check (%bytevector-u8/numbers-dictionary-ci>=? "12.10" "12.3")			=> #t)
-  (check (%bytevector-u8/numbers-dictionary-ci>=? "12.3" "12,10")			=> #t)
-  (check (%bytevector-u8/numbers-dictionary-ci>=? "12,10" "12.3")			=> #f)
+  (check (%bytevector-u8/numbers-dictionary-ci<=? (S "123") (S "45"))				=> #f)
+  (check (%bytevector-u8/numbers-dictionary-ci<=? (S "45") (S "123"))				=> #t)
+  (check (%bytevector-u8/numbers-dictionary-ci<=? (S "ciao3") (S "ciao10"))			=> #t)
+  (check (%bytevector-u8/numbers-dictionary-ci<=? (S "ciao10") (S "ciao3"))			=> #f)
+  (check (%bytevector-u8/numbers-dictionary-ci<=? (S "foo4bar3zab10") (S "foo4bar3zab2"))	=> #f)
+  (check (%bytevector-u8/numbers-dictionary-ci<=? (S "foo4bar3zab2") (S "foo4bar3zab10"))	=> #t)
+  (check (%bytevector-u8/numbers-dictionary-ci<=? (S "foo4bar3zab") (S "foo4bar10"))		=> #t)
+  (check (%bytevector-u8/numbers-dictionary-ci<=? (S "foo4bar10") (S "foo4bar3zab"))		=> #f)
+  (check (%bytevector-u8/numbers-dictionary-ci<=? (S "foo12") (S "12foo"))			=> #f)
+  (check (%bytevector-u8/numbers-dictionary-ci<=? (S "12foo") (S "foo12"))			=> #t)
+  (check (%bytevector-u8/numbers-dictionary-ci<=? (S "12bar") (S "foobar"))			=> #t)
+  (check (%bytevector-u8/numbers-dictionary-ci<=? (S "12.3") (S "12.3"))			=> #t)
+  (check (%bytevector-u8/numbers-dictionary-ci<=? (S "12.3") (S "12.10"))			=> #t)
+  (check (%bytevector-u8/numbers-dictionary-ci<=? (S "12.10") (S "12.3"))			=> #f)
+  (check (%bytevector-u8/numbers-dictionary-ci<=? (S "12.3") (S "12,10"))			=> #f)
+  (check (%bytevector-u8/numbers-dictionary-ci<=? (S "12,10") (S "12.3"))			=> #t)
+
+;;; --------------------------------------------------------------------
+
+  (check (%bytevector-u8/numbers-dictionary-ci>? '#vu8() '#vu8())				=> #f)
+  (check (%bytevector-u8/numbers-dictionary-ci>? (S "a") '#vu8())				=> #t)
+  (check (%bytevector-u8/numbers-dictionary-ci>? '#vu8() (S "a"))				=> #f)
+  (check (%bytevector-u8/numbers-dictionary-ci>? (S "a") (S "a"))				=> #f)
+  (check (%bytevector-u8/numbers-dictionary-ci>? (S "1") '#vu8())				=> #t)
+  (check (%bytevector-u8/numbers-dictionary-ci>? '#vu8() (S "1"))				=> #f)
+  (check (%bytevector-u8/numbers-dictionary-ci>? (S "1") (S "1"))				=> #f)
+  (check (%bytevector-u8/numbers-dictionary-ci>? (S "1") (S "2"))				=> #f)
+  (check (%bytevector-u8/numbers-dictionary-ci>? (S "2") (S "1"))				=> #t)
+  (check (%bytevector-u8/numbers-dictionary-ci>? (S "a") (S "ab"))				=> #f)
+  (check (%bytevector-u8/numbers-dictionary-ci>? (S "ab") (S "a"))				=> #t)
+  (check (%bytevector-u8/numbers-dictionary-ci>? (S "a") (S "a1"))				=> #f)
+  (check (%bytevector-u8/numbers-dictionary-ci>? (S "a1") (S "a"))				=> #t)
+  (check (%bytevector-u8/numbers-dictionary-ci>? (S "1") (S "1a"))				=> #f)
+  (check (%bytevector-u8/numbers-dictionary-ci>? (S "1a") (S "1"))				=> #t)
+  (check (%bytevector-u8/numbers-dictionary-ci>? (S "a") (S "A"))				=> #f)
+  (check (%bytevector-u8/numbers-dictionary-ci>? (S "A") (S "a"))				=> #f)
+
+  (check (%bytevector-u8/numbers-dictionary-ci>? (S "123") (S "45"))				=> #t)
+  (check (%bytevector-u8/numbers-dictionary-ci>? (S "45") (S "123"))				=> #f)
+  (check (%bytevector-u8/numbers-dictionary-ci>? (S "ciao3") (S "ciao10"))			=> #f)
+  (check (%bytevector-u8/numbers-dictionary-ci>? (S "ciao10") (S "ciao3"))			=> #t)
+  (check (%bytevector-u8/numbers-dictionary-ci>? (S "foo4bar3zab10") (S "foo4bar3zab2"))	=> #t)
+  (check (%bytevector-u8/numbers-dictionary-ci>? (S "foo4bar3zab2") (S "foo4bar3zab10"))	=> #f)
+  (check (%bytevector-u8/numbers-dictionary-ci>? (S "foo4bar3zab") (S "foo4bar10"))		=> #f)
+  (check (%bytevector-u8/numbers-dictionary-ci>? (S "foo4bar10") (S "foo4bar3zab"))		=> #t)
+  (check (%bytevector-u8/numbers-dictionary-ci>? (S "foo12") (S "12foo"))			=> #t)
+  (check (%bytevector-u8/numbers-dictionary-ci>? (S "12foo") (S "foo12"))			=> #f)
+  (check (%bytevector-u8/numbers-dictionary-ci>? (S "12bar") (S "foobar"))			=> #f)
+  (check (%bytevector-u8/numbers-dictionary-ci>? (S "12.3") (S "12.3"))			=> #f)
+  (check (%bytevector-u8/numbers-dictionary-ci>? (S "12.3") (S "12.10"))			=> #f)
+  (check (%bytevector-u8/numbers-dictionary-ci>? (S "12.10") (S "12.3"))			=> #t)
+  (check (%bytevector-u8/numbers-dictionary-ci>? (S "12.3") (S "12,10"))			=> #t)
+  (check (%bytevector-u8/numbers-dictionary-ci>? (S "12,10") (S "12.3"))			=> #f)
+
+;;; --------------------------------------------------------------------
+
+  (check (%bytevector-u8/numbers-dictionary-ci>=? '#vu8() '#vu8())				=> #t)
+  (check (%bytevector-u8/numbers-dictionary-ci>=? (S "a") '#vu8())				=> #t)
+  (check (%bytevector-u8/numbers-dictionary-ci>=? '#vu8() (S "a"))				=> #f)
+  (check (%bytevector-u8/numbers-dictionary-ci>=? (S "a") (S "a"))				=> #t)
+  (check (%bytevector-u8/numbers-dictionary-ci>=? (S "1") '#vu8())				=> #t)
+  (check (%bytevector-u8/numbers-dictionary-ci>=? '#vu8() (S "1"))				=> #f)
+  (check (%bytevector-u8/numbers-dictionary-ci>=? (S "1") (S "1"))				=> #t)
+  (check (%bytevector-u8/numbers-dictionary-ci>=? (S "1") (S "2"))				=> #f)
+  (check (%bytevector-u8/numbers-dictionary-ci>=? (S "2") (S "1"))				=> #t)
+  (check (%bytevector-u8/numbers-dictionary-ci>=? (S "a") (S "ab"))				=> #f)
+  (check (%bytevector-u8/numbers-dictionary-ci>=? (S "ab") (S "a"))				=> #t)
+  (check (%bytevector-u8/numbers-dictionary-ci>=? (S "a") (S "a1"))				=> #f)
+  (check (%bytevector-u8/numbers-dictionary-ci>=? (S "a1") (S "a"))				=> #t)
+  (check (%bytevector-u8/numbers-dictionary-ci>=? (S "1") (S "1a"))				=> #f)
+  (check (%bytevector-u8/numbers-dictionary-ci>=? (S "1a") (S "1"))				=> #t)
+  (check (%bytevector-u8/numbers-dictionary-ci>=? (S "a") (S "A"))				=> #t)
+  (check (%bytevector-u8/numbers-dictionary-ci>=? (S "A") (S "a"))				=> #t)
+
+  (check (%bytevector-u8/numbers-dictionary-ci>=? (S "123") (S "45"))				=> #t)
+  (check (%bytevector-u8/numbers-dictionary-ci>=? (S "45") (S "123"))				=> #f)
+  (check (%bytevector-u8/numbers-dictionary-ci>=? (S "ciao3") (S "ciao10"))			=> #f)
+  (check (%bytevector-u8/numbers-dictionary-ci>=? (S "ciao10") (S "ciao3"))			=> #t)
+  (check (%bytevector-u8/numbers-dictionary-ci>=? (S "foo4bar3zab10") (S "foo4bar3zab2"))	=> #t)
+  (check (%bytevector-u8/numbers-dictionary-ci>=? (S "foo4bar3zab2") (S "foo4bar3zab10"))	=> #f)
+  (check (%bytevector-u8/numbers-dictionary-ci>=? (S "foo4bar3zab") (S "foo4bar10"))		=> #f)
+  (check (%bytevector-u8/numbers-dictionary-ci>=? (S "foo4bar10") (S "foo4bar3zab"))		=> #t)
+  (check (%bytevector-u8/numbers-dictionary-ci>=? (S "foo12") (S "12foo"))			=> #t)
+  (check (%bytevector-u8/numbers-dictionary-ci>=? (S "12foo") (S "foo12"))			=> #f)
+  (check (%bytevector-u8/numbers-dictionary-ci>=? (S "12bar") (S "foobar"))			=> #f)
+  (check (%bytevector-u8/numbers-dictionary-ci>=? (S "12.3") (S "12.3"))			=> #t)
+  (check (%bytevector-u8/numbers-dictionary-ci>=? (S "12.3") (S "12.10"))			=> #f)
+  (check (%bytevector-u8/numbers-dictionary-ci>=? (S "12.10") (S "12.3"))			=> #t)
+  (check (%bytevector-u8/numbers-dictionary-ci>=? (S "12.3") (S "12,10"))			=> #t)
+  (check (%bytevector-u8/numbers-dictionary-ci>=? (S "12,10") (S "12.3"))			=> #f)
 
   #t)
 
@@ -1851,44 +1853,44 @@
 (parameterise ((check-test-name 'mapping))
 
   (check
-      (let* ((str "aaaa")
+      (let* ((str (S "aaaa"))
 	     (beg 0)
-	     (end (bytevector-u8-length str)))
+	     (end (bytevector-length str)))
 	(%subbytevector-u8-map char-upcase str beg end))
-    => "AAAA")
+    => (S "AAAA"))
 
   (check
-      (let* ((str "")
+      (let* ((str '#vu8())
 	     (beg 0)
-	     (end (bytevector-u8-length str)))
+	     (end (bytevector-length str)))
 	(%subbytevector-u8-map char-upcase str beg end))
-    => "")
+    => '#vu8())
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (let* ((str "aaaa")
+      (let* ((str (S "aaaa"))
 	     (beg 0)
-	     (end (bytevector-u8-length str)))
+	     (end (bytevector-length str)))
 	(%subbytevector-u8-map! char-upcase str beg end)
 	str)
-    => "AAAA")
+    => (S "AAAA"))
 
   (check
-      (let* ((str "")
+      (let* ((str '#vu8())
 	     (beg 0)
-	     (end (bytevector-u8-length str)))
+	     (end (bytevector-length str)))
 	(%subbytevector-u8-map! char-upcase str beg end)
 	str)
-    => "")
+    => '#vu8())
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (let* ((str "aaaa")
+      (let* ((str (S "aaaa"))
 	     (beg 0)
-	     (end (bytevector-u8-length str))
-	     (result ""))
+	     (end (bytevector-length str))
+	     (result '#vu8()))
 	(%subbytevector-u8-for-each
 	 (lambda (ch)
 	   (set! result
@@ -1896,13 +1898,13 @@
 				(number->bytevector-u8 (char->integer (char-upcase ch))))))
 	 str beg end)
 	result)
-    => "65656565")
+    => (S "65656565"))
 
   (check
-      (let* ((str "")
+      (let* ((str '#vu8())
 	     (beg 0)
-	     (end (bytevector-u8-length str))
-	     (result ""))
+	     (end (bytevector-length str))
+	     (result '#vu8()))
 	(%subbytevector-u8-for-each
 	 (lambda (ch)
 	   (set! result
@@ -1910,14 +1912,14 @@
 				(number->bytevector-u8 (char->integer (char-upcase ch))))))
 	 str beg end)
 	result)
-    => "")
+    => '#vu8())
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (let* ((str "aaaa")
+      (let* ((str (S "aaaa"))
 	     (beg 0)
-	     (end (bytevector-u8-length str))
+	     (end (bytevector-length str))
 	     (result '()))
 	(%subbytevector-u8-for-each-index
 	 (lambda (idx)
@@ -1927,9 +1929,9 @@
     => '(3 2 1 0))
 
   (check
-      (let* ((str "")
+      (let* ((str '#vu8())
 	     (beg 0)
-	     (end (bytevector-u8-length str))
+	     (end (bytevector-length str))
 	     (result '()))
 	(%subbytevector-u8-for-each-index
 	 (lambda (idx)
@@ -1938,67 +1940,67 @@
 	result)
     => '())
 
-  )
+  #f)
 
 
 (parameterise ((check-test-name 'case))
 
   (check
-      (let* ((str (bytevector-u8-copy "abcd")) (beg 0) (end (bytevector-u8-length str)))
+      (let* ((str (bytevector-u8-copy (S "abcd"))) (beg 0) (end (bytevector-length str)))
 	(%bytevector-u8-titlecase*! str beg end)
 	str)
-    => "Abcd")
+    => (S "abcd"))
 
   (check
-      (let* ((str (bytevector-u8-copy "123abcd")) (beg 0) (end (bytevector-u8-length str)))
+      (let* ((str (bytevector-u8-copy (S "123abcd"))) (beg 0) (end (bytevector-length str)))
 	(%bytevector-u8-titlecase*! str beg end)
 	str)
-    => "123Abcd")
+    => (S "123Abcd"))
 
   (check
-      (let* ((str (bytevector-u8-copy "---abcd")) (beg 0) (end (bytevector-u8-length str)))
+      (let* ((str (bytevector-u8-copy (S "---abcd"))) (beg 0) (end (bytevector-length str)))
 	(%bytevector-u8-titlecase*! str beg end)
 	str)
-    => "---Abcd")
+    => (S "---Abcd"))
 
   (check
-      (let* ((str (bytevector-u8-copy "abcd efgh")) (beg 0) (end (bytevector-u8-length str)))
+      (let* ((str (bytevector-u8-copy (S "abcd efgh"))) (beg 0) (end (bytevector-length str)))
 	(%bytevector-u8-titlecase*! str beg end)
 	str)
-    => "Abcd Efgh")
+    => (S "Abcd Efgh"))
 
-  )
+  #f)
 
 
 (parameterise ((check-test-name 'folding))
 
   (check
-      (let* ((str "abcd")
+      (let* ((str (S "abcd"))
 	     (beg 0)
-	     (end (bytevector-u8-length str)))
+	     (end (bytevector-length str)))
 	(%subbytevector-u8-fold-left cons '() str beg end))
     => '(#\d #\c #\b #\a))
 
   (check
-      (let* ((str "")
+      (let* ((str '#vu8())
 	     (beg 0)
-	     (end (bytevector-u8-length str)))
+	     (end (bytevector-length str)))
 	(%subbytevector-u8-fold-left cons '() str beg end))
     => '())
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (let* ((str "abcd")
+      (let* ((str (S "abcd"))
 	     (beg 0)
-	     (end (bytevector-u8-length str)))
+	     (end (bytevector-length str)))
 	(%subbytevector-u8-fold-right cons '() str beg end))
     => '(#\a #\b #\c #\d))
 
   (check
-      (let* ((str "")
+      (let* ((str '#vu8())
 	     (beg 0)
-	     (end (bytevector-u8-length str)))
+	     (end (bytevector-length str)))
 	(%subbytevector-u8-fold-right cons '() str beg end))
     => '())
 
@@ -2006,31 +2008,31 @@
 
   (check
       (bytevector-u8-unfold null? car cdr '(#\a #\b #\c #\d))
-    => "abcd")
+    => (S "abcd"))
 
   (check
       (bytevector-u8-unfold null? car cdr '())
-    => "")
+    => '#vu8())
 
 ;;; --------------------------------------------------------------------
 
   (check
       (bytevector-u8-unfold-right null? car cdr '(#\a #\b #\c #\d))
-    => "dcba")
+    => (S "dcba"))
 
   (check
       (bytevector-u8-unfold-right null? car cdr '())
-    => "")
+    => '#vu8())
 
 ;;; --------------------------------------------------------------------
 
   (check
       (bytevector-u8-tabulate (lambda (idx) (integer->char (+ 65 idx))) 4)
-    => "ABCD")
+    => (S "ABCD"))
 
   (check
       (bytevector-u8-tabulate integer->char 0)
-    => "")
+    => '#vu8())
 
   )
 
@@ -2038,278 +2040,278 @@
 (parameterise ((check-test-name 'selecting))
 
   (check
-      (let* ((str "abcd") (beg 0) (end (bytevector-u8-length str)))
+      (let* ((str (S "abcd")) (beg 0) (end (bytevector-length str)))
 	(%bytevector-u8-take 2 str beg end))
-    => "ab")
+    => (S "ab"))
 
   (check
-      (let* ((str "") (beg 0) (end (bytevector-u8-length str)))
+      (let* ((str '#vu8()) (beg 0) (end (bytevector-length str)))
 	(%bytevector-u8-take 0 str beg end))
-    => "")
+    => '#vu8())
 
   (check
       (guard (exc ((assertion-violation? exc) #t))
-	(let* ((str "abcd") (beg 0) (end (bytevector-u8-length str)))
+	(let* ((str (S "abcd")) (beg 0) (end (bytevector-length str)))
 	  (%bytevector-u8-take 5 str beg end)))
     => #t)
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (let* ((str "abcd") (beg 0) (end (bytevector-u8-length str)))
+      (let* ((str (S "abcd")) (beg 0) (end (bytevector-length str)))
 	(%bytevector-u8-take-right 2 str beg end))
-    => "cd")
+    => (S "cd"))
 
   (check
-      (let* ((str "") (beg 0) (end (bytevector-u8-length str)))
+      (let* ((str '#vu8()) (beg 0) (end (bytevector-length str)))
 	(%bytevector-u8-take-right 0 str beg end))
-    => "")
+    => '#vu8())
 
   (check
       (guard (exc ((assertion-violation? exc) #t))
-	(let* ((str "abcd") (beg 0) (end (bytevector-u8-length str)))
+	(let* ((str (S "abcd")) (beg 0) (end (bytevector-length str)))
 	  (%bytevector-u8-take-right 5 str beg end)))
     => #t)
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (let* ((str "abcd") (beg 0) (end (bytevector-u8-length str)))
+      (let* ((str (S "abcd")) (beg 0) (end (bytevector-length str)))
 	(%bytevector-u8-drop 2 str beg end))
-    => "cd")
+    => (S "cd"))
 
   (check
-      (let* ((str "") (beg 0) (end (bytevector-u8-length str)))
+      (let* ((str '#vu8()) (beg 0) (end (bytevector-length str)))
 	(%bytevector-u8-drop 0 str beg end))
-    => "")
+    => '#vu8())
 
   (check
       (guard (exc ((assertion-violation? exc) #t))
-	(let* ((str "abcd") (beg 0) (end (bytevector-u8-length str)))
+	(let* ((str (S "abcd")) (beg 0) (end (bytevector-length str)))
 	  (%bytevector-u8-drop 5 str beg end)))
     => #t)
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (let* ((str "abcd") (beg 0) (end (bytevector-u8-length str)))
+      (let* ((str (S "abcd")) (beg 0) (end (bytevector-length str)))
 	(%bytevector-u8-drop-right 2 str beg end))
-    => "ab")
+    => (S "ab"))
 
   (check
-      (let* ((str "") (beg 0) (end (bytevector-u8-length str)))
+      (let* ((str '#vu8()) (beg 0) (end (bytevector-length str)))
 	(%bytevector-u8-drop-right 0 str beg end))
-    => "")
+    => '#vu8())
 
   (check
       (guard (exc ((assertion-violation? exc) #t))
-	(let* ((str "abcd") (beg 0) (end (bytevector-u8-length str)))
+	(let* ((str (S "abcd")) (beg 0) (end (bytevector-length str)))
 	  (%bytevector-u8-drop-right 5 str beg end)))
     => #t)
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (let* ((str "aaabcd") (beg 0) (end (bytevector-u8-length str)))
+      (let* ((str (S "aaabcd")) (beg 0) (end (bytevector-length str)))
 	(%bytevector-u8-trim #\a str beg end))
-    => "bcd")
+    => (S "bcd"))
 
   (check
-      (let* ((str "bcd") (beg 0) (end (bytevector-u8-length str)))
+      (let* ((str (S "bcd")) (beg 0) (end (bytevector-length str)))
 	(%bytevector-u8-trim #\a str beg end))
-    => "bcd")
+    => (S "bcd"))
 
   (check
-      (let* ((str "") (beg 0) (end (bytevector-u8-length str)))
+      (let* ((str '#vu8()) (beg 0) (end (bytevector-length str)))
 	(%bytevector-u8-trim #\a str beg end))
-    => "")
+    => '#vu8())
 
   (check
-      (let* ((str "aaabcd") (beg 0) (end (bytevector-u8-length str)))
+      (let* ((str (S "aaabcd")) (beg 0) (end (bytevector-length str)))
 	(%bytevector-u8-trim (char-set #\a #\b) str beg end))
-    => "cd")
+    => (S "cd"))
 
   (check
-      (let* ((str "bcd") (beg 0) (end (bytevector-u8-length str)))
+      (let* ((str (S "bcd")) (beg 0) (end (bytevector-length str)))
 	(%bytevector-u8-trim (char-set #\a #\b) str beg end))
-    => "cd")
+    => (S "cd"))
 
   (check
-      (let* ((str "") (beg 0) (end (bytevector-u8-length str)))
+      (let* ((str '#vu8()) (beg 0) (end (bytevector-length str)))
 	(%bytevector-u8-trim (char-set #\a #\b) str beg end))
-    => "")
+    => '#vu8())
 
   (check
-      (let* ((str "AAAbcd") (beg 0) (end (bytevector-u8-length str)))
+      (let* ((str (S "AAAbcd")) (beg 0) (end (bytevector-length str)))
 	(%bytevector-u8-trim char-upper-case? str beg end))
-    => "bcd")
+    => (S "bcd"))
 
   (check
-      (let* ((str "bcd") (beg 0) (end (bytevector-u8-length str)))
+      (let* ((str (S "bcd")) (beg 0) (end (bytevector-length str)))
 	(%bytevector-u8-trim char-upper-case? str beg end))
-    => "bcd")
+    => (S "bcd"))
 
   (check
-      (let* ((str "") (beg 0) (end (bytevector-u8-length str)))
+      (let* ((str '#vu8()) (beg 0) (end (bytevector-length str)))
 	(%bytevector-u8-trim char-upper-case? str beg end))
-    => "")
+    => '#vu8())
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (let* ((str "bcdaaa") (beg 0) (end (bytevector-u8-length str)))
+      (let* ((str (S "bcdaaa")) (beg 0) (end (bytevector-length str)))
 	(%bytevector-u8-trim-right #\a str beg end))
-    => "bcd")
+    => (S "bcd"))
 
   (check
-      (let* ((str "bcd") (beg 0) (end (bytevector-u8-length str)))
+      (let* ((str (S "bcd")) (beg 0) (end (bytevector-length str)))
 	(%bytevector-u8-trim-right #\a str beg end))
-    => "bcd")
+    => (S "bcd"))
 
   (check
-      (let* ((str "") (beg 0) (end (bytevector-u8-length str)))
+      (let* ((str '#vu8()) (beg 0) (end (bytevector-length str)))
 	(%bytevector-u8-trim-right #\a str beg end))
-    => "")
+    => '#vu8())
 
   (check
-      (let* ((str "cdbaaa") (beg 0) (end (bytevector-u8-length str)))
+      (let* ((str (S "cdbaaa")) (beg 0) (end (bytevector-length str)))
 	(%bytevector-u8-trim-right (char-set #\a #\b) str beg end))
-    => "cd")
+    => (S "cd"))
 
   (check
-      (let* ((str "cdb") (beg 0) (end (bytevector-u8-length str)))
+      (let* ((str (S "cdb")) (beg 0) (end (bytevector-length str)))
 	(%bytevector-u8-trim-right (char-set #\a #\b) str beg end))
-    => "cd")
+    => (S "cd"))
 
   (check
-      (let* ((str "") (beg 0) (end (bytevector-u8-length str)))
+      (let* ((str '#vu8()) (beg 0) (end (bytevector-length str)))
 	(%bytevector-u8-trim-right (char-set #\a #\b) str beg end))
-    => "")
+    => '#vu8())
 
   (check
-      (let* ((str "bcdAAA") (beg 0) (end (bytevector-u8-length str)))
+      (let* ((str (S "bcdAAA")) (beg 0) (end (bytevector-length str)))
 	(%bytevector-u8-trim-right char-upper-case? str beg end))
-    => "bcd")
+    => (S "bcd"))
 
   (check
-      (let* ((str "bcd") (beg 0) (end (bytevector-u8-length str)))
+      (let* ((str (S "bcd")) (beg 0) (end (bytevector-length str)))
 	(%bytevector-u8-trim-right char-upper-case? str beg end))
-    => "bcd")
+    => (S "bcd"))
 
   (check
-      (let* ((str "") (beg 0) (end (bytevector-u8-length str)))
+      (let* ((str '#vu8()) (beg 0) (end (bytevector-length str)))
 	(%bytevector-u8-trim-right char-upper-case? str beg end))
-    => "")
+    => '#vu8())
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (let* ((str "aaabcdaaa") (beg 0) (end (bytevector-u8-length str)))
+      (let* ((str (S "aaabcdaaa")) (beg 0) (end (bytevector-length str)))
 	(%bytevector-u8-trim-both #\a str beg end))
-    => "bcd")
+    => (S "bcd"))
 
   (check
-      (let* ((str "bcd") (beg 0) (end (bytevector-u8-length str)))
+      (let* ((str (S "bcd")) (beg 0) (end (bytevector-length str)))
 	(%bytevector-u8-trim-both #\a str beg end))
-    => "bcd")
+    => (S "bcd"))
 
   (check
-      (let* ((str "") (beg 0) (end (bytevector-u8-length str)))
+      (let* ((str '#vu8()) (beg 0) (end (bytevector-length str)))
 	(%bytevector-u8-trim-both #\a str beg end))
-    => "")
+    => '#vu8())
 
   (check
-      (let* ((str "aaabcdaa") (beg 0) (end (bytevector-u8-length str)))
+      (let* ((str (S "aaabcdaa")) (beg 0) (end (bytevector-length str)))
 	(%bytevector-u8-trim-both (char-set #\a #\b) str beg end))
-    => "cd")
+    => (S "cd"))
 
   (check
-      (let* ((str "bcdb") (beg 0) (end (bytevector-u8-length str)))
+      (let* ((str (S "bcdb")) (beg 0) (end (bytevector-length str)))
 	(%bytevector-u8-trim-both (char-set #\a #\b) str beg end))
-    => "cd")
+    => (S "cd"))
 
   (check
-      (let* ((str "") (beg 0) (end (bytevector-u8-length str)))
+      (let* ((str '#vu8()) (beg 0) (end (bytevector-length str)))
 	(%bytevector-u8-trim-both (char-set #\a #\b) str beg end))
-    => "")
+    => '#vu8())
 
   (check
-      (let* ((str "AAAbcdAAA") (beg 0) (end (bytevector-u8-length str)))
+      (let* ((str (S "AAAbcdAAA")) (beg 0) (end (bytevector-length str)))
 	(%bytevector-u8-trim-both char-upper-case? str beg end))
-    => "bcd")
+    => (S "bcd"))
 
   (check
-      (let* ((str "bcd") (beg 0) (end (bytevector-u8-length str)))
+      (let* ((str (S "bcd")) (beg 0) (end (bytevector-length str)))
 	(%bytevector-u8-trim-both char-upper-case? str beg end))
-    => "bcd")
+    => (S "bcd"))
 
   (check
-      (let* ((str "") (beg 0) (end (bytevector-u8-length str)))
+      (let* ((str '#vu8()) (beg 0) (end (bytevector-length str)))
 	(%bytevector-u8-trim-both char-upper-case? str beg end))
-    => "")
+    => '#vu8())
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (let* ((str "abc") (beg 0) (end (bytevector-u8-length str)))
+      (let* ((str (S "abc")) (beg 0) (end (bytevector-length str)))
 	(%bytevector-u8-pad 3 #\0 str beg end))
-    => "abc")
+    => (S "abc"))
 
   (check
-      (let* ((str "abc") (beg 0) (end (bytevector-u8-length str)))
+      (let* ((str (S "abc")) (beg 0) (end (bytevector-length str)))
 	(%bytevector-u8-pad 5 #\0 str beg end))
-    => "00abc")
+    => (S "00abc"))
 
   (check
-      (let* ((str "abc") (beg 0) (end (bytevector-u8-length str)))
+      (let* ((str (S "abc")) (beg 0) (end (bytevector-length str)))
 	(%bytevector-u8-pad 2 #\0 str beg end))
-    => "bc")
+    => (S "bc"))
 
   (check
-      (let* ((str "abc") (beg 0) (end (bytevector-u8-length str)))
+      (let* ((str (S "abc")) (beg 0) (end (bytevector-length str)))
 	(%bytevector-u8-pad 0 #\0 str beg end))
-    => "")
+    => '#vu8())
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (let* ((str "abc") (beg 0) (end (bytevector-u8-length str)))
+      (let* ((str (S "abc")) (beg 0) (end (bytevector-length str)))
 	(%bytevector-u8-pad-right 3 #\0 str beg end))
-    => "abc")
+    => (S "abc"))
 
   (check
-      (let* ((str "abc") (beg 0) (end (bytevector-u8-length str)))
+      (let* ((str (S "abc")) (beg 0) (end (bytevector-length str)))
 	(%bytevector-u8-pad-right 5 #\0 str beg end))
-    => "abc00")
+    => (S "abc00"))
 
   (check
-      (let* ((str "abc") (beg 0) (end (bytevector-u8-length str)))
+      (let* ((str (S "abc")) (beg 0) (end (bytevector-length str)))
 	(%bytevector-u8-pad-right 2 #\0 str beg end))
-    => "ab")
+    => (S "ab"))
 
   (check
-      (let* ((str "abc") (beg 0) (end (bytevector-u8-length str)))
+      (let* ((str (S "abc")) (beg 0) (end (bytevector-length str)))
 	(%bytevector-u8-pad-right 0 #\0 str beg end))
-    => "")
+    => '#vu8())
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (let* ((str1 "abcd") (beg1 0) (str2 (bytevector-u8-copy "12")))
+      (let* ((str1 (S "abcd")) (beg1 0) (str2 (bytevector-u8-copy "12")))
 	(%bytevector-u8-copy*! str2 0 str1 beg1 (+ 2 beg1))
 	str2)
-    => "ab")
+    => (S "ab"))
 
   (check
-      (let* ((str1 "abcd") (beg1 0) (str2 ""))
+      (let* ((str1 (S "abcd")) (beg1 0) (str2 '#vu8()))
 	(%bytevector-u8-copy*! str2 0 str1 beg1 beg1)
 	str2)
-    => "")
+    => '#vu8())
 
   (check
       (guard (exc ((assertion-violation? exc)
 		   #t))
-	(let* ((str1 "abcd") (beg1 0) (str2 (bytevector-u8-copy "12")))
+	(let* ((str1 (S "abcd")) (beg1 0) (str2 (bytevector-u8-copy (S "12"))))
 	  (%bytevector-u8-copy*! str2 3 str1 beg1 (+ 2 beg1))
 	  str2))
     => #t)
@@ -2320,328 +2322,328 @@
 (parameterise ((check-test-name 'prefix))
 
   (check
-      (let* ((str1 "abcdefg") (beg1 0) (end1 (bytevector-u8-length str1))
-	     (str2 "abcd123") (beg2 0) (end2 (bytevector-u8-length str2)))
+      (let* ((str1 (S "abcdefg")) (beg1 0) (end1 (bytevector-length str1))
+	     (str2 (S "abcd123")) (beg2 0) (end2 (bytevector-length str2)))
 	(%bytevector-u8-prefix-length str1 beg1 end1 str2 beg2 end2))
     => 4)
 
   (check
-      (let* ((str1 "aBcdefg") (beg1 0) (end1 (bytevector-u8-length str1))
-	     (str2 "abcd123") (beg2 0) (end2 (bytevector-u8-length str2)))
+      (let* ((str1 (S "aBcdefg")) (beg1 0) (end1 (bytevector-length str1))
+	     (str2 (S "abcd123")) (beg2 0) (end2 (bytevector-length str2)))
 	(%bytevector-u8-prefix-length str1 beg1 end1 str2 beg2 end2))
     => 1)
 
   (check
-      (let* ((str1 "efg") (beg1 0) (end1 (bytevector-u8-length str1))
-	     (str2 "123") (beg2 0) (end2 (bytevector-u8-length str2)))
+      (let* ((str1 (S "efg")) (beg1 0) (end1 (bytevector-length str1))
+	     (str2 (S "123")) (beg2 0) (end2 (bytevector-length str2)))
 	(%bytevector-u8-prefix-length str1 beg1 end1 str2 beg2 end2))
     => 0)
 
   (check
-      (let* ((str1 "a") (beg1 0) (end1 (bytevector-u8-length str1))
-	     (str2 "a") (beg2 0) (end2 (bytevector-u8-length str2)))
+      (let* ((str1 (S "a")) (beg1 0) (end1 (bytevector-length str1))
+	     (str2 (S "a")) (beg2 0) (end2 (bytevector-length str2)))
 	(%bytevector-u8-prefix-length str1 beg1 end1 str2 beg2 end2))
     => 1)
 
   (check
-      (let* ((str1 "1") (beg1 0) (end1 (bytevector-u8-length str1))
-	     (str2 "2") (beg2 0) (end2 (bytevector-u8-length str2)))
+      (let* ((str1 (S "1")) (beg1 0) (end1 (bytevector-length str1))
+	     (str2 (S "2")) (beg2 0) (end2 (bytevector-length str2)))
 	(%bytevector-u8-prefix-length str1 beg1 end1 str2 beg2 end2))
     => 0)
 
   (check
-      (let* ((str1 "") (beg1 0) (end1 (bytevector-u8-length str1))
-	     (str2 "abcd123") (beg2 0) (end2 (bytevector-u8-length str2)))
+      (let* ((str1 '#vu8()) (beg1 0) (end1 (bytevector-length str1))
+	     (str2 (S "abcd123")) (beg2 0) (end2 (bytevector-length str2)))
 	(%bytevector-u8-prefix-length str1 beg1 end1 str2 beg2 end2))
     => 0)
 
   (check
-      (let* ((str1 "abcdefg") (beg1 0) (end1 (bytevector-u8-length str1))
-	     (str2 "") (beg2 0) (end2 (bytevector-u8-length str2)))
+      (let* ((str1 (S "abcdefg")) (beg1 0) (end1 (bytevector-length str1))
+	     (str2 '#vu8()) (beg2 0) (end2 (bytevector-length str2)))
 	(%bytevector-u8-prefix-length str1 beg1 end1 str2 beg2 end2))
     => 0)
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (let* ((str1 "efgabcd") (beg1 0) (end1 (bytevector-u8-length str1))
-	     (str2 "123abcd") (beg2 0) (end2 (bytevector-u8-length str2)))
+      (let* ((str1 (S "efgabcd")) (beg1 0) (end1 (bytevector-length str1))
+	     (str2 (S "123abcd")) (beg2 0) (end2 (bytevector-length str2)))
 	(%bytevector-u8-suffix-length str1 beg1 end1 str2 beg2 end2))
     => 4)
 
   (check
-      (let* ((str1 "efgabcd") (beg1 0) (end1 (bytevector-u8-length str1))
-	     (str2 "123abCd") (beg2 0) (end2 (bytevector-u8-length str2)))
+      (let* ((str1 (S "efgabcd")) (beg1 0) (end1 (bytevector-length str1))
+	     (str2 (S "123abCd")) (beg2 0) (end2 (bytevector-length str2)))
 	(%bytevector-u8-suffix-length str1 beg1 end1 str2 beg2 end2))
     => 1)
 
   (check
-      (let* ((str1 "efg") (beg1 0) (end1 (bytevector-u8-length str1))
-	     (str2 "123") (beg2 0) (end2 (bytevector-u8-length str2)))
+      (let* ((str1 (S "efg")) (beg1 0) (end1 (bytevector-length str1))
+	     (str2 (S "123")) (beg2 0) (end2 (bytevector-length str2)))
 	(%bytevector-u8-suffix-length str1 beg1 end1 str2 beg2 end2))
     => 0)
 
   (check
-      (let* ((str1 "a") (beg1 0) (end1 (bytevector-u8-length str1))
-	     (str2 "a") (beg2 0) (end2 (bytevector-u8-length str2)))
+      (let* ((str1 (S "a")) (beg1 0) (end1 (bytevector-length str1))
+	     (str2 (S "a")) (beg2 0) (end2 (bytevector-length str2)))
 	(%bytevector-u8-suffix-length str1 beg1 end1 str2 beg2 end2))
     => 1)
 
   (check
-      (let* ((str1 "1") (beg1 0) (end1 (bytevector-u8-length str1))
-	     (str2 "2") (beg2 0) (end2 (bytevector-u8-length str2)))
+      (let* ((str1 (S "1")) (beg1 0) (end1 (bytevector-length str1))
+	     (str2 (S "2")) (beg2 0) (end2 (bytevector-length str2)))
 	(%bytevector-u8-suffix-length str1 beg1 end1 str2 beg2 end2))
     => 0)
 
   (check
-      (let* ((str1 "") (beg1 0) (end1 (bytevector-u8-length str1))
-	     (str2 "abcd123") (beg2 0) (end2 (bytevector-u8-length str2)))
+      (let* ((str1 '#vu8()) (beg1 0) (end1 (bytevector-length str1))
+	     (str2 (S "abcd123")) (beg2 0) (end2 (bytevector-length str2)))
 	(%bytevector-u8-suffix-length str1 beg1 end1 str2 beg2 end2))
     => 0)
 
   (check
-      (let* ((str1 "abcdefg") (beg1 0) (end1 (bytevector-u8-length str1))
-	     (str2 "") (beg2 0) (end2 (bytevector-u8-length str2)))
+      (let* ((str1 (S "abcdefg")) (beg1 0) (end1 (bytevector-length str1))
+	     (str2 '#vu8()) (beg2 0) (end2 (bytevector-length str2)))
 	(%bytevector-u8-suffix-length str1 beg1 end1 str2 beg2 end2))
     => 0)
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (let* ((str1 "aBcdefg") (beg1 0) (end1 (bytevector-u8-length str1))
-	     (str2 "aBcd123") (beg2 0) (end2 (bytevector-u8-length str2)))
+      (let* ((str1 (S "aBcdefg")) (beg1 0) (end1 (bytevector-length str1))
+	     (str2 (S "aBcd123")) (beg2 0) (end2 (bytevector-length str2)))
 	(%bytevector-u8-prefix-length-ci str1 beg1 end1 str2 beg2 end2))
     => 4)
 
   (check
-      (let* ((str1 "aBcdefg") (beg1 0) (end1 (bytevector-u8-length str1))
-	     (str2 "abcd123") (beg2 0) (end2 (bytevector-u8-length str2)))
+      (let* ((str1 (S "aBcdefg")) (beg1 0) (end1 (bytevector-length str1))
+	     (str2 (S "abcd123")) (beg2 0) (end2 (bytevector-length str2)))
 	(%bytevector-u8-prefix-length-ci str1 beg1 end1 str2 beg2 end2))
     => 4)
 
   (check
-      (let* ((str1 "efg") (beg1 0) (end1 (bytevector-u8-length str1))
-	     (str2 "123") (beg2 0) (end2 (bytevector-u8-length str2)))
+      (let* ((str1 (S "efg")) (beg1 0) (end1 (bytevector-length str1))
+	     (str2 (S "123")) (beg2 0) (end2 (bytevector-length str2)))
 	(%bytevector-u8-prefix-length-ci str1 beg1 end1 str2 beg2 end2))
     => 0)
 
   (check
-      (let* ((str1 "a") (beg1 0) (end1 (bytevector-u8-length str1))
-	     (str2 "a") (beg2 0) (end2 (bytevector-u8-length str2)))
+      (let* ((str1 (S "a")) (beg1 0) (end1 (bytevector-length str1))
+	     (str2 (S "a")) (beg2 0) (end2 (bytevector-length str2)))
 	(%bytevector-u8-prefix-length-ci str1 beg1 end1 str2 beg2 end2))
     => 1)
 
   (check
-      (let* ((str1 "1") (beg1 0) (end1 (bytevector-u8-length str1))
-	     (str2 "2") (beg2 0) (end2 (bytevector-u8-length str2)))
+      (let* ((str1 (S "1")) (beg1 0) (end1 (bytevector-length str1))
+	     (str2 (S "2")) (beg2 0) (end2 (bytevector-length str2)))
 	(%bytevector-u8-prefix-length-ci str1 beg1 end1 str2 beg2 end2))
     => 0)
 
   (check
-      (let* ((str1 "") (beg1 0) (end1 (bytevector-u8-length str1))
-	     (str2 "abcd123") (beg2 0) (end2 (bytevector-u8-length str2)))
+      (let* ((str1 '#vu8()) (beg1 0) (end1 (bytevector-length str1))
+	     (str2 (S "abcd123")) (beg2 0) (end2 (bytevector-length str2)))
 	(%bytevector-u8-prefix-length-ci str1 beg1 end1 str2 beg2 end2))
     => 0)
 
   (check
-      (let* ((str1 "abcdefg") (beg1 0) (end1 (bytevector-u8-length str1))
-	     (str2 "") (beg2 0) (end2 (bytevector-u8-length str2)))
+      (let* ((str1 (S "abcdefg")) (beg1 0) (end1 (bytevector-length str1))
+	     (str2 '#vu8()) (beg2 0) (end2 (bytevector-length str2)))
 	(%bytevector-u8-prefix-length-ci str1 beg1 end1 str2 beg2 end2))
     => 0)
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (let* ((str1 "efgabCd") (beg1 0) (end1 (bytevector-u8-length str1))
-	     (str2 "123abCd") (beg2 0) (end2 (bytevector-u8-length str2)))
+      (let* ((str1 (S "efgabCd")) (beg1 0) (end1 (bytevector-length str1))
+	     (str2 (S "123abCd")) (beg2 0) (end2 (bytevector-length str2)))
 	(%bytevector-u8-suffix-length-ci str1 beg1 end1 str2 beg2 end2))
     => 4)
 
   (check
-      (let* ((str1 "efgabCd") (beg1 0) (end1 (bytevector-u8-length str1))
-	     (str2 "123abcd") (beg2 0) (end2 (bytevector-u8-length str2)))
+      (let* ((str1 (S "efgabCd")) (beg1 0) (end1 (bytevector-length str1))
+	     (str2 (S "123abcd")) (beg2 0) (end2 (bytevector-length str2)))
 	(%bytevector-u8-suffix-length-ci str1 beg1 end1 str2 beg2 end2))
     => 4)
 
   (check
-      (let* ((str1 "efg") (beg1 0) (end1 (bytevector-u8-length str1))
-	     (str2 "123") (beg2 0) (end2 (bytevector-u8-length str2)))
+      (let* ((str1 (S "efg")) (beg1 0) (end1 (bytevector-length str1))
+	     (str2 (S "123")) (beg2 0) (end2 (bytevector-length str2)))
 	(%bytevector-u8-suffix-length-ci str1 beg1 end1 str2 beg2 end2))
     => 0)
 
   (check
-      (let* ((str1 "a") (beg1 0) (end1 (bytevector-u8-length str1))
-	     (str2 "a") (beg2 0) (end2 (bytevector-u8-length str2)))
+      (let* ((str1 (S "a")) (beg1 0) (end1 (bytevector-length str1))
+	     (str2 (S "a")) (beg2 0) (end2 (bytevector-length str2)))
 	(%bytevector-u8-suffix-length-ci str1 beg1 end1 str2 beg2 end2))
     => 1)
 
   (check
-      (let* ((str1 "1") (beg1 0) (end1 (bytevector-u8-length str1))
-	     (str2 "2") (beg2 0) (end2 (bytevector-u8-length str2)))
+      (let* ((str1 (S "1")) (beg1 0) (end1 (bytevector-length str1))
+	     (str2 (S "2")) (beg2 0) (end2 (bytevector-length str2)))
 	(%bytevector-u8-suffix-length-ci str1 beg1 end1 str2 beg2 end2))
     => 0)
 
   (check
-      (let* ((str1 "") (beg1 0) (end1 (bytevector-u8-length str1))
-	     (str2 "abcd123") (beg2 0) (end2 (bytevector-u8-length str2)))
+      (let* ((str1 '#vu8()) (beg1 0) (end1 (bytevector-length str1))
+	     (str2 (S "abcd123")) (beg2 0) (end2 (bytevector-length str2)))
 	(%bytevector-u8-suffix-length-ci str1 beg1 end1 str2 beg2 end2))
     => 0)
 
   (check
-      (let* ((str1 "abcdefg") (beg1 0) (end1 (bytevector-u8-length str1))
-	     (str2 "") (beg2 0) (end2 (bytevector-u8-length str2)))
+      (let* ((str1 (S "abcdefg")) (beg1 0) (end1 (bytevector-length str1))
+	     (str2 '#vu8()) (beg2 0) (end2 (bytevector-length str2)))
 	(%bytevector-u8-suffix-length-ci str1 beg1 end1 str2 beg2 end2))
     => 0)
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (let* ((str1 "abcd") (beg1 0) (end1 (bytevector-u8-length str1))
-	     (str2 "abcd123") (beg2 0) (end2 (bytevector-u8-length str2)))
+      (let* ((str1 (S "abcd")) (beg1 0) (end1 (bytevector-length str1))
+	     (str2 (S "abcd123")) (beg2 0) (end2 (bytevector-length str2)))
 	(%bytevector-u8-prefix? str1 beg1 end1 str2 beg2 end2))
     => #t)
 
   (check
-      (let* ((str1 "abcd") (beg1 0) (end1 (bytevector-u8-length str1))
-	     (str2 "aBcd123") (beg2 0) (end2 (bytevector-u8-length str2)))
+      (let* ((str1 (S "abcd")) (beg1 0) (end1 (bytevector-length str1))
+	     (str2 (S "aBcd123")) (beg2 0) (end2 (bytevector-length str2)))
 	(%bytevector-u8-prefix? str1 beg1 end1 str2 beg2 end2))
     => #f)
 
   (check
-      (let* ((str1 "efg") (beg1 0) (end1 (bytevector-u8-length str1))
-	     (str2 "123") (beg2 0) (end2 (bytevector-u8-length str2)))
+      (let* ((str1 (S "efg")) (beg1 0) (end1 (bytevector-length str1))
+	     (str2 (S "123")) (beg2 0) (end2 (bytevector-length str2)))
 	(%bytevector-u8-prefix? str1 beg1 end1 str2 beg2 end2))
     => #f)
 
   (check
-      (let* ((str1 "") (beg1 0) (end1 (bytevector-u8-length str1))
-	     (str2 "123") (beg2 0) (end2 (bytevector-u8-length str2)))
+      (let* ((str1 '#vu8()) (beg1 0) (end1 (bytevector-length str1))
+	     (str2 (S "123")) (beg2 0) (end2 (bytevector-length str2)))
 	(%bytevector-u8-prefix? str1 beg1 end1 str2 beg2 end2))
     => #t)
 
   (check
-      (let* ((str1 "efg") (beg1 0) (end1 (bytevector-u8-length str1))
-	     (str2 "") (beg2 0) (end2 (bytevector-u8-length str2)))
+      (let* ((str1 (S "efg")) (beg1 0) (end1 (bytevector-length str1))
+	     (str2 '#vu8()) (beg2 0) (end2 (bytevector-length str2)))
 	(%bytevector-u8-prefix? str1 beg1 end1 str2 beg2 end2))
     => #f)
 
   (check
-      (let* ((str1 "") (beg1 0) (end1 (bytevector-u8-length str1))
-	     (str2 "") (beg2 0) (end2 (bytevector-u8-length str2)))
+      (let* ((str1 '#vu8()) (beg1 0) (end1 (bytevector-length str1))
+	     (str2 '#vu8()) (beg2 0) (end2 (bytevector-length str2)))
 	(%bytevector-u8-prefix? str1 beg1 end1 str2 beg2 end2))
     => #t)
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (let* ((str1 "aBcd") (beg1 0) (end1 (bytevector-u8-length str1))
-	     (str2 "aBcd123") (beg2 0) (end2 (bytevector-u8-length str2)))
+      (let* ((str1 (S "abcd")) (beg1 0) (end1 (bytevector-length str1))
+	     (str2 (S "aBcd123")) (beg2 0) (end2 (bytevector-length str2)))
 	(%bytevector-u8-prefix-ci? str1 beg1 end1 str2 beg2 end2))
     => #t)
 
   (check
-      (let* ((str1 "abcd") (beg1 0) (end1 (bytevector-u8-length str1))
-	     (str2 "aBcd123") (beg2 0) (end2 (bytevector-u8-length str2)))
+      (let* ((str1 (S "abcd")) (beg1 0) (end1 (bytevector-length str1))
+	     (str2 (S "aBcd123")) (beg2 0) (end2 (bytevector-length str2)))
 	(%bytevector-u8-prefix-ci? str1 beg1 end1 str2 beg2 end2))
     => #t)
 
   (check
-      (let* ((str1 "efg") (beg1 0) (end1 (bytevector-u8-length str1))
-	     (str2 "123") (beg2 0) (end2 (bytevector-u8-length str2)))
+      (let* ((str1 (S "efg")) (beg1 0) (end1 (bytevector-length str1))
+	     (str2 (S "123")) (beg2 0) (end2 (bytevector-length str2)))
 	(%bytevector-u8-prefix-ci? str1 beg1 end1 str2 beg2 end2))
     => #f)
 
   (check
-      (let* ((str1 "") (beg1 0) (end1 (bytevector-u8-length str1))
-	     (str2 "123") (beg2 0) (end2 (bytevector-u8-length str2)))
+      (let* ((str1 '#vu8()) (beg1 0) (end1 (bytevector-length str1))
+	     (str2 (S "123")) (beg2 0) (end2 (bytevector-length str2)))
 	(%bytevector-u8-prefix-ci? str1 beg1 end1 str2 beg2 end2))
     => #t)
 
   (check
-      (let* ((str1 "efg") (beg1 0) (end1 (bytevector-u8-length str1))
-	     (str2 "") (beg2 0) (end2 (bytevector-u8-length str2)))
+      (let* ((str1 (S "efg")) (beg1 0) (end1 (bytevector-length str1))
+	     (str2 '#vu8()) (beg2 0) (end2 (bytevector-length str2)))
 	(%bytevector-u8-prefix-ci? str1 beg1 end1 str2 beg2 end2))
     => #f)
 
   (check
-      (let* ((str1 "") (beg1 0) (end1 (bytevector-u8-length str1))
-	     (str2 "") (beg2 0) (end2 (bytevector-u8-length str2)))
+      (let* ((str1 '#vu8()) (beg1 0) (end1 (bytevector-length str1))
+	     (str2 '#vu8()) (beg2 0) (end2 (bytevector-length str2)))
 	(%bytevector-u8-prefix-ci? str1 beg1 end1 str2 beg2 end2))
     => #t)
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (let* ((str1 "abcd") (beg1 0) (end1 (bytevector-u8-length str1))
-	     (str2 "123abcd") (beg2 0) (end2 (bytevector-u8-length str2)))
+      (let* ((str1 (S "abcd")) (beg1 0) (end1 (bytevector-length str1))
+	     (str2 (S "123abcd")) (beg2 0) (end2 (bytevector-length str2)))
 	(%bytevector-u8-suffix? str1 beg1 end1 str2 beg2 end2))
     => #t)
 
   (check
-      (let* ((str1 "abcd") (beg1 0) (end1 (bytevector-u8-length str1))
-	     (str2 "123aBcd") (beg2 0) (end2 (bytevector-u8-length str2)))
+      (let* ((str1 (S "abcd")) (beg1 0) (end1 (bytevector-length str1))
+	     (str2 (S "123aBcd")) (beg2 0) (end2 (bytevector-length str2)))
 	(%bytevector-u8-suffix? str1 beg1 end1 str2 beg2 end2))
     => #f)
 
   (check
-      (let* ((str1 "efg") (beg1 0) (end1 (bytevector-u8-length str1))
-	     (str2 "123") (beg2 0) (end2 (bytevector-u8-length str2)))
+      (let* ((str1 (S "efg")) (beg1 0) (end1 (bytevector-length str1))
+	     (str2 (S "123")) (beg2 0) (end2 (bytevector-length str2)))
 	(%bytevector-u8-suffix? str1 beg1 end1 str2 beg2 end2))
     => #f)
 
   (check
-      (let* ((str1 "") (beg1 0) (end1 (bytevector-u8-length str1))
-	     (str2 "123") (beg2 0) (end2 (bytevector-u8-length str2)))
+      (let* ((str1 '#vu8()) (beg1 0) (end1 (bytevector-length str1))
+	     (str2 (S "123")) (beg2 0) (end2 (bytevector-length str2)))
 	(%bytevector-u8-suffix? str1 beg1 end1 str2 beg2 end2))
     => #t)
 
   (check
-      (let* ((str1 "efg") (beg1 0) (end1 (bytevector-u8-length str1))
-	     (str2 "") (beg2 0) (end2 (bytevector-u8-length str2)))
+      (let* ((str1 (S "efg")) (beg1 0) (end1 (bytevector-length str1))
+	     (str2 '#vu8()) (beg2 0) (end2 (bytevector-length str2)))
 	(%bytevector-u8-suffix? str1 beg1 end1 str2 beg2 end2))
     => #f)
 
   (check
-      (let* ((str1 "") (beg1 0) (end1 (bytevector-u8-length str1))
-	     (str2 "") (beg2 0) (end2 (bytevector-u8-length str2)))
+      (let* ((str1 '#vu8()) (beg1 0) (end1 (bytevector-length str1))
+	     (str2 '#vu8()) (beg2 0) (end2 (bytevector-length str2)))
 	(%bytevector-u8-suffix? str1 beg1 end1 str2 beg2 end2))
     => #t)
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (let* ((str1 "aBcd") (beg1 0) (end1 (bytevector-u8-length str1))
-	     (str2 "123aBcd") (beg2 0) (end2 (bytevector-u8-length str2)))
+      (let* ((str1 (S "abcd")) (beg1 0) (end1 (bytevector-length str1))
+	     (str2 (S "123aBcd")) (beg2 0) (end2 (bytevector-length str2)))
 	(%bytevector-u8-suffix-ci? str1 beg1 end1 str2 beg2 end2))
     => #t)
 
   (check
-      (let* ((str1 "abcd") (beg1 0) (end1 (bytevector-u8-length str1))
-	     (str2 "123aBcd") (beg2 0) (end2 (bytevector-u8-length str2)))
+      (let* ((str1 (S "abcd")) (beg1 0) (end1 (bytevector-length str1))
+	     (str2 (S "123aBcd")) (beg2 0) (end2 (bytevector-length str2)))
 	(%bytevector-u8-suffix-ci? str1 beg1 end1 str2 beg2 end2))
     => #t)
 
   (check
-      (let* ((str1 "efg") (beg1 0) (end1 (bytevector-u8-length str1))
-	     (str2 "123") (beg2 0) (end2 (bytevector-u8-length str2)))
+      (let* ((str1 (S "efg")) (beg1 0) (end1 (bytevector-length str1))
+	     (str2 (S "123")) (beg2 0) (end2 (bytevector-length str2)))
 	(%bytevector-u8-suffix-ci? str1 beg1 end1 str2 beg2 end2))
     => #f)
 
   (check
-      (let* ((str1 "") (beg1 0) (end1 (bytevector-u8-length str1))
-	     (str2 "123") (beg2 0) (end2 (bytevector-u8-length str2)))
+      (let* ((str1 '#vu8()) (beg1 0) (end1 (bytevector-length str1))
+	     (str2 (S "123")) (beg2 0) (end2 (bytevector-length str2)))
 	(%bytevector-u8-suffix-ci? str1 beg1 end1 str2 beg2 end2))
     => #t)
 
   (check
-      (let* ((str1 "efg") (beg1 0) (end1 (bytevector-u8-length str1))
-	     (str2 "") (beg2 0) (end2 (bytevector-u8-length str2)))
+      (let* ((str1 (S "efg")) (beg1 0) (end1 (bytevector-length str1))
+	     (str2 '#vu8()) (beg2 0) (end2 (bytevector-length str2)))
 	(%bytevector-u8-suffix-ci? str1 beg1 end1 str2 beg2 end2))
     => #f)
 
   (check
-      (let* ((str1 "") (beg1 0) (end1 (bytevector-u8-length str1))
-	     (str2 "") (beg2 0) (end2 (bytevector-u8-length str2)))
+      (let* ((str1 '#vu8()) (beg1 0) (end1 (bytevector-length str1))
+	     (str2 '#vu8()) (beg2 0) (end2 (bytevector-length str2)))
 	(%bytevector-u8-suffix-ci? str1 beg1 end1 str2 beg2 end2))
     => #t)
 
@@ -2651,382 +2653,382 @@
 (parameterise ((check-test-name 'searching))
 
   (check
-      (let* ((str "abcd") (beg 0) (end (bytevector-u8-length str)))
+      (let* ((str (S "abcd")) (beg 0) (end (bytevector-length str)))
 	(%bytevector-u8-index #\b str beg end))
     => 1)
 
   (check
-      (let* ((str "abcd") (end (bytevector-u8-length str)))
+      (let* ((str (S "abcd")) (end (bytevector-length str)))
 	(%bytevector-u8-index #\b str 1 end))
     => 1)
 
   (check
-      (let* ((str "abcd") (beg 0) (end (bytevector-u8-length str)))
+      (let* ((str (S "abcd")) (beg 0) (end (bytevector-length str)))
 	(%bytevector-u8-index #\1 str beg end))
     => #f)
 
   (check
-      (let* ((str "") (beg 0) (end (bytevector-u8-length str)))
+      (let* ((str '#vu8()) (beg 0) (end (bytevector-length str)))
 	(%bytevector-u8-index #\1 str beg end))
     => #f)
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (let* ((str "abcd") (beg 0) (end (bytevector-u8-length str)))
+      (let* ((str (S "abcd")) (beg 0) (end (bytevector-length str)))
 	(%bytevector-u8-index (char-set #\b #\B) str beg end))
     => 1)
 
   (check
-      (let* ((str "abcd") (end (bytevector-u8-length str)))
+      (let* ((str (S "abcd")) (end (bytevector-length str)))
 	(%bytevector-u8-index (char-set #\b #\B) str 1 end))
     => 1)
 
   (check
-      (let* ((str "abcd") (beg 0) (end (bytevector-u8-length str)))
+      (let* ((str (S "abcd")) (beg 0) (end (bytevector-length str)))
 	(%bytevector-u8-index (char-set #\0 #\1) str beg end))
     => #f)
 
   (check
-      (let* ((str "") (beg 0) (end (bytevector-u8-length str)))
+      (let* ((str '#vu8()) (beg 0) (end (bytevector-length str)))
 	(%bytevector-u8-index (char-set #\0 #\1) str beg end))
     => #f)
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (let* ((str "aBcd") (beg 0) (end (bytevector-u8-length str)))
+      (let* ((str (S "abcd")) (beg 0) (end (bytevector-length str)))
 	(%bytevector-u8-index char-upper-case? str beg end))
     => 1)
 
   (check
-      (let* ((str "aBcd") (end (bytevector-u8-length str)))
+      (let* ((str (S "abcd")) (end (bytevector-length str)))
 	(%bytevector-u8-index char-upper-case? str 1 end))
     => 1)
 
   (check
-      (let* ((str "abcd") (beg 0) (end (bytevector-u8-length str)))
+      (let* ((str (S "abcd")) (beg 0) (end (bytevector-length str)))
 	(%bytevector-u8-index char-upper-case? str beg end))
     => #f)
 
   (check
-      (let* ((str "") (beg 0) (end (bytevector-u8-length str)))
+      (let* ((str '#vu8()) (beg 0) (end (bytevector-length str)))
 	(%bytevector-u8-index char-upper-case? str beg end))
     => #f)
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (let* ((str "abcd") (beg 0) (end (bytevector-u8-length str)))
+      (let* ((str (S "abcd")) (beg 0) (end (bytevector-length str)))
 	(%bytevector-u8-index-right #\b str beg end))
     => 1)
 
   (check
-      (let* ((str "abcd") (end (bytevector-u8-length str)))
+      (let* ((str (S "abcd")) (end (bytevector-length str)))
 	(%bytevector-u8-index-right #\b str 1 end))
     => 1)
 
   (check
-      (let* ((str "abcd") (beg 0) (end (bytevector-u8-length str)))
+      (let* ((str (S "abcd")) (beg 0) (end (bytevector-length str)))
 	(%bytevector-u8-index-right #\1 str beg end))
     => #f)
 
   (check
-      (let* ((str "") (beg 0) (end (bytevector-u8-length str)))
+      (let* ((str '#vu8()) (beg 0) (end (bytevector-length str)))
 	(%bytevector-u8-index-right #\1 str beg end))
     => #f)
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (let* ((str "abcd") (beg 0) (end (bytevector-u8-length str)))
+      (let* ((str (S "abcd")) (beg 0) (end (bytevector-length str)))
 	(%bytevector-u8-index-right (char-set #\b #\B) str beg end))
     => 1)
 
   (check
-      (let* ((str "abcd") (end (bytevector-u8-length str)))
+      (let* ((str (S "abcd")) (end (bytevector-length str)))
 	(%bytevector-u8-index-right (char-set #\b #\B) str 1 end))
     => 1)
 
   (check
-      (let* ((str "abcd") (beg 0) (end (bytevector-u8-length str)))
+      (let* ((str (S "abcd")) (beg 0) (end (bytevector-length str)))
 	(%bytevector-u8-index-right (char-set #\0 #\1) str beg end))
     => #f)
 
   (check
-      (let* ((str "") (beg 0) (end (bytevector-u8-length str)))
+      (let* ((str '#vu8()) (beg 0) (end (bytevector-length str)))
 	(%bytevector-u8-index-right (char-set #\0 #\1) str beg end))
     => #f)
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (let* ((str "aBcd") (beg 0) (end (bytevector-u8-length str)))
+      (let* ((str (S "abcd")) (beg 0) (end (bytevector-length str)))
 	(%bytevector-u8-index-right char-upper-case? str beg end))
     => 1)
 
   (check
-      (let* ((str "aBcd") (end (bytevector-u8-length str)))
+      (let* ((str (S "abcd")) (end (bytevector-length str)))
 	(%bytevector-u8-index-right char-upper-case? str 1 end))
     => 1)
 
   (check
-      (let* ((str "abcd") (beg 0) (end (bytevector-u8-length str)))
+      (let* ((str (S "abcd")) (beg 0) (end (bytevector-length str)))
 	(%bytevector-u8-index-right char-upper-case? str beg end))
     => #f)
 
   (check
-      (let* ((str "") (beg 0) (end (bytevector-u8-length str)))
+      (let* ((str '#vu8()) (beg 0) (end (bytevector-length str)))
 	(%bytevector-u8-index-right char-upper-case? str beg end))
     => #f)
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (let* ((str "bacd") (beg 0) (end (bytevector-u8-length str)))
+      (let* ((str (S "bacd")) (beg 0) (end (bytevector-length str)))
 	(%bytevector-u8-skip #\b str beg end))
     => 1)
 
   (check
-      (let* ((str "bacd") (end (bytevector-u8-length str)))
+      (let* ((str (S "bacd")) (end (bytevector-length str)))
 	(%bytevector-u8-skip #\b str 1 end))
     => 1)
 
   (check
-      (let* ((str "1111") (beg 0) (end (bytevector-u8-length str)))
+      (let* ((str (S "1111")) (beg 0) (end (bytevector-length str)))
 	(%bytevector-u8-skip #\1 str beg end))
     => #f)
 
   (check
-      (let* ((str "") (beg 0) (end (bytevector-u8-length str)))
+      (let* ((str '#vu8()) (beg 0) (end (bytevector-length str)))
 	(%bytevector-u8-skip #\1 str beg end))
     => #f)
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (let* ((str "bacd") (beg 0) (end (bytevector-u8-length str)))
+      (let* ((str (S "bacd")) (beg 0) (end (bytevector-length str)))
 	(%bytevector-u8-skip (char-set #\b #\B) str beg end))
     => 1)
 
   (check
-      (let* ((str "bacd") (end (bytevector-u8-length str)))
+      (let* ((str (S "bacd")) (end (bytevector-length str)))
 	(%bytevector-u8-skip (char-set #\b #\B) str 1 end))
     => 1)
 
   (check
-      (let* ((str "1010") (beg 0) (end (bytevector-u8-length str)))
+      (let* ((str (S "1010")) (beg 0) (end (bytevector-length str)))
 	(%bytevector-u8-skip (char-set #\0 #\1) str beg end))
     => #f)
 
   (check
-      (let* ((str "") (beg 0) (end (bytevector-u8-length str)))
+      (let* ((str '#vu8()) (beg 0) (end (bytevector-length str)))
 	(%bytevector-u8-skip (char-set #\0 #\1) str beg end))
     => #f)
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (let* ((str "Bacd") (beg 0) (end (bytevector-u8-length str)))
+      (let* ((str (S "Bacd")) (beg 0) (end (bytevector-length str)))
 	(%bytevector-u8-skip char-upper-case? str beg end))
     => 1)
 
   (check
-      (let* ((str "Bacd") (end (bytevector-u8-length str)))
+      (let* ((str (S "Bacd")) (end (bytevector-length str)))
 	(%bytevector-u8-skip char-upper-case? str 1 end))
     => 1)
 
   (check
-      (let* ((str "ABCD") (beg 0) (end (bytevector-u8-length str)))
+      (let* ((str (S "ABCD")) (beg 0) (end (bytevector-length str)))
 	(%bytevector-u8-skip char-upper-case? str beg end))
     => #f)
 
   (check
-      (let* ((str "") (beg 0) (end (bytevector-u8-length str)))
+      (let* ((str '#vu8()) (beg 0) (end (bytevector-length str)))
 	(%bytevector-u8-skip char-upper-case? str beg end))
     => #f)
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (let* ((str "acdb") (beg 0) (end (bytevector-u8-length str)))
+      (let* ((str (S "acdb")) (beg 0) (end (bytevector-length str)))
 	(%bytevector-u8-skip-right #\b str beg end))
     => 2)
 
   (check
-      (let* ((str "acdb") (end (bytevector-u8-length str)))
+      (let* ((str (S "acdb")) (end (bytevector-length str)))
 	(%bytevector-u8-skip-right #\b str 1 end))
     => 2)
 
   (check
-      (let* ((str "1111") (beg 0) (end (bytevector-u8-length str)))
+      (let* ((str (S "1111")) (beg 0) (end (bytevector-length str)))
 	(%bytevector-u8-skip-right #\1 str beg end))
     => #f)
 
   (check
-      (let* ((str "") (beg 0) (end (bytevector-u8-length str)))
+      (let* ((str '#vu8()) (beg 0) (end (bytevector-length str)))
 	(%bytevector-u8-skip-right #\1 str beg end))
     => #f)
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (let* ((str "acdb") (beg 0) (end (bytevector-u8-length str)))
+      (let* ((str (S "acdb")) (beg 0) (end (bytevector-length str)))
 	(%bytevector-u8-skip-right (char-set #\b #\B) str beg end))
     => 2)
 
   (check
-      (let* ((str "acdb") (end (bytevector-u8-length str)))
+      (let* ((str (S "acdb")) (end (bytevector-length str)))
 	(%bytevector-u8-skip-right (char-set #\b #\B) str 1 end))
     => 2)
 
   (check
-      (let* ((str "0101") (beg 0) (end (bytevector-u8-length str)))
+      (let* ((str (S "0101")) (beg 0) (end (bytevector-length str)))
 	(%bytevector-u8-skip-right (char-set #\0 #\1) str beg end))
     => #f)
 
   (check
-      (let* ((str "") (beg 0) (end (bytevector-u8-length str)))
+      (let* ((str '#vu8()) (beg 0) (end (bytevector-length str)))
 	(%bytevector-u8-skip-right (char-set #\0 #\1) str beg end))
     => #f)
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (let* ((str "acdB") (beg 0) (end (bytevector-u8-length str)))
+      (let* ((str (S "acdB")) (beg 0) (end (bytevector-length str)))
 	(%bytevector-u8-skip-right char-upper-case? str beg end))
     => 2)
 
   (check
-      (let* ((str "acdB") (end (bytevector-u8-length str)))
+      (let* ((str (S "acdB")) (end (bytevector-length str)))
 	(%bytevector-u8-skip-right char-upper-case? str 1 end))
     => 2)
 
   (check
-      (let* ((str "ABCD") (beg 0) (end (bytevector-u8-length str)))
+      (let* ((str (S "ABCD")) (beg 0) (end (bytevector-length str)))
 	(%bytevector-u8-skip-right char-upper-case? str beg end))
     => #f)
 
   (check
-      (let* ((str "") (beg 0) (end (bytevector-u8-length str)))
+      (let* ((str '#vu8()) (beg 0) (end (bytevector-length str)))
 	(%bytevector-u8-skip-right char-upper-case? str beg end))
     => #f)
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (let* ((str "abcbd") (beg 0) (end (bytevector-u8-length str)))
+      (let* ((str (S "abcbd")) (beg 0) (end (bytevector-length str)))
 	(%bytevector-u8-count #\b str beg end))
     => 2)
 
   (check
-      (let* ((str "abcd") (end (bytevector-u8-length str)))
+      (let* ((str (S "abcd")) (end (bytevector-length str)))
 	(%bytevector-u8-count #\b str 1 end))
     => 1)
 
   (check
-      (let* ((str "abcd") (beg 0) (end (bytevector-u8-length str)))
+      (let* ((str (S "abcd")) (beg 0) (end (bytevector-length str)))
 	(%bytevector-u8-count #\1 str beg end))
     => 0)
 
   (check
-      (let* ((str "") (beg 0) (end (bytevector-u8-length str)))
+      (let* ((str '#vu8()) (beg 0) (end (bytevector-length str)))
 	(%bytevector-u8-count #\1 str beg end))
     => 0)
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (let* ((str "abcBd") (beg 0) (end (bytevector-u8-length str)))
+      (let* ((str (S "abcBd")) (beg 0) (end (bytevector-length str)))
 	(%bytevector-u8-count (char-set #\b #\B) str beg end))
     => 2)
 
   (check
-      (let* ((str "abcd") (end (bytevector-u8-length str)))
+      (let* ((str (S "abcd")) (end (bytevector-length str)))
 	(%bytevector-u8-count (char-set #\b #\B) str 1 end))
     => 1)
 
   (check
-      (let* ((str "abcd") (beg 0) (end (bytevector-u8-length str)))
+      (let* ((str (S "abcd")) (beg 0) (end (bytevector-length str)))
 	(%bytevector-u8-count (char-set #\0 #\1) str beg end))
     => 0)
 
   (check
-      (let* ((str "") (beg 0) (end (bytevector-u8-length str)))
+      (let* ((str '#vu8()) (beg 0) (end (bytevector-length str)))
 	(%bytevector-u8-count (char-set #\0 #\1) str beg end))
     => 0)
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (let* ((str "aBcAd") (beg 0) (end (bytevector-u8-length str)))
+      (let* ((str (S "aBcAd")) (beg 0) (end (bytevector-length str)))
 	(%bytevector-u8-count char-upper-case? str beg end))
     => 2)
 
   (check
-      (let* ((str "aBcd") (end (bytevector-u8-length str)))
+      (let* ((str (S "abcd")) (end (bytevector-length str)))
 	(%bytevector-u8-count char-upper-case? str 1 end))
     => 1)
 
   (check
-      (let* ((str "abcd") (beg 0) (end (bytevector-u8-length str)))
+      (let* ((str (S "abcd")) (beg 0) (end (bytevector-length str)))
 	(%bytevector-u8-count char-upper-case? str beg end))
     => 0)
 
   (check
-      (let* ((str "") (beg 0) (end (bytevector-u8-length str)))
+      (let* ((str '#vu8()) (beg 0) (end (bytevector-length str)))
 	(%bytevector-u8-count char-upper-case? str beg end))
     => 0)
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (let* ((str1 "ciao hello salut") (beg1 0) (end1 (bytevector-u8-length str1))
-	     (str2 "hello") (beg2 0) (end2 (bytevector-u8-length str2)))
+      (let* ((str1 (S "ciao hello salut")) (beg1 0) (end1 (bytevector-length str1))
+	     (str2 (S "hello")) (beg2 0) (end2 (bytevector-length str2)))
 	(%bytevector-u8-contains str1 beg1 end1 str2 beg2 end2))
     => 5)
 
   (check
-      (let* ((str1 "ciao hello salut") (beg1 0) (end1 (bytevector-u8-length str1))
-	     (str2 "hola") (beg2 0) (end2 (bytevector-u8-length str2)))
+      (let* ((str1 (S "ciao hello salut")) (beg1 0) (end1 (bytevector-length str1))
+	     (str2 (S "hola")) (beg2 0) (end2 (bytevector-length str2)))
 	(%bytevector-u8-contains str1 beg1 end1 str2 beg2 end2))
     => #f)
 
   (check
-      (let* ((str1 "ciao hello salut") (beg1 0) (end1 (bytevector-u8-length str1))
-	     (str2 "") (beg2 0) (end2 (bytevector-u8-length str2)))
+      (let* ((str1 (S "ciao hello salut")) (beg1 0) (end1 (bytevector-length str1))
+	     (str2 '#vu8()) (beg2 0) (end2 (bytevector-length str2)))
 	(%bytevector-u8-contains str1 beg1 end1 str2 beg2 end2))
     => 0)
 
   (check
-      (let* ((str1 "") (beg1 0) (end1 (bytevector-u8-length str1))
-	     (str2 "hello") (beg2 0) (end2 (bytevector-u8-length str2)))
+      (let* ((str1 '#vu8()) (beg1 0) (end1 (bytevector-length str1))
+	     (str2 (S "hello")) (beg2 0) (end2 (bytevector-length str2)))
 	(%bytevector-u8-contains str1 beg1 end1 str2 beg2 end2))
     => #f)
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (let* ((str1 "ciAO HELLO saLUT") (beg1 0) (end1 (bytevector-u8-length str1))
-	     (str2 "hello") (beg2 0) (end2 (bytevector-u8-length str2)))
+      (let* ((str1 (S "ciAO HELLO saLUT")) (beg1 0) (end1 (bytevector-length str1))
+	     (str2 (S "hello")) (beg2 0) (end2 (bytevector-length str2)))
 	(%bytevector-u8-contains-ci str1 beg1 end1 str2 beg2 end2))
     => 5)
 
   (check
-      (let* ((str1 "ciao hello salut") (beg1 0) (end1 (bytevector-u8-length str1))
-	     (str2 "HOLA") (beg2 0) (end2 (bytevector-u8-length str2)))
+      (let* ((str1 (S "ciao hello salut")) (beg1 0) (end1 (bytevector-length str1))
+	     (str2 (S "HOLA")) (beg2 0) (end2 (bytevector-length str2)))
 	(%bytevector-u8-contains-ci str1 beg1 end1 str2 beg2 end2))
     => #f)
 
   (check
-      (let* ((str1 "ciao hello salut") (beg1 0) (end1 (bytevector-u8-length str1))
-	     (str2 "") (beg2 0) (end2 (bytevector-u8-length str2)))
+      (let* ((str1 (S "ciao hello salut")) (beg1 0) (end1 (bytevector-length str1))
+	     (str2 '#vu8()) (beg2 0) (end2 (bytevector-length str2)))
 	(%bytevector-u8-contains-ci str1 beg1 end1 str2 beg2 end2))
     => 0)
 
   (check
-      (let* ((str1 "") (beg1 0) (end1 (bytevector-u8-length str1))
-	     (str2 "hello") (beg2 0) (end2 (bytevector-u8-length str2)))
+      (let* ((str1 '#vu8()) (beg1 0) (end1 (bytevector-length str1))
+	     (str2 (S "hello")) (beg2 0) (end2 (bytevector-length str2)))
 	(%bytevector-u8-contains-ci str1 beg1 end1 str2 beg2 end2))
     => #f)
 
@@ -3036,104 +3038,104 @@
 (parameterise ((check-test-name 'filtering))
 
   (check
-      (let* ((str "abcbd") (beg 0) (end (bytevector-u8-length str)))
+      (let* ((str (S "abcbd")) (beg 0) (end (bytevector-length str)))
 	(%bytevector-u8-delete #\b str beg end))
-    => "acd")
+    => (S "acd"))
 
   (check
-      (let* ((str "abcbd") (beg 0) (end (bytevector-u8-length str)))
+      (let* ((str (S "abcbd")) (beg 0) (end (bytevector-length str)))
 	(%bytevector-u8-delete #\0 str beg end))
-    => "abcbd")
+    => (S "abcbd"))
 
   (check
-      (let* ((str "") (beg 0) (end (bytevector-u8-length str)))
+      (let* ((str '#vu8()) (beg 0) (end (bytevector-length str)))
 	(%bytevector-u8-delete #\b str beg end))
-    => "")
+    => '#vu8())
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (let* ((str "abcbd") (beg 0) (end (bytevector-u8-length str)))
+      (let* ((str (S "abcbd")) (beg 0) (end (bytevector-length str)))
 	(%bytevector-u8-delete (char-set #\b #\B) str beg end))
-    => "acd")
+    => (S "acd"))
 
   (check
-      (let* ((str "abcbd") (beg 0) (end (bytevector-u8-length str)))
+      (let* ((str (S "abcbd")) (beg 0) (end (bytevector-length str)))
 	(%bytevector-u8-delete (char-set #\0 #\1) str beg end))
-    => "abcbd")
+    => (S "abcbd"))
 
   (check
-      (let* ((str "") (beg 0) (end (bytevector-u8-length str)))
+      (let* ((str '#vu8()) (beg 0) (end (bytevector-length str)))
 	(%bytevector-u8-delete (char-set #\b #\B) str beg end))
-    => "")
+    => '#vu8())
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (let* ((str "aBcBd") (beg 0) (end (bytevector-u8-length str)))
+      (let* ((str (S "aBcBd")) (beg 0) (end (bytevector-length str)))
 	(%bytevector-u8-delete char-upper-case? str beg end))
-    => "acd")
+    => (S "acd"))
 
   (check
-      (let* ((str "abcbd") (beg 0) (end (bytevector-u8-length str)))
+      (let* ((str (S "abcbd")) (beg 0) (end (bytevector-length str)))
 	(%bytevector-u8-delete char-upper-case? str beg end))
-    => "abcbd")
+    => (S "abcbd"))
 
   (check
-      (let* ((str "") (beg 0) (end (bytevector-u8-length str)))
+      (let* ((str '#vu8()) (beg 0) (end (bytevector-length str)))
 	(%bytevector-u8-delete char-upper-case? str beg end))
-    => "")
+    => '#vu8())
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (let* ((str "abcbd") (beg 0) (end (bytevector-u8-length str)))
+      (let* ((str (S "abcbd")) (beg 0) (end (bytevector-length str)))
 	(%bytevector-u8-filter #\b str beg end))
-    => "bb")
+    => (S "bb"))
 
   (check
-      (let* ((str "abcbd") (beg 0) (end (bytevector-u8-length str)))
+      (let* ((str (S "abcbd")) (beg 0) (end (bytevector-length str)))
 	(%bytevector-u8-filter #\0 str beg end))
-    => "")
+    => '#vu8())
 
   (check
-      (let* ((str "") (beg 0) (end (bytevector-u8-length str)))
+      (let* ((str '#vu8()) (beg 0) (end (bytevector-length str)))
 	(%bytevector-u8-filter #\b str beg end))
-    => "")
+    => '#vu8())
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (let* ((str "abcbd") (beg 0) (end (bytevector-u8-length str)))
+      (let* ((str (S "abcbd")) (beg 0) (end (bytevector-length str)))
 	(%bytevector-u8-filter (char-set #\b #\B) str beg end))
-    => "bb")
+    => (S "bb"))
 
   (check
-      (let* ((str "abcbd") (beg 0) (end (bytevector-u8-length str)))
+      (let* ((str (S "abcbd")) (beg 0) (end (bytevector-length str)))
 	(%bytevector-u8-filter (char-set #\0 #\1) str beg end))
-    => "")
+    => '#vu8())
 
   (check
-      (let* ((str "") (beg 0) (end (bytevector-u8-length str)))
+      (let* ((str '#vu8()) (beg 0) (end (bytevector-length str)))
 	(%bytevector-u8-filter (char-set #\b #\B) str beg end))
-    => "")
+    => '#vu8())
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (let* ((str "aBcBd") (beg 0) (end (bytevector-u8-length str)))
+      (let* ((str (S "aBcBd")) (beg 0) (end (bytevector-length str)))
 	(%bytevector-u8-filter char-upper-case? str beg end))
-    => "BB")
+    => (S "BB"))
 
   (check
-      (let* ((str "abcbd") (beg 0) (end (bytevector-u8-length str)))
+      (let* ((str (S "abcbd")) (beg 0) (end (bytevector-length str)))
 	(%bytevector-u8-filter char-upper-case? str beg end))
-    => "")
+    => '#vu8())
 
   (check
-      (let* ((str "") (beg 0) (end (bytevector-u8-length str)))
+      (let* ((str '#vu8()) (beg 0) (end (bytevector-length str)))
 	(%bytevector-u8-filter char-upper-case? str beg end))
-    => "")
+    => '#vu8())
 
   )
 
@@ -3141,12 +3143,12 @@
 (parameterise ((check-test-name 'lists))
 
   (check
-      (let* ((str (bytevector-u8-copy "abcd")) (beg 0) (end (bytevector-u8-length str)))
+      (let* ((str (bytevector-u8-copy (S "abcd"))) (beg 0) (end (bytevector-length str)))
 	(%bytevector-u8->list* str beg end))
     => '(#\a #\b #\c #\d))
 
   (check
-      (let* ((str (bytevector-u8-copy "")) (beg 0) (end (bytevector-u8-length str)))
+      (let* ((str (bytevector-u8-copy '#vu8())) (beg 0) (end (bytevector-length str)))
 	(%bytevector-u8->list* str beg end))
     => '())
 
@@ -3154,11 +3156,11 @@
 
   (check
       (reverse-list->bytevector-u8 '(#\a #\b #\c #\d))
-    => "dcba")
+    => (S "dcba"))
 
   (check
       (reverse-list->bytevector-u8 '())
-    => "")
+    => '#vu8())
 
   )
 
@@ -3167,19 +3169,19 @@
 (parameterise ((check-test-name 'tokenize))
 
   (check
-      (let* ((str "ciao hello salut") (beg 0) (end (bytevector-u8-length str)))
+      (let* ((str (S "ciao hello salut")) (beg 0) (end (bytevector-length str)))
 	(%bytevector-u8-tokenize (char-set #\a #\c #\e #\i #\h #\l #\o #\s #\t #\u)
 			  str beg end))
-    => '("ciao" "hello" "salut")
+    => `(,(S "ciao") ,(S "hello") ,(S "salut"))
 )
   (check
-      (let* ((str "") (beg 0) (end (bytevector-u8-length str)))
+      (let* ((str '#vu8()) (beg 0) (end (bytevector-length str)))
 	(%bytevector-u8-tokenize (char-set #\a #\c #\e #\i #\h #\l #\o #\s #\t #\u)
 			  str beg end))
     => '())
 
   (check
-      (let* ((str "ciao hello salut") (beg 0) (end (bytevector-u8-length str)))
+      (let* ((str (S "ciao hello salut")) (beg 0) (end (bytevector-length str)))
 	(%bytevector-u8-tokenize (char-set) str beg end))
     => '())
 
@@ -3190,181 +3192,181 @@
 (parameterise ((check-test-name 'join))
 
   (check
-      (%bytevector-u8-join '("c" "i" "a" "o") "," 'infix)
-    => "c,i,a,o")
+      (%bytevector-u8-join `(,(S "c") ,(S "i") ,(S "a") ,(S "o")) (S ",") 'infix)
+    => (S "c,i,a,o"))
 
   (check
-      (%bytevector-u8-join '("c" "i" "a" "o") "," 'strict-infix)
-    => "c,i,a,o")
+      (%bytevector-u8-join `(,(S "c") ,(S "i") ,(S "a") ,(S "o")) (S ",") 'strict-infix)
+    => (S "c,i,a,o"))
 
   (check
-      (%bytevector-u8-join '("c" "i" "a" "o") "," 'suffix)
-    => "c,i,a,o,")
+      (%bytevector-u8-join `(,(S "c") ,(S "i") ,(S "a") ,(S "o")) (S ",") 'suffix)
+    => (S "c,i,a,o,"))
 
   (check
-      (%bytevector-u8-join '("c" "i" "a" "o") "," 'prefix)
-    => ",c,i,a,o")
+      (%bytevector-u8-join `(,(S "c") ,(S "i") ,(S "a") ,(S "o")) (S ",") 'prefix)
+    => (S ",c,i,a,o"))
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (%bytevector-u8-join '() "," 'infix)
-    => "")
+      (%bytevector-u8-join '() (S ",") 'infix)
+    => '#vu8())
 
   (check
       (guard (exc ((assertion-violation? exc)
 		   #t))
-	(%bytevector-u8-join '() "," 'strict-infix))
+	(%bytevector-u8-join '() (S ",") 'strict-infix))
     => #t)
 
   (check
-      (%bytevector-u8-join '() "," 'suffix)
-    => "")
+      (%bytevector-u8-join '() (S ",") 'suffix)
+    => '#vu8())
 
   (check
-      (%bytevector-u8-join '() "," 'prefix)
-    => "")
+      (%bytevector-u8-join '() (S ",") 'prefix)
+    => '#vu8())
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (%bytevector-u8-join '("c") "," 'infix)
-    => "c")
+      (%bytevector-u8-join `(,(S "c")) (S ",") 'infix)
+    => (S "c"))
 
   (check
-      (%bytevector-u8-join '("c") "," 'strict-infix)
-    => "c")
+      (%bytevector-u8-join `(,(S "c")) (S ",") 'strict-infix)
+    => (S "c"))
 
   (check
-      (%bytevector-u8-join '("c") "," 'suffix)
-    => "c,")
+      (%bytevector-u8-join `(,(S "c")) (S ",") 'suffix)
+    => (S "c,"))
 
   (check
-      (%bytevector-u8-join '("c") "," 'prefix)
-    => ",c")
+      (%bytevector-u8-join `(,(S "c")) (S ",") 'prefix)
+    => (S ",c"))
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (%bytevector-u8-join '("c" "i" "a" "o") "" 'infix)
-    => "ciao")
+      (%bytevector-u8-join `(,(S "c") ,(S "i") ,(S "a") ,(S "o")) '#vu8() 'infix)
+    => (S "ciao"))
 
   (check
-      (%bytevector-u8-join '("c" "i" "a" "o") "" 'strict-infix)
-    => "ciao")
+      (%bytevector-u8-join `(,(S "c") ,(S "i") ,(S "a") ,(S "o")) '#vu8() 'strict-infix)
+    => (S "ciao"))
 
   (check
-      (%bytevector-u8-join '("c" "i" "a" "o") "" 'suffix)
-    => "ciao")
+      (%bytevector-u8-join `(,(S "c") ,(S "i") ,(S "a") ,(S "o")) '#vu8() 'suffix)
+    => (S "ciao"))
 
   (check
-      (%bytevector-u8-join '("c" "i" "a" "o") "" 'prefix)
-    => "ciao")
+      (%bytevector-u8-join `(,(S "c") ,(S "i") ,(S "a") ,(S "o")) '#vu8() 'prefix)
+    => (S "ciao"))
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (%bytevector-u8-join '("c" "i" "a" "o") ",;;" 'infix)
-    => "c,;;i,;;a,;;o")
+      (%bytevector-u8-join `(,(S "c") ,(S "i") ,(S "a") ,(S "o")) (S ",;;") 'infix)
+    => (S "c,;;i,;;a,;;o"))
 
   (check
-      (%bytevector-u8-join '("c" "i" "a" "o") ",;;" 'strict-infix)
-    => "c,;;i,;;a,;;o")
+      (%bytevector-u8-join `(,(S "c") ,(S "i") ,(S "a") ,(S "o")) (S ",;;") 'strict-infix)
+    => (S "c,;;i,;;a,;;o"))
 
   (check
-      (%bytevector-u8-join '("c" "i" "a" "o") ",;;" 'suffix)
-    => "c,;;i,;;a,;;o,;;")
+      (%bytevector-u8-join `(,(S "c") ,(S "i") ,(S "a") ,(S "o")) (S ",;;") 'suffix)
+    => (S "c,;;i,;;a,;;o,;;"))
 
   (check
-      (%bytevector-u8-join '("c" "i" "a" "o") ",;;" 'prefix)
-    => ",;;c,;;i,;;a,;;o")
+      (%bytevector-u8-join `(,(S "c") ,(S "i") ,(S "a") ,(S "o")) (S ",;;") 'prefix)
+    => (S ",;;c,;;i,;;a,;;o"))
 
-  )
+  #f)
 
 
 (parameterise ((check-test-name 'replicating))
 
   (check
-      (let* ((str "ciao ") (beg 0) (end (bytevector-u8-length str)))
+      (let* ((str (S "ciao ")) (beg 0) (end (bytevector-length str)))
 	(%xsubbytevector-u8 0 5 str beg end))
-    => "ciao ")
+    => (S "ciao "))
 
   (check
-      (let* ((str "ciao ") (beg 0) (end (bytevector-u8-length str)))
+      (let* ((str (S "ciao ")) (beg 0) (end (bytevector-length str)))
 	(%xsubbytevector-u8 0 9 str beg end))
-    => "ciao ciao")
+    => (S "ciao ciao"))
 
   (check
-      (let* ((str "ciao ") (beg 0) (end (bytevector-u8-length str)))
+      (let* ((str (S "ciao ")) (beg 0) (end (bytevector-length str)))
 	(%xsubbytevector-u8 -5 5 str beg end))
-    => "ciao ciao ")
+    => (S "ciao ciao "))
 
   (check
-      (let* ((str "ciao ") (beg 0) (end (bytevector-u8-length str)))
+      (let* ((str (S "ciao ")) (beg 0) (end (bytevector-length str)))
 	(%xsubbytevector-u8 2 4 str beg end))
-    => "ao")
+    => (S "ao"))
 
   (check
-      (let* ((str "ciao ") (beg 0) (end (bytevector-u8-length str)))
+      (let* ((str (S "ciao ")) (beg 0) (end (bytevector-length str)))
 	(%xsubbytevector-u8 -3 7 str beg end))
-    => "ao ciao ci")
+    => (S "ao ciao ci"))
 
   (check
       (guard (exc ((assertion-violation? exc) #t))
-	(let ((str "ciao "))
+	(let ((str (S "ciao ")))
 	  (%xsubbytevector-u8 -3 7 str 3 3)))
     => #t)
 
   (check
       (guard (exc ((assertion-violation? exc)
 		   #t))
-	(let* ((str "") (beg 0) (end (bytevector-u8-length str)))
+	(let* ((str '#vu8()) (beg 0) (end (bytevector-length str)))
 	  (%xsubbytevector-u8 0 5 str beg end)))
     => #t)
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (let* ((str "ciao ") (beg 0) (end (bytevector-u8-length str))
-	     (result (bytevector-u8-copy "01234")))
-	(%bytevector-u8-xcopy! 0 5 result 0 (bytevector-u8-length result) str beg end)
+      (let* ((str (S "ciao ")) (beg 0) (end (bytevector-length str))
+	     (result (bytevector-u8-copy (S "01234"))))
+	(%bytevector-u8-xcopy! 0 5 result 0 (bytevector-length result) str beg end)
 	result)
-    => "ciao ")
+    => (S "ciao "))
 
   (check
-      (let* ((str "ciao ") (beg 0) (end (bytevector-u8-length str))
-	     (result (bytevector-u8-copy "012345678")))
-	(%bytevector-u8-xcopy! 0 9 result 0 (bytevector-u8-length result) str beg end)
+      (let* ((str (S "ciao ")) (beg 0) (end (bytevector-length str))
+	     (result (bytevector-u8-copy (S "012345678"))))
+	(%bytevector-u8-xcopy! 0 9 result 0 (bytevector-length result) str beg end)
 	result)
-    => "ciao ciao")
+    => (S "ciao ciao"))
 
   (check
-      (let* ((str "ciao ") (beg 0) (end (bytevector-u8-length str))
-	     (result (bytevector-u8-copy "0123456789")))
-	(%bytevector-u8-xcopy! -5 5 result 0 (bytevector-u8-length result) str beg end)
+      (let* ((str (S "ciao ")) (beg 0) (end (bytevector-length str))
+	     (result (bytevector-u8-copy (S "0123456789"))))
+	(%bytevector-u8-xcopy! -5 5 result 0 (bytevector-length result) str beg end)
 	result)
-    => "ciao ciao ")
+    => (S "ciao ciao "))
 
   (check
-      (let* ((str "ciao ") (beg 0) (end (bytevector-u8-length str))
-	     (result (bytevector-u8-copy "01")))
-	(%bytevector-u8-xcopy! 2 4 result 0 (bytevector-u8-length result) str beg end)
+      (let* ((str (S "ciao ")) (beg 0) (end (bytevector-length str))
+	     (result (bytevector-u8-copy (S "01"))))
+	(%bytevector-u8-xcopy! 2 4 result 0 (bytevector-length result) str beg end)
 	result)
-    => "ao")
+    => (S "ao"))
 
   (check
-      (let* ((str "ciao ") (beg 0) (end (bytevector-u8-length str))
-	     (result (bytevector-u8-copy "0123456789")))
-	(%bytevector-u8-xcopy! -3 7 result 0 (bytevector-u8-length result) str beg end)
+      (let* ((str (S "ciao ")) (beg 0) (end (bytevector-length str))
+	     (result (bytevector-u8-copy (S "0123456789"))))
+	(%bytevector-u8-xcopy! -3 7 result 0 (bytevector-length result) str beg end)
 	result)
-    => "ao ciao ci")
+    => (S "ao ciao ci"))
 
   (check
       (guard (exc ((assertion-violation? exc)
 		   #t))
-	(let* ((str "") (beg 0) (end (bytevector-u8-length str))
-	     (result (bytevector-u8-copy "")))
-	  (%bytevector-u8-xcopy! 0 5 result 0 (bytevector-u8-length result) str beg end)))
+	(let* ((str '#vu8()) (beg 0) (end (bytevector-length str))
+	     (result (bytevector-u8-copy '#vu8())))
+	  (%bytevector-u8-xcopy! 0 5 result 0 (bytevector-length result) str beg end)))
     => #t)
 
   )
@@ -3373,22 +3375,22 @@
 (parameterise ((check-test-name 'filling))
 
   (check
-      (let* ((str (bytevector-u8-copy "abcd")) (beg 0) (end (bytevector-u8-length str)))
+      (let* ((str (bytevector-u8-copy (S "abcd"))) (beg 0) (end (bytevector-length str)))
 	(%bytevector-u8-fill*! #\b str beg end)
 	str)
-    => "bbbb")
+    => (S "bbbb"))
 
   (check
-      (let* ((str (bytevector-u8-copy "accd")))
+      (let* ((str (bytevector-u8-copy (S "accd"))))
 	(%bytevector-u8-fill*! #\b str 1 3)
 	str)
-    => "abbd")
+    => (S "abbd"))
 
   (check
-      (let* ((str (bytevector-u8-copy "")))
+      (let* ((str (bytevector-u8-copy '#vu8())))
 	(%bytevector-u8-fill*! #\b str 0 0)
 	str)
-    => "")
+    => '#vu8())
 
   )
 
@@ -3396,28 +3398,28 @@
 (parameterise ((check-test-name 'reverse))
 
   (check
-      (let* ((str (bytevector-u8-copy "abcd")) (beg 0) (end (bytevector-u8-length str)))
+      (let* ((str (bytevector-u8-copy (S "abcd"))) (beg 0) (end (bytevector-length str)))
 	(%bytevector-u8-reverse str beg end))
-    => "dcba")
+    => (S "dcba"))
 
   (check
-      (let* ((str (bytevector-u8-copy "")) (beg 0) (end (bytevector-u8-length str)))
+      (let* ((str (bytevector-u8-copy '#vu8())) (beg 0) (end (bytevector-length str)))
 	(%bytevector-u8-reverse str beg end))
-    => "")
+    => '#vu8())
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (let* ((str (bytevector-u8-copy "abcd")) (beg 0) (end (bytevector-u8-length str)))
+      (let* ((str (bytevector-u8-copy (S "abcd"))) (beg 0) (end (bytevector-length str)))
 	(%bytevector-u8-reverse! str beg end)
 	str)
-    => "dcba")
+    => (S "dcba"))
 
   (check
-      (let* ((str (bytevector-u8-copy "")) (beg 0) (end (bytevector-u8-length str)))
+      (let* ((str (bytevector-u8-copy '#vu8())) (beg 0) (end (bytevector-length str)))
 	(%bytevector-u8-reverse! str beg end)
 	str)
-    => "")
+    => '#vu8())
 
   )
 
@@ -3425,71 +3427,72 @@
 (parameterise ((check-test-name 'concatenate))
 
   (check
-      (bytevector-u8-concatenate '("ciao" " " "hello" " " "salut"))
-    => "ciao hello salut")
+      (bytevector-u8-concatenate `(,(S "ciao") ,(S " ") ,(S "hello") ,(S " ") ,(S "salut")))
+    => (S "ciao hello salut"))
 
   (check
       (bytevector-u8-concatenate '())
-    => "")
+    => '#vu8())
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (%bytevector-u8-concatenate-reverse '("ciao" " " "hello" " " "salut") " hola" (bytevector-u8-length " hola"))
-    => "salut hello ciao hola")
+      (%bytevector-u8-concatenate-reverse `(,(S "ciao") ,(S " ") ,(S "hello") ,(S " ") ,(S "salut"))
+					  (S " hola") (bytevector-length (S " hola")))
+    => (S "salut hello ciao hola"))
 
   (check
-      (%bytevector-u8-concatenate-reverse '("ciao" " " "hello" " " "salut") " hola" 3)
-    => "salut hello ciao ho")
+      (%bytevector-u8-concatenate-reverse `(,(S "ciao") ,(S " ") ,(S "hello") ,(S " ") ,(S "salut"))
+					  (S " hola") 3)
+    => (S "salut hello ciao ho"))
 
   (check
-      (%bytevector-u8-concatenate-reverse '() "" 0)
-    => "")
+      (%bytevector-u8-concatenate-reverse '() '#vu8() 0)
+    => '#vu8())
 
-
-  )
+  #f)
 
 
 (parameterise ((check-test-name 'replace))
 
   (check
-      (let* ((str1 "abcd") (beg1 0) (end1 (bytevector-u8-length str1))
-	     (str2 "1234") (beg2 0) (end2 (bytevector-u8-length str2)))
+      (let* ((str1 (S "abcd")) (beg1 0) (end1 (bytevector-length str1))
+	     (str2 (S "1234")) (beg2 0) (end2 (bytevector-length str2)))
 	(%bytevector-u8-replace str1 beg1 end1 str2 beg2 end2))
-    => "1234")
+    => (S "1234"))
 
   (check
-      (let* ((str1 "abcd") (beg1 0) (end1 (bytevector-u8-length str1))
-	     (str2 "1234") (beg2 0) (end2 (bytevector-u8-length str2)))
+      (let* ((str1 (S "abcd")) (beg1 0) (end1 (bytevector-length str1))
+	     (str2 (S "1234")) (beg2 0) (end2 (bytevector-length str2)))
 	(%bytevector-u8-replace str1 2 2 str2 beg2 end2))
-    => "ab1234cd")
+    => (S "ab1234cd"))
 
   (check
-      (let* ((str1 "abcd") (beg1 0) (end1 (bytevector-u8-length str1))
-	     (str2 "") (beg2 0) (end2 (bytevector-u8-length str2)))
+      (let* ((str1 (S "abcd")) (beg1 0) (end1 (bytevector-length str1))
+	     (str2 '#vu8()) (beg2 0) (end2 (bytevector-length str2)))
 	(%bytevector-u8-replace str1 2 2 str2 beg2 end2))
-    => "abcd")
+    => (S "abcd"))
 
   (check
-      (let* ((str1 "abcd") (beg1 0) (end1 (bytevector-u8-length str1))
-	     (str2 "1234") (beg2 0) (end2 (bytevector-u8-length str2)))
+      (let* ((str1 (S "abcd")) (beg1 0) (end1 (bytevector-length str1))
+	     (str2 (S "1234")) (beg2 0) (end2 (bytevector-length str2)))
 	(%bytevector-u8-replace str1 1 3 str2 beg2 end2))
-    => "a1234d")
+    => (S "a1234d"))
 
   (check
-      (let* ((str1 "abcd") (beg1 0) (end1 (bytevector-u8-length str1))
-	     (str2 "1234") (beg2 0) (end2 (bytevector-u8-length str2)))
+      (let* ((str1 (S "abcd")) (beg1 0) (end1 (bytevector-length str1))
+	     (str2 (S "1234")) (beg2 0) (end2 (bytevector-length str2)))
 	(%bytevector-u8-replace str1 0 3 str2 beg2 end2))
-    => "1234d")
+    => (S "1234d"))
 
   (check
-      (let* ((str1 "abcd") (beg1 0) (end1 (bytevector-u8-length str1))
-	     (str2 "1234") (beg2 0) (end2 (bytevector-u8-length str2)))
+      (let* ((str1 (S "abcd")) (beg1 0) (end1 (bytevector-length str1))
+	     (str2 (S "1234")) (beg2 0) (end2 (bytevector-length str2)))
 	(%bytevector-u8-replace str1 1 4 str2 beg2 end2))
-    => "a1234")
+    => (S "a1234"))
 
 
-  )
+  #f)
 
 
 ;;;; done

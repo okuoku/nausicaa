@@ -131,6 +131,7 @@
 
     ;; constructors
     bytevector-u8-concatenate  %bytevector-u8-concatenate-reverse  bytevector-u8-tabulate
+    subbytevector-u8
 
     ;; predicates
     bytevector-u8-null?  %bytevector-u8-every  %bytevector-u8-any
@@ -138,7 +139,8 @@
     ;; mapping
     bytevector-u8-map      bytevector-u8-map!
     bytevector-u8-map*     bytevector-u8-map*!     bytevector-u8-for-each*
-    %subbytevector-u8-map  %subbytevector-u8-map!  %subbytevector-u8-for-each  %subbytevector-u8-for-each-index
+    %subbytevector-u8-map  %subbytevector-u8-map!  %subbytevector-u8-for-each
+    %subbytevector-u8-for-each-index
 
     ;; case hacking
     %bytevector-u8-titlecase*!
@@ -199,45 +201,46 @@
 (define (bytevector-u8s-list-min-length bytevector-u8s)
   (apply min (map bytevector-length bytevector-u8s)))
 
+(define (%total-length-of-bytevectors-list bvs)
+  (let loop ((bvs bvs) (len 0))
+    (if (null? bvs)
+	len
+      (loop (cdr bvs) (+ len (bytevector-length (car bvs)))))))
+
 
 ;;;; constructors
 
-(define (bytevector-u8-concatenate bytevector-u8s)
-  (let* ((total (do ((bytevector-u8s bytevector-u8s (cdr bytevector-u8s))
-		     (i 0 (+ i (bytevector-length (car bytevector-u8s)))))
-		    ((not (pair? bytevector-u8s)) i)))
-	 (result (make-bytevector total)))
-    (let lp ((i 0) (bytevector-u8s bytevector-u8s))
-      (if (pair? bytevector-u8s)
-	  (let* ((s (car bytevector-u8s))
-		 (slen (bytevector-length s)))
-	    (%bytevector-u8-copy*! result i s 0 slen)
-	    (lp (+ i slen) (cdr bytevector-u8s)))))
-    result))
+(define (bytevector-u8-concatenate bvs)
+  (let ((result (make-bytevector (%total-length-of-bytevectors-list bvs))))
+    (let loop ((i 0) (bvs bvs))
+      (if (null? bvs)
+	  result
+	(let* ((s    (car bvs))
+	       (slen (bytevector-length s)))
+	  (%bytevector-u8-copy*! result i s 0 slen)
+	  (loop (+ i slen) (cdr bvs)))))))
 
-(define (%bytevector-u8-concatenate-reverse bytevector-u8-list final past)
-  (let* ((len (let loop ((sum 0) (lis bytevector-u8-list))
-		(if (pair? lis)
-		    (loop (+ sum (bytevector-length (car lis))) (cdr lis))
-		  sum)))
-	 (result (make-bytevector (+ past len))))
-    (%bytevector-u8-copy*! result len final 0 past)
-    (let loop ((i len) (lis bytevector-u8-list))
-      (if (pair? lis)
-	  (let* ((s   (car lis))
-		 (lis (cdr lis))
-		 (slen (bytevector-length s))
-		 (i (- i slen)))
-	    (%bytevector-u8-copy*! result i s 0 slen)
-	    (loop i lis))))
-    result))
+(define (%bytevector-u8-concatenate-reverse bvs tail-bv past)
+  (let* ((result.len	(%total-length-of-bytevectors-list bvs))
+	 (result	(make-bytevector (+ past result.len))))
+    (%bytevector-u8-copy*! result result.len tail-bv 0 past)
+    (let loop ((i   result.len)
+	       (bvs bvs))
+      (if (null? bvs)
+	  result
+	(let* ((s    (car bvs))
+	       (bvs  (cdr bvs))
+	       (slen (bytevector-length s))
+	       (i    (- i slen)))
+	  (%bytevector-u8-copy*! result i s 0 slen)
+	  (loop i bvs))))))
 
 (define (bytevector-u8-tabulate proc len)
   (let ((s (make-bytevector len)))
     (do ((i (- len 1) (- i 1)))
-	((< i 0))
-      (bytevector-u8-set! s i (proc i)))
-    s))
+	((< i 0)
+	 s)
+      (bytevector-u8-set! s i (proc i)))))
 
 
 ;;;; predicates
@@ -248,23 +251,26 @@
 (define (%bytevector-u8-every criterion str start past)
   (and (< start past)
        (cond ((char? criterion)
-	      (let loop ((i start))
-		(or (<= past i)
-		    (and (= criterion (bytevector-u8-ref str i))
-			 (loop (+ 1 i))))))
+	      (let ((criterion (char->integer criterion)))
+		(let loop ((i start))
+		  (or (<= past i)
+		      (and (= criterion (bytevector-u8-ref str i))
+			   (loop (+ 1 i)))))))
 
 	     ((char-set? criterion)
 	      (let loop ((i start))
 		(or (<= past i)
-		    (and (char-set-contains? criterion (bytevector-u8-ref str i))
+		    (and (char-set-contains? criterion (integer->char (bytevector-u8-ref str i)))
 			 (loop (+ 1 i))))))
 
-	     ((procedure? criterion) ; Slightly funky loop so that
-	      (let loop ((i start))  ; final (PRED S[PAST-1]) call
-		(let ((c (bytevector-u8-ref str i)) ; is a tail call.
+	     ((procedure? criterion)
+	      ;;Slightly funky loop so  that final (PRED S[PAST-1]) call
+	      ;;is a tail call.
+	      (let loop ((i start))
+		(let ((c  (bytevector-u8-ref str i))
 		      (i1 (+ i 1)))
 		  (if (= i1 past)
-		      (criterion c) ; This has to be a tail call.
+		      (criterion c) ;this has to be a tail call
 		    (and (criterion c) (loop i1))))))
 
 	     (else
