@@ -21023,6 +21023,38 @@ instantiation of a class.  Only classes can have virtual methods, labels
 cannot.
 @end deffn
 
+@c ------------------------------------------------------------
+
+@subsubheading Method overloading
+
+There is no support for methods overloading in the @library{classes}
+library, but we can do it using the facilities of the @library{generics}
+library.  Example:
+
+@example
+(import (nausicaa) (generics))
+
+(define-class <alpha>
+  (fields a)
+  (methods doit))
+
+(define-generic <alpha>-doit)
+
+(define-method (<alpha>-doit (o <alpha>) (v <char>))
+  (cons 'char v))
+
+(define-method (<alpha>-doit (o <alpha>) (v <integer>))
+  (cons 'int  v))
+
+(let (((o <alpha>) (make <alpha> 1)))
+
+  (o.doit #\a) @result{} (char . #\a)
+
+  (o.doit 2)   @result{} (int . 2)
+
+  )
+@end example
+
 @c page
 @node classes define setter
 @subsection Defining classes having custom setters and getters
