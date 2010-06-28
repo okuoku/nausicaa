@@ -101,7 +101,7 @@
     (for (gensym)		expand)
     (for (classes helpers)	expand)
     (makers)
-    (classes auxiliary-syntaxes)
+    (auxiliary-syntaxes)
     (classes top))
 
 

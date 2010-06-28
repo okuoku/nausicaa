@@ -64,7 +64,7 @@
     (gensym)
     (syntax-utilities)
     (for (classes top) (meta -1))
-    (for (classes auxiliary-syntaxes) (meta -1)))
+    (for (auxiliary-syntaxes) (meta -1)))
 
 
 (define (%variable-name->Setter-name variable-name/stx)

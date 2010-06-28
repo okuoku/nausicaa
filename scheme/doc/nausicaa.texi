@@ -20338,6 +20338,10 @@ The library is designed to work with class type definitions imported for
 the @code{run} phase.  The facilities of the library work only on
 records of type defined with @func{define-class}.
 
+@library{classes} makes use of bindings from the
+@library{auxiliary-syntaxes} library and reexports the ones it uses as
+auxiliary syntaxes in the class definition clauses.
+
 @menu
 * classes define::              Defining new class types.
 * classes make::                Record makers.

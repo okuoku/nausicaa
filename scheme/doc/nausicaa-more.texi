@@ -6805,8 +6805,10 @@ table:
 
 
 String views are syntactic sugar to allow substring specification with
-minimum overhead.  Many low level string functions act on substrings
-specified with triplets of arguments:
+minimum overhead; views make use of auxiliary syntaxes exported by the
+@library{auxiliary-syntaxes} library and reexported by the
+@library{strings} library.  Many low level string functions act on
+substrings specified with triplets of arguments:
 
 @itemize
 @item
@@ -6927,7 +6929,7 @@ Guaranteed to return a freshly allocated string.
 @deffnx Macro string-concatenate-reverse @var{string-list} @var{final-string} @var{nchars}
 Reverse @var{string-list} then concatenate the elements, which must be
 strings.  The first @var{nchars} code points in @var{final-string} are
-consed onto the beginning of @var{string-list} before performing the the
+consed onto the beginning of @var{string-list} before performing the
 reversal and concatenation operations.
 
 @var{final-string} defaults to the empty string and @var{nchars}
@@ -6968,13 +6970,13 @@ Check to see if the given criteria is true on every/any character in
 If the selected substring is empty, the return value is @false{}.
 
 If @var{char/char-set/pred} is a character, it is tested for equality
-with the elements of @var{s}.
+with the elements of @var{S}.
 
-If @var{char/char-set/pred} is a character set, the elements of @var{s}
+If @var{char/char-set/pred} is a character set, the elements of @var{S}
 are tested for membership in the set.
 
 If @var{char/char-set/pred} is a predicate procedure, it is applied to
-the elements of @var{s}.  The predicate is ``witness--generating'':
+the elements of @var{S}.  The predicate is ``witness--generating'':
 
 @itemize
 @item
@@ -7017,7 +7019,7 @@ boolean (@true{} or @false{}), but a general value.
 @deffn Function %string-compare @vari{str} @vari{beg} @vari{past} @varii{str} @varii{beg} @varii{past} @var{proc<} @var{proc=} @var{proc>}
 @deffnx Function %string-compare-ci @vari{str} @vari{beg} @vari{past} @varii{str} @varii{beg} @varii{past} @var{proc<} @var{proc=} @var{proc>}
 @deffnx Macro string-compare @var{S1} @var{S2} @var{proc<} @var{proc=} @var{proc>}
-@deffnx Marco string-compare-ci @var{S1} @var{S2} @var{proc<} @var{proc=} @var{proc>}
+@deffnx Macro string-compare-ci @var{S1} @var{S2} @var{proc<} @var{proc=} @var{proc>}
 Determine the @dfn{mismatch index} between the two substrings: the
 largest index @math{i} such that for every @math{0 <= j < i},
 @math{str1[j] = str2[j]}; that is, @math{i} is the first position that
@@ -7055,7 +7057,7 @@ Examples:
 @deffnx Macro string= @var{S1} @var{S2}
 @deffnx Macro string-ci= @var{S1} @var{S2}
 Compare two substrings: Return true if they are equal according to
-@func{char=?}, @false{} otherwise.
+@func{char=?} or @func{char-ci=?}, @false{} otherwise.
 @end deffn
 
 
@@ -7064,7 +7066,7 @@ Compare two substrings: Return true if they are equal according to
 @deffnx Macro string<> @var{S1} @var{S1}
 @deffnx Macro string-ci<> @var{S1} @var{S2}
 Compare two substrings: Return @false{} if they are equal according to
-@func{char=?}, true otherwise.
+@func{char=?} or @func{char-ci=?}, true otherwise.
 @end deffn
 
 
@@ -8623,8 +8625,10 @@ non--terminal subform of a begin expression.
 
 
 Vector views are syntactic sugar to allow subvector specification with
-minimum overhead.  Many low level vector functions act on subvectors
-specified with triplets of arguments:
+minimum overhead; views make use of auxiliary syntaxes exported by the
+@library{auxiliary-syntaxes} library and reexported by the
+@library{vectors} library.  Many low level vector functions act on
+subvectors specified with triplets of arguments:
 
 @itemize
 @item
@@ -10096,7 +10100,7 @@ An @var{i} or @var{k} argument is an exact non--negative integer
 specifying an index into a bytevector.
 
 @item
-The @var{len} and @var{nchars} arguments are exact non--negative
+The @var{len} and @var{nbytes} arguments are exact non--negative
 integers specifying a length of a bytevector or some number of bytes.
 
 @item
@@ -10156,8 +10160,10 @@ characters in the range allowed by @ascii{} encoding.
 
 
 Bytevector views are syntactic sugar to allow subvector specification
-with minimum overhead.  Many low level bytevector functions act on
-subvectors specified with triplets of arguments:
+with minimum overhead; views make use of auxiliary syntaxes exported by
+the @library{auxiliary-syntaxes} library and reexported by the
+@library{bytevectors u8} library.  Many low level bytevector functions
+act on subvectors specified with triplets of arguments:
 
 @itemize
 @item
@@ -10266,34 +10272,34 @@ obvious.
 @subsection Constructors
 
 
-@defun string-concatenate @var{string-list}
-Append the elements of @var{string-list} together into a single string.
-Guaranteed to return a freshly allocated string.
+@defun bytevector-u8-concatenate @var{bvs-list}
+Append the elements of @var{bvs-list} together into a single bytevector.
+Guaranteed to return a freshly allocated bytevector.
 @end defun
 
 
-@deffn Function %string-concatenate-reverse @var{string-list} @var{final-string} @var{nchars}
-@deffnx Macro string-concatenate-reverse @var{string-list}
-@deffnx Macro string-concatenate-reverse @var{string-list} @var{final-string}
-@deffnx Macro string-concatenate-reverse @var{string-list} @var{final-string} @var{nchars}
-Reverse @var{string-list} then concatenate the elements, which must be
-strings.  The first @var{nchars} code points in @var{final-string} are
-consed onto the beginning of @var{string-list} before performing the the
-reversal and concatenation operations.
+@deffn Function %bytevector-u8-concatenate-reverse @var{bvs-list} @var{final-bv} @var{nbytes}
+@deffnx Macro bytevector-u8-concatenate-reverse @var{bvs-list}
+@deffnx Macro bytevector-u8-concatenate-reverse @var{bvs-list} @var{final-bv}
+@deffnx Macro bytevector-u8-concatenate-reverse @var{bvs-list} @var{final-bv} @var{nbytes}
+Reverse @var{bvs-list} then concatenate the elements, which must be
+bytevectors.  The first @var{nbytes} bytes in @var{final-bv} are consed
+onto the beginning of @var{bvs-list} before performing the reversal and
+concatenation operations.
 
-@var{final-string} defaults to the empty string and @var{nchars}
-defaults to the length of @var{final-string}.
+@var{final-bv} defaults to the empty bytevector and @var{nbytes}
+defaults to the length of @var{final-bv}.
 
 This procedure is useful in the construction of procedures that
-accumulate character data into lists of string buffers, and wish to
-convert the accumulated data into a single string when done.
+accumulate byte data into lists of byte buffers, and wish to convert the
+accumulated data into a single bytevector when done.
 @end deffn
 
 
-@defun string-tabulate @var{integer->char} @var{len}
-Construct a string of size @var{len} by applying @var{integer->char} to
-each index in the range @math{[0, @var{len})} to produce the
-corresponding string element.  The order in which @var{integer->char} is
+@defun bytevector-u8-tabulate @var{integer->byte} @var{len}
+Construct a bytevector of size @var{len} by applying @var{integer->byte}
+to each index in the range @math{[0, @var{len})} to produce the
+corresponding byte element.  The order in which @var{integer->byte} is
 applied to the indices is not specified.
 @end defun
 
@@ -10302,44 +10308,47 @@ applied to the indices is not specified.
 @subsection Predicates
 
 
-@defun string-null? @var{obj}
-Return @true{} if @var{obj} is the empty string, otherwise return
+@defun bytevector-u8-null? @var{obj}
+Return @true{} if @var{obj} is the empty bytevector, otherwise return
 @false{}.
 @end defun
 
 
-@deffn Function %string-every @var{char/char-set/pred} @var{str} @var{start} @var{past}
-@deffnx Function %string-any @var{char/char-set/pred} @var{str} @var{start} @var{past}
-@deffnx Macro string-every @var{char/char-set/pred} @var{S}
-@deffnx Macro string-any @var{char/char-set/pred} @var{S}
-Check to see if the given criteria is true on every/any character in
-@var{str}, proceeding from left (index @var{start}) to right (index
+@deffn Function %bytevector-u8-every @var{byte/char/char-set/pred} @var{bv} @var{start} @var{past}
+@deffnx Function %bytevector-u8-any @var{byte/char/char-set/pred} @var{bv} @var{start} @var{past}
+@deffnx Macro bytevector-u8-every @var{byte/char/char-set/pred} @var{B}
+@deffnx Macro bytevector-u8-any @var{byte/char/char-set/pred} @var{B}
+Check to see if the given criteria is true on every/any byte in
+@var{bv}, proceeding from left (index @var{start}) to right (index
 @var{past}).
 
-If the selected substring is empty, the return value is @false{}.
+If the selected subvector is empty: the return value is @false{}.
 
-If @var{char/char-set/pred} is a character, it is tested for equality
-with the elements of @var{s}.
+If @var{byte/char/char-set/pred} is a byte, it is tested for equality
+with the elements of @var{B}.
 
-If @var{char/char-set/pred} is a character set, the elements of @var{s}
-are tested for membership in the set.
+If @var{byte/char/char-set/pred} is a character, it is tested for
+equality with the elements of @var{B}.
 
-If @var{char/char-set/pred} is a predicate procedure, it is applied to
-the elements of @var{s}.  The predicate is ``witness--generating'':
+If @var{byte/char/char-set/pred} is a character set, the elements of
+@var{B} are tested for membership in the set.
+
+If @var{byte/char/char-set/pred} is a predicate procedure, it is applied
+to the elements of @var{B}.  The predicate is ``witness--generating'':
 
 @itemize
 @item
-If @func{string-any} returns true, the returned true value is the one
-produced by the application of the predicate.
+If @func{bytevector-u8-any} returns true, the returned true value is the
+one produced by the application of the predicate.
 
 @item
-If @func{string-every} returns true, the returned true value is the one
-produced by the application of the predicate to the last code point in
-the substring.
+If @func{bytevector-u8-every} returns true, the returned true value is
+the one produced by the application of the predicate to the last byte in
+the subvector.
 @end itemize
 
 If the predicate is applied to the final element of the selected
-substring, that final application is a tail call.
+subvector, that final application is a tail call.
 
 The names of these procedures do not end with a question mark; this is
 to indicate that, in the predicate case, they do not return a simple
@@ -10352,12 +10361,12 @@ boolean (@true{} or @false{}), but a general value.
 
 
 @menu
-* bytevectors u8 compar lexi::         Lexicographic comparison.
-* bytevectors u8 compar dict::         String dictionary comparison.
-* bytevectors u8 compar number::       String and numeric parts lexicographic
-                                comparison.
-* bytevectors u8 compar dictnumber::   String and numeric parts dictionary
-                                comparison.
+* bytevectors u8 compar lexi::       Lexicographic comparison.
+* bytevectors u8 compar dict::       String dictionary comparison.
+* bytevectors u8 compar number::     String and numeric parts
+                                     lexicographic comparison.
+* bytevectors u8 compar dictnumber:: String and numeric parts
+                                     dictionary comparison.
 @end menu
 
 @c page
@@ -10365,26 +10374,27 @@ boolean (@true{} or @false{}), but a general value.
 @subsubsection Lexicographic comparison
 
 
-@deffn Function %string-compare @vari{str} @vari{beg} @vari{past} @varii{str} @varii{beg} @varii{past} @var{proc<} @var{proc=} @var{proc>}
-@deffnx Function %string-compare-ci @vari{str} @vari{beg} @vari{past} @varii{str} @varii{beg} @varii{past} @var{proc<} @var{proc=} @var{proc>}
-@deffnx Macro string-compare @var{S1} @var{S2} @var{proc<} @var{proc=} @var{proc>}
-@deffnx Marco string-compare-ci @var{S1} @var{S2} @var{proc<} @var{proc=} @var{proc>}
-Determine the @dfn{mismatch index} between the two substrings: the
+@deffn Function %bytevector-u8-compare @vari{bv} @vari{beg} @vari{past} @varii{bv} @varii{beg} @varii{past} @var{proc<} @var{proc=} @var{proc>}
+@deffnx Function %bytevector-u8-compare-ci @vari{bv} @vari{beg} @vari{past} @varii{bv} @varii{beg} @varii{past} @var{proc<} @var{proc=} @var{proc>}
+@deffnx Macro bytevector-u8-compare @vari{B} @varii{B} @var{proc<} @var{proc=} @var{proc>}
+@deffnx Macro bytevector-u8-compare-ci @vari{B} @varii{B} @var{proc<} @var{proc=} @var{proc>}
+Determine the @dfn{mismatch index} between the two subvectorss: the
 largest index @math{i} such that for every @math{0 <= j < i},
-@math{str1[j] = str2[j]}; that is, @math{i} is the first position that
+@math{bv1[j] = bv2[j]}; that is, @math{i} is the first position that
 does not match.
 
-The mismatch index is always an index into @vari{str}; in the case of
-equal strings, it is always @vari{past}; the functions observe the
+The mismatch index is always an index into @vari{bv}; in the case of
+equal bytevectorss, it is always @vari{past}; the functions observe the
 protocol in this redundant case for uniformity.
 
-The characters at the mismatch index are compared using @func{char<?}
-or @func{char-ci<?}.  @var{proc<}, @var{proc=}, or @var{proc>} are
-applied to the mismatch index (not character), depending upon whether
-the substring of @vari{str} is less than, equal to, or greater than the
-substring of @varii{str}.  The result of the application is returned.
+The bytes at the mismatch index are compared using @func{=} or
+@func{char-ci<?} after conversion to char with @func{integer->char}.
+@var{proc<}, @var{proc=}, or @var{proc>} are applied to the mismatch
+index (not byte), depending upon whether the subvector of @vari{bv} is
+less than, equal to, or greater than the subvector of @varii{bv}.  The
+result of the application is returned.
 
-If we just want to have the mismatch index as return value: We can use
+If we just want to have the mismatch index as return value: we can use
 @func{values} as value for @var{proc<}, @var{proc=} and @var{proc>}.
 Another interesting option is to use @code{(lambda (mismatch-index) #f)}
 or @code{(lambda (mismatch-index) #t)}.
@@ -10392,203 +10402,225 @@ or @code{(lambda (mismatch-index) #t)}.
 Examples:
 
 @example
-(string-compare "abcd" "abcd" values values values)
+(define S string->utf8)
+
+(bytevector-u8-compare (S "abcd") (S "abcd")
+                       values values values)
 @result{} 4
 
-(string-compare "abcd" "abcd12" values values values)
+(bytevector-u8-compare (S "abcd") (S "abcd12")
+                       values values values)
 @result{} 4
 @end example
 @end deffn
 
 
-@deffn Function %string= @vari{str} @vari{beg} @vari{past} @varii{str} @varii{beg} @varii{past}
-@deffnx Function %string-ci= @vari{str} @vari{beg} @vari{past} @varii{str} @varii{beg} @varii{past}
-@deffnx Macro string= @var{S1} @var{S2}
-@deffnx Macro string-ci= @var{S1} @var{S2}
-Compare two substrings: Return true if they are equal according to
-@func{char=?}, @false{} otherwise.
+@deffn Function %bytevector-u8= @vari{bv} @vari{beg} @vari{past} @varii{bv} @varii{beg} @varii{past}
+@deffnx Function %bytevector-u8-ci= @vari{bv} @vari{beg} @vari{past} @varii{bv} @varii{beg} @varii{past}
+@deffnx Macro bytevector-u8= @vari{B} @varii{B}
+@deffnx Macro bytevector-u8-ci= @vari{B} @varii{B}
+Compare two subvectors: return true if they are equal according to
+@func{=} or @func{char-ci=?} after @func{integer->char}, @false{}
+otherwise.
 @end deffn
 
 
-@deffn Function %string<> @vari{str} @vari{beg} @vari{past} @varii{str} @varii{beg} @varii{past}
-@deffnx Function %string-ci<> @vari{str} @vari{beg} @vari{past} @varii{str} @varii{beg} @varii{past}
-@deffnx Macro string<> @var{S1} @var{S1}
-@deffnx Macro string-ci<> @var{S1} @var{S2}
-Compare two substrings: Return @false{} if they are equal according to
-@func{char=?}, true otherwise.
+@deffn Function %bytevector-u8<> @vari{bv} @vari{beg} @vari{past} @varii{bv} @varii{beg} @varii{past}
+@deffnx Function %bytevector-u8-ci<> @vari{bv} @vari{beg} @vari{past} @varii{bv} @varii{beg} @varii{past}
+@deffnx Macro bytevector-u8<> @vari{B} @vari{B}
+@deffnx Macro bytevector-u8-ci<> @vari{B} @varii{B}
+Compare two subvectors: return @false{} if they are equal according to
+@func{=} or @func{char-ci=?} after @func{integer->char}, true otherwise.
 @end deffn
 
 
 The following predicates are the lexicographic extensions of the
-corresponding character predicates.  A string @vari{str} is
-``lexicographically'' less than @varii{str} if @vari{str} would come
-first in a dictionary.
+corresponding integer and character predicates.  A bytevector @vari{bv}
+is ``lexicographically'' less than @varii{bv} if, after conversion to
+strings in @ascii{} encoding, @vari{bv} would come first in a
+dictionary.
 
 
-@deffn Function %string< @vari{str} @vari{beg} @vari{past} @varii{str} @varii{beg} @varii{past}
-@deffnx Function %string-ci< @vari{str} @vari{beg} @vari{past} @varii{str} @varii{beg} @varii{past}
-@deffnx Macro string< @var{S1} @var{S2}
-@deffnx Macro string-ci< @var{S1} @var{S2}
-Compare two substrings: Return true if the first is lexicographically
-less than the second, @false{} otherwise.  If @varii{str} is longer than
-@vari{str} but the substrings are equal up to the end of @vari{str}:
+@deffn Function %bytevector-u8< @vari{bv} @vari{beg} @vari{past} @varii{bv} @varii{beg} @varii{past}
+@deffnx Function %bytevector-u8-ci< @vari{bv} @vari{beg} @vari{past} @varii{bv} @varii{beg} @varii{past}
+@deffnx Macro bytevector-u8< @vari{B} @varii{B}
+@deffnx Macro bytevector-u8-ci< @vari{B} @varii{B}
+Compare two subvectors: return true if the first is lexicographically
+less than the second, @false{} otherwise.  If @varii{bv} is longer than
+@vari{bv} but the subvectors are equal up to the end of @vari{bv}:
 Return @true{}.
 
 @example
-(string< "abcd" "abcd") @result{} #f
-(string< "abc"  "abcd") @result{} #t
-(string< "abcd" "abc") @result{} #f
-(string< "ABcd" "abcd") @result{} #t
-(string< "abcd" "a2cd") @result{} #f
+(define S string->utf8)
 
-(string-ci< "abcd" "abcd") @result{} #f
-(string-ci< "abc"  "abcd") @result{} #t
-(string-ci< "abcd" "abc") @result{} #f
-(string-ci< "ABcd" "abcd") @result{} #f
-(string-ci< "abcd" "a2cd") @result{} #f
+(bytevector-u8< (S "abcd") (S "abcd")) @result{} #f
+(bytevector-u8< (S "abc")  (S "abcd")) @result{} #t
+(bytevector-u8< (S "abcd") (S "abc"))  @result{} #f
+(bytevector-u8< (S "ABcd") (S "abcd")) @result{} #t
+(bytevector-u8< (S "abcd") (S "a2cd")) @result{} #f
+
+(bytevector-u8-ci< (S "abcd") (S "abcd")) @result{} #f
+(bytevector-u8-ci< (S "abc")  (S "abcd")) @result{} #t
+(bytevector-u8-ci< (S "abcd") (S "abc"))  @result{} #f
+(bytevector-u8-ci< (S "ABcd") (S "abcd")) @result{} #f
+(bytevector-u8-ci< (S "abcd") (S "a2cd")) @result{} #f
 @end example
 @end deffn
 
 
-@deffn Function %string<= @vari{str} @vari{beg} @vari{past} @varii{str} @varii{beg} @varii{past}
-@deffnx Function %string-ci<= @vari{str} @vari{beg} @vari{past} @varii{str} @varii{beg} @varii{past}
-@deffnx Macro string<= @var{S1} @var{S2}
-@deffnx Macro string-ci<= @var{S1} @var{S2}
-Compare two substrings: Return true if the first is lexicographically
-less than, or equal to, the second; @false{} otherwise.  If @varii{str}
-is longer than @vari{str} but the substrings are equal up to the end of
-@vari{str}: Return @true{}.
+@deffn Function %bytevector-u8<= @vari{bv} @vari{beg} @vari{past} @varii{bv} @varii{beg} @varii{past}
+@deffnx Function %bytevector-u8-ci<= @vari{bv} @vari{beg} @vari{past} @varii{bv} @varii{beg} @varii{past}
+@deffnx Macro bytevector-u8<= @vari{B} @varii{B}
+@deffnx Macro bytevector-u8-ci<= @vari{B} @varii{B}
+Compare two subvectors: return true if the first is lexicographically
+less than, or equal to, the second; @false{} otherwise.  If @varii{bv}
+is longer than @vari{bv} but the subvectors are equal up to the end of
+@vari{bv}: return @true{}.
 
 @example
-(string<= "abcd" "abcd") @result{} #t
-(string<= "abc"  "abcd") @result{} #t
-(string<= "abcd" "abc") @result{} #f
-(string<= "ABcd" "abcd") @result{} #t
-(string<= "abcd" "a2cd") @result{} #f
+(define S string->utf8)
 
-(string-ci<= "abcd" "abcd") @result{} #t
-(string-ci<= "abc"  "abcd") @result{} #t
-(string-ci<= "abcd" "abc") @result{} #f
-(string-ci<= "ABcd" "abcd") @result{} #t
-(string-ci<= "abcd" "a2cd") @result{} #f
+(bytevector-u8<= (S "abcd") (S "abcd")) @result{} #t
+(bytevector-u8<= (S "abc")  (S "abcd")) @result{} #t
+(bytevector-u8<= (S "abcd") (S "abc"))  @result{} #f
+(bytevector-u8<= (S "ABcd") (S "abcd")) @result{} #t
+(bytevector-u8<= (S "abcd") (S "a2cd")) @result{} #f
+
+(bytevector-u8-ci<= (S "abcd") (S "abcd")) @result{} #t
+(bytevector-u8-ci<= (S "abc")  (S "abcd")) @result{} #t
+(bytevector-u8-ci<= (S "abcd") (S "abc"))  @result{} #f
+(bytevector-u8-ci<= (S "ABcd") (S "abcd")) @result{} #t
+(bytevector-u8-ci<= (S "abcd") (S "a2cd")) @result{} #f
 @end example
 @end deffn
 
 
-@deffn Function %string> @vari{str} @vari{beg} @vari{past} @varii{str} @varii{beg} @varii{past}
-@deffnx Function %string-ci> @vari{str} @vari{beg} @vari{past} @varii{str} @varii{beg} @varii{past}
-@deffnx Macro string> @var{S1} @var{S2}
-@deffnx Macro string-ci> @var{S1} @var{S2}
-Compare two substrings: Return true if the first is lexicographically
-greater than the second, @false{} otherwise.  If @vari{str} is longer
-than @varii{str} but the substrings are equal up to the end of
-@varii{str}: Return @true{}.
+@deffn Function %bytevector-u8> @vari{bv} @vari{beg} @vari{past} @varii{bv} @varii{beg} @varii{past}
+@deffnx Function %bytevector-u8-ci> @vari{bv} @vari{beg} @vari{past} @varii{bv} @varii{beg} @varii{past}
+@deffnx Macro bytevector-u8> @vari{B} @varii{B}
+@deffnx Macro bytevector-u8-ci> @vari{B} @varii{B}
+Compare two subvectors: return true if the first is lexicographically
+greater than the second, @false{} otherwise.  If @vari{bv} is longer
+than @varii{bv} but the subvectors are equal up to the end of
+@varii{bv}: return @true{}.
 
 @example
-(string> "abcd" "abcd") @result{} #f
-(string> "abcd" "abc") @result{} #t
-(string> "abc"  "abcd") @result{} #f
-(string> "abcd" "ABcd") @result{} #t
-(string> "a2cd" "abcd") @result{} #f
+(define S string->utf8)
 
-(string-ci> "abcd" "abcd") @result{} #f
-(string-ci> "abcd" "abc") @result{} #t
-(string-ci> "abc"  "abcd") @result{} #f
-(string-ci> "abcd" "ABcd") @result{} #f
-(string-ci> "a2cd" "abcd") @result{} #f
+(bytevector-u8> (S "abcd") (S "abcd")) @result{} #f
+(bytevector-u8> (S "abcd") (S "abc"))  @result{} #t
+(bytevector-u8> (S "abc")  (S "abcd")) @result{} #f
+(bytevector-u8> (S "abcd") (S "ABcd")) @result{} #t
+(bytevector-u8> (S "a2cd") (S "abcd")) @result{} #f
+
+(bytevector-u8-ci> (S "abcd") (S "abcd")) @result{} #f
+(bytevector-u8-ci> (S "abcd") (S "abc"))  @result{} #t
+(bytevector-u8-ci> (S "abc")  (S "abcd")) @result{} #f
+(bytevector-u8-ci> (S "abcd") (S "ABcd")) @result{} #f
+(bytevector-u8-ci> (S "a2cd") (S "abcd")) @result{} #f
 @end example
 @end deffn
 
 
-@deffn Function %string>= @vari{str} @vari{beg} @vari{past} @varii{str} @varii{beg} @varii{past}
-@deffnx Function %string-ci>= @vari{str} @vari{beg} @vari{past} @varii{str} @varii{beg} @varii{past}
-@deffnx Macro string>= @var{S1} @var{S2}
-@deffnx Macro string-ci>= @var{S1} @var{S2}
-Compare two substrings: Return true if the first is lexicographically
+@deffn Function %bytevector-u8>= @vari{bv} @vari{beg} @vari{past} @varii{bv} @varii{beg} @varii{past}
+@deffnx Function %bytevector-u8-ci>= @vari{bv} @vari{beg} @vari{past} @varii{bv} @varii{beg} @varii{past}
+@deffnx Macro bytevector-u8>= @vari{B} @varii{B}
+@deffnx Macro bytevector-u8-ci>= @vari{B} @varii{B}
+Compare two subvectors: return true if the first is lexicographically
 greater than, or equal to, the second; @false{} otherwise.  If
-@vari{str} is longer than @varii{str} but the substrings are equal up to
-the end of @varii{str}: Return @true{}.
+@vari{bv} is longer than @varii{bv} but the subvectors are equal up to
+the end of @varii{bv}: return @true{}.
 
 @example
-(string>= "abcd" "abcd") @result{} #t
-(string>= "abcd" "abc") @result{} #t
-(string>= "abc" "abcd") @result{} #f
-(string>= "abcd" "ABcd") @result{} #t
-(string>= "a2cd" "abcd") @result{} #f
+(define S string->utf8)
 
-(string-ci>= "abcd" "abcd") @result{} #t
-(string-ci>= "abcd" "abc") @result{} #t
-(string-ci>= "abc"  "abcd") @result{} #f
-(string-ci>= "abcd" "ABcd") @result{} #t
-(string-ci>= "a2cd" "abcd") @result{} #f
+(bytevector-u8>= (S "abcd") (S "abcd")) @result{} #t
+(bytevector-u8>= (S "abcd") (S "abc"))  @result{} #t
+(bytevector-u8>= (S "abc")  (S "abcd")) @result{} #f
+(bytevector-u8>= (S "abcd") (S "ABcd")) @result{} #t
+(bytevector-u8>= (S "a2cd") (S "abcd")) @result{} #f
+
+(bytevector-u8-ci>= (S "abcd") (S "abcd")) @result{} #t
+(bytevector-u8-ci>= (S "abcd") (S "abc"))  @result{} #t
+(bytevector-u8-ci>= (S "abc")  (S "abcd")) @result{} #f
+(bytevector-u8-ci>= (S "abcd") (S "ABcd")) @result{} #t
+(bytevector-u8-ci>= (S "a2cd") (S "abcd")) @result{} #f
 @end example
 @end deffn
 
 @c page
 @node bytevectors u8 compar dict
-@subsubsection String dictionary comparison
+@subsubsection Bytevector dictionary comparison
 
 
-Dictionary comparison is like lexicographic string comparison, but white
-space characters in the string arguments are ignored; for example, the
-string @samp{foo 4bar\t3za\nb10} is equivalent to @samp{foo4bar3zab10}.
-Recognised white spaces are:
+Dictionary comparison is like lexicographic bytevector comparison, but
+bytes representing white space characters in @ascii{} encoding are
+ignored.  Recognised white spaces are:
 
 @example
 #\space         #\tab           #\vtab
 #\linefeed      #\return        #\page
 @end example
 
+@noindent
+that is bytes with value:
 
-@defun string-dictionary-compare @vari{str} @varii{str}
-@defunx %string-dictionary-compare @vari{str} @varii{str}
-Compare the string arguments and return a ternary result: @samp{-1} if
-@vari{str} is less than @varii{str}, @samp{0} if @vari{str} is equal to
-@varii{str}, @samp{+1} if @vari{str} is greater than @varii{str}.  The
-comparison is case sensitive.
+@example
+32              9               11
+10              13              12
+@end example
+
+
+@defun bytevector-u8-dictionary-compare @vari{bv} @varii{bv}
+@defunx %bytevector-u8-dictionary-compare @vari{bv} @varii{bv}
+Compare the bytevector arguments and return a ternary result: @samp{-1}
+if @vari{bv} is less than @varii{bv}, @samp{0} if @vari{bv} is equal to
+@varii{bv}, @samp{+1} if @vari{bv} is greater than @varii{bv}.  The
+comparison is case sensitive: bytes are compared with @func{=}.
 @end defun
 
 
-@defun string-dictionary=? @vari{str} @varii{str}
-@defunx string-dictionary<>? @vari{str} @varii{str}
-@defunx string-dictionary<? @vari{str} @varii{str}
-@defunx string-dictionary<=? @vari{str} @varii{str}
-@defunx string-dictionary>? @vari{str} @varii{str}
-@defunx string-dictionary>=? @vari{str} @varii{str}
-@defunx %string-dictionary=? @vari{str} @varii{str}
-@defunx %string-dictionary<>? @vari{str} @varii{str}
-@defunx %string-dictionary<? @vari{str} @varii{str}
-@defunx %string-dictionary<=? @vari{str} @varii{str}
-@defunx %string-dictionary>? @vari{str} @varii{str}
-@defunx %string-dictionary>=? @vari{str} @varii{str}
-Return @true{} or @false{}, whether the string-dictionary arguments comply with the
-predicate.
+@defun bytevector-u8-dictionary=? @vari{bv} @varii{bv}
+@defunx bytevector-u8-dictionary<>? @vari{bv} @varii{bv}
+@defunx bytevector-u8-dictionary<? @vari{bv} @varii{bv}
+@defunx bytevector-u8-dictionary<=? @vari{bv} @varii{bv}
+@defunx bytevector-u8-dictionary>? @vari{bv} @varii{bv}
+@defunx bytevector-u8-dictionary>=? @vari{bv} @varii{bv}
+@defunx %bytevector-u8-dictionary=? @vari{bv} @varii{bv}
+@defunx %bytevector-u8-dictionary<>? @vari{bv} @varii{bv}
+@defunx %bytevector-u8-dictionary<? @vari{bv} @varii{bv}
+@defunx %bytevector-u8-dictionary<=? @vari{bv} @varii{bv}
+@defunx %bytevector-u8-dictionary>? @vari{bv} @varii{bv}
+@defunx %bytevector-u8-dictionary>=? @vari{bv} @varii{bv}
+Return @true{} or @false{}, whether the bytevector-u8-dictionary
+arguments comply with the predicate.
 @end defun
 
 
-@defun string-dictionary-compare-ci @vari{str} @varii{str}
-@defunx %string-dictionary-compare-ci @vari{str} @varii{str}
-Compare the string arguments and return a ternary result: @samp{-1} if
-@vari{str} is less than @varii{str}, @samp{0} if @vari{str} is equal to
-@varii{str}, @samp{+1} if @vari{str} is greater than @varii{str}.  The
-comparison is case insensitive.
+@defun bytevector-u8-dictionary-compare-ci @vari{bv} @varii{bv}
+@defunx %bytevector-u8-dictionary-compare-ci @vari{bv} @varii{bv}
+Compare the bytevector arguments and return a ternary result: @samp{-1}
+if @vari{bv} is less than @varii{bv}, @samp{0} if @vari{bv} is equal to
+@varii{bv}, @samp{+1} if @vari{bv} is greater than @varii{bv}.  The
+comparison is case insensitive: bytes are compared with @func{char-ci=?}
+after conversion to characters with @func{integer->char}.
 @end defun
 
 
-@defun string-dictionary-ci=? @vari{str} @varii{str}
-@defunx string-dictionary-ci<>? @vari{str} @varii{str}
-@defunx string-dictionary-ci<? @vari{str} @varii{str}
-@defunx string-dictionary-ci>? @vari{str} @varii{str}
-@defunx string-dictionary-ci<=? @vari{str} @varii{str}
-@defunx string-dictionary-ci>=? @vari{str} @varii{str}
-@defunx %string-dictionary-ci=? @vari{str} @varii{str}
-@defunx %string-dictionary-ci<>? @vari{str} @varii{str}
-@defunx %string-dictionary-ci<? @vari{str} @varii{str}
-@defunx %string-dictionary-ci>? @vari{str} @varii{str}
-@defunx %string-dictionary-ci<=? @vari{str} @varii{str}
-@defunx %string-dictionary-ci>=? @vari{str} @varii{str}
-Return @true{} or @false{}, whether the string arguments comply with the
-predicate.  The comparison is case insensitive.
+@defun bytevector-u8-dictionary-ci=? @vari{bv} @varii{bv}
+@defunx bytevector-u8-dictionary-ci<>? @vari{bv} @varii{bv}
+@defunx bytevector-u8-dictionary-ci<? @vari{bv} @varii{bv}
+@defunx bytevector-u8-dictionary-ci>? @vari{bv} @varii{bv}
+@defunx bytevector-u8-dictionary-ci<=? @vari{bv} @varii{bv}
+@defunx bytevector-u8-dictionary-ci>=? @vari{bv} @varii{bv}
+@defunx %bytevector-u8-dictionary-ci=? @vari{bv} @varii{bv}
+@defunx %bytevector-u8-dictionary-ci<>? @vari{bv} @varii{bv}
+@defunx %bytevector-u8-dictionary-ci<? @vari{bv} @varii{bv}
+@defunx %bytevector-u8-dictionary-ci>? @vari{bv} @varii{bv}
+@defunx %bytevector-u8-dictionary-ci<=? @vari{bv} @varii{bv}
+@defunx %bytevector-u8-dictionary-ci>=? @vari{bv} @varii{bv}
+Return @true{} or @false{}, whether the bytevector arguments comply with
+the predicate.  The comparison is case insensitive.
 @end defun
 
 @c page
@@ -10596,90 +10628,100 @@ predicate.  The comparison is case insensitive.
 @subsubsection String and numeric parts lexicographic comparison
 
 
-String/numbers comparison splits the strings to compare into their
-numeric and non--numeric parts and compares the parts one by one; for
-example, the string @samp{foo4bar3zab10} is split into the following
-list:
+Bytevector/numbers comparison splits the bytevectors to compare into
+their numeric and non--numeric parts and compares the parts one by one;
+numeric parts are sequences of bytes which correspond to number digits
+in @ascii{} encoding.  For example, the string @samp{foo4bar3zab10} is
+the bytevector:
 
 @example
-("foo" 4 "bar" 3 "zab" 10)
+#vu8(102 111 111 52 98 97 114 51 122 97 98 49 48)
 @end example
 
 @noindent
-in which non--numeric parts are retained as Scheme strings and numeric
-parts become exact integers; numeric parts only become @strong{exact}
-integer, never flonums.  String parts are compared with the ordinary
-lexicographic operators @func{string<?} and @func{string=?} (or
-@func{string-ci<?} and @func{string-ci=?}), while numeric parts are
-compared with the ordinary @func{<} and @func{=} operators; a string
-part and a numeric part are compared by converting the number into a
-string, then using @func{string<?} and @func{string=?}.
+and it is split into the following list:
+
+@example
+(#vu8(102 111 111) 4
+ #vu8(98 97 114)   3
+ #vu8(122 97 98)   10)
+@end example
+
+@noindent
+in which non--numeric parts are retained as Scheme bytevectors and
+numeric parts become exact integers; numeric parts only become
+@strong{exact} integer, never flonums.  Bytevector parts are compared
+with the ordinary lexicographic operators @func{bytevector-u8<?} and
+@func{bytevector=?}  (or @func{bytevector-u8-ci<?} and
+@func{bytevector-u8-ci=?}), while numeric parts are compared with the
+ordinary @func{<} and @func{=} operators; a bytevector part and a
+numeric part are compared by comparing the bytevectors.
 
 Miscellaneous examples:
 
 @example
-(string/numbers<? "123" "45")
+(bytevector-u8/numbers<? "123" "45")
 @result{} #f
 
-(string/numbers<? "ciao3" "ciao10")
+(bytevector-u8/numbers<? "ciao3" "ciao10")
 @result{} #t
 
-(string/numbers<? "foo4bar3zab10" "foo4bar3zab2")
+(bytevector-u8/numbers<? "foo4bar3zab10" "foo4bar3zab2")
 @result{} #f
 
-(string/numbers<? "foo4bar10" "foo4bar3zab")
+(bytevector-u8/numbers<? "foo4bar10" "foo4bar3zab")
 @result{} #f
 @end example
 
 
 
-@defun string/numbers-compare @vari{str} @varii{str}
-@defunx %string/numbers-compare @vari{str} @varii{str}
+@defun bytevector-u8/numbers-compare @vari{bv} @varii{bv}
+@defunx %bytevector-u8/numbers-compare @vari{bv} @varii{bv}
 Compare the string and numeric parts of the arguments and return a
-ternary result: @samp{-1} if @vari{str} is less than @varii{str},
-@samp{0} if @vari{str} is equal to @varii{str}, @samp{+1} if @vari{str}
-is greater than @varii{str}.  The comparison is case sensitive.
+ternary result: @samp{-1} if @vari{bv} is less than @varii{bv},
+@samp{0} if @vari{bv} is equal to @varii{bv}, @samp{+1} if @vari{bv}
+is greater than @varii{bv}.  The comparison is case sensitive.
 @end defun
 
 
-@defun string/numbers=? @vari{str} @varii{str}
-@defunx string/numbers<>? @vari{str} @varii{str}
-@defunx string/numbers<? @vari{str} @varii{str}
-@defunx string/numbers<=? @vari{str} @varii{str}
-@defunx string/numbers>? @vari{str} @varii{str}
-@defunx string/numbers>=? @vari{str} @varii{str}
-@defunx %string/numbers=? @vari{str} @varii{str}
-@defunx %string/numbers<>? @vari{str} @varii{str}
-@defunx %string/numbers<? @vari{str} @varii{str}
-@defunx %string/numbers<=? @vari{str} @varii{str}
-@defunx %string/numbers>? @vari{str} @varii{str}
-@defunx %string/numbers>=? @vari{str} @varii{str}
+@defun bytevector-u8/numbers=? @vari{bv} @varii{bv}
+@defunx bytevector-u8/numbers<>? @vari{bv} @varii{bv}
+@defunx bytevector-u8/numbers<? @vari{bv} @varii{bv}
+@defunx bytevector-u8/numbers<=? @vari{bv} @varii{bv}
+@defunx bytevector-u8/numbers>? @vari{bv} @varii{bv}
+@defunx bytevector-u8/numbers>=? @vari{bv} @varii{bv}
+@defunx %bytevector-u8/numbers=? @vari{bv} @varii{bv}
+@defunx %bytevector-u8/numbers<>? @vari{bv} @varii{bv}
+@defunx %bytevector-u8/numbers<? @vari{bv} @varii{bv}
+@defunx %bytevector-u8/numbers<=? @vari{bv} @varii{bv}
+@defunx %bytevector-u8/numbers>? @vari{bv} @varii{bv}
+@defunx %bytevector-u8/numbers>=? @vari{bv} @varii{bv}
 Return @true{} or @false{}, whether the string arguments comply with the
 predicate.
 @end defun
 
 
-@defun string/numbers-compare-ci @vari{str} @varii{str}
-@defunx %string/numbers-compare-ci @vari{str} @varii{str}
+@defun bytevector-u8/numbers-compare-ci @vari{bv} @varii{bv}
+@defunx %bytevector-u8/numbers-compare-ci @vari{bv} @varii{bv}
 Compare the string and numeric parts of the arguments and return a
-ternary result: @samp{-1} if @vari{str} is less than @varii{str},
-@samp{0} if @vari{str} is equal to @varii{str}, @samp{+1} if @vari{str}
-is greater than @varii{str}.  The comparison is case insensitive.
+ternary result: @samp{-1} if @vari{bv} is less than @varii{bv},
+@samp{0} if @vari{bv} is equal to @varii{bv}, @samp{+1} if @vari{bv}
+is greater than @varii{bv}.  The comparison is case insensitive.
 @end defun
 
 
-@defun string/numbers-ci=? @vari{str} @varii{str}
-@defunx string/numbers-ci<>? @vari{str} @varii{str}
-@defunx string/numbers-ci<? @vari{str} @varii{str}
-@defunx string/numbers-ci>? @vari{str} @varii{str}
-@defunx string/numbers-ci<=? @vari{str} @varii{str}
-@defunx string/numbers-ci>=? @vari{str} @varii{str}
-@defunx %string/numbers-ci=? @vari{str} @varii{str}
-@defunx %string/numbers-ci<>? @vari{str} @varii{str}
-@defunx %string/numbers-ci<? @vari{str} @varii{str}
-@defunx %string/numbers-ci>? @vari{str} @varii{str}
-@defunx %string/numbers-ci<=? @vari{str} @varii{str}
-@defunx %string/numbers-ci>=? @vari{str} @varii{str}
+@defun bytevector-u8/numbers-ci=? @vari{bv} @varii{bv}
+@defunx bytevector-u8/numbers-ci<>? @vari{bv} @varii{bv}
+@defunx bytevector-u8/numbers-ci<? @vari{bv} @varii{bv}
+@defunx bytevector-u8/numbers-ci>? @vari{bv} @varii{bv}
+@defunx bytevector-u8/numbers-ci<=? @vari{bv} @varii{bv}
+@defunx bytevector-u8/numbers-ci>=? @vari{bv} @varii{bv}
+@defunx %bytevector-u8/numbers-ci=? @vari{bv} @varii{bv}
+@defunx %bytevector-u8/numbers-ci<>? @vari{bv} @varii{bv}
+@defunx %bytevector-u8/numbers-ci<? @vari{bv} @varii{bv}
+@defunx %bytevector-u8/numbers-ci>? @vari{bv} @varii{bv}
+@defunx %bytevector-u8/numbers-ci<=? @vari{bv} @varii{bv}
+@defunx %bytevector-u8/numbers-ci>=? @vari{bv} @varii{bv}
 Return @true{} or @false{}, whether the string arguments comply with the
 predicate.  The comparison is case insensitive.
 @end defun
@@ -10765,17 +10807,19 @@ predicate.  The comparison is case insensitive.
 @subsection Mapping functions
 
 
-@defun string-map @var{proc} @var{str0} @var{str} ...
-Build and return a newly allocated string mapping @var{proc} over all
-the characters of the string arguments, from zero to the end in
-increasing order.  It is an error if the strings have different length.
+@defun bytevector-u8-map @var{proc} @varo{bv} @var{bv} ...
+Build and return a newly--allocated bytevector mapping @var{proc} over
+all the bytes of the bytevector arguments, from zero to the end in
+increasing order.  It is an error if the bytevectorss have different
+length.
 
-@var{proc} must return a character and it is applied to the elements as:
+@var{proc} must return an exact integer representing a byte and it is
+applied to the elements as:
 
 @example
 (@var{proc} @var{idx}
-  (string-ref @var{str0} @var{idx})
-  (string-ref @var{str}  @var{idx})
+  (bytevector-u8-ref @varo{bv} @var{idx})
+  (bytevector-u8-ref @var{bv}  @var{idx})
   ...)
 @end example
 
@@ -10784,21 +10828,21 @@ where @var{idx} is the current index.
 @end defun
 
 
-@defun string-map! @var{proc} @var{str0} @var{str} ...
-@defunx string-map*! @var{proc} @var{str0} @var{str} ...
-Mutate string @var{str0} mapping @var{proc} over all the elements of the
-string arguments, from zero to the end in increasing order.
+@defun bytevector-u8-map! @var{proc} @varo{bv} @var{bv} ...
+@defunx bytevector-u8-map*! @var{proc} @varo{bv} @var{bv} ...
+Mutate bytevector @varo{bv} mapping @var{proc} over all the elements of
+the bytevector arguments, from zero to the end in increasing order.
 
-@func{string-map!} must be applied to strings of the same length;
-@func{string-map*!} accepts strings of different length and iterates
-until the end of the shorter is reached.
+@func{bytevector-u8-map!} must be applied to bytevectorss of the same
+length; @func{bytevector-u8-map*!} accepts bytevectorss of different
+length and iterates until the end of the shorter is reached.
 
 @var{proc} is applied to the elements as:
 
 @example
 (@var{proc} @var{idx}
-  (string-ref @var{str0} @var{idx})
-  (string-ref @var{str}  @var{idx})
+  (bytevector-u8-ref @varo{bv} @var{idx})
+  (bytevector-u8-ref @var{bv}  @var{idx})
   ...)
 @end example
 
@@ -10807,17 +10851,18 @@ where @var{idx} is the current index.
 @end defun
 
 
-@defun string-for-each* @var{proc} @var{str0} @var{str} ...
-Apply @var{proc} over all the elements of the string arguments, from
-zero to the end in increasing order.  This function accepts strings of
-different length and iterates until the end of the shorter is reached.
+@defun bytevector-u8-for-each* @var{proc} @varo{bv} @var{bv} ...
+Apply @var{proc} over all the elements of the bytevector arguments, from
+zero to the end in increasing order.  This function accepts bytevectorss
+of different length and iterates until the end of the shorter is
+reached.
 
 @var{proc} is applied to the elements as:
 
 @example
 (@var{proc} @var{idx}
-  (string-ref @var{str0} @var{idx})
-  (string-ref @var{str}  @var{idx})
+  (bytevector-u8-ref @varo{bv} @var{idx})
+  (bytevector-u8-ref @var{bv}  @var{idx})
   ...)
 @end example
 
@@ -10826,40 +10871,39 @@ where @var{idx} is the current index.
 @end defun
 
 
-@subsubheading Mapping over substrings
+@subsubheading Mapping over subvectors
 
 
-@deffn Function %substring-map @var{proc} @var{str} @var{start} @var{past}
-@deffnx Macro substring-map @var{proc} @var{S}
-Build and return a new string mapping @var{proc} over the characters in
-the selected substring of @var{str}, from index @var{start} to index
+@deffn Function %subbytevector-u8-map @var{proc} @var{bv} @var{start} @var{past}
+@deffnx Macro subbytevector-u8-map @var{proc} @var{S}
+Build and return a new bytevector mapping @var{proc} over the bytes in
+the selected subvector of @var{bv}, from index @var{start} to index
 @var{past} in increasing order.  @var{proc} must be a @code{char->char}
 procedure.
 @end deffn
 
 
-@deffn Function %substring-map! @var{proc} @var{str} @var{start} @var{past}
-@deffnx Macro substring-map! @var{proc} @var{S}
-Mutate the selected substring of @var{str}, mapping @var{proc} over its
-characters from index @var{start} to index @var{past} in increasing
-order.  @var{proc} must be a @code{char->char} procedure.
+@deffn Function %subbytevector-u8-map! @var{proc} @var{bv} @var{start} @var{past}
+@deffnx Macro subbytevector-u8-map! @var{proc} @var{S}
+Mutate the selected subvector of @var{bv}, mapping @var{proc} over its
+bytes from index @var{start} to index @var{past} in increasing order.
+@var{proc} must be a @code{char->char} procedure.
 @end deffn
 
 
-@deffn Function %substring-for-each @var{proc} @var{str} @var{start} @var{past}
-@deffnx Macro substring-for-each @var{proc} @var{V}
-Apply @var{proc} to each character in the selected substring of
-@var{str}, from index @var{start} to index @var{past} in increasing
-order.
+@deffn Function %subbytevector-u8-for-each @var{proc} @var{bv} @var{start} @var{past}
+@deffnx Macro subbytevector-u8-for-each @var{proc} @var{V}
+Apply @var{proc} to each byte in the selected subvector of @var{bv},
+from index @var{start} to index @var{past} in increasing order.
 @end deffn
 
 
-@deffn Function %substring-for-each-index @var{proc} @var{str} @var{start} @var{past}
-@deffnx Macro substring-for-each-index @var{proc} @var{V}
-Apply @var{proc} to each index in the selected substring of @var{str},
+@deffn Function %subbytevector-u8-for-each-index @var{proc} @var{bv} @var{start} @var{past}
+@deffnx Macro subbytevector-u8-for-each-index @var{proc} @var{V}
+Apply @var{proc} to each index in the selected subvector of @var{bv},
 from index @var{start} to index @var{past} in increasing order.  This is
-simply a method of looping over a string that is guaranteed to be safe
-and correct.
+simply a method of looping over a bytevector that is guaranteed to be
+safe and correct.
 @end deffn
 
 @c page
@@ -10867,27 +10911,27 @@ and correct.
 @subsection Case mapping
 
 
-@deffn Function %string-titlecase*! @var{str} @var{start} @var{past}
-@deffnx Macro string-titlecase* @var{s}
-@deffnx Macro string-titlecase*! @var{s}
-For every character @math{c} in the selected range of @var{str}, if
-@math{c} is preceded by a cased character, it is downcased; otherwise it
-is titlecased.
+@deffn Function %bytevector-u8-titlecase*! @var{bv} @var{start} @var{past}
+@deffnx Macro bytevector-u8-titlecase* @var{B}
+@deffnx Macro bytevector-u8-titlecase*! @var{B}
+For every byte @math{c} in the selected range of @var{bv}, if @math{c}
+is preceded by a cased character, it is downcased; otherwise it is
+titlecased.
 
-@func{string-titlecase*} returns the result string and does not alter
-its s parameter.  @func{string-titlecase!} is the in--place
+@func{bytevector-u8-titlecase*} returns the result string and does not alter
+its s parameter.  @func{bytevector-u8-titlecase!} is the in--place
 side--effecting variant.
 
 Examples:
 
 @example
-(string-titlecase* "--capitalize tHIS sentence.")
+(bytevector-u8-titlecase* "--capitalize tHIS sentence.")
 @result{} "--Capitalize This Sentence."
 
-(string-titlecase* "see Spot run. see Nix run.")
+(bytevector-u8-titlecase* "see Spot run. see Nix run.")
 @result{} "See Spot Run. See Nix Run."
 
-(string-titlecase* "3com makes routers.")
+(bytevector-u8-titlecase* "3com makes routers.")
 @result{} "3Com Makes Routers."
 @end example
 
@@ -10895,23 +10939,23 @@ Note that the character preceding @code{str[start]} has no effect on the
 titlecase decision for character @code{str[start]}:
 
 @example
-(string-titlecase* ("greasy fried chicken" 2))
+(bytevector-u8-titlecase* ("greasy fried chicken" 2))
 @result{} "Easy Fried Chicken"
 @end example
 @end deffn
 
 
-@deffn Macro string-upcase* @var{s}
-@deffnx Macro string-upcase*! @var{s}
-@deffnx Macro string-downcase* @var{s}
-@deffnx Macro string-downcase*! @var{s}
+@deffn Macro bytevector-u8-upcase* @var{B}
+@deffnx Macro bytevector-u8-upcase*! @var{B}
+@deffnx Macro bytevector-u8-downcase* @var{B}
+@deffnx Macro bytevector-u8-downcase*! @var{B}
 Raise or lower the case of the alphabetic characters in the string.
 There are no low level functions for these macros because they are just
-wrappers for @func{%string-map} and @func{%string-map!}.
+wrappers for @func{%bytevector-u8-map} and @func{%bytevector-u8-map!}.
 
-@func{string-upcase} and @func{string-downcase} return the result string
-and do not alter their s parameter.  @func{string-upcase!} and
-@func{string-downcase!} are the in--place side--effecting variants.
+@func{bytevector-u8-upcase} and @func{bytevector-u8-downcase} return the result string
+and do not alter their s parameter.  @func{bytevector-u8-upcase!} and
+@func{bytevector-u8-downcase!} are the in--place side--effecting variants.
 @end deffn
 
 @c page

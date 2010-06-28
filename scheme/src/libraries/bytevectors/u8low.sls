@@ -177,7 +177,7 @@
     %bytevector-u8-delete  %bytevector-u8-filter
 
     ;; lists
-    %bytevector-u8->list*   %reverse-bytevector-u8->list
+    %bytevector->u8-list*   %reverse-bytevector->u8-list
     reverse-list->bytevector-u8
     %bytevector-u8-tokenize  %bytevector-u8-join
     (rename (%bytevector-u8-tokenize %bytevector-u8-tokenise))
@@ -198,6 +198,9 @@
 
 ;;;; helpers
 
+(define $white-spaces-for-dictionary-comparison
+  (char->integer '(#\space #\tab #\vtab #\linefeed #\return #\page)))
+
 (define (bytevector-u8s-list-min-length bytevector-u8s)
   (apply min (map bytevector-length bytevector-u8s)))
 
@@ -206,6 +209,12 @@
     (if (null? bvs)
 	len
       (loop (cdr bvs) (+ len (bytevector-length (car bvs)))))))
+
+(define (%integer-char-ci<? a b)
+  (char-ci<? (integer->char a) (integer->char b)))
+
+(define (%integer-char-ci<=? a b)
+  (char-ci<=? (integer->char a) (integer->char b)))
 
 
 ;;;; constructors
@@ -245,29 +254,35 @@
 
 ;;;; predicates
 
-(define (bytevector-u8-null? str)
-  (zero? (bytevector-length str)))
+(define (bytevector-u8-null? bv)
+  (zero? (bytevector-length bv)))
 
-(define (%bytevector-u8-every criterion str start past)
+(define (%bytevector-u8-every criterion bv start past)
   (and (< start past)
-       (cond ((char? criterion)
+       (cond ((and (integer? criterion) (exact? criterion))
+	      (let loop ((i start))
+		(or (<= past i)
+		    (and (= criterion (bytevector-u8-ref bv i))
+			 (loop (+ 1 i))))))
+
+	     ((char? criterion)
 	      (let ((criterion (char->integer criterion)))
 		(let loop ((i start))
 		  (or (<= past i)
-		      (and (= criterion (bytevector-u8-ref str i))
+		      (and (= criterion (bytevector-u8-ref bv i))
 			   (loop (+ 1 i)))))))
 
 	     ((char-set? criterion)
 	      (let loop ((i start))
 		(or (<= past i)
-		    (and (char-set-contains? criterion (integer->char (bytevector-u8-ref str i)))
+		    (and (char-set-contains? criterion (integer->char (bytevector-u8-ref bv i)))
 			 (loop (+ 1 i))))))
 
 	     ((procedure? criterion)
 	      ;;Slightly funky loop so  that final (PRED S[PAST-1]) call
 	      ;;is a tail call.
 	      (let loop ((i start))
-		(let ((c  (bytevector-u8-ref str i))
+		(let ((c  (bytevector-u8-ref bv i))
 		      (i1 (+ i 1)))
 		  (if (= i1 past)
 		      (criterion c) ;this has to be a tail call
@@ -278,23 +293,32 @@
 		"expected char-set, char, or predicate as second parameter"
 		criterion)))))
 
-(define (%bytevector-u8-any criterion str start past)
+(define (%bytevector-u8-any criterion bv start past)
   (and (< start past)
-       (cond ((char? criterion)
+       (cond ((and (integer? criterion) (exact? criterion))
 	      (let loop ((i start))
 		(and (< i past)
-		     (or (= criterion (bytevector-u8-ref str i))
+		     (or (= criterion (bytevector-u8-ref bv i))
 			 (loop (+ i 1))))))
+
+	     ((char? criterion)
+	      (let ((criterion (char->integer criterion)))
+		(let loop ((i start))
+		  (and (< i past)
+		       (or (= criterion (bytevector-u8-ref bv i))
+			   (loop (+ i 1)))))))
 
 	     ((char-set? criterion)
 	      (let loop ((i start))
 		(and (< i past)
-		     (or (char-set-contains? criterion (bytevector-u8-ref str i))
+		     (or (char-set-contains? criterion (integer->char (bytevector-u8-ref bv i)))
 			 (loop (+ i 1))))))
 
-	     ((procedure? criterion) ; Slightly funky loop so that
-	      (let loop ((i start))  ; final (PRED S[PAST-1]) call
-		(let ((c (bytevector-u8-ref str i)) ; is a tail call.
+	     ((procedure? criterion)
+	      ;;Slightly funky loop so  that final (PRED S[PAST-1]) call
+	      ;;is a tail call.
+	      (let loop ((i start))
+		(let ((c (bytevector-u8-ref bv i))
 		      (i1 (+ i 1)))
 		  (if (= i1 past)
 		      (criterion c) ; This has to be a tail call.
@@ -308,129 +332,438 @@
 
 ;;;; lexicographic comparison
 
-(define (%true-bytevector-u8-compare bytevector-u8-prefix-length-proc char-less-proc
-			      str1 start1 past1 str2 start2 past2 proc< proc= proc>)
+(define (%true-bytevector-u8-compare bytevector-u8-prefix-length-proc less-proc
+				     bv1 start1 past1 bv2 start2 past2 proc< proc= proc>)
   (let ((size1 (- past1 start1))
-	(size2 (- past2 start2)))
-    (let ((match (bytevector-u8-prefix-length-proc str1 start1 past1 str2 start2 past2)))
-      (if (= match size1)
-	  ((if (= match size2) proc= proc<) past1)
-	((if (= match size2)
-	     proc>
-	   (if (char-less-proc (bytevector-u8-ref str1 (+ start1 match))
-			       (bytevector-u8-ref str2 (+ start2 match)))
-	       proc< proc>))
-	 (+ match start1))))))
+	(size2 (- past2 start2))
+	(match (bytevector-u8-prefix-length-proc bv1 start1 past1 bv2 start2 past2)))
+    (if (= match size1)
+	((if (= match size2) proc= proc<) past1)
+      ((if (= match size2)
+	   proc>
+	 (if (less-proc (bytevector-u8-ref bv1 (+ start1 match))
+			(bytevector-u8-ref bv2 (+ start2 match)))
+	     proc< proc>))
+       (+ match start1)))))
 
-(define (%bytevector-u8-compare str1 start1 past1 str2 start2 past2 proc< proc= proc>)
+(define (%bytevector-u8-compare bv1 start1 past1 bv2 start2 past2 proc< proc= proc>)
   (%true-bytevector-u8-compare %bytevector-u8-prefix-length <
-			str1 start1 past1 str2 start2 past2 proc< proc= proc>))
+			       bv1 start1 past1 bv2 start2 past2 proc< proc= proc>))
 
-(define (%bytevector-u8-compare-ci str1 start1 past1 str2 start2 past2 proc< proc= proc>)
-  (%true-bytevector-u8-compare %bytevector-u8-prefix-length-ci char-ci<?
-			str1 start1 past1 str2 start2 past2 proc< proc= proc>))
-
-;;; --------------------------------------------------------------------
-
-(define (%true-bytevector-u8= bytevector-u8-compare-proc str1 start1 past1 str2 start2 past2)
-  (and (= (- past1 start1) (- past2 start2))       ; Quick filter
-       (or (and (eq? str1 str2) (= start1 start2)) ; Fast path
-	   (bytevector-u8-compare-proc str1 start1 past1 str2 start2 past2 ; Real test
-				(lambda (i) #f) values (lambda (i) #f)))))
-
-(define (%bytevector-u8= str1 start1 past1 str2 start2 past2)
-  (%true-bytevector-u8= %bytevector-u8-compare str1 start1 past1 str2 start2 past2))
-
-(define (%bytevector-u8-ci= str1 start1 past1 str2 start2 past2)
-  (%true-bytevector-u8= %bytevector-u8-compare-ci str1 start1 past1 str2 start2 past2))
+(define (%bytevector-u8-compare-ci bv1 start1 past1 bv2 start2 past2 proc< proc= proc>)
+  (%true-bytevector-u8-compare %bytevector-u8-prefix-length-ci %integer-char-ci<?
+			       bv1 start1 past1 bv2 start2 past2 proc< proc= proc>))
 
 ;;; --------------------------------------------------------------------
 
-(define (%true-bytevector-u8<> bytevector-u8-compare-proc str1 start1 past1 str2 start2 past2)
-  (or (not (= (- past1 start1) (- past2 start2)))	     ; Fast path
-      (and (not (and (eq? str1 str2) (= start1 start2))) ; Quick filter
-	   (bytevector-u8-compare-proc str1 start1 past1 str2 start2 past2	; Real test
-				values (lambda (i) #f) values))))
+(define (%true-bytevector-u8= bytevector-u8-compare-proc bv1 start1 past1 bv2 start2 past2)
+  (and (= (- past1 start1) (- past2 start2))	 ; Quick filter
+       (or (and (eq? bv1 bv2) (= start1 start2)) ; Fast path
+	   (bytevector-u8-compare-proc bv1 start1 past1 bv2 start2 past2 ; Real test
+				       (lambda (i) #f) values (lambda (i) #f)))))
 
-(define (%bytevector-u8<> str1 start1 past1 str2 start2 past2)
-  (%true-bytevector-u8<> %bytevector-u8-compare str1 start1 past1 str2 start2 past2))
+(define (%bytevector-u8= bv1 start1 past1 bv2 start2 past2)
+  (%true-bytevector-u8= %bytevector-u8-compare bv1 start1 past1 bv2 start2 past2))
 
-(define (%bytevector-u8-ci<> str1 start1 past1 str2 start2 past2)
-  (%true-bytevector-u8<> %bytevector-u8-compare-ci str1 start1 past1 str2 start2 past2))
+(define (%bytevector-u8-ci= bv1 start1 past1 bv2 start2 past2)
+  (%true-bytevector-u8= %bytevector-u8-compare-ci bv1 start1 past1 bv2 start2 past2))
 
 ;;; --------------------------------------------------------------------
 
-(define (%true-bytevector-u8< bytevector-u8-prefix-proc char-pred
-		       str1 start1 past1 str2 start2 past2)
-  (if (and (eq? str1 str2) (= start1 start2)) ; Fast path
+(define (%true-bytevector-u8<> bytevector-u8-compare-proc bv1 start1 past1 bv2 start2 past2)
+  (or (not (= (- past1 start1) (- past2 start2)))      ; Fast path
+      (and (not (and (eq? bv1 bv2) (= start1 start2))) ; Quick filter
+	   (bytevector-u8-compare-proc bv1 start1 past1 bv2 start2 past2 ; Real test
+				       values (lambda (i) #f) values))))
+
+(define (%bytevector-u8<> bv1 start1 past1 bv2 start2 past2)
+  (%true-bytevector-u8<> %bytevector-u8-compare bv1 start1 past1 bv2 start2 past2))
+
+(define (%bytevector-u8-ci<> bv1 start1 past1 bv2 start2 past2)
+  (%true-bytevector-u8<> %bytevector-u8-compare-ci bv1 start1 past1 bv2 start2 past2))
+
+;;; --------------------------------------------------------------------
+
+(define (%true-bytevector-u8< bytevector-u8-prefix-proc pred
+			      bv1 start1 past1 bv2 start2 past2)
+  (if (and (eq? bv1 bv2) (= start1 start2)) ; Fast path
       (< past1 past2)
-    ;;Notice that CHAR-PRED is always the less-than one.
-    (%true-bytevector-u8-compare bytevector-u8-prefix-proc char-pred ; Real test
-			  str1 start1 past1 str2 start2 past2
-			  values (lambda (i) #f) (lambda (i) #f))))
+    ;;Notice that PRED is always the less-than one.
+    (%true-bytevector-u8-compare bytevector-u8-prefix-proc pred ; Real test
+				 bv1 start1 past1 bv2 start2 past2
+				 values (lambda (i) #f) (lambda (i) #f))))
 
-(define (%bytevector-u8< str1 start1 past1 str2 start2 past2)
+(define (%bytevector-u8< bv1 start1 past1 bv2 start2 past2)
   (%true-bytevector-u8< %bytevector-u8-prefix-length <
-		 str1 start1 past1 str2 start2 past2))
+			bv1 start1 past1 bv2 start2 past2))
 
-(define (%bytevector-u8-ci< str1 start1 past1 str2 start2 past2)
-  (%true-bytevector-u8< %bytevector-u8-prefix-length-ci char-ci<?
-		 str1 start1 past1 str2 start2 past2))
+(define (%bytevector-u8-ci< bv1 start1 past1 bv2 start2 past2)
+  (%true-bytevector-u8< %bytevector-u8-prefix-length-ci %integer-char-ci<?
+			bv1 start1 past1 bv2 start2 past2))
 
 ;;; --------------------------------------------------------------------
 
-(define (%true-bytevector-u8<= bytevector-u8-prefix-proc char-pred
-			str1 start1 past1 str2 start2 past2)
-  (if (and (eq? str1 str2) (= start1 start2)) ; Fast path
+(define (%true-bytevector-u8<= bytevector-u8-prefix-proc pred
+			       bv1 start1 past1 bv2 start2 past2)
+  (if (and (eq? bv1 bv2) (= start1 start2)) ; Fast path
       (<= past1 past2)
-    ;;Notice that CHAR-PRED is always the less-than one.
-    (%true-bytevector-u8-compare bytevector-u8-prefix-proc char-pred ; Real test
-			  str1 start1 past1 str2 start2 past2
-			  values values (lambda (i) #f))))
+    ;;Notice that PRED is always the less-than one.
+    (%true-bytevector-u8-compare bytevector-u8-prefix-proc pred ; Real test
+				 bv1 start1 past1 bv2 start2 past2
+				 values values (lambda (i) #f))))
 
-(define (%bytevector-u8<= str1 start1 past1 str2 start2 past2)
+(define (%bytevector-u8<= bv1 start1 past1 bv2 start2 past2)
   (%true-bytevector-u8<= %bytevector-u8-prefix-length <=
-		  str1 start1 past1 str2 start2 past2))
+			 bv1 start1 past1 bv2 start2 past2))
 
-(define (%bytevector-u8-ci<= str1 start1 past1 str2 start2 past2)
-  (%true-bytevector-u8<= %bytevector-u8-prefix-length-ci char-ci<=?
-		  str1 start1 past1 str2 start2 past2))
+(define (%bytevector-u8-ci<= bv1 start1 past1 bv2 start2 past2)
+  (%true-bytevector-u8<= %bytevector-u8-prefix-length-ci %integer-char-ci<=?
+			 bv1 start1 past1 bv2 start2 past2))
 
 ;;; --------------------------------------------------------------------
 
-(define (%true-bytevector-u8> bytevector-u8-prefix-proc char-pred str1 start1 past1 str2 start2 past2)
-  (if (and (eq? str1 str2) (= start1 start2)) ; Fast path
+(define (%true-bytevector-u8> bytevector-u8-prefix-proc pred bv1 start1 past1 bv2 start2 past2)
+  (if (and (eq? bv1 bv2) (= start1 start2)) ; Fast path
       (> past1 past2)
-    ;;Notice that CHAR-PRED is always the less-than one.
-    (%true-bytevector-u8-compare bytevector-u8-prefix-proc char-pred ; Real test
-			  str1 start1 past1 str2 start2 past2
-			  (lambda (i) #f) (lambda (i) #f) values)))
+    ;;Notice that PRED is always the less-than one.
+    (%true-bytevector-u8-compare bytevector-u8-prefix-proc pred ; Real test
+				 bv1 start1 past1 bv2 start2 past2
+				 (lambda (i) #f) (lambda (i) #f) values)))
 
-(define (%bytevector-u8> str1 start1 past1 str2 start2 past2)
+(define (%bytevector-u8> bv1 start1 past1 bv2 start2 past2)
   (%true-bytevector-u8> %bytevector-u8-prefix-length <
-		 str1 start1 past1 str2 start2 past2))
+			bv1 start1 past1 bv2 start2 past2))
 
-(define (%bytevector-u8-ci> str1 start1 past1 str2 start2 past2)
-  (%true-bytevector-u8> %bytevector-u8-prefix-length-ci char-ci<?
-		 str1 start1 past1 str2 start2 past2))
+(define (%bytevector-u8-ci> bv1 start1 past1 bv2 start2 past2)
+  (%true-bytevector-u8> %bytevector-u8-prefix-length-ci %integer-char-ci<?
+			bv1 start1 past1 bv2 start2 past2))
 
 ;;; --------------------------------------------------------------------
 
-(define (%true-bytevector-u8>= bytevector-u8-prefix-proc char-pred str1 start1 past1 str2 start2 past2)
-  (if (and (eq? str1 str2) (= start1 start2)) ; Fast path
+(define (%true-bytevector-u8>= bytevector-u8-prefix-proc pred bv1 start1 past1 bv2 start2 past2)
+  (if (and (eq? bv1 bv2) (= start1 start2)) ; Fast path
       (>= past1 past2)
-    ;;Notice that CHAR-PRED is always the less-than one.
-    (%true-bytevector-u8-compare bytevector-u8-prefix-proc char-pred ; Real test
-			  str1 start1 past1 str2 start2 past2
-			  (lambda (i) #f) values values)))
+    ;;Notice that PRED is always the less-than one.
+    (%true-bytevector-u8-compare bytevector-u8-prefix-proc pred ; Real test
+				 bv1 start1 past1 bv2 start2 past2
+				 (lambda (i) #f) values values)))
 
-(define (%bytevector-u8>= str1 start1 past1 str2 start2 past2)
+(define (%bytevector-u8>= bv1 start1 past1 bv2 start2 past2)
   (%true-bytevector-u8>= %bytevector-u8-prefix-length <=
-		 str1 start1 past1 str2 start2 past2))
+			 bv1 start1 past1 bv2 start2 past2))
 
-(define (%bytevector-u8-ci>= str1 start1 past1 str2 start2 past2)
-  (%true-bytevector-u8>= %bytevector-u8-prefix-length-ci char-ci<=?
-		 str1 start1 past1 str2 start2 past2))
+(define (%bytevector-u8-ci>= bv1 start1 past1 bv2 start2 past2)
+  (%true-bytevector-u8>= %bytevector-u8-prefix-length-ci %integer-char-ci<=?
+			 bv1 start1 past1 bv2 start2 past2))
+
+
+;;;; dictionary comparison
+
+(define (%true-bytevector-u8-dictionary-compare a b pred=? pred<? $lesser $equal $greater)
+  (let ((lena	(bytevector-length a))
+	(lenb	(bytevector-length b)))
+    (let loop ((i 0) (j 0))
+      (cond ((= i lena)
+	     (if (= j lenb)
+		 $equal
+	       $lesser))
+
+	    ((= j lenb)
+	     $greater)
+
+	    (else
+	     (let ((cha	(bytevector-u8-ref a i))
+		   (chb (bytevector-u8-ref b j)))
+	       (cond ((memv cha $white-spaces-for-dictionary-comparison)
+		      (loop (+ 1 i) j))
+
+		     ((memv chb $white-spaces-for-dictionary-comparison)
+		      (loop i (+ 1 j)))
+
+		     ((pred=? cha chb)
+		      (loop (+ 1 i) (+ 1 j)))
+
+		     ((pred<? cha chb)
+		      $lesser)
+
+		     (else
+		      $greater))))))))
+
+;;; --------------------------------------------------------------------
+
+(define (%bytevector-u8-dictionary-compare a b)
+  (%true-bytevector-u8-dictionary-compare a b = < -1 0 +1))
+
+(define (%bytevector-u8-dictionary=? a b)
+  (%true-bytevector-u8-dictionary-compare a b = < #f #t #f))
+
+(define (%bytevector-u8-dictionary<>? a b)
+  (%true-bytevector-u8-dictionary-compare a b = < #t #f #t))
+
+(define (%bytevector-u8-dictionary<? a b)
+  (%true-bytevector-u8-dictionary-compare a b = < #t #f #f))
+
+(define (%bytevector-u8-dictionary<=? a b)
+  (%true-bytevector-u8-dictionary-compare a b = < #t #t #f))
+
+(define (%bytevector-u8-dictionary>? a b)
+  (%true-bytevector-u8-dictionary-compare a b = < #f #f #t))
+
+(define (%bytevector-u8-dictionary>=? a b)
+  (%true-bytevector-u8-dictionary-compare a b = < #f #t #t))
+
+;;; --------------------------------------------------------------------
+
+(define (%bytevector-u8-dictionary-compare-ci a b)
+  (%true-bytevector-u8-dictionary-compare a b %integer-char-ci=? %integer-char-ci<?))
+
+(define (%bytevector-u8-dictionary-ci=? a b)
+  (%true-bytevector-u8-dictionary-compare a b %integer-char-ci=? %integer-char-ci<? #f #t #f))
+
+(define (%bytevector-u8-dictionary-ci<>? a b)
+  (%true-bytevector-u8-dictionary-compare a b %integer-char-ci=? %integer-char-ci<? #t #f #t))
+
+(define (%bytevector-u8-dictionary-ci<? a b)
+  (%true-bytevector-u8-dictionary-compare a b %integer-char-ci=? %integer-char-ci<? #t #f #f))
+
+(define (%bytevector-u8-dictionary-ci<=? a b)
+  (%true-bytevector-u8-dictionary-compare a b %integer-char-ci=? %integer-char-ci<? #t #t #f))
+
+(define (%bytevector-u8-dictionary-ci>? a b)
+  (%true-bytevector-u8-dictionary-compare a b %integer-char-ci=? %integer-char-ci<? #f #f #t))
+
+(define (%bytevector-u8-dictionary-ci>=? a b)
+  (%true-bytevector-u8-dictionary-compare a b %integer-char-ci=? %integer-char-ci<? #f #t #t))
+
+
+;;;; string/numbers lexicographic comparison
+
+(define $list-of-digits
+  (map char->integer '(#\0 #\1 #\2 #\3 #\4 #\5 #\6 #\7 #\8 #\9)))
+
+(define (%string/numbers->parts input-string)
+  ;;Split a bytevector string into the list of its parts.  Example:
+  ;;
+  ;;	"foo4bar3zab10"
+  ;;
+  ;;becomes:
+  ;;
+  ;;	("foo" ("4" . 4) "bar" ("3" . 3) "zab" ("10" . 10))
+  ;;
+  (let loop ((chars	(reverse (bytevector->u8-list input-string)))
+	     (str	'())
+	     (num	'())
+	     (parts	'()))
+    (define (%accumulate-bytevector-u8-part)
+      (if (null? str)
+	  parts
+	(cons (u8-list->bytevector str) parts)))
+    (define (%accumulate-number-part)
+      (if (null? num)
+	  parts
+	(let ((s (u8-list->bytevector num)))
+	  (cons `(,s . ,(string->number (utf8->string s))) parts))))
+    (cond ((null? chars)
+	   (cond ((not (null? str))
+		  (assert (null? num))
+		  (%accumulate-bytevector-u8-part))
+		 ((not (null? num))
+		  (assert (null? str))
+		  (%accumulate-number-part))
+		 (else parts)))
+	  ((memv (car chars) $list-of-digits)
+	   (loop (cdr chars)
+		 '()
+		 (cons (car chars) num)
+		 (%accumulate-bytevector-u8-part)))
+	  (else
+	   (loop (cdr chars)
+		 (cons (car chars) str)
+		 '()
+		 (%accumulate-number-part))))))
+
+(define (%true-string/numbers-compare a b bytevector-u8->parts
+				      bytevector=? bytevector<? $lesser $equal $greater)
+  (let loop ((a (bytevector-u8->parts a))
+             (b (bytevector-u8->parts b)))
+    (cond ((null? a)
+	   (if (null? b) $equal $lesser))
+
+	  ((null? b) $greater)
+
+	  ((and (bytevector? (car a)) ;both strings
+		(bytevector? (car b)))
+	   (if (bytevector=? (car a) (car b))
+	       (loop (cdr a) (cdr b))
+	     (if (bytevector<? (car a) (car b))
+		 $lesser
+	       $greater)))
+
+	  ((and (pair? (car a))	;both numbers
+		(pair? (car b)))
+	   (let ((num-a (cdar a))
+		 (num-b (cdar b)))
+	     (cond ((= num-a num-b)
+		    (loop (cdr a) (cdr b)))
+		   ((< num-a num-b)
+		    $lesser)
+		   (else
+		    $greater))))
+
+	  ((bytevector? (car a)) ;first string, second number
+	   (if (bytevector<? (car a) (caar b))
+	       $lesser
+	     $greater))
+
+	  (else	;first number, second string
+	   (if (bytevector<? (caar a) (car b))
+	       $lesser
+	     $greater)))))
+
+;;; --------------------------------------------------------------------
+
+(define (%string/numbers-compare a b)
+  (%true-string/numbers-compare a b %string/numbers->parts bytevector=? %bytevector-u8<? -1 0 +1))
+
+(define (%string/numbers=? a b)
+  (%true-string/numbers-compare a b %string/numbers->parts bytevector=? %bytevector-u8<? #f #t #f))
+
+(define (%string/numbers<>? a b)
+  (%true-string/numbers-compare a b %string/numbers->parts bytevector=? %bytevector-u8<? #t #f #t))
+
+(define (%string/numbers<? a b)
+  (%true-string/numbers-compare a b %string/numbers->parts bytevector=? %bytevector-u8<? #t #f #f))
+
+(define (%string/numbers<=? a b)
+  (%true-string/numbers-compare a b %string/numbers->parts bytevector=? %bytevector-u8<? #t #t #f))
+
+(define (%string/numbers>? a b)
+  (%true-string/numbers-compare a b %string/numbers->parts bytevector=? %bytevector-u8<? #f #f #t))
+
+(define (%string/numbers>=? a b)
+  (%true-string/numbers-compare a b %string/numbers->parts bytevector=? %bytevector-u8<? #f #t #t))
+
+;;; --------------------------------------------------------------------
+
+(define (%string/numbers-compare-ci a b)
+  (%true-string/numbers-compare a b %string/numbers->parts %bytevector-u8-ci=? %bytevector-u8-ci<?))
+
+(define (%string/numbers-ci=? a b)
+  (%true-string/numbers-compare a b %string/numbers->parts %bytevector-u8-ci=? %bytevector-u8-ci<?
+				#f #t #f))
+
+(define (%string/numbers-ci<>? a b)
+  (%true-string/numbers-compare a b %string/numbers->parts %bytevector-u8-ci=? %bytevector-u8-ci<?
+				#t #f #t))
+
+(define (%string/numbers-ci<? a b)
+  (%true-string/numbers-compare a b %string/numbers->parts %bytevector-u8-ci=? %bytevector-u8-ci<?
+				#t #f #f))
+
+(define (%string/numbers-ci<=? a b)
+  (%true-string/numbers-compare a b %string/numbers->parts %bytevector-u8-ci=? %bytevector-u8-ci<?
+				#t #t #f))
+
+(define (%string/numbers-ci>? a b)
+  (%true-string/numbers-compare a b %string/numbers->parts %bytevector-u8-ci=? %bytevector-u8-ci<?
+				#f #f #t))
+
+(define (%string/numbers-ci>=? a b)
+  (%true-string/numbers-compare a b %string/numbers->parts %bytevector-u8-ci=? %bytevector-u8-ci<?
+				#f #t #t))
+
+
+;;;; string/numbers dictionary comparison
+
+(define (%string/numbers-dictionary->parts input-string)
+  ;;Split a  string into  the list of  its parts, discard  white spaces.
+  ;;Example:
+  ;;
+  ;;	"foo4 bar3   zab10"
+  ;;
+  ;;becomes:
+  ;;
+  ;;	("foo" ("4" . 4) "bar" ("3" . 3) "zab" ("10" . 10))
+  ;;
+  (let loop ((chars	(reverse (bytevector->u8-list input-string)))
+	     (str	'())
+	     (num	'())
+	     (parts	'()))
+    (define (%accumulate-bytevector-u8-part)
+      (if (null? str)
+	  parts
+	(cons (list->string str) parts)))
+    (define (%accumulate-number-part)
+      (if (null? num)
+	  parts
+	(let ((s (list->string num)))
+	  (cons `(,s . ,(bytevector-u8->number s)) parts))))
+    (cond ((null? chars)
+	   (cond ((not (null? str))
+		  (assert (null? num))
+		  (%accumulate-bytevector-u8-part))
+		 ((not (null? num))
+		  (assert (null? str))
+		  (%accumulate-number-part))
+		 (else parts)))
+	  ((memv (car chars) '(#\0 #\1 #\2 #\3 #\4 #\5 #\6 #\7 #\8 #\9))
+	   (loop (cdr chars)
+		 '()
+		 (cons (car chars) num)
+		 (%accumulate-bytevector-u8-part)))
+	  ((memv (car chars) $white-spaces-for-dictionary-comparison)
+	   (loop (cdr chars) str num parts))
+	  (else
+	   (loop (cdr chars)
+		 (cons (car chars) str)
+		 '()
+		 (%accumulate-number-part))))))
+
+;;; --------------------------------------------------------------------
+
+(define (%string/numbers-dictionary-compare a b)
+  (%true-string/numbers-compare a b %string/numbers-dictionary->parts string=? string<? -1 0 +1))
+
+(define (%string/numbers-dictionary=? a b)
+  (%true-string/numbers-compare a b %string/numbers-dictionary->parts string=? string<? #f #t #f))
+
+(define (%string/numbers-dictionary<>? a b)
+  (%true-string/numbers-compare a b %string/numbers-dictionary->parts string=? string<? #t #f #t))
+
+(define (%string/numbers-dictionary<? a b)
+  (%true-string/numbers-compare a b %string/numbers-dictionary->parts string=? string<? #t #f #f))
+
+(define (%string/numbers-dictionary<=? a b)
+  (%true-string/numbers-compare a b %string/numbers-dictionary->parts string=? string<? #t #t #f))
+
+(define (%string/numbers-dictionary>? a b)
+  (%true-string/numbers-compare a b %string/numbers-dictionary->parts string=? string<? #f #f #t))
+
+(define (%string/numbers-dictionary>=? a b)
+  (%true-string/numbers-compare a b %string/numbers-dictionary->parts string=? string<? #f #t #t))
+
+;;; --------------------------------------------------------------------
+
+(define (%string/numbers-dictionary-compare-ci a b)
+  (%true-string/numbers-compare a b %string/numbers-dictionary->parts bytevector-u8-ci=? bytevector-u8-ci<?))
+
+(define (%string/numbers-dictionary-ci=? a b)
+  (%true-string/numbers-compare a b %string/numbers-dictionary->parts bytevector-u8-ci=? bytevector-u8-ci<? #f #t #f))
+
+(define (%string/numbers-dictionary-ci<>? a b)
+  (%true-string/numbers-compare a b %string/numbers-dictionary->parts bytevector-u8-ci=? bytevector-u8-ci<? #t #f #t))
+
+(define (%string/numbers-dictionary-ci<? a b)
+  (%true-string/numbers-compare a b %string/numbers-dictionary->parts bytevector-u8-ci=? bytevector-u8-ci<? #t #f #f))
+
+(define (%string/numbers-dictionary-ci<=? a b)
+  (%true-string/numbers-compare a b %string/numbers-dictionary->parts bytevector-u8-ci=? bytevector-u8-ci<? #t #t #f))
+
+(define (%string/numbers-dictionary-ci>? a b)
+  (%true-string/numbers-compare a b %string/numbers-dictionary->parts bytevector-u8-ci=? bytevector-u8-ci<? #f #f #t))
+
+(define (%string/numbers-dictionary-ci>=? a b)
+  (%true-string/numbers-compare a b %string/numbers-dictionary->parts bytevector-u8-ci=? bytevector-u8-ci<? #f #t #t))
 
 
 ;;;; mapping
@@ -447,83 +780,83 @@
 	    (and (= val new-val)
 		 (loop new-val (cdr args))))))))
 
-(define (bytevector-u8-map proc str0 . bytevector-u8s)
-  (let ((bytevector-u8s (cons str0 bytevector-u8s)))
-    (if (apply =* (map bytevector-length bytevector-u8s))
-	(let* ((len     (bytevector-length str0))
+(define (bytevector-u8-map proc bv0 . bvs)
+  (let ((bvs (cons bv0 bvs)))
+    (if (apply =* (map bytevector-length bvs))
+	(let* ((len     (bytevector-length bv0))
 	       (result  (make-bytevector len)))
 	  (do ((i 0 (+ 1 i)))
 	      ((= len i)
 	       result)
 	    (bytevector-u8-set! result i
-			 (apply proc i (map (lambda (str) (bytevector-u8-ref str i))
-					 bytevector-u8s)))))
+				(apply proc i (map (lambda (bv) (bytevector-u8-ref bv i))
+						bvs)))))
       (assertion-violation 'bytevector-u8-map
-	"expected bytevector-u8s of the same length"))))
+	"expected bytevectors of the same length"))))
 
-(define (bytevector-u8-map! proc str0 . bytevector-u8s)
-  (let ((bytevector-u8s (cons str0 bytevector-u8s)))
-    (if (apply =* (map bytevector-length bytevector-u8s))
-	(let ((len (bytevector-length str0)))
+(define (bytevector-u8-map! proc bv0 . bvs)
+  (let ((bvs (cons bv0 bvs)))
+    (if (apply =* (map bytevector-length bvs))
+	(let ((len (bytevector-length bv0)))
 	  (do ((i 0 (+ 1 i)))
 	      ((= len i))
-	    (bytevector-u8-set! str0 i
-			 (apply proc i (map (lambda (str) (bytevector-u8-ref str i))
-					 bytevector-u8s)))))
+	    (bytevector-u8-set! bv0 i
+				(apply proc i (map (lambda (bv) (bytevector-u8-ref bv i))
+						bvs)))))
       (assertion-violation 'bytevector-u8-map!
-	"expected bytevector-u8s of the same length"))))
+	"expected bytevectors of the same length"))))
 
-(define (bytevector-u8-map* proc str0 . bytevector-u8s)
-  (let* ((bytevector-u8s  (cons str0 bytevector-u8s))
-	 (len      (bytevector-u8s-list-min-length bytevector-u8s)))
+(define (bytevector-u8-map* proc bv0 . bvs)
+  (let* ((bvs  (cons bv0 bvs))
+	 (len      (bvs-list-min-length bvs)))
     (do ((i 0 (+ 1 i))
 	 (result (make-bytevector len)))
 	((= len i)
 	 result)
       (bytevector-u8-set! result i
-		   (apply proc i (map (lambda (str) (bytevector-u8-ref str i))
-				   bytevector-u8s))))))
+			  (apply proc i (map (lambda (bv) (bytevector-u8-ref bv i))
+					  bvs))))))
 
-(define (bytevector-u8-map*! proc str0 . bytevector-u8s)
-  (let* ((bytevector-u8s  (cons str0 bytevector-u8s))
-	 (len      (bytevector-u8s-list-min-length bytevector-u8s)))
+(define (bytevector-u8-map*! proc bv0 . bvs)
+  (let* ((bvs  (cons bv0 bvs))
+	 (len      (bvs-list-min-length bvs)))
     (do ((i 0 (+ 1 i)))
 	((= len i))
-      (bytevector-u8-set! str0 i
-		   (apply proc i (map (lambda (str) (bytevector-u8-ref str i))
-				   bytevector-u8s))))))
+      (bytevector-u8-set! bv0 i
+			  (apply proc i (map (lambda (bv) (bytevector-u8-ref bv i))
+					  bvs))))))
 
-(define (bytevector-u8-for-each* proc str0 . bytevector-u8s)
-  (let* ((bytevector-u8s  (cons str0 bytevector-u8s))
-	 (len      (bytevector-u8s-list-min-length bytevector-u8s)))
+(define (bytevector-u8-for-each* proc bv0 . bvs)
+  (let* ((bvs  (cons bv0 bvs))
+	 (len      (bvs-list-min-length bvs)))
     (do ((i 0 (+ 1 i)))
 	((= len i))
-      (apply proc i (map (lambda (str) (bytevector-u8-ref str i))
-		      bytevector-u8s)))))
+      (apply proc i (map (lambda (bv) (bytevector-u8-ref bv i))
+		      bvs)))))
 
 ;;; --------------------------------------------------------------------
 
-(define (%subbytevector-u8-map proc str start past)
+(define (%subbytevector-u8-map proc bv start past)
   (do ((i start (+ 1 i))
        (j 0 (+ 1 j))
        (result (make-bytevector (- past start))))
       ((>= i past)
        result)
-    (bytevector-u8-set! result j (proc (bytevector-u8-ref str i)))))
+    (bytevector-u8-set! result j (proc (bytevector-u8-ref bv i)))))
 
-(define (%subbytevector-u8-map! proc str start past)
+(define (%subbytevector-u8-map! proc bv start past)
   (do ((i start (+ 1 i)))
       ((>= i past)
-       str)
-    (bytevector-u8-set! str i (proc (bytevector-u8-ref str i)))))
+       bv)
+    (bytevector-u8-set! bv i (proc (bytevector-u8-ref bv i)))))
 
-(define (%subbytevector-u8-for-each proc str start past)
+(define (%subbytevector-u8-for-each proc bv start past)
   (let loop ((i start))
     (when (< i past)
-      (proc (bytevector-u8-ref str i))
+      (proc (bytevector-u8-ref bv i))
       (loop (+ i 1)))))
 
-(define (%subbytevector-u8-for-each-index proc str start past)
+(define (%subbytevector-u8-for-each-index proc bv start past)
   (let loop ((i start))
     (when (< i past)
       (proc i)
@@ -532,23 +865,31 @@
 
 ;;;; case hacking
 
-(define (char-cased? c)
-  ;; This works  because CHAR-UPCASE returns #f if  the character has no
-  ;; upcase version.
-  (char-upper-case? (char-upcase c)))
+(define (byte-cased? c)
+  ;;This works  because CHAR-UPCASE returns  #f if the character  has no
+  ;;upcase version.
+  (char-upper-case? (char-upcase (integer->char c))))
 
-(define (%bytevector-u8-titlecase*! str start past)
+(define (%bytevector-u8-titlecase*! bv start past)
   (let loop ((i start))
-    (cond ((%bytevector-u8-index char-cased? str i past)
+    (cond ((%bytevector-u8-index byte-cased? bv i past)
 	   => (lambda (i)
-		(bytevector-u8-set! str i (char-titlecase (bytevector-u8-ref str i)))
+		(bytevector-u8-set! bv i
+				    (char->integer
+				     (char-titlecase
+				      (integer->char (bytevector-u8-ref bv i)))))
 		(let ((i1 (+ i 1)))
-		  (cond ((%bytevector-u8-skip char-cased? str i1 past)
+		  (cond ((%bytevector-u8-skip byte-cased? bv i1 past)
 			 => (lambda (j)
-			      (%subbytevector-u8-map! char-downcase str i1 j)
+			      (%subbytevector-u8-map! (lambda (b)
+							(char->integer
+							 (char-downcase (integer->char b))))
+						      bv i1 j)
 			      (loop (+ j 1))))
 			(else
-			 (%subbytevector-u8-map! char-downcase str i1 past)))))))))
+			 (%subbytevector-u8-map! (lambda (b)
+						   (char->integer (char-downcase (integer->char b))))
+						 bv i1 past)))))))))
 
 
 ;;;; folding
@@ -1053,14 +1394,14 @@
       (bytevector-u8-set! s i (car clist)))
     s))
 
-(define (%reverse-bytevector-u8->list str start past)
+(define (%reverse-bytevector->u8-list str start past)
   (let loop ((i       start)
 	     (result  '()))
     (if (= i past)
 	result
       (loop (+ 1 i) (cons (bytevector-u8-ref str i) result)))))
 
-(define (%bytevector-u8->list* str start past)
+(define (%bytevector->u8-list* str start past)
   (do ((i (- past 1) (- i 1))
        (result '() (cons (bytevector-u8-ref str i) result)))
       ((< i start) result)))
@@ -1114,7 +1455,7 @@
 	  (else result))))
 
 
-;;;; extended subbytevector-u8
+;;;; subvector functions
 
 (define (subbytevector-u8 src start past)
   (let ((src-len	(bytevector-length src))

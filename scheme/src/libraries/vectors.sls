@@ -1,5 +1,5 @@
 ;;;
-;;;Copyright (c) 2008, 2009 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2008-2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;Copyright (c) 2008 Derick Eddington
 ;;;
 ;;;Derived from the SRFI 13 (strings list) reference implementation.
@@ -97,10 +97,12 @@
 ;;;
 
 
-
 #!r6rs
 (library (vectors)
   (export
+
+    ;; auxiliary syntaxes
+    view start past
 
     ;; constructors
     vector-concatenate			vector-concatenate-reverse
@@ -192,10 +194,10 @@
 
     (rename (unpack %vector-unpack)))
   (import (rnrs)
-    (vectors low))
+    (vectors low)
+    (auxiliary-syntaxes))
 
 
-
 (define-syntax unpack
   (syntax-rules (quote view start past)
 

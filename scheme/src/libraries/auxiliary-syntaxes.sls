@@ -1,13 +1,15 @@
 ;;; -*- coding: utf-8-unix -*-
 ;;;
 ;;;Part of: Nausicaa/Scheme
-;;;Contents: auxiliary syntaxes for class and label definitions
+;;;Contents: auxiliary syntaxes
 ;;;Date: Tue May 25, 2010
 ;;;
 ;;;Abstract
 ;;;
 ;;;	Export one binding for  each clause accepted by DEFINE-CLASS and
-;;;	DEFINE-LABEL in the (classes) library.
+;;;	DEFINE-LABEL  in  the  (classes)  library.  Exports  also  other
+;;;	auxiliary  syntaxes, like  the ones  for the  vector  and string
+;;;	views.
 ;;;
 ;;;Copyright (c) 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
@@ -27,21 +29,26 @@
 
 
 #!r6rs
-(library (classes auxiliary-syntaxes)
+(library (auxiliary-syntaxes)
   (export
     ;; bindings from (rnrs records syntactic (6))
     parent sealed opaque parent-rtd nongenerative
     protocol fields mutable immutable
 
-    ;; custom bindings
+    ;; custom bindings for (classes)
     inherit predicate maker setter getter bindings
     public-protocol maker-protocol superclass-protocol virtual-fields
-    methods method method-syntax)
+    methods method method-syntax
+
+    ;; bindings for string and vector views
+    view start past
+    )
   (import (rnrs))
   (define-syntax define-auxiliary-syntax
     (syntax-rules ()
       ((_ ?name)
        (define-syntax ?name (syntax-rules ())))))
+
   (define-auxiliary-syntax inherit)
   (define-auxiliary-syntax predicate)
   (define-auxiliary-syntax maker)
@@ -54,6 +61,11 @@
   (define-auxiliary-syntax virtual-fields)
   (define-auxiliary-syntax methods)
   (define-auxiliary-syntax method)
-  (define-auxiliary-syntax method-syntax))
+  (define-auxiliary-syntax method-syntax)
+
+  (define-auxiliary-syntax view)
+  (define-auxiliary-syntax start)
+  (define-auxiliary-syntax past)
+  )
 
 ;;; end of file

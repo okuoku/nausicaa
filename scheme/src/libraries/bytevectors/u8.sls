@@ -201,13 +201,10 @@
 
     (rename (unpack %bytevector-u8-unpack)))
   (import (rnrs)
-    (bytevectors u8low))
+    (bytevectors u8low)
+    (auxiliary-syntaxes))
 
 
-(define-syntax view  (syntax-rules ()))
-(define-syntax start (syntax-rules ()))
-(define-syntax past  (syntax-rules ()))
-
 (define-syntax unpack
   (syntax-rules (view start past)
 

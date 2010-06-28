@@ -27,7 +27,7 @@
 
 
 #!r6rs
-(library (classes auxiliary-syntaxes)
+(library (auxiliary-syntaxes)
   (export
     ;; bindings  which should be  from (rnrs records syntactic  (6)) but
     ;; are not under Larceny
@@ -37,7 +37,11 @@
     ;; custom bindings
     inherit predicate maker setter getter bindings
     public-protocol maker-protocol superclass-protocol virtual-fields
-    methods method method-syntax)
+    methods method method-syntax
+
+    ;; bindings for string and vector views
+    view start past
+    )
   (import (rnrs))
   (define-syntax define-auxiliary-syntax
     (syntax-rules ()
@@ -66,6 +70,11 @@
   (define-auxiliary-syntax virtual-fields)
   (define-auxiliary-syntax methods)
   (define-auxiliary-syntax method)
-  (define-auxiliary-syntax method-syntax))
+  (define-auxiliary-syntax method-syntax)
+
+  (define-auxiliary-syntax view)
+  (define-auxiliary-syntax start)
+  (define-auxiliary-syntax past)
+  )
 
 ;;; end of file

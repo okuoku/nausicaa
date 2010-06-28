@@ -1,4 +1,3 @@
-;;; strings library --
 ;;;
 ;;;Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
@@ -227,13 +226,10 @@
 
     (rename (unpack %string-unpack)))
   (import (rnrs)
-    (strings low))
+    (strings low)
+    (auxiliary-syntaxes))
 
 
-(define-syntax view  (syntax-rules ()))
-(define-syntax start (syntax-rules ()))
-(define-syntax past  (syntax-rules ()))
-
 (define-syntax unpack
   (syntax-rules (view start past)
 
