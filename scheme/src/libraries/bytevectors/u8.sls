@@ -132,7 +132,7 @@
 
     ;; constructors
     bytevector-u8-concatenate  bytevector-u8-concatenate-reverse  bytevector-u8-tabulate
-    subbytevector-u8
+    subbytevector-u8 bytevector-u8-append
 
     ;; predicates
     bytevector-u8-null?  bytevector-u8-every  bytevector-u8-any
@@ -185,7 +185,7 @@
     bytevector-u8-filter bytevector-u8-delete
 
     ;; lists
-    bytevector-u8->list*  reverse-list->bytevector-u8
+    bytevector->u8-list*  reverse-u8-list->bytevector
     bytevector-u8-join    bytevector-u8-tokenize
     (rename (bytevector-u8-tokenize bytevector-u8-tokenise))
 
@@ -645,13 +645,13 @@
 
 ;;;; bytevector-u8s and lists
 
-(define-syntax bytevector-u8->list*
+(define-syntax bytevector->u8-list*
   (syntax-rules ()
     ((_ ?S)
      (let-values (((str beg past) (unpack ?S)))
        (%bytevector-u8->list* str beg past)))))
 
-(define-syntax reverse-bytevector-u8->list
+(define-syntax reverse-bytevector->u8-list
   (syntax-rules ()
     ((_ ?S)
      (let-values (((str beg past) (unpack ?S)))

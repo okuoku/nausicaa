@@ -7561,7 +7561,7 @@ There are no low level functions for these macros because they are just
 wrappers for @func{%string-map} and @func{%string-map!}.
 
 @func{string-upcase} and @func{string-downcase} return the result string
-and do not alter their s parameter.  @func{string-upcase!} and
+and do not alter their parameter.  @func{string-upcase!} and
 @func{string-downcase!} are the in--place side--effecting variants.
 @end deffn
 
@@ -10272,6 +10272,12 @@ obvious.
 @subsection Constructors
 
 
+@defun bytevector-u8-append @varo{bv} @var{bv} ...
+Return a newly allocated bytevector whose bytes form the concatenation
+of the given bytevectors.
+@end defun
+
+
 @defun bytevector-u8-concatenate @var{bvs-list}
 Append the elements of @var{bvs-list} together into a single bytevector.
 Guaranteed to return a freshly allocated bytevector.
@@ -10914,34 +10920,17 @@ safe and correct.
 @deffn Function %bytevector-u8-titlecase*! @var{bv} @var{start} @var{past}
 @deffnx Macro bytevector-u8-titlecase* @var{B}
 @deffnx Macro bytevector-u8-titlecase*! @var{B}
-For every byte @math{c} in the selected range of @var{bv}, if @math{c}
-is preceded by a cased character, it is downcased; otherwise it is
-titlecased.
+For every byte @math{b}, interpreted in @ascii{} encoding, in the
+selected range of @var{bv}, if @math{b} is preceded by a byte
+representing a cased character in @ascii{} encoding, @var{b} is
+downcased; otherwise it is titlecased.
 
 @func{bytevector-u8-titlecase*} returns the result string and does not alter
 its s parameter.  @func{bytevector-u8-titlecase!} is the in--place
 side--effecting variant.
 
-Examples:
-
-@example
-(bytevector-u8-titlecase* "--capitalize tHIS sentence.")
-@result{} "--Capitalize This Sentence."
-
-(bytevector-u8-titlecase* "see Spot run. see Nix run.")
-@result{} "See Spot Run. See Nix Run."
-
-(bytevector-u8-titlecase* "3com makes routers.")
-@result{} "3Com Makes Routers."
-@end example
-
-Note that the character preceding @code{str[start]} has no effect on the
-titlecase decision for character @code{str[start]}:
-
-@example
-(bytevector-u8-titlecase* ("greasy fried chicken" 2))
-@result{} "Easy Fried Chicken"
-@end example
+Note that the byte preceding @code{bv[start]} has no effect on the
+titlecase decision for byte @code{bv[start]}.
 @end deffn
 
 
@@ -10949,13 +10938,15 @@ titlecase decision for character @code{str[start]}:
 @deffnx Macro bytevector-u8-upcase*! @var{B}
 @deffnx Macro bytevector-u8-downcase* @var{B}
 @deffnx Macro bytevector-u8-downcase*! @var{B}
-Raise or lower the case of the alphabetic characters in the string.
-There are no low level functions for these macros because they are just
-wrappers for @func{%bytevector-u8-map} and @func{%bytevector-u8-map!}.
+Interpret the bytes in the selected bytevector in @ascii{} encoding:
+raise or lower the case of the alphabetic characters.  There are no low
+level functions for these macros because they are just wrappers for
+@func{%bytevector-u8-map} and @func{%bytevector-u8-map!}.
 
-@func{bytevector-u8-upcase} and @func{bytevector-u8-downcase} return the result string
-and do not alter their s parameter.  @func{bytevector-u8-upcase!} and
-@func{bytevector-u8-downcase!} are the in--place side--effecting variants.
+@func{bytevector-u8-upcase} and @func{bytevector-u8-downcase} return the
+result string and do not alter their parameter.
+@func{bytevector-u8-upcase!} and @func{bytevector-u8-downcase!} are the
+in--place side--effecting variants.
 @end deffn
 
 @c page
