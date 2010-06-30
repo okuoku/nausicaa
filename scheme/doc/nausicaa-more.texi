@@ -603,6 +603,7 @@ the list of original documents and their authors.  See also the
 * scmobj::                      A simple object system.
 * sexps::                       Handling symbolic expressions.
 * matches::                     Pattern matching.
+* syntax-matches::              Pattern matching for syntax transformers.
 * irregex::                     IrRegular expressions.
 * pregexp::                     Portable regular expressions for Scheme.
 * parser-tools::                Lexer and parser utilities.
@@ -24778,6 +24779,1262 @@ Examples:
 @result{} 3
 @end example
 @end deffn
+
+@c page
+@node syntax-matches
+@chapter Pattern matching for syntax transformers
+
+
+The @library{syntax-matches} library implements @dfn{pattern matching},
+also known as @dfn{destructuring bind}.  The library creates simple
+generative pattern matchers; each pattern is expanded into the required
+tests, calling a failure continuation if the tests fail.
+
+This makes the logic easy to follow and extend, but produces sub-optimal
+code in cases where we have many similar clauses due to repeating the
+same tests.  Nonetheless a smart compiler should be able to remove the
+redundant tests.  For ``match let'' and ``destructuring bind'' type uses
+there is no performance hit.  Also, the library is great for batch
+processing of S-expressions.
+
+The library does everything through syntaxes, no functions are defined
+nor exported.
+
+@menu
+* syntax-matches match::               Basic pattern matching.
+* syntax-matches condition::           Mismatch error condition.
+* syntax-matches syntax::              The pattern syntax.
+* syntax-matches macros::              Syntaxes for pattern matching.
+@end menu
+
+@c page
+@node syntax-matches match
+@section Basic pattern matching
+
+
+@deffn Syntax match @ameta{sexp} @ameta{clause} ...
+@deffnx {Auxiliary Syntax} =>
+Match the S--expression @meta{sexp} against the @meta{clause} arguments;
+each clause is one of:
+
+@example
+(@cmeta{pattern} . @cmeta{body})
+(@cmeta{pattern} (=> next) . @cmeta{body})
+@end example
+
+@meta{expr} is evaluated and the result is matched against each
+@meta{pattern} in turn; the first to succeed causes the corresponding
+@meta{body} forms to be evaluated as in @func{begin}, and the remaining
+patterns are ignored.  However, if the @samp{next} identifier is
+labeled, it may be used as a continuation to continue matching, allowing
+for additional runtime tests on the pattern.
+
+The syntax for the patterns is:
+
+@table @samp
+@item _
+The literal underscore is the wildcard: it matches anything, it does not
+bind any variable.
+
+@item #t
+Matches if non-false.
+
+@item #f
+Matches if false.
+
+@item @cmeta{literal}
+Matches with @func{equal?}.
+
+@item (quote @cmeta{sexp})
+A literal S--expression; matches with @func{equal?}.
+
+@item @cmeta{variable}
+When the pattern is an unquoted symbol: it matches anything and binds
+@meta{variable} to it as in:
+
+@example
+(let ((@meta{variable} @meta{matched subexpression}))
+  ---)
+@end example
+
+@item (@cmeta{pattern1} --- @cmeta{patternN})
+Proper list of @math{N} elements.
+
+@item (@cmeta{pattern1} --- @cmeta{patternN} . @cmeta{patternN+1})
+Improper list of @math{N} or more elements.
+
+@item (@cmeta{pattern1} --- @cmeta{patternN} @cmeta{patternN+1} ...)
+List of @math{N} or more elements with terminating ellipsis; each
+element of remainder must match @meta{patternN+1}.
+
+@item #(@cmeta{pattern1} --- @cmeta{patternN})
+Vector of @math{N} elements.
+
+@item #(@cmeta{pattern1} --- @cmeta{patternN} @cmeta{patternN+1} ...)
+Vector of @math{N} or more elements with terminating ellipsis; each
+element of remainder must match @meta{patternN+1}.
+
+@item (:and @cmeta{pattern} ---)
+If all of @meta{pattern} match.
+
+@item (:or @cmeta{pattern} ---)
+If any of @meta{pattern} match.
+
+@item (:not @cmeta{pattern} ---)
+If all @meta{pattern} do not match at all.
+
+@item (:predicate @cmeta{pred} @cmeta{pattern} ---)
+If the predicate function @meta{pred} applied to the subexpression is
+true and all the @meta{pattern} match.
+
+@item (:accessor @cmeta{proc} @cmeta{pattern})
+If @meta{pattern} matches the result of applying @meta{proc} to the
+subexpression.
+
+@item (:getter @cmeta{symbol})
+Match anything and bind to @meta{symbol} a thunk which, when evaluated,
+returns the matched element itself.
+
+@item (:setter @cmeta{symbol})
+Match anything and bind to @meta{symbol} a function which, when applied
+to a value, replaces the expression with that value.  This involves the
+use of @func{set-car!}, @func{set-cdr!} and other mutators.
+@end table
+@end deffn
+
+@c page
+@node syntax-matches condition
+@section Mismatch error condition
+
+
+When the expansion of @func{match}, or one of its derivatives, detects a
+mismatch between the expression and the patterns in @strong{all} the
+clauses, an error is raised with condition type
+@condition{match-mismatch}.
+
+
+@deftp {Condition Type} &match-mismatch
+Raised to signal an expression/pattern mismatch while evaluating the
+expansion of @func{match}; it is derived from @condition{mismatch} from
+the @library{conditions} library.  There is only one field,
+@samp{expression}, which holds the mismatched expression.
+@end deftp
+
+
+@defun make-match-mismatch-condition @var{expression}
+Build and return a condition of type @condition{match-mismatch}.
+@end defun
+
+
+@defun match-mismatch-condition? @var{obj}
+Return @true{} if @var{obj} is a condition of type
+@condition{match-mismatch}.
+@end defun
+
+
+@defun condition-match-mismatch-expression @var{obj}
+Accessor for the @samp{expression} field of a @condition{match-mismatch}
+condition object.
+@end defun
+
+
+@deffn Syntax match-mismatch-error @ameta{who} @ameta{expression}
+Raise a non--continuable exception with condition types:
+@condition{match-mismatch}, @condition{message}, @condition{who}.  All
+the arguments are evaluated only once.
+@end deffn
+
+@c page
+@node syntax-matches syntax
+@section The pattern syntax
+
+
+This section describes the syntax of the patterns and gives examples of
+expansion for the @func{match} macro.  The full expansion can be quite
+big, with several nested @func{let} forms; for this reason, when
+convenient, only a smaller but conceptually equivalent expansion is
+shown.
+
+While expanding, the @func{match} macro introduces unique identifiers
+bound to expressions; there is no way to directly reference these
+identifiers in the body of a clause.  They are indicated here with
+@samp{expr}, @samp{expr1}, @samp{expr2}, @dots{}
+
+@menu
+* syntax-matches syntax wildcard::     Matching anything with blind
+                                       semantic action.
+* syntax-matches syntax literal::      Matching literal values.
+* syntax-matches syntax clauses::      Multiple clauses.
+* syntax-matches syntax quoted::       Matching quoted S--expressions.
+* syntax-matches syntax lists::        Matching pairs and lists.
+* syntax-matches syntax vectors::      Matching vectors.
+* syntax-matches syntax variables::    Pattern variables.
+* syntax-matches syntax pred::         Matching with predicates.
+* syntax-matches syntax accessor::     Matching with accessor
+                                       procedures.
+* syntax-matches syntax logic::        Logic alternatives and negation.
+* syntax-matches syntax quasiquote::   Matching quasiquotation.
+* syntax-matches syntax getter::       Getting values out of the
+                                       expression.
+* syntax-matches syntax setter::       Mutating the expression's value.
+* syntax-matches syntax continuation:: Continuing after mismatch.
+* syntax-matches syntax ellipsis::     Matching an arbitrary number of
+                                       subexpressions.
+@end menu
+
+@c page
+@node syntax-matches syntax wildcard
+@subsection Mathing anything with blind semantic action
+
+
+The wildcard pattern @samp{_} matches any expression and, when used
+alone, it only allows the evaluation of code independent from the
+expression itself.  A wildcard pattern usage looks like this:
+
+@example
+(match '(1 2 3)
+  (_ 'ok))
+@result{} ok
+@end example
+
+@noindent
+we can think of it as expanding to:
+
+@example
+(let ((expr '(1 2 3)))
+  'ok)
+@end example
+
+@noindent
+where @samp{expr} is a unique identifier symbol introduced by the
+expansion of @func{match}; there is no way to reference such an
+identifier in the body of a clause.
+
+We understand that it does not matter what the expression is, because
+the body of the wildcard pattern will always ignore it.
+
+Notice that it is possible to match the cdr of a list with:
+
+@example
+(match '(1 2 3 4)
+  ((1 2 . _)
+   'ok))
+@result{} ok
+@end example
+
+@noindent
+with patterns of the form @samp{(@cmeta{pattern} ... . _)} the tail of
+the list can be a subexpression but also null.
+
+@c page
+@node syntax-matches syntax literal
+@subsection Matching literal values
+
+
+Literal values can be matched by putting them in the pattern.  The usage
+of a literal matcher for the number @samp{123} looks like this:
+
+@example
+(match 123
+  (123 'ok))
+@result{} ok
+@end example
+
+@noindent
+we can think of it as expanding to:
+
+@example
+(let ((expr 123))
+  (if (equal? expr 123)
+      'ok
+    (match-mismatch-error 'match expr)))
+@end example
+
+@noindent
+if there is a mismatch an error will be raised:
+
+@example
+(match 9
+  (123 'ok))
+@error{} "no matching pattern"
+@end example
+
+Literal matching is performed with @func{equal?} (rather than
+@func{eqv?} or @func{eq?}) because, when matching strings and
+bytevectors, it makes use of the appropriate predicates @func{string=?}
+and @func{bytevector=?} as mandated by @rnrs{6}.
+
+A more specialised comparison function (like @func{=}) cannot be used
+because literal matching has to fail gracefully when comparing, say, a
+number with a string: @func{equal?} returns @false{}, while @func{=} and
+@func{string=?} would raise an error.
+
+@c page
+@node syntax-matches syntax clauses
+@subsection Multiple clauses
+
+
+When a pattern fails to match an expression, @func{match} will try with
+the next clause.  A multiple clause matcher usage looks like this:
+
+@example
+(match 2
+  (1 'one)
+  (2 'two)
+  (_ 'any))
+@result{} two
+@end example
+
+@noindent
+we can think of it as expanding to:
+
+@example
+(let ((expr 2))
+  (if (equal? expr 1)
+      'one
+    (if (equal? expr 2)
+        'two
+      'any)))
+@end example
+
+@noindent
+we see that it detects the fact that the pattern in the last clause
+matches everything; without the wildcard pattern:
+
+@example
+(match 2
+  (1 'one)
+  (2 'two))
+@end example
+
+@noindent
+the expansion is equivalent to:
+
+@example
+(let ((expr 2))
+  (if (equal? expr 1)
+      'one
+    (if (equal? expr 2)
+        'two
+      (match-mismatch-error 'match expr))))
+@end example
+
+We can use a specialised form to raise a mismatch error with:
+
+@example
+(match @cmeta{expr}
+  (1 'one)
+  (2 'two)
+  (_
+   (raise-specialised-error)))
+@end example
+
+@c page
+@node syntax-matches syntax quoted
+@subsection Matching quoted S--expressions
+
+
+Matching quoted S--expressions is similar to matching literals.  The
+usage of a quoted sexp matcher for a symbol looks like this:
+
+@example
+(match 'alpha
+  ('alpha 'ok))
+@result{} ok
+
+(match 'beta
+  ('alpha 'ok))
+@error{} no matching pattern
+@end example
+
+@noindent
+we can think of it as expanding to:
+
+@example
+(let ((expr 'alpha))
+  (if (eq? expr 'alpha)
+      'ok
+    (match-matching-error 'match expr)))
+@end example
+
+The @func{match} macro can detect at expansion time whether the quoted
+pattern is a symbol or a generic S--expression, so it can optimise the
+expansion to use @func{eq?} or @func{equal?}.  The following usage
+matches a generic S--expression:
+
+@example
+(match '(alpha (beta (delta 123)))
+  ('(alpha (beta (delta 123))) 'ok))
+@result{} ok
+
+(match '(alpha (gamma (delta 123)))
+  ('(alpha (beta (delta 123))) 'ok))
+@error{} no matching pattern
+@end example
+
+@noindent
+we can think of it as expanding to:
+
+@example
+(let ((expr '(alpha (beta (delta 123)))))
+  (if (equal? expr '(alpha (beta (delta 123))))
+      'ok
+    (match-matching-error 'match expr)))
+@end example
+
+@c page
+@node syntax-matches syntax lists
+@subsection Matching pairs and lists
+
+
+Pairs and lists in expressions can be matched by pairs and lists in the
+pattern.  The usage of a pair matcher looks like this:
+
+@example
+(match '(1 . 2)
+  ((1 . 2)
+   'ok))
+@result{} ok
+@end example
+
+@noindent
+we can think of it as expanding to:
+
+@example
+(let ((expr '(1 . 2)))
+  (if (pair? expr)
+      (let ((expr1 (car expr))
+            (expr2 (cdr expr)))
+        (if (equal? expr1 1)
+            (if (equal? expr2 2)
+                'ok
+              (match-mismatch-error 'match expr2))
+          (match-mismatch-error 'match expr1)))
+    (match-mismatch-error 'match expr)))
+@end example
+
+@noindent
+we see that the expression pair is destructured in its car and cdr, then
+both are matched against the car and cdr of the pattern, which happen to
+be literals in this example; if we isolate the parts related to matching
+the pair we obtain:
+
+@example
+(let ((expr '(1 . 2)))
+  (if (pair? expr)
+      (let ((expr1 (car expr))
+            (expr2 (cdr expr)))
+        ---)
+    (match-mismatch-error 'match expr)))
+@end example
+
+@noindent
+we can understand how multiple patterns are matched by nesting forms one
+into the other.
+
+If we just want to verify that the expression is a pair, we can use the
+wildcards:
+
+@example
+(match '(1 . 2)
+  ((_ . _)
+   'ok))
+@result{} ok
+@end example
+
+@noindent
+we can think of it as expanding to:
+
+@example
+(let ((expr '(1 . 2)))
+  (if (pair? expr)
+      (let ((expr1 (car expr))
+            (expr2 (cdr expr)))
+        ok)
+    (match-mismatch-error 'match expr)))
+@end example
+
+We can match a list of literals with the following code:
+
+@example
+(match '(1 2 3)
+  ((1 2 3)
+   'ok))
+@result{} ok
+@end example
+
+@noindent
+we can think of it as expanding to:
+
+@example
+(let ((expr '(1 2)))
+  (if (pair? expr)
+      (let ((expr1 (car expr))
+            (expr2 (cdr expr)))
+        (if (equal? expr1 1)
+            (if (pair? expr2)
+                (let ((expr3 (car expr2))
+                      (expr4 (cdr expr2)))
+                  (if (equal? expr3 2)
+                      (if (null? expr4)
+                          'ok
+                        (match-mismatch-error 'match expr4))
+                    (match-mismatch-error 'match expr3)))
+              (match-mismatch-error 'match expr2))
+          (match-mismatch-error 'match expr1)))
+    (match-mismatch-error 'match expr)))
+@end example
+
+@c page
+@node syntax-matches syntax vectors
+@subsection Matching vectors
+
+
+Vectors in expressions can be matched by vectors in the pattern.  The
+usage of a vector matcher looks like this:
+
+@example
+(match '#(1 2)
+  (#(1 2) 'ok))
+@result{} ok
+@end example
+
+@noindent
+we can think of it as expanding to:
+
+@example
+(let ((expr '#(ok)))
+  (if (vector? expr)
+      (let ((len (vector-length expr)))
+        (if (= len 2)
+            (let ((expr1 (vector-ref expr 0)))
+              (if (equal? expr1 1)
+                  (let ((expr2 (vector-ref expr 1)))
+                    (if (equal? expr2 2)
+                        'ok
+                      (check-mismatch-error 'match expr2)))
+                (check-mismatch-error 'match expr1)))
+          (check-mismatch-error 'match expr)))
+    (match-mismatch-error 'match expr)))
+@end example
+
+An empty vector pattern matches an empty expression pattern:
+
+@example
+(match '#()
+  (#() 'ok))
+@result{} ok
+@end example
+
+@c page
+@node syntax-matches syntax variables
+@subsection Pattern variables
+
+
+Pattern variables match any expression and bind them to a known
+identifier symbol.  A pattern variable usage looks like this:
+
+@example
+(match '(1 2 3)
+  (alpha    alpha))
+@result{} (1 2 3)
+@end example
+
+@noindent
+we can think of it as expanding to:
+
+@example
+(let ((expr '(1 2 3)))
+  (let ((alpha expr))
+    alpha))
+@end example
+
+We understand that it does not matter what the expression is, because
+@func{match} just binds it to the selected identifier.  We can reference
+the identifier any number of times:
+
+@example
+(match '(1 2 3)
+;; pattern  body
+  (alpha    (list alpha alpha alpha)))
+@result{} ((1 2 3) (1 2 3) (1 2 3))
+@end example
+
+@noindent
+which expands to:
+
+@example
+(let ((expr '(1 2 3)))
+  (let ((alpha expr))
+    (list alpha alpha alpha)))
+@end example
+
+We can use the same variable multiple times in a single pattern; the
+first time it will be bound to the expression, while the subsequent
+times the new expression will be compared to the bound value using
+@func{equal?}:
+
+@example
+(match '(1 1)
+  ((X X) 'ok))
+@result{} ok
+
+(match '(1 2)
+  ((X X) 'ok))
+@error{} no matching pattern
+@end example
+
+@noindent
+we can think of it as expanding to:
+
+@example
+(let ((expr '(1 1)))
+  (let ((expr1 (car  expr))
+        (expr2 (cadr expr)))
+    (let ((X expr1))            ;1st time, bind expression
+      (if (equal? expr2 X)      ;2nd time, compare previous
+          'ok
+        (match-mismatch-error 'match expr2)))))
+@end example
+
+@c page
+@node syntax-matches syntax pred
+@subsection Matching with predicates
+
+
+An expression can be matched agains a predicate: the match is successful
+if the predicate applied to it evaluates to true.  A predicate pattern
+usage looks like this:
+
+@example
+(match 123
+  ((:predicate integer?)
+   'ok))
+@result{} ok
+
+(match 'alpha
+  ((:predicate integer?)
+   'ok))
+@error{} no matching pattern
+@end example
+
+@noindent
+we can think of it as expanding to:
+
+@example
+(let ((expr 123))
+  (if (integer? expr)
+      'ok
+    (match-mismatch-error 'match expr)))
+@end example
+
+We can add more predicates in the @code{:predicate} form and all of them
+are tried if the predicate evaluates to true:
+
+@example
+(match 28
+  ((:predicate number? x)
+   x))
+@result{} 28
+@end example
+
+@noindent
+we can think of it as expanding to:
+
+@example
+(let ((expr 123))
+  (if (integer? expr)
+      (let ((x expr))
+        'ok)
+    (match-mismatch-error 'match expr)))
+@end example
+
+More examples:
+
+@example
+(match 28
+  ((:predicate number? x y z)
+   (list x y z)))
+@result{} (28 28 28)
+
+(match 28
+  ((:predicate number? (:predicate integer? x))
+   (+ 1 x)))
+@result{} 29
+@end example
+
+@c page
+@node syntax-matches syntax accessor
+@subsection Matching with accessor procedures
+
+
+Matching a sexp with an accessor means that instead of matching the sexp
+itself, we first apply a procedure to it and then try to match the
+pattern against the result.  An accessor pattern usage looks like this:
+
+@example
+(match '(1 2)
+  ((:accessor car x)
+   x))
+@result{} 1
+@end example
+
+@noindent
+we can think of it as expanding to:
+
+@example
+(let ((expr '(1 2)))
+  (let ((expr1 (car expr)))
+    (let ((x expr1))
+      x)))
+@end example
+
+@noindent
+we see that the pattern @samp{x} is matched against the result of
+applying the accessor @func{car} to the expression.  It is mandatory to
+specify a single pattern after the accessor in the @code{:accessor} form.
+
+A notable use of this pattern is to access record fields:
+
+@example
+(define-record-type color
+  (fields (immutable red)
+          (immutable green)
+          (immutable blue)))
+
+(match (make-color 1 2 3)
+  ((:predicate color?
+      (:accessor color-red   x)
+      (:accessor color-green y)
+      (:accessor color-blue  z))
+   (list x y z)))
+@result{} (1 2 3)
+
+(match (make-color 1 2 3)
+  ((:predicate color?
+      (:accessor color-red
+         (:predicate zero?))) 'ok)
+  (_ 'fail))
+@result{} fail  ;because red is not zero
+@end example
+
+@c page
+@node syntax-matches syntax logic
+@subsection Logic alternatives and negation
+
+
+We can compose patterns using a logical AND or a logical OR; we can also
+negate the matching of a pattern.
+
+@menu
+* syntax-matches syntax logic and::  Logical conjunction.
+* syntax-matches syntax logic or::   Logical disjunction.
+* syntax-matches syntax logic not::  Logical negation.
+@end menu
+
+@c page
+@node syntax-matches syntax logic and
+@subsubsection Logical conjunction
+
+
+A logical AND pattern usage looks like this:
+
+@example
+(match 123
+  ((:and (:predicate number?)
+         (:predicate positive?)
+         x)
+   x))
+@result{} 123
+@end example
+
+@noindent
+we can think of it as expanding to:
+
+@example
+(let ((expr 123))
+  (if (number? expr)
+      (if (positive? expr)
+          (let ((x expr))
+            x)
+        (match-mismatch-error 'match expr))
+    (match-mismatch-error 'match expr)))
+@end example
+
+@noindent
+the code performing the matching is simply nested referencing the same
+expression.  An empty @code{:and} pattern will match everything, it is
+equivalent to the wildcard @samp{_}:
+
+@example
+(match 123
+  ((:and) 'ok))
+@result{} ok
+@end example
+
+@c page
+@node syntax-matches syntax logic or
+@subsubsection Logical disjunction
+
+
+A logical OR pattern usage looks like this:
+
+@example
+(match 123
+  ((:or (:predicate number? x)
+        (:predicate symbol? x))
+   x))
+@result{} 123
+
+(match 'alpha
+  ((:or (:predicate number? x)
+        (:predicate symbol? x))
+   x))
+@result{} alpha
+@end example
+
+@noindent
+we can think of it as expanding to:
+
+@example
+(let ((expr 123))
+  (let ((success (lambda (x) x)))
+    (if (number? expr)
+        (let ((x expr))
+          (success x))
+      (if (symbol? expr)
+          (let ((x expr))
+            (success x))
+        (match-mismatch-error 'match expr)))))
+@end example
+
+@noindent
+the @samp{success} procedure is the ``success continuation''; it takes
+as arguments one value for each of the pattern variables in each of the
+@code{:or} alternative patterns.  All the pattern variables defined in
+an @code{:or} alternative must be defined in all the other, else an
+error will occur.  (The @samp{success} identifier is introduced by
+@func{match} while expanding, so it cannot be referenced directly in the
+body of a clause.)
+
+The above example is correct because @samp{x} is defined in both the
+alternative patterns, the following example is wrong:
+
+@example
+(match 123
+  ((:or (:predicate integer? x)
+        (:predicate symbol?  y))
+   y))
+@error{} unbound identifier
+@end example
+
+@noindent
+because it expands to:
+
+@example
+(let ((expr 123))
+  (let ((success (lambda (x y) y)))
+    (if (integer? expr)
+        (let ((x expr))
+          (success x y))        ;undefined y
+      (if (symbol? expr)
+          (let ((y expr))
+            (success x y))      ;undefined x
+        (match-mismatch-error 'match expr)))))
+@end example
+
+An empty @code{:or} pattern matches nothing, it always fails:
+
+@example
+(match 123
+  ((:or) 'fail))
+@error{} no matching pattern
+@end example
+
+@c page
+@node syntax-matches syntax logic not
+@subsubsection Logical negation
+
+
+A logical NOT pattern usage looks like this:
+
+@example
+(match 123
+  ((:not (:predicate symbol?))
+   'ok))
+@result{} ok
+@end example
+
+@noindent
+we can think of it as expanding to:
+
+@example
+(let ((expr 123))
+  (if (symbol? expr)
+      (match-mismatch-error 'match expr)
+    'ok))
+@end example
+
+Notice that the following will raise an error:
+
+@example
+(match 123
+  ((:not (:predicate symbol? x))
+   x))
+@error{} unbound identifier x
+@end example
+
+@noindent
+because the @code{:predicate} pattern fails to match, so @samp{x} is not
+bound when the body evaluates; we can think of it as expanding to:
+
+@example
+(let ((expr 123))
+  (if (symbol? expr)
+      (let ((x expr))
+        (match-mismatch-error 'match expr))
+    x))
+@end example
+
+@c page
+@node syntax-matches syntax quasiquote
+@subsection Matching quasiquotation
+
+
+The patterns in the clauses are like quoted S--expressions:
+
+@example
+(let ((x 9))
+  (match 1
+    (x x)))
+@result{} 1
+@end example
+
+@noindent
+the @samp{x} in the pattern is a pattern variable which shadows the
+outer @samp{x} binding.
+
+Despite this, we can insert a runtime value in the pattern matching
+forms using @samp{quasiquote} forms; only single values can be inserted
+like this (rather than chunks of patterns), the pattern specification
+remains unchanged.  A @samp{quasiquote} pattern usage looks like this:
+
+@example
+(let ((x 1))
+  (match 1
+    (`,x 'ok)
+    (_   'fail)))
+@result{} ok
+@end example
+
+@noindent
+we can think of it as expanding to:
+
+@example
+(let ((x 1))
+  (let ((expr 1))
+    (let ((pattern `,x))
+      (if (equal? pattern expr)
+          'ok
+        'fail))))
+@end example
+
+Let's see other examples:
+
+@example
+(let ((x 2))
+  (match '(1 2 3)
+    ((_ `,x y) y)
+    (_         'fail)))
+@result{} 3
+
+(let ((x 10))
+  (match '(1 2 3)
+    ((_ `,(- x 8) y)
+     y)))
+@result{} 3
+
+(let ((x '(2 3)))
+  (match '(1 2 3 4)
+    (`(1 ,@@x 4)   'ok)))
+@result{} ok
+@end example
+
+The @samp{quasiquote} mechanism can be used to select predicates and
+accessors, too:
+
+@example
+(let ((pred number?))
+  (match 28
+    ((:predicate `,pred) 'ok)))
+@result{} ok
+
+(let ((f (lambda (x) (+ 1 x))))
+  (match 2
+    ((:accessor `,f x) x)))
+@result{} 3
+@end example
+
+@c page
+@node syntax-matches syntax getter
+@subsection Getting values out of the expression
+
+
+A getter expression matcher looks like this:
+
+@example
+(match 2
+  ((:getter two)
+   (two)))
+@result{} 2
+@end example
+
+@noindent
+we can think of it as expanding to:
+
+@example
+(let ((expr 2))
+  (let ((two (lambda () expr)))
+    (two)))
+@end example
+
+@noindent
+so the @samp{(:getter two)} pattern instructs @func{match} to define a
+thunk that can be used to retrieve the expression itself.  We understand
+that the single argument @meta{getter} in the abstract pattern
+@samp{(:getter @cmeta{getter})} must be an indentifier.  We can evaluate
+the thunk any number of times.
+
+Let's look at another example:
+
+@example
+(match '(1 2 3)
+  ((_ (:getter two) _)
+   (two)))
+@result{} 2
+@end example
+
+@noindent
+we can think of this as expanding to:
+
+@example
+(let ((expr '(1 2 3)))
+  (let ((expr1 (cadr expr)))
+    (let ((two (lambda () expr1)))
+      (two))))
+@end example
+
+@c page
+@node syntax-matches syntax setter
+@subsection Mutating the expression's value
+
+
+A setter expression matcher looks like this:
+
+@example
+(let ((x 1))
+  (match x
+    ((:setter doit)
+     (doit 3)))
+  x)
+@result{} 3
+@end example
+
+@noindent
+we can think of it as expanding to:
+
+@example
+(let ((x 1))
+  (let ((expr x))
+    (let ((doit (lambda (y) (set! x y))))
+      (doit 3)))
+  x)
+@end example
+
+@noindent
+so the @samp{(:setter doit)} pattern instructs @func{match} to define a
+procedure that can be used to store a new value in the expression
+itself.  We understand that the single argument @meta{setter} in the
+abstract pattern @samp{(:setter @cmeta{setter})} must be an indentifier.
+We can evaluate the procedure any number of times.
+
+For a composite expression, @func{match} tries to select the correct
+mutator:
+
+@example
+(let ((x '(1 . 2)))
+  (match x
+    (((:setter doit) . _)
+     (doit 3)))
+  x)
+@result{} (3 . 2)
+@end example
+
+@noindent
+we can think of it as expanding to:
+
+@example
+(let ((x '(1 . 2)))
+  (let ((expr x))
+    (if (pair? expr)
+        (let ((expr1 (car expr))
+              (expr2 (cdr expr)))
+          (let ((doit (lambda (y) (set-car! x y))))
+            (doit 3)))
+      (match-mismatch-error 'match expr)))
+  x)
+@end example
+
+@noindent
+and for a cadr setter:
+
+@example
+(let ((x '(1 2 3)))
+  (match x
+    ((_ (:setter doit) _)
+     (doit 9)))
+  x)
+@result{} (1 9 3)
+@end example
+
+@noindent
+we can think of it as expanding to:
+
+@example
+(let ((x '(1 2 3)))
+  (let ((expr x))
+    (if (pair? expr)
+        (let ((expr1 (car expr))
+              (expr2 (cdr expr)))
+          (if (pair? expr2)
+              (let ((doit (lambda (y) (set-car! (cdr x) y))))
+                (doit 3))
+            (match-mismatch-error 'match expr2)))
+      (match-mismatch-error 'match expr)))
+  x)
+@end example
+
+The setter works only when the expression is an identifier or a
+composite object like a list or vector, the following will fail:
+
+@example
+(match 1
+  ((and (:setter doit)
+        x)
+   (doit 3)
+   x))
+@error{} invalid expression (:setter 1 3)
+@end example
+
+@c page
+@node syntax-matches syntax continuation
+@subsection Continuing after mismatch
+
+
+A ``matcher continuation'' is a thunk we can invoke to jump to the next
+matcher clause; we can use it to step to the next matching clause after
+we have determined, in the body of a clause, that the expression does
+not fit some criteria.  A matcher continuation use looks like this:
+
+@example
+(match 3
+
+  ((:predicate positive? x)
+   (=> next)
+   (if (even? x)
+       x
+     (next)))
+
+  (_ 0))
+@result{} 0
+@end example
+
+@noindent
+we can think of it as expanding to:
+
+@example
+(let ((expr 3))
+  (let ((next (lambda ()
+                0)))
+    (if (positive? expr)
+        x
+      (next))))
+@end example
+
+@c page
+@node syntax-matches syntax ellipsis
+@subsection Matching an arbitrary number of subexpressions
+
+
+The special ellipsis pattern @code{...} can be used to match an
+arbitrary number of subexpressions against the same pattern.  A usage of
+ellipsis in a list looks like:
+
+@example
+(match '(a b c d)
+  ((x ...)
+   x))
+@result{} (a b c d)
+
+(match '(a b c d)
+  ((x y ...)
+   (list x y)))
+@result{} (a (b c d))
+@end example
+
+@noindent
+all the elements of the list expression are matched against the pattern
+variable @samp{x}, which is bound to the list of matched expressions.
+The same happens with vector patterns:
+
+@example
+(match '#(a b c d)
+  (#(x ...)
+   x))
+@result{} (a b c d)
+
+(match '#(a b c d)
+  (#(x y ...)
+   (list x y)))
+@result{} (a (b c d))
+@end example
+
+@noindent
+currently (Mon Apr 12, 2010) the ellipsis can appear only as last
+element of a pattern vector; instead, other patterns can appear after an
+ellipsis in a list pattern, but only one ellipsis is allowed in a list
+pattern.
+
+@example
+(match '(a b c d)
+  ((x ... y z)
+   (list x y z)))
+@result{} ((a b) c d)
+
+(match '(a b c d)
+  ((x ... y z w v)
+   (list x y z w v)))
+@result{} (() a b c d)
+
+(match '(a b (c d))
+  ((x ... (y ...))
+   (list x y)))
+@result{} ((a b) (c d))
+
+(match '(a b #(c d))
+  ((x ... #(y ...))
+   (list x y)))
+@result{} ((a b) (c d))
+
+(match '(1 2 3)
+  (((:predicate odd? n) ...)     ;no match, not all odd
+   n)
+  (((:predicate even? n) ...)    ;no match, not all even
+   n)
+  (((:predicate number? n) ...)  ;match, all numbers
+   n))
+@result{} (1 2 3)
+@end example
 
 @c page
 @node irregex
