@@ -29,6 +29,7 @@
 (import (nausicaa)
   (bytevectors u8)
   (char-sets)
+  (asciis)
   (checks)
   (rnrs mutable-strings))
 
@@ -37,6 +38,9 @@
 
 (define S string->utf8)
 (define B utf8->string)
+
+(define (number->bytevector-u8 num)
+  (string->utf8 (number->string num)))
 
 
 (parameterise ((check-test-name 'views))
@@ -109,7 +113,7 @@
 ;;; --------------------------------------------------------------------
 
   (check
-      (bytevector-u8-concatenate '((S "ciao") (S " ") (S "hello") (S " ") (S "salut")))
+      (bytevector-u8-concatenate `(,(S "ciao") ,(S " ") ,(S "hello") ,(S " ") ,(S "salut")))
     => (S "ciao hello salut"))
 
   (check
@@ -124,7 +128,7 @@
     => (S "salut hello ciao ho"))
 
   (check
-      (bytevector-u8-concatenate-reverse `(,(S "ciao") ,(S " ") ,(S "hello") ,(S " ") (S "salut"))
+      (bytevector-u8-concatenate-reverse `(,(S "ciao") ,(S " ") ,(S "hello") ,(S " ") ,(S "salut"))
 					 (S " hola"))
     => (S "salut hello ciao hola"))
 
@@ -136,7 +140,7 @@
       (bytevector-u8-concatenate-reverse '())
     => '#vu8())
 
-  )
+  #f)
 
 
 (parameterise ((check-test-name 'predicates))
@@ -154,7 +158,7 @@
   (check
       (guard (exc ((assertion-violation? exc)
 		   (condition-who exc)))
-	(bytevector-u8-every 123 (S "abc")))
+	(bytevector-u8-every "not a criterion" (S "abc")))
     => '%bytevector-u8-every)
 
 ;;; --------------------------------------------------------------------
@@ -205,35 +209,35 @@
 
   (check
       (let* ((str (S "aaaa")))
-	(bytevector-u8-every char-alphabetic? str))
+	(bytevector-u8-every ascii-alphabetic? str))
     => #t)
 
   (check
       (let* ((str (S "aaaa2")))
-	(bytevector-u8-every char-alphabetic? str))
+	(bytevector-u8-every ascii-alphabetic? str))
     => #f)
 
   (check
       (let* ((str (S "aa2aa")))
-	(bytevector-u8-every char-alphabetic? str))
+	(bytevector-u8-every ascii-alphabetic? str))
     => #f)
 
   (check
       (let* ((str '#vu8()))
-	(bytevector-u8-every char-alphabetic? str))
+	(bytevector-u8-every ascii-alphabetic? str))
     => #f)
 
   (check
-      (let* ((str "1234"))
+      (let* ((str (S "1234")))
 	(bytevector-u8-every (lambda (x) x) str))
-    => #\4)
+    => (char->integer #\4))
 
 ;;; --------------------------------------------------------------------
 
   (check
       (guard (exc ((assertion-violation? exc)
 		   (condition-who exc)))
-	(bytevector-u8-any 123 (S "abc")))
+	(bytevector-u8-any "not a criterion" (S "abc")))
     => '%bytevector-u8-any)
 
 ;;; --------------------------------------------------------------------
@@ -284,30 +288,30 @@
 
   (check
       (let* ((str (S "11a11")))
-	(bytevector-u8-any char-alphabetic? str))
+	(bytevector-u8-any ascii-alphabetic? str))
     => #t)
 
   (check
       (let* ((str (S "11111a")))
-	(bytevector-u8-any char-alphabetic? str))
+	(bytevector-u8-any ascii-alphabetic? str))
     => #t)
 
   (check
       (let* ((str (S "1111")))
-	(bytevector-u8-any char-alphabetic? str))
+	(bytevector-u8-any ascii-alphabetic? str))
     => #f)
 
   (check
       (let* ((str '#vu8()))
-	(bytevector-u8-any char-alphabetic? str))
+	(bytevector-u8-any ascii-alphabetic? str))
     => #f)
 
   (check
       (let* ((str (S "1234")))
 	(bytevector-u8-any (lambda (x) x) str))
-    => #\1)
+    => (char->integer #\1))
 
-  )
+  #f)
 
 
 (parameterise ((check-test-name 'comparison-case-sensitive))
@@ -465,22 +469,22 @@
 (parameterise ((check-test-name 'mapping))
 
   (check
-      (let ((str (bytevector-u8-copy (S "abcd"))))
-	(bytevector-u8-map! (lambda (i ch) (char-upcase ch))
+      (let ((str (bytevector-copy (S "abcd"))))
+	(bytevector-u8-map! (lambda (i ch) (ascii-upcase ch))
 			    str)
 	str)
     => (S "ABCD"))
 
   (check
-      (let ((str (bytevector-u8-copy (S "abcd"))))
+      (let ((str (bytevector-copy (S "abcd"))))
 	(bytevector-u8-map! (lambda (i ch-a ch-b) (if (even? i) ch-a ch-b))
 			    str (S "0123"))
 	str)
     => (S "a1c3"))
 
   (check
-      (let ((str (bytevector-u8-copy '#vu8())))
-	(bytevector-u8-map! (lambda (i ch) (char-upcase ch))
+      (let ((str (bytevector-copy '#vu8())))
+	(bytevector-u8-map! (lambda (i ch) (ascii-upcase ch))
 			    str)
 	str)
     => '#vu8())
@@ -488,22 +492,22 @@
 ;;; --------------------------------------------------------------------
 
   (check
-      (let ((str (bytevector-u8-copy (S "abcd"))))
-	(bytevector-u8-map*! (lambda (i ch) (char-upcase ch))
+      (let ((str (bytevector-copy (S "abcd"))))
+	(bytevector-u8-map*! (lambda (i ch) (ascii-upcase ch))
 			     str)
 	str)
     => (S "ABCD"))
 
   (check
-      (let ((str (bytevector-u8-copy (S "abcd"))))
+      (let ((str (bytevector-copy (S "abcd"))))
 	(bytevector-u8-map*! (lambda (i ch-a ch-b) (if (even? i) ch-a ch-b))
 			     str (S "01234"))
 	str)
     => (S "a1c3"))
 
   (check
-      (let ((str (bytevector-u8-copy '#vu8())))
-	(bytevector-u8-map*! (lambda (i ch) (char-upcase ch))
+      (let ((str (bytevector-copy '#vu8())))
+	(bytevector-u8-map*! (lambda (i ch) (ascii-upcase ch))
 			     str)
 	str)
     => '#vu8())
@@ -514,19 +518,19 @@
       (cadr (with-result
 	     (bytevector-u8-for-each* (lambda (i ch) (add-result (list i ch)))
 				      (S "abcd"))))
-    => '((0 #\a)
-	 (1 #\b)
-	 (2 #\c)
-	 (3 #\d)))
+    => `((0 ,(char->integer #\a))
+	 (1 ,(char->integer #\b))
+	 (2 ,(char->integer #\c))
+	 (3 ,(char->integer #\d))))
 
   (check
       (cadr (with-result
 	     (bytevector-u8-for-each* (lambda (i ch-a ch-b) (add-result (list i ch-a ch-b)))
 				      (S "abcd") (S "01234"))))
-    => '((0 #\a #\0)
-	 (1 #\b #\1)
-	 (2 #\c #\2)
-	 (3 #\d #\3)))
+    => `((0 ,(char->integer #\a) ,(char->integer #\0))
+	 (1 ,(char->integer #\b) ,(char->integer #\1))
+	 (2 ,(char->integer #\c) ,(char->integer #\2))
+	 (3 ,(char->integer #\d) ,(char->integer #\3))))
 
   (check
       (cadr (with-result
@@ -537,39 +541,39 @@
 ;;; --------------------------------------------------------------------
 
   (check
-      (subbytevector-u8-map (lambda (ch) (char-upcase ch))
+      (subbytevector-u8-map (lambda (ch) (ascii-upcase ch))
 			    (S "abcd"))
     => (S "ABCD"))
 
   (check
-      (subbytevector-u8-map (lambda (ch) (char-upcase ch))
+      (subbytevector-u8-map (lambda (ch) (ascii-upcase ch))
 			    (view (S "abcd") (start 1) (past 3)))
     => (S "BC"))
 
   (check
-      (subbytevector-u8-map (lambda (ch) (char-upcase ch))
+      (subbytevector-u8-map (lambda (ch) (ascii-upcase ch))
 			    '#vu8())
     => '#vu8())
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (let ((str (bytevector-u8-copy (S "abcd"))))
-	(subbytevector-u8-map! (lambda (ch) (char-upcase ch))
+      (let ((str (bytevector-copy (S "abcd"))))
+	(subbytevector-u8-map! (lambda (ch) (ascii-upcase ch))
 			       str)
 	str)
     => (S "ABCD"))
 
   (check
-      (let ((str (bytevector-u8-copy (S "abcd"))))
-	(subbytevector-u8-map! (lambda (ch) (char-upcase ch))
+      (let ((str (bytevector-copy (S "abcd"))))
+	(subbytevector-u8-map! (lambda (ch) (ascii-upcase ch))
 			       (view str (start 1) (past 3)))
 	str)
     => (S "aBCd"))
 
   (check
       (let ((str '#vu8()))
-	(subbytevector-u8-map! (lambda (ch) (char-upcase ch))
+	(subbytevector-u8-map! (lambda (ch) (ascii-upcase ch))
 			       str)
 	str)
     => '#vu8())
@@ -580,13 +584,13 @@
       (cadr (with-result
 	     (subbytevector-u8-for-each add-result
 					(S "abcd"))))
-    => '(#\a #\b #\c #\d))
+    => (map char->integer '(#\a #\b #\c #\d)))
 
   (check
       (cadr (with-result
 	     (subbytevector-u8-for-each add-result
 					(view (S "abcd") (start 1) (past 3)))))
-    => '(#\b #\c))
+    => (map char->integer '(#\b #\c)))
 
   (check
       (cadr (with-result
@@ -617,25 +621,25 @@
 ;;; --------------------------------------------------------------------
 
   (check
-      (let* ((str (bytevector-u8-copy (S "abcd"))))
+      (let* ((str (bytevector-copy (S "abcd"))))
 	(bytevector-u8-upcase*! str)
 	str)
     => (S "ABCD"))
 
   (check
-      (let* ((str (bytevector-u8-copy (S "123abcd"))))
+      (let* ((str (bytevector-copy (S "123abcd"))))
 	(bytevector-u8-upcase*! str)
 	str)
     => (S "123ABCD"))
 
   (check
-      (let* ((str (bytevector-u8-copy (S "---abcd"))))
+      (let* ((str (bytevector-copy (S "---abcd"))))
 	(bytevector-u8-upcase*! str)
 	str)
     => (S "---ABCD"))
 
   (check
-      (let* ((str (bytevector-u8-copy (S "abcd efgh"))))
+      (let* ((str (bytevector-copy (S "abcd efgh"))))
 	(bytevector-u8-upcase*! str)
 	str)
     => (S "ABCD EFGH"))
@@ -661,25 +665,25 @@
 ;;; --------------------------------------------------------------------
 
   (check
-      (let* ((str (bytevector-u8-copy (S "aBCd"))))
+      (let* ((str (bytevector-copy (S "aBCd"))))
 	(bytevector-u8-downcase*! str)
 	str)
     => (S "abcd"))
 
   (check
-      (let* ((str (bytevector-u8-copy (S "123ABcd"))))
+      (let* ((str (bytevector-copy (S "123ABcd"))))
 	(bytevector-u8-downcase*! str)
 	str)
     => (S "123abcd"))
 
   (check
-      (let* ((str (bytevector-u8-copy (S "---aBCD"))))
+      (let* ((str (bytevector-copy (S "---aBCD"))))
 	(bytevector-u8-downcase*! str)
 	str)
     => (S "---abcd"))
 
   (check
-      (let* ((str (bytevector-u8-copy (S "abCD Efgh"))))
+      (let* ((str (bytevector-copy (S "abCD Efgh"))))
 	(bytevector-u8-downcase*! str)
 	str)
     => (S "abcd efgh"))
@@ -700,40 +704,40 @@
 
   (check
       (bytevector-u8-titlecase* (S "abcd efgh"))
-    => "Abcd Efgh")
+    => (S "Abcd Efgh"))
 
   (check
-      (bytevector-u8-titlecase* (view "greasy fried chicken" (start 2)))
+      (bytevector-u8-titlecase* (view (S "greasy fried chicken") (start 2)))
     => (S "Easy Fried Chicken"))
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (let* ((str (bytevector-u8-copy (S "abcd"))))
+      (let* ((str (bytevector-copy (S "abcd"))))
 	(bytevector-u8-titlecase*! str)
 	str)
     => (S "Abcd"))
 
   (check
-      (let* ((str (bytevector-u8-copy (S "123abcd"))))
+      (let* ((str (bytevector-copy (S "123abcd"))))
 	(bytevector-u8-titlecase*! str)
 	str)
     => (S "123Abcd"))
 
   (check
-      (let* ((str (bytevector-u8-copy (S "---abcd"))))
+      (let* ((str (bytevector-copy (S "---abcd"))))
 	(bytevector-u8-titlecase*! str)
 	str)
     => (S "---Abcd"))
 
   (check
-      (let* ((str (bytevector-u8-copy (S "abcd efgh"))))
+      (let* ((str (bytevector-copy (S "abcd efgh"))))
 	(bytevector-u8-titlecase*! str)
 	str)
     => (S "Abcd Efgh"))
 
   (check
-      (let ((str (bytevector-u8-copy (S "greasy fried chicken"))))
+      (let ((str (bytevector-copy (S "greasy fried chicken"))))
 	(bytevector-u8-titlecase*! (view str (start 2)))
 	str)
     => (S "grEasy Fried Chicken"))
@@ -745,16 +749,16 @@
 
   (check
       (bytevector-u8-fold-left (lambda (i nil x) (cons x nil)) '() (S "abcd"))
-    => '(#\d #\c #\b #\a))
+    => (map char->integer '(#\d #\c #\b #\a)))
 
   (check
       (bytevector-u8-fold-left (lambda (i nil x y) (cons (cons x y) nil)) '()
 			       (S "abcd")
 			       (S "ABCD"))
-    => '((#\d . #\D)
-	 (#\c . #\C)
-	 (#\b . #\B)
-	 (#\a . #\A)))
+    => `((,(char->integer #\d) . ,(char->integer #\D))
+	 (,(char->integer #\c) . ,(char->integer #\C))
+	 (,(char->integer #\b) . ,(char->integer #\B))
+	 (,(char->integer #\a) . ,(char->integer #\A))))
 
   (check
       (bytevector-u8-fold-left (lambda (i nil x) (cons x nil)) '() '#vu8())
@@ -762,7 +766,7 @@
 
   (check
       (bytevector-u8-fold-left (lambda (i count c)
-			  (if (char-upper-case? c)
+			  (if (ascii-upper-case? c)
 			      (+ count 1)
 			    count))
 			0
@@ -773,16 +777,16 @@
 
   (check
       (bytevector-u8-fold-right (lambda (i nil x) (cons x nil)) '() (S "abcd"))
-    => '(#\a #\b #\c #\d))
+    => (map char->integer '(#\a #\b #\c #\d)))
 
   (check
       (bytevector-u8-fold-right (lambda (i nil x y) (cons (cons x y) nil)) '()
 				(S "abcd")
 				(S "ABCD"))
-    => '((#\a . #\A)
-	 (#\b . #\B)
-	 (#\c . #\C)
-	 (#\d . #\D)))
+    => `((,(char->integer #\a) . ,(char->integer #\A))
+	 (,(char->integer #\b) . ,(char->integer #\B))
+	 (,(char->integer #\c) . ,(char->integer #\C))
+	 (,(char->integer #\d) . ,(char->integer #\D))))
 
   (check
       (bytevector-u8-fold-right (lambda (i nil x) (cons x nil)) '() '#vu8())
@@ -792,16 +796,16 @@
 
   (check
       (bytevector-u8-fold-left* (lambda (i nil x) (cons x nil)) '() (S "abcd"))
-    => '(#\d #\c #\b #\a))
+    => (map char->integer '(#\d #\c #\b #\a)))
 
   (check
       (bytevector-u8-fold-left* (lambda (i nil x y) (cons (cons x y) nil)) '()
 				(S "abcd")
 				(S "ABCDE"))
-    => '((#\d . #\D)
-	 (#\c . #\C)
-	 (#\b . #\B)
-	 (#\a . #\A)))
+    => `((,(char->integer #\d) . ,(char->integer #\D))
+	 (,(char->integer #\c) . ,(char->integer #\C))
+	 (,(char->integer #\b) . ,(char->integer #\B))
+	 (,(char->integer #\a) . ,(char->integer #\A))))
 
   (check
       (bytevector-u8-fold-left* (lambda (i nil x) (cons x nil)) '() '#vu8())
@@ -809,7 +813,7 @@
 
   (check
       (bytevector-u8-fold-left* (lambda (i count c)
-			   (if (char-upper-case? c)
+			   (if (ascii-upper-case? c)
 			       (+ count 1)
 			     count))
 			 0
@@ -820,16 +824,16 @@
 
   (check
       (bytevector-u8-fold-right* (lambda (i nil x) (cons x nil)) '() (S "abcd"))
-    => '(#\a #\b #\c #\d))
+    => (map char->integer '(#\a #\b #\c #\d)))
 
   (check
       (bytevector-u8-fold-right* (lambda (i nil x y) (cons (cons x y) nil)) '()
 				 (S "abcd")
 				 (S "ABCDE"))
-    => '((#\a . #\A)
-	 (#\b . #\B)
-	 (#\c . #\C)
-	 (#\d . #\D)))
+    => `((,(char->integer #\a) . ,(char->integer #\A))
+	 (,(char->integer #\b) . ,(char->integer #\B))
+	 (,(char->integer #\c) . ,(char->integer #\C))
+	 (,(char->integer #\d) . ,(char->integer #\D))))
 
   (check
       (bytevector-u8-fold-right* (lambda (i nil x) (cons x nil)) '() '#vu8())
@@ -839,7 +843,7 @@
 
   (check
       (subbytevector-u8-fold-left cons '() (S "abcd"))
-    => '(#\d #\c #\b #\a))
+    => (map char->integer '(#\d #\c #\b #\a)))
 
   (check
       (subbytevector-u8-fold-left cons '() '#vu8())
@@ -847,7 +851,7 @@
 
   (check
       (subbytevector-u8-fold-left (lambda (c count)
-				    (if (char-upper-case? c)
+				    (if (ascii-upper-case? c)
 					(+ count 1)
 				      count))
 				  0
@@ -858,14 +862,14 @@
       (let* ((str (S "abc\\de\\f\\ghi"))
 	     (ans-len (subbytevector-u8-fold-left
 		       (lambda (c sum)
-			 (+ sum (if (char=? c #\\) 2 1)))
+			 (+ sum (if (char=? (integer->char c) #\\) 2 1)))
 		       0 str))
-	     (ans (make-bytevector-u8 ans-len)))
+	     (ans (make-bytevector ans-len)))
 	(subbytevector-u8-fold-left
 	 (lambda (c i)
-	   (let ((i (if (char=? c #\\)
+	   (let ((i (if (char=? (integer->char c) #\\)
 			(begin
-			  (bytevector-u8-set! ans i #\\)
+			  (bytevector-u8-set! ans i (char->integer #\\))
 			  (+ i 1))
 		      i)))
 	     (bytevector-u8-set! ans i c)
@@ -878,7 +882,7 @@
 
   (check
       (subbytevector-u8-fold-right cons '() (S "abcd"))
-    => '(#\a #\b #\c #\d))
+    => (map char->integer '(#\a #\b #\c #\d)))
 
   (check
       (subbytevector-u8-fold-right cons '() '#vu8())
@@ -887,7 +891,7 @@
 ;;; --------------------------------------------------------------------
 
   (check
-      (bytevector-u8-unfold null? car cdr '(#\a #\b #\c #\d))
+      (bytevector-u8-unfold null? car cdr (map char->integer '(#\a #\b #\c #\d)))
     => (S "abcd"))
 
   (check
@@ -897,7 +901,7 @@
 ;;; --------------------------------------------------------------------
 
   (check
-      (bytevector-u8-unfold-right null? car cdr '(#\a #\b #\c #\d))
+      (bytevector-u8-unfold-right null? car cdr (map char->integer '(#\a #\b #\c #\d)))
     => (S "dcba"))
 
   (check
@@ -994,15 +998,15 @@
     => '#vu8())
 
   (check
-      (bytevector-u8-trim (S "AAAbcd") char-upper-case?)
+      (bytevector-u8-trim (S "AAAbcd") ascii-upper-case?)
     => (S "bcd"))
 
   (check
-      (bytevector-u8-trim (S "bcd") char-upper-case?)
+      (bytevector-u8-trim (S "bcd") ascii-upper-case?)
     => (S "bcd"))
 
   (check
-      (bytevector-u8-trim '#vu8() char-upper-case?)
+      (bytevector-u8-trim '#vu8() ascii-upper-case?)
     => '#vu8())
 
 ;;; --------------------------------------------------------------------
@@ -1032,15 +1036,15 @@
     => '#vu8())
 
   (check
-      (bytevector-u8-trim-right (S "bcdAAA") char-upper-case?)
+      (bytevector-u8-trim-right (S "bcdAAA") ascii-upper-case?)
     => (S "bcd"))
 
   (check
-      (bytevector-u8-trim-right (S "bcd") char-upper-case?)
+      (bytevector-u8-trim-right (S "bcd") ascii-upper-case?)
     => (S "bcd"))
 
   (check
-      (bytevector-u8-trim-right '#vu8() char-upper-case?)
+      (bytevector-u8-trim-right '#vu8() ascii-upper-case?)
     => '#vu8())
 
 ;;; --------------------------------------------------------------------
@@ -1070,15 +1074,15 @@
     => '#vu8())
 
   (check
-      (bytevector-u8-trim-both (S "AAAbcdAAA") char-upper-case?)
+      (bytevector-u8-trim-both (S "AAAbcdAAA") ascii-upper-case?)
     => (S "bcd"))
 
   (check
-      (bytevector-u8-trim-both (S "bcd") char-upper-case?)
+      (bytevector-u8-trim-both (S "bcd") ascii-upper-case?)
     => (S "bcd"))
 
   (check
-      (bytevector-u8-trim-both '#vu8() char-upper-case?)
+      (bytevector-u8-trim-both '#vu8() ascii-upper-case?)
     => '#vu8())
 
 ;;; --------------------------------------------------------------------
@@ -1390,19 +1394,19 @@
 ;;; --------------------------------------------------------------------
 
   (check
-      (bytevector-u8-index (S "aBcd") char-upper-case?)
+      (bytevector-u8-index (S "aBcd") ascii-upper-case?)
     => 1)
 
   (check
-      (bytevector-u8-index (view (S "aBcd") (start 1)) char-upper-case?)
+      (bytevector-u8-index (view (S "aBcd") (start 1)) ascii-upper-case?)
     => 1)
 
   (check
-      (bytevector-u8-index (S "abcd") char-upper-case?)
+      (bytevector-u8-index (S "abcd") ascii-upper-case?)
     => #f)
 
   (check
-      (bytevector-u8-index '#vu8() char-upper-case?)
+      (bytevector-u8-index '#vu8() ascii-upper-case?)
     => #f)
 
 ;;; --------------------------------------------------------------------
@@ -1444,19 +1448,19 @@
 ;;; --------------------------------------------------------------------
 
   (check
-      (bytevector-u8-index-right (S "aBcd") char-upper-case?)
+      (bytevector-u8-index-right (S "aBcd") ascii-upper-case?)
     => 1)
 
   (check
-      (bytevector-u8-index-right (view (S "aBcd") (start 1)) char-upper-case?)
+      (bytevector-u8-index-right (view (S "aBcd") (start 1)) ascii-upper-case?)
     => 1)
 
   (check
-      (bytevector-u8-index-right (S "abcd") char-upper-case?)
+      (bytevector-u8-index-right (S "abcd") ascii-upper-case?)
     => #f)
 
   (check
-      (bytevector-u8-index-right '#vu8() char-upper-case?)
+      (bytevector-u8-index-right '#vu8() ascii-upper-case?)
     => #f)
 
 ;;; --------------------------------------------------------------------
@@ -1498,19 +1502,19 @@
 ;;; --------------------------------------------------------------------
 
   (check
-      (bytevector-u8-skip (S "Bacd") char-upper-case?)
+      (bytevector-u8-skip (S "Bacd") ascii-upper-case?)
     => 1)
 
   (check
-      (bytevector-u8-skip (view (S "Bacd") (start 1)) char-upper-case?)
+      (bytevector-u8-skip (view (S "Bacd") (start 1)) ascii-upper-case?)
     => 1)
 
   (check
-      (bytevector-u8-skip (S "ABCD") char-upper-case?)
+      (bytevector-u8-skip (S "ABCD") ascii-upper-case?)
     => #f)
 
   (check
-      (bytevector-u8-skip '#vu8() char-upper-case?)
+      (bytevector-u8-skip '#vu8() ascii-upper-case?)
     => #f)
 
 ;;; --------------------------------------------------------------------
@@ -1552,19 +1556,19 @@
 ;;; --------------------------------------------------------------------
 
   (check
-      (bytevector-u8-skip-right (S "acdB") char-upper-case?)
+      (bytevector-u8-skip-right (S "acdB") ascii-upper-case?)
     => 2)
 
   (check
-      (bytevector-u8-skip-right (view (S "acdB") (start 1)) char-upper-case?)
+      (bytevector-u8-skip-right (view (S "acdB") (start 1)) ascii-upper-case?)
     => 2)
 
   (check
-      (bytevector-u8-skip-right (S "ABCD") char-upper-case?)
+      (bytevector-u8-skip-right (S "ABCD") ascii-upper-case?)
     => #f)
 
   (check
-      (bytevector-u8-skip-right '#vu8() char-upper-case?)
+      (bytevector-u8-skip-right '#vu8() ascii-upper-case?)
     => #f)
 
 ;;; --------------------------------------------------------------------
@@ -1606,19 +1610,19 @@
 ;;; --------------------------------------------------------------------
 
   (check
-      (bytevector-u8-count (S "aBcAd") char-upper-case?)
+      (bytevector-u8-count (S "aBcAd") ascii-upper-case?)
     => 2)
 
   (check
-      (bytevector-u8-count (view (S "aBcd") (start 1)) char-upper-case?)
+      (bytevector-u8-count (view (S "aBcd") (start 1)) ascii-upper-case?)
     => 1)
 
   (check
-      (bytevector-u8-count (S "abcd") char-upper-case?)
+      (bytevector-u8-count (S "abcd") ascii-upper-case?)
     => 0)
 
   (check
-      (bytevector-u8-count '#vu8() char-upper-case?)
+      (bytevector-u8-count '#vu8() ascii-upper-case?)
     => 0)
 
 ;;; --------------------------------------------------------------------
@@ -1699,15 +1703,15 @@
 ;;; --------------------------------------------------------------------
 
   (check
-      (bytevector-u8-delete (S "aBcBd") char-upper-case?)
+      (bytevector-u8-delete (S "aBcBd") ascii-upper-case?)
     => (S "acd"))
 
   (check
-      (bytevector-u8-delete (S "abcbd") char-upper-case?)
+      (bytevector-u8-delete (S "abcbd") ascii-upper-case?)
     => (S "abcbd"))
 
   (check
-      (bytevector-u8-delete '#vu8() char-upper-case?)
+      (bytevector-u8-delete '#vu8() ascii-upper-case?)
     => '#vu8())
 
 ;;; --------------------------------------------------------------------
@@ -1741,15 +1745,15 @@
 ;;; --------------------------------------------------------------------
 
   (check
-      (bytevector-u8-filter (S "aBcBd") char-upper-case?)
+      (bytevector-u8-filter (S "aBcBd") ascii-upper-case?)
     => (S "BB"))
 
   (check
-      (bytevector-u8-filter (S "abcbd") char-upper-case?)
+      (bytevector-u8-filter (S "abcbd") ascii-upper-case?)
     => '#vu8())
 
   (check
-      (bytevector-u8-filter '#vu8() char-upper-case?)
+      (bytevector-u8-filter '#vu8() ascii-upper-case?)
     => '#vu8())
 
   #f)
@@ -1758,25 +1762,25 @@
 (parameterise ((check-test-name 'lists))
 
   (check
-      (bytevector-u8->list* (S "abcd"))
-    => '(#\a #\b #\c #\d))
+      (bytevector->u8-list* (S "abcd"))
+    => (map char->integer '(#\a #\b #\c #\d)))
 
   (check
-      (bytevector-u8->list* (view (S "abcd") (start 1) (past 3)))
-    => '(#\b #\c))
+      (bytevector->u8-list* (view (S "abcd") (start 1) (past 3)))
+    => (map char->integer '(#\b #\c)))
 
   (check
-      (bytevector-u8->list* '#vu8())
+      (bytevector->u8-list* '#vu8())
     => '())
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (reverse-list->bytevector-u8 '(#\a #\b #\c #\d))
+      (reverse-u8-list->bytevector (map char->integer '(#\a #\b #\c #\d)))
     => (S "dcba"))
 
   (check
-      (reverse-list->bytevector-u8 '())
+      (reverse-u8-list->bytevector '())
     => '#vu8())
 
   #f)
@@ -1811,7 +1815,7 @@
 (parameterise ((check-test-name 'join))
 
   (check
-      (bytevector-u8-join `(,(S "c") ,(S "i") ,(S "a") ,(S "o")) ,(S ",") 'infix)
+      (bytevector-u8-join `(,(S "c") ,(S "i") ,(S "a") ,(S "o")) (S ",") 'infix)
     => (S "c,i,a,o"))
 
   (check
@@ -1857,7 +1861,7 @@
     => (S "c"))
 
   (check
-      (bytevector-u8-join `(,(S "c")) ,(S ",") 'suffix)
+      (bytevector-u8-join `(,(S "c")) (S ",") 'suffix)
     => (S "c,"))
 
   (check
@@ -1968,31 +1972,31 @@
 ;;; --------------------------------------------------------------------
 
   (check
-      (let ((result (bytevector-u8-copy (S "01234"))))
+      (let ((result (bytevector-copy (S "01234"))))
 	(bytevector-u8-xcopy! result (S "ciao ") 0 5)
 	result)
     => (S "ciao "))
 
   (check
-      (let ((result (bytevector-u8-copy (S "012345678"))))
+      (let ((result (bytevector-copy (S "012345678"))))
 	(bytevector-u8-xcopy! result (S "ciao ") 0 9)
 	result)
     => (S "ciao ciao"))
 
   (check
-      (let ((result (bytevector-u8-copy (S "0123456789"))))
+      (let ((result (bytevector-copy (S "0123456789"))))
 	(bytevector-u8-xcopy! result (S "ciao ") -5 5)
 	result)
     => (S "ciao ciao "))
 
   (check
-      (let ((result (bytevector-u8-copy (S "01"))))
+      (let ((result (bytevector-copy (S "01"))))
 	(bytevector-u8-xcopy! result (S "ciao ") 2 4)
 	result)
     => (S "ao"))
 
   (check
-      (let ((result (bytevector-u8-copy (S "0123456789"))))
+      (let ((result (bytevector-copy (S "0123456789"))))
 	(bytevector-u8-xcopy! result (S "ciao ") -3 7)
 	result)
     => (S "ao ciao ci"))
@@ -2008,19 +2012,19 @@
 (parameterise ((check-test-name 'filling))
 
   (check
-      (let* ((str (bytevector-u8-copy (S "abcd"))))
+      (let* ((str (bytevector-copy (S "abcd"))))
 	(bytevector-u8-fill*! str #\b)
 	str)
     => (S "bbbb"))
 
   (check
-      (let* ((str (bytevector-u8-copy (S "accd"))))
+      (let* ((str (bytevector-copy (S "accd"))))
 	(bytevector-u8-fill*! (view str (start 1) (past 3)) #\b)
 	str)
     => (S "abbd"))
 
   (check
-      (let* ((str (bytevector-u8-copy '#vu8())))
+      (let* ((str (bytevector-copy '#vu8())))
 	(bytevector-u8-fill*! (view str (start 0) (past 0)) #\b)
 	str)
     => '#vu8())
@@ -2041,13 +2045,13 @@
 ;;; --------------------------------------------------------------------
 
   (check
-      (let* ((str (bytevector-u8-copy (S "abcd"))))
+      (let* ((str (bytevector-copy (S "abcd"))))
 	(bytevector-u8-reverse! str)
 	str)
     => (S "dcba"))
 
   (check
-      (let* ((str (bytevector-u8-copy '#vu8())))
+      (let* ((str (bytevector-copy '#vu8())))
 	(bytevector-u8-reverse! str)
 	str)
     => '#vu8())
@@ -2087,7 +2091,7 @@
 (parameterise ((check-test-name 'mutating))
 
   (check
-      (let* ((str (bytevector-u8-copy (S "12"))))
+      (let* ((str (bytevector-copy (S "12"))))
 	;; not enough room in destination bytevector-u8
 	(guard (exc ((assertion-violation? exc) #t))
 	  (bytevector-u8-copy*! (view str (start 3))
@@ -2096,28 +2100,28 @@
 
   (check
       ;; whole bytevector-u8 copy
-      (let* ((str (bytevector-u8-copy (S "123"))))
+      (let* ((str (bytevector-copy (S "123"))))
 	(bytevector-u8-copy*! str (S "abc"))
 	str)
     => (S "abc"))
 
   (check
       ;; zero-elements bytevector-u8 copy
-      (let* ((str (bytevector-u8-copy (S "123"))))
+      (let* ((str (bytevector-copy (S "123"))))
 	(bytevector-u8-copy*! str (view (S "abc") (start 2) (past 2)))
 	str)
     => (S "123"))
 
   (check
       ;; one-element bytevector-u8 copy
-      (let* ((str (bytevector-u8-copy (S "123"))))
+      (let* ((str (bytevector-copy (S "123"))))
 	(bytevector-u8-copy*! str (view (S "abc") (start 1) (past 2)))
 	str)
     => (S "b23"))
 
   (check
       ;; two-elements bytevector-u8 copy
-      (let* ((str (bytevector-u8-copy (S "12"))))
+      (let* ((str (bytevector-copy (S "12"))))
 	(bytevector-u8-copy*! str (view (S "abcd") (past 2)))
 	str)
     => (S "ab"))
@@ -2130,21 +2134,21 @@
 
   (check
       ;; over the same bytevector-u8, full
-      (let* ((str (bytevector-u8-copy (S "0123456789"))))
+      (let* ((str (bytevector-copy (S "0123456789"))))
 	(bytevector-u8-copy*! str str)
 	str)
     => (S "0123456789"))
 
   (check
       ;; over the same bytevector-u8, in place
-      (let* ((str (bytevector-u8-copy (S "0123456789"))))
+      (let* ((str (bytevector-copy (S "0123456789"))))
 	(bytevector-u8-copy*! (view str (start 5)) (view str (start 5)))
 	str)
     => (S "0123456789"))
 
   (check
       ;; over the same bytevector-u8, backwards
-      (let* ((str (bytevector-u8-copy (S "0123456789"))))
+      (let* ((str (bytevector-copy (S "0123456789"))))
 	(bytevector-u8-copy*! (view str (start 2))
 			      (view str (start 4) (past 8)))
 	str)
@@ -2152,7 +2156,7 @@
 
   (check
       ;; over the same bytevector-u8, backwards
-      (let* ((str (bytevector-u8-copy (S "0123456789"))))
+      (let* ((str (bytevector-copy (S "0123456789"))))
 	(bytevector-u8-copy*! (view str (start 0))
 			      (view str (start 4) (past 8)))
 	str)
@@ -2160,7 +2164,7 @@
 
   (check
       ;; over the same bytevector-u8, forwards
-      (let* ((str (bytevector-u8-copy (S "0123456789"))))
+      (let* ((str (bytevector-copy (S "0123456789"))))
 	(bytevector-u8-copy*! (view str (start 4))
 			      (view str (start 2) (past 6)))
 	str)
@@ -2168,7 +2172,7 @@
 
   (check
       ;; over the same bytevector-u8, forwards
-      (let* ((str (bytevector-u8-copy (S "0123456789"))))
+      (let* ((str (bytevector-copy (S "0123456789"))))
 	(bytevector-u8-copy*! (view str (start 6))
 			      (view str (start 2) (past 6)))
 	str)
@@ -2177,7 +2181,7 @@
 ;;; --------------------------------------------------------------------
 
   (check
-      (let* ((str (bytevector-u8-copy (S "12"))))
+      (let* ((str (bytevector-copy (S "12"))))
 	;; not enough room in destination bytevector-u8
 	;;(bytevector-u8-reverse-copy*! (str 3) (view '#(#\a #\b #\c #\d) (past 2)))
 	(guard (exc ((assertion-violation? exc) #t))
@@ -2187,29 +2191,29 @@
 
   (check
       ;; whole bytevector-u8 copy
-      (let* ((str (bytevector-u8-copy (S "123"))))
+      (let* ((str (bytevector-copy (S "123"))))
 	(bytevector-u8-reverse-copy*! str (S "abc"))
 	str)
     => (S "cba"))
 
   (check
       ;; zero-elements bytevector-u8 copy
-      (let* ((str (bytevector-u8-copy (S "123"))))
+      (let* ((str (bytevector-copy (S "123"))))
 	(bytevector-u8-reverse-copy*! str (view (S "abc") (start 2) (past 2)))
 	str)
     => (S "123"))
 
   (check
       ;; one-element bytevector-u8 copy
-      (let* ((str (bytevector-u8-copy (S "123"))))
+      (let* ((str (bytevector-copy (S "123"))))
 	(bytevector-u8-reverse-copy*! str (view (S "abc") (start 1) (past 2)))
 	str)
     => (S "b23"))
 
   (check
       ;; two-elements bytevector-u8 copy
-      (let* ((str (bytevector-u8-copy (S "12"))))
-	(bytevector-u8-reverse-copy*! str (view "abcd" (past 2)))
+      (let* ((str (bytevector-copy (S "12"))))
+	(bytevector-u8-reverse-copy*! str (view (S "abcd") (past 2)))
 	str)
     => (S "ba"))
 
@@ -2221,14 +2225,14 @@
 
   (check
       ;; over the same bytevector-u8, full
-      (let* ((str (bytevector-u8-copy (S "0123456789"))))
+      (let* ((str (bytevector-copy (S "0123456789"))))
 	(bytevector-u8-reverse-copy*! str str)
 	str)
     => (S "9876543210"))
 
   (check
       ;; over the same bytevector-u8
-      (let* ((str (bytevector-u8-copy (S "0123456789"))))
+      (let* ((str (bytevector-copy (S "0123456789"))))
 	(bytevector-u8-reverse-copy*! (view str (start 5))
 				      (view str (start 5)))
 	str)
@@ -2236,7 +2240,7 @@
 
   (check
       ;; over the same bytevector-u8, backwards
-      (let* ((str (bytevector-u8-copy (S "0123456789"))))
+      (let* ((str (bytevector-copy (S "0123456789"))))
 	(bytevector-u8-reverse-copy*! (view str (start 2))
 				      (view str (start 4) (past 8)))
 	str)
@@ -2244,7 +2248,7 @@
 
   (check
       ;; over the same bytevector-u8, backwards
-      (let* ((str (bytevector-u8-copy (S "0123456789"))))
+      (let* ((str (bytevector-copy (S "0123456789"))))
 	(bytevector-u8-reverse-copy*! (view str (start 0))
 				      (view str (start 4) (past 8)))
 	str)
@@ -2252,7 +2256,7 @@
 
   (check
       ;; over the same bytevector-u8, forwards
-      (let* ((str (bytevector-u8-copy (S "0123456789"))))
+      (let* ((str (bytevector-copy (S "0123456789"))))
 	(bytevector-u8-reverse-copy*! (view str (start 4))
 				      (view str (start 2) (past 6)))
 	str)
@@ -2260,7 +2264,7 @@
 
   (check
       ;; over the same bytevector-u8, forwards
-      (let* ((str (bytevector-u8-copy (S "0123456789"))))
+      (let* ((str (bytevector-copy (S "0123456789"))))
 	(bytevector-u8-reverse-copy*! (view str (start 6))
 				      (view str (start 2) (past 6)))
 	str)
@@ -2269,13 +2273,13 @@
 ;;; --------------------------------------------------------------------
 
   (check
-      (let ((str (bytevector-u8-copy (S "012345"))))
+      (let ((str (bytevector-copy (S "012345"))))
 	(bytevector-u8-swap! str 2 4)
 	str)
     => (S "014325"))
 
   (check
-      (let ((str (bytevector-u8-copy (S "012345"))))
+      (let ((str (bytevector-copy (S "012345"))))
 	(bytevector-u8-swap! str 2 2)
 	str)
     => (S "012345"))
@@ -2292,4 +2296,4 @@
 
 (check-report)
 
-;;; end of file
+;;; end of fil

@@ -160,6 +160,15 @@
 (%compile-library "knuth-morris-pratt.sls"
 		  "knuth-morris-pratt.slfasl")
 
+(%compile-library "asciis.sls"
+		  "asciis.slfasl")
+
+(%compile-library "bytevectors/u8low.sls"
+		  "bytevectors/u8low.slfasl")
+
+(%compile-library "bytevectors/u8.sls"
+		  "bytevectors/u8.slfasl")
+
 (%compile-library "strings/low.sls"
 		  "strings/low.slfasl")
 

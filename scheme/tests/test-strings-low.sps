@@ -3160,7 +3160,7 @@
       (reverse-list->string '())
     => "")
 
-  )
+  #f)
 
 ;;; --------------------------------------------------------------------
 
@@ -3170,8 +3170,8 @@
       (let* ((str "ciao hello salut") (beg 0) (end (string-length str)))
 	(%string-tokenize (char-set #\a #\c #\e #\i #\h #\l #\o #\s #\t #\u)
 			  str beg end))
-    => '("ciao" "hello" "salut")
-)
+    => '("ciao" "hello" "salut"))
+
   (check
       (let* ((str "") (beg 0) (end (string-length str)))
 	(%string-tokenize (char-set #\a #\c #\e #\i #\h #\l #\o #\s #\t #\u)
@@ -3183,7 +3183,7 @@
 	(%string-tokenize (char-set) str beg end))
     => '())
 
-  )
+  #f)
 
 ;;; --------------------------------------------------------------------
 

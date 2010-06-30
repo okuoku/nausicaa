@@ -201,6 +201,7 @@
 
     (rename (unpack %bytevector-u8-unpack)))
   (import (rnrs)
+    (asciis)
     (bytevectors u8low)
     (auxiliary-syntaxes))
 
@@ -383,25 +384,25 @@
   (syntax-rules ()
     ((_ ?S)
      (let-values (((str beg past) (unpack ?S)))
-       (%subbytevector-u8-map char-upcase str beg past)))))
+       (%subbytevector-u8-map ascii-upcase str beg past)))))
 
 (define-syntax bytevector-u8-upcase*!
   (syntax-rules ()
     ((_ ?S)
      (let-values (((str beg past) (unpack ?S)))
-       (%subbytevector-u8-map! char-upcase str beg past)))))
+       (%subbytevector-u8-map! ascii-upcase str beg past)))))
 
 (define-syntax bytevector-u8-downcase*
   (syntax-rules ()
     ((_ ?S)
      (let-values (((str beg past) (unpack ?S)))
-       (%subbytevector-u8-map char-downcase str beg past)))))
+       (%subbytevector-u8-map ascii-downcase str beg past)))))
 
 (define-syntax bytevector-u8-downcase*!
   (syntax-rules ()
     ((_ ?S)
      (let-values (((str beg past) (unpack ?S)))
-       (%subbytevector-u8-map! char-downcase str beg past)))))
+       (%subbytevector-u8-map! ascii-downcase str beg past)))))
 
 (define-syntax bytevector-u8-titlecase*
   (syntax-rules ()
@@ -649,13 +650,13 @@
   (syntax-rules ()
     ((_ ?S)
      (let-values (((str beg past) (unpack ?S)))
-       (%bytevector-u8->list* str beg past)))))
+       (%bytevector->u8-list* str beg past)))))
 
 (define-syntax reverse-bytevector->u8-list
   (syntax-rules ()
     ((_ ?S)
      (let-values (((str beg past) (unpack ?S)))
-       (%reverse-bytevector-u8->list str beg past)))))
+       (%reverse-bytevector->u8-list str beg past)))))
 
 (define-syntax bytevector-u8-tokenize
   (syntax-rules ()

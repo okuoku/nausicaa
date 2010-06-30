@@ -49,6 +49,8 @@
   (only (char-sets))
   (only (char-sets blocks))
   (only (char-sets categories))
+  (only (asciis))
+  (only (bytevectors u8))
   (only (strings))
   (only (streams))
   (only (vectors))
