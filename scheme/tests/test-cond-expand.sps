@@ -49,6 +49,7 @@
      (mosh	#t)
      (vicare	#t)
      (ypsilon	#t)
+     (petite	#t)
      (else	#f))
   => #t)
 
