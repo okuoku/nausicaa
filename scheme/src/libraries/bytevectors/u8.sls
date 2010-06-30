@@ -504,10 +504,12 @@
      (let-values (((str beg past) (unpack ?S)))
        (%bytevector-u8-trim-both criterion str beg past)))))
 
+(define $int-space (char->integer #\space))
+
 (define-syntax bytevector-u8-pad
   (syntax-rules ()
     ((_ ?S ?len)
-     (bytevector-u8-pad ?S ?len #\space))
+     (bytevector-u8-pad ?S ?len $int-space))
     ((_ ?S ?len ?char)
      (let-values (((str beg past) (unpack ?S)))
        (%bytevector-u8-pad ?len ?char str beg past)))))
@@ -515,7 +517,7 @@
 (define-syntax bytevector-u8-pad-right
   (syntax-rules ()
     ((_ ?S ?len)
-     (bytevector-u8-pad-right ?S ?len #\space))
+     (bytevector-u8-pad-right ?S ?len $int-space))
     ((_ ?S ?len ?char)
      (let-values (((str beg past) (unpack ?S)))
        (%bytevector-u8-pad-right ?len ?char str beg past)))))
