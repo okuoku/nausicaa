@@ -46,9 +46,12 @@
 (define-syntax catch-syntax-error
   (syntax-rules ()
     ((_ ?body)
-     (guard (E (else `((message   . ,(condition-message E))
-		       (form      . ,(syntax-violation-form E)))))
-       ?body))))
+     (guard (E ((syntax-violation? E)
+		`((message	. ,(condition-message E))
+		  (form		. ,(syntax-violation-form E))))
+	       (else #f))
+       (eval (quote ?body)
+	     (environment '(rnrs) '(matches)))))))
 
 (define-syntax catch-mismatch-error
   (syntax-rules ()
@@ -649,16 +652,11 @@
     => '(a (b c d)))
 
   (check
-      (guard (E ((syntax-violation? E)
-;;;		 (write (condition-message E))(newline)
-		 #t)
-		(else
-;;;		 (write (condition-message E))(newline)
-		 #f))
-	(match '#(a b c d)
-	  (#( ...)
-	   x)))
-    => #t)
+      (catch-syntax-error (match '#(a b c d)
+			    (#( ...)
+			     x)))
+    => '((message . "ellipsis not allowed as single, vector pattern value")
+	 (form    . #(...))))
 
   (check
       (match '#(a b c d)

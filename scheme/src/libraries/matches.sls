@@ -76,10 +76,10 @@
   (lambda (stx)
     (syntax-case stx (=>)
       ((_)
-       #'(syntax-violation 'match "missing match expression" '(match)))
+       (syntax-violation 'match "missing match expression" (syntax->datum stx)))
 
       ((_ ?expr)
-       #'(syntax-violation 'match "missing match clause" '(match ?expr)))
+       (syntax-violation 'match "missing match clause" (syntax->datum stx)))
 
       ((_ ?pattern ?clause ...)
        (identifier? #'?pattern)
@@ -152,33 +152,34 @@
   ;;Getters  and  setters are  combined  to  access  values nested  into
   ;;composite expressions.
   ;;
-  (syntax-rules (=>)
+  (lambda (stx)
+    (syntax-case stx (=>)
 
-    ((_ ?expr ?Getter ?Setter (?pattern) . ?other-clauses)
-     (syntax-violation 'match "no body in match clause" '(?pattern)))
+      ((_ ?expr ?Getter ?Setter (?pattern) . ?other-clauses)
+       (syntax-violation 'match "no body in match clause" (syntax->datum #'(?pattern))))
 
-    ((_ ?expr ?Getter ?Setter (?pattern (=> ?failure)) . ?other-clauses)
-     (syntax-violation 'match "no body in match clause" '(?pattern (=> ?failure))))
+      ((_ ?expr ?Getter ?Setter (?pattern (=> ?failure)) . ?other-clauses)
+       (syntax-violation 'match "no body in match clause" (syntax->datum #'(?pattern (=> ?failure)))))
 
-    ;;No more clauses, raise an error.
-    ((_ ?expr ?Getter ?Setter)
-     (match-mismatch-error 'match ?expr))
+      ;;No more clauses, raise an error.
+      ((_ ?expr ?Getter ?Setter)
+       #'(match-mismatch-error 'match ?expr))
 
-    ;;Match when the clause has an explicitly named match continuation.
-    ((_ ?expr ?Getter ?Setter
-	(?pattern (=> ?failure-kont) . ?body) ;this clause
-	. ?other-clauses)
-     (let ((?failure-kont (lambda ()
-			    (match-clause ?expr ?Getter ?Setter . ?other-clauses))))
-       (match-pattern ?expr ?pattern ?Getter ?Setter
-		      (match-drop-bound-pattern-variables (begin . ?body)) ;success continuation
-		      (?failure-kont)	;failure continuation
-		      ()))) ;identifiers bound as pattern variables
+      ;;Match when the clause has an explicitly named match continuation.
+      ((_ ?expr ?Getter ?Setter
+	  (?pattern (=> ?failure-kont) . ?body) ;this clause
+	  . ?other-clauses)
+       #'(let ((?failure-kont (lambda ()
+				(match-clause ?expr ?Getter ?Setter . ?other-clauses))))
+	   (match-pattern ?expr ?pattern ?Getter ?Setter
+			  (match-drop-bound-pattern-variables (begin . ?body)) ;success continuation
+			  (?failure-kont) ;failure continuation
+			  ()))) ;identifiers bound as pattern variables
 
-    ;;Anonymous failure continuation, give it a dummy name and recurse.
-    ((_ ?expr ?Getter ?Setter (?pattern . ?body) . ?other-clauses)
-     (match-clause ?expr ?Getter ?Setter
-		   (?pattern (=> anonymous-kont) . ?body) . ?other-clauses))))
+      ;;Anonymous failure continuation, give it a dummy name and recurse.
+      ((_ ?expr ?Getter ?Setter (?pattern . ?body) . ?other-clauses)
+       #'(match-clause ?expr ?Getter ?Setter
+		       (?pattern (=> anonymous-kont) . ?body) . ?other-clauses)))))
 
 
 (define-syntax match-pattern
@@ -312,7 +313,7 @@
 
       ;;the pattern is an empty :NOT form
       ((_ ?expr (:not) ?Getter ?Setter ?success-kont ?failure-kont ?bound-pattern-variables)
-       #'(syntax-violation 'match "empty :NOT form in pattern" '(:not)))
+       (syntax-violation 'match "empty :NOT form in pattern" '(:not)))
 
       ;;the pattern is a :NOT form
       ((_ ?expr (:not ?pattern) ?Getter ?Setter
@@ -487,7 +488,7 @@
       ;;we should never reach this clause
       ((_ ?expr ?pattern ?Getter ?Setter
 	  ?success-kont ?failure-kont ?bound-pattern-variables)
-       #'(syntax-violation 'match "unrecognised pattern element" ?pattern))
+       (syntax-violation 'match "unrecognised pattern element" (syntax->datum #'?pattern)))
 
       )))
 
@@ -732,9 +733,9 @@
 	  (?success-kont ...) ?failure-kont
 	  ?bound-pattern-variables ?to-be-bound-pattern-variables)
        (memq '... (syntax->datum #'(?pattern-rest ...)))
-       #'(syntax-violation 'match
-	   "multiple ellipsis patterns not allowed at same level"
-	   '(?pattern (... ...) . (?pattern-rest ...))))
+       (syntax-violation 'match
+	 "multiple ellipsis patterns not allowed at same level"
+	 (syntax->datum #'(?pattern (... ...) . (?pattern-rest ...)))))
 
       ;;Match  the  pattern  "(?pattern  ...  .   ?pattern-rest)"  where
       ;;?PATTERN-REST are trailing patterns.
@@ -851,9 +852,9 @@
 	  ?success-kont ?failure-kont ?bound-pattern-variables)
        (and (identifier? #'?single-pattern)
 	    (free-identifier=? #'?single-pattern #'(... ...)))
-       #'(syntax-violation 'match
-	   "ellipsis not allowed as single, vector pattern value"
-	   '#(?single-pattern)))
+       (syntax-violation 'match
+	 "ellipsis not allowed as single, vector pattern value"
+	 (syntax->datum #'#(?single-pattern))))
 
       ;;Detect if the last pattern in the vector is an ellipsis.
       ;;
@@ -1105,7 +1106,7 @@
 
       ;;We should never reach this clause.
       ((_ ?pattern ?kont ?bound-pattern-variables ?extracted-variables)
-       #'(syntax-violation 'match "unrecognised pattern element" ?pattern))
+       (syntax-violation 'match "unrecognised pattern element" (syntax->datum #'?pattern)))
 
       )))
 
