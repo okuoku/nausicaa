@@ -30,11 +30,12 @@
 
     ;; wrapping
     unwrap-syntax-object		unwrap-options
+    syntax->vector
 
     ;; inspection
-    quoted-syntax-object?
+    quoted-syntax-object?		syntax=?
 
-    ;; identifiers hangling
+    ;; identifiers handling
     all-identifiers?			duplicated-identifiers?
     identifier-memq			symbol-identifier=?
 
@@ -94,6 +95,19 @@
       (?atom
        (syntax->datum (syntax ?atom)))))))
 
+(define (syntax->vector stx)
+  (define (syntax->list stx ell)
+    (syntax-case stx ()
+      ((?car . ?cdr)
+       (syntax->list #'?cdr (cons #'?car ell)))
+      (()
+       (reverse ell))))
+  (syntax-case stx ()
+    (#(?v ...)
+     (list->vector (syntax->list #'(?v ...) '())))
+    (_
+     (syntax-violation 'syntax->vector "expected vector input form" (syntax->datum stx)))))
+
 
 (define (quoted-syntax-object? stx)
   ;;Given a syntax object: return true if  it is a list whose car is one
@@ -109,6 +123,26 @@
 	      (free-identifier=? #'?car #'quasisyntax)))
      #t)
     (_ #f)))
+
+(define (syntax=? stx1 stx2)
+  (define (%syntax=? stx1 stx2)
+    (cond ((and (identifier? stx1) (identifier? stx2))
+	   (free-identifier=? stx1 stx2))
+	  ((and (pair? stx1) (pair? stx2))
+	   (and (syntax=? (car stx1) (car stx1))
+		(syntax=? (cdr stx1) (cdr stx1))))
+	  ((and (vector? stx1) (vector? stx2))
+	   (let ((len1 (vector-length stx1)))
+	     (and (= len1 (vector-length stx2))
+		  (let loop ((i 0))
+		    (or (= i len1)
+			(and (syntax=? (vector-ref stx1 i) (vector-ref stx2 i))
+			     (loop (+ 1 i)))))
+	       #f)))
+	  (else
+	   (equal? stx1 stx2))))
+  (%syntax=? (unwrap-syntax-object stx1 (enum-unwrap-options keep-general-quoted))
+	     (unwrap-syntax-object stx2 (enum-unwrap-options keep-general-quoted))))
 
 
 (define (all-identifiers? stx)

@@ -823,7 +823,7 @@
   ;;			<success-continuation> <failure-continuation>
   ;;			<list-of-bound-pattern-variables>)
   ;;
-  ;;where "((a  0) (b  1) (c  1))" are the  patterns coupled  with their
+  ;;where "((a  0) (b  1) (c  2))" are the  patterns coupled  with their
   ;;indexes in the vector (these are called "index-patterns") and "3" is
   ;;the length of the vector.
   ;;
