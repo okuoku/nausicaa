@@ -27,6 +27,7 @@
 
 (import (nausicaa)
   (generics)
+  (generics object-to-string)
   (checks)
   (email addresses common))
 

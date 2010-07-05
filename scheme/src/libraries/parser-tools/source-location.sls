@@ -61,7 +61,8 @@
 
     source-location-honor-return)
   (import (nausicaa)
-    (generics))
+    (generics)
+    (generics object-to-string))
 
 
 (define-class <source-location>

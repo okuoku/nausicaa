@@ -1,7 +1,7 @@
 ;;;
 ;;;Part of: Nausicaa/Scheme
-;;;Contents: usage tests for (generics2)
-;;;Date: Mon Jul  5, 2010
+;;;Contents: usage tests for (old-generics)
+;;;Date: Wed Aug 26, 2009
 ;;;
 ;;;Abstract
 ;;;
@@ -26,11 +26,10 @@
 
 (import (nausicaa)
   (checks)
-  (generics)
-  (generics object-to-string))
+  (old-generics))
 
 (check-set-mode! 'report-failed)
-(display "*** testing generic functions\n")
+(display "*** testing old generic functions\n")
 
 
 (parameterise ((check-test-name 'generic-simple-inheritance))
@@ -241,6 +240,68 @@
     (define-method (alpha (p <1>)) 123)
     (define-method (alpha (p <1>)) 456)
     (check (alpha n1) => 456))
+  (let ()
+    (define-generic alpha)
+    (define-method (alpha (p <1>) . rest) 123)
+    (define-method (alpha (p <1>) . rest) 456)
+    (check (alpha n1) => 456))
+  (let ()
+    (define-generic alpha)
+    (define-method (alpha (p <1>)) 123)
+    (define-method (alpha (p <1>) . rest) 456)
+    (check (alpha n1) => 123)
+    (check (alpha n1 10) => 456))
+  (let ()
+    (define-generic alpha)
+    (define-method (alpha (p <1>) . rest) 456)
+    (define-method (alpha (p <1>)) 123)
+    (check (alpha n1) => 123)
+    (check (alpha n1 10) => 456))
+
+;;; --------------------------------------------------------------------
+;;; Rest arguments.
+  (let ()
+    (define-generic alpha)
+    (define-method alpha ((p <1>))		   1)
+    (define-method alpha ((p <a>) . rest)	   2)
+    (define-method alpha ((p <1>) . rest)	   3)
+    (define-method alpha ((p <1>) (q <2>) . rest)  4)
+    (define-method alpha ((p <a>) (q <b>) (r <c>)) 5)
+    (check (alpha n1 n2 n3) => 5)
+    (check (alpha  a n2 n3) => 5)
+    (check (alpha n1  b n3) => 5)
+    (check (alpha n1 n2  c) => 5)
+    (check (alpha  a  b  c) => 5)
+    (check (alpha n1 n2)    => 4)
+    (check (alpha n1 n2  9) => 4)
+    (check (alpha  a)       => 2)
+    (check (alpha  a 123)   => 2)
+    (check (alpha  a 123 4) => 2)
+    (check (alpha n1)       => 1)
+    (check (alpha n1 123)   => 3)
+    (check (alpha n1 123 4) => 3)
+    #f)
+  (let ()
+    (define-generic alpha)
+    (define-method (alpha (p <1>))		   1)
+    (define-method (alpha (p <a>) . rest)	   2)
+    (define-method (alpha (p <1>) . rest)	   3)
+    (define-method (alpha (p <1>) (q <2>) . rest)  4)
+    (define-method (alpha (p <a>) (q <b>) (r <c>)) 5)
+    (check (alpha n1 n2 n3) => 5)
+    (check (alpha  a n2 n3) => 5)
+    (check (alpha n1  b n3) => 5)
+    (check (alpha n1 n2  c) => 5)
+    (check (alpha  a  b  c) => 5)
+    (check (alpha n1 n2)    => 4)
+    (check (alpha n1 n2  9) => 4)
+    (check (alpha  a)       => 2)
+    (check (alpha  a 123)   => 2)
+    (check (alpha  a 123 4) => 2)
+    (check (alpha n1)       => 1)
+    (check (alpha n1 123)   => 3)
+    (check (alpha n1 123 4) => 3)
+    #f)
 
   #t)
 
@@ -307,7 +368,7 @@
     (define-method (object->string (o <alpha>))
       (<alpha>-the-string o))
 
-    (define-method object->string ((o <beta>))
+    (define-method (object->string (o <beta>))
       (<beta>-the-string o))
 
     (check

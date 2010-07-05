@@ -72,6 +72,7 @@
     <group>-mailboxes)
   (import (nausicaa)
     (generics)
+    (generics object-to-string)
     (strings)
     (lists))
 
@@ -231,7 +232,8 @@
 (define-method (object->string (o <group>))
   (string-append (object->string o.display-name)
 		 %colon-string %space-string
-		 (string-join (map object->string o.mailboxes) ", ")
+		 (string-join (map (lambda (mb)
+				     (object->string mb)) o.mailboxes) ", ")
 		 %semicolon-string))
 
 

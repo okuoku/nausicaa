@@ -124,8 +124,14 @@
 (%compile-library "infix.sls"
 		  "infix.slfasl")
 
+(%compile-library "old-generics.sls"
+		  "old-generics.slfasl")
+
 (%compile-library "generics.sls"
 		  "generics.slfasl")
+
+(%compile-library "generics/object-to-string.sls"
+		  "generics/object-to-string.slfasl")
 
 (%compile-library "enumerations.sls"
 		  "enumerations.slfasl")

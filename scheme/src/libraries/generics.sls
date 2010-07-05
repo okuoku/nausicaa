@@ -1,8 +1,8 @@
-;;; -*- coding: utf-8-unix -*-
+;;; -*- coding: utf-8 -*-
 ;;;
 ;;;Part of: Nausicaa/Scheme
 ;;;Contents: generic functions
-;;;Date: Fri Apr  2, 2010
+;;;Date: Mon Jul  5, 2010
 ;;;
 ;;;Abstract
 ;;;
@@ -27,58 +27,49 @@
 
 (library (generics)
   (export
-
-    ;; generic functions infrastructure
     define-generic define-method add-method define-generic/merge
-    call-next-method next-method?
-
-    ;; predefined generic functions
-    object->string)
+    call-next-method next-method?)
   (import (rnrs)
-    (only (classes)
-	  lambda/with-class	      ;for method's functions
-	  class-uid-list	      ;to build signatures
-	  class-uid-list-of	      ;to find the class of values
-	  <top>)		      ;the default class of values
+    (rename (only (classes)
+		  class-uid-list class-uid-list-of lambda/with-class <top>)
+	    (class-uid-list	type-uid-list)
+	    (class-uid-list-of	type-uid-list-of)
+	    (lambda/with-class	method-lambda)
+	    (<top>		top-type))
     (only (language-extensions)
-	  begin0 begin0-let define-inline)
+	  begin0 begin0-let define-constant)
     (parameters)
     (rnrs mutable-pairs (6)))
+
+;;;We need to define or import four bindings:
+;;;
+;;;type-uid-list - A syntax which, applied to a type identifier, expands
+;;;into a list of symbols  representing the type hierarchy from subclass
+;;;to  parent class.   All the  expansions of  this macro  for  the same
+;;;identifier must yield the same list in the sense of EQ?.
+;;;
+;;;type-uid-list-of - A function which,  applied to any value, returns a
+;;;list  of symbols  representing the  type hierarchy  from  subclass to
+;;;parent class.   The returned value  must be EQ? to  the corresponding
+;;;expansion of TYPE-UID-LIST.
+;;;
+;;;method-lambda -  A syntax which  must work like LAMBDA  but recognise
+;;;arguments tagged with types.
+;;;
+;;;top-type - An identifier representing the topmost parent type for all
+;;;the classes.
+;;;
 
 
 ;;;; helpers
 
-(define-syntax take-left
+(define-syntax list-copy
   (syntax-rules ()
-    ((_ ?dotted ?k)
-     (let loop ((ret    '())
-		(dotted ?dotted)
-		(k      ?k))
-       (if (zero? k)
-	   (reverse ret)
-	 (loop (cons (car dotted) ret)
-	       (cdr dotted)
-	       (- k 1)))))))
-
-(define-syntax for-all*
-  ;;Test that the lists have equal  length and all the elements are EQ?;
-  ;;return true or false.
-  ;;
-  ;;This is  more than SRFI-1's EVERY,  because EVERY does  not test for
-  ;;equal length.  It is not like R6RS's FOR-ALL, because FOR-ALL raises
-  ;;an error if the lengths are not equal.
-  ;;
-  (syntax-rules ()
-    ((_ ?eq ?ell1 ?ell2)
-     (let loop ((ell1 ?ell1)
-		(ell2 ?ell2))
-       (cond ((null? ell1)
-	      (null? ell2))
-	     ((null? ell2)
-	      (null? ell1))
-	     ((?eq (car ell1) (car ell2))
-	      (loop (cdr ell1) (cdr ell2)))
-	     (else #f))))))
+    ((_ ?ell)
+     (let loop ((ell ?ell))
+       (if (pair? ell)
+	   (cons (car ell) (loop (cdr ell)))
+	 ell)))))
 
 
 ;;;; next method implementation
@@ -117,127 +108,115 @@
 ;;
 ;;   ((nausicaa:builtin:<complex> nausicaa:builtin:<number>
 ;;     nausicaa:builtin:<builtin> nausicaa:builtin:<top>)
+;;		;first argument
 ;;
 ;;    (nausicaa:builtin:<string>  nausicaa:builtin:<builtin>
 ;;     nausicaa:builtin:<top>)
+;;		;second argument
 ;;
 ;;    (nausicaa:builtin:<char>    nausicaa:builtin:<builtin>
 ;;     nausicaa:builtin:<top>))
+;;		;third argument
 ;;
 
-(define-record-type special-argument
-  (opaque #t)
-  (sealed #t)
-  (nongenerative))
-
-(define :method-adder
-  (make-special-argument))
-
-(define :method-alist
-  (make-special-argument))
-
-(define :method-alist-set!
-  (make-special-argument))
+(define-syntax :method-add		(syntax-rules ()))
+(define-syntax :methods-alist		(syntax-rules ()))
+(define-syntax :number-of-arguments	(syntax-rules ()))
 
 (define-syntax define-generic
-  (syntax-rules ()
-    ((_ ?name)
-     (define ?name (make-generic-function)))))
+  (lambda (stx)
+    (syntax-case stx ()
 
-(define-syntax define-generic/merge
-  (syntax-rules ()
-    ((_ ?name ?gf0 ?gf ...)
-     (define ?name
-       (merge-generic-functions ?gf0 ?gf ...)))))
+      ((_ ?name . ?rest)
+       (not (identifier? #'?name))
+       (syntax-violation 'define-generic
+	 "expected identifier as generic function name"
+	 (syntax->datum stx) (syntax->datum #'?name)))
 
-(define (make-generic-function)
-  (let* ((method-alist	'())
-	 (cache		#f)
-	 (method-adder	(lambda (signature has-rest closure)
-			  (set! method-alist
-				(%add-method-to-method-alist method-alist
-							     signature has-rest closure)))))
-    (define-syntax %assert-no-methods
-      (syntax-rules ()
-	((_ ?signature)
-	 (assertion-violation #f "no method defined for the argument's types"
-			      (map record-type-name ?signature)))
-	((_)
-	 (assertion-violation #f "no method defined for the argument's types"))))
+      ((_ ?name)
+       #'(define-generic ?name '()))
 
-    ;; (case-lambda
-    ;;  (()
-    ;;   (cond (method-with-no-args
-    ;; 	     (method-with-no-args))
-    ;; 	    (method-with-no-args-and-rest
-    ;; 	     (method-with-no-args-and-rest))
-    ;; 	    (else
-    ;; 	     (%assert-no-methods))))
-    ;;  ((arg)
-    ;;   (cond ((eq? arg :method-adder)
-    ;; 	     method-adder)
-    ;; 	    ((eq? arg :method-alist)
-    ;; 	     method-alist)))
-    ;;  )
+      ((_ ?name ?methods-alist)
+       #'(begin
+	   (define methods-alist ?methods-alist)
+	   (define number-of-arguments
+	     (if (null? methods-alist)
+		 #f
+	       (length (caar methods-alist))))
+	   (define cache
+	     (make-hashtable signature-hash eq?))
+	   (define (method-add signature closure)
+	     (let ((len (length signature)))
+	       (if number-of-arguments
+		   (unless (= number-of-arguments len)
+		     (syntax-violation '?name
+		       "attempt to define method with wrong number of arguments"
+		       signature))
+		 (set! number-of-arguments len)))
+	     (hashtable-clear! cache)
+	     (set! methods-alist (%add-method-to-methods-alist methods-alist signature closure)))
+	   (define (implementation . arguments)
+	     (generic-function-implementation '?name methods-alist cache number-of-arguments arguments))
+	   (define-syntax ?name
+	     (lambda (stx)
+	       (syntax-case stx (:method-add :methods-alist :number-of-arguments)
+		 ((_ :method-add signature closure)
+		  #'(method-add signature closure))
+		 ((_ :methods-alist)
+		  #'methods-alist)
+		 ((_ :number-of-arguments)
+		  #'number-of-arguments)
+		 ((_ ?arg (... ...))
+		  #'(implementation ?arg (... ...)))
+		 (_
+		  (syntax-violation '?name
+		    "invalid arguments to generic function" (syntax->datum stx))))))
+	   ))
+      (_
+       (syntax-violation 'define-generic
+	 "invalid arguments to generic function" (syntax->datum stx)))
 
-    (lambda args
-      (if (and (pair? args)
-      	       (special-argument? (car args)))
-      	  (let ((arg (car args)))
-      	    (cond ((eq? arg :method-adder)
-		   (when cache
-		     (hashtable-clear! cache))
-      		   method-adder)
-		  ((eq? arg :method-alist)
-      		   method-alist)
-		  ((eq? arg :method-alist-set!)
-		   (when cache
-		     (hashtable-clear! cache))
-      		   (set! method-alist (cadr args)))
-      		  (else
-      		   (assertion-violation #f "internal error with invalid special argument" arg))))
-	(let-syntax
-	    ((apply-function/stx (syntax-rules ()
-				   ((_ ?closure)
-				    (apply ?closure args))))
-	     (consume-closure (syntax-rules ()
-				((_ ?closure-list)
-				 (begin0
-				     (car ?closure-list)
-				   (set! ?closure-list (cdr ?closure-list)))))))
-	  (letrec*
-	      ((signature
-		(map class-uid-list-of args))
+      )))
 
-	       (applicable-methods
-		(cond ((and cache (hashtable-ref cache signature #f))
-		       => (lambda (methods) methods))
-		      (else
-		       (begin0-let ((methods (%compute-applicable-methods signature method-alist)))
-			 (unless cache
-			   (set! cache (make-hashtable signature-hash eq?)))
-			 (hashtable-set! cache signature methods)))))
+(define (generic-function-implementation who methods-alist cache number-of-arguments arguments)
 
-	       (method-called?  #f)
+  (define signature
+    (map type-uid-list-of arguments))
 
-	       (is-a-next-method-available?
-		(lambda ()
-		  (null? applicable-methods)))
+  (define applicable-methods
+    (or (hashtable-ref cache signature #f)
+	(begin0-let ((methods (%compute-applicable-methods signature methods-alist)))
+	  (hashtable-set! cache signature methods))))
 
-	       (call-methods
-		(lambda ()
-		  (cond ((pair? applicable-methods)
-			 (unless method-called?
-			   (set! method-called? #t))
-			 (apply-function/stx (consume-closure applicable-methods)))
-			(method-called?
-			 (assertion-violation #f
-			   "called next method but no more methods available"))
-			(else
-			 (%assert-no-methods signature))))))
-	    (parametrise ((next-method-func-parm call-methods)
-			  (next-method-pred-parm is-a-next-method-available?))
-	      (call-methods))))))))
+  (define method-called? #f)
+
+  (define (is-a-next-method-available?)
+    (null? applicable-methods))
+
+  (define (call-methods)
+    (cond ((not (null? applicable-methods))
+	   (unless method-called?
+	     (set! method-called? #t))
+	   (let ((method-entry (car applicable-methods)))
+	     (set! applicable-methods (cdr applicable-methods))
+	     (apply (cdr method-entry) arguments)))
+	  (method-called?
+	   (assertion-violation who
+	     "called next method but no more methods available"))
+	  (else
+	   (assertion-violation who
+	     "no method defined for the argument's types"
+	     signature))))
+
+  (unless (= number-of-arguments (length signature))
+    (assertion-violation who
+      (string-append "wrong number of arguments, expected " (number->string number-of-arguments)
+		     " given " (number->string (length signature)))
+      arguments))
+
+  (parametrise ((next-method-func-parm call-methods)
+		(next-method-pred-parm is-a-next-method-available?))
+    (call-methods)))
 
 
 ;;;; syntaxes to define and add methods
@@ -266,51 +245,41 @@
        (%collect-types-and-arguments ?generic-function ?args () () . ?body)))))
 
 (define-syntax %collect-types-and-arguments
-  ;;Analyse the list  of method arguments collecting a  list of names, a
-  ;;list of types and a boolean representing the rest argument.  Finally
-  ;;call the ADD-METHOD syntax to add the method.
+  ;;Analyse the list of method  arguments collecting a list of names and
+  ;;a  list of types.   Finally call  the ADD-METHOD  syntax to  add the
+  ;;method.
   ;;
   (syntax-rules ()
-    ((_ ?generic-function ((?next-arg-name ?next-record-name) . ?args)
-	(?record-name ...)
-	(?arg-name    ...) . ?body)
-     ;;Matches the  form when  the next argument  to be processed  has a
-     ;;type.
+
+    ;;Matches  the form when  the next  argument to  be processed  has a
+    ;;type.
+    ((_ ?generic-function ((?next-arg-name ?next-type-name) . ?args)
+	(?type-name ...)
+	(?arg-name  ...) . ?body)
      (%collect-types-and-arguments ?generic-function ?args
-				   (?record-name ... ?next-record-name)
-				   (?arg-name    ... ?next-arg-name)
+				   (?type-name ... ?next-type-name)
+				   (?arg-name  ... ?next-arg-name)
 				   . ?body))
 
-    ((_ ?generic-function (?next-arg-name . ?args) (?record-name ...) (?arg-name ...) . ?body)
-     ;;Matches the  form when the next  argument to be  processed has no
-     ;;type.
+    ;;Matches the  form when  the next argument  to be processed  has no
+    ;;type.
+    ((_ ?generic-function (?next-arg-name . ?args) (?type-name ...) (?arg-name ...) . ?body)
      (%collect-types-and-arguments ?generic-function ?args
-				   (?record-name ... <top>)
-				   (?arg-name    ... ?next-arg-name)
+				   (?type-name ... top-type)
+				   (?arg-name  ... ?next-arg-name)
 				   . ?body))
 
-    ((_ ?generic-function () (?record-name ...) (?arg-name ...) . ?body)
-     ;;Matches the form  when all the arguments have  been processed and
-     ;;NO  rest argument  is present.   This  MUST come  before the  one
-     ;;below.
-     (add-method ?generic-function (?record-name ...)
-		 #f ;means no rest argument
-		 (lambda/with-class ((?arg-name ?record-name) ...) . ?body)))
-
-    ((_ ?generic-function ?rest-name (?record-name ...) (?arg-name ...) . ?body)
-     ;;Matches the form  when all the arguments have  been processed and
-     ;;only the  rest argument is there.   This MUST come  after the one
-     ;;above.
-     (add-method ?generic-function (?record-name ...)
-		 #t ;means rest argument is present
-		 (lambda/with-class ((?arg-name ?record-name) ... . ?rest-name) . ?body)))))
+    ;;Matches the form when all the arguments have been processed.
+    ((_ ?generic-function () (?type-name ...) (?arg-name ...) . ?body)
+     (add-method ?generic-function (?type-name ...)
+		 (method-lambda ((?arg-name ?type-name) ...) . ?body)))))
 
 (define-syntax add-method
   (syntax-rules ()
-    ((_ ?generic-function (?class-name ...) ?has-rest ?closure)
-     ((?generic-function :method-adder)
-      (list (class-uid-list ?class-name) ...) ;this is the signature
-      ?has-rest ?closure))))
+    ((_ ?generic-function (?type-name ...) ?closure)
+     (?generic-function :method-add
+			(list (type-uid-list ?type-name) ...) ;this is the signature
+			?closure))))
 
 
 ;;;; method alists
@@ -318,199 +287,137 @@
 ;;The  collection of methods  in a  generic function  is an  alist; each
 ;;entry has the format:
 ;;
-;;	((has-rest . uids) . <method record>)
+;;	(signature . closure)
 ;;
-;;the key is a pair whose CAR  is the HAS-REST boolean, and whose CDR is
-;;the list  of UIDs of the  RTDs of the method's  arguments; this allows
-;;two methods with equal signatures  to be distinct if one supports rest
-;;arguments and the other does not.
+;;the key is the method's signature.
 ;;
 
-(define-record-type <method>
-  (fields (mutable closure)
-		;The function implementing the method.
-	  (immutable signature)
-		;The method's signature
-	  (immutable accept-rest?)))
-		;A boolean, true if the function accepts rest arguments.
+(define-constant $gf
+  (greatest-fixnum))
 
-(define-inline (%make-method-entry-key ?has-rest ?signature)
-  (cons ?has-rest (map car ?signature)))
+(define (signature-hash signature)
+  (if (null? (cdr signature))
+      (symbol-hash (caar signature))
+    (fold-left (lambda (nil uid-list)
+		 (mod (+ nil (symbol-hash (car uid-list))) $gf))
+	       0
+	       signature)))
 
-(define (method-entry-closure method-entry)
-  (<method>-closure (cdr method-entry)))
-
-(define-inline (method-entry-accept-rest? ?method-entry)
-  (<method>-accept-rest? (cdr ?method-entry)))
-
-(define-inline (method-entry-signature ?method-entry)
-  (<method>-signature (cdr ?method-entry)))
-
-(define-inline (method-entry-closure-set! ?method-entry ?closure)
-  (<method>-closure-set! (cdr ?method-entry) ?closure))
-
-
-;;;; actually adding methods
-
-(define (%add-method-to-method-alist method-alist signature has-rest closure)
+(define (%add-method-to-methods-alist methods-alist signature closure)
   ;;Add a  method's entry to the  alist of methods;  return the modified
   ;;method alist.
   ;;
-  ;;A new method entry is added  only if no method with the selected key
-  ;;already  exists.  If  a  method  with the  key  already exists,  its
-  ;;closure is overwritten with the new one.
+  ;;A new  method entry  is added  only if no  method with  the selected
+  ;;signature already  exists.  If a  method with the  signature already
+  ;;exists, its closure is overwritten with the new one.
   ;;
-  (let ((key (%make-method-entry-key has-rest signature)))
-    (cond ((find (lambda (method-entry)
-		   (for-all* eq? key (car method-entry)))
-		 method-alist)
-	   => (lambda (method-entry)
-		(<method>-closure-set! (cdr method-entry) closure)
-		method-alist))
-	  (else
-	   (cons (cons key (make-<method> closure signature has-rest))
-		 method-alist)))))
+  (cond ((find (lambda (method-entry)
+		 (for-all eq? signature (car method-entry)))
+	       methods-alist)
+	 => (lambda (method-entry)
+	      (set-cdr! method-entry closure)
+	      methods-alist))
+	(else
+	 (cons (cons signature closure) methods-alist))))
 
-
-;;;; methods dispatching
-
-(define (%compute-applicable-methods call-signature method-alist)
-  ;;Filter out from  METHOD-ALIST the methods not applicable  to a tuple
+(define (%compute-applicable-methods call-signature methods-alist)
+  ;;Filter out from METHODS-ALIST the  methods not applicable to a tuple
   ;;of arguments with types in  the tuple CALL-SIGNATURE.  Then sort the
   ;;list of applicable  methods so that the more  specific are the first
-  ;;ones.  Return the sorted list of applicable closures.
+  ;;ones.  Return the sorted list of applicable method entries.
   ;;
-  (map method-entry-closure
-    (list-sort
-     (lambda (method-entry1 method-entry2)
-       (%more-specific-method? (cdr method-entry1) (cdr method-entry2) call-signature))
-     (filter
-	 (lambda (method-entry)
-	   (%applicable-method? call-signature (cdr method-entry)))
-       method-alist))))
+  (list-sort
+   (lambda (method-entry1 method-entry2)
+     (%more-specific-signature? (car method-entry1) (car method-entry2) call-signature))
+   (filter
+       (lambda (method-entry)
+	 (%applicable-method-signature? call-signature (car method-entry)))
+     methods-alist)))
 
-(define (%applicable-method? call-signature method)
-  ;;Return true  if the METHOD  can be applied  to a tuple  of arguments
-  ;;having CALL-SIGNATURE as record types.
+(define (%applicable-method-signature? call-signature method-signature)
+  ;;Return true  if a method with  METHOD-SIGNATURE can be  applied to a
+  ;;tuple of arguments having CALL-SIGNATURE.
   ;;
-  (let* ((signature	(<method>-signature    method))
-	 (has-rest	(<method>-accept-rest? method))
-	 (len		(length signature))
-	 (call-len	(length call-signature))
-	 (%parent?	(lambda (maybe-parent maybe-child)
-			  (memq (car maybe-parent) maybe-child))))
-    (cond
-     ;;If SIGNATURE has  the same length of the  call signature, test it
-     ;;for applicability.
-     ((= call-len len)
-      (for-all* %parent? signature call-signature))
+  (and (= (length call-signature) (length method-signature))
+       (for-all (lambda (maybe-parent maybe-child)
+		  (memq (car maybe-parent) maybe-child))
+		method-signature call-signature)))
 
-     ;;If  the closure  supports rest  arguments, compare  only  as much
-     ;;record types as there are in SIGNATURE.
-     ((and has-rest (> call-len len))
-      (for-all* %parent? signature (take-left call-signature len)))
-
-     ;;This method is not applicable.
-     (else #f))))
-
-(define (%more-specific-method? method1 method2 call-signature)
+(define (%more-specific-signature? signature1 signature2 call-signature)
   ;;Return true if METHOD1 is more specific than METHOD2 with respect to
   ;;CALL-SIGNATURE.   This  function   must  be  applied  to  applicable
   ;;methods.  The longest signature is more specific, by definition.
   ;;
-  (let* ((signature1	(<method>-signature method1))
-	 (signature2	(<method>-signature method2))
-	 (len1		(length signature1))
-	 (len2		(length signature2)))
-    (cond ((> len1 len2) #t)
-	  ((< len1 len2) #f)
-	  (else ;(= len1 len2)
-	   (let next-argument-type ((signature1     signature1)
-				    (signature2     signature2)
-				    (call-signature call-signature))
-	     (if (null? signature1)
+  (let next-argument-type ((signature1     signature1)
+			   (signature2     signature2)
+			   (call-signature call-signature))
+    (if (null? signature1)
 
-		 ;;If  we are  here:  The two  signatures  have EQ?  car
-		 ;;values (and equal length).   We want this: If METHOD2
-		 ;;supports  rest arguments and  METHOD1 does  not, then
-		 ;;METHOD1  is  more  specific.   This test  reduces  to
-		 ;;testing if METHOD2 supports rest arguments.
-		 (<method>-accept-rest? method2)
+	;;If we are here: the  two signatures have EQ?  car values; this
+	;;is an  error because %ADD-METHOD-TO-METHODS-ALIST  should have
+	;;detected this and replaced one method's closure with the other
+	;;in the alist of methods.
+	(assertion-violation '%more-specific-signature?
+	  "two methods with same signature in generic function"
+	  signature1)
 
-	       (let ((uid-hierarchy-1 (car signature1))
-		     (uid-hierarchy-2 (car signature2)))
-		 (cond
-		  ((eq? (car uid-hierarchy-1) (car uid-hierarchy-2))
-		   (next-argument-type (cdr signature1) (cdr signature2) (cdr call-signature)))
-		  ((memq (car uid-hierarchy-2) uid-hierarchy-1) #t)
-		  (else #f)))))))))
+      (let ((uid-hierarchy-1 (car signature1))
+	    (uid-hierarchy-2 (car signature2)))
+	(cond ((eq? (car uid-hierarchy-1) (car uid-hierarchy-2))
+	       (next-argument-type (cdr signature1) (cdr signature2) (cdr call-signature)))
+	      ((memq (car uid-hierarchy-2) uid-hierarchy-1)
+	       #t)
+	      (else
+	       #f))))))
 
 
 ;;;; generic functions merging
 
-(define (merge-generic-functions gf . generics)
-  (let ((ma  (merge-method-alists (gf :method-alist)
-				  (map (lambda (gf)
-					 (gf :method-alist))
-				    generics)))
-	(new (make-generic-function)))
-    (new :method-alist-set! ma)
-    new))
+(define-syntax define-generic/merge
+  (syntax-rules ()
+    ((_ ?name ?gf0 ?gf ...)
+     (define-generic ?name
+       (merge-methods-alists (?gf0 :methods-alist)
+			    (?gf  :methods-alist)
+			    ...)))))
 
-(define-inline (list-copy ?ell)
-  (let loop ((ell ?ell))
-    (if (pair? ell)
-	(cons (car ell) (loop (cdr ell)))
-      ell)))
+(define (merge-methods-alists methods-alist . list-of-methods-alists)
+  (let loop ((methods-alist		(list-copy methods-alist))
+	     (list-of-methods-alists	list-of-methods-alists))
+    (if (null? list-of-methods-alists)
+	methods-alist
+      (loop (merge-two-methods-alists methods-alist (car list-of-methods-alists))
+	    (cdr list-of-methods-alists)))))
 
-(define-inline (merge-method-alists ?ma ?method-alists)
-  (let loop ((ma		(list-copy ?ma))
-	     (method-alists	?method-alists))
-    (if (null? method-alists)
-	ma
-      (loop (merge-two-method-alists ma (car method-alists))
-	    (cdr method-alists)))))
-
-(define-syntax merge-two-method-alists
-  ;;Merge ?MA1 into ?MA and return a new alist.
+(define-syntax merge-two-methods-alists
+  ;;Merge ?METHODS-ALIST-1 into ?METHODS-ALIST-2 and return a new alist.
   ;;
   (syntax-rules ()
-    ((_ ?ma ?ma1)
-     (let loop ((ma  ?ma)
-		(ma1 ?ma1))
-       (if (null? ma1)
-	   ma
-	 (loop (maybe-merge-method (car ma1) ma) (cdr ma1)))))))
+    ((_ ?methods-alist-1 ?methods-alist-2)
+     (let loop ((methods-alist-1 ?methods-alist-1)
+		(methods-alist-2 ?methods-alist-2))
+       (if (null? methods-alist-2)
+	   methods-alist-1
+	 (loop (maybe-merge-method (car methods-alist-2) methods-alist-1) (cdr methods-alist-2)))))))
 
-(define-inline (maybe-merge-method ?candidate-method-entry ?method-alist)
-  ;;Add CANDIDATE-METHOD-ENTRY to METHOD-ALIST and return the new alist.
-  ;;Adding happens  only if  a method with  the same signature  and rest
-  ;;arguments support does not already exist in METHOD-ALIST.
+(define-syntax maybe-merge-method
+  ;;If  a method  with  the same  signature  does not  already exist  in
+  ;;?METHODS-ALIST:  prepend   a  copy  of   ?CANDIDATE-METHOD-ENTRY  to
+  ;;?METHODS-ALIST and return the new alist.
   ;;
-  (let* ((candidate-method-entry	?candidate-method-entry)
-	 (method-alist			?method-alist)
-	 (key				(car candidate-method-entry)))
-    (unless (find (lambda (method-entry)
-		    (for-all* eq? key (car method-entry)))
-		  method-alist)
-      (cons candidate-method-entry method-alist))))
-
-
-(define (signature-hash signature)
-  (fold-left (lambda (nil uid-list)
-	       (+ nil (symbol-hash (car uid-list))))
-	     0
-	     signature))
-
-
-;;;; predefined generic functions
-
-(define-generic object->string)
-
-(define-method (object->string o)
-  (call-with-string-output-port
-   (lambda (port)
-     (display o port))))
+  ;;?CANDIDATE-METHOD-ENTRY  is  copied  because  the  original  can  be
+  ;;modified by ADD-METHOD.
+  ;;
+  (syntax-rules ()
+    ((_ ?candidate-method-entry ?methods-alist)
+     (let* ((candidate-method-entry	?candidate-method-entry)
+	    (methods-alist		?methods-alist)
+	    (signature			(car candidate-method-entry)))
+       (unless (find (lambda (method-entry)
+		       (for-all eq? signature (car method-entry)))
+		     methods-alist)
+	 `((,(car candidate-method-entry) . ,(cdr candidate-method-entry))
+	   . ,methods-alist))))))
 
 
 ;;;; done

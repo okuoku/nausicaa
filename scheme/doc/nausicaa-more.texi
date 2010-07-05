@@ -100,6 +100,10 @@ Revised^6 Report on the algorithmic language Scheme
 @acronym{RTD}
 @end macro
 
+@macro uid{}
+@acronym{UID}
+@end macro
+
 @c ------------------------------------------------------------
 @c Miscellaneous acronyms.
 @c ------------------------------------------------------------
@@ -603,7 +607,6 @@ the list of original documents and their authors.  See also the
 * scmobj::                      A simple object system.
 * sexps::                       Handling symbolic expressions.
 * matches::                     Pattern matching.
-* syntax-matches::              Pattern matching for syntax transformers.
 * irregex::                     IrRegular expressions.
 * pregexp::                     Portable regular expressions for Scheme.
 * parser-tools::                Lexer and parser utilities.
@@ -626,6 +629,10 @@ Low level libraries
 * kmp::                         Knuth--Morris--Pratt searching.
 * one-dimension::               One dimensional extended ranges.
 
+Appendices
+
+* old-generics::                Old multimethods dispatching.
+
 Indexes
 
 * concept index::               An entry for each concept.
@@ -638,12 +645,12 @@ Indexes
 
 Multimethods dispatching
 
+* generics examples::           Examples of method dispatching.
 * generics application::        How generic functions and methods
                                 are invoked.
 * generics dispatching::        How methods are dispatched.
 * generics define::             Defining generic functions and methods.
 * generics next::               Invoking the next method.
-* generics examples::           Examples of method dispatching.
 * generics predefined::         Predefined generic functions.
 
 Enumeration sets utilities
@@ -1425,6 +1432,16 @@ One dimensional extended ranges
 * one-dimension inspect::       Inspection.
 * one-dimension ops::           Operations.
 
+Multimethods dispatching
+
+* old-generics application::    How generic functions and methods
+                                are invoked.
+* old-generics dispatching::    How methods are dispatched.
+* old-generics define::         Defining generic functions and methods.
+* old-generics next::           Invoking the next method.
+* old-generics examples::       Examples of method dispatching.
+* old-generics predefined::     Predefined generic functions.
+
 @end detailmenu
 @end menu
 
@@ -1436,232 +1453,41 @@ One dimensional extended ranges
 
 
 In the context of the @library{generics} library, @dfn{generic
-functions} are procedures that can be specialised to the (possibly
-conventional) record types of their arguments.  Each specialisation of a
-generic function is called @dfn{method}.  When applying a generic
-function to a set of arguments, the most specific method with respect to
-the arguments' types is chosen.
+functions} are interfaces to procedures that can be specialised to the
+(possibly conventional) data types of their arguments; each
+specialisation of a generic function is called @dfn{method}.  When
+applying a generic function to a set of arguments, the most specific
+method with respect to the arguments' types is chosen.
 
 The @library{generics} library is built on top of the @library{classes}
 library.
 
+@quotation
+@library{generics} has undergone @api{} and internal changes in its
+development and with respect to the old infrastructure in the
+@library{records} library; with the old version generic functions were
+functions supporting methods with any number of arguments, with the new
+version generic functions are macros supporting methods with a fixed
+number of arguments.
+
+The old version of the library is still distributed as
+@library{old-generics}, @ref{old-generics} for details.  The
+@library{records} library is no more distributed.
+@end quotation
+
 @menu
+* generics examples::           Examples of method dispatching.
 * generics application::        How generic functions and methods
                                 are invoked.
 * generics dispatching::        How methods are dispatched.
 * generics define::             Defining generic functions and methods.
 * generics next::               Invoking the next method.
-* generics examples::           Examples of method dispatching.
 * generics predefined::         Predefined generic functions.
 @end menu
 
 @c page
-@node generics application
-@section How generic functions and methods are invoked
-
-
-When a generic function is applied to a tuple of arguments, the
-following happens:
-
-@enumerate
-@item
-For each argument in the tuple a record type is determined.  The tuple
-of types is called @dfn{signature}.  Each generic function maintains an
-internal collection in which every method's closure is associated to a
-signature.
-
-@item
-The internal collection of methods is queried for all the methods
-applicable to the tuple of arguments, using the signature as search key.
-
-@item
-The list of applicable methods is sorted from the more specific to the
-least specific for the signature.  From now on the list of sorted,
-applicable methods is handled as a stack.
-
-@item
-Pop the next method from the stack and apply its closure to the tuple of
-arguments.  The return value of this application becomes the return
-value of the generic function application.  If the function calls the
-next method, recurse to step 4.
-@end enumerate
-
-@c page
-@node generics dispatching
-@section How methods are dispatched
-
-
-Here we attempt the formulation of the rules of method dispatching.  A
-method is identified by a triplet of values: a list of @rtd{}s,
-called signature, representing the classes or expected arguments; a
-boolean value telling if the closure accepts rest arguments; the
-closure.
-
-@c ------------------------------------------------------------
-
-@subsubheading Applicability
-
-First we need to understand when a method is applicable to a tuple of
-arguments.  Record types are identified by their @acronym{UID}: the
-return value of @func{record-type-uid}.  Given a tuple of arguments, a
-method supporting no rest arguments is applicable to the tuple if:
-
-@enumerate
-@item
-The length of the signature is equal to the length of the arguments'
-tuple.
-
-@item
-Position by position, the @acronym{UID} of the @rtd{} in the signature
-is @func{eq?}  to the @acronym{UID} of the @rtd{} of the argument or to
-the @acronym{UID} of one of its parents.
-@end enumerate
-
-@noindent
-a method supporting rest arguments is applicable to the tuple if:
-
-@enumerate
-@item
-The length of the signature is less than or equal to the length of the
-arguments' tuple.
-
-@item
-Position by position, up to the last element in the signature, the
-@acronym{UID} of the @rtd{} in the signature is @func{eq?} to the
-@acronym{UID} of the @rtd{} of the argument or to the @acronym{UID} of
-one of its parents.
-@end enumerate
-
-@c ------------------------------------------------------------
-
-@subsubheading Specificity
-
-Now we can understand how to determine which one, among two applicable
-methods, is more specific for a tuple of arguments.  Let's call the
-methods @var{A} and @var{B}.
-
-Notice that it is impossible for two distinct methods, in the same
-generic function, to have the same signature and the same support for
-rest arguments.
-
-Also, records support only single inheritance, so if two methods are
-applicable: the homologous @rtd{} in their signatures, or their
-subtypes, have @func{eq?}  @acronym{UID}s.
-
-@enumerate
-@item
-If both @var{A} and @var{B} support rest arguments: The one with the
-longest signature is more specific.
-
-@item
-The @rtd{}s in the signatures are compared in couples, position
-by position from the beginning to the end.
-
-@enumerate a
-@item
-If the @rtd{}s have @func{eq?} @acronym{UID}s, the next couple is
-inspected.
-
-@item
-If the @rtd{} from @var{A} is a subtype of the one from @var{B}: @var{A}
-is more specific than @var{B}.
-@end enumerate
-
-@item
-If the methods' signatures have the same length, and, position by
-position, the @rtd{}s of @var{A} have @acronym{UID}s which are
-@func{eq?}  to the @acronym{UID}s of the @rtd{}s of @var{B}, but @var{A}
-supports rest arguments while @var{B} does not: Then @var{B} is more
-specific than @var{A}.
-@end enumerate
-
-@c page
-@node generics define
-@section Defining generic functions and methods
-
-
-The number of arguments (arity) of a generic function is undefined:
-Every method can have a different number of arguments.
-
-
-@deffn Syntax define-generic @ameta{name}
-Define a new generic function and bind it to @meta{name}.
-@end deffn
-
-
-@defun make-generic-function
-Build and return a new generic function.
-@end defun
-
-
-@deffn Syntax define-generic/merge @ameta{name} @ametao{generic} @ameta{generic} ...
-Define a new generic function and bind it to @meta{name}.  The internal
-collection of methods holds the union of the method collections from the
-@meta{generic} arguments, which must be generic functions.
-
-The union is performed visiting arguments from left to right; when two
-methods have the same signature and the same support for rest arguments,
-the one from the leftmost generic function has precedence.
-
-Merging methods is useful when two different libraries export generic
-functions bound to the same identifier.
-@end deffn
-
-
-@deffn Syntax define-method @ameta{generic} (@ameta{arg-spec} ...) @ameta{body}
-@deffnx Syntax define-method (@ameta{generic} @ameta{arg-spec} ...) @ameta{body}
-Add a new method to an already existent generic function,
-@ameta{generic}.
-
-The list of @meta{arg-spec} specifies the @rtd{}s of the arguments for
-which this method specialises the generic function.  Notice that rest
-arguments are supported and specified with the usual syntax.  An
-@meta{arg-spec} can be:
-
-@table @code
-@item (@meta{arg} @meta{record name})
-Where @meta{arg} is the formal name of the argument and @meta{record
-name} the (possibly conventional) record name of expected values.
-
-@item @meta{arg}
-Where @meta{arg} is the formal name of the argument.  In this case the
-@rtd{} defaults to the conventional @class{top}, which is interpreted as
-parent of every other @rtd{} (and so it has the least specificity).
-@end table
-
-If a method is defined with the same signature, and support for rest
-arguments, of an already registered method: The old method is
-overwritten by the new one.  Two methods having, position by position,
-arguments of the same @rtd{}, but such that one supports rest arguments
-and the other does not, are different.
-@end deffn
-
-
-@deffn Syntax add-method @ameta{generic} @ameta{signature} @ameta{has-rest} @ameta{closure}
-Add a new method to an already existent generic function,
-@meta{generic}.  @meta{signature} must be a list of record names for
-which this method specialises the generic function.  @meta{closure} must
-be the method's closure.  @meta{has-rest} must be @true{} or @false{},
-when @true{} it means that the closure supports rest arguments.
-@end deffn
-
-@c page
-@node generics next
-@section Invoking the next method
-
-
-@defun call-next-method
-Call the next most specific method.
-@end defun
-
-
-@defun next-method?
-Return true if a next method is available.
-@end defun
-
-@c page
 @node generics examples
-@section Examples of method dispatching.
+@section Examples of method dispatching
 
 
 Here we show with some examples what we have to expect from the
@@ -1669,12 +1495,12 @@ multimethod dispatching of @library{generics}.  In the following examples
 the string @code{%apple} is written in place of the value bound to the
 symbol @class{apple}.
 
-Let's examine this example:
+Let's examine this example which uses the @library{classes} library:
 
 @example
-(define-class <one> (parent <top>))
-(define-class <two> (parent <one>))
-(define-class <c>   (parent <two>))
+(define-class <one> (inherit <top>) (nongenerative one))
+(define-class <two> (inherit <one>) (nongenerative two))
+(define-class <c>   (inherit <two>) (nongenerative c))
 @end example
 
 @noindent
@@ -1685,11 +1511,11 @@ the record hierarchy is:
 @end example
 
 @noindent
-and the full record precedence list for @class{c} is:
+the list of @uid{}s for @class{c} is:
 
 @example
-(record-precedence-list* <c>)
-@result{} (%c %two %one %top)
+(class-uid-list <c>)
+@result{} (c two one nausicaa:builtin:<top>)
 @end example
 
 @noindent
@@ -1732,9 +1558,210 @@ The following example shows a call to the next method:
 @result{} (two . one)
 @end example
 
+The syntax @func{define-generic} defines a macro and the syntax
+@func{define-method} add a new method to the generic function; the first
+method definition establishes the number of arguments for the generic
+function: all the methods added afterwards must have the same number of
+arguments.
+
+It is possible to define a function accepting different numbers of
+arguments as follows:
+
+@example
+(define fluff
+  (case-lambda
+   ((a)
+    (fluff-1 a))
+   ((a b)
+    (fluff-2 a b))
+   ((a b . rest)
+    (fluff-3 a b rest))))
+
+(define-generic fluff-1)
+(define-generic fluff-2)
+(define-generic fluff-3)
+
+(define-method (fluff-1 (o <one>))
+  ---)
+
+(define-method (fluff-2 (o <one>) (p <two>))
+  ---)
+
+(define-method (fluff-3 (o <one>) (p <two>) rest)
+  ---)
+@end example
+
+@noindent
+this way we turn a set of macros into a single ``generic function''
+which is truly a function.  If we avoid wrapping the macros into a
+function we gain a bit of speed in function calls.
+
+@c page
+@node generics application
+@section How generic functions and methods are invoked
+
+
+@library{generics} is designed to work with class definitions from the
+@library{classes} library; when a generic function is applied to a tuple
+of arguments, the following happens:
+
+@enumerate
+@item
+For each argument in the tuple a class type is determined, then the list
+of unique @uid{}s representing the class hierarchy is acquired; the
+tuple of @uid{} lists is called @dfn{signature}.  Each generic function
+maintains an internal collection in which every method's closure is
+associated to a signature.
+
+@item
+The internal collection of methods is queried for all the methods
+applicable to the tuple of arguments, using the signature as search key.
+
+@item
+The list of applicable methods is sorted from the more specific to the
+least specific for the signature.  From now on the list of sorted,
+applicable methods is handled as a stack.
+
+@item
+The next method is popped from the stack and its closure applied to the
+tuple of arguments; the return value of this application becomes the
+return value of the generic function application.  If the function calls
+the next method, recurse to step 4.
+@end enumerate
+
+@c page
+@node generics dispatching
+@section How methods are dispatched
+
+
+Here we attempt the formulation of the rules of method dispatching.  A
+method is identified by a couple of values: the signature and the
+closure.
+
+@c ------------------------------------------------------------
+
+@subsubheading Applicability
+
+First we need to understand when a method is applicable to a tuple of
+arguments:
+
+@enumerate
+@item
+Methods in a generic function have the same number of arguments, so the
+tuple of arguments must match that number.
+
+@item
+Given a tuple of arguments, position by position, the class of the
+method's argument is equal to, or a parent of, the class of the given
+argument.
+@end enumerate
+
+@c ------------------------------------------------------------
+
+@subsubheading Specificity
+
+Now we can understand how to determine which one, among two applicable
+methods, is more specific for a tuple of arguments.  Let's call the
+methods @var{A} and @var{B}.
+
+Notice that it is impossible for two distinct methods, in the same
+generic function, to have the same signature.
+
+Also, classes support only single inheritance, so if two methods are
+applicable: the homologous lists of @uid{}s in their signatures, have at
+least one @func{eq?} member (different from @class{top}).
+
+The lists of @uid{}s in the signatures are compared in couples, position
+by position from the beginning to the end.
+
+@enumerate
+@item
+If the first @uid{}s are @func{eq?}: the next couple is inspected.
+
+@item
+If the @uid{} from @var{B} is a member of the list from @var{A}: @var{A}
+is more specific than @var{B}.
+@end enumerate
+
+@c page
+@node generics define
+@section Defining generic functions and methods
+
+
+@deffn Syntax define-generic @ameta{name}
+Define a new generic function (a macro) and bind it to @meta{name}.  The
+number of arguments is unspecified: it will be established by the first
+@func{define-method} or @func{add-method} applied to @meta{name}.
+@end deffn
+
+
+@deffn Syntax define-generic/merge @ameta{name} @ametao{generic} @ameta{generic} ...
+Define a new generic function and bind it to @meta{name}.  The internal
+collection of methods holds the union of the method collections from the
+@meta{generic} arguments, which must be generic function identifiers.
+
+The union is performed visiting arguments from left to right; when two
+methods have the same signature, the one from the leftmost generic
+function has precedence.
+
+Merging methods is useful when two different libraries export generic
+functions bound to the same identifier.
+@end deffn
+
+
+@deffn Syntax define-method @ameta{generic} (@ameta{arg-spec} ...) @ameta{body}
+@deffnx Syntax define-method (@ameta{generic} @ameta{arg-spec} ...) @ameta{body}
+Add a new method to an already existent generic function,
+@ameta{generic}.
+
+The list of @meta{arg-spec} specifies the class of the arguments for
+which this method specialises the generic function; an @meta{arg-spec}
+can be:
+
+@table @code
+@item (@cmeta{arg} @cmeta{class name})
+Where @meta{arg} is the formal name of the argument and @meta{class
+name} the (possibly conventional) class name of expected values.
+
+@item @cmeta{arg}
+Where @meta{arg} is the formal name of the argument.  In this case the
+class defaults to the conventional @class{top}, which is interpreted as
+parent of every other class (and so it has the least specificity).
+@end table
+
+If a method is defined with the same signature of an already registered
+method: the old method is overwritten by the new one.
+@end deffn
+
+
+@deffn Syntax add-method @ameta{generic} @ameta{classes} @ameta{closure}
+Add a new method to an already existent generic function,
+@meta{generic}.  @meta{classes} must be a list of class names for which
+this method specialises the generic function.  @meta{closure} must be
+the method's closure.
+@end deffn
+
+@c page
+@node generics next
+@section Invoking the next method
+
+
+@defun call-next-method
+Call the next most specific method.
+@end defun
+
+
+@defun next-method?
+Return true if a next method is available.
+@end defun
+
 @c page
 @node generics predefined
 @section Predefined generic functions
+
+
+The following bindings are exported by the @library{generics
+object-to-string} library.
 
 
 @deffn {Generic Function} object->string @var{obj}
@@ -39766,6 +39793,312 @@ apply this function to ranges that satisfy @func{%range-contiguous?}.
 The returned range may share some value with the original ranges.
 @end defun
 
+@c page
+@node old-generics
+@appendix Old multimethods dispatching
+
+
+In the context of the @library{old-generics} library, @dfn{generic
+functions} are procedures that can be specialised to the (possibly
+conventional) class types of their arguments; each specialisation of a
+generic function is called @dfn{method}.  When applying a generic
+function to a set of arguments, the most specific method with respect to
+the arguments' types is chosen.
+
+The @library{old-generics} library is deprecated, use @library{generics}
+instead.  The @library{old-generics} library is built on top of the
+@library{classes} library.
+
+@menu
+* old-generics application::    How generic functions and methods
+                                are invoked.
+* old-generics dispatching::    How methods are dispatched.
+* old-generics define::         Defining generic functions and methods.
+* old-generics next::           Invoking the next method.
+* old-generics examples::       Examples of method dispatching.
+* old-generics predefined::     Predefined generic functions.
+@end menu
+
+@c page
+@node old-generics application
+@appendixsec How generic functions and methods are invoked
+
+
+When a generic function is applied to a tuple of arguments, the
+following happens:
+
+@enumerate
+@item
+For each argument in the tuple a class type is determined, then the list
+of unique @uid{}s representing the class hierarchy is acquired.  The
+tuple of @uid{} lists is called @dfn{signature}.  Each generic function
+maintains an internal collection in which every method's closure is
+associated to a signature.
+
+@item
+The internal collection of methods is queried for all the methods
+applicable to the tuple of arguments, using the signature as search key.
+
+@item
+The list of applicable methods is sorted from the more specific to the
+least specific for the signature.  From now on the list of sorted,
+applicable methods is handled as a stack.
+
+@item
+The next method is popped from the stack and its closure is applied to
+the tuple of arguments.  The return value of this application becomes
+the return value of the generic function application.  If the function
+calls the next method, recurse to step 4.
+@end enumerate
+
+@c page
+@node old-generics dispatching
+@appendixsec How methods are dispatched
+
+
+Here we attempt the formulation of the rules of method dispatching.  A
+method is identified by a triplet of values: the signature; a boolean
+value telling if the closure accepts rest arguments; the closure.
+
+@c ------------------------------------------------------------
+
+@subsubheading Applicability
+
+First we need to understand when a method is applicable to a tuple of
+arguments.  Class types are identified by the list of @uid{}s
+representing the hierarchy: the expansion of @func{class-uid-list}.
+Given a tuple of arguments, a method supporting no rest arguments is
+applicable to the tuple if:
+
+@enumerate
+@item
+The length of the signature is equal to the length of the arguments'
+tuple.
+
+@item
+Position by position, the class of the method's argument is equal to, or
+a parent of, the class of the given argument.
+@end enumerate
+
+@noindent
+a method supporting rest arguments is applicable to the tuple if:
+
+@enumerate
+@item
+The length of the signature is less than, or equal to, the length of the
+arguments' tuple.
+
+@item
+Position by position, up to the last element in the signature, the class
+of the method's argument is equal to, or a parent of, the class of the
+given argument.
+@end enumerate
+
+@c ------------------------------------------------------------
+
+@subsubheading Specificity
+
+Now we can understand how to determine which one, among two applicable
+methods, is more specific for a tuple of arguments.  Let's call the
+methods @var{A} and @var{B}.
+
+Notice that it is impossible for two distinct methods, in the same
+generic function, to have the same signature and the same support for
+rest arguments.
+
+Also, classes support only single inheritance, so if two methods are
+applicable: the homologous classes in their signatures are equal or one
+parent of the other.
+
+@enumerate
+@item
+If both @var{A} and @var{B} support rest arguments: the one with the
+longest signature is more specific.
+
+@item
+The classes in the signatures are compared in couples, position by
+position from the beginning to the end.
+
+@enumerate a
+@item
+If the classes are equal: the next couple is inspected.
+
+@item
+If the class from @var{A} is a subclass of the one from @var{B}: @var{A}
+is more specific than @var{B}.
+@end enumerate
+
+@item
+If the methods' signatures have the same length, and, position by
+position, the classes of @var{A} are equal to the classes of @var{B},
+but @var{A} supports rest arguments while @var{B} does not: then @var{B}
+is more specific than @var{A}.
+@end enumerate
+
+@c page
+@node old-generics define
+@appendixsec Defining generic functions and methods
+
+
+The number of arguments (arity) of a generic function is undefined:
+every method can have a different number of arguments.
+
+
+@deffn Syntax define-generic @ameta{name}
+Define a new generic function and bind it to @meta{name}.
+@end deffn
+
+
+@defun make-generic-function
+Build and return a new generic function.
+@end defun
+
+
+@deffn Syntax define-generic/merge @ameta{name} @ametao{generic} @ameta{generic} ...
+Define a new generic function and bind it to @meta{name}.  The internal
+collection of methods holds the union of the method collections from the
+@meta{generic} arguments, which must be generic functions.
+
+The union is performed visiting arguments from left to right; when two
+methods have the same signature and the same support for rest arguments,
+the one from the leftmost generic function has precedence.
+
+Merging methods is useful when two different libraries export generic
+functions bound to the same identifier.
+@end deffn
+
+
+@deffn Syntax define-method @ameta{generic} (@ameta{arg-spec} ...) @ameta{body}
+@deffnx Syntax define-method (@ameta{generic} @ameta{arg-spec} ...) @ameta{body}
+Add a new method to an already existent generic function,
+@ameta{generic}.
+
+The list of @meta{arg-spec} specifies the classes of the arguments for
+which this method specialises the generic function.  Notice that rest
+arguments are supported and specified with the usual syntax.  An
+@meta{arg-spec} can be:
+
+@table @code
+@item (@meta{arg} @meta{class name})
+Where @meta{arg} is the formal name of the argument and @meta{class
+name} the (possibly conventional) class name of expected values.
+
+@item @meta{arg}
+Where @meta{arg} is the formal name of the argument.  In this case the
+class defaults to the conventional @class{top}, which is interpreted as
+parent of every other class (and so it has the least specificity).
+@end table
+
+If a method is defined with the same signature, and support for rest
+arguments, of an already registered method: the old method is
+overwritten by the new one.  Two methods having, position by position,
+arguments of the same class, but such that one supports rest arguments
+and the other does not, are different.
+@end deffn
+
+
+@deffn Syntax add-method @ameta{generic} @ameta{classes} @ameta{has-rest} @ameta{closure}
+Add a new method to an already existent generic function,
+@meta{generic}.  @meta{classes} must be a list of class names for which
+this method specialises the generic function.  @meta{closure} must be
+the method's closure.  @meta{has-rest} must be @true{} or @false{}, when
+@true{} it means that the closure supports rest arguments.
+@end deffn
+
+@c page
+@node old-generics next
+@appendixsec Invoking the next method
+
+
+@defun call-next-method
+Call the next most specific method.
+@end defun
+
+
+@defun next-method?
+Return true if a next method is available.
+@end defun
+
+@c page
+@node old-generics examples
+@appendixsec Examples of method dispatching
+
+
+Here we show with some examples what we have to expect from the
+multimethod dispatching of @library{old-generics}.  In the following
+examples the string @code{%apple} is written in place of the value bound
+to the symbol @class{apple}.
+
+Let's examine this example:
+
+@example
+(define-class <one> (parent <top>))
+(define-class <two> (parent <one>))
+(define-class <c>   (parent <two>))
+@end example
+
+@noindent
+the class hierarchy is:
+
+@example
+<top> -> <one> -> <two> -> <c>
+@end example
+
+@noindent
+so for the generic function:
+
+@example
+(define-generic doit)
+(define-method (doit (o <one>)) 'one)
+(define-method (doit (o <two>)) 'two)
+@end example
+
+@noindent
+applied to a value of type @class{c}: the method with @class{two} in the
+signature is @emph{more specific} than the method with @class{one} in
+the signature:
+
+@example
+(doit (make-<c>)) @result{} two
+@end example
+
+@noindent
+also the method with @class{one} in the signature is the ``next method''
+of the method with @class{two} in the signature, we can call it using
+@func{call-next-method}.
+
+The following example shows a call to the next method:
+
+@example
+(define-generic fluff)
+
+(define-method (fluff (o <one>))
+  'one)
+
+(define-method (fluff (o <two>))
+  (cons 'two (call-next-method)))
+
+(define o (make-<c>))
+
+(fluff o)
+@result{} (two . one)
+@end example
+
+@c page
+@node old-generics predefined
+@appendixsec Predefined generic functions
+
+
+@deffn {Generic Function} object->string @var{obj}
+Return a string representation for @var{obj}.  A non--specialised method
+is predefined to use the following implementation:
+
+@example
+(call-with-string-output-port
+   (lambda (port)
+     (display obj port)))
+@end example
+@end deffn
 
 @c page
 @node concept index

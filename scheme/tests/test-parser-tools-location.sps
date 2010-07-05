@@ -26,7 +26,7 @@
 
 
 (import (nausicaa)
-  (generics)
+  (generics object-to-string)
   (checks)
   (parser-tools lexical-token)
   (parser-tools source-location))

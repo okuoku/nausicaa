@@ -26,7 +26,7 @@
 
 
 (import (nausicaa)
-  (generics)
+  (generics object-to-string)
   (checks)
   (email addresses)
   (silex lexer)
@@ -44,7 +44,7 @@
 	   (parser	(make-address-parser))
 	   (handler	(lambda (msg tok) (list 'error-handler msg tok)))
 	   (result	(parser lexer handler)))
-      (string-join (map object->string result) ", ")))
+      (string-join (map (lambda (o) (object->string o)) result) ", ")))
 
 ;;; --------------------------------------------------------------------
 
@@ -99,7 +99,7 @@
 	   (parser	(make-address-parser))
 	   (handler	(lambda (msg tok) (list 'error-handler msg tok)))
 	   (result	(parser lexer handler)))
-      (string-join (map object->string result) ", ")))
+      (string-join (map (lambda (o) (object->string o)) result) ", ")))
 
 ;;; --------------------------------------------------------------------
 
@@ -124,7 +124,7 @@
 	   (parser	(make-address-parser))
 	   (handler	(lambda (msg tok) (list 'error-handler msg tok)))
 	   (result	(parser lexer handler)))
-      (string-join (map object->string result) ", ")))
+      (string-join (map (lambda (o) (object->string o)) result) ", ")))
 
 ;;; --------------------------------------------------------------------
 
@@ -169,7 +169,7 @@
 	   (parser	(make-address-parser))
 	   (handler	(lambda (msg tok) (list 'error-handler msg tok)))
 	   (result	(parser lexer handler)))
-      (string-join (map object->string result) ", ")))
+      (string-join (map (lambda (o) (object->string o)) result) ", ")))
 
 ;;; --------------------------------------------------------------------
 
