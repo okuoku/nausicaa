@@ -6,9 +6,10 @@
 ;;;
 ;;;Abstract
 ;;;
-;;;
+;;;	The ancestor of this library is ScmObj by Dorai Sitaram.
 ;;;
 ;;;Copyright (c) 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 1996 Dorai Sitaram
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
