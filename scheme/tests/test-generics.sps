@@ -350,7 +350,7 @@
   #t)
 
 
-#;(parametrise ((check-test-name 'predefined))
+(parametrise ((check-test-name 'predefined))
 
   (define-class <alpha>
     (fields (immutable the-string)))
