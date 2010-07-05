@@ -1,6 +1,6 @@
 ;;;
 ;;;Part of: Nausicaa/Scheme
-;;;Contents: usage tests for (records)
+;;;Contents: usage tests for (generics)
 ;;;Date: Wed Aug 26, 2009
 ;;;
 ;;;Abstract
@@ -25,11 +25,8 @@
 
 
 (import (nausicaa)
-  (lists)
   (checks)
-  (generics)
-  (keywords)
-  (records-lib))
+  (generics))
 
 (check-set-mode! 'report-failed)
 (display "*** testing generic functions\n")
