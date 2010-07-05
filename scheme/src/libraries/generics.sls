@@ -224,9 +224,6 @@
 		(lambda ()
 		  (null? applicable-methods)))
 
-	       (apply-function
-		(lambda (f) (apply-function/stx f)))
-
 	       (call-methods
 		(lambda ()
 		  (cond ((pair? applicable-methods)
