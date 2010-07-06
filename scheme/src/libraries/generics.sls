@@ -297,12 +297,12 @@
   (greatest-fixnum))
 
 (define (signature-hash signature)
-  (if (null? (cdr signature))
-      (symbol-hash (caar signature))
-    (fold-left (lambda (nil uid-list)
-		 (mod (+ nil (symbol-hash (car uid-list))) $gf))
-	       0
-	       signature)))
+  (let loop ((hash      0)
+	     (signature signature))
+    (if (null? signature)
+	hash
+      (loop (mod (+ hash (symbol-hash (caar signature))) $gf)
+	    (cdr signature)))))
 
 (define (%add-method-to-methods-alist methods-alist signature closure)
   ;;Add a  method's entry to the  alist of methods;  return the modified
