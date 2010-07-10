@@ -18411,6 +18411,7 @@ a 24 hour clock (with nanosecond precision) and a time zone offset from
 as well as for reading and writing string representations of dates.
 
 @menu
+* time secs::                   Seconds and nanoseconds.
 * time intro::                  Introduction.
 * time const::                  Constants.
 * time current::                Current time and clock resolution.
@@ -18423,6 +18424,270 @@ as well as for reading and writing string representations of dates.
 * time string::                 Date to string/string to date
                                 converters.
 @end menu
+
+@c page
+@node time secs
+@section Seconds and nanoseconds
+
+
+@menu
+* time secs constants::         Constant values for seconds and
+                                subseconds units.
+* time secs utils::             Utilities for seconds and subseconds
+                                units counts.
+* time secs class::             Seconds and nanoseconds data type.
+@end menu
+
+@c page
+@node time secs constants
+@subsection Constant values for seconds and subseconds units
+
+
+The following bindings are exported by the @library{times-and-dates
+seconds} library.
+
+
+@defvr Constant $number-of-nanoseconds-in-a-microsecond
+@defvrx Constant $number-of-nanoseconds-in-a-millisecond
+@defvrx Constant $number-of-nanoseconds-in-a-second
+@defvrx Constant $number-of-nanoseconds-in-a-minute
+@defvrx Constant $number-of-nanoseconds-in-an-hour
+@defvrx Constant $number-of-nanoseconds-in-a-day
+Conversion coefficients for nanosecond counts.
+@end defvr
+
+
+@defvr Constant $number-of-microseconds-in-a-nanosecond
+@defvrx Constant $number-of-microseconds-in-a-millisecond
+@defvrx Constant $number-of-microseconds-in-a-second
+@defvrx Constant $number-of-microseconds-in-a-minute
+@defvrx Constant $number-of-microseconds-in-an-hour
+@defvrx Constant $number-of-microseconds-in-a-day
+Conversion coefficients for microsecond counts.
+@end defvr
+
+
+@defvr Constant $number-of-milliseconds-in-a-nanosecond
+@defvrx Constant $number-of-milliseconds-in-a-microsecond
+@defvrx Constant $number-of-milliseconds-in-a-second
+@defvrx Constant $number-of-milliseconds-in-a-minute
+@defvrx Constant $number-of-milliseconds-in-an-hour
+@defvrx Constant $number-of-milliseconds-in-a-day
+Conversion coefficients for millisecond counts.
+@end defvr
+
+
+@defvr Constant $number-of-seconds-in-a-nanosecond
+@defvrx Constant $number-of-seconds-in-a-microsecond
+@defvrx Constant $number-of-seconds-in-a-millisecond
+@defvrx Constant $number-of-seconds-in-a-minute
+@defvrx Constant $number-of-seconds-in-an-hour
+@defvrx Constant $number-of-seconds-in-a-day
+Conversion coefficients for second counts.
+@end defvr
+
+@c page
+@node time secs utils
+@subsection Utilities for seconds and subseconds units counts
+
+
+The following bindings are exported by the @library{times-and-dates
+seconds} library.  The following naming conventions hold:
+
+@itemize
+@item
+All the bindings starting with @code{sn-} take as arguments a seconds
+and nanoseconds counts.
+
+@item
+All the bindings starting with @code{su-} take as arguments a seconds
+and microseconds counts.
+
+@item
+All the bindings starting with @code{sm-} take as arguments a seconds
+and milliseconds counts.
+
+@item
+All the bindings ending with @code{->sn} return two values: seconds and
+nanoseconds counts.
+
+@item
+All the bindings ending with @code{->su} return two values: seconds and
+microseconds counts.
+
+@item
+All the bindings ending with @code{->sm} return two values: seconds and
+milliseconds counts.
+@end itemize
+
+Some of the bindings are macros: this is to allow a level of inline
+expansion for small expressions and save a function call.  When the
+documentation refers to @dfn{normalised} values, it means that the
+seconds and subseconds counts are both non--negative or both
+non--positive and:
+
+@itemize
+@item
+The milliseconds count @math{M} is in the range @math{-1e-3 < M < 1e3}.
+
+@item
+The microseconds count @math{U} is in the range @math{-1e-6 < U < 1e6}.
+
+@item
+The nanoseconds count @math{N} is in the range @math{-1e-9 < N < 1e9}.
+@end itemize
+
+The counts in seconds and subseconds units must be given as exact
+numbers when arguments and are always returned as exact numbers.
+
+
+@deffn Syntax sn-normalise @var{seconds} @var{nanoseconds}
+@deffnx Syntax su-normalise @var{seconds} @var{microseconds}
+@deffnx Syntax sm-normalise @var{seconds} @var{milliseconds}
+Return two values: a normalised seconds count and a normalised
+subseconds count.  The returned values are the arguments normalised to
+be in such a way that the time from zero is left unchanged.  Examples:
+
+@example
+(sn-normalise +1 +1)    @result{} +1 +1
+(sn-normalise -1 -1)    @result{} -1 -1
+(sn-normalise +1 -1)    @result{}  0 +999999999
+(sn-normalise -1 +1)    @result{}  0 -999999999
+
+(sn-normalise +10 #e+1.001e9)     @result{} +11 +1e6
+(sn-normalise -10 #e-1.001e9)     @result{} -11 -1e6
+@end example
+@end deffn
+
+
+@deffn Syntax sn->seconds @var{seconds} @var{nanoseconds}
+@deffnx Syntax su->seconds @var{seconds} @var{microseconds}
+@deffnx Syntax sm->seconds @var{seconds} @var{milliseconds}
+Return an exact rational number representing the arguments in seconds
+units.
+@end deffn
+
+
+@deffn Syntax sn->milliseconds @var{seconds} @var{nanoseconds}
+@deffnx Syntax su->milliseconds @var{seconds} @var{microseconds}
+@deffnx Syntax sm->milliseconds @var{seconds} @var{milliseconds}
+Return an exact rational number representing the arguments in
+milliseconds units.
+@end deffn
+
+
+@deffn Syntax sn->microseconds @var{seconds} @var{nanoseconds}
+@deffnx Syntax su->microseconds @var{seconds} @var{microseconds}
+@deffnx Syntax sm->microseconds @var{seconds} @var{milliseconds}
+Return an exact rational number representing the arguments in
+microseconds units.
+@end deffn
+
+
+@deffn Syntax sn->nanoseconds @var{seconds} @var{nanoseconds}
+@deffnx Syntax su->nanoseconds @var{seconds} @var{microseconds}
+@deffnx Syntax sm->nanoseconds @var{seconds} @var{milliseconds}
+Return an exact rational number representing the arguments in
+nanoseconds units.
+@end deffn
+
+
+@deffn Syntax seconds->sn @var{seconds}
+@deffnx Syntax seconds->su @var{seconds}
+@deffnx Syntax seconds->sm @var{seconds}
+Return two values: @var{seconds} itself and zero.  The returned values
+represents the count of seconds and subseconds corresponding to
+@var{seconds}.
+@end deffn
+
+
+@deffn Syntax milliseconds->sn @var{milliseconds}
+@deffnx Syntax milliseconds->su @var{milliseconds}
+@deffnx Syntax milliseconds->sm @var{milliseconds}
+Return two values: the count of seconds and the count of subseconds
+corresponding to the count of @var{milliseconds}.  The returned values
+are normalised.
+@end deffn
+
+
+@deffn Syntax microseconds->sn @var{microseconds}
+@deffnx Syntax microseconds->su @var{microseconds}
+@deffnx Syntax microseconds->sm @var{microseconds}
+Return two values: the count of seconds and the count of subseconds
+corresponding to the count of @var{microseconds}.  The returned values
+are normalised.
+@end deffn
+
+
+@deffn Syntax nanoseconds->sn @var{nanoseconds}
+@deffnx Syntax nanoseconds->su @var{nanoseconds}
+@deffnx Syntax nanoseconds->sm @var{nanoseconds}
+Return two values: the count of seconds and the count of subseconds
+corresponding to the count of @var{nanoseconds}.  The returned values
+are normalised.
+@end deffn
+
+
+@defun smun->sn @var{seconds} @var{millliseconds} @var{microseconds} @var{nanoseconds}
+Return two values: the count of seconds and the count of nanoseconds
+corresponding to the arguments.  The returned values are normalised.
+@end defun
+
+
+@defun sn->smun @var{seconds} @var{nanoseconds}
+Return four values: the counts of seconds, milliseconds, microseconds,
+nanoseconds corresponding to the arguments.  The returned values are
+normalised.
+@end defun
+
+
+@defun sn-add @vari{seconds} @vari{nanoseconds} @varii{seconds} @varii{nanoseconds}
+Sum the two couples of counts and return two values: the resulting
+normalised counts of seconds and nanoseconds.
+@end defun
+
+
+@defun sn-sub @vari{seconds} @vari{nanoseconds} @varii{seconds} @varii{nanoseconds}
+Subtract the seconds couple of counts from the first and return two
+values: the resulting normalised counts of seconds and nanoseconds.
+@end defun
+
+
+@defun sn< @vari{seconds} @vari{nanoseconds} @varii{seconds} @varii{nanoseconds}
+@defunx sn> @vari{seconds} @vari{nanoseconds} @varii{seconds} @varii{nanoseconds}
+@defunx sn<= @vari{seconds} @vari{nanoseconds} @varii{seconds} @varii{nanoseconds}
+@defunx sn>= @vari{seconds} @vari{nanoseconds} @varii{seconds} @varii{nanoseconds}
+Return true if the first couple of counts is, respectively: less than,
+greater than, less than or equal to, greater than or equal to the second
+couple of counts.  The comparison is performed on normalised counts.
+@end defun
+
+
+@c page
+@node time secs class
+@subsection Seconds and nanoseconds data type
+
+
+@deftp Class @aclass{seconds-and-nanoseconds}
+Base type representing a time duration with a couple of numbers
+representing a seconds count and a nanoseconds count.
+@end deftp
+
+
+@defcv {Mutable Field} @aclass{seconds-and-nanoseconds} seconds
+Exact integer representing seconds count.
+@end defcv
+
+
+@defcv {Mutable Field} @aclass{seconds-and-nanoseconds} nanoseconds
+Exact integer representing nanoseconds count.
+@end defcv
+
+
+@defcv {Immutable Field} @aclass{seconds-and-nanoseconds} full-seconds
+Exact rational number representing the time.
+@end defcv
+
 
 @c page
 @node time intro
@@ -32721,7 +32986,7 @@ The following infix operators are supported, in order of increasing
 precedence from left to right:
 
 @example
-+ - * / div // mod % expt ^ < > <= >= =
++ - * / div // div0 mod mod0 % expt ^ < > <= >= =
 @end example
 
 @noindent

@@ -63,7 +63,7 @@
 (library (times-and-dates)
   (export
 
-    <date> <time>
+    <date> <time> <duration>
 
     ;; constants
     time-duration time-monotonic time-tai time-utc
@@ -136,6 +136,7 @@
     (infix syntax)
     (rnrs mutable-strings)
     (formations)
+    (times-and-dates seconds)
     (times-and-dates compat))
 
 
@@ -237,23 +238,10 @@
 ;;-- only the $tai-epoch-in-jd might need changing if
 ;;   a different epoch is used.
 
-;;Number of  nanoseconds in a  second.  Useful, for example,  to convert
-;;seconds to nanoseconds.
-(define-constant $number-of-nanoseconds-in-a-second (expt 10 9))
-
-;;Number of seconds in a day.
-(define-constant $number-of-seconds-in-a-day  86400)
-
 ;;Number  of seconds  in a  half  day.  It  is used  in the  expressions
 ;;involving  the  Julian Day,  which  starts  at  noon (rather  than  at
 ;;midnight).
 (define-constant $number-of-seconds-in-half-day 43200)
-
-;;Number of seconds in an hour.
-(define-constant $number-of-seconds-in-an-hour  (* 60 60))
-
-;;Number of seconds in a minute.
-(define-constant $number-of-seconds-in-a-minute	60)
 
 ;;Julian day number for the Epoch.
 (define-constant $tai-epoch-in-jd 4881175/2)
@@ -424,16 +412,17 @@
 	    (loop (cdr table))))))))
 
 
-(define-class (<time> make-<time> time?)
-  (nongenerative nausicaa:times-and-dates:<time>)
-  (fields (mutable type		time-type	set-time-type!)
-	  (mutable second	time-second	set-time-second!)
-	  (mutable nanosecond	time-nanosecond	set-time-nanosecond!))
-  (virtual-fields (immutable full-nanoseconds))
+(define-class <seconds-and-nanoseconds>
+  (nongenerative nausicaa:times-and-dates:<seconds-and-nanoseconds>)
+  (fields (mutable seconds)
+	  (mutable nanoseconds))
+  (virtual-fields (immutable full-nanoseconds)
+		  (immutable deep-copy)
+		  (immutable shallow-copy))
   (protocol (lambda (make-top)
-	      (lambda (type secs nanosecs)
+	      (lambda (secs nanosecs)
 		(let ((in-range (< nanosecs $number-of-nanoseconds-in-a-second)))
-		  ((make-top) type
+		  ((make-top)
 		   (if in-range
 		       secs
 		     (infix secs + nanosecs // $number-of-nanoseconds-in-a-second))
@@ -441,14 +430,44 @@
 		       nanosecs
 		     (mod nanosecs $number-of-nanoseconds-in-a-second))))))))
 
-(define (copy-time (time <time>))
-  (make <time> time.type time.second time.nanosecond))
+(define (<seconds-and-nanoseconds>-deep-copy (S <seconds-and-nanoseconds>))
+  (make <seconds-and-nanoseconds> S.seconds S.nanoseconds))
 
-(define (<time>-full-nanoseconds (T <time>))
-  ;;Convert a <time> object into  an exact integer representing the same
-  ;;time in nanoseconds.
+(define <seconds-and-nanoseconds>-shallow-copy
+  <seconds-and-nanoseconds>-deep-copy)
+
+(define (<seconds-and-nanoseconds>-full-nanoseconds (S <seconds-and-nanoseconds>))
+  ;;Return  an   exact  integer   representing  the  same   duration  in
+  ;;nanoseconds.
   ;;
-  (infix ((T.second * $number-of-nanoseconds-in-a-second) + T.nanosecond)))
+  (infix ((S.seconds * $number-of-nanoseconds-in-a-second) + S.nanoseconds)))
+
+(define (<seconds-and-nanoseconds>-full-milliseconds (S <seconds-and-nanoseconds>))
+  ;;Return  an  inexact  integer   representing  the  same  duration  in
+  ;;nanoseconds.
+  ;;
+  (infix ((S.seconds * $number-of-nanoseconds-in-a-second) + S.nanoseconds)))
+
+(define (<seconds-and-nanoseconds>-seconds-and-milliseconds (S <seconds-and-nanoseconds>))
+  ;;Return an exact integer representing the same duration in nanoseconds.
+  ;;
+  (infix ((S.seconds * $number-of-nanoseconds-in-a-second) + S.nanoseconds)))
+
+
+
+(define-class <duration>
+  (nongenerative nausicaa:times-and-dates:<duration>)
+  (inherit <seconds-and-nanoseconds>)
+  (protocol (lambda (make-seconds-and-nanoseconds)
+	      (lambda (secs nanosecs)
+		((make-seconds-and-nanoseconds secs nanosecs))))))
+
+(define-class <time>
+  (nongenerative nausicaa:times-and-dates:<time>)
+  (inherit <duration>)
+  (protocol (lambda (make-duration)
+	      (lambda (secs nanosecs)
+		((make-duration secs nanosecs))))))
 
 
 ;;;; current time

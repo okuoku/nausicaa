@@ -45,7 +45,7 @@
     raise-unimplemented-error)
   (import (rnrs)
     (unimplemented)
-    (only (classes auxiliary-syntaxes) parent fields)
+    (only (auxiliary-syntaxes) parent fields)
     (for (syntax-utilities) expand))
 
 

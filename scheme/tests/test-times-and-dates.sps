@@ -37,7 +37,8 @@
 
 (import (nausicaa)
   (checks)
-  (times-and-dates))
+  (times-and-dates)
+  (times-and-dates seconds))
 
 (check-set-mode! 'report-failed)
 (display "*** testing times and dates\n")
