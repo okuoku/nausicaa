@@ -142,7 +142,8 @@
 
 ;;;; porting
 
-;;The following are required to the underlying Scheme implementation.
+;;The  following   bindings  are  required  to   the  underlying  Scheme
+;;implementation, they should be exported by (times-and-dates compat).
 ;;
 ;;HOST:CURRENT-TIME
 ;;  Must  return  a  single   value  holding  the  current  seconds  and
@@ -165,7 +166,7 @@
 ;;  1,000,000,000 nanoseconds	= 1 second
 ;;
 ;;  1 microsecond		= 10^{-6} seconds
-;;  10^3 microseconds		= 1 second
+;;  10^3 microseconds		= 1 millisecond
 ;;  1,000,000 microseconds	= 1 second
 ;;
 ;;  1 millisecond		= 10^{-3} seconds
@@ -207,24 +208,25 @@
 (define-constant $locale-number-separator ".")
 
 (define-constant $locale-abbr-weekday-vector
-  (vector "Sun" "Mon" "Tue" "Wed" "Thu" "Fri" "Sat"))
+  '#("Sun" "Mon" "Tue" "Wed" "Thu" "Fri" "Sat"))
+
 (define-constant $locale-long-weekday-vector
-  (vector "Sunday" "Monday" "Tuesday" "Wednesday"
-	  "Thursday" "Friday" "Saturday"))
+  '#("Sunday" "Monday" "Tuesday" "Wednesday" "Thursday" "Friday" "Saturday"))
 
 (define-constant $locale-abbr-month-vector
   ;;Note empty string in 0th place.
-  (vector ""
-	  "Jan" "Feb" "Mar" "Apr"
-	  "May" "Jun" "Jul" "Aug"
-	  "Sep" "Oct" "Nov" "Dec"))
+  '#(""
+     "Jan" "Feb" "Mar" "Apr"
+     "May" "Jun" "Jul" "Aug"
+     "Sep" "Oct" "Nov" "Dec"))
+
 (define-constant $locale-long-month-vector
   ;;Note empty string in 0th place.
-  (vector ""
-	  "January" "February" "March"
-	  "April" "May" "June"
-	  "July" "August" "September"
-	  "October" "November" "December"))
+  '#(""
+     "January"	"February"	"March"
+     "April"	"May"		"June"
+     "July"	"August"	"September"
+     "October"	"November"	"December"))
 
 (define-constant $locale-pm "PM")
 (define-constant $locale-am "AM")

@@ -18694,6 +18694,48 @@ Exact rational number representing the time.
 @section Introduction
 
 
+When using the @library{times-and-dates} library we aim at dealing with
+@dfn{Terrestrial Time} in which: seconds are the ones of the
+@acronym{SI} system, defined using cesium atomic clocks; @math{60}
+seconds make one minute; @math{60} minutes make one hour; @math{24}
+hours make one day.  Terrestrial Time is a theoretical ideal, which real
+clocks can only
+approximate.@footnote{@url{http://en.wikipedia.org/wiki/Terrestrial_Time}}
+
+A realisation of Terrestrial Time is the @dfn{International Atomic Time}
+(@tai{}), which is based on the notional passage of proper time on
+Earth's surface.  Time coordinates on the @tai{} scales are
+conventionally specified using traditional means of specifying days, for
+example the Gregorian
+calendar.@footnote{@url{http://en.wikipedia.org/wiki/International_Atomic_Time}}
+
+@dfn{Coordinated Universal Time} (@utc{}) is a time standard based on
+@tai{} with leap seconds added at irregular intervals to compensate for
+the Earth's slowing rotation; when @utc{} was at the beginning of 1972
+(January 1, 00:00:00), @tai{} was @math{10} seconds into 1972 (January
+1, 00:00:10).  Leap seconds are used to allow @utc{} to closely track
+the mean solar time at the Royal Observatory, Greenwich.  In casual use,
+when fractions of a second are not important, Greenwich Mean Time
+(@acronym{GMT}) can be considered equivalent to @utc{}; saying
+@acronym{GMT} is generally avoided in technical contexts, where the
+unambiguous @utc{} is
+preferred.@footnote{@url{http://en.wikipedia.org/wiki/Coordinated_Universal_Time}}
+
+A @dfn{time zone} is a region on Earth, more or less bounded by lines of
+longitude, that has a uniform, legally mandated standard time, usually
+referred to as the ``local time''; the @math{24} time zones around the
+world can be expressed as positive or negative offsets from @utc{}, each
+time zone boundary being @math{15} degrees east or west of the preceding
+one.  Local time is @utc{} plus the current time zone offset for the
+location in question.  In theory, the increase proceeds eastward from
+the eastern boundary of the @utc{} time zone, increasing by one hour for
+each @math{15} degrees, up to the International Date Line (longitude
+@math{180} degrees); a corresponding one hour decrease relative to
+@utc{} occurs every @math{15} degrees heading westward from the western
+boundary of the @utc{} time zone, up to the International Date
+Line.@footnote{@url{http://en.wikipedia.org/wiki/Time_zone}}
+
+
 A @emph{Time} object, which is distinct from all existing types, defines
 a point in time or a time duration in some standard time system.  The
 standard time systems are:
