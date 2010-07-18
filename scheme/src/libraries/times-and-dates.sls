@@ -1,3 +1,4 @@
+;;; -*- coding: utf-8 -*-
 ;;;
 ;;;Part of: Nausicaa/Scheme
 ;;;Contents: times and dates handling
@@ -63,72 +64,12 @@
 (library (times-and-dates)
   (export
 
-    <date> <time> <duration>
-
-    ;; constants
-    time-duration time-monotonic time-tai time-utc
-    ;;time-process time-thread
+    ;; classes
+    <date> <time> <duration> <seconds-and-nanoseconds>
 
     ;; current time and clock resolution
     current-date current-julian-day current-modified-julian-day
     current-time time-resolution
-
-    ;; time object and accessor
-    (rename (make-<time> make-time))
-    time?
-    time-type time-nanosecond time-second
-    set-time-type! set-time-nanosecond! set-time-second!
-    copy-time
-
-    ;; time object comparison procedures
-    time<=? time<? time=? time>=? time>?
-
-    ;; time object arithmetic procedures
-    time-difference add-duration subtract-duration
-
-    ;; date object and accessors
-    (rename (make-<date> make-date))
-    <date>?
-    <date>-nanosecond <date>-second <date>-minute <date>-hour
-    <date>-day <date>-month <date>-year <date>-zone-offset
-    date-year-day date-week-day date-week-number
-
-    date-easter-day
-
-    ;; converters
-    date->julian-day
-    date->modified-julian-day
-    date->time-monotonic
-    date->time-tai
-    date->time-utc
-
-    julian-day->date
-    julian-day->time-monotonic
-    julian-day->time-tai
-    julian-day->time-utc
-
-    modified-julian-day->date
-    modified-julian-day->time-monotonic
-    modified-julian-day->time-tai
-    modified-julian-day->time-utc
-
-    time-monotonic->date
-    time-monotonic->julian-day
-    time-monotonic->modified-julian-day
-    time-monotonic->time-tai
-    time-monotonic->time-utc
-
-    time-tai->date
-    time-tai->julian-day
-    time-tai->modified-julian-day
-    time-tai->time-monotonic
-    time-tai->time-utc
-
-    time-utc->date
-    time-utc->julian-day
-    time-utc->modified-julian-day
-    time-utc->time-monotonic
-    time-utc->time-tai
 
     ;; string conversion
     date->string string->date)
@@ -136,46 +77,9 @@
     (infix syntax)
     (rnrs mutable-strings)
     (formations)
-    (times-and-dates seconds)
+    (times-and-dates seconds-and-subseconds)
+    (times-and-dates years-and-weeks)
     (times-and-dates compat))
-
-
-;;;; porting
-
-;;The  following   bindings  are  required  to   the  underlying  Scheme
-;;implementation, they should be exported by (times-and-dates compat).
-;;
-;;HOST:CURRENT-TIME
-;;  Must  return  a  single   value  holding  the  current  seconds  and
-;;  nanoseconds since the Epoch.  These values can be retrieved with the
-;;  platform's POSIX "gettimeofday()".
-;;
-;;HOST:TIME-SECOND
-;;  Given the return value from HOST:CURRENT-TIME must return the number
-;;  of seconds.
-;;
-;;HOST:TIME-NANOSECOND
-;;  Given the return value from HOST:CURRENT-TIME must return the number
-;;  of nanoseconds.
-
-;;According  to the  SRFI document:  the  range for  nanoseconds is  [0;
-;;9,999,999] inclusive; we know that:
-;;
-;;  1 nanosecond		= 10^{-9} seconds
-;;  10^9 nanoseconds		= 1 second
-;;  1,000,000,000 nanoseconds	= 1 second
-;;
-;;  1 microsecond		= 10^{-6} seconds
-;;  10^3 microseconds		= 1 millisecond
-;;  1,000,000 microseconds	= 1 second
-;;
-;;  1 millisecond		= 10^{-3} seconds
-;;  10^3 milliseconds		= 1 second
-;;  1,000 milliseconds		= 1 second
-;;
-;;so the range  of nanoseconds can represent "small  times" from zero up
-;;to "almost" 10 microseconds.
-;;
 
 
 ;;;; helpers
@@ -189,21 +93,29 @@
       ((?k ?val)
        #`(display ?val #,(datum->syntax #'?k 'port))))))
 
+(define-inline (%seconds-unit-count? count)
+  (and (exact? count) (integer? count)))
+
+(define (%seconds-and-nanoseconds-default-protocol make-upper)
+  (lambda (secs nanosecs)
+    (assert (%seconds-unit-count? secs))
+    (assert (%seconds-unit-count? nanosecs))
+    (receive (secs nanosecs)
+	(sn-normalise secs nanosecs)
+      ((make-upper) secs nanosecs))))
+
+(define (%seconds-and-nanoseconds-maker-protocol make-upper)
+  (lambda (secs millisecs microsecs nanosecs)
+    (assert (%seconds-unit-count? secs))
+    (assert (%seconds-unit-count? millisecs))
+    (assert (%seconds-unit-count? microsecs))
+    (assert (%seconds-unit-count? nanosecs))
+    (receive (secs nanosecs)
+	(smun->sn secs millisecs microsecs nanosecs)
+      ((make-upper) secs nanosecs))))
+
 
 ;;;; global variables and constants
-
-(define-enumeration enum-time-type
-  (time-tai
-   time-utc
-   time-monotonic)
-  time-type-set)
-
-(define-constant time-tai	'time-tai)
-(define-constant time-utc	'time-utc)
-(define-constant time-monotonic	'time-monotonic)
-(define-constant time-duration	'time-duration)
-;;(define-constant time-thread	'time-thread)
-;;(define-constant time-process	'time-process)
 
 (define-constant $locale-number-separator ".")
 
@@ -239,48 +151,6 @@
 ;;-- Miscellaneous Constants.
 ;;-- only the $tai-epoch-in-jd might need changing if
 ;;   a different epoch is used.
-
-;;Number  of seconds  in a  half  day.  It  is used  in the  expressions
-;;involving  the  Julian Day,  which  starts  at  noon (rather  than  at
-;;midnight).
-(define-constant $number-of-seconds-in-half-day 43200)
-
-;;Julian day number for the Epoch.
-(define-constant $tai-epoch-in-jd 4881175/2)
-
-;;Number of days from  the beginning of the year, at the  first day of a
-;;month; non-leap year.
-(define-constant $number-of-days-the-first-day-of-each-month/non-leap-year
-  '#(#f
-     0		;Jan
-     31		;Feb	  0 + 31
-     59		;Mar	 31 + 28
-     90		;Apr	 59 + 31
-     120	;May	 90 + 30
-     151	;Jun	120 + 31
-     181	;Jul	151 + 30
-     212	;Aug	181 + 31
-     243	;Sep	212 + 31
-     273	;Oct	243 + 30
-     304	;Nov	273 + 31
-     334))	;Dec	304 + 30
-
-;;Number of days from  the beginning of the year, at the  first day of a
-;;month; leap year.
-(define-constant $number-of-days-the-first-day-of-each-month/leap-year
-  '#(#f
-     0		;Jan
-     31		;Feb	  0 + 31
-     60		;Mar	 31 + 29
-     91		;Apr	 60 + 31
-     121	;May	 91 + 30
-     152	;Jun	121 + 31
-     182	;Jul	152 + 30
-     213	;Aug	182 + 31
-     244	;Sep	213 + 31
-     274	;Oct	244 + 30
-     305	;Nov	274 + 31
-     335))	;Dec	305 + 30
 
 (define-constant $escape-char #\~)
 
@@ -322,13 +192,6 @@
 ;;
 ;; (set! $leap-second-table (tm:read-tai-utc-data "tai-utc.dat"))
 ;;
-;; (define-syntax read-line
-;;   (syntax-rules ()
-;;     ((_)
-;;      (get-line (current-input-port)))
-;;     ((_ ?port)
-;;      (get-line ?port))))
-;;
 ;; (define (tm:read-tai-utc-data filename)
 ;;   (define (convert-jd jd)
 ;;     (* (- (inexact->exact jd) $tai-epoch-in-jd) $number-of-seconds-in-a-day))
@@ -336,7 +199,7 @@
 ;;     (inexact->exact sec))
 ;;   (let ( (port (open-input-file filename))
 ;; 	 (table '()) )
-;;     (let loop ((line (read-line port)))
+;;     (let loop ((line (get-line port)))
 ;;       (if (not (eq? line (eof-object)))
 ;; 	  (receive (port getter)
 ;; 	      (open-string-output-port (string-append "(" line ")"))
@@ -346,91 +209,30 @@
 ;; 		   (secs (cadddr (cdddr data))))
 ;; 	      (if (>= year 1972)
 ;; 		  (set! table (cons (cons (convert-jd jd) (convert-sec secs)) table))
-;; 		(loop (read-line port)))))))
+;; 		(loop (get-line port)))))))
 ;;     table))
 ;;
 ;; (define (read-leap-second-table filename)
 ;;   (set! $leap-second-table (tm:read-tai-utc-data filename))
 ;;   (values))
 
-(define-constant $leap-second-table
-  ;;Each entry is:
-  ;;
-  ;;    ( <UTC seconds since Epoch> . <number of seconds to add for TAI> )
-  ;;
-  ;;note they go higher to lower, and end in 1972.
-  ;;
-  '((1136073600 . 33)
-    (915148800 . 32)
-    (867715200 . 31)
-    (820454400 . 30)
-    (773020800 . 29)
-    (741484800 . 28)
-    (709948800 . 27)
-    (662688000 . 26)
-    (631152000 . 25)
-    (567993600 . 24)
-    (489024000 . 23)
-    (425865600 . 22)
-    (394329600 . 21)
-    (362793600 . 20)
-    (315532800 . 19)
-    (283996800 . 18)
-    (252460800 . 17)
-    (220924800 . 16)
-    (189302400 . 15)
-    (157766400 . 14)
-    (126230400 . 13)
-    (94694400 . 12)
-    (78796800 . 11)
-    (63072000 . 10)))
-
-(define (%leap-second-delta utc-seconds)
-  ;;Given the UTC  seconds count since the Epoch,  compute the number of
-  ;;leap seconds to correct it:
-  ;;
-  ;;  corrected-utc-seconds = utc-seconds + leap-seconds
-  ;;
-  ;;this correction yields the TAI seconds from the UTC seconds.
-  ;;
-  (if (infix (utc-seconds < ((1972 - 1970) * 365 * $number-of-seconds-in-a-day)))
-      0
-    (let loop ((table $leap-second-table))
-      (if (>= utc-seconds (caar table))
-	  (cdar table)
-	(loop (cdr table))))))
-
-(define (%leap-second-neg-delta tai-seconds)
-  ;;From TAI seconds to UTC seconds.
-  ;;
-  (if (infix (tai-seconds < ((1972 - 1970) * 365 * $number-of-seconds-in-a-day)))
-      0
-    (let loop ((table $leap-second-table))
-      (if (null? table)
-	  0
-	(let ((elm (car table)))
-	  (if (<= (cdr elm) (- tai-seconds (car elm)))
-	      (cdr elm)
-	    (loop (cdr table))))))))
-
 
 (define-class <seconds-and-nanoseconds>
   (nongenerative nausicaa:times-and-dates:<seconds-and-nanoseconds>)
-  (fields (mutable seconds)
-	  (mutable nanoseconds))
-  (virtual-fields (immutable full-nanoseconds)
-		  (immutable deep-copy)
-		  (immutable shallow-copy))
-  (protocol (lambda (make-top)
-	      (lambda (secs nanosecs)
-		(let ((in-range (< nanosecs $number-of-nanoseconds-in-a-second)))
-		  ((make-top)
-		   (if in-range
-		       secs
-		     (infix secs + nanosecs // $number-of-nanoseconds-in-a-second))
-		   (if in-range
-		       nanosecs
-		     (mod nanosecs $number-of-nanoseconds-in-a-second))))))))
+  (fields (immutable seconds)
+	  (immutable nanoseconds))
+  (virtual-fields (immutable full-seconds)
+		  (immutable full-milliseconds)
+		  (immutable full-microseconds)
+		  (immutable full-nanoseconds))
+  (methods deep-clone shallow-clone)
+  (protocol %seconds-and-nanoseconds-default-protocol)
+  (maker ()
+	 (:seconds	0)
+	 (:milliseconds	0)
+	 (:microseconds	0)
+	 (:nanoseconds	0))
+  (maker-protocol %seconds-and-nanoseconds-maker-protocol))
 
 (define (<seconds-and-nanoseconds>-deep-copy (S <seconds-and-nanoseconds>))
   (make <seconds-and-nanoseconds> S.seconds S.nanoseconds))
@@ -438,252 +240,394 @@
 (define <seconds-and-nanoseconds>-shallow-copy
   <seconds-and-nanoseconds>-deep-copy)
 
-(define (<seconds-and-nanoseconds>-full-nanoseconds (S <seconds-and-nanoseconds>))
-  ;;Return  an   exact  integer   representing  the  same   duration  in
-  ;;nanoseconds.
-  ;;
-  (infix ((S.seconds * $number-of-nanoseconds-in-a-second) + S.nanoseconds)))
+(define (<seconds-and-nanoseconds>-full-seconds (S <seconds-and-nanoseconds>))
+  (sn->seconds S.seconds S.nanoseconds))
 
 (define (<seconds-and-nanoseconds>-full-milliseconds (S <seconds-and-nanoseconds>))
-  ;;Return  an  inexact  integer   representing  the  same  duration  in
-  ;;nanoseconds.
-  ;;
-  (infix ((S.seconds * $number-of-nanoseconds-in-a-second) + S.nanoseconds)))
+  (sn->milliseconds S.seconds S.nanoseconds))
 
-(define (<seconds-and-nanoseconds>-seconds-and-milliseconds (S <seconds-and-nanoseconds>))
-  ;;Return an exact integer representing the same duration in nanoseconds.
-  ;;
-  (infix ((S.seconds * $number-of-nanoseconds-in-a-second) + S.nanoseconds)))
+(define (<seconds-and-nanoseconds>-full-microseconds (S <seconds-and-nanoseconds>))
+  (sn->microseconds S.seconds S.nanoseconds))
 
+(define (<seconds-and-nanoseconds>-full-nanoseconds (S <seconds-and-nanoseconds>))
+  (sn->nanoseconds S.seconds S.nanoseconds))
 
 
 (define-class <duration>
   (nongenerative nausicaa:times-and-dates:<duration>)
   (inherit <seconds-and-nanoseconds>)
-  (protocol (lambda (make-seconds-and-nanoseconds)
-	      (lambda (secs nanosecs)
-		((make-seconds-and-nanoseconds secs nanosecs))))))
+  (protocol %seconds-and-nanoseconds-default-protocol)
+  (maker ()
+	 (:seconds	0)
+	 (:milliseconds	0)
+	 (:microseconds	0)
+	 (:nanoseconds	0))
+  (maker-protocol %seconds-and-nanoseconds-maker-protocol)
+  (methods = < > <= >= + - * /))
 
+;;; --------------------------------------------------------------------
+
+(define (<duration>-= (A <duration>) (B <duration>))
+  (and (= (abs A.seconds)     (abs B.seconds))
+       (= (abs A.nanoseconds) (abs B.nanoseconds))))
+
+(define (<duration>-< (A <duration>) (B <duration>))
+  (let ((a.secs (abs A.seconds))
+	(b.secs (abs B.seconds)))
+    (or (< a.secs b.secs)
+	(if (> a.secs b.secs)
+	    #f
+	  (< (abs A.nanoseconds) (abs B.nanoseconds))))))
+
+(define (<duration>-<= (A <duration>) (B <duration>))
+  (let ((a.secs (abs A.seconds))
+	(b.secs (abs B.seconds)))
+    (or (< a.secs b.secs)
+	(if (> a.secs b.secs)
+	    #f
+	  (<= (abs A.nanoseconds) (abs B.nanoseconds))))))
+
+(define (<duration>-> (A <duration>) (B <duration>))
+  (let ((a.secs (abs A.seconds))
+	(b.secs (abs B.seconds)))
+    (or (> a.secs b.secs)
+	(if (< a.secs b.secs)
+	    #f
+	  (> (abs A.nanoseconds) (abs B.nanoseconds))))))
+
+(define (<duration>->= (A <duration>) (B <duration>))
+  (let ((a.secs (abs A.seconds))
+	(b.secs (abs B.seconds)))
+    (or (> a.secs b.secs)
+	(if (< a.secs b.secs)
+	    #f
+	  (>= (abs A.nanoseconds) (abs B.nanoseconds))))))
+
+;;; --------------------------------------------------------------------
+
+(define duration=
+  (case-lambda
+   (()  #t)
+   ((o) #t)
+   (((a <duration>) (b <duration>))
+    (a.= b))
+   (((a <duration>) (b <duration>) . durations)
+    (and (a.= b)
+	 (apply duration= b durations)))))
+
+(define duration<
+  (case-lambda
+   (()  #t)
+   ((o) #t)
+   (((a <duration>) (b <duration>))
+    (a.< b))
+   (((a <duration>) (b <duration>) . durations)
+    (and (a.< b)
+	 (apply duration< b durations)))))
+
+(define duration>
+  (case-lambda
+   (()  #t)
+   ((o) #t)
+   (((a <duration>) (b <duration>))
+    (a.> b))
+   (((a <duration>) (b <duration>) . durations)
+    (and (a.> b)
+	 (apply duration> b durations)))))
+
+(define duration<=
+  (case-lambda
+   (()  #t)
+   ((o) #t)
+   (((a <duration>) (b <duration>))
+    (a.<= b))
+   (((a <duration>) (b <duration>) . durations)
+    (and (a.<= b)
+	 (apply duration<= b durations)))))
+
+(define duration>=
+  (case-lambda
+   (()  #t)
+   ((o) #t)
+   (((a <duration>) (b <duration>))
+    (a.>= b))
+   (((a <duration>) (b <duration>) . durations)
+    (and (a.>= b)
+	 (apply duration>= b durations)))))
+
+;;; --------------------------------------------------------------------
+
+(define (<duration>-+ (A <duration>) (B <duration>))
+  (assert (is-a? B <duration>))
+  (receive (secs nanosecs)
+      (sn-add A.seconds A.nanoseconds
+		      B.seconds B.nanoseconds)
+    (make <duration> secs nanosecs)))
+
+(define (<duration>-- (A <duration>) (B <duration>))
+  (assert (is-a? B <duration>))
+  (receive (secs nanosecs)
+      (sn-sub A.seconds A.nanoseconds
+		      B.seconds B.nanoseconds)
+    (make <duration> (abs secs) (abs nanosecs))))
+
+(define (<duration>-* (S <duration>) lambda)
+  (assert (real? lambda))
+  (make <duration> (* lambda S.seconds) (* lambda S.nanoseconds)))
+
+(define (<duration>-/ (S <duration>) lambda)
+  (assert (real? lambda))
+  (make <duration>
+    (exact (/ S.seconds     lambda))
+    (exact (/ S.nanoseconds lambda))))
+
+
 (define-class <time>
   (nongenerative nausicaa:times-and-dates:<time>)
-  (inherit <duration>)
-  (protocol (lambda (make-duration)
-	      (lambda (secs nanosecs)
-		((make-duration secs nanosecs))))))
+  (inherit <seconds-and-nanoseconds>)
+  (methods date)
+  (protocol %seconds-and-nanoseconds-default-protocol)
+
+  (maker ()
+	 (:seconds		0)
+	 (:milliseconds		0)
+	 (:microseconds		0)
+	 (:nanoseconds		0)
+	 (:julian-day		#f)
+	 (:modified-julian-day	#f))
+  (maker-protocol <time>-maker-protocol)
+
+  (virtual-fields (immutable julian-day)
+		  (immutable modified-julian-day))
+  (methods = < > <= >= + -))
+
+(define (<time>-maker-protocol make-upper)
+  (define (%make-time-from-julian-day jdn)
+    (let ((nanosecs (infix $number-of-nanoseconds-in-a-second * $number-of-seconds-in-a-day
+			   * (jdn - $tai-epoch-in-jd))))
+      ((make-upper)
+       (utc->tai (floor (/ nanosecs $number-of-nanoseconds-in-a-second)))
+       (mod nanosecs $number-of-nanoseconds-in-a-second))))
+  (define (%make-time-from-modified-julian-day mjdn)
+    (%make-time-from-julian-day make-upper (+ mjdn 4800001/2)))
+
+  (lambda (secs millisecs microsecs nanosecs jdn mjdn)
+    (assert (%seconds-unit-count? secs))
+    (assert (%seconds-unit-count? millisecs))
+    (assert (%seconds-unit-count? microsecs))
+    (assert (%seconds-unit-count? nanosecs))
+    (cond (jdn
+	   (assert (exact? jdn))
+	   (%make-time-from-julian-day make-upper jdn))
+	  (mjdn
+	   (assert (exact? mjdn))
+	   (%make-time-from-modified-julian-day make-upper mjdn))
+	  (else
+	   (receive (secs nanosecs)
+	       (smun->sn secs millisecs microsecs nanosecs)
+	     ((make-upper) secs nanosecs))))))
+
+;;; --------------------------------------------------------------------
+
+(define (<time>-= (A <time>) (B <time>))
+  (assert (is-a? B <time>))
+  (and (= A.seconds     B.seconds)
+       (= A.nanoseconds B.nanoseconds)))
+
+(define (<time>-< (A <time>) (B <time>))
+  (assert (is-a? B <time>))
+  (sn< A.seconds A.nanoseconds
+	       B.seconds B.nanoseconds))
+
+(define (<time>-<= (A <time>) (B <time>))
+  (assert (is-a? B <time>))
+  (sn<= A.seconds A.nanoseconds
+		B.seconds B.nanoseconds))
+
+(define (<time>-> (A <time>) (B <time>))
+  (assert (is-a? B <time>))
+  (sn> A.seconds A.nanoseconds
+	       B.seconds B.nanoseconds))
+
+(define (<time>->= (A <time>) (B <time>))
+  (assert (is-a? B <time>))
+  (sn>= A.seconds A.nanoseconds
+		B.seconds B.nanoseconds))
+
+;;; --------------------------------------------------------------------
+
+(define time=
+  (case-lambda
+   (()  #t)
+   ((o) #t)
+   (((a <time>) (b <time>))
+    (a.= b))
+   (((a <time>) (b <time>) . times)
+    (and (a.= b)
+	 (apply time= b times)))))
+
+(define time<
+  (case-lambda
+   (()  #t)
+   ((o) #t)
+   (((a <time>) (b <time>))
+    (a.< b))
+   (((a <time>) (b <time>) . times)
+    (and (a.< b)
+	 (apply time< b times)))))
+
+(define time>
+  (case-lambda
+   (()  #t)
+   ((o) #t)
+   (((a <time>) (b <time>))
+    (a.> b))
+   (((a <time>) (b <time>) . times)
+    (and (a.> b)
+	 (apply time> b times)))))
+
+(define time<=
+  (case-lambda
+   (()  #t)
+   ((o) #t)
+   (((a <time>) (b <time>))
+    (a.<= b))
+   (((a <time>) (b <time>) . times)
+    (and (a.<= b)
+	 (apply time<= b times)))))
+
+(define time>=
+  (case-lambda
+   (()  #t)
+   ((o) #t)
+   (((a <time>) (b <time>))
+    (a.>= b))
+   (((a <time>) (b <time>) . times)
+    (and (a.>= b)
+	 (apply time>= b times)))))
+
+;;; --------------------------------------------------------------------
+
+(define (<time>-+ (A <time>) (B <duration>))
+  (assert (is-a? B <duration>))
+  (receive (secs nanosecs)
+      (sn-add A.seconds A.nanoseconds
+		      B.seconds B.nanoseconds)
+    (make <time> secs nanosecs)))
+
+(define (<time>-- (A <time>) (B <duration>))
+  (assert (is-a? B <duration>))
+  (receive (secs nanosecs)
+      (sn-sub A.seconds A.nanoseconds
+		      B.seconds B.nanoseconds)
+    (make <time> (abs secs) (abs nanosecs))))
+
+;;; --------------------------------------------------------------------
+
+(define <time>-date
+  (case-lambda
+   ((T)
+    (<time>-date T (%local-tz-offset)))
+   (((T <time>) tz-offset)
+    (define (%tai-before-leap-second? second)
+      (find (lambda (x)
+	      (= second (- (+ (car x) (cdr x)) 1)))
+	    $leap-second-table))
+    (define (%seconds-and-nanoseconds->date seconds nanoseconds tz-offset aux-seconds)
+      ;;Convert a seconds count on the UTC scale and a nanoseconds count
+      ;;to a <date>  object.  TZ-OFFSET must be the  time zone offset in
+      ;;seconds.  AUX-SECONDS must  be a count of seconds  to put in the
+      ;;seconds  field  of the  <date>  object; if  it  is  false it  is
+      ;;ignored.
+      ;;
+      (receive (secs date month year)
+	  (%decode-julian-day-number (%time->julian-day-number seconds tz-offset))
+	(let* ((hours    (div secs $number-of-seconds-in-an-hour))
+	       (rem      (mod secs $number-of-seconds-in-an-hour))
+	       (minutes  (div rem 60))
+	       (seconds  (mod rem 60)))
+	  (make <date>
+	    nanoseconds (or aux-seconds seconds) minutes hours
+	    date month year tz-offset))))
+
+    (if (%tai-before-leap-second? T.seconds)
+	;;If  it's  *right* before  the  leap,  we  need to  pretend  to
+	;;subtract a second  and set the seconds explicitly  in the date
+	;;object.
+	(%seconds-and-nanoseconds->date (- (tai->utc T.seconds) 1) T.nanoseconds tz-offset 60)
+      (%seconds-and-nanoseconds->date (tai->utc T.seconds) T.nanoseconds tz-offset #f))
+    )))
+
+;;; --------------------------------------------------------------------
+
+(define <time>-julian-day
+  (case-lambda
+   ((T)
+    (<time>-julian-day T (%local-tz-offset)))
+   (((T <time>) tz-offset)
+    (%time->julian-day-number T.seconds tz-offset))))
+
+(define (%time->julian-day-number seconds tz-offset)
+  ;; special thing -- ignores nanos
+  (infix $tai-epoch-in-jd +
+	 ((seconds + tz-offset + $number-of-seconds-in-half-day) / $number-of-seconds-in-a-day)))
+
+;; (define (<time>-julian-day (T <time>))
+;;   ;;Return the Julian day representing T.
+;;   ;;
+;;   (infix $tai-epoch-in-jd +
+;; 	 (T.second - %leap-second-delta (T.second) + T.nanosecond / $number-of-nanoseconds-in-a-second)
+;; 	 / $number-of-seconds-in-a-day))
+
+(define (<time>-modified-julian-day (T <time>))
+  ;;Return the Modified Julian day representing T.
+  ;;
+  (infix T.julian-day - 4800001/2))
 
 
 ;;;; current time
-
-;;; specific time getters
-;;
-;;Ikarus's (current-time) uses POSIX gettimeofday() I'm not sure why the
-;;original was using time-nanoseconds as 10000 * the milliseconds.
-;;
 
 (define (%get-time-of-day)
   (let ((ct (host:current-time)))
     (values (host:time-second ct)
             (host:time-nanosecond ct))))
 
-(define current-time
+(define (current-time)
+  (receive (seconds nanoseconds)
+      (%get-time-of-day)
+    (receive (seconds nanoseconds)
+	(sn-normalise seconds nanoseconds)
+      (make <time>
+	(utc->tai seconds)
+	nanoseconds))))
+
+(define (current-julian-day)
+  ;;Return a Julian Day value representing the current time.
+  ;;
+  (let (((T <time>) (current-time)))
+    T.julian-day))
+
+(define (current-modified-julian-day)
+  ;;Return a Modified Julian Day value representing the current time.
+  ;;
+  (let (((T <time>) (current-time)))
+    T.modified-julian-day))
+
+(define-constant time-resolution
+  host:time-resolution)
+
+(define current-date
+  ;;Return a <date> object representin "now".
+  ;;
   (case-lambda
    (()
-    (current-time (enum-time-type time-utc)))
-   ((clock-type)
-    (define (%current-time-utc)
-      (receive (seconds nanoseconds)
-	  (%get-time-of-day)
-	(make <time> time-utc seconds nanoseconds)))
-    (define (%current-time-tai)
-      (receive (seconds nanoseconds)
-	  (%get-time-of-day)
-	(make <time> time-tai
-	      (+ seconds (%leap-second-delta seconds))
-	      nanoseconds)))
-    (define (%current-time-monotonic)
-      ;;We  assume  monotonic time  to  be the  same  as  TAI.  A  different
-      ;;implementation of  CURRENT-TIME-MONTONIC will require  rewriting all
-      ;;of the TIME-MONOTONIC converters, of course.
-      ;;
-      (receive (seconds nanoseconds)
-	  (%get-time-of-day)
-	(make <time> time-monotonic
-	      (+ seconds (%leap-second-delta seconds))
-	      nanoseconds)))
-    ;; (define (%current-time-ms-time time-type proc)
-    ;;   (let ((current-ms (proc)))
-    ;;     (make <time> time-type XXX ZZZ)))
-    ;; (define (tm:current-time-thread)
-    ;;   (%current-time-ms-time time-process current-process-milliseconds))
-    ;; (define (tm:current-time-process)
-    ;;   (%current-time-ms-time time-process current-process-milliseconds))
-    ;; (define (tm:current-time-gc)
-    ;;   (%current-time-ms-time time-gc current-gc-milliseconds))
-    (case clock-type
-      ((time-tai)	(%current-time-tai))
-      ((time-utc)	(%current-time-utc))
-      ((time-monotonic) (%current-time-monotonic))
-      ;;((time-thread)	(tm:current-time-thread))
-      ;;((time-process)	(tm:current-time-process))
-      ;;((time-gc)	(tm:current-time-gc))
-      (else
-       (%time-error 'current-time 'invalid-clock-type clock-type))))))
+    (current-date (%local-tz-offset)))
+   ((tz-offset)
+    (let (((T <time>) (current-time)))
+      (T.date tz-offset)))))
 
-(define time-resolution
-  (case-lambda
-   (()
-    (time-resolution (enum-time-type time-utc)))
-   ((clock-type)
-    (case clock-type
-      ((time-tai time-utc time-monotonic)
-       host:time-resolution)
-      ;;((eq? clock-type time-thread) host:time-resolution)
-      ;;((eq? clock-type time-process) host:time-resolution)
-      ;;((eq? clock-type time-gc) host:time-resolution)
-      (else
-       (%time-error 'time-resolution 'invalid-clock-type clock-type))))))
-
-
-;;;; time comparisons
-
-(define (%time-compare-check (one <time>) (two <time>) who)
-  (assert (is-a? one <time>))
-  (assert (is-a? two <time>))
-  (unless (eq? one.type two.type)
-    (%time-error who 'incompatible-time-types #f)))
-
-(define (time=? (one <time>) (two <time>))
-  (%time-compare-check one two 'time=?)
-  (and (= one.second     two.second)
-       (= one.nanosecond two.nanosecond)))
-
-(define (%time-compare who cmp-sec cmp-nano (one <time>) (two <time>))
-  (%time-compare-check one two who)
-  (or (cmp-sec one.second two.second)
-      (and (= one.second two.second)
-	   (cmp-nano one.nanosecond two.nanosecond))))
-
-(define (time>? one two)
-  (%time-compare 'time>? > > one two))
-
-(define (time<? one two)
-  (%time-compare 'time<? < < one two))
-
-(define (time>=? one two)
-  (%time-compare 'time>=? > >= one two))
-
-(define (time<=? one two)
-  (%time-compare 'time<=? < <= one two))
-
-
-;;;; time arithmetics
-
-(define (%nanoseconds->time time-type nanoseconds)
-  ;;Convert  a full time  as exact  integer in  nanoseconds to  a <time>
-  ;;object.
-  ;;
-  (make <time> time-type
-	(div nanoseconds $number-of-nanoseconds-in-a-second)
-	(mod nanoseconds $number-of-nanoseconds-in-a-second)))
-
-(define (time-difference (T1 <time>) (T2 <time>))
-  (assert (is-a? T1 <time>))
-  (assert (is-a? T2 <time>))
-  (unless (eq? T1.type T2.type)
-    (%time-error 'time-difference 'incompatible-time-types (list T1 T2)))
-  (if (time=? T1 T2)
-      (make <time> 'time-duration 0 0)
-    (let ((diff (- T1.full-nanoseconds T2.full-nanoseconds)))
-      (make <time> 'time-duration
-	    (div diff $number-of-nanoseconds-in-a-second)
-	    (abs (mod diff $number-of-nanoseconds-in-a-second))))))
-
-(define (add-duration (T <time>) (D <time>))
-  (assert (is-a? T <time>))
-  (assert (is-a? D <time>))
-  (unless (eq? D.type 'time-duration)
-    (%time-error 'add-duration 'not-duration D))
-  (let ((sec-plus  (+ T.second     D.second))
-	(nsec-plus (+ T.nanosecond D.nanosecond)))
-    (receive (q r)
-	(div-and-mod nsec-plus $number-of-nanoseconds-in-a-second)
-      (if (negative? r)
-	  (make <time> T.type
-		(+ sec-plus q -1)
-		(+ r $number-of-nanoseconds-in-a-second))
-	(make <time> T.type (+ sec-plus q) r)))))
-
-(define (subtract-duration (T <time>) (D <time>))
-  (assert (is-a? T <time>))
-  (assert (is-a? D <time>))
-  (unless (eq? D.type 'time-duration)
-    (%time-error 'subtract-duration 'not-duration D))
-  (let ((sec-minus  (- T.second     D.second))
-	(nsec-minus (- T.nanosecond D.nanosecond)))
-    (receive (q r)
-	(div-and-mod nsec-minus $number-of-nanoseconds-in-a-second)
-      (if (negative? r)
-	  (make <time> T.type
-		(- sec-minus q 1)
-		(+ r $number-of-nanoseconds-in-a-second))
-	(make <time> T.type (- sec-minus q) r)))))
-
-
-;;;; conversion between time types
-
-(define (time-tai->time-utc (T <time>))
-  (assert (is-a? T <time>))
-  (unless (eq? T.type 'time-tai)
-    (%time-error time-tai->time-utc 'incompatible-time-types T))
-  (make <time> 'time-utc
-	(- T.second (%leap-second-neg-delta T.second))
-	T.nanosecond))
-
-(define (time-tai->time-monotonic (T <time>))
-  ;;This  depends  on  TIME-MONOTONIC  having  the  same  definition  as
-  ;;TIME-TAI.
-  ;;
-  (assert (is-a? T <time>))
-  (unless (eq? T.type 'time-tai)
-    (%time-error 'time-tai->time-monotonic 'incompatible-time-types T))
-  (make <time> 'time-monotonic T.second T.nanosecond))
-
-;;; --------------------------------------------------------------------
-
-(define (time-utc->time-tai (T <time>))
-  (assert (is-a? T <time>))
-  (unless (eq? T.type 'time-utc)
-    (%time-error 'time-utc->time-tai 'incompatible-time-types T))
-  (make <time> 'time-tai
-	(+ T.second (%leap-second-delta T.second))
-	T.nanosecond))
-
-(define (time-utc->time-monotonic (T <time>))
-  (assert (is-a? T <time>))
-  (unless (eq? T.type 'time-utc)
-    (%time-error 'time-utc->time-monotonic 'incompatible-time-types T))
-  (make <time> 'time-monotonic
-	(+ T.second (%leap-second-delta T.second))
-	T.nanosecond))
-
-;;; --------------------------------------------------------------------
-
-(define (time-monotonic->time-utc (T <time>))
-  (assert (is-a? T <time>))
-  (unless (eq? T.type 'time-monotonic)
-    (%time-error 'time-monotoinc->time-utc 'incompatible-time-types T))
-  (make <time> 'time-utc
-	(- T.second (%leap-second-neg-delta T.second))
-	T.nanosecond))
-
-(define (time-monotonic->time-tai (T <time>))
-  ;;This  depends  on  TIME-MONOTONIC  having  the  same  definition  as
-  ;;TIME-TAI.
-  ;;
-  (assert (is-a? T <time>))
-  (unless (eq? T.type 'time-monotonic)
-    (%time-error 'time-monotonic->time-tai 'incompatible-time-types T))
-  (make <time> 'time-tai T.second T.nanosecond))
+(define (%local-tz-offset)
+  (host:time-gmt-offset (host:current-time)))
 
 
 (define-class <date>
@@ -696,7 +640,16 @@
 	  (mutable month)
 	  (mutable year)
 	  (mutable zone-offset))
-  (virtual-fields (immutable year-day date-year-day))
+  (virtual-fields (immutable year-day date-year-day)
+		  (immutable index-of-day-in-week)
+		  (immutable number-of-days-since-year-beginning)
+		  (immutable time))
+  (methods leap-year?
+	   easter-day
+	   number-of-days-before-first-week
+	   week-number
+	   julian-day
+	   modified-julian-day)
   (protocol (lambda (make-top)
 	      (lambda (nanosecond second minute hour day month year zone-offset)
 		(when (or (< nanosecond 0) (<= $number-of-nanoseconds-in-a-second nanosecond))
@@ -715,22 +668,143 @@
 		  (assertion-violation 'make-<date>
 		    "hours count out of range, must be [0, 23]" hour))
 
-		;;*FIXME* Not all months have 31 days.
-		(when (or (< day 0) (< 31 day))
+		(unless (and (integer? year) (exact? year))
 		  (assertion-violation 'make-<date>
-		    "days count out of range, must be [0, 31]" day))
+		    "expected exact integer as year value" year))
 
 		(when (or (< month 0) (< 12 month))
 		  (assertion-violation 'make-<date>
 		    "months count out of range, must be [0, 12]" month))
 
-		(unless (and (integer? year) (exact? year))
-		  (assertion-violation 'make-<date>
-		    "expected exact integer as year value" year))
+		(let ((number-of-days (vector-ref month (if (%leap-year? year)
+							    $number-of-days-per-month/leap-year
+							  $number-of-days-per-month/non-leap-year))))
+		  (when (or (< day 0) (< number-of-days day))
+		    (assertion-violation 'make-<date>
+		      (string-append "days count out of range, must be [0, "
+				     (number->string number-of-days) "]")
+		      day)))
 
-		((make-top)
-		 nanosecond second minute hour
-		 day month year zone-offset)))))
+		((make-top) nanosecond second minute hour day month year zone-offset))))
+  (maker ()
+	 (:nanosecond	0)
+	 (:second	0)
+	 (:minute	0)
+	 (:hour		0)
+	 (:day		0)
+	 (:month	0)
+	 (:year		0)
+	 (:zone-offset	0))
+  (maker-protocol <date>-maker-protocol))
+
+(define (<date>-maker-protocol make-upper)
+  (define %make-date-from-julian-day
+    ;;Return a <date> object representing JDN in the selected time zone.
+    ;;
+    (case-lambda
+     ((jdn)
+      (%make-date-from-julian-day (%local-tz-offset)))
+     ((jdn tz-offset)
+      (let (((T <time>) (make* <time>
+			  (:julian-day jdn))))
+	(T.date tz-offset)))))
+  (define %make-date-from-modified-julian-day
+    ;;Return  a <date> object  representing modified  JDN in  the selected
+    ;;time zone.
+    ;;
+    (case-lambda
+     ((jdn)
+      (%make-date-from-modified-julian-day jdn (%local-tz-offset)))
+     ((jdn tz-offset)
+      (%make-date-from-julian-day (+ jdn 4800001/2) tz-offset))))
+  (lambda (nanosecond second minute hour day month year zone-offset jdn mjdn)
+    (cond (jdn
+	   (%make-date-from-julian-day jdn))
+	  (mjdn
+	   (%make-date-from-modified-julian-day mjdn))
+	  (else
+	   (make <date>
+	     nanosecond second minute hour day month year zone-offset)))))
+
+;;; --------------------------------------------------------------------
+
+(define (<date>-time D)
+  (define (date->seconds-and-nanoseconds (D <date>))
+    ;;Convert a date  object into a count of UTC seconds  and a count of
+    ;;nanoseconds; return the two counts.
+    ;;
+    (let ((jdays (- (%encode-julian-day-number D.day D.month D.year)
+		    $tai-epoch-in-jd)))
+      (values (utc->tai (infix ((jdays - 1/2) * 24 + D.hour) * $number-of-seconds-in-an-hour
+			       + D.minute * 60
+			       + D.second
+			       - D.zone-offset))
+	      D.nanosecond)))
+
+  (receive (seconds nanoseconds)
+      (date->seconds-and-nanoseconds D)
+    (make <time>
+      (if (= 60 seconds)
+	  (- seconds 1)
+	seconds)
+      nanoseconds)))
+
+;;; --------------------------------------------------------------------
+
+(define (<date>-leap-year? (D <date>))
+  ;;Return true if D in in a leap year.
+  ;;
+  (%leap-year? D.year))
+
+(define (<date>-number-of-days-since-year-beginning (D <date>))
+  (%number-of-days-since-year-beginning D.day D.month D.year))
+
+(define (<date>-easter-day (D <date>))
+  ;;Return a new <date> object  representing the Easter day for the year
+  ;;in D.  The new object has sub-day time set to zero and the same zone
+  ;;of D.
+  ;;
+  (receive (easter-month easter-day)
+      (%easter-month-and-day D.year)
+    (make <date>
+      0 0 0 0 ;nanosecond second minute hour
+      easter-day easter-month D.year D.zone-offset)))
+
+;;; --------------------------------------------------------------------
+
+(define (<date>-index-of-day-in-week (D <date>))
+  ;;Return the index  of the day in its week,  zero based: Sun=0, Mon=1,
+  ;;Tue=2, etc.
+  ;;
+  (%index-of-day-in-week D.year D.month D.day))
+
+(define (<date>-number-of-days-before-first-week (D <date>) day-of-week-starting-week)
+  (assert (exact?   day-of-week-starting-week))
+  (assert (integer? day-of-week-starting-week))
+  (%number-of-days-before-first-week D.year day-of-week-starting-week))
+
+(define (<date>-week-number (D <date>) day-of-week-starting-week)
+  (let ((x (%number-of-days-before-first-week D.year day-of-week-starting-week)))
+    (infix (D.number-of-days-since-year-beginning - x) // 7)))
+
+;;; --------------------------------------------------------------------
+
+(define (<date>-julian-day (D <date>))
+  ;;Return the Julian day representing D.
+  ;;
+  (+ (%encode-julian-day-number D.day D.month D.year)
+     (- 1/2)
+     (/ (/ (+ (* D.hour $number-of-seconds-in-an-hour)
+	      (* D.minute 60)
+	      D.second
+	      (div D.nanosecond $number-of-nanoseconds-in-a-second))
+	   $number-of-seconds-in-a-day)
+	(- D.zone-offset))))
+
+(define (<date>-modified-julian-day D)
+  ;;Return the modified Julian day representing D.
+  ;;
+  (- (<date>-julian-day D) 4800001/2))
 
 
 ;;;; Julian day stuff
@@ -787,11 +861,6 @@
 		;between 1 Annus Dominis and 1 Before Christ there is no
 		;year zero.  See the Calendar FAQ for details.
 
-(define (%time->julian-day-number seconds tz-offset)
-  ;; special thing -- ignores nanos
-  (infix $tai-epoch-in-jd +
-	 ((seconds + tz-offset + $number-of-seconds-in-half-day) / $number-of-seconds-in-a-day)))
-
 
 ;;;; helpers for date manipulation
 
@@ -824,322 +893,6 @@
     (let* ((str  (format "~f" (inexact r)))
 	   (len  (string-length str)))
       (substring str (+ 1 (%string-index #\. str 0 len)) len))))
-
-(define (%local-tz-offset)
-  (host:time-gmt-offset (host:current-time)))
-
-(define (%tai-before-leap-second? second)
-  (find (lambda (x)
-	  (= second (- (+ (car x) (cdr x)) 1)))
-	$leap-second-table))
-
-(define (%time->date (T <time>) tz-offset ttype)
-  (assert (is-a? T <time>))
-  (unless (eq? T.type ttype)
-    (%time-error 'time->date 'incompatible-time-types T))
-  (receive (secs date month year)
-      (%decode-julian-day-number (%time->julian-day-number T.second tz-offset))
-    (let* ((hours    (div secs $number-of-seconds-in-an-hour))
-	   (rem      (mod secs $number-of-seconds-in-an-hour))
-	   (minutes  (div rem 60))
-	   (seconds  (mod rem 60)))
-      (make <date>
-	T.nanosecond seconds
-	minutes hours
-	date month year
-	tz-offset))))
-
-
-;;;; conversion functions between time and date
-
-(define time-tai->date
-  (case-lambda
-   ((time)
-    (time-tai->date time (%local-tz-offset)))
-   ((time tz-offset)
-    (if (%tai-before-leap-second? (time-second time))
-	;;If  it's  *right* before  the  leap,  we  need to  pretend  to
-	;;subtract a second ...
-	(let ((d (%time->date
-		  (subtract-duration (time-tai->time-utc time)
-				     (make <time> time-duration 1 0))
-		  tz-offset time-utc)))
-	  (<date>-second-set! d 60)
-	  d)
-      (%time->date (time-tai->time-utc time) tz-offset time-utc)))))
-
-(define time-utc->date
-  (case-lambda
-   ((time)
-    (time-utc->date time (%local-tz-offset)))
-   ((time tz-offset)
-    (%time->date time tz-offset time-utc))))
-
-;;Again, time-monotonic is the same as time TAI
-(define time-monotonic->date
-  (case-lambda
-   ((time)
-    (time-monotonic->date time (%local-tz-offset)))
-   ((time tz-offset)
-    (%time->date time tz-offset time-monotonic))))
-
-(define (date->time-utc (D <date>))
-  (let ((jdays (- (%encode-julian-day-number D.day D.month D.year)
-		  $tai-epoch-in-jd)))
-    (make <time> 'time-utc
-	  (infix ((jdays - 1/2) * 24 + D.hour) * $number-of-seconds-in-an-hour
-		 + D.minute * 60
-		 + D.second
-		 - D.zone-offset)
-	  D.nanosecond)))
-
-(define-constant $one-second
-  (make <time> 'time-duration 1 0))
-
-(define (date->time-tai (D <date>))
-  (let ((T (time-utc->time-tai (date->time-utc D))))
-    (if (= 60 D.second)
-	(subtract-duration T $one-second)
-      T)))
-
-(define (date->time-monotonic date)
-  (time-utc->time-monotonic (date->time-utc date)))
-
-
-;;;; date manipulation
-
-(define (%leap-year? year)
-  ;;Return true if YEAR is a leap year.  From the Calendar FAQ:
-  ;;
-  ;;  Every year divisible by 4 is a leap year.
-  ;;  However, every year divisible by 100 is not a leap year.
-  ;;  However, every year divisible by 400 is a leap year after all.
-  ;;
-  (or (zero? (mod year 400))
-      (and (zero? (mod year 4))
-	   (not (zero? (mod year 100))))))
-
-(define (leap-year? (D <date>))
-  ;;Return true if D in in a leap year.
-  ;;
-  (%leap-year? D.year))
-
-(define (%year-day day month year)
-  ;;Return the  number of days  from the beginning  of the year  for the
-  ;;specified date.  Assume that the given date is correct.
-  ;;
-  (+ day (vector-ref (if (%leap-year? year)
-			 $number-of-days-the-first-day-of-each-month/leap-year
-		       $number-of-days-the-first-day-of-each-month/non-leap-year)
-		     month)))
-
-(define (date-year-day (D <date>))
-  (%year-day D.day D.month D.year))
-
-(define (%week-day day month year)
-  ;;Return the index  of the day in its week,  zero based: Sun=0, Mon=1,
-  ;;Tue=2, etc.  Assume the given date is correct.
-  ;;
-  ;;From the calendar FAQ section 2.6.
-  ;;
-  (let* ((a (infix (14 - month) // 12))
-	 (y (infix year - a))
-	 (m (infix month + (12 * a) - 2)))
-    (infix (day + y + (y // 4) - (y // 100) + (y // 400) + ((31 * m) // 12)) % 7)))
-
-(define (date-week-day (D <date>))
-  ;;Return the index  of the day in its week,  zero based: Sun=0, Mon=1,
-  ;;Tue=2, etc.
-  ;;
-  (%week-day D.day D.month D.year))
-
-(define (%days-before-first-week (D <date>) day-of-week-starting-week)
-  ;;Return the number of days before  the first day of the first week of
-  ;;the year in D.
-  ;;
-  ;;DAY-OF-WEEK-STARTING-WEEK  selects which  day starts  a week:  0 for
-  ;;Sunday, 1 for Monday, 2 for Tuesday, etc.
-  ;;
-  (let ((index-of-day-in-week (%week-day 1 1 D.year)))
-    (infix (day-of-week-starting-week - index-of-day-in-week) % 7)))
-
-(define (date-week-number (D <date>) day-of-week-starting-week)
-  (let ((x (%days-before-first-week D day-of-week-starting-week)))
-    (infix (D.year-day - x) // 7)))
-
-(define current-date
-  ;;Return a <date> object representin "now".
-  ;;
-  (case-lambda
-   (()
-    (current-date (%local-tz-offset)))
-   ((tz-offset)
-    (time-utc->date (current-time time-utc) tz-offset))))
-
-(define (%natural-year n)
-  ;;Given a 'two digit' number, find the year within 50 years +/-.
-  ;;
-  (let* ((current-year    (<date>-year (current-date)))
-	 (current-century (infix (current-year // 100) * 100)))
-    (cond ((>= n 100) n)
-	  ((<  n 0)   n)
-	  ((infix (current-century + n - current-year) <= 50)
-	   (+ current-century n))
-	  (else
-	   (infix current-century - 100 + n)))))
-
-(define (%easter-month-and-day year)
-  ;;Return two  values being:  the 1-based index  of the month  in which
-  ;;Easter falls,  the 1-based index of  the day in  which Easter falls.
-  ;;The computation is for the Gregorian calendar.
-  ;;
-  ;;From the Calendar FAQ, section 2.13.7.
-  ;;
-  (let* ((G	(infix year % 19))
-	 (C	(infix year // 100))
-	 (H	(infix (C - C // 4 - (8 * C + 13) // 25 + 19 * G + 15) % 30))
-	 (I	(infix H - (H // 28) * (1 - (29 // (H + 1)) * ((21 - G) // 11))))
-	 (J	(infix (year + year // 4 + I + 2 - C + C // 4) % 7))
-	 (L	(infix I - J))
-
-	 (easter-month	(infix 3 + (L + 40) // 44))
-	 (easter-day	(infix L + 28 - 31 * (easter-month // 4))))
-    (values easter-month easter-day)))
-
-(define (date-easter-day (D <date>))
-  ;;Return a new <date> object  representing the Easter day for the year
-  ;;in D.  The new object has sub-day time set to zero and the same zone
-  ;;of D.
-  ;;
-  (receive (easter-month easter-day)
-      (%easter-month-and-day D.year)
-    (make <date>
-      0 0 0 0 ;nanosecond second minute hour
-      easter-day easter-month D.year D.zone-offset)))
-
-
-;;;; conversion functions involving Julian Day
-
-(define (date->julian-day (D <date>))
-  ;;Return the Julian day representing D.
-  ;;
-  (+ (%encode-julian-day-number D.day D.month D.year)
-     (- 1/2)
-     (/ (/ (+ (* D.hour $number-of-seconds-in-an-hour)
-	      (* D.minute 60)
-	      D.second
-	      (div D.nanosecond $number-of-nanoseconds-in-a-second))
-	   $number-of-seconds-in-a-day)
-	(- D.zone-offset))))
-
-(define (date->modified-julian-day D)
-  ;;Return the Julian day representing D.
-  ;;
-  (- (date->julian-day D) 4800001/2))
-
-(define (time-utc->julian-day (T <time>))
-  ;;Return the Julian day representing T.
-  ;;
-  (unless (eq? T.type 'time-utc)
-    (%time-error 'time-utc->julian-day 'incompatible-time-types T))
-  (infix $tai-epoch-in-jd +
-	 ((T.second + T.nanosecond / $number-of-nanoseconds-in-a-second) / $number-of-seconds-in-a-day)))
-
-(define (time-utc->modified-julian-day T)
-  ;;Return the Modified Julian day representing T.
-  ;;
-  (infix time-utc->julian-day (T) - 4800001/2))
-
-(define (time-tai->julian-day (T <time>))
-  ;;Return the Julian day representing T.
-  ;;
-  (unless (eq? T.type 'time-tai)
-    (%time-error 'time-tai->julian-day 'incompatible-time-types T))
-  (infix $tai-epoch-in-jd +
-	 (T.second - %leap-second-delta (T.second) + T.nanosecond / $number-of-nanoseconds-in-a-second)
-	 / $number-of-seconds-in-a-day))
-
-(define (time-tai->modified-julian-day (T <time>))
-  ;;Return the Modified Julian day representing T.
-  ;;
-  (infix time-tai->julian-day (T) - 4800001/2))
-
-(define (time-monotonic->julian-day (T <time>))
-  ;;Return  the  Julian  day  representing  T.   This  is  the  same  as
-  ;;TIME-TAI->JULIAN-DAY.
-  ;;
-  (unless (eq? T.type 'time-monotonic)
-    (%time-error 'time-monotonic->julian-day 'incompatible-time-types T))
-  (infix $tai-epoch-in-jd +
-	 (T.second - %leap-second-delta (T.second) + T.nanosecond / $number-of-nanoseconds-in-a-second)
-	 / $number-of-seconds-in-a-day))
-
-(define (time-monotonic->modified-julian-day (T <time>))
-  ;;Return the Modified Julian day representing T.
-  ;;
-  (infix time-monotonic->julian-day (T) - 4800001/2))
-
-(define (julian-day->time-utc jdn)
-  ;;Return a <time> object in UTC format representing JDN.
-  ;;
-  (let ((nanosecs (infix $number-of-nanoseconds-in-a-second * $number-of-seconds-in-a-day
-			 * (jdn - $tai-epoch-in-jd))))
-    (make <time> time-utc
-	  (floor (/ nanosecs $number-of-nanoseconds-in-a-second))
-	  (mod nanosecs $number-of-nanoseconds-in-a-second))))
-
-(define (julian-day->time-tai jdn)
-  ;;Return a <time> object in TAI format representing JDN.
-  ;;
-  (time-utc->time-tai (julian-day->time-utc jdn)))
-
-(define (julian-day->time-monotonic jdn)
-  ;;Return a <time> object in Monotonic format representing JDN.
-  ;;
-  (time-utc->time-monotonic (julian-day->time-utc jdn)))
-
-(define julian-day->date
-  ;;Return a <date> object representing JDN in the selected time zone.
-  ;;
-  (case-lambda
-   ((jdn tz-offset)
-    (time-utc->date (julian-day->time-utc jdn) tz-offset))
-   ((jdn)
-    (julian-day->date (%local-tz-offset)))))
-
-(define modified-julian-day->date
-  ;;Return a <date> object representing JDN in the selected time zone.
-  ;;
-  (case-lambda
-   ((jdn tz-offset)
-    (julian-day->date (+ jdn 4800001/2) tz-offset))
-   ((jdn)
-    (modified-julian-day->date jdn (%local-tz-offset)))))
-
-(define (modified-julian-day->time-utc jdn)
-  ;;Return a <time> object in UTC format representing JDN.
-  ;;
-  (julian-day->time-utc (+ jdn 4800001/2)))
-
-(define (modified-julian-day->time-tai jdn)
-  ;;Return a <time> object in TAI format representing JDN.
-  ;;
-  (julian-day->time-tai (+ jdn 4800001/2)))
-
-(define (modified-julian-day->time-monotonic jdn)
-  ;;Return a <time> object in Monotonic format representing JDN.
-  ;;
-  (julian-day->time-monotonic (+ jdn 4800001/2)))
-
-(define (current-julian-day)
-  ;;Return a Julian Day value representing the current time.
-  ;;
-  (time-utc->julian-day (current-time time-utc)))
-
-(define (current-modified-julian-day)
-  ;;Return a Modified Julian Day value representing the current time.
-  ;;
-  (time-utc->modified-julian-day (current-time time-utc)))
 
 
 (define date->string
@@ -1242,11 +995,12 @@
 		    (vector-set! table (char->integer p.car) p.cdr))
 	  `((#\~ . ,(lambda (date pad-char port) (%display #\~)))
 
-	    (#\a . ,(lambda (date pad-char port)
-		      (%display (%locale-abbr-weekday (date-week-day date)))))
+	    (#\a . ,(lambda ((D <date>) pad-char port)
+		      (%display (%locale-abbr-weekday D.index-of-day-in-week))))
 
-	    (#\A . ,(lambda (date pad-char port)
-		      (%display (%locale-long-weekday (date-week-day date)))))
+
+	    (#\A . ,(lambda ((D <date>) pad-char port)
+		      (%display (%locale-long-weekday D.index-of-day-in-week))))
 
 	    (#\b . ,(lambda ((D <date>) pad-char port)
 		      (%display (%locale-abbr-month D.month))))
@@ -1287,8 +1041,8 @@
 					    D.hour)
 					  pad-char 2))))
 
-	    (#\j . ,(lambda (date pad-char port)
-		      (%display (%padding (date-year-day date) pad-char 3))))
+	    (#\j . ,(lambda ((D <date>) pad-char port)
+		      (%display (%padding D.number-of-days-since-year-beginning pad-char 3))))
 
 	    (#\k . ,(lambda ((D <date>) pad-char port)
 		      (%display (%padding D.hour #\space 2))))
@@ -1317,8 +1071,9 @@
 	    (#\r . ,(lambda (date pad-char port)
 		      (%display (date->string date "~I:~M:~S ~p"))))
 
-	    (#\s . ,(lambda (date pad-char port)
-		      (%display (time-second (date->time-utc date)))))
+	    (#\s . ,(lambda ((D <date>) pad-char port)
+		      (%display (let (((T <time>) D.time))
+				  (tai->utc T.seconds)))))
 
 	    (#\S . ,(lambda ((D <date>) pad-char port)
 		      (%display (%padding (if (> D.nanosecond $number-of-nanoseconds-in-a-second)
@@ -1333,17 +1088,17 @@
 		      (%display (date->string date "~H:~M:~S"))))
 
 	    (#\U . ,(lambda ((D <date>) pad-char port)
-		      (%display (let ((week-number (date-week-number D 0)))
-				  (%padding (if (> (%days-before-first-week D 0) 0)
+		      (%display (let ((week-number (D.week-number 0)))
+				  (%padding (if (> (D.number-of-days-before-first-week 0) 0)
 						(+ week-number 1)
 					      week-number)
 					    #\0 2)))))
 
-	    (#\V . ,(lambda (date pad-char port)
-		      (%display (%padding (date-week-number date 1) #\0 2))))
+	    (#\V . ,(lambda ((D <date>) pad-char port)
+		      (%display (%padding (D.week-number 1) #\0 2))))
 
-	    (#\w . ,(lambda (date pad-char port)
-		      (%display (date-week-day date))))
+	    (#\w . ,(lambda ((D <date>) pad-char port)
+		      (%display D.index-of-day-in-week)))
 
 	    (#\x . ,(lambda (date pad-char port)
 		      (%display (date->string date $locale-short-date-format))))
@@ -1351,9 +1106,9 @@
 	    (#\X . ,(lambda (date pad-char port)
 		      (%display (date->string date $locale-time-format))))
 
-	    (#\W . ,(lambda (D pad-char port)
-		      (let ((week-number (date-week-number D 1)))
-			(%display (%padding (if (> (%days-before-first-week D 1) 0)
+	    (#\W . ,(lambda ((D <date>) pad-char port)
+		      (let ((week-number (D.week-number 1)))
+			(%display (%padding (if (> (D.number-of-days-before-first-week 1) 0)
 						(+ 1 week-number)
 					      week-number)
 					    #\0 2)))))
@@ -1728,7 +1483,7 @@
 		 (lambda (val (D <date>)) (set! D.second val)))
 
 	  ,(make <format-directive> #\y char-fail eireader2
-		 (lambda (val (D <date>)) (set! D.year  (%natural-year val))))
+		 (lambda (val (D <date>)) (set! D.year (%natural-year val D.year))))
 
 	  ,(make <format-directive> #\Y char-numeric? ireader4
 		 (lambda (val (D <date>)) (set! D.year val)))
@@ -1747,6 +1502,3 @@
 )
 
 ;;; end of file
-;;Local Variables:
-;;coding: utf-8-unix
-;;End:

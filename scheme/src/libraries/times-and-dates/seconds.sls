@@ -25,10 +25,12 @@
 ;;;
 
 
-(library (times-and-dates seconds)
+(library (times-and-dates seconds-and-subseconds)
   (export
 
     ;; constants
+    $leap-second-table
+
     $number-of-nanoseconds-in-a-microsecond
     $number-of-nanoseconds-in-a-millisecond
     $number-of-nanoseconds-in-a-second
@@ -72,6 +74,8 @@
     sn-add		sn-sub
     sn<			sn>
     sn<=		sn>=
+
+    utc->tai		tai->utc
     )
   (import (rnrs)
     (only (language-extensions)
@@ -337,6 +341,79 @@
 	   #t)
 	  (else
 	   (non-negative? nanoseconds)))))
+
+
+(define-constant $leap-second-table
+  ;;Each entry is:
+  ;;
+  ;;    ( <UTC seconds since Unix Epoch> .
+  ;;      <number of seconds to add to UTC to compute TAI> )
+  ;;
+  ;;note they go higher to lower, and end in 1972.
+  ;;
+  '((1136073600 . 33)
+    (915148800 . 32)
+    (867715200 . 31)
+    (820454400 . 30)
+    (773020800 . 29)
+    (741484800 . 28)
+    (709948800 . 27)
+    (662688000 . 26)
+    (631152000 . 25)
+    (567993600 . 24)
+    (489024000 . 23)
+    (425865600 . 22)
+    (394329600 . 21)
+    (362793600 . 20)
+    (315532800 . 19)
+    (283996800 . 18)
+    (252460800 . 17)
+    (220924800 . 16)
+    (189302400 . 15)
+    (157766400 . 14)
+    (126230400 . 13)
+    (94694400 . 12)
+    (78796800 . 11)
+    (63072000 . 10)))
+
+(define (%utc-to-tai-leap-second-delta utc-seconds)
+  ;;Given the UTC seconds count since the Unix Epoch, compute the number
+  ;;of leap seconds to correct it:
+  ;;
+  ;;  tai-seconds = utc-seconds + leap-seconds
+  ;;
+  ;;this correction yields the TAI seconds from the UTC seconds.
+  ;;
+  (if (< utc-seconds 63072000)
+      0
+    (let loop ((table $leap-second-table))
+      (if (>= utc-seconds (caar table))
+	  (cdar table)
+	(loop (cdr table))))))
+
+(define (%tai-to-utc-leap-second-delta tai-seconds)
+  ;;Given the TAI seconds count since the Unix Epoch, compute the number
+  ;;of leap seconds to correct it:
+  ;;
+  ;;  utc-seconds = tai-seconds + leap-seconds
+  ;;
+  ;;this correction yields the UTC seconds from the TAI seconds.
+  ;;
+  (if (< tai-seconds 63072000)
+      0
+    (let loop ((table $leap-second-table))
+      (if (null? table)
+	  0
+	(let ((elm (car table)))
+	  (if (<= (cdr elm) (- tai-seconds (car elm)))
+	      (- (cdr elm))
+	    (loop (cdr table))))))))
+
+(define (utc->tai seconds)
+  (+ seconds (%utc-to-tai-leap-second-delta seconds)))
+
+(define (tai->utc seconds)
+  (+ seconds (%tai-to-utc-leap-second-delta seconds)))
 
 
 ;;;; done

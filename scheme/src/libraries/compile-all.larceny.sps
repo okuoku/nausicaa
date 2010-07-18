@@ -226,8 +226,11 @@
 (%compile-library "times-and-dates/compat.larceny.sls"
 		  "times-and-dates/compat.larceny.slfasl")
 
-(%compile-library "times-and-dates/seconds.larceny.sls"
-		  "times-and-dates/seconds.larceny.slfasl")
+(%compile-library "times-and-dates/seconds-and-subseconds.larceny.sls"
+		  "times-and-dates/seconds-and-subseconds.larceny.slfasl")
+
+(%compile-library "times-and-dates/years-and-weeks.larceny.sls"
+		  "times-and-dates/years-and-weeks.larceny.slfasl")
 
 (%compile-library "times-and-dates.sls"
 		  "times-and-dates.slfasl")

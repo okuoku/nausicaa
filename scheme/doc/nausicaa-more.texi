@@ -169,6 +169,14 @@ Revised^6 Report on the algorithmic language Scheme
 @acronym{TAI}
 @end macro
 
+@macro dst{}
+@acronym{DST}
+@end macro
+
+@macro gmt{}
+@acronym{GMT}
+@end macro
+
 @c ------------------------------------------------------------
 @c Software acronyms.
 @c ------------------------------------------------------------
@@ -921,6 +929,11 @@ Messages catalog for internationalisation
 Time data types and procedures
 
 * time intro::                  Introduction.
+* time system::                 Interface to the system.
+* time secs::                   Seconds and nanoseconds objects.
+* time duration::               Time duration objects.
+* time point::                  Points in time.
+* time utils::                  Miscellaneous utilities.
 * time const::                  Constants.
 * time current::                Current time and clock resolution.
 * time timeobj::                Time object and accessors.
@@ -931,6 +944,36 @@ Time data types and procedures
                                 Julian Day Converters.
 * time string::                 Date to string/string to date
                                 converters.
+
+Seconds and nanoseconds objects
+
+* time secs class::             Seconds and nanoseconds class
+                                type definition.
+* time secs utils::             Utility fields and methods.
+
+Time duration objects
+
+* time duration class::         Time duration class type definition.
+* time duration compar::        Comparing time durations.
+* time duration arith::         Arithmetic functions.
+
+Points in time
+
+* time point class::            Point in time class type definition.
+* time point compar::           Comparing time points.
+* time point arith::            Arithmetic functions.
+* time point utils::            Utility functions.
+
+Miscellaneous utilities
+
+* time utils secs::             Seconds and nanoseconds utilities.
+
+Seconds and nanoseconds utilities
+
+* time utils secs constants::   Constant values for seconds and
+                                subseconds units.
+* time utils secs utils::       Utilities for seconds and subseconds
+                                units counts.
 
 Formatting strings
 
@@ -1432,7 +1475,7 @@ One dimensional extended ranges
 * one-dimension inspect::       Inspection.
 * one-dimension ops::           Operations.
 
-Multimethods dispatching
+Old multimethods dispatching
 
 * old-generics application::    How generic functions and methods
                                 are invoked.
@@ -18391,7 +18434,8 @@ written in the @code{en_GB} locale in Nausicaa's source files.
 
 
 The @library{times-and-dates} library implements procedures and data
-types to manipulate time and dates.
+types to manipulate time and dates; the library is built on top of the
+facilities of the @library{classes} library.
 
 Points in time are represented as the number of seconds (with nanosecond
 precision) since ``the epoch'', a zero point in time.  Several standard
@@ -18411,8 +18455,12 @@ a 24 hour clock (with nanosecond precision) and a time zone offset from
 as well as for reading and writing string representations of dates.
 
 @menu
-* time secs::                   Seconds and nanoseconds.
 * time intro::                  Introduction.
+* time system::                 Interface to the system.
+* time secs::                   Seconds and nanoseconds objects.
+* time duration::               Time duration objects.
+* time point::                  Points in time.
+* time utils::                  Miscellaneous utilities.
 * time const::                  Constants.
 * time current::                Current time and clock resolution.
 * time timeobj::                Time object and accessors.
@@ -18426,21 +18474,826 @@ as well as for reading and writing string representations of dates.
 @end menu
 
 @c page
+@node time intro
+@section Introduction
+
+
+@cindex Terrestrial time
+@cindex International Atomic Time, @tai{}
+@cindex @tai{}, International Atomic Time
+@cindex Coordinated Universal Time, @utc{}
+@cindex @utc{}, Coordinated Universal Time
+@cindex Unix Time
+@cindex @posix{} Time
+@cindex Time zone
+@cindex Gregorian calendar
+@cindex Proleptic Gregorian calendar
+@cindex Epoch, Unix time
+@cindex Unix epoch
+
+
+This introduction contains chunks of slightly edited text from Wikipedia
+pages on time scales and related subjects.
+
+@c ------------------------------------------------------------
+
+@subsubheading Introduction to time scales
+
+When using the @library{times-and-dates} library we aim at dealing with
+@dfn{Terrestrial Time} in which: seconds are the ones of the
+@acronym{SI} system, defined using caesium atomic clocks; @math{60}
+seconds make one minute; @math{60} minutes make one hour; @math{24}
+hours make one day; @math{365} days make one year.  Terrestrial Time is
+a theoretical ideal, which real clocks can only
+approximate.@footnote{@url{http://en.wikipedia.org/wiki/Terrestrial_Time}}
+
+A realisation of Terrestrial Time is the @dfn{International Atomic Time}
+(@tai{}), which is based on the notional passage of proper time on
+Earth's
+surface.@footnote{@url{http://en.wikipedia.org/wiki/International_Atomic_Time}}
+Time coordinates on the @tai{} scales are conventionally specified using
+traditional means of specifying days, for example the proleptic
+Gregorian
+calendar.@footnote{@url{http://en.wikipedia.org/wiki/Proleptic_Gregorian_calendar}}
+
+Another realisation of Terrestrial Time is the @dfn{Coordinated
+Universal Time} (@utc{}), a time standard based on @tai{} with leap
+seconds added at irregular intervals, at the end of some days, to
+compensate for the Earth's slowing rotation; when a leap second is
+added, the last minute of the day has @math{61} seconds.  Leap seconds
+are used to allow @utc{} to closely track the mean solar time at the
+Royal Observatory,
+Greenwich.@footnote{@url{http://en.wikipedia.org/wiki/Leap_second}}
+
+The @dfn{Unix Time} (or @dfn{@posix{} Time}) is a system for describing
+points in time, defined as the number of seconds elapsed since 1970
+January 1 00:00:00 @utc{}, not counting leap seconds; the time 1970
+January 1 00:00:00 @utc{} is called @dfn{Unix Epoch}.  Although it does
+not count leap seconds, Unix Time stays synchronised with @utc{} time by
+repeating twice the same count when a leap second is inserted:
+
+@example
+         midnight
+            |
+            v
+N-2   N-1   N   N   N+1  N+2
+              ^
+              |
+     leap second inserted
+@end example
+
+@noindent
+Unix Time correctly counts @utc{} days since the Epoch as follows:
+
+@example
+(define unix-time:seconds ---)
+
+(define unix-time:number-of-seconds-in-a-day
+  (* 24 60 60))
+
+(define utc-time:days-since-epoch
+  (div0 unix-time:seconds
+        unix-time:number-of-seconds-in-a-day))
+@end example
+
+@noindent
+Unix Time does @strong{not} correctly counts @utc{} seconds since the
+Epoch, the following code:
+
+@example
+(define utc-time:seconds-since-midnight
+  (mod0 unix-time:seconds
+        unix-time:number-of-seconds-in-a-day))
+@end example
+
+@noindent
+gives incorrect results when @code{unix-time:seconds} is the count right
+before a leap second.
+
+The @dfn{Greenwich Mean Time} (@gmt{}) is the mean solar time at
+the Royal Observatory, Greenwich; in casual use, when fractions of a
+second are not important, @gmt{} can be considered equivalent to
+@utc{}; saying @gmt{} is generally avoided in technical contexts,
+where the unambiguous @utc{} is
+preferred.@footnote{@url{http://en.wikipedia.org/wiki/Coordinated_Universal_Time}}
+
+A @dfn{time zone} is a region on Earth, more or less bounded by lines of
+longitude, that has a uniform, legally mandated standard time, usually
+referred to as the ``local time''; the @math{24} time zones around the
+world can be expressed as positive or negative offsets from @utc{}, each
+time zone boundary being @math{15} degrees East or West of the preceding
+one.  Local time is @utc{} plus the current time zone offset for the
+location in question.  In theory, the increase proceeds eastward from
+the eastern boundary of the @utc{} time zone, increasing by one hour for
+each @math{15} degrees, up to the International Date Line (longitude
+@math{180} degrees); a corresponding one hour decrease relative to
+@utc{} occurs every @math{15} degrees heading westward from the western
+boundary of the @utc{} time zone, up to the International Date
+Line.@footnote{@url{http://en.wikipedia.org/wiki/Time_zone}}
+
+The @dfn{Daylight saving time} @dst{} is the practice of temporarily
+advancing clocks so that afternoons have more daylight and mornings have
+less; clocks are adjusted forward one hour near the start of spring and
+are adjusted backward in
+autumn.@footnote{@url{http://en.wikipedia.org/wiki/Daylight_saving_time}}
+
+@c ------------------------------------------------------------
+
+@subsubheading Time scales used in @library{times-and-dates}
+
+When @utc{} is expressed as count of seconds from an origin, it is a
+``continuous'' timescale in which all the integers are present as
+seconds counts; when @utc{} is expressed by the tuple year, month, day,
+hour, minute, second the timescale is discontinuous because some minutes
+have @math{61} seconds rather than @math{60}, so it is not possible to
+compute the exact time interval elapsed between two @utc{} timestamps
+without consulting a table that describes how many leap seconds occurred
+during that interval.
+
+The @library{times-and-dates} library:
+
+@itemize
+@item
+Assumes that the host clock is synchronised with current @utc{} time,
+taking into account both leap seconds and leap years.
+
+@item
+Assumes that the host exposes an @api{} through which it can retrieve
+the current time from the clock, expressed as Unix Time; this number of
+seconds is @strong{not} the number of @utc{} seconds between the current
+time and the Unix Epoch.
+
+@item
+It makes use of a @tai{} scale to express timestamps used to compute
+time intervals.
+
+@item
+It makes use of a @utc{} scale and the proleptic Gregorian calendar to
+express dates with year, month, day, hour, minute, second tuples
+(nanoseconds are also included, but not discussed here).
+@end itemize
+
+Unix Time is the count of seconds since the Epoch, ignoring leap
+seconds; by definition: when @utc{} was at January 1 1972 00:00:00,
+@tai{} was at January 1 1972 00:00:10.  We can express @utc{} and @tai{}
+times, too, as count of seconds since the Epoch.  After noticing that
+neither 1970 nor 1971 are leap years, we assume that the Unix Time scale
+and the @tai{} time scale are equal in those years, so the count of
+seconds since the Unix Epoch of January 1 1972 00:00:00 is:
+
+@example
+(1972 - 1970) * 365 * 24 * 60 * 60 = 63072000
+@end example
+
+@noindent
+we establish that:
+
+@example
+63072000(Unix) = 63072000(UTC) = 63072010(TAI)
+@end example
+
+So, let's say that ``now'' is 2000 January 1 00:00:00 @utc{} and the
+host clock is synchronised with this time: we retrieve the current time
+from a Unix Time clock which returns @math{946681200}, taking into
+account leap years but not leap seconds; we can verify this using the
+@gnu{} @command{date} command:
+
+@example
+$ date -d '2000/01/01 00:00:00' +%s
+@end example
+
+@noindent
+the count of seconds since the Epoch on the @tai{} scale is
+@math{946681200} itself; the count of seconds since the Epoch :
+
+
+
+
+A @emph{Time} object, which is distinct from all existing types, defines
+a point in time or a time duration in some standard time system.  The
+standard time systems are:
+
+@itemize
+@item
+Universal Coordinated Time (@utc{}),
+
+@item
+International Atomic Time (@tai{}),
+
+@item
+monotonic time (a monotonically increasing point in time from some
+epoch, which is implementation--dependent),
+
+@item
+@cpu{} time in current thread (implementation dependent),
+
+@item
+@cpu{} time in current process (implementation dependent),
+
+@item
+time duration.
+@end itemize
+
+Implementations are required to implement @utc{}, monotonic time, @cpu{}
+time in current process, and time duration.  Implementations are allowed
+to create extensions (for example, amount of time spent in garbage
+collection).
+
+A @emph{Time} object consists of three components:
+
+@table @emph
+@item Time type
+A symbol representing the time system representation used.  The
+constants @code{TIME-TAI}, @code{TIME-UTC}, @code{TIME-MONOTONIC},
+@code{TIME-THREAD}, @code{TIME-PROCESS}, and @code{TIME-DURATION} must
+be provided for these symbols.  Implementations should provide constants
+for time type extensions.
+
+@item Second
+An integer representing the number of whole seconds from ``the epoch''.
+
+@item Nanosecond
+An integer of the number of nanoseconds in the fractional portion.
+Although a time object has nanosecond precision, clocks may have a lower
+resolution.
+@end table
+
+A @emph{Date} object, which is distinct from all existing types,
+represents a point in time as represented by the Gregorian calendar as
+well as by a time zone.  @emph{Date} objects are immutable.  A
+@emph{Date} object consists of the following components:
+
+@table @emph
+@item Nanosecond
+An integer between 0 and 999,999,999, inclusive.
+
+@quotation
+@emph{Nausicaa note}: The original documen set the range for nanoseconds
+to @code{[0, 9,999,999]}.
+@end quotation
+
+@item Second
+An integer 0 and 60, inclusive, (60 represents a leap second).
+
+@item Minute
+An integer between 0 and 59, inclusive.
+
+@item Hour
+An integer between 0 and 23, inclusive.
+
+@item Day
+An integer between 0 and 31, inclusive, the upper limit depending on the
+month and year of the point in time.
+
+@item Month
+An integer between 1 and 12, inclusive; in which 1 means January, 2
+February, and so on.
+
+@item Year
+An integer representing the year.
+
+@item Time zone
+An integer representing the number of seconds East of @gmt{} for this
+timezone.
+@end table
+
+A @emph{Julian Day} represents a point in time as an inexact real number
+of days since -4714-11-24T12:00:00Z (November 24, -4714 at noon,
+@utc{}).
+
+A @emph{Modified Julian Day} represents a point in time as an inexact
+real number of days since 1858-11-17T00:00:00Z (November 17, 1858 at
+midnight, UTC).
+
+@c page
+@node time system
+@section Interface to the system
+
+
+The following bindings are required from the underlying Scheme
+implementation, they should be exported by @library{times-and-dates
+compat}.
+
+
+@defun host:current-time
+Must return a single value holding the current seconds and nanoseconds
+since the Unix Epoch on the Unix Time scale.
+
+@quotation
+On a @posix{} system these values can be retrieved with the platform's
+function @cfunc{gettimeofday}; this function returns microseconds, so
+the resolution is @math{1000} nanoseconds.
+
+@example
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/time.h>
+
+int
+main (void)
+@{
+  struct timeval  current_time;
+
+  gettimeofday(&current_time, NULL);
+
+  printf("secs = %ld, microsecs = %ld\n",
+    current_time.tv_sec, current_time.tv_usec);
+  exit(EXIT_SUCCESS);
+@}
+@end example
+@end quotation
+@end defun
+
+
+@defun host:time-second @var{unix-time}
+Given the return value from @func{host:current-time}, it must return the
+number of seconds.
+@end defun
+
+
+@defun host:time-nanosecond @var{unix-time}
+Given the return value from @func{host:current-time}, it must return the
+number of nanoseconds.
+@end defun
+
+
+@defun host:time-gmt-offset @var{unix-time}
+Given the return value from @func{host:current-time}, it must return the
+number of seconds representing the time zone offset.  Notice that the
+returned value may or may not include the offset introduced by Daylight
+Saving Time, depending on how the system clock is set.
+
+@quotation
+On a @posix{} platform, the offset can be computed with the following C
+code:
+
+@example
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
+#include <sys/time.h>
+
+int
+main (void)
+@{
+  struct timeval  current_time;
+  time_t          clock;
+  struct tm *     gmt_broken_time;
+  time_t          gmtclock;
+  time_t          time_zone_offset;
+
+  gettimeofday(&current_time, NULL);
+  clock            = current_time.tv_sec;
+  gmt_broken_time  = gmtime(&clock);
+  gmtclock         = mktime(gmt_broken_time);
+  time_zone_offset = clock - gmtclock;
+
+  printf("offset %ld\n", (long)time_zone_offset);
+  exit(EXIT_SUCCESS);
+@}
+@end example
+@end quotation
+@end defun
+
+
+@defvr Constant host:time-resolution
+An exact positive integer representing the resolution in nanoseconds of
+the return value of @func{host:current-time}.
+
+If the function underlying @func{host:current-time} returns
+microseconds: the resolution is @math{1000} nanoseconds.
+@end defvr
+
+@c ------------------------------------------------------------
+
+@subsubsection System clock inspection
+
+Here we perform an analysis of system clock settings on a @gnu{}+Linux
+host having:
+
+@itemize
+@item
+The system clock set to @utc{}, time zone zero (that is @gmt{}), using
+the @acronym{BIOS} facilities.
+
+@item
+Geographical time zone configure to @math{+1} hour.
+
+@item
+Daylight Saving Time in effect, resulting in a total time zone offset to
+@math{+2} hours.
+@end itemize
+
+@quotation
+The host is a Slackware Linux installation with the
+@code{glibc-zoneinfo} package used to configure the local time zone
+throught the @command{/usr/sbin/timeconfig} utility.
+@end quotation
+
+We can try to inspect the settings of the system clock using @gnu{}
+@command{date}; for example:
+
+@example
+## acquire UTC time
+$ now=$(date --rfc-2822 --utc)
+
+## print as UTC time
+$ echo $now
+Wed, 14 Jul 2010 15:28:27 +0000
+
+## print as local time
+$ date --rfc-2822 --date="$now"
+Wed, 14 Jul 2010 17:28:27 +0200
+
+## print as seconds since Unix Epoch
+$ date '+%s' --date="$now"
+1279121307
+@end example
+
+@c page
 @node time secs
-@section Seconds and nanoseconds
+@section Seconds and nanoseconds objects
 
 
 @menu
-* time secs constants::         Constant values for seconds and
-                                subseconds units.
-* time secs utils::             Utilities for seconds and subseconds
-                                units counts.
-* time secs class::             Seconds and nanoseconds data type.
+* time secs class::             Seconds and nanoseconds class
+                                type definition.
+* time secs utils::             Utility fields and methods.
 @end menu
 
 @c page
-@node time secs constants
-@subsection Constant values for seconds and subseconds units
+@node time secs class
+@subsection Seconds and nanoseconds class type definition
+
+
+The @class{seconds-and-nanoseconds} class is meant to represent counts
+of seconds with neither fixed interpretation as points in time or
+duration, nor fixed time scale.  The following bindings are exported by
+the @library{times-and-dates} library.
+
+
+@deftp Class @aclass{seconds-and-nanoseconds}
+Base type representing a count of seconds and anoseconds.  The two
+counts are normalised to be both non--negative or both non--positive.
+@end deftp
+
+
+@defcv {Immutable Field} @aclass{seconds-and-nanoseconds} seconds
+Exact integer representing seconds count.  It can be positive, zero or
+negative.
+@end defcv
+
+
+@defcv {Immutable Field} @aclass{seconds-and-nanoseconds} nanoseconds
+Exact integer representing nanoseconds count.  It can be positive, zero
+or negative.
+@end defcv
+
+
+@deffn Syntax {make @aclass{seconds-and-nanoseconds}} @ameta{seconds} @ameta{nanoseconds}
+Expand to an expression evaluating to a new
+@class{seconds-and-nanoseconds} instance.  @meta{seconds} and
+@meta{nanoseconds} must expand into expression evaluating to exact
+integers representing the counts of seconds and nanoseconds.
+@end deffn
+
+
+@deffn Syntax {make* @aclass{seconds-and-nanoseconds}} @ameta{clause} ...
+Expand to an expression evaluating to a new
+@class{seconds-and-nanoseconds} instance.  The seconds and nanoseconds
+counts are computed from the values given in the following maker
+clauses:
+
+@table @code
+@item :seconds @cmeta{seconds}
+@itemx :milliseconds @cmeta{milliseconds}
+@itemx :microseconds @cmeta{microseconds}
+@itemx :nanoseconds @cmeta{nanoseconds}
+Select the count in the specified seconds and subseconds units.  All the
+values are normalised to seconds and nanoseconds counts.
+@end table
+@end deffn
+
+@c page
+@node time secs utils
+@subsection Utility fields and methods
+
+
+The following bindings are exported by the @library{times-and-dates}
+library.
+
+
+@defmethod @aclass{seconds-and-nanoseconds} deep-clone
+@defmethodx @aclass{seconds-and-nanoseconds} shallow-clone
+Return a copy of the object instance.
+@end defmethod
+
+
+@defcv {Immutable Field} @aclass{seconds-and-nanoseconds} full-seconds
+@defcvx {Immutable Field} @aclass{seconds-and-nanoseconds} full-milliseconds
+@defcvx {Immutable Field} @aclass{seconds-and-nanoseconds} full-microseconds
+@defcvx {Immutable Field} @aclass{seconds-and-nanoseconds} full-nanoseconds
+Exact numbers representing the time in seconds or the specified
+subseconds counts.
+@end defcv
+
+@c page
+@node time duration
+@section Time duration objects
+
+
+@menu
+* time duration class::         Time duration class type definition.
+* time duration compar::        Comparing time durations.
+* time duration arith::         Arithmetic functions.
+@end menu
+
+@c page
+@node time duration class
+@subsection Time duration class type definition
+
+
+A time duration is the algebric difference between two points in time on
+the @tai{} scale; durations can be defined directly, added to points in
+time or computed as difference between points in time.  Durations are
+represented by a seconds count and a nanoseconds count, which are
+normalised to be both non--negative or both non--positive.  The
+following bindings are exported by the @library{times-and-dates}
+library.
+
+
+@deftp Class @aclass{duration}
+Base type representing a time duration on the @tai{} scale.  It is
+derived from @class{seconds-and-nanoseconds}.
+@end deftp
+
+
+@defcv {Immutable Field} @aclass{duration} seconds
+Exact integer representing seconds count on the @tai{} scale.
+@end defcv
+
+
+@defcv {Immutable Field} @aclass{duration} nanoseconds
+Exact integer representing nanoseconds count.
+@end defcv
+
+
+@deffn Syntax {make @aclass{duration}} @ameta{seconds} @ameta{nanoseconds}
+Expand to an expression evaluating to a new @class{duration} instance.
+@meta{seconds} and @meta{nanoseconds} must expand into expression
+evaluating to exact integers representing the counts of seconds on the
+@tai{} scale and the count of nanoseconds.
+
+Seconds and nanoseconds are normalised to be both non--negative or both
+non--positive.
+@end deffn
+
+
+@deffn Syntax {make* @aclass{duration}} @ameta{clause} ...
+Expand to an expression evaluating to a new @class{duration} instance.
+The seconds and nanoseconds counts are computed from the values given in
+the following maker clauses and normalised to be both non--negative or
+both non--positive:
+
+@table @code
+@item :seconds @cmeta{seconds}
+@itemx :milliseconds @cmeta{milliseconds}
+@itemx :microseconds @cmeta{microseconds}
+@itemx :nanoseconds @cmeta{nanoseconds}
+Select the count in the specified seconds and subseconds units.  The
+seconds count must be on the @tai{} scale.
+@end table
+@end deffn
+
+@c page
+@node time duration compar
+@subsection Comparing time durations
+
+
+Comparison aims at estabilishing the longer or shorter duration between
+a couple of durations; comparison functions do @strong{not} consider the
+sign of seconds and nanoseconds counts, the compare the absolute values.
+The following bindings are exported by the @library{times-and-dates}
+library.
+
+
+
+@defmethod @aclass{duration} = @var{duration}
+@defmethodx @aclass{duration} < @var{duration}
+@defmethodx @aclass{duration} <= @var{duration}
+@defmethodx @aclass{duration} > @var{duration}
+@defmethodx @aclass{duration} >= @var{duration}
+Compare the instance's duration to the duration of the @class{duration}
+object @var{duration} and return a boolean value.
+@end defmethod
+
+
+@defun duration= @var{duration} ...
+@defunx duration< @var{duration} ...
+@defunx duration<= @var{duration} ...
+@defunx duration> @var{duration} ...
+@defunx duration>= @var{duration} ...
+Compare the @class{duration} arguments and return a boolean value.  When
+there are no arguments or only one argument: the return value is true.
+@end defun
+
+@c page
+@node time duration arith
+@subsection Arithmetic functions
+
+
+The following bindings are exported by the @library{times-and-dates}
+library.
+
+
+@defmethod @aclass{duration} + @var{duration}
+Add the @class{duration} object @var{duration} to the instance and
+return a new @class{duration} object representing the result.
+@end defmethod
+
+
+@defmethod @aclass{duration} - @var{duration}
+Subtract the @class{duration} object @var{duration} from the instance
+and return a new @class{duration} object representing the result.
+@end defmethod
+
+
+@defmethod @aclass{duration} + @var{lambda}
+Multiply the instance by the real number @var{lambda} and return a new
+@class{duration} object representing the result.  The results of the
+product are turned into exact numbers.
+@end defmethod
+
+
+@defmethod @aclass{duration} / @var{lambda}
+Divide the instance by the real number @var{lambda} and return a new
+@class{duration} object representing the result.  The results of the
+division are turned into exact numbers.
+@end defmethod
+
+@c page
+@node time point
+@section Points in time
+
+
+@menu
+* time point class::            Point in time class type definition.
+* time point compar::           Comparing time points.
+* time point arith::            Arithmetic functions.
+* time point utils::            Utility functions.
+@end menu
+
+@c page
+@node time point class
+@subsection Point in time class type definition
+
+
+A point time is described by seconds and nanoseconds counts on the
+@tai{} time scale using the Unix Epoch as origin.  The following
+bindings are exported by the @library{times-and-dates} library.
+
+
+@deftp Class @aclass{time}
+Base type representing a time point on the @tai{} scale.  It is derived
+from @class{seconds-and-nanoseconds}.
+@end deftp
+
+
+@defcv {Immutable Field} @aclass{time} seconds
+Exact integer representing seconds count on the @tai{} scale.
+@end defcv
+
+
+@defcv {Immutable Field} @aclass{time} nanoseconds
+Exact integer representing nanoseconds count.
+@end defcv
+
+
+@deffn Syntax {make @aclass{time}} @ameta{seconds} @ameta{nanoseconds}
+Expand to an expression evaluating to a new @class{time} instance.
+@meta{seconds} and @meta{nanoseconds} must expand into expression
+evaluating to exact integers representing the counts of seconds on the
+@tai{} scale and the count of nanoseconds.
+
+Seconds and nanoseconds are normalised to be both non--negative or both
+non--positive.
+@end deffn
+
+
+@deffn Syntax {make* @aclass{time}} @ameta{clause} ...
+Expand to an expression evaluating to a new @class{time} instance.  The
+seconds and nanoseconds counts are computed from the values given in the
+following maker clauses and normalised to be both non--negative or both
+non--positive:
+
+@table @code
+@item :seconds @cmeta{seconds}
+@itemx :milliseconds @cmeta{milliseconds}
+@itemx :microseconds @cmeta{microseconds}
+@itemx :nanoseconds @cmeta{nanoseconds}
+Select the count in the specified seconds and subseconds units.  The
+seconds count must be on the @tai{} scale.
+@end table
+@end deffn
+
+@c page
+@node time point compar
+@subsection Comparing time points
+
+
+Comparison aims at estabilishing if a time point comes before or after
+another time point; comparison functions do consider the sign of seconds
+and nanoseconds counts.  The following bindings are exported by the
+@library{times-and-dates} library.
+
+
+@defmethod @aclass{time} = @var{time}
+@defmethodx @aclass{time} < @var{time}
+@defmethodx @aclass{time} <= @var{time}
+@defmethodx @aclass{time} > @var{time}
+@defmethodx @aclass{time} >= @var{time}
+Compare the instance's time to the time of the @class{time} object
+@var{time} and return a boolean value.
+@end defmethod
+
+
+@defun time= @var{time} ...
+@defunx time< @var{time} ...
+@defunx time<= @var{time} ...
+@defunx time> @var{time} ...
+@defunx time>= @var{time} ...
+Compare the @class{time} arguments and return a boolean value.  When
+there are no arguments or only one argument: the return value is true.
+@end defun
+
+@c page
+@node time point arith
+@subsection Arithmetic functions
+
+
+The following bindings are exported by the @library{times-and-dates}
+library.
+
+
+@defmethod @aclass{time} + @var{duration}
+Add the @class{duration} object @var{duration} to the instance and
+return a new @class{time} object representing the result.
+@end defmethod
+
+
+@defmethod @aclass{time} - @var{duration}
+Subtract the @class{duration} object @var{duration} from the instance
+and return a new @class{time} object representing the result.
+@end defmethod
+
+@c page
+@node time point utils
+@subsection Utility functions
+
+
+The following bindings are exported by the @library{times-and-dates}
+library.
+
+
+@defmethod @aclass{time} julian-day
+@defmethodx @aclass{time} julian-day @var{tz-offset}
+Return an exact number representing the Julian Day number corresponding
+to the instance's seconds on the @tai{} scale; @var{tz-offset} is the
+time zone offset in seconds, it defaults to the local time zone offset.
+Ignores the count of nanoseconds.
+@end defmethod
+
+
+@defmethod @aclass{time} date
+@defmethodx @aclass{time} date @var{tz-offset}
+Return a @class{date} object representing the same time point of the
+instance.  @var{tz-offset} is the time zone offset in seconds, it
+defaults to the local time zone offset.
+@end defmethod
+
+@c page
+@node time utils
+@section Miscellaneous utilities
+
+@menu
+* time utils secs::             Seconds and nanoseconds utilities.
+@end menu
+
+@c page
+@node time utils secs
+@subsection Seconds and nanoseconds utilities
+
+
+@menu
+* time utils secs constants::   Constant values for seconds and
+                                subseconds units.
+* time utils secs utils::       Utilities for seconds and subseconds
+                                units counts.
+@end menu
+
+@c page
+@node time utils secs constants
+@subsubsection Constant values for seconds and subseconds units
 
 
 The following bindings are exported by the @library{times-and-dates
@@ -18487,8 +19340,8 @@ Conversion coefficients for second counts.
 @end defvr
 
 @c page
-@node time secs utils
-@subsection Utilities for seconds and subseconds units counts
+@node time utils secs utils
+@subsubsection Utilities for seconds and subseconds units counts
 
 
 The following bindings are exported by the @library{times-and-dates
@@ -18663,174 +19516,13 @@ couple of counts.  The comparison is performed on normalised counts.
 @end defun
 
 
-@c page
-@node time secs class
-@subsection Seconds and nanoseconds data type
+@defun utc->tai @var{utc-seconds}
+@defunx tai->utc @var{tai-seconds}
+Convert a count of seconds since the Unix Epoch from @utc{} to @tai{}
+and vice versa.
+@end defun
 
 
-@deftp Class @aclass{seconds-and-nanoseconds}
-Base type representing a time duration with a couple of numbers
-representing a seconds count and a nanoseconds count.
-@end deftp
-
-
-@defcv {Mutable Field} @aclass{seconds-and-nanoseconds} seconds
-Exact integer representing seconds count.
-@end defcv
-
-
-@defcv {Mutable Field} @aclass{seconds-and-nanoseconds} nanoseconds
-Exact integer representing nanoseconds count.
-@end defcv
-
-
-@defcv {Immutable Field} @aclass{seconds-and-nanoseconds} full-seconds
-Exact rational number representing the time.
-@end defcv
-
-
-@c page
-@node time intro
-@section Introduction
-
-
-When using the @library{times-and-dates} library we aim at dealing with
-@dfn{Terrestrial Time} in which: seconds are the ones of the
-@acronym{SI} system, defined using cesium atomic clocks; @math{60}
-seconds make one minute; @math{60} minutes make one hour; @math{24}
-hours make one day.  Terrestrial Time is a theoretical ideal, which real
-clocks can only
-approximate.@footnote{@url{http://en.wikipedia.org/wiki/Terrestrial_Time}}
-
-A realisation of Terrestrial Time is the @dfn{International Atomic Time}
-(@tai{}), which is based on the notional passage of proper time on
-Earth's surface.  Time coordinates on the @tai{} scales are
-conventionally specified using traditional means of specifying days, for
-example the Gregorian
-calendar.@footnote{@url{http://en.wikipedia.org/wiki/International_Atomic_Time}}
-
-@dfn{Coordinated Universal Time} (@utc{}) is a time standard based on
-@tai{} with leap seconds added at irregular intervals to compensate for
-the Earth's slowing rotation; when @utc{} was at the beginning of 1972
-(January 1, 00:00:00), @tai{} was @math{10} seconds into 1972 (January
-1, 00:00:10).  Leap seconds are used to allow @utc{} to closely track
-the mean solar time at the Royal Observatory, Greenwich.  In casual use,
-when fractions of a second are not important, Greenwich Mean Time
-(@acronym{GMT}) can be considered equivalent to @utc{}; saying
-@acronym{GMT} is generally avoided in technical contexts, where the
-unambiguous @utc{} is
-preferred.@footnote{@url{http://en.wikipedia.org/wiki/Coordinated_Universal_Time}}
-
-A @dfn{time zone} is a region on Earth, more or less bounded by lines of
-longitude, that has a uniform, legally mandated standard time, usually
-referred to as the ``local time''; the @math{24} time zones around the
-world can be expressed as positive or negative offsets from @utc{}, each
-time zone boundary being @math{15} degrees east or west of the preceding
-one.  Local time is @utc{} plus the current time zone offset for the
-location in question.  In theory, the increase proceeds eastward from
-the eastern boundary of the @utc{} time zone, increasing by one hour for
-each @math{15} degrees, up to the International Date Line (longitude
-@math{180} degrees); a corresponding one hour decrease relative to
-@utc{} occurs every @math{15} degrees heading westward from the western
-boundary of the @utc{} time zone, up to the International Date
-Line.@footnote{@url{http://en.wikipedia.org/wiki/Time_zone}}
-
-
-A @emph{Time} object, which is distinct from all existing types, defines
-a point in time or a time duration in some standard time system.  The
-standard time systems are:
-
-@itemize
-@item
-Universal Coordinated Time (@utc{}),
-
-@item
-International Atomic Time (@tai{}),
-
-@item
-monotonic time (a monotonically increasing point in time from some
-epoch, which is implementation--dependent),
-
-@item
-@cpu{} time in current thread (implementation dependent),
-
-@item
-@cpu{} time in current process (implementation dependent),
-
-@item
-time duration.
-@end itemize
-
-Implementations are required to implement @utc{}, monotonic time, @cpu{}
-time in current process, and time duration.  Implementations are allowed
-to create extensions (for example, amount of time spent in garbage
-collection).
-
-A @emph{Time} object consists of three components:
-
-@table @emph
-@item Time type
-A symbol representing the time system representation used.  The
-constants @code{TIME-TAI}, @code{TIME-UTC}, @code{TIME-MONOTONIC},
-@code{TIME-THREAD}, @code{TIME-PROCESS}, and @code{TIME-DURATION} must
-be provided for these symbols.  Implementations should provide constants
-for time type extensions.
-
-@item Second
-An integer representing the number of whole seconds from ``the epoch''.
-
-@item Nanosecond
-An integer of the number of nanoseconds in the fractional portion.
-Although a time object has nanosecond precision, clocks may have a lower
-resolution.
-@end table
-
-A @emph{Date} object, which is distinct from all existing types,
-represents a point in time as represented by the Gregorian calendar as
-well as by a time zone.  @emph{Date} objects are immutable.  A
-@emph{Date} object consists of the following components:
-
-@table @emph
-@item Nanosecond
-An integer between 0 and 999,999,999, inclusive.
-
-@quotation
-@emph{Nausicaa note}: The original documen set the range for nanoseconds
-to @code{[0, 9,999,999]}.
-@end quotation
-
-@item Second
-An integer 0 and 60, inclusive, (60 represents a leap second).
-
-@item Minute
-An integer between 0 and 59, inclusive.
-
-@item Hour
-An integer between 0 and 23, inclusive.
-
-@item Day
-An integer between 0 and 31, inclusive, the upper limit depending on the
-month and year of the point in time.
-
-@item Month
-An integer between 1 and 12, inclusive; in which 1 means January, 2
-February, and so on.
-
-@item Year
-An integer representing the year.
-
-@item Time zone
-An integer representing the number of seconds east of @acronym{GMT} for
-this timezone.
-@end table
-
-A @emph{Julian Day} represents a point in time as an inexact real number
-of days since -4714-11-24T12:00:00Z (November 24, -4714 at noon,
-@utc{}).
-
-A @emph{Modified Julian Day} represents a point in time as an inexact
-real number of days since 1858-11-17T00:00:00Z (November 17, 1858 at
-midnight, UTC).
 
 @c page
 @node time const

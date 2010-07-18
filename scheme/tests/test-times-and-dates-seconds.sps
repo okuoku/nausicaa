@@ -289,6 +289,54 @@
   #t)
 
 
+(parametrise ((check-test-name	'comparison))
+
+  (define-syntax doit
+    (syntax-rules ()
+      ((_ ?utc-seconds ?leap)
+       (begin
+	 (check
+	     (utc->tai ?utc-seconds)
+	   => (+ ?utc-seconds ?leap))
+	 (check
+	     (utc->tai (+ 1 ?utc-seconds))
+	   => (+ 1 ?utc-seconds ?leap))
+	 (check
+	     (tai->utc (+ ?utc-seconds ?leap))
+	   => ?utc-seconds)
+	 (check
+	     (tai->utc (+ 1 ?utc-seconds ?leap))
+	   => (+ 1 ?utc-seconds))
+	 ))))
+
+  (doit 1136073600 33)
+  (doit 915148800 32)
+  (doit 867715200 31)
+  (doit 820454400 30)
+  (doit 773020800 29)
+  (doit 741484800 28)
+  (doit 709948800 27)
+  (doit 662688000 26)
+  (doit 631152000 25)
+  (doit 567993600 24)
+  (doit 489024000 23)
+  (doit 425865600 22)
+  (doit 394329600 21)
+  (doit 362793600 20)
+  (doit 315532800 19)
+  (doit 283996800 18)
+  (doit 252460800 17)
+  (doit 220924800 16)
+  (doit 189302400 15)
+  (doit 157766400 14)
+  (doit 126230400 13)
+  (doit 94694400 12)
+  (doit 78796800 11)
+  (doit 63072000 10)
+
+  #t)
+
+
 ;;;; done
 
 (check-report)
