@@ -27,7 +27,9 @@
 
 
 (import (nausicaa)
-  (foreign ffi inspector-maker))
+  (ffi inspector-maker))
+
+(class-uid "nausicaa:posix")
 
 
 ;;; --------------------------------------------------------------------
@@ -951,8 +953,22 @@ AC_SUBST([NAU_DIRENT_HAVE_D_TYPE])
 (define posix-library-spec
   '(posix sizeof))
 
-(autoconf-lib-write "configuration/posix-inspector.m4" posix-library-spec
+(define posix-structs-library-spec
+  '(posix structs))
+
+(define posix-clang-types-library-spec
+  '(posix clang-data-types))
+
+(autoconf-lib-write "configuration/posix-inspector.m4"
+		    posix-library-spec
 		    "NAUSICAA_POSIX")
-(sizeof-lib-write   "src/libraries/posix/sizeof.sls.in" posix-library-spec)
+
+(sizeof-lib-write   "src/libraries/posix/sizeof.sls.in"
+		    posix-library-spec
+		    posix-clang-types-library-spec)
+
+(clang-lib-write    "src/libraries/posix/clang-data-types.sls.in"
+		    posix-clang-types-library-spec)
+
 
 ;;; end of file

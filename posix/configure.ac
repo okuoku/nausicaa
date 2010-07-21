@@ -197,6 +197,7 @@ dnl Done.
 dnl --------------------------------------------------------------------
 
 AC_CONFIG_FILES([../src/libraries/posix/sizeof.sls:../src/libraries/posix/sizeof.sls.in])
+AC_CONFIG_FILES([../src/libraries/posix/clang-data-types.sls:src/libraries/posix/clang-data-types.sls.in])
 AC_CONFIG_FILES([meta.d/makefiles/library.make:../configuration/library.make])
 
 DS_CONFIG_FILE_SLACKWARE_BIN_DESC
