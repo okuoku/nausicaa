@@ -676,7 +676,7 @@
 		  (assertion-violation 'make-<date>
 		    "months count out of range, must be [0, 12]" month))
 
-		(let ((number-of-days (vector-ref month (if (%leap-year? year)
+		(let ((number-of-days (vector-ref month (if (%gregorian-leap-year? year)
 							    $number-of-days-per-month/leap-year
 							  $number-of-days-per-month/non-leap-year))))
 		  (when (or (< day 0) (< number-of-days day))
@@ -754,10 +754,10 @@
 (define (<date>-leap-year? (D <date>))
   ;;Return true if D in in a leap year.
   ;;
-  (%leap-year? D.year))
+  (%gregorian-leap-year? D.year))
 
 (define (<date>-number-of-days-since-year-beginning (D <date>))
-  (%number-of-days-since-year-beginning D.day D.month D.year))
+  (%gregorian-year-number-of-days-since-beginning D.year D.month D.day))
 
 (define (<date>-easter-day (D <date>))
   ;;Return a new <date> object  representing the Easter day for the year
@@ -1483,7 +1483,7 @@
 		 (lambda (val (D <date>)) (set! D.second val)))
 
 	  ,(make <format-directive> #\y char-fail eireader2
-		 (lambda (val (D <date>)) (set! D.year (%natural-year val D.year))))
+		 (lambda (val (D <date>)) (set! D.year (gregorian-natural-year val D.year))))
 
 	  ,(make <format-directive> #\Y char-numeric? ireader4
 		 (lambda (val (D <date>)) (set! D.year val)))

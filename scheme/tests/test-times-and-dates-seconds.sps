@@ -26,7 +26,7 @@
 
 
 (import (nausicaa)
-  (times-and-dates seconds)
+  (times-and-dates seconds-and-subseconds)
   (checks))
 
 (check-set-mode! 'report-failed)

@@ -37,8 +37,8 @@
     $number-of-days-the-first-day-of-each-month/leap-year
 
     ;; year functions
-    %leap-year?			%number-of-days-since-year-beginning
-    %natural-year		%easter-month-and-day
+    %gregorian-leap-year?	%gregorian-year-number-of-days-since-beginning
+    gregorian-natural-year		%easter-month-and-day
 
     ;; week functions
     %index-of-day-in-week	%number-of-days-before-first-week)
@@ -124,7 +124,7 @@
 
 ;;;; year functions
 
-(define (%leap-year? year)
+(define (%gregorian-leap-year? year)
   ;;Return true if YEAR is a leap year.  From the Calendar FAQ:
   ;;
   ;;  Every year divisible by 4 is a leap year.
@@ -135,19 +135,19 @@
       (and (zero? (mod year 4))
 	   (not (zero? (mod year 100))))))
 
-(define (%number-of-days-since-year-beginning day month year)
+(define (%gregorian-year-number-of-days-since-beginning year month day)
   ;;Return the  number of days  from the beginning  of the year  for the
   ;;specified date.  Assume that the given date is correct.
   ;;
-  (+ day (vector-ref (if (%leap-year? year)
+  (+ day (vector-ref (if (%gregorian-leap-year? year)
 			 $number-of-days-the-first-day-of-each-month/leap-year
 		       $number-of-days-the-first-day-of-each-month/non-leap-year)
 		     month)))
 
-(define (%natural-year n current-year)
+(define (gregorian-natural-year n current-year)
   ;;Given a 'two digit' number, find the year within 50 years +/-.
   ;;
-  (let ((current-century (infix (current-year // 100) * 100)))
+  (let ((current-century (infix (current-year div0 100) * 100)))
     (cond ((>= n 100) n)
 	  ((<  n 0)   n)
 	  ((infix (current-century + n - current-year) <= 50)

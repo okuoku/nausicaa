@@ -18437,23 +18437,6 @@ The @library{times-and-dates} library implements procedures and data
 types to manipulate time and dates; the library is built on top of the
 facilities of the @library{classes} library.
 
-Points in time are represented as the number of seconds (with nanosecond
-precision) since ``the epoch'', a zero point in time.  Several standard
-variants are defined, including @utc{} (Universal Coordinated Time),
-@tai{} (international atomic time), and monotonic time.  A point in time
-can also be represented as a Julian Day or Modified Julian Day number.
-
-Time durations, including time spent in a process or thread, are
-defined.  Conversion routines are provided.  The procedure
-@func{current-time} queries the current time in a specified variant,
-with a system--dependent resolution.  Procedures for time arithmetic and
-time comparisons are also provided.
-
-A date is a representation of a point in time in the Gregorian calendar,
-a 24 hour clock (with nanosecond precision) and a time zone offset from
-@utc{}.  Procedures for converting between time and dates are provided,
-as well as for reading and writing string representations of dates.
-
 @menu
 * time intro::                  Introduction.
 * time system::                 Interface to the system.
@@ -18493,7 +18476,12 @@ as well as for reading and writing string representations of dates.
 
 
 This introduction contains chunks of slightly edited text from Wikipedia
-pages on time scales and related subjects.
+pages on time scales and related subjects.  The
+@library{times-and-dates} library is built upon informations extracted
+from the Calendar @acronym{FAQ} maintained by Claus Tondering, which can
+be retrieved at:
+
+@center @url{http://www.tondering.dk/claus/calendar.html}
 
 @c ------------------------------------------------------------
 
@@ -18511,7 +18499,7 @@ A realisation of Terrestrial Time is the @dfn{International Atomic Time}
 (@tai{}), which is based on the notional passage of proper time on
 Earth's
 surface.@footnote{@url{http://en.wikipedia.org/wiki/International_Atomic_Time}}
-Time coordinates on the @tai{} scales are conventionally specified using
+Time coordinates on the @tai{} scale are conventionally specified using
 traditional means of specifying days, for example the proleptic
 Gregorian
 calendar.@footnote{@url{http://en.wikipedia.org/wiki/Proleptic_Gregorian_calendar}}
@@ -18524,6 +18512,15 @@ added, the last minute of the day has @math{61} seconds.  Leap seconds
 are used to allow @utc{} to closely track the mean solar time at the
 Royal Observatory,
 Greenwich.@footnote{@url{http://en.wikipedia.org/wiki/Leap_second}}
+
+When @utc{} is expressed as count of seconds from an origin, it is a
+``continuous'' timescale in which all the integers are present as
+seconds counts; when @utc{} is expressed by the tuple year, month, day,
+hour, minute, second the timescale is discontinuous because some minutes
+have @math{61} seconds rather than @math{60}, so it is not possible to
+compute the exact time interval elapsed between two @utc{} timestamps
+without consulting a table that describes how many leap seconds occurred
+during that interval.
 
 The @dfn{Unix Time} (or @dfn{@posix{} Time}) is a system for describing
 points in time, defined as the number of seconds elapsed since 1970
@@ -18597,18 +18594,37 @@ less; clocks are adjusted forward one hour near the start of spring and
 are adjusted backward in
 autumn.@footnote{@url{http://en.wikipedia.org/wiki/Daylight_saving_time}}
 
+The @dfn{Gregorian Calendar} is the internationally accepted civil
+calendar; it counts days as the basic unit of time, grouping them into
+years of @math{365} or @math{366}
+days@footnote{@url{http://en.wikipedia.org/wiki/Gregorian_calendar}}.  A
+Gregorian year is divided into @math{12} months of irregular length:
+
+@multitable {Month Index} {Month Name} {Days123}
+@headitem Month Index @tab Month Name @tab Days
+@item 1 @tab January @tab 31
+@item 2 @tab February @tab 28 or 29
+@item 3 @tab March @tab 31
+@item 4 @tab April @tab 30
+@item 5 @tab May @tab 31
+@item 6 @tab June @tab 30
+@item 7 @tab July @tab 31
+@item 8 @tab August @tab 31
+@item 9 @tab September @tab 30
+@item 10 @tab October @tab 31
+@item 11 @tab November @tab 30
+@item 12 @tab December @tab 31
+@end multitable
+
+@noindent
+February has @math{29} days only on leap years.  The proleptic Gregorian
+calendar is produced by extending the Gregorian calendar backward to
+dates preceding its official introduction in
+1582.@footnote{@url{http://en.wikipedia.org/wiki/Proleptic_Gregorian_calendar}}
+
 @c ------------------------------------------------------------
 
 @subsubheading Time scales used in @library{times-and-dates}
-
-When @utc{} is expressed as count of seconds from an origin, it is a
-``continuous'' timescale in which all the integers are present as
-seconds counts; when @utc{} is expressed by the tuple year, month, day,
-hour, minute, second the timescale is discontinuous because some minutes
-have @math{61} seconds rather than @math{60}, so it is not possible to
-compute the exact time interval elapsed between two @utc{} timestamps
-without consulting a table that describes how many leap seconds occurred
-during that interval.
 
 The @library{times-and-dates} library:
 
