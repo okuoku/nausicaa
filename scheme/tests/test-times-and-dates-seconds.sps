@@ -289,7 +289,7 @@
   #t)
 
 
-(parametrise ((check-test-name	'comparison))
+(parametrise ((check-test-name	'utc))
 
   (define-syntax doit
     (syntax-rules ()

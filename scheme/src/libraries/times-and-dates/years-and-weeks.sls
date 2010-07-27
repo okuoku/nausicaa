@@ -37,11 +37,11 @@
     $number-of-days-the-first-day-of-each-month/leap-year
 
     ;; year functions
-    %gregorian-leap-year?	%gregorian-year-number-of-days-since-beginning
-    gregorian-natural-year		%easter-month-and-day
+    gregorian-leap-year?	gregorian-year-number-of-days-since-beginning
+    gregorian-natural-year	gregorian-year-western-easter-month-and-day
 
     ;; week functions
-    %index-of-day-in-week	%number-of-days-before-first-week)
+    gregorian-index-of-day-in-week	gregorian-number-of-days-before-first-week)
   (import (rnrs)
     (only (language-extensions) define-constant)
     (infix))
@@ -124,7 +124,7 @@
 
 ;;;; year functions
 
-(define (%gregorian-leap-year? year)
+(define (gregorian-leap-year? year)
   ;;Return true if YEAR is a leap year.  From the Calendar FAQ:
   ;;
   ;;  Every year divisible by 4 is a leap year.
@@ -135,17 +135,20 @@
       (and (zero? (mod year 4))
 	   (not (zero? (mod year 100))))))
 
-(define (%gregorian-year-number-of-days-since-beginning year month day)
+(define (gregorian-year-number-of-days-since-beginning year month day)
   ;;Return the  number of days  from the beginning  of the year  for the
   ;;specified date.  Assume that the given date is correct.
   ;;
-  (+ day (vector-ref (if (%gregorian-leap-year? year)
+  (+ day (vector-ref (if (gregorian-leap-year? year)
 			 $number-of-days-the-first-day-of-each-month/leap-year
 		       $number-of-days-the-first-day-of-each-month/non-leap-year)
 		     month)))
 
 (define (gregorian-natural-year n current-year)
   ;;Given a 'two digit' number, find the year within 50 years +/-.
+  ;;
+  ;;   (gregorian-natural-year 90 1983) => 1990
+  ;;   (gregorian-natural-year 90 1913) => 1890
   ;;
   (let ((current-century (infix (current-year div0 100) * 100)))
     (cond ((>= n 100) n)
@@ -155,10 +158,11 @@
 	  (else
 	   (infix current-century - 100 + n)))))
 
-(define (%easter-month-and-day year)
+(define (gregorian-year-western-easter-month-and-day year)
   ;;Return two  values being:  the 1-based index  of the month  in which
   ;;Easter falls,  the 1-based index of  the day in  which Easter falls.
-  ;;The computation is for the Gregorian calendar.
+  ;;The  computation is  for  western christianity  using the  proleptic
+  ;;Gregorian calendar.
   ;;
   ;;From the Calendar FAQ, section 2.13.7.
   ;;
@@ -176,7 +180,7 @@
 
 ;;;; week functions
 
-(define (%index-of-day-in-week year month day)
+(define (gregorian-index-of-day-in-week year month day)
   ;;Return the index  of the day in its week,  zero based: Sun=0, Mon=1,
   ;;Tue=2, etc.  Assume the given date is correct.
   ;;
@@ -187,14 +191,14 @@
 	 (m (infix month + (12 * a) - 2)))
     (infix (day + y + (y // 4) - (y // 100) + (y // 400) + ((31 * m) // 12)) % 7)))
 
-(define (%number-of-days-before-first-week year day-of-week-starting-week)
+(define (gregorian-number-of-days-before-first-week year day-of-week-starting-week)
   ;;Return the number of days before  the first day of the first week of
   ;;the YEAR.
   ;;
   ;;DAY-OF-WEEK-STARTING-WEEK  selects which  day starts  a week:  0 for
   ;;Sunday, 1 for Monday, 2 for Tuesday, etc.
   ;;
-  (let ((index-of-day-in-week (%index-of-day-in-week 1 1 year)))
+  (let ((index-of-day-in-week (gregorian-index-of-day-in-week year 1 1)))
     (infix (day-of-week-starting-week - index-of-day-in-week) % 7)))
 
 

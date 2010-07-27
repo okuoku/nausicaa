@@ -956,6 +956,7 @@ Time duration objects
 * time duration class::         Time duration class type definition.
 * time duration compar::        Comparing time durations.
 * time duration arith::         Arithmetic functions.
+* time duration utils::         Utility fields and methods.
 
 Points in time
 
@@ -967,6 +968,7 @@ Points in time
 Miscellaneous utilities
 
 * time utils secs::             Seconds and nanoseconds utilities.
+* time utils year::             Gregorian years and weeks.
 
 Seconds and nanoseconds utilities
 
@@ -974,6 +976,12 @@ Seconds and nanoseconds utilities
                                 subseconds units.
 * time utils secs utils::       Utilities for seconds and subseconds
                                 units counts.
+
+Gregorian years and weeks
+
+* time utils year const::       Constants.
+* time utils year year::        Year utility functions.
+* time utils year week::        Week utility functions.
 
 Formatting strings
 
@@ -19001,7 +19009,7 @@ library.
 
 @defmethod @aclass{seconds-and-nanoseconds} deep-clone
 @defmethodx @aclass{seconds-and-nanoseconds} shallow-clone
-Return a copy of the object instance.
+Return a copy of the object.
 @end defmethod
 
 
@@ -19022,6 +19030,7 @@ subseconds counts.
 * time duration class::         Time duration class type definition.
 * time duration compar::        Comparing time durations.
 * time duration arith::         Arithmetic functions.
+* time duration utils::         Utility fields and methods.
 @end menu
 
 @c page
@@ -19056,7 +19065,7 @@ Exact integer representing nanoseconds count.
 
 @deffn Syntax {make @aclass{duration}} @ameta{seconds} @ameta{nanoseconds}
 Expand to an expression evaluating to a new @class{duration} instance.
-@meta{seconds} and @meta{nanoseconds} must expand into expression
+@meta{seconds} and @meta{nanoseconds} must expand into expressions
 evaluating to exact integers representing the counts of seconds on the
 @tai{} scale and the count of nanoseconds.
 
@@ -19088,9 +19097,9 @@ seconds count must be on the @tai{} scale.
 
 Comparison aims at estabilishing the longer or shorter duration between
 a couple of durations; comparison functions do @strong{not} consider the
-sign of seconds and nanoseconds counts, the compare the absolute values.
-The following bindings are exported by the @library{times-and-dates}
-library.
+sign of seconds and nanoseconds counts, they compare the absolute
+values.  The following bindings are exported by the
+@library{times-and-dates} library.
 
 
 
@@ -19145,6 +19154,31 @@ product are turned into exact numbers.
 Divide the instance by the real number @var{lambda} and return a new
 @class{duration} object representing the result.  The results of the
 division are turned into exact numbers.
+@end defmethod
+
+
+@defun duration+ @var{duration} ...
+Add all the @class{duration} arguments and return a new @class{duration}
+object representing the sum.  When called with no arguments: return a
+@class{duration} of zero seconds and zero nanoseconds.
+@end defun
+
+
+@defun duration- @var{duration} ...
+Subtract the @class{duration} arguments beyond the first from the first
+and return a new @class{duration} object representing the difference.
+When called with no arguments: return a @class{duration} of zero seconds
+and zero nanoseconds.
+@end defun
+
+@c page
+@node time duration utils
+@subsection Utility fields and methods
+
+
+@defmethod @aclass{duration} deep-clone
+@defmethodx @aclass{duration} shallow-clone
+Return a copy of the object.
 @end defmethod
 
 @c page
@@ -19293,6 +19327,7 @@ defaults to the local time zone offset.
 
 @menu
 * time utils secs::             Seconds and nanoseconds utilities.
+* time utils year::             Gregorian years and weeks.
 @end menu
 
 @c page
@@ -19538,7 +19573,182 @@ Convert a count of seconds since the Unix Epoch from @utc{} to @tai{}
 and vice versa.
 @end defun
 
+@c page
+@node time utils year
+@subsection Gregorian years and weeks
 
+
+@menu
+* time utils year const::       Constants.
+* time utils year year::        Year utility functions.
+* time utils year week::        Week utility functions.
+@end menu
+
+@c page
+@node time utils year const
+@subsubsection Constants
+
+
+The following bindings are exported from the @library{times-and-dates
+years-and-weeks} library.
+
+
+@defvr Constant $number-of-seconds-in-half-day
+Number of seconds in a half day.  It is used in the expressions
+involving the Julian Day, which starts at noon (rather than at
+midnight).
+@end defvr
+
+
+@defvr Constant $tai-epoch-in-jd
+Julian day number for the Unix Epoch.
+@end defvr
+
+
+@defvr Constant $number-of-days-per-month/non-leap-year
+@defvrx Constant $number-of-days-per-month/leap-year
+Scheme vectors holding the numbers of days for each month.  The element
+at index zero is unused; the element at index @math{1} is for January,
+the element at index @math{2} for February, etc.
+@end defvr
+
+
+@defvr Constant $number-of-days-the-first-day-of-each-month/non-leap-year
+@defvrx Constant $number-of-days-the-first-day-of-each-month/leap-year
+Number of days from the beginning of the year, at the first day of a
+month.
+@end defvr
+
+@c page
+@node time utils year year
+@subsubsection Year utility functions
+
+
+The following bindings are exported from the @library{times-and-dates
+years-and-weeks} library.
+
+
+@defun gregorian-leap-year? @var{yaer}
+Return true if @var{year} is a leap year.  From the Calendar
+@acronym{FAQ}:
+
+@quotation
+Every year divisible by @math{4} is a leap year.  However, every year
+divisible by @math{100} is not a leap year.  However, every year
+divisible by @math{400} is a leap year after all.
+@end quotation
+@end defun
+
+
+@defun gregorian-year-number-of-days-since-beginning @var{year} @var{month} @var{day}
+Return the number of days from the beginning of the year for the
+specified date.  Assume that the given date is correct.
+@end defun
+
+
+@defun gregorian-natural-year @var{xy} @var{current-year}
+Given a two digit year number @var{xy}, return the full year within
+@math{50} years; @var{current-year} must be a full year number
+representing the anchor for the returned value.
+
+@example
+(gregorian-natural-year 10 1903) @result{} 1910
+(gregorian-natural-year 10 1913) @result{} 1910
+(gregorian-natural-year 10 1923) @result{} 1910
+(gregorian-natural-year 10 1933) @result{} 1910
+(gregorian-natural-year 10 1943) @result{} 1910
+(gregorian-natural-year 10 1953) @result{} 1910
+(gregorian-natural-year 10 1963) @result{} 2010
+(gregorian-natural-year 10 1973) @result{} 2010
+(gregorian-natural-year 10 1983) @result{} 2010
+(gregorian-natural-year 10 1993) @result{} 2010
+(gregorian-natural-year 10 2003) @result{} 2010
+
+(gregorian-natural-year 50 1903) @result{} 1950
+(gregorian-natural-year 50 1913) @result{} 1950
+(gregorian-natural-year 50 1923) @result{} 1950
+(gregorian-natural-year 50 1933) @result{} 1950
+(gregorian-natural-year 50 1943) @result{} 1950
+(gregorian-natural-year 50 1953) @result{} 1950
+(gregorian-natural-year 50 1963) @result{} 1950
+(gregorian-natural-year 50 1973) @result{} 1950
+(gregorian-natural-year 50 1983) @result{} 1950
+(gregorian-natural-year 50 1993) @result{} 1950
+(gregorian-natural-year 50 2003) @result{} 2050
+
+(gregorian-natural-year 90 1903) @result{} 1890
+(gregorian-natural-year 90 1913) @result{} 1890
+(gregorian-natural-year 90 1923) @result{} 1890
+(gregorian-natural-year 90 1933) @result{} 1890
+(gregorian-natural-year 90 1943) @result{} 1990
+(gregorian-natural-year 90 1953) @result{} 1990
+(gregorian-natural-year 90 1963) @result{} 1990
+(gregorian-natural-year 90 1973) @result{} 1990
+(gregorian-natural-year 90 1983) @result{} 1990
+(gregorian-natural-year 90 1993) @result{} 1990
+(gregorian-natural-year 90 2003) @result{} 1990
+@end example
+@end defun
+
+
+@defun gregorian-year--western-easter-month-and-day @var{year}
+Given the number of a @var{year}, return two values being: the
+@math{1}-based index of the month in which Easter falls, the
+@math{1}-based index of the day in which Easter falls.  The computation
+is performed for the western christianity proleptic gregorian calendar.
+
+From the Calendar @acronym{FAQ}, section 2.13.7.
+@end defun
+
+@c page
+@node time utils year week
+@subsubsection Week utility functions
+
+
+The following bindings are exported from the @library{times-and-dates
+years-and-weeks} library.
+
+
+@defun gregorian-index-of-day-in-week @var{year} @var{month} @var{day}
+Return the index of the day in its week, zero based: Sun=0, Mon=1,
+Tue=2, etc.  Assume the given date is correct.  Perform the computation
+for the proleptic gregorian calendar.
+
+From the calendar @acronym{FAQ} section 2.6.
+@end defun
+
+
+@defun gregorian-number-of-days-before-first-week @var{year} @var{day-of-week-starting-week}
+Return the number of days before the first day of the first week of the
+@var{year}.  @var{day-of-week-starting-week} selects which day starts a
+week: 0 for Sunday, 1 for Monday, 2 for Tuesday, etc.
+
+For example, given the month layout:
+
+@example
+    January 2010
+Su Mo Tu We Th Fr Sa
+                1  2
+ 3  4  5  6  7  8  9
+10 11 12 13 14 15 16
+17 18 19 20 21 22 23
+24 25 26 27 28 29 30
+31
+@end example
+
+@noindent
+in which the year starts on Friday (index 5) the results are as follows:
+
+@example
+(gregorian-number-of-days-before-first-week 2010 5)     @result{} 0
+(gregorian-number-of-days-before-first-week 2010 6)     @result{} 1
+(gregorian-number-of-days-before-first-week 2010 0)     @result{} 2
+(gregorian-number-of-days-before-first-week 2010 1)     @result{} 3
+(gregorian-number-of-days-before-first-week 2010 2)     @result{} 4
+(gregorian-number-of-days-before-first-week 2010 3)     @result{} 5
+(gregorian-number-of-days-before-first-week 2010 4)     @result{} 6
+@end example
+@end defun
 
 @c page
 @node time const

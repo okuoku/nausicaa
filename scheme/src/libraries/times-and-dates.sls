@@ -67,9 +67,16 @@
     ;; classes
     <date> <time> <duration> <seconds-and-nanoseconds>
 
+    ;; functions
+    duration=
+    duration<		duration>
+    duration<=		duration>=
+    duration+		duration-
+
     ;; current time and clock resolution
-    current-date current-julian-day current-modified-julian-day
-    current-time time-resolution
+    current-time current-date current-year current-century
+    current-julian-day current-modified-julian-day
+    time-resolution
 
     ;; string conversion
     date->string string->date)
@@ -95,24 +102,6 @@
 
 (define-inline (%seconds-unit-count? count)
   (and (exact? count) (integer? count)))
-
-(define (%seconds-and-nanoseconds-default-protocol make-upper)
-  (lambda (secs nanosecs)
-    (assert (%seconds-unit-count? secs))
-    (assert (%seconds-unit-count? nanosecs))
-    (receive (secs nanosecs)
-	(sn-normalise secs nanosecs)
-      ((make-upper) secs nanosecs))))
-
-(define (%seconds-and-nanoseconds-maker-protocol make-upper)
-  (lambda (secs millisecs microsecs nanosecs)
-    (assert (%seconds-unit-count? secs))
-    (assert (%seconds-unit-count? millisecs))
-    (assert (%seconds-unit-count? microsecs))
-    (assert (%seconds-unit-count? nanosecs))
-    (receive (secs nanosecs)
-	(smun->sn secs millisecs microsecs nanosecs)
-      ((make-upper) secs nanosecs))))
 
 
 ;;;; global variables and constants
@@ -219,26 +208,43 @@
 
 (define-class <seconds-and-nanoseconds>
   (nongenerative nausicaa:times-and-dates:<seconds-and-nanoseconds>)
+
+  (protocol (lambda (make-top)
+	      (lambda (secs nanosecs)
+		(assert (%seconds-unit-count? secs))
+		(assert (%seconds-unit-count? nanosecs))
+		(receive (secs nanosecs)
+		    (sn-normalise secs nanosecs)
+		  ((make-top) secs nanosecs)))))
+
+  (maker ()
+	 (:seconds	0)
+	 (:milliseconds	0)
+	 (:microseconds	0)
+	 (:nanoseconds	0))
+  (maker-protocol (lambda (make-top)
+		    (lambda (secs millisecs microsecs nanosecs)
+		      (assert (%seconds-unit-count? secs))
+		      (assert (%seconds-unit-count? millisecs))
+		      (assert (%seconds-unit-count? microsecs))
+		      (assert (%seconds-unit-count? nanosecs))
+		      (receive (secs nanosecs)
+			  (smun->sn secs millisecs microsecs nanosecs)
+			((make-top) secs nanosecs)))))
+
   (fields (immutable seconds)
 	  (immutable nanoseconds))
   (virtual-fields (immutable full-seconds)
 		  (immutable full-milliseconds)
 		  (immutable full-microseconds)
 		  (immutable full-nanoseconds))
-  (methods deep-clone shallow-clone)
-  (protocol %seconds-and-nanoseconds-default-protocol)
-  (maker ()
-	 (:seconds	0)
-	 (:milliseconds	0)
-	 (:microseconds	0)
-	 (:nanoseconds	0))
-  (maker-protocol %seconds-and-nanoseconds-maker-protocol))
+  (methods deep-clone shallow-clone))
 
-(define (<seconds-and-nanoseconds>-deep-copy (S <seconds-and-nanoseconds>))
+(define (<seconds-and-nanoseconds>-deep-clone (S <seconds-and-nanoseconds>))
   (make <seconds-and-nanoseconds> S.seconds S.nanoseconds))
 
-(define <seconds-and-nanoseconds>-shallow-copy
-  <seconds-and-nanoseconds>-deep-copy)
+(define <seconds-and-nanoseconds>-shallow-clone
+  <seconds-and-nanoseconds>-deep-clone)
 
 (define (<seconds-and-nanoseconds>-full-seconds (S <seconds-and-nanoseconds>))
   (sn->seconds S.seconds S.nanoseconds))
@@ -256,22 +262,49 @@
 (define-class <duration>
   (nongenerative nausicaa:times-and-dates:<duration>)
   (inherit <seconds-and-nanoseconds>)
-  (protocol %seconds-and-nanoseconds-default-protocol)
+
+  (protocol (lambda (make-seconds-and-nanoseconds)
+	      (lambda (secs nanosecs)
+		(assert (%seconds-unit-count? secs))
+		(assert (%seconds-unit-count? nanosecs))
+		(receive (secs nanosecs)
+		    (sn-normalise secs nanosecs)
+		  ((make-seconds-and-nanoseconds secs nanosecs))))))
+
   (maker ()
 	 (:seconds	0)
 	 (:milliseconds	0)
 	 (:microseconds	0)
 	 (:nanoseconds	0))
-  (maker-protocol %seconds-and-nanoseconds-maker-protocol)
-  (methods = < > <= >= + - * /))
+  (maker-protocol (lambda (make-seconds-and-nanoseconds)
+		    (lambda (secs millisecs microsecs nanosecs)
+		      (assert (%seconds-unit-count? secs))
+		      (assert (%seconds-unit-count? millisecs))
+		      (assert (%seconds-unit-count? microsecs))
+		      (assert (%seconds-unit-count? nanosecs))
+		      (receive (secs nanosecs)
+			  (smun->sn secs millisecs microsecs nanosecs)
+			((make-seconds-and-nanoseconds secs nanosecs))))))
+
+  (methods deep-clone shallow-clone = < > <= >= + - * /))
+
+;;; --------------------------------------------------------------------
+
+(define (<duration>-deep-clone (D <duration>))
+  (make <duration> D.seconds D.nanoseconds))
+
+(define (<duration>-shallow-clone (D <duration>))
+  (make <duration> D.seconds D.nanoseconds))
 
 ;;; --------------------------------------------------------------------
 
 (define (<duration>-= (A <duration>) (B <duration>))
+  (assert (is-a? B <duration>))
   (and (= (abs A.seconds)     (abs B.seconds))
        (= (abs A.nanoseconds) (abs B.nanoseconds))))
 
 (define (<duration>-< (A <duration>) (B <duration>))
+  (assert (is-a? B <duration>))
   (let ((a.secs (abs A.seconds))
 	(b.secs (abs B.seconds)))
     (or (< a.secs b.secs)
@@ -280,6 +313,7 @@
 	  (< (abs A.nanoseconds) (abs B.nanoseconds))))))
 
 (define (<duration>-<= (A <duration>) (B <duration>))
+  (assert (is-a? B <duration>))
   (let ((a.secs (abs A.seconds))
 	(b.secs (abs B.seconds)))
     (or (< a.secs b.secs)
@@ -288,6 +322,7 @@
 	  (<= (abs A.nanoseconds) (abs B.nanoseconds))))))
 
 (define (<duration>-> (A <duration>) (B <duration>))
+  (assert (is-a? B <duration>))
   (let ((a.secs (abs A.seconds))
 	(b.secs (abs B.seconds)))
     (or (> a.secs b.secs)
@@ -296,6 +331,7 @@
 	  (> (abs A.nanoseconds) (abs B.nanoseconds))))))
 
 (define (<duration>->= (A <duration>) (B <duration>))
+  (assert (is-a? B <duration>))
   (let ((a.secs (abs A.seconds))
 	(b.secs (abs B.seconds)))
     (or (> a.secs b.secs)
@@ -308,7 +344,9 @@
 (define duration=
   (case-lambda
    (()  #t)
-   ((o) #t)
+   ((o)
+    (assert (is-a? o <duration>))
+    #t)
    (((a <duration>) (b <duration>))
     (a.= b))
    (((a <duration>) (b <duration>) . durations)
@@ -318,7 +356,9 @@
 (define duration<
   (case-lambda
    (()  #t)
-   ((o) #t)
+   ((o)
+    (assert (is-a? o <duration>))
+    #t)
    (((a <duration>) (b <duration>))
     (a.< b))
    (((a <duration>) (b <duration>) . durations)
@@ -328,7 +368,9 @@
 (define duration>
   (case-lambda
    (()  #t)
-   ((o) #t)
+   ((o)
+    (assert (is-a? o <duration>))
+    #t)
    (((a <duration>) (b <duration>))
     (a.> b))
    (((a <duration>) (b <duration>) . durations)
@@ -338,7 +380,9 @@
 (define duration<=
   (case-lambda
    (()  #t)
-   ((o) #t)
+   ((o)
+    (assert (is-a? o <duration>))
+    #t)
    (((a <duration>) (b <duration>))
     (a.<= b))
    (((a <duration>) (b <duration>) . durations)
@@ -348,7 +392,9 @@
 (define duration>=
   (case-lambda
    (()  #t)
-   ((o) #t)
+   ((o)
+    (assert (is-a? o <duration>))
+    #t)
    (((a <duration>) (b <duration>))
     (a.>= b))
    (((a <duration>) (b <duration>) . durations)
@@ -357,36 +403,60 @@
 
 ;;; --------------------------------------------------------------------
 
-(define (<duration>-+ (A <duration>) (B <duration>))
-  (assert (is-a? B <duration>))
+(define/with-class* (<duration>-+ (A <duration>) (B <duration>))
   (receive (secs nanosecs)
       (sn-add A.seconds A.nanoseconds
-		      B.seconds B.nanoseconds)
+	      B.seconds B.nanoseconds)
     (make <duration> secs nanosecs)))
 
-(define (<duration>-- (A <duration>) (B <duration>))
-  (assert (is-a? B <duration>))
+(define/with-class* (<duration>-- (A <duration>) (B <duration>))
   (receive (secs nanosecs)
       (sn-sub A.seconds A.nanoseconds
-		      B.seconds B.nanoseconds)
-    (make <duration> (abs secs) (abs nanosecs))))
+	      B.seconds B.nanoseconds)
+    (make <duration> secs nanosecs)))
 
-(define (<duration>-* (S <duration>) lambda)
-  (assert (real? lambda))
+(define/with-class* (<duration>-* (S <duration>) (lambda <real>))
   (make <duration> (* lambda S.seconds) (* lambda S.nanoseconds)))
 
-(define (<duration>-/ (S <duration>) lambda)
-  (assert (real? lambda))
+(define/with-class* (<duration>-/ (S <duration>) (lambda <real>))
   (make <duration>
     (exact (/ S.seconds     lambda))
     (exact (/ S.nanoseconds lambda))))
+
+;;; --------------------------------------------------------------------
+
+(define duration+
+  (case-lambda/with-class*
+   (()  (make <duration> 0 0))
+   (((D <duration>))
+    D)
+   (((a <duration>) (b <duration>))
+    (a.+ b))
+   (((a <duration>) (b <duration>) . durations)
+    (apply duration+ (a.+ b) durations))))
+
+(define duration-
+  (case-lambda/with-class*
+   (()  (make <duration> 0 0))
+   (((D <duration>))
+    D)
+   (((a <duration>) (b <duration>))
+    (a.- b))
+   (((a <duration>) (b <duration>) . durations)
+    (apply duration- (a.- b) durations))))
 
 
 (define-class <time>
   (nongenerative nausicaa:times-and-dates:<time>)
   (inherit <seconds-and-nanoseconds>)
-  (methods date)
-  (protocol %seconds-and-nanoseconds-default-protocol)
+
+  (protocol (lambda (make-seconds-and-nanoseconds)
+	      (lambda (secs nanosecs)
+		(assert (%seconds-unit-count? secs))
+		(assert (%seconds-unit-count? nanosecs))
+		(receive (secs nanosecs)
+		    (sn-normalise secs nanosecs)
+		  ((make-seconds-and-nanoseconds secs nanosecs))))))
 
   (maker ()
 	 (:seconds		0)
@@ -395,37 +465,44 @@
 	 (:nanoseconds		0)
 	 (:julian-day		#f)
 	 (:modified-julian-day	#f))
-  (maker-protocol <time>-maker-protocol)
+  (maker-protocol
+   (lambda (make-seconds-and-nanoseconds)
+     (define (%make-time-from-julian-day jdn)
+       (let ((nanosecs (infix $number-of-nanoseconds-in-a-second * $number-of-seconds-in-a-day
+			      * (jdn - $tai-epoch-in-jd))))
+	 ((make-seconds-and-nanoseconds)
+	  (utc->tai (floor (/ nanosecs $number-of-nanoseconds-in-a-second)))
+	  (mod nanosecs $number-of-nanoseconds-in-a-second))))
+     (define (%make-time-from-modified-julian-day mjdn)
+       (%make-time-from-julian-day make-seconds-and-nanoseconds (+ mjdn 4800001/2)))
+
+     (lambda (secs millisecs microsecs nanosecs jdn mjdn)
+       (assert (%seconds-unit-count? secs))
+       (assert (%seconds-unit-count? millisecs))
+       (assert (%seconds-unit-count? microsecs))
+       (assert (%seconds-unit-count? nanosecs))
+       (cond (jdn
+	      (assert (exact? jdn))
+	      (%make-time-from-julian-day make-seconds-and-nanoseconds jdn))
+	     (mjdn
+	      (assert (exact? mjdn))
+	      (%make-time-from-modified-julian-day make-seconds-and-nanoseconds mjdn))
+	     (else
+	      (receive (secs nanosecs)
+		  (smun->sn secs millisecs microsecs nanosecs)
+		((make-seconds-and-nanoseconds secs nanosecs))))))))
 
   (virtual-fields (immutable julian-day)
 		  (immutable modified-julian-day))
-  (methods = < > <= >= + -))
+  (methods deep-clone shallow-clone date = < > <= >= + -))
 
-(define (<time>-maker-protocol make-upper)
-  (define (%make-time-from-julian-day jdn)
-    (let ((nanosecs (infix $number-of-nanoseconds-in-a-second * $number-of-seconds-in-a-day
-			   * (jdn - $tai-epoch-in-jd))))
-      ((make-upper)
-       (utc->tai (floor (/ nanosecs $number-of-nanoseconds-in-a-second)))
-       (mod nanosecs $number-of-nanoseconds-in-a-second))))
-  (define (%make-time-from-modified-julian-day mjdn)
-    (%make-time-from-julian-day make-upper (+ mjdn 4800001/2)))
+;;; --------------------------------------------------------------------
 
-  (lambda (secs millisecs microsecs nanosecs jdn mjdn)
-    (assert (%seconds-unit-count? secs))
-    (assert (%seconds-unit-count? millisecs))
-    (assert (%seconds-unit-count? microsecs))
-    (assert (%seconds-unit-count? nanosecs))
-    (cond (jdn
-	   (assert (exact? jdn))
-	   (%make-time-from-julian-day make-upper jdn))
-	  (mjdn
-	   (assert (exact? mjdn))
-	   (%make-time-from-modified-julian-day make-upper mjdn))
-	  (else
-	   (receive (secs nanosecs)
-	       (smun->sn secs millisecs microsecs nanosecs)
-	     ((make-upper) secs nanosecs))))))
+(define (<time>-deep-clone (T <time>))
+  (make <time> T.seconds T.nanoseconds))
+
+(define (<time>-shallow-clone (T <time>))
+  (make <time> T.seconds T.nanoseconds))
 
 ;;; --------------------------------------------------------------------
 
@@ -626,6 +703,13 @@
     (let (((T <time>) (current-time)))
       (T.date tz-offset)))))
 
+(define (current-year)
+  (let (((D <date>) (current-date)))
+    D.year))
+
+(define (current-century)
+  (* 100 (div0 (current-year) 100)))
+
 (define (%local-tz-offset)
   (host:time-gmt-offset (host:current-time)))
 
@@ -676,7 +760,7 @@
 		  (assertion-violation 'make-<date>
 		    "months count out of range, must be [0, 12]" month))
 
-		(let ((number-of-days (vector-ref month (if (%gregorian-leap-year? year)
+		(let ((number-of-days (vector-ref month (if (gregorian-leap-year? year)
 							    $number-of-days-per-month/leap-year
 							  $number-of-days-per-month/non-leap-year))))
 		  (when (or (< day 0) (< number-of-days day))
@@ -695,36 +779,36 @@
 	 (:month	0)
 	 (:year		0)
 	 (:zone-offset	0))
-  (maker-protocol <date>-maker-protocol))
-
-(define (<date>-maker-protocol make-upper)
-  (define %make-date-from-julian-day
-    ;;Return a <date> object representing JDN in the selected time zone.
-    ;;
-    (case-lambda
-     ((jdn)
-      (%make-date-from-julian-day (%local-tz-offset)))
-     ((jdn tz-offset)
-      (let (((T <time>) (make* <time>
-			  (:julian-day jdn))))
-	(T.date tz-offset)))))
-  (define %make-date-from-modified-julian-day
-    ;;Return  a <date> object  representing modified  JDN in  the selected
-    ;;time zone.
-    ;;
-    (case-lambda
-     ((jdn)
-      (%make-date-from-modified-julian-day jdn (%local-tz-offset)))
-     ((jdn tz-offset)
-      (%make-date-from-julian-day (+ jdn 4800001/2) tz-offset))))
-  (lambda (nanosecond second minute hour day month year zone-offset jdn mjdn)
-    (cond (jdn
-	   (%make-date-from-julian-day jdn))
-	  (mjdn
-	   (%make-date-from-modified-julian-day mjdn))
-	  (else
-	   (make <date>
-	     nanosecond second minute hour day month year zone-offset)))))
+  (maker-protocol
+   (lambda (make-upper)
+     (define %make-date-from-julian-day
+       ;;Return a <date> object representing JDN in the selected time zone.
+       ;;
+       (case-lambda
+	((jdn)
+	 (%make-date-from-julian-day (%local-tz-offset)))
+	((jdn tz-offset)
+	 (let (((T <time>) (make* <time>
+			     (:julian-day jdn))))
+	   (T.date tz-offset)))))
+     (define %make-date-from-modified-julian-day
+       ;;Return  a <date> object  representing modified  JDN in  the selected
+       ;;time zone.
+       ;;
+       (case-lambda
+	((jdn)
+	 (%make-date-from-modified-julian-day jdn (%local-tz-offset)))
+	((jdn tz-offset)
+	 (%make-date-from-julian-day (+ jdn 4800001/2) tz-offset))))
+     (lambda (nanosecond second minute hour day month year zone-offset jdn mjdn)
+       (cond (jdn
+	      (%make-date-from-julian-day jdn))
+	     (mjdn
+	      (%make-date-from-modified-julian-day mjdn))
+	     (else
+	      (make <date>
+		nanosecond second minute hour day month year zone-offset)))))
+   ))
 
 ;;; --------------------------------------------------------------------
 
@@ -754,10 +838,10 @@
 (define (<date>-leap-year? (D <date>))
   ;;Return true if D in in a leap year.
   ;;
-  (%gregorian-leap-year? D.year))
+  (gregorian-leap-year? D.year))
 
 (define (<date>-number-of-days-since-year-beginning (D <date>))
-  (%gregorian-year-number-of-days-since-beginning D.year D.month D.day))
+  (gregorian-year-number-of-days-since-beginning D.year D.month D.day))
 
 (define (<date>-easter-day (D <date>))
   ;;Return a new <date> object  representing the Easter day for the year
@@ -765,7 +849,7 @@
   ;;of D.
   ;;
   (receive (easter-month easter-day)
-      (%easter-month-and-day D.year)
+      (gregorian-year-western-easter-month-and-day D.year)
     (make <date>
       0 0 0 0 ;nanosecond second minute hour
       easter-day easter-month D.year D.zone-offset)))
@@ -776,15 +860,15 @@
   ;;Return the index  of the day in its week,  zero based: Sun=0, Mon=1,
   ;;Tue=2, etc.
   ;;
-  (%index-of-day-in-week D.year D.month D.day))
+  (gregorian-index-of-day-in-week D.year D.month D.day))
 
 (define (<date>-number-of-days-before-first-week (D <date>) day-of-week-starting-week)
   (assert (exact?   day-of-week-starting-week))
   (assert (integer? day-of-week-starting-week))
-  (%number-of-days-before-first-week D.year day-of-week-starting-week))
+  (gregorian-number-of-days-before-first-week D.year day-of-week-starting-week))
 
 (define (<date>-week-number (D <date>) day-of-week-starting-week)
-  (let ((x (%number-of-days-before-first-week D.year day-of-week-starting-week)))
+  (let ((x (gregorian-number-of-days-before-first-week D.year day-of-week-starting-week)))
     (infix (D.number-of-days-since-year-beginning - x) // 7)))
 
 ;;; --------------------------------------------------------------------
