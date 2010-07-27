@@ -19291,9 +19291,31 @@ return a new @class{time} object representing the result.
 @end defmethod
 
 
-@defmethod @aclass{time} - @var{duration}
+@defmethod @aclass{time} - (@var{duration} @aclass{duration})
 Subtract the @class{duration} object @var{duration} from the instance
 and return a new @class{time} object representing the result.
+
+@example
+(let* (((D <time>)      (make <time> 1 2))
+       ((E <duration>)  (make <duration> 3 5))
+       ((F <time>)      (D.- E)))
+  (list (is-a? F <time>) F.seconds F.nanoseconds))
+@result{} (#t -2 -3)
+@end example
+@end defmethod
+
+
+@defmethod @aclass{time} - (@var{time} @aclass{time})
+Subtract the @class{time} object @var{time} from the instance and return
+a new @class{duration} object representing the result.
+
+@example
+(let* (((D <time>)      (make <time> 1 2))
+       ((E <time>)      (make <time> 3 5))
+       ((F <duration>)  (D.- E)))
+  (list (is-a? F <duration>) F.seconds F.nanoseconds))
+@result{} (#t -2 -3)
+@end example
 @end defmethod
 
 @c page

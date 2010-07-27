@@ -73,6 +73,10 @@
     duration<=		duration>=
     duration+		duration-
 
+    time=
+    time<		time>
+    time<=		time>=
+
     ;; current time and clock resolution
     current-time current-date current-year current-century
     current-julian-day current-modified-julian-day
@@ -81,8 +85,9 @@
     ;; string conversion
     date->string string->date)
   (import (nausicaa)
-    (infix syntax)
     (rnrs mutable-strings)
+    (generics)
+    (infix syntax)
     (formations)
     (times-and-dates seconds-and-subseconds)
     (times-and-dates years-and-weeks)
@@ -299,12 +304,10 @@
 ;;; --------------------------------------------------------------------
 
 (define (<duration>-= (A <duration>) (B <duration>))
-  (assert (is-a? B <duration>))
   (and (= (abs A.seconds)     (abs B.seconds))
        (= (abs A.nanoseconds) (abs B.nanoseconds))))
 
 (define (<duration>-< (A <duration>) (B <duration>))
-  (assert (is-a? B <duration>))
   (let ((a.secs (abs A.seconds))
 	(b.secs (abs B.seconds)))
     (or (< a.secs b.secs)
@@ -313,7 +316,6 @@
 	  (< (abs A.nanoseconds) (abs B.nanoseconds))))))
 
 (define (<duration>-<= (A <duration>) (B <duration>))
-  (assert (is-a? B <duration>))
   (let ((a.secs (abs A.seconds))
 	(b.secs (abs B.seconds)))
     (or (< a.secs b.secs)
@@ -322,7 +324,6 @@
 	  (<= (abs A.nanoseconds) (abs B.nanoseconds))))))
 
 (define (<duration>-> (A <duration>) (B <duration>))
-  (assert (is-a? B <duration>))
   (let ((a.secs (abs A.seconds))
 	(b.secs (abs B.seconds)))
     (or (> a.secs b.secs)
@@ -331,7 +332,6 @@
 	  (> (abs A.nanoseconds) (abs B.nanoseconds))))))
 
 (define (<duration>->= (A <duration>) (B <duration>))
-  (assert (is-a? B <duration>))
   (let ((a.secs (abs A.seconds))
 	(b.secs (abs B.seconds)))
     (or (> a.secs b.secs)
@@ -344,9 +344,7 @@
 (define duration=
   (case-lambda
    (()  #t)
-   ((o)
-    (assert (is-a? o <duration>))
-    #t)
+   (((o <duration>)) #t)
    (((a <duration>) (b <duration>))
     (a.= b))
    (((a <duration>) (b <duration>) . durations)
@@ -356,9 +354,7 @@
 (define duration<
   (case-lambda
    (()  #t)
-   ((o)
-    (assert (is-a? o <duration>))
-    #t)
+   (((o <duration>)) #t)
    (((a <duration>) (b <duration>))
     (a.< b))
    (((a <duration>) (b <duration>) . durations)
@@ -368,9 +364,7 @@
 (define duration>
   (case-lambda
    (()  #t)
-   ((o)
-    (assert (is-a? o <duration>))
-    #t)
+   (((o <duration>)) #t)
    (((a <duration>) (b <duration>))
     (a.> b))
    (((a <duration>) (b <duration>) . durations)
@@ -380,9 +374,7 @@
 (define duration<=
   (case-lambda
    (()  #t)
-   ((o)
-    (assert (is-a? o <duration>))
-    #t)
+   (((o <duration>)) #t)
    (((a <duration>) (b <duration>))
     (a.<= b))
    (((a <duration>) (b <duration>) . durations)
@@ -392,9 +384,7 @@
 (define duration>=
   (case-lambda
    (()  #t)
-   ((o)
-    (assert (is-a? o <duration>))
-    #t)
+   (((o <duration>)) #t)
    (((a <duration>) (b <duration>))
     (a.>= b))
    (((a <duration>) (b <duration>) . durations)
@@ -403,22 +393,22 @@
 
 ;;; --------------------------------------------------------------------
 
-(define/with-class* (<duration>-+ (A <duration>) (B <duration>))
+(define (<duration>-+ (A <duration>) (B <duration>))
   (receive (secs nanosecs)
       (sn-add A.seconds A.nanoseconds
 	      B.seconds B.nanoseconds)
     (make <duration> secs nanosecs)))
 
-(define/with-class* (<duration>-- (A <duration>) (B <duration>))
+(define (<duration>-- (A <duration>) (B <duration>))
   (receive (secs nanosecs)
       (sn-sub A.seconds A.nanoseconds
 	      B.seconds B.nanoseconds)
     (make <duration> secs nanosecs)))
 
-(define/with-class* (<duration>-* (S <duration>) (lambda <real>))
+(define (<duration>-* (S <duration>) (lambda <real>))
   (make <duration> (* lambda S.seconds) (* lambda S.nanoseconds)))
 
-(define/with-class* (<duration>-/ (S <duration>) (lambda <real>))
+(define (<duration>-/ (S <duration>) (lambda <real>))
   (make <duration>
     (exact (/ S.seconds     lambda))
     (exact (/ S.nanoseconds lambda))))
@@ -426,7 +416,7 @@
 ;;; --------------------------------------------------------------------
 
 (define duration+
-  (case-lambda/with-class*
+  (case-lambda
    (()  (make <duration> 0 0))
    (((D <duration>))
     D)
@@ -436,7 +426,7 @@
     (apply duration+ (a.+ b) durations))))
 
 (define duration-
-  (case-lambda/with-class*
+  (case-lambda
    (()  (make <duration> 0 0))
    (((D <duration>))
     D)
@@ -507,29 +497,24 @@
 ;;; --------------------------------------------------------------------
 
 (define (<time>-= (A <time>) (B <time>))
-  (assert (is-a? B <time>))
   (and (= A.seconds     B.seconds)
        (= A.nanoseconds B.nanoseconds)))
 
 (define (<time>-< (A <time>) (B <time>))
-  (assert (is-a? B <time>))
   (sn< A.seconds A.nanoseconds
-	       B.seconds B.nanoseconds))
+       B.seconds B.nanoseconds))
 
 (define (<time>-<= (A <time>) (B <time>))
-  (assert (is-a? B <time>))
   (sn<= A.seconds A.nanoseconds
-		B.seconds B.nanoseconds))
+	B.seconds B.nanoseconds))
 
 (define (<time>-> (A <time>) (B <time>))
-  (assert (is-a? B <time>))
   (sn> A.seconds A.nanoseconds
-	       B.seconds B.nanoseconds))
+       B.seconds B.nanoseconds))
 
 (define (<time>->= (A <time>) (B <time>))
-  (assert (is-a? B <time>))
   (sn>= A.seconds A.nanoseconds
-		B.seconds B.nanoseconds))
+	B.seconds B.nanoseconds))
 
 ;;; --------------------------------------------------------------------
 
@@ -586,18 +571,24 @@
 ;;; --------------------------------------------------------------------
 
 (define (<time>-+ (A <time>) (B <duration>))
-  (assert (is-a? B <duration>))
   (receive (secs nanosecs)
       (sn-add A.seconds A.nanoseconds
-		      B.seconds B.nanoseconds)
+	      B.seconds B.nanoseconds)
     (make <time> secs nanosecs)))
 
-(define (<time>-- (A <time>) (B <duration>))
-  (assert (is-a? B <duration>))
+(define-generic <time>--)
+
+(define-method (<time>-- (A <time>) (B <duration>))
   (receive (secs nanosecs)
       (sn-sub A.seconds A.nanoseconds
-		      B.seconds B.nanoseconds)
-    (make <time> (abs secs) (abs nanosecs))))
+	      B.seconds B.nanoseconds)
+    (make <time> secs nanosecs)))
+
+(define-method (<time>-- (A <time>) (B <time>))
+  (receive (secs nanosecs)
+      (sn-sub A.seconds A.nanoseconds
+	      B.seconds B.nanoseconds)
+    (make <duration> secs nanosecs)))
 
 ;;; --------------------------------------------------------------------
 
