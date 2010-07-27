@@ -816,9 +816,9 @@
      (let*/with-class		let*)
      (letrec/with-class		letrec)
      (letrec*/with-class	letrec*)
-     (define/with-class		define)
-     (lambda/with-class		lambda)
-     (case-lambda/with-class	case-lambda)
+     (define/with-class*	define)
+     (lambda/with-class*	lambda)
+     (case-lambda/with-class*	case-lambda)
      (receive/with-class	receive))
 
     ;; usage macros
