@@ -91,6 +91,7 @@
     (formations)
     (times-and-dates seconds-and-subseconds)
     (times-and-dates years-and-weeks)
+    (times-and-dates julian-day)
     (times-and-dates compat))
 
 
@@ -188,7 +189,7 @@
 ;;
 ;; (define (tm:read-tai-utc-data filename)
 ;;   (define (convert-jd jd)
-;;     (* (- (inexact->exact jd) $tai-epoch-in-jd) $number-of-seconds-in-a-day))
+;;     (* (- (inexact->exact jd) $tai-epoch-in-jd) $number-of-seconds-in-one-day))
 ;;   (define (convert-sec sec)
 ;;     (inexact->exact sec))
 ;;   (let ( (port (open-input-file filename))
@@ -458,11 +459,11 @@
   (maker-protocol
    (lambda (make-seconds-and-nanoseconds)
      (define (%make-time-from-julian-day jdn)
-       (let ((nanosecs (infix $number-of-nanoseconds-in-a-second * $number-of-seconds-in-a-day
+       (let ((nanosecs (infix $number-of-nanoseconds-in-one-second * $number-of-seconds-in-one-day
 			      * (jdn - $tai-epoch-in-jd))))
 	 ((make-seconds-and-nanoseconds)
-	  (utc->tai (floor (/ nanosecs $number-of-nanoseconds-in-a-second)))
-	  (mod nanosecs $number-of-nanoseconds-in-a-second))))
+	  (utc->tai (floor (/ nanosecs $number-of-nanoseconds-in-one-second)))
+	  (mod nanosecs $number-of-nanoseconds-in-one-second))))
      (define (%make-time-from-modified-julian-day mjdn)
        (%make-time-from-julian-day make-seconds-and-nanoseconds (+ mjdn 4800001/2)))
 
@@ -601,56 +602,43 @@
       (find (lambda (x)
 	      (= second (- (+ (car x) (cdr x)) 1)))
 	    $leap-second-table))
-    (define (%seconds-and-nanoseconds->date seconds nanoseconds tz-offset aux-seconds)
+    (define (%utc-seconds-and-nanoseconds->date utc-seconds nanoseconds tz-offset aux-seconds)
       ;;Convert a seconds count on the UTC scale and a nanoseconds count
       ;;to a <date>  object.  TZ-OFFSET must be the  time zone offset in
       ;;seconds.  AUX-SECONDS must  be a count of seconds  to put in the
       ;;seconds  field  of the  <date>  object; if  it  is  false it  is
       ;;ignored.
       ;;
-      (receive (secs date month year)
-	  (%decode-julian-day-number (%time->julian-day-number seconds tz-offset))
-	(let* ((hours    (div secs $number-of-seconds-in-an-hour))
-	       (rem      (mod secs $number-of-seconds-in-an-hour))
+      (receive (year month day secs)
+	  (julian-day-decode-number
+	   (utc-seconds-and-nanoseconds->julian-day (+ utc-seconds tz-offset) nanoseconds))
+	(let* ((hours    (div secs $number-of-seconds-in-one-hour))
+	       (rem      (mod secs $number-of-seconds-in-one-hour))
 	       (minutes  (div rem 60))
 	       (seconds  (mod rem 60)))
 	  (make <date>
 	    nanoseconds (or aux-seconds seconds) minutes hours
-	    date month year tz-offset))))
+	    day month year tz-offset))))
 
     (if (%tai-before-leap-second? T.seconds)
 	;;If  it's  *right* before  the  leap,  we  need to  pretend  to
 	;;subtract a second  and set the seconds explicitly  in the date
 	;;object.
-	(%seconds-and-nanoseconds->date (- (tai->utc T.seconds) 1) T.nanoseconds tz-offset 60)
-      (%seconds-and-nanoseconds->date (tai->utc T.seconds) T.nanoseconds tz-offset #f))
+	(%utc-seconds-and-nanoseconds->date (- (tai->utc T.seconds) 1) T.nanoseconds tz-offset 60)
+      (%utc-seconds-and-nanoseconds->date (tai->utc T.seconds) T.nanoseconds tz-offset #f))
     )))
 
 ;;; --------------------------------------------------------------------
 
-(define <time>-julian-day
-  (case-lambda
-   ((T)
-    (<time>-julian-day T (%local-tz-offset)))
-   (((T <time>) tz-offset)
-    (%time->julian-day-number T.seconds tz-offset))))
-
-(define (%time->julian-day-number seconds tz-offset)
-  ;; special thing -- ignores nanos
-  (infix $tai-epoch-in-jd +
-	 ((seconds + tz-offset + $number-of-seconds-in-half-day) / $number-of-seconds-in-a-day)))
-
-;; (define (<time>-julian-day (T <time>))
-;;   ;;Return the Julian day representing T.
-;;   ;;
-;;   (infix $tai-epoch-in-jd +
-;; 	 (T.second - %leap-second-delta (T.second) + T.nanosecond / $number-of-nanoseconds-in-a-second)
-;; 	 / $number-of-seconds-in-a-day))
+(define (<time>-julian-day (T <time>))
+  ;;Return the Julian day representing T.
+  ;;
+  (tai-seconds-and-nanoseconds->julian-day T.seconds T.nanoseconds))
 
 (define (<time>-modified-julian-day (T <time>))
   ;;Return the Modified Julian day representing T.
   ;;
-  (infix T.julian-day - 4800001/2))
+  (julian-day->modified-julian-day T.julian-day))
 
 
 ;;;; current time
@@ -727,7 +715,7 @@
 	   modified-julian-day)
   (protocol (lambda (make-top)
 	      (lambda (nanosecond second minute hour day month year zone-offset)
-		(when (or (< nanosecond 0) (<= $number-of-nanoseconds-in-a-second nanosecond))
+		(when (or (< nanosecond 0) (<= $number-of-nanoseconds-in-one-second nanosecond))
 		  (assertion-violation 'make-<date>
 		    "nanoseconds count out of range, must be [0, 999999999]" nanosecond))
 
@@ -808,9 +796,9 @@
     ;;Convert a date  object into a count of UTC seconds  and a count of
     ;;nanoseconds; return the two counts.
     ;;
-    (let ((jdays (- (%encode-julian-day-number D.day D.month D.year)
+    (let ((jdays (- (julian-day-encode-number D.year D.month D.day)
 		    $tai-epoch-in-jd)))
-      (values (utc->tai (infix ((jdays - 1/2) * 24 + D.hour) * $number-of-seconds-in-an-hour
+      (values (utc->tai (infix ((jdays - 1/2) * 24 + D.hour) * $number-of-seconds-in-one-hour
 			       + D.minute * 60
 			       + D.second
 			       - D.zone-offset))
@@ -867,74 +855,19 @@
 (define (<date>-julian-day (D <date>))
   ;;Return the Julian day representing D.
   ;;
-  (+ (%encode-julian-day-number D.day D.month D.year)
+  (+ (julian-day-encode-number D.year D.month D.day)
      (- 1/2)
-     (/ (/ (+ (* D.hour $number-of-seconds-in-an-hour)
+     (/ (/ (+ (* D.hour $number-of-seconds-in-one-hour)
 	      (* D.minute 60)
 	      D.second
-	      (div D.nanosecond $number-of-nanoseconds-in-a-second))
-	   $number-of-seconds-in-a-day)
+	      (div D.nanosecond $number-of-nanoseconds-in-one-second))
+	   $number-of-seconds-in-one-day)
 	(- D.zone-offset))))
 
 (define (<date>-modified-julian-day D)
   ;;Return the modified Julian day representing D.
   ;;
   (- (<date>-julian-day D) 4800001/2))
-
-
-;;;; Julian day stuff
-
-(define (%encode-julian-day-number day month year)
-  ;;Return  an exact integer  representing the  Julian Day,  starting at
-  ;;noon, for  the given  date; does the  computation for  the Gregorian
-  ;;calendar.  Assumes the given date is correct.
-  ;;
-  ;;Notice that the returned value is not the "public" Julian Day number
-  ;;defined by this library: the  returned value is missing the fraction
-  ;;corresponding to hours, minutes, seconds and nanoseconds.
-  ;;
-  ;;From the Calendar FAQ, section 2.16.1.
-  ;;
-  (let* ((a (infix (14 - month) // 12))
-	 (y (- (infix year + 4800 - a)
-	       (if (negative?  year) -1 0)
-		;This adjusts year, taking care of the fact that between
-		;1 Annus  Dominis and 1  Before Christ there is  no year
-		;zero.  See the Calendar FAQ for details.
-	       ))
-	 (m (infix month + 12 * a - 3)))
-    (infix day
-	   + (153 * m + 2) // 5
-	   + 365 * y
-	   + y // 4
-	   - y // 100
-	   + y // 400
-	   - 32045)))
-
-(define (%decode-julian-day-number jdn)
-  ;;Return  4  values:  seconds,  day,  month,  year  in  the  Gregorian
-  ;;calendar.
-  ;;
-  ;;*NOTE* Watch out for precedence of * and // !!!
-  ;;
-  ;;From the Calendar FAQ, section 2.16.1.
-  ;;
-  (let* ((days	(truncate jdn))
-	 (a	(infix days + 32044))
-	 (b	(infix (4 * a + 3) // 146097))
-	 (c	(infix a - (146097 * b) // 4))
-	 (d	(infix (4 * c + 3) // 1461))
-	 (e	(infix c - (1461 * d) // 4))
-	 (m	(infix ((5 * e) + 2) // 153))
-	 (y	(infix (100 * b) + d - 4800 + (m // 10))))
-    (values
-     (infix (jdn - days) * $number-of-seconds-in-a-day)	;seconds
-     (infix e + 1 - (153 * m + 2) // 5)			;day
-     (infix m + 3 - 12 * (m // 10))			;month
-     (if (>= 0 y) (- y 1) y))))
-		;Year.  This adjusts year,  taking care of the fact that
-		;between 1 Annus Dominis and 1 Before Christ there is no
-		;year zero.  See the Calendar FAQ for details.
 
 
 ;;;; helpers for date manipulation
@@ -1046,7 +979,7 @@
 		      (else			#\+)))
       (unless (zero? offset)
 	(receive (d m)
-	    (div-and-mod offset $number-of-seconds-in-an-hour)
+	    (div-and-mod offset $number-of-seconds-in-one-hour)
 	  (let ((hours   (abs d))
 		(minutes (abs (div m 60))))
 	    (%display (%padding hours   #\0 2))
@@ -1096,13 +1029,13 @@
 		      (%display (%padding D.day #\space 2))))
 
 	    (#\f . ,(lambda ((D <date>) pad-char port)
-		      (%display (%padding (if (< $number-of-nanoseconds-in-a-second D.nanosecond)
+		      (%display (%padding (if (< $number-of-nanoseconds-in-one-second D.nanosecond)
 					      (+ 1 D.second)
 					    D.second)
 					  pad-char 2))
 		      (%display $locale-number-separator)
 		      (%display (%string-fractional-part
-				 (/ D.nanosecond $number-of-nanoseconds-in-a-second)))))
+				 (/ D.nanosecond $number-of-nanoseconds-in-one-second)))))
 
 	    (#\h . ,(lambda (date pad-char port)
 		      (%display (date->string date "~b"))))
@@ -1151,7 +1084,7 @@
 				  (tai->utc T.seconds)))))
 
 	    (#\S . ,(lambda ((D <date>) pad-char port)
-		      (%display (%padding (if (> D.nanosecond $number-of-nanoseconds-in-a-second)
+		      (%display (%padding (if (> D.nanosecond $number-of-nanoseconds-in-one-second)
 					      (+ 1 D.second)
 					    D.second)
 					  pad-char 2))))
@@ -1423,10 +1356,10 @@
 					(%error-unexpected-eof)
 				      (%char->int ch))))))
 	       ;;We have to enforce the order of %NEXT-DIGIT evaluations!!!
-	       (set!  offset-in-seconds (* (%next-digit) 10 $number-of-seconds-in-an-hour))
-	       (incr! offset-in-seconds (* (%next-digit)    $number-of-seconds-in-an-hour))
-	       (incr! offset-in-seconds (* (%next-digit) 10 $number-of-seconds-in-a-minute))
-	       (incr! offset-in-seconds (* (%next-digit)    $number-of-seconds-in-a-minute))
+	       (set!  offset-in-seconds (* (%next-digit) 10 $number-of-seconds-in-one-hour))
+	       (incr! offset-in-seconds (* (%next-digit)    $number-of-seconds-in-one-hour))
+	       (incr! offset-in-seconds (* (%next-digit) 10 $number-of-seconds-in-one-minute))
+	       (incr! offset-in-seconds (* (%next-digit)    $number-of-seconds-in-one-minute))
 	       (if positive?
 		   offset-in-seconds
 		 (- offset-in-seconds)))))))

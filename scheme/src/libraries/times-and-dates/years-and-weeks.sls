@@ -30,7 +30,6 @@
 
     ;; constants
     $number-of-seconds-in-half-day
-    $tai-epoch-in-jd
     $number-of-days-per-month/non-leap-year
     $number-of-days-per-month/leap-year
     $number-of-days-the-first-day-of-each-month/non-leap-year
@@ -53,9 +52,6 @@
 ;;involving  the  Julian Day,  which  starts  at  noon (rather  than  at
 ;;midnight).
 (define-constant $number-of-seconds-in-half-day 43200)
-
-;;Julian day number for the Epoch.
-(define-constant $tai-epoch-in-jd 4881175/2)
 
 (define-constant $number-of-days-per-month/non-leap-year
   '#(0

@@ -31,33 +31,33 @@
     ;; constants
     $leap-second-table
 
-    $number-of-nanoseconds-in-a-microsecond
-    $number-of-nanoseconds-in-a-millisecond
-    $number-of-nanoseconds-in-a-second
-    $number-of-nanoseconds-in-a-minute
-    $number-of-nanoseconds-in-an-hour
-    $number-of-nanoseconds-in-a-day
+    $number-of-nanoseconds-in-one-microsecond
+    $number-of-nanoseconds-in-one-millisecond
+    $number-of-nanoseconds-in-one-second
+    $number-of-nanoseconds-in-one-minute
+    $number-of-nanoseconds-in-one-hour
+    $number-of-nanoseconds-in-one-day
 
-    $number-of-microseconds-in-a-nanosecond
-    $number-of-microseconds-in-a-millisecond
-    $number-of-microseconds-in-a-second
-    $number-of-microseconds-in-a-minute
-    $number-of-microseconds-in-an-hour
-    $number-of-microseconds-in-a-day
+    $number-of-microseconds-in-one-nanosecond
+    $number-of-microseconds-in-one-millisecond
+    $number-of-microseconds-in-one-second
+    $number-of-microseconds-in-one-minute
+    $number-of-microseconds-in-one-hour
+    $number-of-microseconds-in-one-day
 
-    $number-of-milliseconds-in-a-nanosecond
-    $number-of-milliseconds-in-a-microsecond
-    $number-of-milliseconds-in-a-second
-    $number-of-milliseconds-in-a-minute
-    $number-of-milliseconds-in-an-hour
-    $number-of-milliseconds-in-a-day
+    $number-of-milliseconds-in-one-nanosecond
+    $number-of-milliseconds-in-one-microsecond
+    $number-of-milliseconds-in-one-second
+    $number-of-milliseconds-in-one-minute
+    $number-of-milliseconds-in-one-hour
+    $number-of-milliseconds-in-one-day
 
-    $number-of-seconds-in-a-nanosecond
-    $number-of-seconds-in-a-microsecond
-    $number-of-seconds-in-a-millisecond
-    $number-of-seconds-in-a-minute
-    $number-of-seconds-in-an-hour
-    $number-of-seconds-in-a-day
+    $number-of-seconds-in-one-nanosecond
+    $number-of-seconds-in-one-microsecond
+    $number-of-seconds-in-one-millisecond
+    $number-of-seconds-in-one-minute
+    $number-of-seconds-in-one-hour
+    $number-of-seconds-in-one-day
 
     ;; utilities for seconds and subseconds
     sn-normalise	su-normalise		sm-normalise
@@ -85,33 +85,33 @@
 
 ;;;; constants
 
-(define-constant $number-of-nanoseconds-in-a-microsecond	#e1e3)
-(define-constant $number-of-nanoseconds-in-a-millisecond	#e1e6)
-(define-constant $number-of-nanoseconds-in-a-second		#e1e9)
-(define-constant $number-of-nanoseconds-in-a-minute		(* #e1e9 60))
-(define-constant $number-of-nanoseconds-in-an-hour		(* #e1e9 60 60))
-(define-constant $number-of-nanoseconds-in-a-day		(* #e1e9 60 60 24))
+(define-constant $number-of-nanoseconds-in-one-microsecond	#e1e3)
+(define-constant $number-of-nanoseconds-in-one-millisecond	#e1e6)
+(define-constant $number-of-nanoseconds-in-one-second		#e1e9)
+(define-constant $number-of-nanoseconds-in-one-minute		(* #e1e9 60))
+(define-constant $number-of-nanoseconds-in-one-hour		(* #e1e9 60 60))
+(define-constant $number-of-nanoseconds-in-one-day		(* #e1e9 60 60 24))
 
-(define-constant $number-of-microseconds-in-a-nanosecond	#e1e-3)
-(define-constant $number-of-microseconds-in-a-millisecond	#e1e3)
-(define-constant $number-of-microseconds-in-a-second		#e1e6)
-(define-constant $number-of-microseconds-in-a-minute		(* #e1e6 60))
-(define-constant $number-of-microseconds-in-an-hour		(* #e1e6 60 60))
-(define-constant $number-of-microseconds-in-a-day		(* #e1e6 60 60 24))
+(define-constant $number-of-microseconds-in-one-nanosecond	#e1e-3)
+(define-constant $number-of-microseconds-in-one-millisecond	#e1e3)
+(define-constant $number-of-microseconds-in-one-second		#e1e6)
+(define-constant $number-of-microseconds-in-one-minute		(* #e1e6 60))
+(define-constant $number-of-microseconds-in-one-hour		(* #e1e6 60 60))
+(define-constant $number-of-microseconds-in-one-day		(* #e1e6 60 60 24))
 
-(define-constant $number-of-milliseconds-in-a-nanosecond	#e1e-6)
-(define-constant $number-of-milliseconds-in-a-microsecond	#e1e-3)
-(define-constant $number-of-milliseconds-in-a-second		#e1e3)
-(define-constant $number-of-milliseconds-in-a-minute		(* #e1e3 60))
-(define-constant $number-of-milliseconds-in-an-hour		(* #e1e3 60 60))
-(define-constant $number-of-milliseconds-in-a-day		(* #e1e3 60 60 24))
+(define-constant $number-of-milliseconds-in-one-nanosecond	#e1e-6)
+(define-constant $number-of-milliseconds-in-one-microsecond	#e1e-3)
+(define-constant $number-of-milliseconds-in-one-second		#e1e3)
+(define-constant $number-of-milliseconds-in-one-minute		(* #e1e3 60))
+(define-constant $number-of-milliseconds-in-one-hour		(* #e1e3 60 60))
+(define-constant $number-of-milliseconds-in-one-day		(* #e1e3 60 60 24))
 
-(define-constant $number-of-seconds-in-a-nanosecond		#e1e-9)
-(define-constant $number-of-seconds-in-a-microsecond		#e1e-6)
-(define-constant $number-of-seconds-in-a-millisecond		#e1e-3)
-(define-constant $number-of-seconds-in-a-minute			60)
-(define-constant $number-of-seconds-in-an-hour			(* 60 60))
-(define-constant $number-of-seconds-in-a-day			(* 60 60 24))
+(define-constant $number-of-seconds-in-one-nanosecond		#e1e-9)
+(define-constant $number-of-seconds-in-one-microsecond		#e1e-6)
+(define-constant $number-of-seconds-in-one-millisecond		#e1e-3)
+(define-constant $number-of-seconds-in-one-minute			60)
+(define-constant $number-of-seconds-in-one-hour			(* 60 60))
+(define-constant $number-of-seconds-in-one-day			(* 60 60 24))
 
 
 ;;;; helpers
@@ -139,65 +139,65 @@
 	     (values seconds subseconds))))))
 
 (define-inline (sn-normalise seconds nanoseconds)
-  (%normalise seconds nanoseconds $number-of-nanoseconds-in-a-second))
+  (%normalise seconds nanoseconds $number-of-nanoseconds-in-one-second))
 
 (define-inline (su-normalise seconds microseconds)
-  (%normalise seconds microseconds $number-of-microseconds-in-a-second))
+  (%normalise seconds microseconds $number-of-microseconds-in-one-second))
 
 (define-inline (sm-normalise seconds milliseconds)
-  (%normalise seconds milliseconds $number-of-milliseconds-in-a-second))
+  (%normalise seconds milliseconds $number-of-milliseconds-in-one-second))
 
 
 (define-inline (sn->seconds seconds nanoseconds)
-  (+ seconds (/ nanoseconds $number-of-nanoseconds-in-a-second)))
+  (+ seconds (/ nanoseconds $number-of-nanoseconds-in-one-second)))
 
 (define-inline (su->seconds seconds microseconds)
-  (+ seconds (/ microseconds $number-of-microseconds-in-a-second)))
+  (+ seconds (/ microseconds $number-of-microseconds-in-one-second)))
 
 (define-inline (sm->seconds seconds milliseconds)
-  (+ seconds (/ milliseconds $number-of-milliseconds-in-a-second)))
+  (+ seconds (/ milliseconds $number-of-milliseconds-in-one-second)))
 
 ;;; --------------------------------------------------------------------
 
 (define-inline (sn->milliseconds seconds nanoseconds)
-  (+ (* seconds      $number-of-milliseconds-in-a-second)
-     (/ nanoseconds  $number-of-nanoseconds-in-a-millisecond)))
+  (+ (* seconds      $number-of-milliseconds-in-one-second)
+     (/ nanoseconds  $number-of-nanoseconds-in-one-millisecond)))
 
 (define-inline (su->milliseconds seconds microseconds)
-  (+ (* seconds      $number-of-milliseconds-in-a-second)
-     (/ microseconds $number-of-microseconds-in-a-millisecond)))
+  (+ (* seconds      $number-of-milliseconds-in-one-second)
+     (/ microseconds $number-of-microseconds-in-one-millisecond)))
 
 (define-inline (sm->milliseconds seconds milliseconds)
-  (+ (* seconds      $number-of-milliseconds-in-a-second)
+  (+ (* seconds      $number-of-milliseconds-in-one-second)
      milliseconds))
 
 ;;; --------------------------------------------------------------------
 
 (define-inline (sn->microseconds seconds nanoseconds)
-  (+ (* seconds      $number-of-microseconds-in-a-second)
-     (/ nanoseconds  $number-of-nanoseconds-in-a-microsecond)))
+  (+ (* seconds      $number-of-microseconds-in-one-second)
+     (/ nanoseconds  $number-of-nanoseconds-in-one-microsecond)))
 
 (define-inline (su->microseconds seconds microseconds)
-  (+ (* seconds      $number-of-microseconds-in-a-second)
+  (+ (* seconds      $number-of-microseconds-in-one-second)
      microseconds))
 
 (define-inline (sm->microseconds seconds milliseconds)
-  (+ (* seconds      $number-of-microseconds-in-a-second)
-     (* milliseconds $number-of-microseconds-in-a-millisecond)))
+  (+ (* seconds      $number-of-microseconds-in-one-second)
+     (* milliseconds $number-of-microseconds-in-one-millisecond)))
 
 ;;; --------------------------------------------------------------------
 
 (define-inline (sn->nanoseconds seconds nanoseconds)
-  (+ (* seconds      $number-of-nanoseconds-in-a-second)
+  (+ (* seconds      $number-of-nanoseconds-in-one-second)
      nanoseconds))
 
 (define-inline (su->nanoseconds seconds microseconds)
-  (+ (* seconds      $number-of-nanoseconds-in-a-second)
-     (* microseconds $number-of-nanoseconds-in-a-microsecond)))
+  (+ (* seconds      $number-of-nanoseconds-in-one-second)
+     (* microseconds $number-of-nanoseconds-in-one-microsecond)))
 
 (define-inline (sm->nanoseconds seconds milliseconds)
-  (+ (* seconds      $number-of-nanoseconds-in-a-second)
-     (* milliseconds $number-of-nanoseconds-in-a-millisecond)))
+  (+ (* seconds      $number-of-nanoseconds-in-one-second)
+     (* milliseconds $number-of-nanoseconds-in-one-millisecond)))
 
 
 (define (%subseconds->sx subseconds seconds-count subseconds-count)
@@ -223,17 +223,17 @@
 
 (define-inline (milliseconds->sn milliseconds)
   (%subseconds->sx milliseconds
-		   $number-of-milliseconds-in-a-second
-		   $number-of-nanoseconds-in-a-millisecond))
+		   $number-of-milliseconds-in-one-second
+		   $number-of-nanoseconds-in-one-millisecond))
 
 (define-inline (microseconds->sn microseconds)
   (%subseconds->sx microseconds
-		   $number-of-microseconds-in-a-second
-		   $number-of-nanoseconds-in-a-microsecond))
+		   $number-of-microseconds-in-one-second
+		   $number-of-nanoseconds-in-one-microsecond))
 
 (define-inline (nanoseconds->sn nanoseconds)
   (%subseconds->sx nanoseconds
-		   $number-of-nanoseconds-in-a-second
+		   $number-of-nanoseconds-in-one-second
 		   1))
 
 ;;; --------------------------------------------------------------------
@@ -243,18 +243,18 @@
 
 (define-inline (milliseconds->su milliseconds)
   (%subseconds->sx milliseconds
-		   $number-of-milliseconds-in-a-second
-		   $number-of-microseconds-in-a-millisecond))
+		   $number-of-milliseconds-in-one-second
+		   $number-of-microseconds-in-one-millisecond))
 
 (define-inline (microseconds->su microseconds)
   (%subseconds->sx microseconds
-		   $number-of-microseconds-in-a-second
+		   $number-of-microseconds-in-one-second
 		   1))
 
 (define-inline (nanoseconds->su nanoseconds)
   (%subseconds->sx nanoseconds
-		   $number-of-nanoseconds-in-a-second
-		   $number-of-microseconds-in-a-nanosecond))
+		   $number-of-nanoseconds-in-one-second
+		   $number-of-microseconds-in-one-nanosecond))
 
 ;;; --------------------------------------------------------------------
 
@@ -263,18 +263,18 @@
 
 (define-inline (milliseconds->sm milliseconds)
   (%subseconds->sx milliseconds
-		   $number-of-milliseconds-in-a-second
+		   $number-of-milliseconds-in-one-second
 		   1))
 
 (define-inline (microseconds->sm microseconds)
   (%subseconds->sx microseconds
-		   $number-of-microseconds-in-a-second
-		   $number-of-milliseconds-in-a-microsecond))
+		   $number-of-microseconds-in-one-second
+		   $number-of-milliseconds-in-one-microsecond))
 
 (define-inline (nanoseconds->sm nanoseconds)
   (%subseconds->sx nanoseconds
-		   $number-of-nanoseconds-in-a-second
-		   $number-of-milliseconds-in-a-nanosecond))
+		   $number-of-nanoseconds-in-one-second
+		   $number-of-milliseconds-in-one-nanosecond))
 
 
 (define (smun->sn seconds milliseconds microseconds nanoseconds)
@@ -289,9 +289,9 @@
   (receive (seconds nanoseconds)
       (sn-normalise seconds nanoseconds)
     (receive (microseconds nanoseconds)
-	(%normalise 0 nanoseconds $number-of-nanoseconds-in-a-microsecond)
+	(%normalise 0 nanoseconds $number-of-nanoseconds-in-one-microsecond)
       (receive (milliseconds microseconds)
-	  (%normalise 0 microseconds $number-of-microseconds-in-a-millisecond)
+	  (%normalise 0 microseconds $number-of-microseconds-in-one-millisecond)
 	(values seconds milliseconds microseconds nanoseconds)))))
 
 

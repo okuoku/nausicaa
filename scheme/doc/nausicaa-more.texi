@@ -928,11 +928,13 @@ Messages catalog for internationalisation
 
 Time data types and procedures
 
-* time intro::                  Introduction.
+* time intro::                  Introduction to time scales.
+* time overview::               Overview of the library.
 * time system::                 Interface to the system.
 * time secs::                   Seconds and nanoseconds objects.
 * time duration::               Time duration objects.
 * time point::                  Points in time.
+* time date::                   Date object.
 * time utils::                  Miscellaneous utilities.
 * time const::                  Constants.
 * time current::                Current time and clock resolution.
@@ -944,6 +946,25 @@ Time data types and procedures
                                 Julian Day Converters.
 * time string::                 Date to string/string to date
                                 converters.
+
+Introduction to time scales
+
+* time intro tai::              International Atomic Time (@tai{}).
+* time intro utc::              Coordinated Universal Time (@utc{}).
+* time intro gmt::              Greenwich Mean Time (@gmt{}).
+* time intro zone::             Time zones and daylight saving time.
+* time intro dst::              Daylight Saving Time (@dst{}).
+* time intro unix::             Unix Time and Unix Epoch.
+* time intro gregorian::        Gregorian calendar.
+* time intro week::             Week days.
+* time intro julian::           Julian Date (@acronym{JD}) and Julian Day (@acronym{JDN}).
+
+Overview of the library
+
+* time overview assumptions::   Basic assumptions and policies.
+* time overview host::          Retrieving the current time.
+* time overview time::          Time points and interval durations.
+* time overview date::          Dates and calendar.
 
 Seconds and nanoseconds objects
 
@@ -969,6 +990,7 @@ Miscellaneous utilities
 
 * time utils secs::             Seconds and nanoseconds utilities.
 * time utils year::             Gregorian years and weeks.
+* time utils julian::           Julian day conversion.
 
 Seconds and nanoseconds utilities
 
@@ -18443,14 +18465,24 @@ written in the @code{en_GB} locale in Nausicaa's source files.
 
 The @library{times-and-dates} library implements procedures and data
 types to manipulate time and dates; the library is built on top of the
-facilities of the @library{classes} library.
+facilities of the @library{classes} library.  @nauref{classes, Classes
+library}.
+
+This chapter contains chunks of slightly edited text from Wikipedia
+pages on time scales and related subjects.  The
+@library{times-and-dates} library is built upon such Wikipedia
+informations and informations extracted from the
+@uref{http://@/www.tondering.dk/@/claus/@/calendar.html, Calendar
+@acronym{FAQ}} maintained by Claus Tondering.
 
 @menu
-* time intro::                  Introduction.
+* time intro::                  Introduction to time scales.
+* time overview::               Overview of the library.
 * time system::                 Interface to the system.
 * time secs::                   Seconds and nanoseconds objects.
 * time duration::               Time duration objects.
 * time point::                  Points in time.
+* time date::                   Date object.
 * time utils::                  Miscellaneous utilities.
 * time const::                  Constants.
 * time current::                Current time and clock resolution.
@@ -18466,147 +18498,278 @@ facilities of the @library{classes} library.
 
 @c page
 @node time intro
-@section Introduction
+@section Introduction to time scales
 
 
 @cindex Terrestrial time
-@cindex International Atomic Time, @tai{}
-@cindex @tai{}, International Atomic Time
-@cindex Coordinated Universal Time, @utc{}
-@cindex @utc{}, Coordinated Universal Time
-@cindex Unix Time
-@cindex @posix{} Time
-@cindex Time zone
-@cindex Gregorian calendar
-@cindex Proleptic Gregorian calendar
-@cindex Epoch, Unix time
-@cindex Unix epoch
 
-
-This introduction contains chunks of slightly edited text from Wikipedia
-pages on time scales and related subjects.  The
-@library{times-and-dates} library is built upon informations extracted
-from the Calendar @acronym{FAQ} maintained by Claus Tondering, which can
-be retrieved at:
-
-@center @url{http://www.tondering.dk/claus/calendar.html}
-
-@c ------------------------------------------------------------
-
-@subsubheading Introduction to time scales
 
 When using the @library{times-and-dates} library we aim at dealing with
-@dfn{Terrestrial Time} in which: seconds are the ones of the
-@acronym{SI} system, defined using caesium atomic clocks; @math{60}
-seconds make one minute; @math{60} minutes make one hour; @math{24}
-hours make one day; @math{365} days make one year.  Terrestrial Time is
-a theoretical ideal, which real clocks can only
-approximate.@footnote{@url{http://en.wikipedia.org/wiki/Terrestrial_Time}}
+@uref{http://@/en.wikipedia.org/@/wiki/@/Terrestrial_Time,
+@dfn{Terrestrial Time}} in which: seconds are the ones of the
+International System of Units (@acronym{SI}), defined using caesium
+atomic clocks; @math{60} seconds make one minute; @math{60} minutes make
+one hour; @math{24} hours make one day; @math{365} days make one year.
+Terrestrial Time is a theoretical ideal, which real clocks can only
+approximate.
 
-A realisation of Terrestrial Time is the @dfn{International Atomic Time}
-(@tai{}), which is based on the notional passage of proper time on
-Earth's
-surface.@footnote{@url{http://en.wikipedia.org/wiki/International_Atomic_Time}}
-Time coordinates on the @tai{} scale are conventionally specified using
-traditional means of specifying days, for example the proleptic
-Gregorian
-calendar.@footnote{@url{http://en.wikipedia.org/wiki/Proleptic_Gregorian_calendar}}
+@menu
+* time intro tai::              International Atomic Time (@tai{}).
+* time intro utc::              Coordinated Universal Time (@utc{}).
+* time intro gmt::              Greenwich Mean Time (@gmt{}).
+* time intro zone::             Time zones and daylight saving time.
+* time intro dst::              Daylight Saving Time (@dst{}).
+* time intro unix::             Unix Time and Unix Epoch.
+* time intro gregorian::        Gregorian calendar.
+* time intro week::             Week days.
+* time intro julian::           Julian Date (@acronym{JD}) and Julian Day (@acronym{JDN}).
+@end menu
 
-Another realisation of Terrestrial Time is the @dfn{Coordinated
-Universal Time} (@utc{}), a time standard based on @tai{} with leap
-seconds added at irregular intervals, at the end of some days, to
-compensate for the Earth's slowing rotation; when a leap second is
-added, the last minute of the day has @math{61} seconds.  Leap seconds
-are used to allow @utc{} to closely track the mean solar time at the
-Royal Observatory,
-Greenwich.@footnote{@url{http://en.wikipedia.org/wiki/Leap_second}}
+@c page
+@node time intro tai
+@subsection International Atomic Time (@tai{})
+
+
+@cindex International Atomic Time, @tai{}
+@cindex @tai{}, International Atomic Time
+
+
+A realisation of Terrestrial Time is the
+@uref{http://@/en.wikipedia.org/@/wiki/@/International_Atomic_Time,
+@dfn{International Atomic Time}}, which is based on the notional passage
+of proper time on Earth's surface.
+
+Time coordinates on the @tai{} scale are conventionally expressed using
+traditional means of specifying days, for example: the @acronym{SI}
+seconds and the time coordinates defined by the proleptic Gregorian
+calendar.  @ref{time intro gregorian, Gregorian calendar}.
+
+@c page
+@node time intro utc
+@subsection Coordinated Universal Time (@utc{})
+
+
+@cindex Coordinated Universal Time, @utc{}
+@cindex @utc{}, Coordinated Universal Time
+@cindex Leap seconds
+
+
+Another realisation of Terrestrial Time is the
+@uref{http://@/en.wikipedia.org/@/wiki/@/Coordinated_Universal_Time,
+@dfn{Coordinated Universal Time}}, a time standard based on @tai{} with
+@uref{http://@/en.wikipedia.org/@/wiki/@/Leap_second, leap seconds}
+added at irregular intervals to compensate for the Earth's slowing
+rotation.  Leap seconds are added at the end of some days to allow
+@utc{} to closely track the mean solar time at the Royal Observatory,
+Greenwich; when a leap second is added, the last minute of the day has
+@math{61} seconds.
+
+As a compromise between the history of time scale definitions and the
+need to define a time scale for every point in time, the best assumption
+we can do is that @tai{} and @utc{} where synchronised before the first
+leap second was added; when the first leap second was added (on June 30
+1972), @tai{} and @utc{} went out of synchronisation as follows:
+
+@example
+                  TAI midnight
+                        |
+          June 30 1972  |  July 1 1972
+                        v
+       23:59:58 23:59:59 00:00:00 00:00:01 00:00:02
+TAI --|--------|--------|--------|--------|--------|--
+
+       23:59:58 23:59:59 23:59:60 00:00:00 00:00:01
+UTC --|--------|--------|++++++++|--------|--------|--
+                          leap   ^
+                          second |
+                                 |
+                   June 30 1972  |  July 1 1972
+                                 |
+                           UTC midnight
+@end example
+
+@noindent
+when the second leap second was added (on December 31 1972), @tai{} and
+@utc{} went further out of synchronisation as follows:
+
+@example
+                  TAI midnight
+                        |
+      December 31 1972  |  January 1 1973
+                        v
+       23:59:58 23:59:59 00:00:00 00:00:01 00:00:02
+TAI --|--------|--------|--------|--------|--------|--
+
+       23:59:57 23:59:58 23:59:59 23:59:60 00:00:00
+UTC --|--------|--------|--------|++++++++|--------|--
+                                   leap   ^
+                                   second |
+                                          |
+                        December 31 1972  |  January 1 1973
+                                          |
+                                    UTC midnight
+@end example
+
+@noindent
+whenever a leap second is added on the @utc{} scale, the @utc{} date
+falls back one second with respect to @tai{}.  On August 3 2010 the
+@tai{} scale was 34 seconds forwards of the @utc{} scale.
 
 When @utc{} is expressed as count of seconds from an origin, it is a
-``continuous'' timescale in which all the integers are present as
-seconds counts; when @utc{} is expressed by the tuple year, month, day,
-hour, minute, second the timescale is discontinuous because some minutes
-have @math{61} seconds rather than @math{60}, so it is not possible to
-compute the exact time interval elapsed between two @utc{} timestamps
-without consulting a table that describes how many leap seconds occurred
-during that interval.
+``continuous'' timescale in which all the integers are present as counts
+of seconds; when @utc{} is expressed by the tuple year, month, day,
+hour, minute, second the @utc{} scale is ``discontinuous'' because some
+minutes have @math{61} seconds rather than @math{60}.  It is not
+possible to compute the exact time interval elapsed between two @utc{}
+timestamps without consulting a table that describes how many leap
+seconds occurred during that interval.
 
-The @dfn{Unix Time} (or @dfn{@posix{} Time}) is a system for describing
-points in time, defined as the number of seconds elapsed since 1970
-January 1 00:00:00 @utc{}, not counting leap seconds; the time 1970
-January 1 00:00:00 @utc{} is called @dfn{Unix Epoch}.  Although it does
+@c page
+@node time intro gmt
+@subsection Greenwich Mean Time (@gmt{})
+
+
+@cindex Greenwich Mean Time, @gmt{}
+@cindex @gmt{}, Greenwich Mean Time
+
+
+The @dfn{Greenwich Mean Time} is the mean solar time at the Royal
+Observatory, Greenwich; in casual use, when fractions of a second are
+not important, @gmt{} can be considered equivalent to @utc{}; saying
+@gmt{} is generally avoided in technical contexts, where the unambiguous
+@utc{} is preferred.
+
+@c page
+@node time intro zone
+@subsection Time zones and local time
+
+
+@cindex Time zone
+@cindex Local time
+
+
+A @uref{http://en.wikipedia.org/wiki/Time_zone, @dfn{time zone}} is a
+region on Earth, more or less bounded by lines of longitude, that has a
+uniform, legally mandated standard time, usually referred to as the
+``local time''; @math{24} time zones around the world can be expressed
+as positive or negative offsets from @utc{} (the mean solar time at the
+Royal Observatory, Greenwich).  Local time is @utc{} plus the current
+time zone offset for the location in question.
+
+Ideally, the increase proceeds eastward from the eastern boundary of the
+@utc{} time zone, increasing by one hour (@math{3600} seconds) for each
+@math{15} degrees, up to the International Date Line (longitude
+@math{180} degrees); a corresponding one hour decrease relative to
+@utc{} occurs every @math{15} degrees heading westward from the western
+boundary of the @utc{} time zone, up to the International Date Line.  As
+examples: London is in time zone zero; moving eastward, Rome (Italy) is
+in time zone @math{+1} hour or @math{+3600} seconds; moving westward,
+New York (@acronym{USA}) is in time zone @math{-5} hours or
+@math{-18000} seconds.
+
+In practice, time zones are established by countries based on local
+policies, so the only way to retrieve the time zone of a point on Earth
+is to look up an appropriate data table.  As examples: Iceland is in
+time zone zero (rather than @math{-1} hour); the Iles Marquises are in
+time zone @math{-9:30} hours or @math{-34200} seconds; the Chatham
+Islands are in time zone @math{+12:45} hours or @math{+45900} seconds.
+
+@c page
+@node time intro dst
+@subsection Daylight Saving Time (@dst{})
+
+
+@cindex Daylight Saving Time, @dst{}
+@cindex @dst{}, Daylight Saving Time
+
+
+The @uref{http://en.wikipedia.org/wiki/Daylight_saving_time,
+@dfn{Daylight Saving Time}} is the practice of temporarily advancing
+clocks so that afternoons have more daylight and mornings have less;
+clocks are adjusted forward one hour near the start of spring and are
+adjusted backward in autumn.
+
+The effect of @dst{} is to shift the local time forward by one hour or
+@math{3600} seconds, possibly causing a shift or wrap around in the
+current day (and month and year) number with respect to the local time.
+
+As example, Rome (Italy) is in time zone @math{+1} hour with respect to
+@utc{}; when @dst{} is on, @math{+1} hour must be further added to the
+time resulting in an effective @math{+2} hours time shift with respect
+to @utc{}.
+
+@c page
+@node time intro unix
+@subsection Unix Time and Unix Epoch
+
+
+@cindex Unix Time
+@cindex @posix{} Time
+@cindex Epoch, Unix time
+@cindex Unix Epoch
+
+
+The @uref{http://@/en.wikipedia.org/@/wiki/@/Unix_time, @dfn{Unix Time}}
+or @dfn{@posix{} Time} is a system for describing points in time,
+defined as the number of seconds elapsed since 1970 January 1 00:00:00
+time zone zero, not counting leap seconds; the time 1970 January 1
+00:00:00 time zone zero is called @dfn{Unix Epoch}.  Although it does
 not count leap seconds, Unix Time stays synchronised with @utc{} time by
 repeating twice the same count when a leap second is inserted:
 
 @example
-         midnight
-            |
-            v
-N-2   N-1   N   N   N+1  N+2
-              ^
-              |
-     leap second inserted
+             midnight
+                |
+                v
+... N-2   N-1   N   N   N+1  N+2 ...
+                  ^
+                  |
+         leap second inserted
 @end example
 
 @noindent
-Unix Time correctly counts @utc{} days since the Epoch as follows:
+Unix Time correctly counts @utc{} @strong{days} since the Epoch as
+follows:
 
 @example
 (define unix-time:seconds ---)
 
-(define unix-time:number-of-seconds-in-a-day
+(define unix-time:number-of-seconds-in-one-day
   (* 24 60 60))
 
 (define utc-time:days-since-epoch
   (div0 unix-time:seconds
-        unix-time:number-of-seconds-in-a-day))
+        unix-time:number-of-seconds-in-one-day))
 @end example
 
 @noindent
-Unix Time does @strong{not} correctly counts @utc{} seconds since the
-Epoch, the following code:
+Unix Time does @strong{not} correctly counts @utc{} @strong{seconds}
+since the Epoch, the following code:
 
 @example
 (define utc-time:seconds-since-midnight
   (mod0 unix-time:seconds
-        unix-time:number-of-seconds-in-a-day))
+        unix-time:number-of-seconds-in-one-day))
 @end example
 
 @noindent
 gives incorrect results when @code{unix-time:seconds} is the count right
 before a leap second.
 
-The @dfn{Greenwich Mean Time} (@gmt{}) is the mean solar time at
-the Royal Observatory, Greenwich; in casual use, when fractions of a
-second are not important, @gmt{} can be considered equivalent to
-@utc{}; saying @gmt{} is generally avoided in technical contexts,
-where the unambiguous @utc{} is
-preferred.@footnote{@url{http://en.wikipedia.org/wiki/Coordinated_Universal_Time}}
+@c page
+@node time intro gregorian
+@subsection Gregorian calendar
 
-A @dfn{time zone} is a region on Earth, more or less bounded by lines of
-longitude, that has a uniform, legally mandated standard time, usually
-referred to as the ``local time''; the @math{24} time zones around the
-world can be expressed as positive or negative offsets from @utc{}, each
-time zone boundary being @math{15} degrees East or West of the preceding
-one.  Local time is @utc{} plus the current time zone offset for the
-location in question.  In theory, the increase proceeds eastward from
-the eastern boundary of the @utc{} time zone, increasing by one hour for
-each @math{15} degrees, up to the International Date Line (longitude
-@math{180} degrees); a corresponding one hour decrease relative to
-@utc{} occurs every @math{15} degrees heading westward from the western
-boundary of the @utc{} time zone, up to the International Date
-Line.@footnote{@url{http://en.wikipedia.org/wiki/Time_zone}}
 
-The @dfn{Daylight saving time} @dst{} is the practice of temporarily
-advancing clocks so that afternoons have more daylight and mornings have
-less; clocks are adjusted forward one hour near the start of spring and
-are adjusted backward in
-autumn.@footnote{@url{http://en.wikipedia.org/wiki/Daylight_saving_time}}
+@cindex Gregorian calendar
+@cindex Proleptic Gregorian calendar
 
-The @dfn{Gregorian Calendar} is the internationally accepted civil
+
+The @uref{http://@/en.wikipedia.org/@/wiki/@/Gregorian_calendar,
+@dfn{Gregorian Calendar}} is the internationally accepted civil
 calendar; it counts days as the basic unit of time, grouping them into
-years of @math{365} or @math{366}
-days@footnote{@url{http://en.wikipedia.org/wiki/Gregorian_calendar}}.  A
-Gregorian year is divided into @math{12} months of irregular length:
+years of @math{365} or @math{366} days.  A Gregorian year is divided
+into @math{12} months of irregular length:
 
 @multitable {Month Index} {Month Name} {Days123}
 @headitem Month Index @tab Month Name @tab Days
@@ -18625,14 +18788,86 @@ Gregorian year is divided into @math{12} months of irregular length:
 @end multitable
 
 @noindent
-February has @math{29} days only on leap years.  The proleptic Gregorian
-calendar is produced by extending the Gregorian calendar backward to
-dates preceding its official introduction in
-1582.@footnote{@url{http://en.wikipedia.org/wiki/Proleptic_Gregorian_calendar}}
+February has @math{29} days only on leap years.  The
+@uref{http://en.wikipedia.org/wiki/Proleptic_Gregorian_calendar,
+proleptic Gregorian calendar}.  is produced by extending the Gregorian
+calendar backward to dates preceding its official introduction in 1582.
 
-@c ------------------------------------------------------------
+@c page
+@node time intro week
+@subsection Week days
 
-@subsubheading Time scales used in @library{times-and-dates}
+
+A @uref{http://@/en.wikipedia.org/@/wiki/@/Week, @dfn{week}} is a time
+unit equal to seven days.
+
+@multitable {Day Index} {Day Name}
+@headitem Day Index @tab Day Name
+@item 0 @tab Sunday
+@item 1 @tab Monday
+@item 2 @tab Tuesday
+@item 3 @tab Wednesday
+@item 4 @tab Thursday
+@item 5 @tab Friday
+@item 6 @tab Saturday
+@end multitable
+
+@c page
+@node time intro julian
+@subsection Julian Date (@acronym{JD}) and Julian Day (@acronym{JDN})
+
+
+@cindex Julian Date
+@cindex Julian Day Number
+
+
+The @uref{http://en.wikipedia.org/wiki/Julian_day, Julian Date} is the
+interval of time in days and fractions of a day since
+-4714-11-24T12:00:00Z (November 24, -4714 at noon, @utc{}).
+
+The @dfn{Julian Day Number} is the integral part of the Julian Date.
+The day commencing at the above--mentioned epoch is zero.  Negative
+values can be used for preceding dates, though they predate all recorded
+history.
+
+@dfn{Modified Julian Day Number} represents a point in time as number of
+days since 1858-11-17T00:00:00Z (November 17, 1858 at midnight, @utc{}).
+
+Notice that both the Julian Day Number and the Modified Julian Day
+Number time points are for time zone zero; the first has the day
+starting at noon (12:00:00), the second has the day starting at midnight
+(00:00:00).
+
+The Modified Julian Day Number is @math{4800001/2 = 2400000.5} days less
+than the Julian Day Number; this brings the numbers into a more
+manageable numeric range and makes the day numbers change at midnight
+@utc{} rather than noon.
+
+@acronym{JD} test values can be computed with the calculator at (@aurl{}
+last verified Thu Jul 29, 2010):
+
+@center @url{http://www.imcce.fr/en/grandpublic/temps/jour_julien.php}
+
+@noindent
+the number computed by that calculator is the @acronym{JDN} at
+year/month/day hour:minute:second.
+
+@c page
+@node time overview
+@section Overview of the library
+
+
+@menu
+* time overview assumptions::   Basic assumptions and policies.
+* time overview host::          Retrieving the current time.
+* time overview time::          Time points and interval durations.
+* time overview date::          Dates and calendar.
+@end menu
+
+@c page
+@node time overview assumptions
+@subsection Basic assumptions and policies
+
 
 The @library{times-and-dates} library:
 
@@ -18648,14 +18883,18 @@ seconds is @strong{not} the number of @utc{} seconds between the current
 time and the Unix Epoch.
 
 @item
-It makes use of a @tai{} scale to express timestamps used to compute
-time intervals.
+It makes use of a @tai{} scale with origin at the Unix Epoch to express
+timestamps used to compute time intervals.
 
 @item
 It makes use of a @utc{} scale and the proleptic Gregorian calendar to
-express dates with year, month, day, hour, minute, second tuples
-(nanoseconds are also included, but not discussed here).
+express timestamps representing points in time.
 @end itemize
+
+@c page
+@node time overview host
+@subsection Retrieving the current time
+
 
 Unix Time is the count of seconds since the Epoch, ignoring leap
 seconds; by definition: when @utc{} was at January 1 1972 00:00:00,
@@ -18691,103 +18930,73 @@ the count of seconds since the Epoch on the @tai{} scale is
 @math{946681200} itself; the count of seconds since the Epoch :
 
 
+@c page
+@node time overview time
+@subsection Time points and interval durations
 
 
-A @emph{Time} object, which is distinct from all existing types, defines
-a point in time or a time duration in some standard time system.  The
-standard time systems are:
+@library{times-and-dates} represents time points as instances of the
+@class{time} class; a @class{time} object holds counts of seconds and
+nanoseconds on the @tai{} scale using the Unix Epoch as origin in time
+zone zero.  The counts are always both positive or both negative; when
+positive they represent a point in time after the Epoch, when negative
+they represent a point in time before the Epoch.
+
+@library{times-and-dates} represents time durations as intances of the
+@class{duration} class; a @class{duration} object holds counts of
+seconds and nanoseconds on the @tai{} scale.  The counts are always both
+positive or both negative; when positive they represent a time interval
+from a time point forwards, when negative they represent a time interval
+from a time point backwards.
+
+Both @class{time} and @class{duration} objects are immutable.
+
+The library allows:
 
 @itemize
 @item
-Universal Coordinated Time (@utc{}),
+Comparison between @class{time} objects to sort a sequence of events on
+the @tai{} scale.
 
 @item
-International Atomic Time (@tai{}),
+Comparison between @class{duration} objects to find the longer and the
+shorter.
 
 @item
-monotonic time (a monotonically increasing point in time from some
-epoch, which is implementation--dependent),
+Arithmetics operations between @class{time} and @class{duration} objects
+to compute time durations from time points and vice versa.
 
 @item
-@cpu{} time in current thread (implementation dependent),
-
-@item
-@cpu{} time in current process (implementation dependent),
-
-@item
-time duration.
+Conversion to @class{date} objects.
 @end itemize
 
-Implementations are required to implement @utc{}, monotonic time, @cpu{}
-time in current process, and time duration.  Implementations are allowed
-to create extensions (for example, amount of time spent in garbage
-collection).
+@c page
+@node time overview date
+@subsection Dates and calendar
 
-A @emph{Time} object consists of three components:
 
-@table @emph
-@item Time type
-A symbol representing the time system representation used.  The
-constants @code{TIME-TAI}, @code{TIME-UTC}, @code{TIME-MONOTONIC},
-@code{TIME-THREAD}, @code{TIME-PROCESS}, and @code{TIME-DURATION} must
-be provided for these symbols.  Implementations should provide constants
-for time type extensions.
+@library{times-and-dates} represents dates on the proleptic Gregorian
+calendar as instances of the @class{date} class.  A @class{date} object
+represents a point in time with the tuple: year, month, day, hour,
+minute, second, nanosecond on the @utc{} scale and time zone zero;
+additionally the time zone and daylight saving time are represented as
+offsets in seconds.
 
-@item Second
-An integer representing the number of whole seconds from ``the epoch''.
+@class{date} objects are immutable.
 
-@item Nanosecond
-An integer of the number of nanoseconds in the fractional portion.
-Although a time object has nanosecond precision, clocks may have a lower
-resolution.
-@end table
+The library allows:
 
-A @emph{Date} object, which is distinct from all existing types,
-represents a point in time as represented by the Gregorian calendar as
-well as by a time zone.  @emph{Date} objects are immutable.  A
-@emph{Date} object consists of the following components:
+@itemize
+@item
+Comparison between @class{date} objects to sort a sequence of events on
+the @utc{} scale.
 
-@table @emph
-@item Nanosecond
-An integer between 0 and 999,999,999, inclusive.
+@item
+Conversion to and from strings.
 
-@quotation
-@emph{Nausicaa note}: The original documen set the range for nanoseconds
-to @code{[0, 9,999,999]}.
-@end quotation
-
-@item Second
-An integer 0 and 60, inclusive, (60 represents a leap second).
-
-@item Minute
-An integer between 0 and 59, inclusive.
-
-@item Hour
-An integer between 0 and 23, inclusive.
-
-@item Day
-An integer between 0 and 31, inclusive, the upper limit depending on the
-month and year of the point in time.
-
-@item Month
-An integer between 1 and 12, inclusive; in which 1 means January, 2
-February, and so on.
-
-@item Year
-An integer representing the year.
-
-@item Time zone
-An integer representing the number of seconds East of @gmt{} for this
-timezone.
-@end table
-
-A @emph{Julian Day} represents a point in time as an inexact real number
-of days since -4714-11-24T12:00:00Z (November 24, -4714 at noon,
-@utc{}).
-
-A @emph{Modified Julian Day} represents a point in time as an inexact
-real number of days since 1858-11-17T00:00:00Z (November 17, 1858 at
-midnight, UTC).
+@item
+Conversion to @class{time} objects.
+@end itemize
 
 @c page
 @node time system
@@ -19344,12 +19553,50 @@ defaults to the local time zone offset.
 @end defmethod
 
 @c page
+@node time date
+@section Date object
+
+A @emph{Date} object consists of the following components:
+
+@table @emph
+@item Nanosecond
+An integer between 0 and 999,999,999, inclusive.
+
+@item Second
+An integer 0 and 60, inclusive, (60 represents a leap second).
+
+@item Minute
+An integer between 0 and 59, inclusive.
+
+@item Hour
+An integer between 0 and 23, inclusive.
+
+@item Day
+An integer between 0 and 31, inclusive, the upper limit depending on the
+month and year of the point in time.
+
+@item Month
+An integer between 1 and 12, inclusive; in which 1 means January, 2
+February, and so on.
+
+@item Year
+An integer representing the year.
+
+@item Time zone
+An integer representing the number of seconds East of @gmt{} for this
+timezone.
+@end table
+
+
+
+@c page
 @node time utils
 @section Miscellaneous utilities
 
 @menu
 * time utils secs::             Seconds and nanoseconds utilities.
 * time utils year::             Gregorian years and weeks.
+* time utils julian::           Julian day conversion.
 @end menu
 
 @c page
@@ -19373,42 +19620,42 @@ The following bindings are exported by the @library{times-and-dates
 seconds} library.
 
 
-@defvr Constant $number-of-nanoseconds-in-a-microsecond
-@defvrx Constant $number-of-nanoseconds-in-a-millisecond
-@defvrx Constant $number-of-nanoseconds-in-a-second
-@defvrx Constant $number-of-nanoseconds-in-a-minute
-@defvrx Constant $number-of-nanoseconds-in-an-hour
-@defvrx Constant $number-of-nanoseconds-in-a-day
+@defvr Constant $number-of-nanoseconds-in-one-microsecond
+@defvrx Constant $number-of-nanoseconds-in-one-millisecond
+@defvrx Constant $number-of-nanoseconds-in-one-second
+@defvrx Constant $number-of-nanoseconds-in-one-minute
+@defvrx Constant $number-of-nanoseconds-in-one-hour
+@defvrx Constant $number-of-nanoseconds-in-one-day
 Conversion coefficients for nanosecond counts.
 @end defvr
 
 
-@defvr Constant $number-of-microseconds-in-a-nanosecond
-@defvrx Constant $number-of-microseconds-in-a-millisecond
-@defvrx Constant $number-of-microseconds-in-a-second
-@defvrx Constant $number-of-microseconds-in-a-minute
-@defvrx Constant $number-of-microseconds-in-an-hour
-@defvrx Constant $number-of-microseconds-in-a-day
+@defvr Constant $number-of-microseconds-in-one-nanosecond
+@defvrx Constant $number-of-microseconds-in-one-millisecond
+@defvrx Constant $number-of-microseconds-in-one-second
+@defvrx Constant $number-of-microseconds-in-one-minute
+@defvrx Constant $number-of-microseconds-in-one-hour
+@defvrx Constant $number-of-microseconds-in-one-day
 Conversion coefficients for microsecond counts.
 @end defvr
 
 
-@defvr Constant $number-of-milliseconds-in-a-nanosecond
-@defvrx Constant $number-of-milliseconds-in-a-microsecond
-@defvrx Constant $number-of-milliseconds-in-a-second
-@defvrx Constant $number-of-milliseconds-in-a-minute
-@defvrx Constant $number-of-milliseconds-in-an-hour
-@defvrx Constant $number-of-milliseconds-in-a-day
+@defvr Constant $number-of-milliseconds-in-one-nanosecond
+@defvrx Constant $number-of-milliseconds-in-one-microsecond
+@defvrx Constant $number-of-milliseconds-in-one-second
+@defvrx Constant $number-of-milliseconds-in-one-minute
+@defvrx Constant $number-of-milliseconds-in-one-hour
+@defvrx Constant $number-of-milliseconds-in-one-day
 Conversion coefficients for millisecond counts.
 @end defvr
 
 
-@defvr Constant $number-of-seconds-in-a-nanosecond
-@defvrx Constant $number-of-seconds-in-a-microsecond
-@defvrx Constant $number-of-seconds-in-a-millisecond
-@defvrx Constant $number-of-seconds-in-a-minute
-@defvrx Constant $number-of-seconds-in-an-hour
-@defvrx Constant $number-of-seconds-in-a-day
+@defvr Constant $number-of-seconds-in-one-nanosecond
+@defvrx Constant $number-of-seconds-in-one-microsecond
+@defvrx Constant $number-of-seconds-in-one-millisecond
+@defvrx Constant $number-of-seconds-in-one-minute
+@defvrx Constant $number-of-seconds-in-one-hour
+@defvrx Constant $number-of-seconds-in-one-day
 Conversion coefficients for second counts.
 @end defvr
 
@@ -19770,6 +20017,74 @@ in which the year starts on Friday (index 5) the results are as follows:
 (gregorian-number-of-days-before-first-week 2010 3)     @result{} 5
 (gregorian-number-of-days-before-first-week 2010 4)     @result{} 6
 @end example
+@end defun
+
+@c page
+@node time utils julian
+@subsection Julian day conversion
+
+
+The following bindings are exported by the @library{times-and-dates
+julian-day} library; the library defines the Julian Day Number and the
+Modified Julian Day Number as exact, possibly non--integer, numbers
+representing the count of days and the fraction in up to nanoseconds
+precision.
+
+
+@defun utc-seconds-and-nanoseconds->julian-day @var{utc-seconds} @var{nanoseconds}
+Return the Julian Day Number representing the given counts of @utc{}
+seconds (time zone zero) since the Unix Epoch and nanoseconds.
+@end defun
+
+
+@defun tai-seconds-and-nanoseconds->julian-day @var{tai-seconds} @var{nanoseconds}
+Return the Julian Day Number representing the given counts of @tai{}
+seconds (time zone zero) since the Unix Epoch and nanoseconds.
+@end defun
+
+
+@defun julian-day->utc-seconds-and-nanoseconds @var{jdn}
+Return two values: the @utc{} seconds count (time zone zero) since the
+Unix Epoch and nanoseconds counts representing @var{jdn}.
+@end defun
+
+
+@defun julian-day->tai-seconds-and-nanoseconds @var{jdn}
+Return two values: the @tai{} seconds count (time zone zero) since the
+Unix Epoch and nanoseconds counts representing @var{JDN}.
+@end defun
+
+
+@defun julian-day-encode-number @var{year} @var{month} @var{day}
+Return an exact integer representing the Julian Day Number at the given
+date on the proleptic Gregorian calendar at 12:00:00Z, that is: starting
+at noon @utc{} time zone zero.  This function assumes the given date is
+correct.
+
+The returned value is missing the fraction corresponding to hours,
+minutes, seconds and nanoseconds because they are zero at 12:00:00Z.
+
+From the Calendar @acronym{FAQ}, section 2.16.1.
+@end defun
+
+
+@defun julian-day-decode-number @var{jdn}
+Return 4 values: year, month, day, seconds in the proleptic Gregorian
+calendar.
+
+From the Calendar @acronym{FAQ}, section 2.16.1.
+@end defun
+
+
+@defun julian-day->modified-julian-day @var{jdn}
+Return the Modified Julian Day Number corresponding to the Julian Day
+Number @var{jdn}.
+@end defun
+
+
+@defun modified-julian-day->julian-day @var{mjdn}
+Return the Julian Day Number corresponding to the Modified Julian Day
+Number @var{mjdn}.
 @end defun
 
 @c page

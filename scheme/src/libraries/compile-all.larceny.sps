@@ -229,6 +229,9 @@
 (%compile-library "times-and-dates/seconds-and-subseconds.larceny.sls"
 		  "times-and-dates/seconds-and-subseconds.larceny.slfasl")
 
+(%compile-library "times-and-dates/julian-day.sls"
+		  "times-and-dates/julian-day.slfasl")
+
 (%compile-library "times-and-dates/years-and-weeks.larceny.sls"
 		  "times-and-dates/years-and-weeks.larceny.slfasl")
 
