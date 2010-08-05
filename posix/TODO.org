@@ -12,6 +12,8 @@
 
 * posix
 
+  Add API described in the clock_gettime(3) manual page.
+
   Add "getaddrinfo()", see the manual page.
 
   Scan the Linux sockets manual pages for Linux-specific extensions.
