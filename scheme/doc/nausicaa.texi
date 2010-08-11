@@ -18427,12 +18427,17 @@ Example:
 @end example
 
 @quotation
-@strong{NOTE} In @code{(@hyper{type-name} @hyper{symbol})} and
-@code{(@hyper{constructor-syntax} @hyper{symbol} ...)} forms, only the
-names of the @hyper{symbol}s are significant.
+@strong{NOTE} In the forms:
+
+@example
+(@hyper{type-name} @hyper{symbol})
+(@hyper{constructor-syntax} @hyper{symbol} ...)
+@end example
+
+@noindent
+only the names of the @hyper{symbol}s are significant.
 @end quotation
 @end deffn
-
 
 @c page
 @node stdlib complib
