@@ -9,30 +9,49 @@
 ;;;
 ;;;Copyright (c) 2008-2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
-;;;Permission is hereby granted, free of charge, to any person obtaining
-;;;a  copy of  this  software and  associated  documentation files  (the
-;;;"Software"), to  deal in the Software  without restriction, including
-;;;without limitation  the rights to use, copy,  modify, merge, publish,
-;;;distribute, sublicense,  and/or sell copies  of the Software,  and to
-;;;permit persons to whom the Software is furnished to do so, subject to
-;;;the following conditions:
+;;;This program is free software:  you can redistribute it and/or modify
+;;;it under the terms of the  GNU General Public License as published by
+;;;the Free Software Foundation, either version 3 of the License, or (at
+;;;your option) any later version.
 ;;;
-;;;The  above  copyright notice  and  this  permission  notice shall  be
-;;;included in all copies or substantial portions of the Software.
+;;;This program is  distributed in the hope that it  will be useful, but
+;;;WITHOUT  ANY   WARRANTY;  without   even  the  implied   warranty  of
+;;;MERCHANTABILITY  or FITNESS FOR  A PARTICULAR  PURPOSE.  See  the GNU
+;;;General Public License for more details.
 ;;;
-;;;Except  as  contained  in  this  notice, the  name(s)  of  the  above
-;;;copyright holders  shall not be  used in advertising or  otherwise to
-;;;promote  the sale,  use or  other dealings  in this  Software without
-;;;prior written authorization.
+;;;You should  have received  a copy of  the GNU General  Public License
+;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
-;;;THE  SOFTWARE IS  PROVIDED "AS  IS",  WITHOUT WARRANTY  OF ANY  KIND,
-;;;EXPRESS OR  IMPLIED, INCLUDING BUT  NOT LIMITED TO THE  WARRANTIES OF
-;;;MERCHANTABILITY,    FITNESS   FOR    A    PARTICULAR   PURPOSE    AND
-;;;NONINFRINGEMENT.  IN NO EVENT  SHALL THE AUTHORS OR COPYRIGHT HOLDERS
-;;;BE LIABLE  FOR ANY CLAIM, DAMAGES  OR OTHER LIABILITY,  WHETHER IN AN
-;;;ACTION OF  CONTRACT, TORT  OR OTHERWISE, ARISING  FROM, OUT OF  OR IN
-;;;CONNECTION  WITH THE SOFTWARE  OR THE  USE OR  OTHER DEALINGS  IN THE
-;;;SOFTWARE.
+
+;;;SRFI-19: Time Data Types and Procedures.
+;;;
+;;;Modified by Derick Eddington to be included into the (srfi time) R6RS
+;;;library.
+;;;
+;;;Copyright (C) I/NET, Inc. (2000, 2002, 2003). All Rights Reserved.
+;;;
+;;;This document and  translations of it may be  copied and furnished to
+;;;others, and derivative works that  comment on or otherwise explain it
+;;;or assist  in its implementation  may be prepared,  copied, published
+;;;and  distributed, in  whole or  in part,  without restriction  of any
+;;;kind, provided that the above copyright notice and this paragraph are
+;;;included  on all  such copies  and derivative  works.   However, this
+;;;document itself may  not be modified in any way,  such as by removing
+;;;the  copyright  notice  or  references  to  the  Scheme  Request  For
+;;;Implementation process  or editors, except as needed  for the purpose
+;;;of  developing SRFIs  in  which case  the  procedures for  copyrights
+;;;defined  in the  SRFI process  must be  followed, or  as  required to
+;;;translate it into languages other than English.
+;;;
+;;;The limited permissions  granted above are perpetual and  will not be
+;;;revoked by the authors or their successors or assigns.
+;;;
+;;;This document and the information  contained herein is provided on an
+;;;"AS  IS" basis  and  THE AUTHOR  AND  THE SRFI  EDITORS DISCLAIM  ALL
+;;;WARRANTIES,  EXPRESS OR  IMPLIED, INCLUDING  BUT NOT  LIMITED  TO ANY
+;;;WARRANTY THAT THE USE OF THE INFORMATION HEREIN WILL NOT INFRINGE ANY
+;;;RIGHTS OR ANY IMPLIED WARRANTIES  OF MERCHANTABILITY OR FITNESS FOR A
+;;;PARTICULAR PURPOSE.
 
 
 (import (nausicaa)

@@ -121,10 +121,6 @@ Revised^6 Report on the algorithmic language Scheme
 @acronym{URL}
 @end macro
 
-@macro uri{}
-@acronym{URI}
-@end macro
-
 @macro ascii{}
 @acronym{ASCII}
 @end macro
@@ -157,6 +153,10 @@ Revised^6 Report on the algorithmic language Scheme
 @acronym{RFC}
 @end macro
 
+@macro uri{}
+@acronym{URI}
+@end macro
+
 @macro utf{}
 @acronym{UTF}
 @end macro
@@ -175,6 +175,14 @@ Revised^6 Report on the algorithmic language Scheme
 
 @macro gmt{}
 @acronym{GMT}
+@end macro
+
+@macro jdn{}
+@acronym{JDN}
+@end macro
+
+@macro mjdn{}
+@acronym{MJDN}
 @end macro
 
 @c ------------------------------------------------------------
@@ -18514,6 +18522,7 @@ Terrestrial Time is a theoretical ideal, which real clocks can only
 approximate.
 
 @menu
+* time intro conventions::      Miscellaneous conventions.
 * time intro tai::              International Atomic Time (@tai{}).
 * time intro utc::              Coordinated Universal Time (@utc{}).
 * time intro gmt::              Greenwich Mean Time (@gmt{}).
@@ -18524,6 +18533,37 @@ approximate.
 * time intro week::             Week days.
 * time intro julian::           Julian Date (@acronym{JD}) and Julian Day (@acronym{JDN}).
 @end menu
+
+@c page
+@node time intro conventions
+@subsection Miscellaneous conventions
+
+
+In this section we anticipate some concept which is explained in detail
+in later sections; this anticipation should not hinder the
+comprehension.
+
+When expressing a timestamp in this documentation we preferably use
+strings of the following format, which is compliant with @iso{} 8601:
+
+@example
+@cmeta{YYYY}-@cmeta{MM}-@cmeta{DD}T@cmeta{hh}:@cmeta{mm}:@cmeta{ss}Z
+@end example
+
+@noindent
+where @meta{YYYY} is the year number, @meta{MM} is the month index in
+the range @math{[1, 12]}, @meta{DD} is the day index in the range
+@math{[1, 31]}, @meta{hh} is the count of hours in the range @math{[0,
+23]}, @meta{mm} is the count of minutes in the range @math{[0, 59]},
+@meta{ss} is the count of seconds in the range @math{[0, 60]} (allowing
+leap seconds); the literal @code{T} separates the date from the hour and
+the literal @code{Z} specifies the mean time of Greenwich
+(@acronym{UK}).
+
+The beginning of the first second in a day is @samp{00:00:00} and we
+call it @dfn{midnight}; the beginning of the last second in a day is
+@samp{23:59:59} when no leap second is added and @samp{23:59:60} when a
+leap second is added (@pxref{time intro utc} for details).
 
 @c page
 @node time intro tai
@@ -18543,6 +18583,11 @@ Time coordinates on the @tai{} scale are conventionally expressed using
 traditional means of specifying days, for example: the @acronym{SI}
 seconds and the time coordinates defined by the proleptic Gregorian
 calendar.  @ref{time intro gregorian, Gregorian calendar}.
+
+The timestamp @samp{2010-08-05T11:22:33Z} is valid on the @tai{} scale
+with the usual count of years, month and days on the Gregorian calendar.
+The count of seconds is always in the range @math{[0, 59]} because the
+@tai{} scale has no leap seconds.
 
 @c page
 @node time intro utc
@@ -18615,14 +18660,79 @@ whenever a leap second is added on the @utc{} scale, the @utc{} date
 falls back one second with respect to @tai{}.  On August 3 2010 the
 @tai{} scale was 34 seconds forwards of the @utc{} scale.
 
-When @utc{} is expressed as count of seconds from an origin, it is a
-``continuous'' timescale in which all the integers are present as counts
-of seconds; when @utc{} is expressed by the tuple year, month, day,
-hour, minute, second the @utc{} scale is ``discontinuous'' because some
-minutes have @math{61} seconds rather than @math{60}.  It is not
-possible to compute the exact time interval elapsed between two @utc{}
-timestamps without consulting a table that describes how many leap
-seconds occurred during that interval.
+The timestamp @samp{2010-08-05T11:22:33Z} is valid on the @utc{} scale
+with the usual count of years, month and days on the Gregorian calendar.
+The count of seconds is usually in the range @math{[0, 59]} but it is in
+the range @math{[0, 60]} on the specific days in which a leap second is
+added.  The first leap second was added on June 30 1972, so the
+timestamp @samp{1972-06-30T23:59:60Z} is valid on the @utc{} scale but
+invalid on the @tai{} scale.
+
+All the timestamps with seconds count in the range @math{[0, 59]} are
+valid on both the @tai{} scale and the @utc{} scale; the difference
+between the two scales shows only on the specific timestamps
+representing the leap seconds and when converting a timestamp from the
+Gregorian calendar to a count of seconds since some conventional origin.
+
+It is not possible to compute the exact time interval elapsed between
+two @utc{} timestamps without consulting a table that describes how many
+leap seconds occurred during that interval.
+
+@float
+@multitable {leap second timestamp} {@utc{} seconds} {@tai{} - @utc{}}
+@headitem leap second timestamp @tab @utc{} seconds @tab @tai{} - @utc{}
+@item 1972-01-01T00:00:00Z @tab   63072000 @tab 10
+@item 1972-06-30T23:59:60Z @tab   78796800 @tab 11
+@item 1972-12-31T23:59:60Z @tab   94694400 @tab 12
+@item 1973-12-31T23:59:60Z @tab  126230400 @tab 13
+@item 1974-12-31T23:59:60Z @tab  157766400 @tab 14
+@item 1975-12-31T23:59:60Z @tab  189302400 @tab 15
+@item 1976-12-31T23:59:60Z @tab  220924800 @tab 16
+@item 1977-12-31T23:59:60Z @tab  252460800 @tab 17
+@item 1978-12-31T23:59:60Z @tab  283996800 @tab 18
+@item 1979-12-31T23:59:60Z @tab  315532800 @tab 19
+@item 1981-06-30T23:59:60Z @tab  362793600 @tab 20
+@item 1982-06-30T23:59:60Z @tab  394329600 @tab 21
+@item 1983-06-30T23:59:60Z @tab  425865600 @tab 22
+@item 1985-06-30T23:59:60Z @tab  489024000 @tab 23
+@item 1987-12-31T23:59:60Z @tab  567993600 @tab 24
+@item 1989-12-31T23:59:60Z @tab  631152000 @tab 25
+@item 1990-12-31T23:59:60Z @tab  662688000 @tab 26
+@item 1992-06-30T23:59:60Z @tab  709948800 @tab 27
+@item 1993-06-30T23:59:60Z @tab  741484800 @tab 28
+@item 1994-06-30T23:59:60Z @tab  773020800 @tab 29
+@item 1995-12-31T23:59:60Z @tab  820454400 @tab 30
+@item 1997-06-30T23:59:60Z @tab  867715200 @tab 31
+@item 1998-12-31T23:59:60Z @tab  915148800 @tab 32
+@item 2005-12-31T23:59:60Z @tab 1136073600 @tab 33
+@item 2008-12-31T23:59:60Z @tab            @tab 34
+@end multitable
+@caption{Table: the first column is the timestamp of the leap second;
+the second column is the count of seconds, on the @utc{} scale since
+@samp{1970-01-01T00:00:00Z}, of the second right after the leap second;
+the third column is the difference between the @tai{} and @utc{} scales
+at the second right after the leap second.  By definition on
+@samp{1972-01-01T00:00:00Z} the difference between @tai{} and @utc{} was
+@math{10} seconds.}
+@end float
+
+Given the table of @utc{} seconds counts since
+@samp{1970-01-01T00:00:00Z}, we can convert a @utc{} seconds count to a
+@tai{} seconds count as follows:
+
+@example
+if utc-seconds < 63072000
+then tai-seconds = utc-seconds
+
+else if 63072000 <= utc-seconds < 78796800
+then tai-seconds = utc-seconds + 10
+
+else if 78796800 <= utc-seconds < 94694400
+then tai-seconds = utc-seconds + 11
+
+else ...
+@end example
+
 
 @c page
 @node time intro gmt
@@ -18788,10 +18898,19 @@ into @math{12} months of irregular length:
 @end multitable
 
 @noindent
-February has @math{29} days only on leap years.  The
-@uref{http://en.wikipedia.org/wiki/Proleptic_Gregorian_calendar,
-proleptic Gregorian calendar}.  is produced by extending the Gregorian
-calendar backward to dates preceding its official introduction in 1582.
+February has @math{28} on non--leap years and @math{29} days on leap
+years; from the Calendar @acronym{FAQ}:
+
+@quotation
+Every year divisible by @math{4} is a leap year.  However, every year
+divisible by @math{100} is not a leap year.  However, every year
+divisible by @math{400} is a leap year after all.
+@end quotation
+
+The @uref{http://en.wikipedia.org/wiki/Proleptic_Gregorian_calendar,
+@dfn{proleptic Gregorian calendar}} is produced by extending the
+Gregorian calendar backward to dates preceding its official introduction
+in 1582.
 
 @c page
 @node time intro week
@@ -18862,6 +18981,7 @@ year/month/day hour:minute:second.
 * time overview host::          Retrieving the current time.
 * time overview time::          Time points and interval durations.
 * time overview date::          Dates and calendar.
+* time overview julian::        Julian dates and numbers.
 @end menu
 
 @c page
@@ -18997,6 +19117,14 @@ Conversion to and from strings.
 @item
 Conversion to @class{time} objects.
 @end itemize
+
+@c page
+@node time overview julian
+@subsection Julian dates and numbers
+
+
+Julian Dates are represented as exact rational numbers, having the
+integral part representing the Julian Day Number.
 
 @c page
 @node time system
@@ -19596,7 +19724,7 @@ timezone.
 @menu
 * time utils secs::             Seconds and nanoseconds utilities.
 * time utils year::             Gregorian years and weeks.
-* time utils julian::           Julian day conversion.
+* time utils julian::           Julian calendar utilities.
 @end menu
 
 @c page
@@ -19898,14 +20026,12 @@ years-and-weeks} library.
 
 
 @defun gregorian-leap-year? @var{yaer}
-Return true if @var{year} is a leap year.  From the Calendar
-@acronym{FAQ}:
+Return true if @var{year} is a leap year.
+@end defun
 
-@quotation
-Every year divisible by @math{4} is a leap year.  However, every year
-divisible by @math{100} is not a leap year.  However, every year
-divisible by @math{400} is a leap year after all.
-@end quotation
+
+@defun gregorian-list-of-leap-years @var{inclusive-start} @var{inclusive-end}
+Return a list of leap years in the selected range of years.
 @end defun
 
 
@@ -20021,14 +20147,19 @@ in which the year starts on Friday (index 5) the results are as follows:
 
 @c page
 @node time utils julian
-@subsection Julian day conversion
+@subsection Julian calendar utilities
 
 
 The following bindings are exported by the @library{times-and-dates
-julian-day} library; the library defines the Julian Day Number and the
-Modified Julian Day Number as exact, possibly non--integer, numbers
-representing the count of days and the fraction in up to nanoseconds
-precision.
+julian-calendar} library.  The library defines the Julian Date as exact
+rational numbers representing the count of days and the fraction in up
+to nanoseconds precision; whenever needed, the count of nanoseconds is
+rounded to the nearest integer with @func{round}.  The Julian Day Number
+and the Modified Julian Day Number are represented as exact integers.
+
+@c ------------------------------------------------------------
+
+@subsubheading Conversion to/from seconds and nanoseconds
 
 
 @defun utc-seconds-and-nanoseconds->julian-day @var{utc-seconds} @var{nanoseconds}
@@ -20054,12 +20185,16 @@ Return two values: the @tai{} seconds count (time zone zero) since the
 Unix Epoch and nanoseconds counts representing @var{JDN}.
 @end defun
 
+@c ------------------------------------------------------------
+
+@subsubheading Conversion to/from Gregorian calendar
+
 
 @defun julian-day-encode-number @var{year} @var{month} @var{day}
 Return an exact integer representing the Julian Day Number at the given
 date on the proleptic Gregorian calendar at 12:00:00Z, that is: starting
-at noon @utc{} time zone zero.  This function assumes the given date is
-correct.
+at noon, @utc{} scale, time zone zero.  This function assumes the given
+date is correct.
 
 The returned value is missing the fraction corresponding to hours,
 minutes, seconds and nanoseconds because they are zero at 12:00:00Z.
@@ -20074,6 +20209,10 @@ calendar.
 
 From the Calendar @acronym{FAQ}, section 2.16.1.
 @end defun
+
+@c ------------------------------------------------------------
+
+@subsubheading Conversion between @jdn{} and @mjdn{}
 
 
 @defun julian-day->modified-julian-day @var{jdn}
@@ -20131,7 +20270,7 @@ Symbol representting @utc{} time.
 Return a @emph{Date} corresponding to the current @utc{} time.
 @end defun
 
-@defun current-julian-day
+@defun current-julian-date
 Current Julian Day.
 @end defun
 

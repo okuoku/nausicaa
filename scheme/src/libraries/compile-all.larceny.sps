@@ -229,11 +229,11 @@
 (%compile-library "times-and-dates/seconds-and-subseconds.larceny.sls"
 		  "times-and-dates/seconds-and-subseconds.larceny.slfasl")
 
-(%compile-library "times-and-dates/julian-day.sls"
-		  "times-and-dates/julian-day.slfasl")
+(%compile-library "times-and-dates/julian-calendar.sls"
+		  "times-and-dates/julian-calendar.slfasl")
 
-(%compile-library "times-and-dates/years-and-weeks.larceny.sls"
-		  "times-and-dates/years-and-weeks.larceny.slfasl")
+(%compile-library "times-and-dates/gregorian.larceny.sls"
+		  "times-and-dates/gregorian.larceny.slfasl")
 
 (%compile-library "times-and-dates.sls"
 		  "times-and-dates.slfasl")

@@ -29,11 +29,6 @@
 ;;;Modified by Derick Eddington to be included into the (srfi time) R6RS
 ;;;library.
 ;;;
-;;;Modified by Marco Maggi upon inclusion in Nausicaa.
-;;;
-;;;TODO: For implementations which have threads, the thread timing stuff
-;;;can probably be made to work.
-;;;
 ;;;Copyright (C) I/NET, Inc. (2000, 2002, 2003). All Rights Reserved.
 ;;;
 ;;;This document and  translations of it may be  copied and furnished to
@@ -90,7 +85,7 @@
     (infix syntax)
     (formations)
     (times-and-dates seconds-and-subseconds)
-    (times-and-dates years-and-weeks)
+    (times-and-dates gregorian)
     (times-and-dates julian-day)
     (times-and-dates compat))
 
@@ -121,15 +116,15 @@
   '#("Sunday" "Monday" "Tuesday" "Wednesday" "Thursday" "Friday" "Saturday"))
 
 (define-constant $locale-abbr-month-vector
-  ;;Note empty string in 0th place.
-  '#(""
+  ;;Note false in 0th place.
+  '#(#f
      "Jan" "Feb" "Mar" "Apr"
      "May" "Jun" "Jul" "Aug"
      "Sep" "Oct" "Nov" "Dec"))
 
 (define-constant $locale-long-month-vector
-  ;;Note empty string in 0th place.
-  '#(""
+  ;;Note false in 0th place.
+  '#(#f
      "January"	"February"	"March"
      "April"	"May"		"June"
      "July"	"August"	"September"
@@ -143,9 +138,6 @@
 (define-constant $locale-short-date-format "~m/~d/~y")
 (define-constant $locale-time-format "~H:~M:~S")
 (define-constant $iso-8601-date-time-format "~Y-~m-~dT~H:~M:~S~z")
-;;-- Miscellaneous Constants.
-;;-- only the $tai-epoch-in-jd might need changing if
-;;   a different epoch is used.
 
 (define-constant $escape-char #\~)
 
@@ -658,7 +650,7 @@
 	nanoseconds))))
 
 (define (current-julian-day)
-  ;;Return a Julian Day value representing the current time.
+  ;;Return a Julian Date representing the current time.
   ;;
   (let (((T <time>) (current-time)))
     T.julian-day))

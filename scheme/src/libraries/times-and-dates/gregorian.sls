@@ -24,8 +24,38 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
+;;;SRFI-19: Time Data Types and Procedures.
+;;;
+;;;Modified by Derick Eddington to be included into the (srfi time) R6RS
+;;;library.
+;;;
+;;;Copyright (C) I/NET, Inc. (2000, 2002, 2003). All Rights Reserved.
+;;;
+;;;This document and  translations of it may be  copied and furnished to
+;;;others, and derivative works that  comment on or otherwise explain it
+;;;or assist  in its implementation  may be prepared,  copied, published
+;;;and  distributed, in  whole or  in part,  without restriction  of any
+;;;kind, provided that the above copyright notice and this paragraph are
+;;;included  on all  such copies  and derivative  works.   However, this
+;;;document itself may  not be modified in any way,  such as by removing
+;;;the  copyright  notice  or  references  to  the  Scheme  Request  For
+;;;Implementation process  or editors, except as needed  for the purpose
+;;;of  developing SRFIs  in  which case  the  procedures for  copyrights
+;;;defined  in the  SRFI process  must be  followed, or  as  required to
+;;;translate it into languages other than English.
+;;;
+;;;The limited permissions  granted above are perpetual and  will not be
+;;;revoked by the authors or their successors or assigns.
+;;;
+;;;This document and the information  contained herein is provided on an
+;;;"AS  IS" basis  and  THE AUTHOR  AND  THE SRFI  EDITORS DISCLAIM  ALL
+;;;WARRANTIES,  EXPRESS OR  IMPLIED, INCLUDING  BUT NOT  LIMITED  TO ANY
+;;;WARRANTY THAT THE USE OF THE INFORMATION HEREIN WILL NOT INFRINGE ANY
+;;;RIGHTS OR ANY IMPLIED WARRANTIES  OF MERCHANTABILITY OR FITNESS FOR A
+;;;PARTICULAR PURPOSE.
+
 
-(library (times-and-dates years-and-weeks)
+(library (times-and-dates gregorian)
   (export
 
     ;; constants
@@ -38,6 +68,7 @@
     ;; year functions
     gregorian-leap-year?	gregorian-year-number-of-days-since-beginning
     gregorian-natural-year	gregorian-year-western-easter-month-and-day
+    gregorian-list-of-leap-years
 
     ;; week functions
     gregorian-index-of-day-in-week	gregorian-number-of-days-before-first-week)
@@ -130,6 +161,18 @@
   (or (zero? (mod year 400))
       (and (zero? (mod year 4))
 	   (not (zero? (mod year 100))))))
+
+(define (gregorian-list-of-leap-years inclusive-start inclusive-end)
+  ;;Return a list of leap years in the selected range of years.
+  ;;
+  (let loop ((year inclusive-start)
+	     (ell  '()))
+    (if (<= inclusive-end year)
+	(reverse ell)
+      (loop (+ 1 year)
+	    (if (gregorian-leap-year? year)
+		(cons year ell)
+	      ell)))))
 
 (define (gregorian-year-number-of-days-since-beginning year month day)
   ;;Return the  number of days  from the beginning  of the year  for the

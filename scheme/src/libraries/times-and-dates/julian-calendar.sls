@@ -1,12 +1,36 @@
 ;;; -*- coding: utf-8 -*-
 ;;;
 ;;;Part of: Nausicaa/Scheme
-;;;Contents: julian day stuff
+;;;Contents: julian calendar utilities
 ;;;Date: Thu Jul 29, 2010
 ;;;
 ;;;Abstract
 ;;;
+;;;	The Julian  Date (JD, <http://en.wikipedia.org/wiki/Julian_day>)
+;;;	is the  interval of time  in days and  fractions of a  day since
+;;;	-4714-11-24T12:00:00Z  (November 24, -4714  at noon,  UTC scale,
+;;;	time zone zero).
 ;;;
+;;;	The Julian Day  Number (JDN) is the integral  part of the Julian
+;;;	Date.  The day commencing  at the above-mentioned epoch is zero.
+;;;	Negative  values can be  used for  preceding dates,  though they
+;;;	predate all recorded history.
+;;;
+;;;	The Modified Julian Day Number (MJDN) represents a point in time
+;;;	as number of days  since 1858-11-17T00:00:00Z (November 17, 1858
+;;;	at midnight, UTC scale, time zone zero).
+;;;
+;;;	The MDJN is  4800001/2 = 2400000.5 days less  than the JDN; this
+;;;	brings  the numbers  into a  more manageable  numeric  range and
+;;;	makes the day numbers change at midnight UTC rather than noon.
+;;;
+;;;	Julian Date test  values can be computed with  the calculator at
+;;;	(URL last verified Thu Jul 29, 2010):
+;;;
+;;;	   <http://www.imcce.fr/en/grandpublic/temps/jour_julien.php>
+;;;
+;;;	the   number  computed  by   that  calculator   is  the   JD  at
+;;;	year/month/day hour:minute:second.
 ;;;
 ;;;Copyright (c) 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
@@ -24,8 +48,38 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
+;;;SRFI-19: Time Data Types and Procedures.
+;;;
+;;;Modified by Derick Eddington to be included into the (srfi time) R6RS
+;;;library.
+;;;
+;;;Copyright (C) I/NET, Inc. (2000, 2002, 2003). All Rights Reserved.
+;;;
+;;;This document and  translations of it may be  copied and furnished to
+;;;others, and derivative works that  comment on or otherwise explain it
+;;;or assist  in its implementation  may be prepared,  copied, published
+;;;and  distributed, in  whole or  in part,  without restriction  of any
+;;;kind, provided that the above copyright notice and this paragraph are
+;;;included  on all  such copies  and derivative  works.   However, this
+;;;document itself may  not be modified in any way,  such as by removing
+;;;the  copyright  notice  or  references  to  the  Scheme  Request  For
+;;;Implementation process  or editors, except as needed  for the purpose
+;;;of  developing SRFIs  in  which case  the  procedures for  copyrights
+;;;defined  in the  SRFI process  must be  followed, or  as  required to
+;;;translate it into languages other than English.
+;;;
+;;;The limited permissions  granted above are perpetual and  will not be
+;;;revoked by the authors or their successors or assigns.
+;;;
+;;;This document and the information  contained herein is provided on an
+;;;"AS  IS" basis  and  THE AUTHOR  AND  THE SRFI  EDITORS DISCLAIM  ALL
+;;;WARRANTIES,  EXPRESS OR  IMPLIED, INCLUDING  BUT NOT  LIMITED  TO ANY
+;;;WARRANTY THAT THE USE OF THE INFORMATION HEREIN WILL NOT INFRINGE ANY
+;;;RIGHTS OR ANY IMPLIED WARRANTIES  OF MERCHANTABILITY OR FITNESS FOR A
+;;;PARTICULAR PURPOSE.
+
 
-(library (times-and-dates julian-day)
+(library (times-and-dates julian-calendar)
   (export
 
     ;; constants
@@ -179,6 +233,71 @@
   (receive (utc-seconds nanoseconds)
       (julian-day->utc-seconds-and-nanoseconds jdn)
     (values (utc->tai utc-seconds) nanoseconds)))
+
+
+(define (time-point->julian-date year month day hours minutes seconds)
+  ;;Convert the given date into a Julian Date value.
+  ;;
+  ;;This code was shamelessly copied from:
+  ;;
+  ;;	<http://www.imcce.fr/en/grandpublic/temps/jour_julien.php>
+  ;;
+  (set! hours (infix hours + (minutes / 60) + (seconds / 3600)))
+  (let ((GGG (cond ((< year 1582)
+		    0)
+		   ((and (<= year 1582) (< month 10))
+		    0)
+		   ((and (<= year 1582) (= month 10) (< day 5))
+		    0)
+		   (else 1)))
+	(JD	(infix -1 * floor (7) * (floor ((month + 9) / 12) + year) / 4))
+	(S	(if (< (- month 9) 0)
+		    -1
+		  1))
+	(A	(abs (- month 9)))
+	(J1	(infix floor (year + S * floor(A / 7)))))
+    (set! J1 (infix -1 * floor ((floor (J1 / 100) + 1) * 3 / 4)))
+    (set! JD (infix JD + floor (275 * month / 9) + DD + (GGG * J1)))
+    (set! JD (infix JD + 1721027 + 2 * GGG + 367 * year - 0.5))
+    (infix JD + (hours / 24))))
+
+(define (julian-date->time-point JD)
+  ;;Convert a Julian Date value to  a time point tuple; return 6 values:
+  ;;year, month, day, hours, minutes, seconds.
+  ;;
+  ;;This code was shamelessly copied from:
+  ;;
+  ;;	<http://www.imcce.fr/en/grandpublic/temps/jour_julien.php>
+  ;;
+  (let* ((Z		(infix floor (JD + 0.5)))
+	 (F		(infix JD + 0.5 - Z))
+	 (A		(if (< Z 2299161)
+			    Z
+			  (let ((I (infix floor ((Z - 1867216.25) / 36524.25))))
+			    (infix Z + 1 + I - floor (I / 4)))))
+	 (B		(infix A + 1524))
+	 (C		(infix floor ((B - 122.1)/365.25)))
+	 (D		(infix floor(365.25 * C)))
+	 (T		(infix floor((B - D)/ 30.6001)))
+	 (RJ		(infix B - D - floor(30.6001 * T) + F))
+	 (day		(floor RJ))
+	 (RH		(infix (RJ - floor(RJ)) * 24))
+	 (hour		(floor RH))
+	 (minutes	(infix floor((RH - hour )*60)))
+	 (seconds	(infix ((RH - hour ) * 60 - minutes) * 60))
+	 (month		(cond ((< T 14)
+			       (- T 1))
+			      ((or (= T 14) (= T 15))
+			       (- T 13))
+			      (else
+			       0)))
+	 (year		(cond ((> month 2)
+			       (- C 4716))
+			      ((or (= month 1) (= month 2))
+			       (- C 4715))
+			      (else
+			       0))))
+    (values year month day hour minutes seconds)))
 
 
 ;;;; done

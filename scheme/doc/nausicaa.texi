@@ -18196,9 +18196,9 @@ Return an integer hash value for @var{symbol}.
 This chapter describes the @rsixlibrary{enums} library for dealing with
 enumerated values and sets of enumerated values.  Enumerated values are
 represented by ordinary symbols, while finite sets of enumerated values
-form a separate type, known as the @emph{enumeration sets}.  The
+form a separate type, known as the @dfn{enumeration sets}.  The
 enumeration sets are further partitioned into sets that share the same
-@emph{universe} and @emph{enumeration type}.  These universes and
+@dfn{universe} and @dfn{enumeration type}.  These universes and
 enumeration types are created by the @func{make-enumeration} procedure.
 Each call to that procedure creates a new enumeration type.
 
@@ -18357,7 +18357,8 @@ Return @var{enum-set}'s complement with respect to its universe.
 Project @vari{enum-set} into the universe of @varii{enum-set}, dropping
 any elements of @vari{enum-set} that do not belong to the universe of
 @varii{enum-set}.  (If @vari{enum-set} is a subset of the universe of
-its second, no elements are dropped, and the injection is returned.)
+@varii{enum-set}, no elements are dropped, and the injection is
+returned.)
 
 @example
 (let ((e1 (make-enumeration
