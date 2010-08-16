@@ -12602,6 +12602,9 @@ If the handler returns, the values it returns become the values returned
 by the call to @func{raise-continuable}.
 @end deffn
 
+
+Miscellaneous examples:
+
 @example
 (guard (con
          ((error? con)
