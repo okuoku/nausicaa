@@ -12584,7 +12584,7 @@ is raised in the same dynamic environment as the handler.
 
 @deffn Procedure raise-continuable @var{obj}
 Raise a @emph{continuable exception} by invoking the current exception
-handler on @var{obj}. The handler is called with a continuation that is
+handler on @var{obj}.  The handler is called with a continuation that is
 equivalent to the continuation of the call to @func{raise-continuable},
 with these two exceptions:
 
