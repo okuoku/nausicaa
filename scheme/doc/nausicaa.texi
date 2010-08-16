@@ -12621,7 +12621,7 @@ Miscellaneous examples:
     (condition
       (make-error)
       (make-message-condition "I am an error"))))
-   ;; prints: I am an error
+@print{} I am an error
 @result{} error
 
 (guard (con
@@ -12641,7 +12641,7 @@ Miscellaneous examples:
           (display "error opening file")
           #f))
   (call-with-input-file "foo.scm" read))
-   ;; prints: error opening file
+@print{} error opening file
 @result{} #f
 
 (with-exception-handler
@@ -12661,10 +12661,9 @@ Miscellaneous examples:
            (make-message-condition
              "should be a number")))
        23)))
-   ;; prints: should be a number
+@print{} should be a number
 @result{} 65
 @end example
-
 
 @c page
 @node stdlib exceptions conditions
