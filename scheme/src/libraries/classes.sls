@@ -100,6 +100,7 @@
     (for (syntax-utilities)	expand)
     (for (gensym)		expand)
     (for (classes helpers)	expand)
+    (for (prefix (sentinel) sentinel.) expand)
     (makers)
     (auxiliary-syntaxes)
     (classes top))
@@ -1749,10 +1750,12 @@
 		   ...)
 	  ?body0 ?body ...)
        ;;We rely on LET to detect duplicated bindings.
-       #'(let ((?var #f) ...)
-	   (with-class ((?var ?class0 ?class ...) ...)
-	     (set! ?var ?init) ...
-	     ?body0 ?body ...)))
+       (with-syntax (((T ...) (generate-temporaries #'(?var ...))))
+	 #'(let ((?var sentinel.undefined) ...)
+	     (with-class ((?var ?class0 ?class ...) ...)
+	       (let ((T ?init) ...)
+		 (set! ?var T) ...
+		 ?body0 ?body ...)))))
 
       ((_ ?loop . ?rest)
        (syntax-violation 'letrec/with-class "named LETREC is not allowed" (syntax->datum stx)))

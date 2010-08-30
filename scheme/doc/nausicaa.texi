@@ -587,6 +587,7 @@ Basic libraries
 * parameters::                  Parameter objects.
 * shared-structures::           External representation for data
                                 with shared structure.
+* sentinel::                    The sentinel value.
 * makers::                      Maker syntaxes.
 * classes::                     Record utilities.
 * compensations::               Compensation stacks.
@@ -18947,6 +18948,9 @@ Parameter objects.  @ref{parameters, Parameter objects}.
 Reading and writing shared structures.  @ref{shared-structures, External
 representation for data with shared structure}.
 
+@item sentinel
+Sentinel values.  @ref{sentinel, The sentinel value}.
+
 @item makers
 Defining functions and macros with optional arguments.  @ref{makers,
 Maker syntaxes}.
@@ -20157,6 +20161,91 @@ The @var{port} argument may be omitted, in which case it defaults to the
 value returned by @func{current-input-port}.
 
 It is an error to read from a closed port.
+@end defun
+
+@c page
+@node sentinel
+@chapter The sentinel value
+
+
+The @library{sentinel} library defines a unique value and a predicate to
+test it.  The sentinel value can be used as terminator for sequences or
+as value for uninitialised storage locations.
+
+
+@defvr Constant sentinel
+The sentinel value.
+@end defvr
+
+
+@defun sentinel? @var{obj}
+Return @true{} if @var{obj} is the sentinel value.
+@end defun
+
+
+As usage example, the following form makes use of the sentinel as
+terminator for a list:
+
+@example
+(let ((ell (list 1 2 3 4 5 sentinel)))
+  (let loop ((ell ell)
+             (res '()))
+    (if (sentinel? (car ell))
+        res
+      (loop (cdr ell) (cons (car ell) res)))))
+@result{} (5 4 3 2 1))
+@end example
+
+@noindent
+the following form defines an iterator closure using the sentinel to
+signal the end of the iteration:
+
+@example
+(let* ((ell  '(1 2 3 4 5))
+       (iter (lambda ()
+               (let ((ell ell))
+                 (if (null? ell)
+                     sentinel
+                   (begin
+                     (car ell)
+                     (set! ell (cdr ell))))))))
+  (let loop ((res '()))
+    (let ((v (iter)))
+      (if (sentinel? v)
+          res
+        (loop (cons v res))))))
+@result{} (5 4 3 2 1)
+@end example
+
+
+@defun make-sentinel
+Return a new sentinel value.  @func{sentinel?} will return @true{} when
+applied to such a value, but new sentinel values are meant to be checked
+with @func{eq?}.
+
+New sentinels can be used in situations where a unique terminator is
+needed: When we need to distinguish @samp{sentinel} from a temporary
+sentinel we need for a specific operation.
+@end defun
+
+
+@defvr Constant undefined
+The undefined value.
+@end defvr
+
+
+@defun undefined? @var{obj}
+Return true if @var{obj} is @func{eq?} to @code{undefined}.
+@end defun
+
+
+@defvr Constant undefined
+The unspecified value.
+@end defvr
+
+
+@defun unspecified? @var{obj}
+Return true if @var{obj} is @func{eq?} to @code{unspecified}.
 @end defun
 
 @c page

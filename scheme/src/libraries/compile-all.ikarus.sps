@@ -33,6 +33,7 @@
   (only (parameters))
   (only (pretty-print))
   (only (shared-structures))
+  (only (sentinel))
   (only (makers))
   (only (classes))
   (only (deferred-exceptions))
@@ -70,7 +71,6 @@
   (only (msgcat))
   (only (times-and-dates))
 
-  (only (sentinel))
   (only (variables))
   (only (keywords))
 

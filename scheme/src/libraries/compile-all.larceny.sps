@@ -71,6 +71,9 @@
 (%compile-library "shared-structures.sls"
 		  "shared-structures.slfasl")
 
+(%compile-library "sentinel.sls"
+		  "sentinel.slfasl")
+
 (%compile-library "makers/helpers.sls"
 		  "makers/helpers.slfasl")
 
@@ -99,9 +102,6 @@
 		  "nausicaa.larceny.slfasl")
 
 ;;Basic libraries
-
-(%compile-library "sentinel.sls"
-		  "sentinel.slfasl")
 
 (%compile-library "parser-tools/source-location.sls"
 		  "parser-tools/source-location.slfasl")

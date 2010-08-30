@@ -25,12 +25,20 @@
 
 #!r6rs
 (library (sentinel)
-  (export sentinel sentinel? make-sentinel)
+  (export sentinel sentinel? make-sentinel
+	  undefined undefined?
+	  unspecified unspecified?)
   (import (rnrs))
   (define-record-type (:sentinel make-sentinel sentinel?)
     (opaque #t)
     (sealed #t)
     (nongenerative nausicaa:sentinel::sentinel))
-  (define sentinel (make-sentinel)))
+  (define sentinel    (make-sentinel))
+  (define undefined   (make-sentinel))
+  (define unspecified (make-sentinel))
+  (define (undefined? obj)
+    (eq? obj undefined))
+  (define (unspecified? obj)
+    (eq? obj unspecified)))
 
 ;;; end of file
