@@ -6715,8 +6715,6 @@ Examples:
 @end example
 @end itemize
 
-
-
 @c page
 @node baselib math semantics trascend
 @subsubsection Transcendental functions
@@ -6744,6 +6742,7 @@ as:
 angle z = b + 2 pi n
 @end example
 
+@noindent
 with @math{-\pi <= angle z <= \pi} and @math{angle z = b + 2 pi n} for
 some integer @math{n}.
 
