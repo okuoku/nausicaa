@@ -28,6 +28,7 @@
 ;;;	(URL last verified Thu Jul 29, 2010):
 ;;;
 ;;;	   <http://www.imcce.fr/en/grandpublic/temps/jour_julien.php>
+;;;        <http://www.imcce.fr/langues/en/grandpublic/temps/jour_julien.php>
 ;;;
 ;;;	the   number  computed  by   that  calculator   is  the   JD  at
 ;;;	year/month/day hour:minute:second.
@@ -241,23 +242,24 @@
   ;;This code was shamelessly copied from:
   ;;
   ;;	<http://www.imcce.fr/en/grandpublic/temps/jour_julien.php>
+  ;;    <http://www.imcce.fr/langues/en/grandpublic/temps/jour_julien.php>
   ;;
   (set! hours (infix hours + (minutes / 60) + (seconds / 3600)))
-  (let ((GGG (cond ((< year 1582)
-		    0)
-		   ((and (<= year 1582) (< month 10))
-		    0)
-		   ((and (<= year 1582) (= month 10) (< day 5))
-		    0)
-		   (else 1)))
-	(JD	(infix -1 * floor (7) * (floor ((month + 9) / 12) + year) / 4))
-	(S	(if (< (- month 9) 0)
+  (let* ((GGG (cond ((< year 1582)
+		     0)
+		    ((and (<= year 1582) (< month 10))
+		     0)
+		    ((and (<= year 1582) (= month 10) (< day 5))
+		     0)
+		    (else 1)))
+	 (JD	(infix -1 * floor (7) * (floor ((month + 9) / 12) + year) / 4))
+	 (S	(if (< (- month 9) 0)
 		    -1
 		  1))
-	(A	(abs (- month 9)))
-	(J1	(infix floor (year + S * floor(A / 7)))))
+	 (A	(abs (- month 9)))
+	 (J1	(infix floor (year + S * floor(A / 7)))))
     (set! J1 (infix -1 * floor ((floor (J1 / 100) + 1) * 3 / 4)))
-    (set! JD (infix JD + floor (275 * month / 9) + DD + (GGG * J1)))
+    (set! JD (infix JD + floor (275 * month / 9) + day + (GGG * J1)))
     (set! JD (infix JD + 1721027 + 2 * GGG + 367 * year - 0.5))
     (infix JD + (hours / 24))))
 
@@ -268,6 +270,7 @@
   ;;This code was shamelessly copied from:
   ;;
   ;;	<http://www.imcce.fr/en/grandpublic/temps/jour_julien.php>
+  ;;    <http://www.imcce.fr/langues/en/grandpublic/temps/jour_julien.php>
   ;;
   (let* ((Z		(infix floor (JD + 0.5)))
 	 (F		(infix JD + 0.5 - Z))
@@ -276,14 +279,14 @@
 			  (let ((I (infix floor ((Z - 1867216.25) / 36524.25))))
 			    (infix Z + 1 + I - floor (I / 4)))))
 	 (B		(infix A + 1524))
-	 (C		(infix floor ((B - 122.1)/365.25)))
+	 (C		(infix floor ((B - 122.1) / 365.25)))
 	 (D		(infix floor(365.25 * C)))
 	 (T		(infix floor((B - D)/ 30.6001)))
 	 (RJ		(infix B - D - floor(30.6001 * T) + F))
 	 (day		(floor RJ))
 	 (RH		(infix (RJ - floor(RJ)) * 24))
 	 (hour		(floor RH))
-	 (minutes	(infix floor((RH - hour )*60)))
+	 (minutes	(infix floor((RH - hour) * 60)))
 	 (seconds	(infix ((RH - hour ) * 60 - minutes) * 60))
 	 (month		(cond ((< T 14)
 			       (- T 1))

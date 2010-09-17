@@ -18473,9 +18473,9 @@ written in the @code{en_GB} locale in Nausicaa's source files.
 
 
 The @library{times-and-dates} library implements procedures and data
-types to manipulate time and dates; the library is built on top of the
-facilities of the @library{classes} library.  @nauref{classes, Classes
-library}.
+types to manipulate timestamps and dates; the library is built on top of
+the facilities of the @library{classes} library.  @nauref{classes,
+Classes library}.
 
 This chapter contains chunks of slightly edited text from Wikipedia
 pages on time scales and related subjects.  The
@@ -18540,11 +18540,11 @@ approximate.
 @subsection Miscellaneous conventions
 
 
-In this section we anticipate some concept which is explained in detail
-in later sections; this anticipation should not hinder the
+In this section we anticipate some concepts which are explained in
+detail in later sections; this anticipation should not hinder the
 comprehension.
 
-When expressing a timestamp in this documentation we preferably use
+When expressing a timestamp in this documentation, we preferably use
 strings of the following format, which is compliant with @iso{} 8601:
 
 @example
@@ -18607,8 +18607,8 @@ Another realisation of Terrestrial Time is the
 added at irregular intervals to compensate for the Earth's slowing
 rotation.  Leap seconds are added at the end of some days to allow
 @utc{} to closely track the mean solar time at the Royal Observatory,
-Greenwich; when a leap second is added, the last minute of the day has
-@math{61} seconds.
+Greenwich (UK); when a leap second is added, the last minute of the day
+has @math{61} seconds.
 
 As a compromise between the history of time scale definitions and the
 need to define a time scale for every point in time, the best assumption
@@ -18706,7 +18706,7 @@ leap seconds occurred during that interval.
 @item 1997-06-30T23:59:60Z @tab  867715200 @tab 31
 @item 1998-12-31T23:59:60Z @tab  915148800 @tab 32
 @item 2005-12-31T23:59:60Z @tab 1136073600 @tab 33
-@item 2008-12-31T23:59:60Z @tab            @tab 34
+@item 2008-12-31T23:59:60Z @tab 1230768000 @tab 34
 @end multitable
 @caption{Table: the first column is the timestamp of the leap second;
 the second column is the count of seconds, on the @utc{} scale since
@@ -18734,6 +18734,13 @@ then tai-seconds = utc-seconds + 11
 else ...
 @end example
 
+A leap seconds table is included in the library @library{times-and-dates
+leap-second-table}; it can be automatically generated with the script in
+the Nausicaa/Scheme sources
+@file{src/script/read-leap-seconds-table.sps} applied to the data file
+@file{src/data/tai-utc.dat}; the data file is from:
+
+@center @url{ftp://maia.usno.navy.mil/ser7/tai-utc.dat}
 
 @c page
 @node time intro gmt
@@ -18745,8 +18752,8 @@ else ...
 
 
 The @dfn{Greenwich Mean Time} is the mean solar time at the Royal
-Observatory, Greenwich; in casual use, when fractions of a second are
-not important, @gmt{} can be considered equivalent to @utc{}; saying
+Observatory, Greenwich (UK); in casual use, when fractions of a second
+are not important, @gmt{} can be considered equivalent to @utc{}; saying
 @gmt{} is generally avoided in technical contexts, where the unambiguous
 @utc{} is preferred.
 

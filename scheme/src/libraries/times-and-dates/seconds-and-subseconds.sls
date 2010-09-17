@@ -110,7 +110,8 @@
   (import (rnrs)
     (only (language-extensions)
 	  define-inline define-constant receive)
-    (infix syntax))
+    (infix syntax)
+    (times-and-dates leap-second-table))
 
 
 ;;;; constants
@@ -373,39 +374,6 @@
 	   (non-negative? nanoseconds)))))
 
 
-(define-constant $leap-second-table
-  ;;Each entry is:
-  ;;
-  ;;    ( <UTC seconds since Unix Epoch> .
-  ;;      <number of seconds to add to UTC to compute TAI> )
-  ;;
-  ;;note they go higher to lower and end in 1972.
-  ;;
-  '((1136073600 . 33)
-    (915148800 . 32)
-    (867715200 . 31)
-    (820454400 . 30)
-    (773020800 . 29)
-    (741484800 . 28)
-    (709948800 . 27)
-    (662688000 . 26)
-    (631152000 . 25)
-    (567993600 . 24)
-    (489024000 . 23)
-    (425865600 . 22)
-    (394329600 . 21)
-    (362793600 . 20)
-    (315532800 . 19)
-    (283996800 . 18)
-    (252460800 . 17)
-    (220924800 . 16)
-    (189302400 . 15)
-    (157766400 . 14)
-    (126230400 . 13)
-    (94694400 . 12)
-    (78796800 . 11)
-    (63072000 . 10)))
-
 (define (%utc-to-tai-leap-second-delta utc-seconds)
   ;;Given the UTC seconds count since the Unix Epoch, compute the number
   ;;of leap seconds to correct it:

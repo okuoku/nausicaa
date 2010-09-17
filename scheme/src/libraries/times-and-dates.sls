@@ -166,44 +166,6 @@
 	 (assertion-violation who "internal error: unsupported error tag" tag))))
 
 
-;;;; leap seconds handling
-;;
-;;See:
-;;
-;;  ftp://maia.usno.navy.mil/ser7/tai-utc.dat
-;;
-;;and update as necessary.
-;;
-;;These procedures read the file in the above format and create the leap
-;;second table.
-;;
-;; (set! $leap-second-table (tm:read-tai-utc-data "tai-utc.dat"))
-;;
-;; (define (tm:read-tai-utc-data filename)
-;;   (define (convert-jd jd)
-;;     (* (- (inexact->exact jd) $tai-epoch-in-jd) $number-of-seconds-in-one-day))
-;;   (define (convert-sec sec)
-;;     (inexact->exact sec))
-;;   (let ( (port (open-input-file filename))
-;; 	 (table '()) )
-;;     (let loop ((line (get-line port)))
-;;       (if (not (eq? line (eof-object)))
-;; 	  (receive (port getter)
-;; 	      (open-string-output-port (string-append "(" line ")"))
-;; 	    (let* ((data (read port))
-;; 		   (year (car data))
-;; 		   (jd   (cadddr (cdr data)))
-;; 		   (secs (cadddr (cdddr data))))
-;; 	      (if (>= year 1972)
-;; 		  (set! table (cons (cons (convert-jd jd) (convert-sec secs)) table))
-;; 		(loop (get-line port)))))))
-;;     table))
-;;
-;; (define (read-leap-second-table filename)
-;;   (set! $leap-second-table (tm:read-tai-utc-data filename))
-;;   (values))
-
-
 (define-class <seconds-and-nanoseconds>
   (nongenerative nausicaa:times-and-dates:<seconds-and-nanoseconds>)
 
@@ -216,19 +178,19 @@
 		  ((make-top) secs nanosecs)))))
 
   (maker ()
-	 (:seconds	0)
-	 (:milliseconds	0)
-	 (:microseconds	0)
-	 (:nanoseconds	0))
+  	 (:seconds	0)
+  	 (:milliseconds	0)
+  	 (:microseconds	0)
+  	 (:nanoseconds	0))
   (maker-protocol (lambda (make-top)
-		    (lambda (secs millisecs microsecs nanosecs)
-		      (assert (%seconds-unit-count? secs))
-		      (assert (%seconds-unit-count? millisecs))
-		      (assert (%seconds-unit-count? microsecs))
-		      (assert (%seconds-unit-count? nanosecs))
-		      (receive (secs nanosecs)
-			  (smun->sn secs millisecs microsecs nanosecs)
-			((make-top) secs nanosecs)))))
+  		    (lambda (secs millisecs microsecs nanosecs)
+  		      (assert (%seconds-unit-count? secs))
+  		      (assert (%seconds-unit-count? millisecs))
+  		      (assert (%seconds-unit-count? microsecs))
+  		      (assert (%seconds-unit-count? nanosecs))
+  		      (receive (secs nanosecs)
+  			  (smun->sn secs millisecs microsecs nanosecs)
+  			((make-top) secs nanosecs)))))
 
   (fields (immutable seconds)
 	  (immutable nanoseconds))

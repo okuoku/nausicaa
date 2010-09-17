@@ -226,6 +226,9 @@
 (%compile-library "times-and-dates/compat.larceny.sls"
 		  "times-and-dates/compat.larceny.slfasl")
 
+(%compile-library "times-and-dates/leap-second-table.sls"
+		  "times-and-dates/leap-second-table.slfasl")
+
 (%compile-library "times-and-dates/seconds-and-subseconds.larceny.sls"
 		  "times-and-dates/seconds-and-subseconds.larceny.slfasl")
 
