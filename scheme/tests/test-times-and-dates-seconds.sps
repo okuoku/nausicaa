@@ -106,11 +106,11 @@
 
   (check
       (tol (sn-normalise 1 -1))
-    => (list 0 (- $number-of-nanoseconds-in-a-second 1)))
+    => (list 0 (- $number-of-nanoseconds-in-one-second 1)))
 
   (check
       (tol (sn-normalise -1 1))
-    => (list 0 (- 1 $number-of-nanoseconds-in-a-second)))
+    => (list 0 (- 1 $number-of-nanoseconds-in-one-second)))
 
 ;;; --------------------------------------------------------------------
 
@@ -124,11 +124,11 @@
 
   (check
       (tol (su-normalise 1 -1))
-    => (list 0 (- $number-of-microseconds-in-a-second 1)))
+    => (list 0 (- $number-of-microseconds-in-one-second 1)))
 
   (check
       (tol (su-normalise -1 1))
-    => (list 0 (- 1 $number-of-microseconds-in-a-second)))
+    => (list 0 (- 1 $number-of-microseconds-in-one-second)))
 
 ;;; --------------------------------------------------------------------
 
@@ -142,11 +142,11 @@
 
   (check
       (tol (sm-normalise 1 -1))
-    => (list 0 (- $number-of-milliseconds-in-a-second 1)))
+    => (list 0 (- $number-of-milliseconds-in-one-second 1)))
 
   (check
       (tol (sm-normalise -1 1))
-    => (list 0 (- 1 $number-of-milliseconds-in-a-second)))
+    => (list 0 (- 1 $number-of-milliseconds-in-one-second)))
 
   #t)
 
