@@ -28499,7 +28499,7 @@ to write it.
 
 Mathematics is not ``perfect'', in the sense that it allows us to write
 wrong equations; unfortunately we can recognise an equation as wrong
-only trying to solve it.
+only by trying to solve it.
 
 Let's look at this equation:
 
@@ -28702,7 +28702,7 @@ Scheme defines a predicate to test if a value is NaN, @func{nan?}.
 @end example
 
 @noindent
-for ever number @var{z}.  The first is correct because a wrong
+for every number @var{z}.  The first is correct because a wrong
 computation is not equal, in numerical sense, to another wrong
 computation.
 
