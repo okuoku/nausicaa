@@ -18792,6 +18792,17 @@ time zone zero (rather than @math{-1} hour); the Iles Marquises are in
 time zone @math{-9:30} hours or @math{-34200} seconds; the Chatham
 Islands are in time zone @math{+12:45} hours or @math{+45900} seconds.
 
+The web page (@aurl{} last verified Sat Sep 18, 2010) has some
+interesting links on time zones:
+
+@center @url{http://www.twinsun.com/tz/tz-link.htm}
+
+@noindent
+a database of time zones information can be retrieved at (@aurl{} last
+verified Sat Sep 18, 2010):
+
+@center @url{ftp://elsie.nci.nih.gov/pub/}
+
 @c page
 @node time intro dst
 @subsection Daylight Saving Time (@dst{})
