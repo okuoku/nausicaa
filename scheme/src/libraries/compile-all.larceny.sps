@@ -24,11 +24,15 @@
 ;;;
 
 (import (rnrs)
-  (larceny compiler))
+  (larceny compiler)
+  (primitives parameterize current-directory))
+
+;;;(compile-stale-libraries)
 
 (define (%compile-library src dst)
-  (unless (file-exists? dst)
-    (compile-library src dst)))
+  ;; (unless (file-exists? dst)
+  ;;   (compile-library src dst))
+  (compile-stale-libraries src))
 
 ;;Core libraries
 
@@ -36,7 +40,7 @@
 		  "auxiliary-syntaxes.larceny.slfasl")
 
 (%compile-library "cond-expand/registry.sls"
-		  "cond-expand/registry.slfasl")
+ 		  "cond-expand/registry.slfasl")
 
 (%compile-library "cond-expand.larceny.sls"
 		  "cond-expand.larceny.slfasl")
@@ -50,8 +54,8 @@
 (%compile-library "profiling.sls"
 		  "profiling.slfasl")
 
-(%compile-library "unimplemented.sls"
-		  "unimplemented.slfasl")
+(%compile-library "fasl.d/unimplemented.sls"
+ 		  "fasl.d/unimplemented.slfasl")
 
 (%compile-library "syntax-utilities.sls"
 		  "syntax-utilities.slfasl")
@@ -101,7 +105,7 @@
 (%compile-library "nausicaa.larceny.sls"
 		  "nausicaa.larceny.slfasl")
 
-;;Basic libraries
+Basic libraries
 
 (%compile-library "parser-tools/source-location.sls"
 		  "parser-tools/source-location.slfasl")
