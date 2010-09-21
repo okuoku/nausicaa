@@ -105,7 +105,7 @@
 (%compile-library "nausicaa.larceny.sls"
 		  "nausicaa.larceny.slfasl")
 
-Basic libraries
+;;Basic libraries
 
 (%compile-library "parser-tools/source-location.sls"
 		  "parser-tools/source-location.slfasl")

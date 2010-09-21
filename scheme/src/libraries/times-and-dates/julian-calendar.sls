@@ -87,6 +87,7 @@
     $tai-epoch-in-jd
 
     ;; conversion
+    time-point->julian-date			julian-date->time-point
     julian-day-encode-number			julian-day-decode-number
     julian-day->modified-julian-day		modified-julian-day->julian-day
     utc-seconds-and-nanoseconds->julian-day	julian-day->utc-seconds-and-nanoseconds
@@ -244,24 +245,43 @@
   ;;	<http://www.imcce.fr/en/grandpublic/temps/jour_julien.php>
   ;;    <http://www.imcce.fr/langues/en/grandpublic/temps/jour_julien.php>
   ;;
+  ;;in JavaScript:
+  ;;
+  ;; MM=(form.nmonth.value=="")? "0" : eval(form.nmonth.value);
+  ;; DD=(form.nday.value=="")? "0": eval(form.nday.value);
+  ;; YY=(form.nyear.value=="") ? "0" :eval(form.nyear.value);
+  ;; HR=(form.nhour.value=="")? "0" :eval(form.nhour.value);
+  ;; MN=(form.nminute.value=="") ? "0" :eval(form.nminute.value);
+  ;; SS=(form.nsecondes.value=="") ? "0" : eval(form.nsecondes.value);
+  ;; with (Math) {
+  ;;   HR = HR + (MN / 60) + (SS / 3600);
+  ;;   GGG = 1;
+  ;;   if( YY < 1582 ) GGG = 0;
+  ;;   if( YY <= 1582 && MM < 10 ) GGG = 0;
+  ;;   if( YY <= 1582 && MM == 10 && DD < 5 ) GGG = 0;
+  ;;   JD = -1 * floor(7 * (floor((MM + 9) / 12) + YY) / 4);
+  ;;   S = 1;
+  ;;   if ((MM - 9)<0) S=-1;
+  ;;   A = abs(MM - 9);
+  ;;   J1 = floor(YY + S * floor(A / 7));
+  ;;   J1 = -1 * floor((floor(J1 / 100) + 1) * 3 / 4);
+  ;;   JD = JD + floor(275 * MM / 9) + DD + (GGG * J1);
+  ;;   JD = JD + 1721027 + 2 * GGG + 367 * YY - 0.5;
+  ;;   JD = JD + (HR / 24);
+  ;; }
+  ;; form.result.value = JD;
+  ;;
   (set! hours (infix hours + (minutes / 60) + (seconds / 3600)))
-  (let* ((GGG (cond ((< year 1582)
-		     0)
-		    ((and (<= year 1582) (< month 10))
-		     0)
-		    ((and (<= year 1582) (= month 10) (< day 5))
-		     0)
-		    (else 1)))
-	 (JD	(infix -1 * floor (7) * (floor ((month + 9) / 12) + year) / 4))
-	 (S	(if (< (- month 9) 0)
-		    -1
-		  1))
-	 (A	(abs (- month 9)))
-	 (J1	(infix floor (year + S * floor(A / 7)))))
-    (set! J1 (infix -1 * floor ((floor (J1 / 100) + 1) * 3 / 4)))
+  (let* ((GGG (if (or (< year 1582)
+		      (and (<= year 1582) (or (< month 10)
+					      (and (= month 10) (< day 5)))))
+		  0 1))
+	 (JD	(- (infix floor (7/4 * (floor ((month + 9) / 12) + year)))))
+	 (sign	(if (> month 9) -1 1))
+	 (J1	(infix floor (year + sign * floor(abs (month - 9) / 7)))))
+    (set! J1 (- (infix floor ((floor (J1 / 100) + 1) * 3/4))))
     (set! JD (infix JD + floor (275 * month / 9) + day + (GGG * J1)))
-    (set! JD (infix JD + 1721027 + 2 * GGG + 367 * year - 0.5))
-    (infix JD + (hours / 24))))
+    (infix JD + 1721027 + 2 * GGG + 367 * year - 1/2 + (hours / 24))))
 
 (define (julian-date->time-point JD)
   ;;Convert a Julian Date value to  a time point tuple; return 6 values:
@@ -272,8 +292,48 @@
   ;;	<http://www.imcce.fr/en/grandpublic/temps/jour_julien.php>
   ;;    <http://www.imcce.fr/langues/en/grandpublic/temps/jour_julien.php>
   ;;
+  ;;in JavaScript:
+  ;;
+  ;; JD = eval(form.result.value)
+  ;; with (Math) {
+  ;; 	Z = floor(JD+0.5);
+  ;; 	F = JD+0.5 - Z;
+  ;; 	if (Z < 2299161) {
+  ;;    	A = Z
+  ;; 		} else
+  ;;    	{I = floor((Z - 1867216.25)/36524.25);
+  ;;    	A = Z + 1 + I - floor(I/4);
+  ;; 	 }
+  ;; 	B = A + 1524;
+  ;; 	C = floor((B - 122.1)/365.25);
+  ;; 	D = floor(365.25 * C);
+  ;; 	T = floor((B - D)/ 30.6001);
+  ;; 	RJ = B - D - floor(30.6001 * T) + F;
+  ;; 	JJ = floor(RJ);
+  ;; 	RH = (RJ - floor(RJ)) * 24;
+  ;; 	Heure = floor(RH);
+  ;; 	Mn = floor((RH - Heure )*60);
+  ;; 	Sec = ((RH - Heure )*60 - Mn )*60;
+  ;; 	if (T < 14) {
+  ;;    	MM = T - 1
+  ;; 	} else {
+  ;; 	  if ((T == 14) || (T == 15))  MM = T - 13
+  ;; 	}
+  ;; 	if (MM > 2) {
+  ;;    	AA = C - 4716
+  ;; 	} else {
+  ;;    	if ((MM == 1) || (MM == 2)) AA = C - 4715
+  ;; 	}
+  ;; }
+  ;;  form.nmonth.value =  MM;
+  ;;  form.nday.value   =  JJ;
+  ;;  form.nhour.value  =  Heure;
+  ;;  form.nyear.value  =  AA;
+  ;;  form.nminute.value=  Mn;
+  ;;  form.nsecondes.value=Sec;
+  ;;
   (let* ((Z		(infix floor (JD + 0.5)))
-	 (F		(infix JD + 0.5 - Z))
+	 (F		(infix JD + 1/2 - Z))
 	 (A		(if (< Z 2299161)
 			    Z
 			  (let ((I (infix floor ((Z - 1867216.25) / 36524.25))))
@@ -300,7 +360,7 @@
 			       (- C 4715))
 			      (else
 			       0))))
-    (values year month day hour minutes seconds)))
+    (values (exact year) (exact month) (exact day) (exact hour) (exact minutes) seconds)))
 
 
 ;;;; done

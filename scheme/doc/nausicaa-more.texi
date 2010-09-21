@@ -18959,8 +18959,8 @@ unit equal to seven days.
 @cindex Julian Day Number
 
 
-The @uref{http://en.wikipedia.org/wiki/Julian_day, Julian Date} is the
-interval of time in days and fractions of a day since
+The @uref{http://en.wikipedia.org/wiki/Julian_day, @dfn{Julian Date}} is
+the interval of time in days and fractions of a day since
 -4714-11-24T12:00:00Z (November 24, -4714 at noon, @utc{}).
 
 The @dfn{Julian Day Number} is the integral part of the Julian Date.

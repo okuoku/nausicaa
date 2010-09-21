@@ -56,14 +56,18 @@
 
 
 (import (nausicaa)
-  (times-and-dates julian-day)
+  (times-and-dates julian-calendar)
   (checks))
 
 (check-set-mode! 'report-failed)
 (display "*** testing times-and-dates julian day number\n")
 
+(define epsilon 1e-3)
+(define (eq=? a b)
+  (< (abs (- a b)) epsilon))
+
 
-(parametrise ((check-test-name	'date))
+(parametrise ((check-test-name	'number))
 
 ;;;The  JDN results can  be computed  with the  calculator at  (URL last
 ;;;verified Thu Jul 29, 2010):
@@ -111,6 +115,57 @@
   (check (julian-day->modified-julian-day (julian-day-encode-number 2010 10 1))	=> #e55470.5)
   (check (julian-day->modified-julian-day (julian-day-encode-number 2010 11 1))	=> #e55501.5)
   (check (julian-day->modified-julian-day (julian-day-encode-number 2010 12 1))	=> #e55531.5)
+
+;;; --------------------------------------------------------------------
+
+  #t)
+
+
+(parametrise ((check-test-name	'date))
+
+  (define-syntax check-time-point
+    (syntax-rules ()
+      ((_ ?date ?year ?month ?day ?hours ?minutes ?seconds)
+       (receive (year month day hours minutes seconds)
+	   (julian-date->time-point ?date)
+	 (check year	=> ?year)
+	 (check month	=> ?month)
+	 (check day	=> ?day)
+	 (check hours	=> ?hours)
+	 (check minutes	=> ?minutes)
+	 (check seconds	(=> eq=?) ?seconds)))))
+
+;;; --------------------------------------------------------------------
+
+;;;                                        year month day hours minutes seconds
+  (check (inexact (time-point->julian-date 2010  9    20  12    42      57)) => 2455460.0298263887)
+  (check (inexact (time-point->julian-date 2010  8    20  12    42      57)) => 2455429.0298263887)
+  (check (inexact (time-point->julian-date 2010 10    20  12    42      57)) => 2455490.0298263887)
+  (check (inexact (time-point->julian-date 1582 10    20  12    42      57)) => 2299166.0298263887)
+  (check (inexact (time-point->julian-date 1581 10    20  12    42      57)) => 2298811.0298263887)
+
+;;; --------------------------------------------------------------------
+
+  (check-time-point 2455460.0298263887
+;;;                 year month day hours minutes seconds
+		    2010     9  20    12      42      57)
+
+  (check-time-point 2455429.0298263887
+;;;                 year month day hours minutes seconds
+		    2010     8  20    12      42      57)
+
+  (check-time-point 2455490.0298263887
+;;;                 year month day hours minutes seconds
+		    2010    10  20    12      42      57)
+
+
+  (check-time-point 2299166.0298263887
+;;;                 year month day hours minutes seconds
+		    1582    10  20    12      42      57)
+
+  (check-time-point 2298811.0298263887
+;;;                 year month day hours minutes seconds
+		    1581    10  20    12      42      57)
 
   #t)
 
