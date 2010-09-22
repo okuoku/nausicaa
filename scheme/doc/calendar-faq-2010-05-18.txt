@@ -1782,8 +1782,8 @@ dates, you must  first convert the BC year to a  negative year (e.g., 10
 BC =  -9). The algorithm  works correctly for  all dates after  4800 BC,
 i.e. at least for all positive Julian day numbers.
 
-   convert the other way (i.e., to convert a Julian day number, JD, to a
-day, month, and  year) these formulas can be  used (again, the divisions
+  To convert the other way (i.e., to convert a Julian day number, JD, to
+a day, month, and year) these formulas can be used (again, the divisions
 are integer divisions), for the Gregorian calendar:
 
     a = JD + 32044

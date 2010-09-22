@@ -105,7 +105,79 @@
 (define-constant $tai-epoch-in-jd 4881175/2)
 
 
-;;;; encoding to and decoding from proleptic Gregorian calendar
+;;;; julian dates, encoding to and decoding from proleptic Gregorian calendar
+
+(define (time-point->julian-date year month day hours minutes seconds nanoseconds)
+  ;;Convert the given date into a Julian Date value.
+  ;;
+  ;;This code was shamelessly copied from:
+  ;;
+  ;;	<http://www.imcce.fr/en/grandpublic/temps/jour_julien.php>
+  ;;    <http://www.imcce.fr/langues/en/grandpublic/temps/jour_julien.php>
+  ;;
+  ;;in JavaScript.
+  ;;
+  (set! hours (infix hours
+		     + (minutes     / 60)
+		     + (seconds     / $number-of-seconds-in-one-hour)
+		     + (nanoseconds / $number-of-nanoseconds-in-one-hour)))
+  (let* ((GGG (if (or (< year 1582)
+		      (and (<= year 1582) (or (< month 10)
+					      (and (= month 10) (< day 5)))))
+		  0 1))
+	 (JD	(- (infix floor (7/4 * (floor ((month + 9) / 12) + year)))))
+	 (sign	(if (> month 9) -1 1))
+	 (J1	(infix floor (year + sign * floor(abs (month - 9) / 7)))))
+    (set! J1 (- (infix floor ((floor (J1 / 100) + 1) * 3/4))))
+    (set! JD (infix JD + floor (275 * month / 9) + day + (GGG * J1)))
+    (infix JD + 1721027 + 2 * GGG + 367 * year - 1/2 + (hours / 24))))
+
+(define (julian-date->time-point JD)
+  ;;Convert a Julian Date value to  a time point tuple; return 7 values:
+  ;;year, month, day, hours, minutes, seconds, nanoseconds.
+  ;;
+  ;;This code was shamelessly copied from:
+  ;;
+  ;;	<http://www.imcce.fr/en/grandpublic/temps/jour_julien.php>
+  ;;    <http://www.imcce.fr/langues/en/grandpublic/temps/jour_julien.php>
+  ;;
+  ;;in JavaScript.
+  ;;
+  (let* ((Z		(infix floor (JD + 0.5)))
+	 (F		(infix JD + 1/2 - Z))
+	 (A		(if (< Z 2299161)
+			    Z
+			  (let ((I (infix floor ((Z - 1867216.25) / 36524.25))))
+			    (infix Z + 1 + I - floor (I / 4)))))
+	 (B		(infix A + 1524))
+	 (C		(infix floor ((B - 122.1) / 365.25)))
+	 (D		(infix floor(365.25 * C)))
+	 (T		(infix floor((B - D)/ 30.6001)))
+	 (RJ		(infix B - D - floor(30.6001 * T) + F))
+	 (day		(floor RJ))
+	 (RH		(infix (RJ - floor(RJ)) * 24))
+	 (hour		(floor RH))
+	 (minutes	(infix floor((RH - hour) * 60)))
+	 (seconds	(infix ((RH - hour ) * 60 - minutes) * 60))
+	 (month		(cond ((< T 14)
+			       (- T 1))
+			      ((or (= T 14) (= T 15))
+			       (- T 13))
+			      (else
+			       0)))
+	 (year		(cond ((> month 2)
+			       (- C 4716))
+			      ((or (= month 1) (= month 2))
+			       (- C 4715))
+			      (else
+			       0))))
+    (values (exact year) (exact month) (exact day) (exact hour) (exact minutes)
+	    (exact (floor seconds))
+	    (exact (floor (* $number-of-nanoseconds-in-one-second (- seconds (floor seconds)))))
+	    )))
+
+
+;;;; julian day number, encoding to and decoding from proleptic Gregorian calendar
 
 (define (julian-day-encode-number year month day)
   ;;Return  an exact integer  representing the  Julian Day,  starting at
@@ -157,40 +229,10 @@
 		;year zero.  See the Calendar FAQ for details.
      (infix m + 3 - 12 * (m // 10))			  ;month
      (infix e + 1 - (153 * m + 2) // 5)			  ;day
-     (infix (jdn - days) * $number-of-seconds-in-one-day) ;seconds
      )))
 
-;;; --------------------------------------------------------------------
-
-(define (julian-day-encode-fraction hours minutes seconds)
-  ;;Return an exact number representing  the fractional part of a Julian
-  ;;Day Number  representing the given  hours, minutes and  seconds; the
-  ;;returned value can  be added to an integer Julian  Day Number as the
-  ;;one returned by JULIAN-DAY-ENCODE-NUMBER.
-  ;;
-  ;;The  function assumes that  the arguments  are exact  numbers: HOURS
-  ;;being an integer  in the range [0, 23); MINUTES  being an integer in
-  ;;the range [0, 59); seconds being a rational in the range [0, 60).
-  ;;
-  ;;The returned value is positive for times in the range from 12:00:00Z
-  ;;(included) to 24:00:00Z (excluded); it  is negative for times in the
-  ;;range 00:00:00Z (included) 11:59:60Z (excluded).
-  ;;
-  (let ((fraction (/ (+ (* hours	$number-of-seconds-in-one-hour)
-			(* minutes	$number-of-seconds-in-one-minute)
-			(* seconds	$number-of-seconds-in-one-hour))
-		     $number-of-seconds-in-one-day)))
-    (if (<= 1/2 fraction)
-	(- fraction 1/2)
-      (- 1/2 fraction))))
-
-(define (julian-day-decode-fraction jdn)
-  (let* ((fraction	(- jdn (truncate jdn)))
-	 (seconds	(* fraction $number-of-seconds-in-one-day)))
-    #f))
-
 
-;;;; conversion to and from Modified Julian Day
+;;;; conversion to and from Julian Day Number and Modified Julian Day Number
 
 (define (julian-day->modified-julian-day julian-day)
   (- julian-day 4800001/2))
@@ -235,132 +277,6 @@
   (receive (utc-seconds nanoseconds)
       (julian-day->utc-seconds-and-nanoseconds jdn)
     (values (utc->tai utc-seconds) nanoseconds)))
-
-
-(define (time-point->julian-date year month day hours minutes seconds)
-  ;;Convert the given date into a Julian Date value.
-  ;;
-  ;;This code was shamelessly copied from:
-  ;;
-  ;;	<http://www.imcce.fr/en/grandpublic/temps/jour_julien.php>
-  ;;    <http://www.imcce.fr/langues/en/grandpublic/temps/jour_julien.php>
-  ;;
-  ;;in JavaScript:
-  ;;
-  ;; MM=(form.nmonth.value=="")? "0" : eval(form.nmonth.value);
-  ;; DD=(form.nday.value=="")? "0": eval(form.nday.value);
-  ;; YY=(form.nyear.value=="") ? "0" :eval(form.nyear.value);
-  ;; HR=(form.nhour.value=="")? "0" :eval(form.nhour.value);
-  ;; MN=(form.nminute.value=="") ? "0" :eval(form.nminute.value);
-  ;; SS=(form.nsecondes.value=="") ? "0" : eval(form.nsecondes.value);
-  ;; with (Math) {
-  ;;   HR = HR + (MN / 60) + (SS / 3600);
-  ;;   GGG = 1;
-  ;;   if( YY < 1582 ) GGG = 0;
-  ;;   if( YY <= 1582 && MM < 10 ) GGG = 0;
-  ;;   if( YY <= 1582 && MM == 10 && DD < 5 ) GGG = 0;
-  ;;   JD = -1 * floor(7 * (floor((MM + 9) / 12) + YY) / 4);
-  ;;   S = 1;
-  ;;   if ((MM - 9)<0) S=-1;
-  ;;   A = abs(MM - 9);
-  ;;   J1 = floor(YY + S * floor(A / 7));
-  ;;   J1 = -1 * floor((floor(J1 / 100) + 1) * 3 / 4);
-  ;;   JD = JD + floor(275 * MM / 9) + DD + (GGG * J1);
-  ;;   JD = JD + 1721027 + 2 * GGG + 367 * YY - 0.5;
-  ;;   JD = JD + (HR / 24);
-  ;; }
-  ;; form.result.value = JD;
-  ;;
-  (set! hours (infix hours + (minutes / 60) + (seconds / 3600)))
-  (let* ((GGG (if (or (< year 1582)
-		      (and (<= year 1582) (or (< month 10)
-					      (and (= month 10) (< day 5)))))
-		  0 1))
-	 (JD	(- (infix floor (7/4 * (floor ((month + 9) / 12) + year)))))
-	 (sign	(if (> month 9) -1 1))
-	 (J1	(infix floor (year + sign * floor(abs (month - 9) / 7)))))
-    (set! J1 (- (infix floor ((floor (J1 / 100) + 1) * 3/4))))
-    (set! JD (infix JD + floor (275 * month / 9) + day + (GGG * J1)))
-    (infix JD + 1721027 + 2 * GGG + 367 * year - 1/2 + (hours / 24))))
-
-(define (julian-date->time-point JD)
-  ;;Convert a Julian Date value to  a time point tuple; return 6 values:
-  ;;year, month, day, hours, minutes, seconds.
-  ;;
-  ;;This code was shamelessly copied from:
-  ;;
-  ;;	<http://www.imcce.fr/en/grandpublic/temps/jour_julien.php>
-  ;;    <http://www.imcce.fr/langues/en/grandpublic/temps/jour_julien.php>
-  ;;
-  ;;in JavaScript:
-  ;;
-  ;; JD = eval(form.result.value)
-  ;; with (Math) {
-  ;; 	Z = floor(JD+0.5);
-  ;; 	F = JD+0.5 - Z;
-  ;; 	if (Z < 2299161) {
-  ;;    	A = Z
-  ;; 		} else
-  ;;    	{I = floor((Z - 1867216.25)/36524.25);
-  ;;    	A = Z + 1 + I - floor(I/4);
-  ;; 	 }
-  ;; 	B = A + 1524;
-  ;; 	C = floor((B - 122.1)/365.25);
-  ;; 	D = floor(365.25 * C);
-  ;; 	T = floor((B - D)/ 30.6001);
-  ;; 	RJ = B - D - floor(30.6001 * T) + F;
-  ;; 	JJ = floor(RJ);
-  ;; 	RH = (RJ - floor(RJ)) * 24;
-  ;; 	Heure = floor(RH);
-  ;; 	Mn = floor((RH - Heure )*60);
-  ;; 	Sec = ((RH - Heure )*60 - Mn )*60;
-  ;; 	if (T < 14) {
-  ;;    	MM = T - 1
-  ;; 	} else {
-  ;; 	  if ((T == 14) || (T == 15))  MM = T - 13
-  ;; 	}
-  ;; 	if (MM > 2) {
-  ;;    	AA = C - 4716
-  ;; 	} else {
-  ;;    	if ((MM == 1) || (MM == 2)) AA = C - 4715
-  ;; 	}
-  ;; }
-  ;;  form.nmonth.value =  MM;
-  ;;  form.nday.value   =  JJ;
-  ;;  form.nhour.value  =  Heure;
-  ;;  form.nyear.value  =  AA;
-  ;;  form.nminute.value=  Mn;
-  ;;  form.nsecondes.value=Sec;
-  ;;
-  (let* ((Z		(infix floor (JD + 0.5)))
-	 (F		(infix JD + 1/2 - Z))
-	 (A		(if (< Z 2299161)
-			    Z
-			  (let ((I (infix floor ((Z - 1867216.25) / 36524.25))))
-			    (infix Z + 1 + I - floor (I / 4)))))
-	 (B		(infix A + 1524))
-	 (C		(infix floor ((B - 122.1) / 365.25)))
-	 (D		(infix floor(365.25 * C)))
-	 (T		(infix floor((B - D)/ 30.6001)))
-	 (RJ		(infix B - D - floor(30.6001 * T) + F))
-	 (day		(floor RJ))
-	 (RH		(infix (RJ - floor(RJ)) * 24))
-	 (hour		(floor RH))
-	 (minutes	(infix floor((RH - hour) * 60)))
-	 (seconds	(infix ((RH - hour ) * 60 - minutes) * 60))
-	 (month		(cond ((< T 14)
-			       (- T 1))
-			      ((or (= T 14) (= T 15))
-			       (- T 13))
-			      (else
-			       0)))
-	 (year		(cond ((> month 2)
-			       (- C 4716))
-			      ((or (= month 1) (= month 2))
-			       (- C 4715))
-			      (else
-			       0))))
-    (values (exact year) (exact month) (exact day) (exact hour) (exact minutes) seconds)))
 
 
 ;;;; done

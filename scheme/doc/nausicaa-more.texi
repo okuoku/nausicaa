@@ -949,8 +949,6 @@ Time data types and procedures
 * time timeobj compar::         Time object comparison procedures.
 * time timeobj arithm::         Time object arithmetic procedures.
 * time dateobj::                Date object and accessors.
-* time julian::                 Time/Date/Julian Day/Modified
-                                Julian Day Converters.
 * time string::                 Date to string/string to date
                                 converters.
 
@@ -18499,8 +18497,6 @@ informations and informations extracted from the
 * time timeobj compar::         Time object comparison procedures.
 * time timeobj arithm::         Time object arithmetic procedures.
 * time dateobj::                Date object and accessors.
-* time julian::                 Time/Date/Julian Day/Modified
-                                Julian Day Converters.
 * time string::                 Date to string/string to date
                                 converters.
 @end menu
@@ -20170,11 +20166,40 @@ in which the year starts on Friday (index 5) the results are as follows:
 
 
 The following bindings are exported by the @library{times-and-dates
-julian-calendar} library.  The library defines the Julian Date as exact
-rational numbers representing the count of days and the fraction in up
-to nanoseconds precision; whenever needed, the count of nanoseconds is
-rounded to the nearest integer with @func{round}.  The Julian Day Number
-and the Modified Julian Day Number are represented as exact integers.
+julian-calendar} library.  The arguments to the functions are supposed
+to be in their valid type and range:
+
+@itemize
+@item
+Nanoseconds as exact integers in @math{[0, 999999999)}.
+
+@item
+Seconds as exact integers in @math{[0, 59)} when fractions of a minute,
+as exact integers when counts since the Epoch on the @tai{} or @utc{}
+scale.
+
+@item
+Minutes as exact integers in @math{[0, 59)}.
+
+@item
+Hours as exact integers in @math{[0, 23)}.
+
+@item
+Days as exact integers in @math{[1, 28]}, @math{[1, 29]}, @math{[1, 30]}
+or @math{[1, 31]} according to the month number.
+
+@item
+Months as exact integers in @math{[1, 12]}.
+
+@item
+Years as exact integers.
+
+@item
+Julian Dates as exact integers or exact rationals.
+
+@item
+Julian Day Numbers and Modified Julian Day Numbers as exact integers.
+@end itemize
 
 @c ------------------------------------------------------------
 
@@ -20215,18 +20240,33 @@ date on the proleptic Gregorian calendar at 12:00:00Z, that is: starting
 at noon, @utc{} scale, time zone zero.  This function assumes the given
 date is correct.
 
-The returned value is missing the fraction corresponding to hours,
-minutes, seconds and nanoseconds because they are zero at 12:00:00Z.
+When converting a full time point to a Julian Day Number: the counts of
+hours, minutes, seconds and nanoseconds are discarded.
 
 From the Calendar @acronym{FAQ}, section 2.16.1.
 @end defun
 
 
 @defun julian-day-decode-number @var{jdn}
-Return 4 values: year, month, day, seconds in the proleptic Gregorian
-calendar.
+Return 3 values: year, month, day in the proleptic Gregorian calendar
+corresponding to the Julian Day Number @var{jdn}.
+
+When converting a Julian Day Number to a full time point: the count of
+hours must be set to @math{12} and the counts of minutes, seconds and
+nanoseconds must be set to zero.
 
 From the Calendar @acronym{FAQ}, section 2.16.1.
+@end defun
+
+
+@defun time-point->julian-date @var{year} @var{month} @var{day} @var{hours} @var{minutes} @var{seconds} @var{nanoseconds}
+Convert the given time point into a Julian Date value.
+@end defun
+
+
+@defun julian-date->time-point @var{jd}
+Convert a Julian Date value to a time point tuple; return @math{7}
+values: year, month, day, hours, minutes, seconds, nanoseconds.
 @end defun
 
 @c ------------------------------------------------------------
@@ -20512,156 +20552,6 @@ Return the ordinal week of the year which holds this date, ignoring a
 first partial week.  @var{day-of-week-starting-week} is the integer
 corresponding to the day of the week which is to be considered the first
 day of the week (Sunday=0, Monday=1, etc.).
-@end defun
-
-
-@c page
-@node time julian
-@section Time/Date/Julian Day/Modified Julian Day Converters
-
-
-@defun date->julian-day @var{date}
-Convert date to @emph{Julian Day}.
-@end defun
-
-
-@defun date->modified-julian-day @var{date}
-Convert date to @emph{Modified Julian Day}.
-@end defun
-
-
-@defun date->time-monotonic @var{date}
-Convert date to monotonic time.
-@end defun
-
-
-@defun date->time-tai @var{date}
-Convert date to @tai{} time.
-@end defun
-
-
-@defun date->time-utc @var{date}
-Convert date to @utc{} time.
-@end defun
-
-
-@defun julian-day->date @var{jd} [@var{tz-offset}]
-Convert a @emph{Julian Day} to a date, using a time zone offset, which
-defaults to the local time zone.
-@end defun
-
-
-@defun julian-day->time-monotonic @var{jd}
-Convert a @emph{Julian Day} to monotonic time.
-@end defun
-
-
-@defun julian-day->time-tai @var{jd}
-Convert a @emph{Julian Day} to @tai{} time.
-@end defun
-
-
-@defun julian-day->time-utc @var{jd}
-Convert a @emph{Julian Day} to @utc{} time.
-@end defun
-
-
-@defun modified-julian-day->date @var{mjd} [@var{tz-offset}]
-Convert a @emph{Modified Julian Day} to adate, using a time zone offset,
-which defaults to the local time zone.
-@end defun
-
-
-@defun modified-julian-day->time-monotonic @var{mjd}
-Convert @emph{Modified Julian Day} to monotonic time.
-@end defun
-
-
-@defun modified-julian-day->time-tai @var{mjd}
-Convert a @emph{Modified Julian Day} to @tai{} time.
-@end defun
-
-
-@defun modified-julian-day->time-utc @var{mjd}
-Convert @emph{Modified Julian Day} to @utc{} time.
-@end defun
-
-
-@defun time-monotonic->date @var{time-monotonic} [@var{tz-offset}]
-Convert monotonic time to date, using time zone offset, which defaults
-to the local time zone.
-@end defun
-
-
-@defun time-monotonic->julian-day @var{time-monotonic}
-Convert monotonic time to @emph{Julian Day}.
-@end defun
-
-
-@defun time-monotonic->modified-julian-day time-monotonic
-Convert monotonic time to @emph{Modified Julian Day}.
-@end defun
-
-
-@defun time-monotonic->time-tai @var{time-monotonic}
-Convert monotonic time to @tai{} time.
-@end defun
-
-
-@defun time-monotonic->time-utc @var{time-monotonic}
-Convert monotonic time to @utc{} time.
-@end defun
-
-
-@defun time-tai->date @var{time-tai} [@var{tz-offset}]
-Convert @tai{} time to date, using time zone offset, which defaults to
-the local time zone.
-@end defun
-
-
-@defun time-tai->julian-day @var{time-tai}
-Convert @tai{} time to @emph{Julian Day}.
-@end defun
-
-
-@defun time-tai->modified-julian-day @var{time-tai}
-Convert @tai{} time to @emph{Modified Julian Day}.
-@end defun
-
-
-@defun time-tai->time-monotonic @var{time-tai}
-Convert @tai{} time to monotonic time.
-@end defun
-
-
-@defun time-tai->time-utc @var{time-tai}
-Convert @tai{} time to monotonic time.
-@end defun
-
-
-@defun time-utc->date @var{time-utc} [@var{tz-offset}]
-Convert @utc{} time to date, using time zone offset, which defaults to
-the local time zone.
-@end defun
-
-
-@defun time-utc->julian-day @var{time-utc}
-Convert @utc{} time to @emph{Julian Day}.
-@end defun
-
-
-@defun time-utc->modified-julian-day @var{time-utc}
-Convert @utc{} time to @emph{Modified Julian Day}.
-@end defun
-
-
-@defun time-utc->time-monotonic @var{time-utc}
-Convert @utc{} time to monotonic time.
-@end defun
-
-
-@defun time-utc->time-tai @var{time-utc}
-Convert @utc{} time to @tai{} time.
 @end defun
 
 @c page

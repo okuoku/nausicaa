@@ -140,7 +140,7 @@
 (define-constant $number-of-seconds-in-one-nanosecond		#e1e-9)
 (define-constant $number-of-seconds-in-one-microsecond		#e1e-6)
 (define-constant $number-of-seconds-in-one-millisecond		#e1e-3)
-(define-constant $number-of-seconds-in-one-minute			60)
+(define-constant $number-of-seconds-in-one-minute		60)
 (define-constant $number-of-seconds-in-one-hour			(* 60 60))
 (define-constant $number-of-seconds-in-one-day			(* 60 60 24))
 
