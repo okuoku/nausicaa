@@ -48,7 +48,9 @@
 
     ;; definition clauses handling
     validate-list-of-clauses		filter-clauses
-    validate-definition-clauses)
+    validate-definition-clauses
+
+    define-auxiliary-syntax)
   (import (rnrs))
 
 
@@ -378,6 +380,13 @@
 		(when (< 1 (length err))
 		  (synner "mutually exclusive clauses" err))))
     exclusive-keywords-sets))
+
+
+(define-syntax define-auxiliary-syntax
+  (syntax-rules ()
+    ((_ ?name)
+     (define-syntax ?name (syntax-rules ())))))
+
 
 
 ;;;; done

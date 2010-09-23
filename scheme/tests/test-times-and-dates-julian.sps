@@ -62,7 +62,7 @@
   (checks))
 
 (check-set-mode! 'report-failed)
-(display "*** testing times-and-dates julian day number\n")
+(display "*** testing times-and-dates julian dates and numbers\n")
 
 (define epsilon 1e-3)
 (define (eq=? a b)

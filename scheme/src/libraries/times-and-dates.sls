@@ -62,6 +62,9 @@
     ;; classes
     <date> <time> <duration> <seconds-and-nanoseconds>
 
+    ;; auxiliary syntaxes
+    year month day hour minute seconds milliseconds microseconds nanoseconds
+
     ;; functions
     duration=
     duration<		duration>
@@ -78,12 +81,50 @@
     time-resolution
 
     ;; string conversion
-    date->string string->date)
+    date->string string->date
+
+    ;; class functions
+    make-<seconds-and-nanoseconds> <seconds-and-nanoseconds>?
+    <seconds-and-nanoseconds>-deep-clone
+    <seconds-and-nanoseconds>-shallow-clone
+    <seconds-and-nanoseconds>-seconds
+    <seconds-and-nanoseconds>-nanoseconds
+    <seconds-and-nanoseconds>-full-seconds
+    <seconds-and-nanoseconds>-full-milliseconds
+    <seconds-and-nanoseconds>-full-microseconds
+    <seconds-and-nanoseconds>-full-nanoseconds
+
+    make-<duration> <duration>?
+    <duration>-deep-clone
+    <duration>-shallow-clone
+    <duration>-seconds
+    <duration>-nanoseconds
+    <duration>-full-seconds
+    <duration>-full-milliseconds
+    <duration>-full-microseconds
+    <duration>-full-nanoseconds
+
+    make-<time> <time>?
+    <time>-deep-clone
+    <time>-shallow-clone
+    <time>-=
+    <time>-<
+    <time>-<=
+    <time>->
+    <time>->=
+    <time>-+
+    <time>--
+    <time>-date
+    <time>-julian-day
+    <time>-modified-julian-day
+
+    )
   (import (nausicaa)
     (rnrs mutable-strings)
     (generics)
     (infix syntax)
     (formations)
+    (only (syntax-utilities) define-auxiliary-syntax)
     (times-and-dates seconds-and-subseconds)
     (times-and-dates gregorian)
     (times-and-dates julian-day)
@@ -103,6 +144,20 @@
 
 (define-inline (%seconds-unit-count? count)
   (and (exact? count) (integer? count)))
+
+(define-auxiliary-syntax year)
+(define-auxiliary-syntax month)
+(define-auxiliary-syntax day)
+(define-auxiliary-syntax hour)
+(define-auxiliary-syntax minute)
+(define-auxiliary-syntax seconds)
+(define-auxiliary-syntax milliseconds)
+(define-auxiliary-syntax microseconds)
+(define-auxiliary-syntax nanoseconds)
+
+(define-auxiliary-syntax julian-date)
+(define-auxiliary-syntax julian-day)
+(define-auxiliary-syntax modified-julian-day)
 
 
 ;;;; global variables and constants
@@ -145,27 +200,6 @@
   (char=? $escape-char ?char))
 
 
-;;;; errors
-
-(define (%time-error who tag value)
-  (define-constant tm:time-error-tags
-    '((invalid-clock-type		. "invalid clock type")
-      (unsupported-clock-type		. "unsupported clock type")
-      (incompatible-time-types		. "incompatible time types")
-      (not-duration			. "not duration")
-      (dates-are-immutable		. "dates are immutable")
-      (bad-date-format-string		. "bad date format string")
-      (bad-date-template-string		. "bad date template string")
-      (invalid-month-specification	. "invalid month specification")))
-  (cond ((assq tag tm:time-error-tags)
-	 => (lambda (p)
-	      (if value
-		  (error who (cdr p) value)
-		(error who (cdr p)))))
-	(else
-	 (assertion-violation who "internal error: unsupported error tag" tag))))
-
-
 (define-class <seconds-and-nanoseconds>
   (nongenerative nausicaa:times-and-dates:<seconds-and-nanoseconds>)
 
@@ -178,10 +212,10 @@
 		  ((make-top) secs nanosecs)))))
 
   (maker ()
-  	 (:seconds	0)
-  	 (:milliseconds	0)
-  	 (:microseconds	0)
-  	 (:nanoseconds	0))
+  	 (seconds	0)
+  	 (milliseconds	0)
+  	 (microseconds	0)
+  	 (nanoseconds	0))
   (maker-protocol (lambda (make-top)
   		    (lambda (secs millisecs microsecs nanosecs)
   		      (assert (%seconds-unit-count? secs))
@@ -232,10 +266,10 @@
 		  ((make-seconds-and-nanoseconds secs nanosecs))))))
 
   (maker ()
-	 (:seconds	0)
-	 (:milliseconds	0)
-	 (:microseconds	0)
-	 (:nanoseconds	0))
+	 (seconds	0)
+	 (milliseconds	0)
+	 (microseconds	0)
+	 (nanoseconds	0))
   (maker-protocol (lambda (make-seconds-and-nanoseconds)
 		    (lambda (secs millisecs microsecs nanosecs)
 		      (assert (%seconds-unit-count? secs))
@@ -247,6 +281,15 @@
 			((make-seconds-and-nanoseconds secs nanosecs))))))
 
   (methods deep-clone shallow-clone = < > <= >= + - * /))
+
+;;; --------------------------------------------------------------------
+
+(define <duration>-seconds		<seconds-and-nanoseconds>-seconds)
+(define <duration>-nanoseconds		<seconds-and-nanoseconds>-nanoseconds)
+(define <duration>-full-seconds		<seconds-and-nanoseconds>-full-seconds)
+(define <duration>-full-milliseconds	<seconds-and-nanoseconds>-full-milliseconds)
+(define <duration>-full-microseconds	<seconds-and-nanoseconds>-full-microseconds)
+(define <duration>-full-nanoseconds	<seconds-and-nanoseconds>-full-nanoseconds)
 
 ;;; --------------------------------------------------------------------
 
@@ -404,12 +447,13 @@
 		  ((make-seconds-and-nanoseconds secs nanosecs))))))
 
   (maker ()
-	 (:seconds		0)
-	 (:milliseconds		0)
-	 (:microseconds		0)
-	 (:nanoseconds		0)
-	 (:julian-day		#f)
-	 (:modified-julian-day	#f))
+	 (seconds		0)
+	 (milliseconds		0)
+	 (microseconds		0)
+	 (nanoseconds		0)
+	 (julian-date		#f)
+	 (julian-day		#f)
+	 (modified-julian-day	#f))
   (maker-protocol
    (lambda (make-seconds-and-nanoseconds)
      (define (%make-time-from-julian-day jdn)
@@ -421,7 +465,7 @@
      (define (%make-time-from-modified-julian-day mjdn)
        (%make-time-from-julian-day make-seconds-and-nanoseconds (+ mjdn 4800001/2)))
 
-     (lambda (secs millisecs microsecs nanosecs jdn mjdn)
+     (lambda (secs millisecs microsecs nanosecs jd jdn mjdn)
        (assert (%seconds-unit-count? secs))
        (assert (%seconds-unit-count? millisecs))
        (assert (%seconds-unit-count? microsecs))
@@ -722,7 +766,7 @@
 	 (%make-date-from-julian-day (%local-tz-offset)))
 	((jdn tz-offset)
 	 (let (((T <time>) (make* <time>
-			     (:julian-day jdn))))
+			     (julian-day jdn))))
 	   (T.date tz-offset)))))
      (define %make-date-from-modified-julian-day
        ;;Return  a <date> object  representing modified  JDN in  the selected
@@ -824,39 +868,6 @@
   (- (<date>-julian-day D) 4800001/2))
 
 
-;;;; helpers for date manipulation
-
-(define (%string-fractional-part r)
-  ;;Given the number R convert  it to string and return everything after
-  ;;the decimal dot.  Example:
-  ;;
-  ;;    (%fractional-part 1.2345) => ".2345"
-  ;;
-  (define (%string-index char str index len)
-    (cond ((>= index len)
-	   #f)
-	  ((char=? char (string-ref str index))
-	   index)
-	  (else
-	   (%string-index char str (+ index 1) len))))
-
-  (if (integer? r)
-      "0"
-    ;;The following FORMAT call was originally:
-    ;;
-    ;;	((str (number->string (inexact r))))
-    ;;
-    ;;which relied on  the fact that NUMBER->STRING returns  a string in
-    ;;fixed point format on many Scheme implementations.
-    ;;
-    ;;Unfortunately  implementations  like  Ikarus  return a  string  in
-    ;;exponential format, which cannot be processed like we need here.
-    ;;
-    (let* ((str  (format "~f" (inexact r)))
-	   (len  (string-length str)))
-      (substring str (+ 1 (%string-index #\. str 0 len)) len))))
-
-
 (define date->string
   ;;Convert D to string according to the template string in FORMAT.
   ;;
@@ -882,7 +893,7 @@
 	      (define (format-with-pad-char pad-char index)
 		(let ((formatter (%get-formatter (string-ref format index))))
 		  (if (not formatter)
-		      (%time-error 'date->string 'bad-date-format format)
+		      (error 'date->string "bad date format string" format)
 		    (begin
 		      (formatter D pad-char port)
 		      (next-char (+ 1 index))))))
@@ -1121,6 +1132,36 @@
 		 new-str)
 	      (string-set! new-str (+ new-str-offset i) (string-ref str i)))))))
 
+    (define (%string-fractional-part r)
+      ;;Given the  number R convert  it to string and  return everything
+      ;;after the decimal dot.  Example:
+      ;;
+      ;;    (%fractional-part 1.2345) => ".2345"
+      ;;
+      (define (%string-index char str index len)
+	(cond ((>= index len)
+	       #f)
+	      ((char=? char (string-ref str index))
+	       index)
+	      (else
+	       (%string-index char str (+ index 1) len))))
+
+      (if (integer? r)
+	  "0"
+	;;The following FORMAT call was originally:
+	;;
+	;;	((str (number->string (inexact r))))
+	;;
+	;;which relied on  the fact that NUMBER->STRING returns  a string in
+	;;fixed point format on many Scheme implementations.
+	;;
+	;;Unfortunately  implementations  like  Ikarus  return a  string  in
+	;;exponential format, which cannot be processed like we need here.
+	;;
+	(let* ((str  (format "~f" (inexact r)))
+	       (len  (string-length str)))
+	  (substring str (+ 1 (%string-index #\. str 0 len)) len))))
+
     (main D format))))
 
 
@@ -1175,7 +1216,7 @@
     ;;
     (let ((ch (peek-char port)))
       (cond ((eof-object? ch)
-	     (%time-error who 'bad-date-format-string template-string))
+	     (error 'string->date "bad date format string" template-string))
 	    ((not (skipper ch))
 	     (read-char port) ;discard char
 	     (%skip-until port skipper)))))
@@ -1218,8 +1259,8 @@
       ((#\8) 8)
       ((#\9) 9)
       (else
-       (%time-error who 'bad-date-template-string
-		    (list "Non-integer character" ch )))))
+       (error 'string->date
+	 (string-append "bad date template string, non-integer character: " (string ch))))))
 
   (define (%make-max-width-integer-reader upto)
     (define (%integer-reader upto port)
@@ -1264,8 +1305,8 @@
 	  (let ((ch (peek-char port)))
 	    (cond ((>= nchars n) accum)
 		  ((eof-object? ch)
-		   (%time-error who 'bad-date-template-string
-				"Premature ending to integer read."))
+		   (error 'string->date
+		     "bad date template string, premature ending to integer read"))
 		  ((char-numeric? ch)
 		   (set! padding-ok #f)
 		   (loop (+ (* accum 10) (%char->int (read-char port)))
@@ -1274,8 +1315,8 @@
 		   (read-char port) ;consume padding
 		   (loop accum (+ nchars 1)))
 		  (else ;padding where it shouldn't be
-		   (%time-error who 'bad-date-template-string
-				"Non-numeric characters in integer read.")))))))
+		   (error 'string->date
+		     "bad date template string, non-numeric characters in integer read")))))))
     (lambda (port)
       (%integer-reader-exact n port)))
 

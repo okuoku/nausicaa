@@ -943,12 +943,7 @@ Time data types and procedures
 * time point::                  Points in time.
 * time date::                   Date object.
 * time utils::                  Miscellaneous utilities.
-* time const::                  Constants.
 * time current::                Current time and clock resolution.
-* time timeobj::                Time object and accessors.
-* time timeobj compar::         Time object comparison procedures.
-* time timeobj arithm::         Time object arithmetic procedures.
-* time dateobj::                Date object and accessors.
 * time string::                 Date to string/string to date
                                 converters.
 
@@ -972,26 +967,6 @@ Overview of the library
 * time overview time::          Time points and interval durations.
 * time overview date::          Dates and calendar.
 * time overview julian::        Julian dates and numbers.
-
-Seconds and nanoseconds objects
-
-* time secs class::             Seconds and nanoseconds class
-                                type definition.
-* time secs utils::             Utility fields and methods.
-
-Time duration objects
-
-* time duration class::         Time duration class type definition.
-* time duration compar::        Comparing time durations.
-* time duration arith::         Arithmetic functions.
-* time duration utils::         Utility fields and methods.
-
-Points in time
-
-* time point class::            Point in time class type definition.
-* time point compar::           Comparing time points.
-* time point arith::            Arithmetic functions.
-* time point utils::            Utility functions.
 
 Miscellaneous utilities
 
@@ -18491,12 +18466,7 @@ informations and informations extracted from the
 * time point::                  Points in time.
 * time date::                   Date object.
 * time utils::                  Miscellaneous utilities.
-* time const::                  Constants.
 * time current::                Current time and clock resolution.
-* time timeobj::                Time object and accessors.
-* time timeobj compar::         Time object comparison procedures.
-* time timeobj arithm::         Time object arithmetic procedures.
-* time dateobj::                Date object and accessors.
 * time string::                 Date to string/string to date
                                 converters.
 @end menu
@@ -18762,13 +18732,13 @@ are not important, @gmt{} can be considered equivalent to @utc{}; saying
 @cindex Local time
 
 
-A @uref{http://en.wikipedia.org/wiki/Time_zone, @dfn{time zone}} is a
-region on Earth, more or less bounded by lines of longitude, that has a
-uniform, legally mandated standard time, usually referred to as the
-``local time''; @math{24} time zones around the world can be expressed
-as positive or negative offsets from @utc{} (the mean solar time at the
-Royal Observatory, Greenwich).  Local time is @utc{} plus the current
-time zone offset for the location in question.
+A @uref{http://@/en.wikipedia.org/@/wiki/@/Time_zone, @dfn{time zone}}
+is a region on Earth, more or less bounded by lines of longitude, that
+has a uniform, legally mandated standard time, usually referred to as
+the ``local time''; @math{24} time zones around the world can be
+expressed as positive or negative offsets from @utc{} (the mean solar
+time at the Royal Observatory, Greenwich).  Local time is @utc{} plus
+the current time zone offset for the location in question.
 
 Ideally, the increase proceeds eastward from the eastern boundary of the
 @utc{} time zone, increasing by one hour (@math{3600} seconds) for each
@@ -18808,7 +18778,7 @@ verified Sat Sep 18, 2010):
 @cindex @dst{}, Daylight Saving Time
 
 
-The @uref{http://en.wikipedia.org/wiki/Daylight_saving_time,
+The @uref{http://@/en.wikipedia.org/@/wiki/@/Daylight_saving_time,
 @dfn{Daylight Saving Time}} is the practice of temporarily advancing
 clocks so that afternoons have more daylight and mornings have less;
 clocks are adjusted forward one hour near the start of spring and are
@@ -18922,7 +18892,8 @@ divisible by @math{100} is not a leap year.  However, every year
 divisible by @math{400} is a leap year after all.
 @end quotation
 
-The @uref{http://en.wikipedia.org/wiki/Proleptic_Gregorian_calendar,
+The
+@uref{http://@/en.wikipedia.org/@/wiki/@/Proleptic_Gregorian_calendar,
 @dfn{proleptic Gregorian calendar}} is produced by extending the
 Gregorian calendar backward to dates preceding its official introduction
 in 1582.
@@ -18955,8 +18926,8 @@ unit equal to seven days.
 @cindex Julian Day Number
 
 
-The @uref{http://en.wikipedia.org/wiki/Julian_day, @dfn{Julian Date}} is
-the interval of time in days and fractions of a day since
+The @uref{http://@/en.wikipedia.org/@/wiki/@/Julian_day, @dfn{Julian
+Date}} is the interval of time in days and fractions of a day since
 -4714-11-24T12:00:00Z (November 24, -4714 at noon, @utc{}).
 
 The @dfn{Julian Day Number} is the integral part of the Julian Date.
@@ -19291,21 +19262,10 @@ $ date '+%s' --date="$now"
 @section Seconds and nanoseconds objects
 
 
-@menu
-* time secs class::             Seconds and nanoseconds class
-                                type definition.
-* time secs utils::             Utility fields and methods.
-@end menu
-
-@c page
-@node time secs class
-@subsection Seconds and nanoseconds class type definition
-
-
 The @class{seconds-and-nanoseconds} class is meant to represent counts
-of seconds with neither fixed interpretation as points in time or
-duration, nor fixed time scale.  The following bindings are exported by
-the @library{times-and-dates} library.
+of seconds with neither selected interpretation as points in time or
+duration, nor selected time scale.  The following bindings are exported
+by the @library{times-and-dates} library.
 
 
 @deftp Class @aclass{seconds-and-nanoseconds}
@@ -19322,14 +19282,15 @@ negative.
 
 @defcv {Immutable Field} @aclass{seconds-and-nanoseconds} nanoseconds
 Exact integer representing nanoseconds count.  It can be positive, zero
-or negative.
+or negative and it is normalised to the range @math{[-999999999,
+999999999]}.
 @end defcv
 
 
 @deffn Syntax {make @aclass{seconds-and-nanoseconds}} @ameta{seconds} @ameta{nanoseconds}
 Expand to an expression evaluating to a new
 @class{seconds-and-nanoseconds} instance.  @meta{seconds} and
-@meta{nanoseconds} must expand into expression evaluating to exact
+@meta{nanoseconds} must expand into expressions evaluating to exact
 integers representing the counts of seconds and nanoseconds.
 @end deffn
 
@@ -19341,22 +19302,14 @@ counts are computed from the values given in the following maker
 clauses:
 
 @table @code
-@item :seconds @cmeta{seconds}
-@itemx :milliseconds @cmeta{milliseconds}
-@itemx :microseconds @cmeta{microseconds}
-@itemx :nanoseconds @cmeta{nanoseconds}
+@item seconds @cmeta{seconds}
+@itemx milliseconds @cmeta{milliseconds}
+@itemx microseconds @cmeta{microseconds}
+@itemx nanoseconds @cmeta{nanoseconds}
 Select the count in the specified seconds and subseconds units.  All the
 values are normalised to seconds and nanoseconds counts.
 @end table
 @end deffn
-
-@c page
-@node time secs utils
-@subsection Utility fields and methods
-
-
-The following bindings are exported by the @library{times-and-dates}
-library.
 
 
 @defmethod @aclass{seconds-and-nanoseconds} deep-clone
@@ -19373,26 +19326,45 @@ Exact numbers representing the time in seconds or the specified
 subseconds counts.
 @end defcv
 
+@c ------------------------------------------------------------
+
+@subsubheading Traditional record @api{}
+
+
+@defun make-<seconds-and-nanoseconds> @var{seconds} @var{nanoseconds}
+Build and return a new instance of @class{seconds-and-nanoseconds}.
+@end defun
+
+
+@defun <seconds-and-nanoseconds>? @var{obj}
+Return true if @var{obj} is an instance of
+@class{seconds-and-nanoseconds}.
+@end defun
+
+
+@defun <seconds-and-nanoseconds>-seconds @var{sn}
+@defunx <seconds-and-nanoseconds>-nanoseconds @var{sn}
+@defunx <seconds-and-nanoseconds>-full-seconds @var{sn}
+@defunx <seconds-and-nanoseconds>-full-microseconds @var{sn}
+@defunx <seconds-and-nanoseconds>-full-nanoseconds @var{sn}
+Accessors for concrete and virtual fields of a
+@class{seconds-and-nanoseconds} instance.
+@end defun
+
+
+@defun <seconds-and-nanoseconds>-deep-clone @var{sn}
+@defunx <seconds-and-nanoseconds>-shallow-clone @var{sn}
+Return a copy of a @class{seconds-and-nanoseconds} instance.
+@end defun
+
 @c page
 @node time duration
 @section Time duration objects
 
 
-@menu
-* time duration class::         Time duration class type definition.
-* time duration compar::        Comparing time durations.
-* time duration arith::         Arithmetic functions.
-* time duration utils::         Utility fields and methods.
-@end menu
-
-@c page
-@node time duration class
-@subsection Time duration class type definition
-
-
-A time duration is the algebric difference between two points in time on
-the @tai{} scale; durations can be defined directly, added to points in
-time or computed as difference between points in time.  Durations are
+A time duration is the algebraic difference between two points in time
+on the @tai{} scale; durations can be: defined directly, added to points
+in time or computed as difference between points in time.  Durations are
 represented by a seconds count and a nanoseconds count, which are
 normalised to be both non--negative or both non--positive.  The
 following bindings are exported by the @library{times-and-dates}
@@ -19400,8 +19372,8 @@ library.
 
 
 @deftp Class @aclass{duration}
-Base type representing a time duration on the @tai{} scale.  It is
-derived from @class{seconds-and-nanoseconds}.
+Type representing a time duration on the @tai{} scale; it is derived
+from @class{seconds-and-nanoseconds}.
 @end deftp
 
 
@@ -19415,9 +19387,9 @@ Exact integer representing nanoseconds count.
 @end defcv
 
 
-@deffn Syntax {make @aclass{duration}} @ameta{seconds} @ameta{nanoseconds}
+@deffn Syntax {make @aclass{duration}} @var{seconds} @var{nanoseconds}
 Expand to an expression evaluating to a new @class{duration} instance.
-@meta{seconds} and @meta{nanoseconds} must expand into expressions
+@var{seconds} and @var{nanoseconds} must expand into expressions
 evaluating to exact integers representing the counts of seconds on the
 @tai{} scale and the count of nanoseconds.
 
@@ -19426,33 +19398,37 @@ non--positive.
 @end deffn
 
 
-@deffn Syntax {make* @aclass{duration}} @ameta{clause} ...
+@deffn Syntax {make* @aclass{duration}} @var{clause} ...
 Expand to an expression evaluating to a new @class{duration} instance.
 The seconds and nanoseconds counts are computed from the values given in
 the following maker clauses and normalised to be both non--negative or
 both non--positive:
 
 @table @code
-@item :seconds @cmeta{seconds}
-@itemx :milliseconds @cmeta{milliseconds}
-@itemx :microseconds @cmeta{microseconds}
-@itemx :nanoseconds @cmeta{nanoseconds}
+@item seconds @var{seconds}
+@itemx milliseconds @var{milliseconds}
+@itemx microseconds @var{microseconds}
+@itemx nanoseconds @var{nanoseconds}
 Select the count in the specified seconds and subseconds units.  The
 seconds count must be on the @tai{} scale.
 @end table
 @end deffn
 
-@c page
-@node time duration compar
-@subsection Comparing time durations
+
+@defmethod @aclass{duration} deep-clone
+@defmethodx @aclass{duration} shallow-clone
+Return a copy of the object.
+@end defmethod
+
+@c ------------------------------------------------------------
+
+@subsubheading Comparing time durations
 
 
 Comparison aims at estabilishing the longer or shorter duration between
 a couple of durations; comparison functions do @strong{not} consider the
-sign of seconds and nanoseconds counts, they compare the absolute
-values.  The following bindings are exported by the
-@library{times-and-dates} library.
-
+sign of seconds and nanoseconds counts: they compare the absolute
+values.
 
 
 @defmethod @aclass{duration} = @var{duration}
@@ -19474,13 +19450,9 @@ Compare the @class{duration} arguments and return a boolean value.  When
 there are no arguments or only one argument: the return value is true.
 @end defun
 
-@c page
-@node time duration arith
-@subsection Arithmetic functions
+@c ------------------------------------------------------------
 
-
-The following bindings are exported by the @library{times-and-dates}
-library.
+@subsubheading Arithmetic functions
 
 
 @defmethod @aclass{duration} + @var{duration}
@@ -19523,41 +19495,50 @@ When called with no arguments: return a @class{duration} of zero seconds
 and zero nanoseconds.
 @end defun
 
-@c page
-@node time duration utils
-@subsection Utility fields and methods
+@c ------------------------------------------------------------
+
+@subsubheading Traditional record @api{}
 
 
-@defmethod @aclass{duration} deep-clone
-@defmethodx @aclass{duration} shallow-clone
-Return a copy of the object.
-@end defmethod
+@defun make-<duration> @var{seconds} @var{nanoseconds}
+Build and return a new @class{duration} instance.
+@end defun
+
+
+@defun <duration>? @var{obj}
+Return true if @var{obj} is an instance of @class{duration}.
+@end defun
+
+
+@defun <duration>-seconds @var{sn}
+@defunx <duration>-nanoseconds @var{sn}
+@defunx <duration>-full-seconds @var{sn}
+@defunx <duration>-full-microseconds @var{sn}
+@defunx <duration>-full-nanoseconds @var{sn}
+Accessors for concrete and virtual fields of a @class{duration}
+instance.
+@end defun
+
+
+@defun <duration>-deep-clone @var{sn}
+@defunx <duration>-shallow-clone @var{sn}
+Return a copy of a @class{duration} instance.
+@end defun
 
 @c page
 @node time point
 @section Points in time
 
 
-@menu
-* time point class::            Point in time class type definition.
-* time point compar::           Comparing time points.
-* time point arith::            Arithmetic functions.
-* time point utils::            Utility functions.
-@end menu
-
-@c page
-@node time point class
-@subsection Point in time class type definition
-
-
-A point time is described by seconds and nanoseconds counts on the
-@tai{} time scale using the Unix Epoch as origin.  The following
-bindings are exported by the @library{times-and-dates} library.
+A time point is described by seconds and nanoseconds counts on the
+@tai{} scale (no leap seconds, time zone zero, no daylight saving time)
+using the Unix Epoch as origin.  The following bindings are exported by
+the @library{times-and-dates} library.
 
 
 @deftp Class @aclass{time}
-Base type representing a time point on the @tai{} scale.  It is derived
-from @class{seconds-and-nanoseconds}.
+Type representing a time point; it is derived from
+@class{seconds-and-nanoseconds}.
 @end deftp
 
 
@@ -19571,9 +19552,16 @@ Exact integer representing nanoseconds count.
 @end defcv
 
 
-@deffn Syntax {make @aclass{time}} @ameta{seconds} @ameta{nanoseconds}
+@defcv {Immutable Virtual Field} @aclass{time} julian-day
+@defcvx {Immutable Virtual Field} @aclass{time} modified-julian-day
+Exact numbers representing the Julian Day Number and the Modified Julian
+Day Number corresponding to the instance's seconds on the @tai{} scale.
+@end defcv
+
+
+@deffn Syntax {make @aclass{time}} @var{seconds} @var{nanoseconds}
 Expand to an expression evaluating to a new @class{time} instance.
-@meta{seconds} and @meta{nanoseconds} must expand into expression
+@var{seconds} and @var{nanoseconds} must expand into expressions
 evaluating to exact integers representing the counts of seconds on the
 @tai{} scale and the count of nanoseconds.
 
@@ -19582,31 +19570,36 @@ non--positive.
 @end deffn
 
 
-@deffn Syntax {make* @aclass{time}} @ameta{clause} ...
+@deffn Syntax {make* @aclass{time}} @var{clause} ...
 Expand to an expression evaluating to a new @class{time} instance.  The
 seconds and nanoseconds counts are computed from the values given in the
 following maker clauses and normalised to be both non--negative or both
 non--positive:
 
 @table @code
-@item :seconds @cmeta{seconds}
-@itemx :milliseconds @cmeta{milliseconds}
-@itemx :microseconds @cmeta{microseconds}
-@itemx :nanoseconds @cmeta{nanoseconds}
+@item seconds @var{seconds}
+@itemx milliseconds @var{milliseconds}
+@itemx microseconds @var{microseconds}
+@itemx nanoseconds @var{nanoseconds}
 Select the count in the specified seconds and subseconds units.  The
 seconds count must be on the @tai{} scale.
 @end table
 @end deffn
 
-@c page
-@node time point compar
-@subsection Comparing time points
+
+@defmethod @aclass{time} deep-clone
+@defmethodx @aclass{time} shallow-clone
+Return a copy of the object.
+@end defmethod
+
+@c ------------------------------------------------------------
+
+@subsubheading Comparing time points
 
 
 Comparison aims at estabilishing if a time point comes before or after
 another time point; comparison functions do consider the sign of seconds
-and nanoseconds counts.  The following bindings are exported by the
-@library{times-and-dates} library.
+and nanoseconds counts.
 
 
 @defmethod @aclass{time} = @var{time}
@@ -19628,13 +19621,9 @@ Compare the @class{time} arguments and return a boolean value.  When
 there are no arguments or only one argument: the return value is true.
 @end defun
 
-@c page
-@node time point arith
-@subsection Arithmetic functions
+@c ------------------------------------------------------------
 
-
-The following bindings are exported by the @library{times-and-dates}
-library.
+@subsubheading Arithmetic functions
 
 
 @defmethod @aclass{time} + @var{duration}
@@ -19670,22 +19659,9 @@ a new @class{duration} object representing the result.
 @end example
 @end defmethod
 
-@c page
-@node time point utils
-@subsection Utility functions
+@c ------------------------------------------------------------
 
-
-The following bindings are exported by the @library{times-and-dates}
-library.
-
-
-@defmethod @aclass{time} julian-day
-@defmethodx @aclass{time} julian-day @var{tz-offset}
-Return an exact number representing the Julian Day number corresponding
-to the instance's seconds on the @tai{} scale; @var{tz-offset} is the
-time zone offset in seconds, it defaults to the local time zone offset.
-Ignores the count of nanoseconds.
-@end defmethod
+@subsubheading Utility functions
 
 
 @defmethod @aclass{time} date
@@ -19694,6 +19670,35 @@ Return a @class{date} object representing the same time point of the
 instance.  @var{tz-offset} is the time zone offset in seconds, it
 defaults to the local time zone offset.
 @end defmethod
+
+@c ------------------------------------------------------------
+
+@subsubheading Traditional record @api{}
+
+
+@defun make-<time> @var{seconds} @var{nanoseconds}
+Build and return a new @class{time} instance.
+@end defun
+
+
+@defun <time>? @var{obj}
+Return true if @var{obj} is an instance of @class{time}.
+@end defun
+
+
+@defun <time>-seconds @var{sn}
+@defunx <time>-nanoseconds @var{sn}
+@defunx <time>-full-seconds @var{sn}
+@defunx <time>-full-microseconds @var{sn}
+@defunx <time>-full-nanoseconds @var{sn}
+Accessors for concrete and virtual fields of a @class{time} instance.
+@end defun
+
+
+@defun <time>-deep-clone @var{sn}
+@defunx <time>-shallow-clone @var{sn}
+Return a copy of a @class{time} instance.
+@end defun
 
 @c page
 @node time date
@@ -19715,7 +19720,7 @@ An integer between 0 and 59, inclusive.
 An integer between 0 and 23, inclusive.
 
 @item Day
-An integer between 0 and 31, inclusive, the upper limit depending on the
+An integer between 1 and 31, inclusive, the upper limit depending on the
 month and year of the point in time.
 
 @item Month
@@ -19729,6 +19734,81 @@ An integer representing the year.
 An integer representing the number of seconds East of @gmt{} for this
 timezone.
 @end table
+
+
+
+Date objects are immutable once created.  Notice that to do operations
+with date, like the arithmetic ones, we have to convert the date objects
+to time objects.
+
+
+@defun make-date @var{nanosecond} @var{second} @var{minute} @var{hour} @var{day} @var{month} @var{year} @var{zone-offset}
+Creates a date object.
+@end defun
+
+
+@defun date? @var{object}
+Return @true{} if @var{object} is a @emph{Date} object; otherwise return
+@false{}.
+@end defun
+
+
+@defun date-nanosecond @var{date}
+Return the @emph{Nanosecond} component of @var{date}.
+@end defun
+
+
+@defun date-second @var{date}
+Return the @emph{Second} component of @var{date}.
+@end defun
+
+
+@defun date-minute @var{date}
+Return the @emph{Minute} component of @var{date}.
+@end defun
+
+
+@defun date-hour @var{date}
+Return the @emph{Hour} component of @var{date}.
+@end defun
+
+
+@defun date-day @var{date}
+Return the @emph{Date} component of @var{date}.
+@end defun
+
+
+@defun date-month @var{date}
+Return the @emph{Month} component of @var{date}.
+@end defun
+
+
+@defun date-year @var{date}
+Return the @emph{Year} component of @var{date}.
+@end defun
+
+
+@defun date-zone-offset @var{date}
+Return the @emph{Time zone} component of @var{date}.
+@end defun
+
+
+@defun date-year-day @var{date}
+Return the ordinal day of the year of this date.  January 1 is 1, etc.
+@end defun
+
+
+@defun date-week-day @var{date}
+Return the day of the week of this date, where Sunday=0, Monday=1, etc.
+@end defun
+
+
+@defun date-week-number date day-of-week-starting-week
+Return the ordinal week of the year which holds this date, ignoring a
+first partial week.  @var{day-of-week-starting-week} is the integer
+corresponding to the day of the week which is to be considered the first
+day of the week (Sunday=0, Monday=1, etc.).
+@end defun
 
 
 
@@ -20171,18 +20251,18 @@ to be in their valid type and range:
 
 @itemize
 @item
-Nanoseconds as exact integers in @math{[0, 999999999)}.
+Nanoseconds as exact integers in @math{[0, 999999999]}.
 
 @item
-Seconds as exact integers in @math{[0, 59)} when fractions of a minute,
+Seconds as exact integers in @math{[0, 59]} when fractions of a minute,
 as exact integers when counts since the Epoch on the @tai{} or @utc{}
 scale.
 
 @item
-Minutes as exact integers in @math{[0, 59)}.
+Minutes as exact integers in @math{[0, 59]}.
 
 @item
-Hours as exact integers in @math{[0, 23)}.
+Hours as exact integers in @math{[0, 23]}.
 
 @item
 Days as exact integers in @math{[1, 28]}, @math{[1, 29]}, @math{[1, 30]}
@@ -20286,40 +20366,6 @@ Number @var{mjdn}.
 @end defun
 
 @c page
-@node time const
-@section Constants
-
-
-@deffn Variable time-duration
-Symbol representing @emph{Time} duration.
-@end deffn
-
-
-@deffn Variable time-monotonic
-Symbol representing monotonic time.
-@end deffn
-
-
-@deffn Variable time-process
-Symbol representing time spent in current process.
-@end deffn
-
-
-@deffn Variable time-tai
-Symbol representing @tai{} time.
-@end deffn
-
-
-@deffn Variable time-thread
-Symbol representing time spent in current thread.
-@end deffn
-
-
-@deffn Variable time-utc
-Symbol representting @utc{} time.
-@end deffn
-
-@c page
 @node time current
 @section Current time and clock resolution
 
@@ -20351,207 +20397,6 @@ Current time, of type @var{time-type} system, which defaults to
 Return an exact integer representing the clock resolution, in
 nanoseconds, of the system clock of type type @var{time-type} system,
 which defaults to @code{time-utc}.
-@end defun
-
-@c page
-@node time timeobj
-@section Time object and accessors
-
-
-@defun make-time @var{time-type} @var{nanosecond} @var{second}
-Return a new time object.
-@end defun
-
-
-@defun time? @var{object}
-@true{} if @var{object} is a @emph{Time} object, otherwise, @false{}.
-@end defun
-
-
-@defun time-type @var{time}
-Return the @var{Time type} symbol of @var{time}.  @ref{time intro}
-for details.
-@end defun
-
-
-@defun time-nanosecond @var{time}
-Return the @emph{Nanosecond} component of @var{time}.
-@end defun
-
-
-@defun time-second @var{time}
-Return the @emph{Second} component of @var{time}.
-@end defun
-
-
-@defun set-time-type! @var{time} @var{time-type}
-Set the @emph{Time type} component of @var{time} to @var{time-type},
-which must be one of the time type symbols.  @ref{time intro} for
-details.
-
-Note: This changes the semantics of the time object.  To convert a time
-to another system of representation, use one of the conversion
-procedures.
-@end defun
-
-
-@defun set-time-nanosecond! @var{time} @var{integer}
-Set the @emph{Nanosecond} component of @var{time} to @var{integer}.
-@end defun
-
-
-@defun set-time-second! time integer
-Set the @emph{Second} component of @var{time} to @var{integer}.
-@end defun
-
-
-@defun copy-time @var{time}
-Create a new time object, with the same @emph{Time type},
-@emph{nanosecond}, and @emph{Second} as @var{time}.
-@end defun
-
-@c page
-@node time timeobj compar
-@section Time object comparison procedures
-
-
-All of the time comparison procedures require the time objects to be of
-the same type.  It is an error to use these procedures on time objects
-of different types.  For the point--in--time measurements (e.g.
-@code{time-tai} and @code{time-utc}), the semantics are described in
-plain text.  For durations (e.g. @code{time-duration}, @code{time-cpu})
-the semantics are described in parentheses.
-
-
-@defun time<=? @var{time1} @var{time2}
-@true{} if @var{time1} is before or at (less than or equal to)
-@var{time2}, @false{} otherwise.
-@end defun
-
-
-@defun time<? @var{time1} @var{time2}
-@true{} if @var{time1} is before (less than) @var{time2}, @false{}
-otherwise.
-@end defun
-
-
-@defun time=? @var{time1} @var{time2}
-@true{} if @var{time1} at (equal) @var{time2}, @false{} otherwise.
-@end defun
-
-
-@defun time>=? @var{time1} @var{time2}
-@true{} if @var{time1} is at or after (greater than or equal to)
-@var{time2}, @false{} otherwise.
-@end defun
-
-
-@defun time>? @var{time1} @var{time2}
-@true{} if @var{time1} is after (greater than) @var{time2}, @false{}
-otherwise.
-@end defun
-
-@c page
-@node time timeobj arithm
-@section Time object arithmetic procedures
-
-
-@defun time-difference @vari{time} @varii{time}
-Return the time duration between @vari{time} and @varii{time}.  It is an
-error if @vari{time} and @varii{time} are of different time types.  A new
-time object is created.
-@end defun
-
-
-@defun add-duration @var{time} @var{time-duration}
-Return the time resulting from adding @var{time-duration} to @var{time},
-which is a time object of the same time type as @var{time}.  A new time
-object is created.
-@end defun
-
-
-@defun subtract-duration @var{time} @var{time-duration}
-Return the time resulting from subtracting @var{time-duration} from
-@var{time}, which is a time object of the same time type as @var{time}.
-A new time object is created.
-@end defun
-
-@c page
-@node time dateobj
-@section Date object and accessors
-
-
-Date objects are immutable once created.  Notice that to do operations
-with date, like the arithmetic ones, we have to convert the date objects
-to time objects.
-
-
-@defun make-date @var{nanosecond} @var{second} @var{minute} @var{hour} @var{day} @var{month} @var{year} @var{zone-offset}
-Creates a date object.
-@end defun
-
-
-@defun date? @var{object}
-Return @true{} if @var{object} is a @emph{Date} object; otherwise return
-@false{}.
-@end defun
-
-
-@defun date-nanosecond @var{date}
-Return the @emph{Nanosecond} component of @var{date}.
-@end defun
-
-
-@defun date-second @var{date}
-Return the @emph{Second} component of @var{date}.
-@end defun
-
-
-@defun date-minute @var{date}
-Return the @emph{Minute} component of @var{date}.
-@end defun
-
-
-@defun date-hour @var{date}
-Return the @emph{Hour} component of @var{date}.
-@end defun
-
-
-@defun date-day @var{date}
-Return the @emph{Date} component of @var{date}.
-@end defun
-
-
-@defun date-month @var{date}
-Return the @emph{Month} component of @var{date}.
-@end defun
-
-
-@defun date-year @var{date}
-Return the @emph{Year} component of @var{date}.
-@end defun
-
-
-@defun date-zone-offset @var{date}
-Return the @emph{Time zone} component of @var{date}.
-@end defun
-
-
-@defun date-year-day @var{date}
-Return the ordinal day of the year of this date.  January 1 is 1, etc.
-@end defun
-
-
-@defun date-week-day @var{date}
-Return the day of the week of this date, where Sunday=0, Monday=1, etc.
-@end defun
-
-
-@defun date-week-number date day-of-week-starting-week
-Return the ordinal week of the year which holds this date, ignoring a
-first partial week.  @var{day-of-week-starting-week} is the integer
-corresponding to the day of the week which is to be considered the first
-day of the week (Sunday=0, Monday=1, etc.).
 @end defun
 
 @c page

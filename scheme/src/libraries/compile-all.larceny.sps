@@ -36,9 +36,6 @@
 
 ;;Core libraries
 
-(%compile-library "auxiliary-syntaxes.larceny.sls"
-		  "auxiliary-syntaxes.larceny.slfasl")
-
 (%compile-library "cond-expand/registry.sls"
  		  "cond-expand/registry.slfasl")
 
@@ -59,6 +56,9 @@
 
 (%compile-library "syntax-utilities.sls"
 		  "syntax-utilities.slfasl")
+
+(%compile-library "auxiliary-syntaxes.larceny.sls"
+		  "auxiliary-syntaxes.larceny.slfasl")
 
 (%compile-library "conditions.sls"
 		  "conditions.slfasl")

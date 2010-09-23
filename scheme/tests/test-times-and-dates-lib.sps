@@ -84,36 +84,36 @@
 
   (check
       (is-a? (make* <seconds-and-nanoseconds>
-	       (:seconds 1)
-	       (:nanoseconds 2))
+	       (seconds 1)
+	       (nanoseconds 2))
 	     <seconds-and-nanoseconds>)
     => #t)
 
   (check
       (let (((S <seconds-and-nanoseconds>) (make* <seconds-and-nanoseconds>
-					     (:seconds 1)
-					     (:nanoseconds 2))))
+					     (seconds 1)
+					     (nanoseconds 2))))
 	(list S.seconds S.nanoseconds))
     => '(1 2))
 
   (check
       (let (((S <seconds-and-nanoseconds>) (make* <seconds-and-nanoseconds>
-					     (:seconds -10)
-					     (:nanoseconds #e-1.001e9))))
+					     (seconds -10)
+					     (nanoseconds #e-1.001e9))))
 	(list S.seconds S.nanoseconds))
     => '(-11 #e-1e6))
 
   (check
       (let (((S <seconds-and-nanoseconds>) (make* <seconds-and-nanoseconds>
-					     (:seconds 1)
-					     (:milliseconds 123))))
+					     (seconds 1)
+					     (milliseconds 123))))
 	(list S.seconds S.nanoseconds))
     => '(1 #e123e6))
 
   (check
       (let (((S <seconds-and-nanoseconds>) (make* <seconds-and-nanoseconds>
-					     (:seconds 1)
-					     (:microseconds 123))))
+					     (seconds 1)
+					     (microseconds 123))))
 	(list S.seconds S.nanoseconds))
     => '(1 #e123e3))
 
@@ -137,22 +137,22 @@
 
   (check
       (let (((S <seconds-and-nanoseconds>) (make* <seconds-and-nanoseconds>
-					     (:seconds 1)
-					     (:nanoseconds 1))))
+					     (seconds 1)
+					     (nanoseconds 1))))
 	S.full-seconds)
     => #e1.000000001)
 
   (check
       (let (((S <seconds-and-nanoseconds>) (make* <seconds-and-nanoseconds>
-					     (:seconds 1)
-					     (:microseconds 1))))
+					     (seconds 1)
+					     (microseconds 1))))
 	S.full-seconds)
     => #e1.000001)
 
   (check
       (let (((S <seconds-and-nanoseconds>) (make* <seconds-and-nanoseconds>
-					     (:seconds 1)
-					     (:milliseconds 1))))
+					     (seconds 1)
+					     (milliseconds 1))))
 	S.full-seconds)
     => #e1.001)
 
@@ -161,22 +161,22 @@
 
   (check
       (let (((S <seconds-and-nanoseconds>) (make* <seconds-and-nanoseconds>
-					     (:seconds 1)
-					     (:nanoseconds 1))))
+					     (seconds 1)
+					     (nanoseconds 1))))
 	S.full-milliseconds)
     => #e1000.000001)
 
   (check
       (let (((S <seconds-and-nanoseconds>) (make* <seconds-and-nanoseconds>
-					     (:seconds 1)
-					     (:microseconds 1))))
+					     (seconds 1)
+					     (microseconds 1))))
 	S.full-milliseconds)
     => #e1000.001)
 
   (check
       (let (((S <seconds-and-nanoseconds>) (make* <seconds-and-nanoseconds>
-					     (:seconds 1)
-					     (:milliseconds 1))))
+					     (seconds 1)
+					     (milliseconds 1))))
 	S.full-milliseconds)
     => #e1001)
 
@@ -185,22 +185,22 @@
 
   (check
       (let (((S <seconds-and-nanoseconds>) (make* <seconds-and-nanoseconds>
-					     (:seconds 1)
-					     (:nanoseconds 1))))
+					     (seconds 1)
+					     (nanoseconds 1))))
 	S.full-microseconds)
     => #e1000000.001)
 
   (check
       (let (((S <seconds-and-nanoseconds>) (make* <seconds-and-nanoseconds>
-					     (:seconds 1)
-					     (:microseconds 1))))
+					     (seconds 1)
+					     (microseconds 1))))
 	S.full-microseconds)
     => #e1000001)
 
   (check
       (let (((S <seconds-and-nanoseconds>) (make* <seconds-and-nanoseconds>
-					     (:seconds 1)
-					     (:milliseconds 1))))
+					     (seconds 1)
+					     (milliseconds 1))))
 	S.full-microseconds)
     => #e1001000)
 
@@ -209,22 +209,22 @@
 
   (check
       (let (((S <seconds-and-nanoseconds>) (make* <seconds-and-nanoseconds>
-					     (:seconds 1)
-					     (:nanoseconds 1))))
+					     (seconds 1)
+					     (nanoseconds 1))))
 	S.full-nanoseconds)
     => #e1000000001)
 
   (check
       (let (((S <seconds-and-nanoseconds>) (make* <seconds-and-nanoseconds>
-					     (:seconds 1)
-					     (:microseconds 1))))
+					     (seconds 1)
+					     (microseconds 1))))
 	S.full-nanoseconds)
     => #e1000001000)
 
   (check
       (let (((S <seconds-and-nanoseconds>) (make* <seconds-and-nanoseconds>
-					     (:seconds 1)
-					     (:milliseconds 1))))
+					     (seconds 1)
+					     (milliseconds 1))))
 	S.full-nanoseconds)
     => #e1001000000)
 
@@ -251,36 +251,36 @@
 
   (check
       (is-a? (make* <duration>
-	       (:seconds 1)
-	       (:nanoseconds 2))
+	       (seconds 1)
+	       (nanoseconds 2))
 	     <duration>)
     => #t)
 
   (check
       (let (((D <duration>) (make* <duration>
-			      (:seconds 1)
-			      (:nanoseconds 2))))
+			      (seconds 1)
+			      (nanoseconds 2))))
 	(list D.seconds D.nanoseconds))
     => '(1 2))
 
   (check
       (let (((D <duration>) (make* <duration>
-			      (:seconds -10)
-			      (:nanoseconds #e-1.001e9))))
+			      (seconds -10)
+			      (nanoseconds #e-1.001e9))))
 	(list D.seconds D.nanoseconds))
     => '(-11 #e-1e6))
 
   (check
       (let (((D <duration>) (make* <duration>
-			      (:seconds 1)
-			      (:milliseconds 123))))
+			      (seconds 1)
+			      (milliseconds 123))))
 	(list D.seconds D.nanoseconds))
     => '(1 #e123e6))
 
   (check
       (let (((D <duration>) (make* <duration>
-			      (:seconds 1)
-			      (:microseconds 123))))
+			      (seconds 1)
+			      (microseconds 123))))
 	(list D.seconds D.nanoseconds))
     => '(1 #e123e3))
 
@@ -304,22 +304,22 @@
 
   (check
       (let (((D <duration>) (make* <duration>
-			      (:seconds 1)
-			      (:nanoseconds 1))))
+			      (seconds 1)
+			      (nanoseconds 1))))
 	D.full-seconds)
     => #e1.000000001)
 
   (check
       (let (((D <duration>) (make* <duration>
-			      (:seconds 1)
-			      (:microseconds 1))))
+			      (seconds 1)
+			      (microseconds 1))))
 	D.full-seconds)
     => #e1.000001)
 
   (check
       (let (((D <duration>) (make* <duration>
-			      (:seconds 1)
-			      (:milliseconds 1))))
+			      (seconds 1)
+			      (milliseconds 1))))
 	D.full-seconds)
     => #e1.001)
 
@@ -328,22 +328,22 @@
 
   (check
       (let (((D <duration>) (make* <duration>
-			      (:seconds 1)
-			      (:nanoseconds 1))))
+			      (seconds 1)
+			      (nanoseconds 1))))
 	D.full-milliseconds)
     => #e1000.000001)
 
   (check
       (let (((D <duration>) (make* <duration>
-			      (:seconds 1)
-			      (:microseconds 1))))
+			      (seconds 1)
+			      (microseconds 1))))
 	D.full-milliseconds)
     => #e1000.001)
 
   (check
       (let (((D <duration>) (make* <duration>
-			      (:seconds 1)
-			      (:milliseconds 1))))
+			      (seconds 1)
+			      (milliseconds 1))))
 	D.full-milliseconds)
     => #e1001)
 
@@ -352,22 +352,22 @@
 
   (check
       (let (((D <duration>) (make* <duration>
-			      (:seconds 1)
-			      (:nanoseconds 1))))
+			      (seconds 1)
+			      (nanoseconds 1))))
 	D.full-microseconds)
     => #e1000000.001)
 
   (check
       (let (((D <duration>) (make* <duration>
-			      (:seconds 1)
-			      (:microseconds 1))))
+			      (seconds 1)
+			      (microseconds 1))))
 	D.full-microseconds)
     => #e1000001)
 
   (check
       (let (((D <duration>) (make* <duration>
-			      (:seconds 1)
-			      (:milliseconds 1))))
+			      (seconds 1)
+			      (milliseconds 1))))
 	D.full-microseconds)
     => #e1001000)
 
@@ -376,22 +376,22 @@
 
   (check
       (let (((D <duration>) (make* <duration>
-			      (:seconds 1)
-			      (:nanoseconds 1))))
+			      (seconds 1)
+			      (nanoseconds 1))))
 	D.full-nanoseconds)
     => #e1000000001)
 
   (check
       (let (((D <duration>) (make* <duration>
-			      (:seconds 1)
-			      (:microseconds 1))))
+			      (seconds 1)
+			      (microseconds 1))))
 	D.full-nanoseconds)
     => #e1000001000)
 
   (check
       (let (((D <duration>) (make* <duration>
-			      (:seconds 1)
-			      (:milliseconds 1))))
+			      (seconds 1)
+			      (milliseconds 1))))
 	D.full-nanoseconds)
     => #e1001000000)
 
@@ -891,36 +891,36 @@
 
   (check
       (is-a? (make* <time>
-	       (:seconds 1)
-	       (:nanoseconds 2))
+	       (seconds 1)
+	       (nanoseconds 2))
 	     <time>)
     => #t)
 
   (check
       (let (((T <time>) (make* <time>
-			      (:seconds 1)
-			      (:nanoseconds 2))))
+			  (seconds 1)
+			  (nanoseconds 2))))
 	(list T.seconds T.nanoseconds))
     => '(1 2))
 
   (check
       (let (((T <time>) (make* <time>
-			      (:seconds -10)
-			      (:nanoseconds #e-1.001e9))))
+			  (seconds -10)
+			  (nanoseconds #e-1.001e9))))
 	(list T.seconds T.nanoseconds))
     => '(-11 #e-1e6))
 
   (check
       (let (((T <time>) (make* <time>
-			      (:seconds 1)
-			      (:milliseconds 123))))
+			  (seconds 1)
+			  (milliseconds 123))))
 	(list T.seconds T.nanoseconds))
     => '(1 #e123e6))
 
   (check
       (let (((T <time>) (make* <time>
-			      (:seconds 1)
-			      (:microseconds 123))))
+			  (seconds 1)
+			  (microseconds 123))))
 	(list T.seconds T.nanoseconds))
     => '(1 #e123e3))
 
@@ -944,22 +944,22 @@
 
   (check
       (let (((T <time>) (make* <time>
-			      (:seconds 1)
-			      (:nanoseconds 1))))
+			  (seconds 1)
+			  (nanoseconds 1))))
 	T.full-seconds)
     => #e1.000000001)
 
   (check
       (let (((T <time>) (make* <time>
-			      (:seconds 1)
-			      (:microseconds 1))))
+			  (seconds 1)
+			  (microseconds 1))))
 	T.full-seconds)
     => #e1.000001)
 
   (check
       (let (((T <time>) (make* <time>
-			      (:seconds 1)
-			      (:milliseconds 1))))
+			  (seconds 1)
+			  (milliseconds 1))))
 	T.full-seconds)
     => #e1.001)
 
@@ -968,22 +968,22 @@
 
   (check
       (let (((T <time>) (make* <time>
-			      (:seconds 1)
-			      (:nanoseconds 1))))
+			  (seconds 1)
+			  (nanoseconds 1))))
 	T.full-milliseconds)
     => #e1000.000001)
 
   (check
       (let (((T <time>) (make* <time>
-			      (:seconds 1)
-			      (:microseconds 1))))
+			  (seconds 1)
+			  (microseconds 1))))
 	T.full-milliseconds)
     => #e1000.001)
 
   (check
       (let (((T <time>) (make* <time>
-			      (:seconds 1)
-			      (:milliseconds 1))))
+			  (seconds 1)
+			  (milliseconds 1))))
 	T.full-milliseconds)
     => #e1001)
 
@@ -992,22 +992,22 @@
 
   (check
       (let (((T <time>) (make* <time>
-			      (:seconds 1)
-			      (:nanoseconds 1))))
+			  (seconds 1)
+			  (nanoseconds 1))))
 	T.full-microseconds)
     => #e1000000.001)
 
   (check
       (let (((T <time>) (make* <time>
-			      (:seconds 1)
-			      (:microseconds 1))))
+			  (seconds 1)
+			  (microseconds 1))))
 	T.full-microseconds)
     => #e1000001)
 
   (check
       (let (((T <time>) (make* <time>
-			      (:seconds 1)
-			      (:milliseconds 1))))
+			  (seconds 1)
+			  (milliseconds 1))))
 	T.full-microseconds)
     => #e1001000)
 
@@ -1016,22 +1016,22 @@
 
   (check
       (let (((T <time>) (make* <time>
-			      (:seconds 1)
-			      (:nanoseconds 1))))
+			  (seconds 1)
+			  (nanoseconds 1))))
 	T.full-nanoseconds)
     => #e1000000001)
 
   (check
       (let (((T <time>) (make* <time>
-			      (:seconds 1)
-			      (:microseconds 1))))
+			  (seconds 1)
+			  (microseconds 1))))
 	T.full-nanoseconds)
     => #e1000001000)
 
   (check
       (let (((T <time>) (make* <time>
-			      (:seconds 1)
-			      (:milliseconds 1))))
+			  (seconds 1)
+			  (milliseconds 1))))
 	T.full-nanoseconds)
     => #e1001000000)
 

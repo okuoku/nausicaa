@@ -43,11 +43,8 @@
     ;; bindings for string and vector views
     view start past
     )
-  (import (rnrs))
-  (define-syntax define-auxiliary-syntax
-    (syntax-rules ()
-      ((_ ?name)
-       (define-syntax ?name (syntax-rules ())))))
+  (import (rnrs)
+    (only (syntax-utilities) define-auxiliary-syntax))
 
   (define-auxiliary-syntax inherit)
   (define-auxiliary-syntax predicate)
