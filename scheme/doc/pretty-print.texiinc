@@ -1,0 +1,14 @@
+@node pretty-print, parameters, lang, Top
+@chapter Pretty printing
+
+
+The following bindings are exported by the @library{pretty-print} library.
+
+
+@defun pretty-print @var{obj}
+@defunx pretty-print @var{obj} @var{port}
+Print a human readable representation of @var{obj} to @var{port} or the
+return value of @func{current-output-port}.
+@end defun
+
+@c end of file

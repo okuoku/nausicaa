@@ -1,0 +1,91 @@
+@node cond-expand, unimplemented, nausicaa, Top
+@chapter Feature--based conditional expansion
+
+
+It is desirable that programs which depend on additions to the standard
+Scheme language name those additions.  For example the @srfi{}s provide
+the specifications of some additions (``features'').  The
+@func{cond-expand} syntax described below provides the means to actually
+check that features are present in the Scheme system.
+
+A particular functionality may exist in several or even most Scheme
+systems but its @api{} may be different (use of a procedure or
+special--form, name, number of parameters, etc).  To write code that
+will run on several Scheme systems, it is useful to have a common
+construct to enable or disable sections of code based on the existence
+or absence of a feature in the Scheme system being used.
+
+Features are identified by feature identifiers.  In order for the
+semantics of this construct to be well--defined, the feature identifier
+must of course refer to a feature which has a well--defined meaning.
+There is thus a need for a registry to keep track of the formal
+specification associated with each valid feature--identifier.
+
+
+@deffn Syntax cond-expand @meta{clause} ...
+@deffnx Syntax cond-expand @meta{clause} ... (else @meta{body})
+Test for the existence of features at macro--expansion time.  Each
+@var{clause} has the following formal definition:
+
+@example
+<clause>
+        -> (<feature requirement> <body>)
+
+<feature requirement>
+        -> <feature identifier>
+         | (and <feature requirement>*)
+         | (or  <feature requirement>*)
+         | (not <feature requirement>)
+
+<feature identifier>
+        -> one of the symbols described below, or "else"
+@end example
+
+@func{cond-expand} either expands into the @meta{body} of one of its
+clauses or signals an error during syntactic processing.
+@func{cond-expand} expands into the body of the first clause whose
+feature requirement is currently satisfied (the @code{else} clause, if
+present, is selected if none of the previous clauses is selected).
+
+A @meta{feature requirement} has an obvious interpretation as a logical
+formula, where the @meta{feature identifier} symbols have meaning true
+if the associated feature is in effect at the location of the
+@func{cond-expand} form, and @false{} otherwise.  A feature requirement
+is satisfied if its formula is true under this interpretation.
+
+Examples:
+
+@example
+(cond-expand
+  ((or linux macos)
+   ---)
+  (windows
+   ---))
+@end example
+@end deffn
+
+
+What follows is the list of supported features.
+
+@table @code
+@item ikarus
+@itemx larceny
+@itemx mosh
+@itemx ypsilon
+The name of the underlying Scheme implementation.
+
+@item linux-gnu
+@itemx openbsd
+@itemx winnt3.5
+@itemx sysv4
+@itemx darwin
+@itemx ...
+Platform identifiers selected by the @code{AC_CANONICAL_TARGET} macro of
+@gnu{} Autoconf.  @xref{Canonicalizing, Canonicalizing, Getting the
+Canonical System Type, autoconf, @gnu{} Autoconf}.
+
+@item r6rs
+The @rnrs{6} Scheme language.
+@end table
+
+@c end of file

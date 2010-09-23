@@ -1,0 +1,107 @@
+@node shared-structures, sentinel, parameters, Top
+@chapter External representation for data with shared structure
+
+
+The following bindings are exported by the @library{shared-structures}
+library.
+
+@rnrs{6} Scheme provides the procedure @func{write}, which prints
+machine--readable representations of lists and other objects.  However,
+the printed representation does not preserve information about what
+parts of the structure are shared, and in the case of self--referential
+objects the behavior of @func{write} itself is undefined; it is
+permitted to go into an infinite loop.
+
+For example, it is possible to have a list within which two or more
+members are the same string (in the sense of @func{eq?}), but when the
+list is written, there is not sufficient information in the
+representation to recover the @func{eq?} relationship.  When the list is
+read back in, there will be two or more copies of the string which are
+@func{eqv?}  but not @func{eq?}.
+
+As an example of the second problem, the results of evaluating:
+
+@example
+(define a (cons 'val1 'val2))
+(set-cdr! a a)
+(write a)
+@end example
+
+@noindent
+are undefined.
+
+@defun write-with-shared-structure @var{obj}
+@defunx write-with-shared-structure @var{obj} @var{port}
+@defunx write-with-shared-structure @var{obj} @var{port} @var{optarg}
+@defunx write/ss @var{obj}
+@defunx write/ss @var{obj} @var{port}
+@defunx write/ss @var{obj} @var{port} @var{optarg}
+Write a written representation of @var{obj} to the given @var{port}.
+Strings that appear in the written representation are enclosed in
+doublequotes, and within those strings backslash and doublequote
+characters are escaped by backslashes.  Character objects are written
+using the @code{#\} notation.
+
+@func{write-with-shared-structure} and @func{write/ss} are bound to the
+same function.
+
+Objects which denote locations rather than values, if they appear at
+more than one point in the data being written, are preceded by
+@code{#N=} the first time they are written and replaced by @code{#N#}
+all subsequent times they are written, where @var{N} is a natural number
+used to identify that particular object.
+
+If objects which denote locations occur only once in the structure, then
+@func{write/ss} produces the same external representation for those
+objects as @func{write}.
+
+@func{write/ss} terminates in finite time when writing finite data, and
+produces a finite representation when writing finite data.
+
+@func{write/ss} returns an unspecified value.
+
+The @var{port} argument may be omitted, in which case it defaults to the
+value returned by @func{current-output-port}.
+
+The @var{optarg} is ignored.
+
+The following example shows a cons cell whose cdr contains itself:
+
+@example
+(define a (cons 'val1 'val2))
+(set-cdr! a a)
+(write/ss a)
+@print{} #1=(val1 . #1#)
+@end example
+@end defun
+
+
+@defun read-with-shared-structure
+@defunx read-with-shared-structure @var{port}
+@defunx read/ss
+@defunx read/ss @var{port}
+Convert the external representations of Scheme objects produced by
+@func{write/ss} into scheme objects.  Return the next object parsable
+from the given input @var{port}, updating @var{port} to point to the
+first character past the end of the external representation of the
+object.
+
+@func{read-with-shared-structure} and @func{read/ss} are bound to the
+same function.
+
+If an end--of--file is encountered in the input before any characters
+are found that can begin an object, then an end--of--file object is
+returned.  The port remains open, and further attempts to read it (by
+@func{read/ss} or @func{read}) will also return an end--of--file object.
+
+If an end--of--file is encountered after the beginning of an object's
+external representation, but the external representation is incomplete
+and therefore not parsable, an error is signalled.
+
+The @var{port} argument may be omitted, in which case it defaults to the
+value returned by @func{current-input-port}.
+
+It is an error to read from a closed port.
+@end defun
+
+@c end of file

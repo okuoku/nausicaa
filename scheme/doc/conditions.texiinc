@@ -1,0 +1,165 @@
+@node conditions, lang, unimplemented, Top
+@chapter More condition types
+
+
+The @library{conditions} library defines a set of condition types to be
+used by the Nausicaa libraries.  It re--exports all the bindings from
+the @library{unimplemented} library.
+
+@menu
+* conditions define::           Defining new condition types.
+* conditions mismatch::         General mismatch error.
+* conditions num-args::         Wrong number of arguments error.
+@end menu
+
+@c page
+@node conditions define
+@section Defining new condition types
+
+
+The @func{define-condition} syntax is a wrapper for
+@func{define-condition-type} which adds some automation; for example,
+the definition:
+
+@example
+(define-condition &wrong-num-args
+  (parent &assertion)
+  (fields procname expected given))
+@end example
+
+@noindent
+expands to:
+
+@example
+(define-condition-type &wrong-num-args
+  &assertion
+  make-wrong-num-args-condition
+  wrong-num-args-condition?
+  (procname     condition-wrong-num-args/procname)
+  (expected     condition-wrong-num-args/expected)
+  (given        condition-wrong-num-args/given))
+
+(define-syntax raise-wrong-num-args-error
+  (syntax-rules ()
+    ((_ ?who ?message ?procname ?expected ?given)
+     (raise
+      (condition (make-who-condition ?who)
+                 (make-message-condition ?message)
+                 (make-wrong-num-args-condition
+                    ?procname ?expected ?given)
+                 (make-non-continuable-violation))))))
+@end example
+
+@noindent
+in which we see several automatically generated identifiers.
+
+
+@deffn Syntax define-condition @ameta{name} @ameta{clause} ...
+Define a new condition object type named @ameta{name}; the identifier
+@ameta{name} must have @samp{&} as first character.  The clauses must be
+the auxiliary syntaxes described below.
+
+Additionally, a syntax is defined to raise a condition object with this
+type; the name of the syntax is built by stripping the @samp{&}
+character from the name, then prepending @samp{raise-} and appending
+@samp{-error}.  The raised condition type is composite with types
+@ameta{name}, @condition{who}, @condition{message},
+@condition{non-continuable}.
+@end deffn
+
+
+@deffn {Auxiliary Syntax} parent @ameta{parent type}
+Select the parent condition type for the enclosing definition.  This
+clause can be omitted and can be used at most once.  When not used, the
+parent defaults to @condition{error}.
+
+The @code{parent} identifier is the one exported by
+@rsixlibrary{syntactic} or @library{classes auxiliary-syntaxes} for the
+implementations that do not define it.
+@end deffn
+
+
+@deffn {Auxiliary Syntax} fields @ameta{field} ...
+Specify the fields of the enclosing condition type definition.  All the
+@meta{field} arguments must be identifiers.  This clause can be omitted
+and can be used at most once.
+
+For each field a field accessor is defined with name built from the
+condition type name as follows: the @samp{&} character is stripped from
+the type name, a slash is appended to the name, the field name is
+appended to the result, the string @samp{condition-} is prepended to the
+result.
+
+The @code{fields} identifier is the one exported by
+@rsixlibrary{syntactic} or @library{classes auxiliary-syntaxes} for the
+implementations that do not define it.
+@end deffn
+
+@c page
+@node conditions mismatch
+@section General mismatch error
+
+
+@deftp {Condition Type} &mismatch
+Signal a mismatch between two values.  It is derived from
+@condition{assertion}.
+@end deftp
+
+
+@defun make-mismatch-condition
+Build and return a new @condition{mismatch} condition object.
+@end defun
+
+
+@defun mismatch-condition? @var{obj}
+Return @true{} if @var{obj} is a condition of object of type
+@condition{mismatch}.
+@end defun
+
+@c page
+@node conditions num-args
+@section Wrong number of arguments error
+
+
+@deftp {Condition Type} &wrong-num-args
+Condition type used to signal a call to function with the wrong number
+of arguments; it is derived from @condition{assertion}.  It has the
+following fields:
+
+@table @code
+@item procname
+A Scheme symbol representing the name of the invoked function; @false{}
+if the name is not available.
+
+@item expected
+An exact integer representing the expected number of arguments.
+
+@item given
+An exact integer representing the number of arguments used in the
+offending call.
+@end table
+@end deftp
+
+
+@defun make-wrong-num-args-condition @var{procname} @var{expected} @var{given}
+@defunx wrong-num-args-condition? @var{obj}
+Constructor and predicate for condition objects of type
+@condition{wrong-num-args}.
+@end defun
+
+
+@defun condition-wrong-num-args/procname @var{condition}
+@defunx condition-wrong-num-args/expected @var{condition}
+@defunx condition-wrong-num-args/given @var{condition}
+Accessors for the fields of a condition object of type
+@condition{wrong-num-args}.
+@end defun
+
+
+@deffn Syntax raise-wrong-num-args-error @var{who} @var{message} @var{procname} @var{expected} @var{given}
+Raise a non--continuable exception with compound condition object of
+type: @condition{wrong-num-args}, @condition{who}, @condition{message},
+@condition{&non-continuable}.
+@end deffn
+
+@c end of file

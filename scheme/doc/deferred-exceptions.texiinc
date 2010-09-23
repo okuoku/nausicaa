@@ -1,0 +1,121 @@
+@node deferred exceptions, ffi, compensations, Top
+@chapter Deferred exceptions
+
+
+The @library{deferred-exceptions} library implements a mechanism to
+handle nested exceptions.
+
+@menu
+* deferred exceptions intro::   Introduction.
+* deferred exceptions usage::   Usage examples.
+* deferred exceptions api::     Programming interface.
+@end menu
+
+@c page
+@node deferred exceptions intro
+@section Introduction
+
+
+When a non--continuable exception is raised: the stack unwinds and some
+mechanism is needed to release allocated resources that cannot be simply
+garbage collected.  Some mechanism requires asynchronous evaluation of
+cleanup code (guardians, for example), other mechanisms require
+synchronous evaluation of cleanup code (@ref{compensations}, for
+example).
+
+With synchronous cleanup code: what happens if the cleanup code itself
+raises an exception?  If this @emph{second level} exception is left
+going: it replaces the original one (@emph{first level}), which is lost:
+
+@example
+(import (scheme))
+
+(with-exception-handler
+    (lambda (e)
+      (raise 'second))
+  (lambda ()
+    (raise 'first)))
+@end example
+
+@noindent
+outputs:
+
+@example
+Unhandled exception:
+ Non-condition object: second
+@end example
+
+@noindent
+@code{first} is never reported.  We rarely want this.
+
+This section describes a form that can be used to save informations
+about second level exceptions, for the case in which it is fine to try
+to go on reporting the first level error.  With this form: second level
+exceptions can be reported later to the user or logged to a file or
+whatever.
+
+This mechanism is automatically used by compensation stacks, which are
+the reference use case (@ref{compensations}).
+
+@c page
+@node deferred exceptions usage
+@section Usage examples
+
+
+A form that uses deferred exceptions looks like this:
+
+@example
+(with-deferred-exceptions-handler
+    (lambda (exc)
+      (handle-the-exception exc))
+  (lambda ()
+    (before-do-something)
+    (before-do-something)
+    (defer-exceptions
+      (do-something)
+      (do-something))
+    (after-do-something)
+    (after-do-something)))
+@end example
+
+@noindent
+if the forms in the @func{defer-exceptions} raise an exception: the
+exception value is saved and evaluation goes on for the
+@code{(after-do-something)} forms.  Then the @func{lambda} is applied to
+the exception value.
+
+Any number of @func{defer-exceptions} can be put in the same
+@func{with-deferred-exceptions}.
+
+@c page
+@node deferred exceptions api
+@section Programming interface
+
+
+@deffn Syntax defer-exceptions @var{form} @dots{}
+Evaluate all the @var{form}s as in the body of a @func{begin}.
+
+If an exception is raised: its value is added to the list of exceptions
+in the dynamic environment of the current deferred exception handler.
+
+If @func{defer-exception} appears outside of a
+@func{with-deferred-exception-handler} form: the exceptions are silently
+discarded.
+@end deffn
+
+
+@deffn Syntax with-deferred-exceptions-handler @var{handler} @var{thunk}
+Setup a deferred exception handler dynamic environment, in which
+@var{handler} is the exceptions handler, for the evaluation of
+@var{thunk}.  If a deferred exception is raised
+@func{run-deferred-exceptions-handler} is invoked.
+@end deffn
+
+
+@defun run-deferred-exceptions-handler
+Apply the current deferred exceptions handler to each deferred exception
+value in the current list.  If the handler raises an exception: it is
+silently ignored.
+@end defun
+
+@c end of file

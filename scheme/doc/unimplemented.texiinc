@@ -1,0 +1,29 @@
+@node unimplemented, conditions, cond-expand, Top
+@chapter Unimplemented error condition
+
+
+The following bindings are exported by the @library{unimplemented}
+library.
+
+
+@deftp Condition &unimplemented
+The type of condition used to signal unimplemented features.  It is
+defined as:
+
+@example
+(define-condition-type &unimplemented &error
+  make-unimplemented-condition
+  unimplemented-condition?)
+@end example
+@end deftp
+
+
+@defun raise-unimplemented-error @var{who}
+@defunx raise-unimplemented-error @var{who} @var{message}
+@defunx raise-unimplemented-error @var{who} @var{message} @var{irritants}
+Raise a composite condition object with types:
+@condition{unimplemented}, @condition{who}, @condition{message},
+@condition{irritants}, @condition{non-continuable}.
+@end defun
+
+@c end of file

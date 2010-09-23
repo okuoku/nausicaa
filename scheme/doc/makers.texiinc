@@ -1,0 +1,173 @@
+@node makers, classes, sentinel, Top
+@chapter Maker syntaxes
+
+
+The @library{makers} library provides a constructor for macro
+definitions; its nominal purpose is to define macros which wrap
+constructors for records and similar, allowing the use of ``keywords''
+to specify non--positional arguments.
+
+@menu
+* makers intro::                Introduction to maker macros.
+* makers api::                  Defining makers.
+@end menu
+
+@c page
+@node makers intro
+@section Introduction to maker macros
+
+
+The following examples show the expansion of a simple maker with neither
+fixed nor variable arguments, only optional keyword arguments:
+
+@example
+(import (rnrs) (makers))
+
+(define-maker doit
+  list ((:alpha     1)
+        (:beta      2)
+        (:gamma     3)))
+
+(doit)                  @expansion{} (list 1 2 3)
+
+(doit (:alpha 10))      @expansion{} (list 10 2 3)
+(doit (:beta 20))       @expansion{} (list 1 20 3)
+(doit (:gamma 30))      @expansion{} (list 1 2 30)
+
+(doit (:alpha   10)
+      (:beta    20))    @expansion{} (list 10 20 3)
+
+(doit (:alpha   10)
+      (:gamma   30))    @expansion{} (list 10 2 30)
+
+(doit (:gamma   30)
+      (:beta    20))    @expansion{} (list 1 20 30)
+
+(doit (:alpha   10)
+      (:beta    20)
+      (:gamma   30))    @expansion{} (list 10 20 30)
+
+(let ((b 7))
+  (doit (:beta  (+ 6 (* 2 b)))
+        (:alpha (+ 2 8)))
+  @expansion{} (list (+ 2 8)
+            (+ 6 (* 2 b))
+            3)
+  #f)
+@end example
+
+@noindent
+the following examples show the expansion of a maker with both fixed and
+variable arguments, plus optional keyword arguments:
+
+@example
+(import (rnrs) (makers))
+
+(define-maker (doit a b)
+  (list #\a #\b)
+  ((:alpha  1)
+   (:beta   2)
+   (:gamma  3)))
+
+
+(doit #\p #\q)          @expansion{} (list #\a #\b #\p #\q 1 2 3)
+
+(doit #\p #\q
+      (:alpha 10))      @expansion{} (list #\a #\b #\p #\q 10 2 3)
+
+(doit #\p #\q
+      (:beta 20))       @expansion{} (list #\a #\b #\p #\q 1 20 3)
+
+(doit #\p #\q
+      (:gamma 30))      @expansion{} (list #\a #\b #\p #\q 1 2 30)
+
+(doit #\p #\q
+      (:alpha   10)
+      (:beta    20))    @expansion{} (list #\a #\b #\p #\q 10 20 3)
+
+(doit #\p #\q
+      (:alpha   10)
+      (:gamma   30))    @expansion{} (list #\a #\b #\p #\q 10 2 30)
+
+(doit #\p #\q
+      (:gamma   30)
+      (:beta    20))    @expansion{} (list #\a #\b #\p #\q 1 20 30)
+@end example
+
+@c page
+@node makers api
+@section Defining makers
+
+
+The following bindings are exported by the @library{makers} library.
+
+
+@deffn Syntax define-maker @ameta{name spec} @ameta{maker sexp} @meta{keywords and defaults}
+Define a new maker macro.  @meta{name spec} has one of the forms:
+
+@example
+@cmeta{name identifier}
+(@cmeta{name identifier} @cmeta{positional arg} ...)
+@end example
+
+@noindent
+where @meta{name identifier} is the name of the defined macro and each
+@meta{positional arg} is an identifier, name of a mandatory, positional
+argument for the macro.
+
+@meta{maker sexp} has one of the forms:
+
+@example
+@cmeta{maker name}
+(@cmetao{maker name} @cmeta{maker expr} ...)
+@end example
+
+@noindent
+where @meta{maker name} must be an identifier and each @meta{maker expr}
+is an expression evaluated at runtime, only once, in the lexical context
+of the @func{define-maker} macro use, even if the defined macro is never
+used.
+
+@meta{keywords and defaults} defines optional arguments selected with a
+keyword and a value; it has the form:
+
+@example
+((@cmeta{keyword}   @cmeta{default})
+ ...)
+@end example
+
+@noindent
+where each @meta{keyword} is an identifier selecting the keyword's
+symbol and @meta{default} is an expression representing the default
+value for the argument; the expressions are all evaluated only once in
+the lexical context of the @func{define-maker} macro use, even if the
+resulting default value is never used.  Notice that the @meta{keyword}
+identifiers are matched against the values in the macro use by comparing
+the symbols with @func{eq?}, so they are @strong{not} handled as
+identifiers (bound or free).
+
+When the new macro is used without optional keywords, it is expanded to:
+
+@example
+;; single maker expression, no positional arguments
+(@cmeta{maker expr result})
+
+;; single maker expression, positional arguments
+(@cmeta{maker expr result}
+ @cmetao{positional arg} @cmeta{positional arg} ...)
+
+;; multiple maker expressions, no positional arguments
+(@cmetao{maker expr result} @cmeta{maker expr result} ...)
+
+;; multiple maker expressions, positional arguments
+(@cmetao{maker expr result} @cmeta{maker expr result} ...
+ @cmetao{positional arg} @cmeta{positional arg} ...)
+@end example
+
+When the new macro is used with optional keywords, the expressions in
+the keywords, or the default values, are appended to the output form in
+the same order as the corresponding keywords in @meta{keywords and
+defaults}.
+@end deffn
+
+@c end of file

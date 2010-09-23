@@ -1,0 +1,6 @@
+@node concept index, function index, references, Top
+@appendix An entry for each concept
+
+@printindex cp
+
+@c end of file

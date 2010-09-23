@@ -1,0 +1,6 @@
+@node variable index, type index, function index, Top
+@appendix An entry for each variable
+
+@printindex vr
+
+@c end of file

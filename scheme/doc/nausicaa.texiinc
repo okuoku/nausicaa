@@ -1,0 +1,220 @@
+@node nausicaa, cond-expand, stdlib, Top
+@chapter The @library{nausicaa} language
+
+
+This chapter describes the @library{nausicaa} language and its
+differences from the @library{rnrs} language.  To use the nausicaa
+language, we put @library{nausicaa} in place of @library{rnrs} as first
+import specification:
+
+@example
+(import (nausicaa))
+@end example
+
+@menu
+* nausicaa libs::               Component libraries.
+* nausicaa functions::          Normalised functions.
+* nausicaa syntax::             Extended syntaxes.
+* nausicaa environment::        Accessing environment variables.
+@end menu
+
+@c page
+@node nausicaa libs
+@section Component libraries
+
+
+Unless otherwise specified, the @library{nausicaa} library reexports all
+the bindings from the following libraries:
+
+@table @library
+@item cond-expand
+Feature--based conditional expansion; provides the @func{cond-expand}
+syntax.  @ref{cond-expand, Feature--based conditional expansion}.
+
+@item unimplemented
+Definition of the condition object type @condition{unimplemented}.
+@ref{unimplemented, Unimplemented error condition}.
+
+@item conditions
+Provides basic condition types and utilities for condition types
+definition.  @ref{conditions, More condition types}.
+
+@item language-extension
+Simple language extensions, mostly syntaxes.  @ref{lang, Simple language
+extensions}.  Notice that @func{receive} is @strong{not} reexported.
+
+@item pretty-print
+Provides the @func{pretty-print} function.  @ref{pretty-print, Pretty
+printing}.
+
+@item parameters
+Parameter objects.  @ref{parameters, Parameter objects}.
+
+@item shared-structures
+Reading and writing shared structures.  @ref{shared-structures, External
+representation for data with shared structure}.
+
+@item sentinel
+Sentinel values.  @ref{sentinel, The sentinel value}.
+
+@item makers
+Defining functions and macros with optional arguments.  @ref{makers,
+Maker syntaxes}.
+
+@item classes
+Provides record type extensions.  @ref{classes, Record utilities}.
+Notice that @func{receive/with-class} is reexported with its name and
+also as @func{receive}.
+
+@item compensations
+Compensation stacks.  @ref{compensations, Compensation stacks}.
+
+@item deferred-exceptions
+Handling deferred exceptions.  @ref{deferred exceptions, Deferred
+exceptions}.
+
+@c @item generics
+@c Provides generic functions.  @ref{generics, Multimethod dispatching}.
+@end table
+
+@c page
+@node nausicaa functions
+@section Normalised functions
+
+
+@defun = @var{x} ...
+An extension of the @rnrs{6} @func{=} function that also accepts zero
+and one arguments.  When called with no arguments, return @true{}.  When
+called with one argument, return the result of comparing it with itself.
+@end defun
+
+
+@defun non-negative? @var{x}
+@defunx non-positive? @var{x}
+Return @true{} if @var{x} is strictly positive or strictly negative.
+@end defun
+
+
+@defun finite? @var{z}
+@defunx infinite? @var{z}
+@defunx nan? @var{z}
+Wrappers for the functions defined by @rnrs{6} that apply the predicate
+to both the real and imaginary parts of @var{z}.
+
+The specifications of the @rnrs{6} functions mandates that the argument
+can only be a real number.
+@end defun
+
+
+@defun max @var{arg} ...
+Like @func{max} defined by @rnrs{6}, but if an argument is
+not--a--number: The result is not--a--number.  This changes the
+behaviour of some Scheme implementations under which:
+
+@example
+(max 1 +nan.0) @result{} 1.0
+@end example
+@end defun
+
+
+@defun * @var{arg} ...
+Like @func{*} defined by @rnrs{6}, but if an argument is not--a--number:
+The result is not--a--number.  This changes the behaviour of some Scheme
+implementations under which:
+
+@example
+(* 0 +nan.0) @result{} 0
+@end example
+
+@noindent
+because, for those implementations, whatever number object multiplied by
+exact zero is exact zero.
+@end defun
+
+
+@defun {symbol*->string} @var{obj}
+Convert the symbol or string @var{obj} to a string.  If @var{obj} is a
+string return it, else apply @func{symbol->string} to it and return the
+result.
+@end defun
+
+
+@defun {symbol->string/maybe} @var{obj}
+If @var{obj} is a symbol: Convert it to string and return the result;
+else if it is a string, return it.  If it is neither a string nor a
+symbol: Raise an assertion violation.
+@end defun
+
+@c page
+@node nausicaa syntax
+@section Extended syntaxes
+
+
+The following syntaxes:
+
+@example
+define
+lambda                  case-lambda
+let                     let*
+letrec                  letrec*
+@end example
+
+@noindent
+from @library{rnrs} are replaced by the following syntaxes from
+@library{classes}:
+
+@example
+define/with-class*
+lambda/with-class*       case-lambda/with-class*
+let/with-class           let*/with-class
+letrec/with-class        letrec*/with-class
+@end example
+
+@noindent
+the original bindings from @library{classes} are still exported by
+@library{nausicaa}.
+
+@c page
+@node nausicaa environment
+@section Accessing environment variables
+
+
+Most operating systems provide a mechanism for passing auxiliary
+parameters implicitly to child processes.  Usually, this mechanism is
+called ``the environment'', and is conceptually a map from string names
+to string values.  The string names are called environment variables.
+
+Some applications rely on environment variables to modify their behavior
+according to local settings.  Also, various established protocols rely
+on environment variables as a form of interprocess communication.
+
+
+@deffn Procedure get-environment-variable @var{name}
+Return the value of the named environment variable as a string, or
+@false{} if the named environment variable is not found.  The name
+argument is expected to be a string.  @func{get-environment-variable}
+may use locale--setting information to encode the name and decode the
+value of the environment variable.  If the value cannot be decoded, an
+exception may be raised.
+
+@example
+(get-environment-variable "PATH")
+@result{} "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin"
+@end example
+@end deffn
+
+
+@deffn Procedure get-environment-variables
+Return names and values of all the environment variables as an alist.
+The same decoding considerations as for @func{get-environment-variable}
+apply.
+
+@example
+(get-environment-variables)
+@result{} (("PATH" .
+     "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin")
+    ("USERNAME" . "taro"))
+@end example
+@end deffn
+
+@c end of file

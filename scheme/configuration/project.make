@@ -30,6 +30,7 @@
 
 nau_scheme_ENABLE_BINFMT	= @nau_scheme_ENABLE_BINFMT@
 
+ds_texi_AUX_PREREQ		= $(wildcard $(ds_texi_SRCDIR)/*.texiinc)
 
 #page
 ## --------------------------------------------------------------------
