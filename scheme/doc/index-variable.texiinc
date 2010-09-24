@@ -1,4 +1,4 @@
-@node variable index, type index, function index, Top
+@node variable index
 @appendix An entry for each variable
 
 @printindex vr

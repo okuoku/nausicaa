@@ -1,4 +1,4 @@
-@node baselib, stdlib, scheme, Top
+@node baselib
 @chapter Base library
 
 

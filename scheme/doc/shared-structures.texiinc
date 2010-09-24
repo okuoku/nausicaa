@@ -1,4 +1,4 @@
-@node shared-structures, sentinel, parameters, Top
+@node shared-structures
 @chapter External representation for data with shared structure
 
 

@@ -22,6 +22,7 @@ NAUSICAA_C_ERRNO
 NAU_DS_WITH_OPTION([LIBC_SHARED_OBJECT_SPEC],[libc-shared-object],[],
   [C library shared object string],[select C library shared object string])
 
+AC_CONFIG_FILES([./meta.d/makefiles/doc.make:../configuration/doc.make])
 AC_CONFIG_FILES([../src/libraries/ffi/sizeof.sls:../src/libraries/ffi/sizeof.sls.in])
 AC_CONFIG_FILES([../src/libraries/ffi/clang-data-types.sls:../src/libraries/ffi/clang-data-types.sls.in])
 AC_CONFIG_FILES([../src/libraries/ffi/errno.sls:../src/libraries/ffi/errno.sls.in])

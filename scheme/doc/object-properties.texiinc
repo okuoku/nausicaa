@@ -1,0 +1,81 @@
+@node object-properties
+@chapter Object properties
+
+
+An @dfn{object property} is a convenient interface to an @func{eq?}
+hashtable.  It is a function that can be called with one or two
+arguments.  When called with two arguments: the first is an object and
+the second is its property value; they are stored in the hashtable.
+When called with one argument: the hashtable is queried using the
+argument as key, and the value is returned.  Object properties are
+implemented by the library @library{object-properties}.
+
+@quotation
+The idea of  object properties implemented in this library comes from
+Guile, the @gnu{} Ubiquitous Interface Language for Extensions.
+@end quotation
+
+
+@defun make-object-property
+Build and return a new object property.
+@end defun
+
+
+@deffn Syntax with-true-property (@var{prop} @var{object}) @var{form0} @var{form} ...
+Temporarily save the value of @var{object} in @var{prop} and set it to
+@true{}, then evaluate the @var{form}s and restore the original value.
+@end deffn
+
+
+@deffn Parameter object-property-initial-capacity
+An integer representing the initial size of the hashtable.  The default
+value is 100.
+@end deffn
+
+
+@deffn Parameter object-property-default-value
+The value to return if the property is queried for an object that was
+not registered before.  The default value is @false{}.
+@end deffn
+
+
+@c ------------------------------------------------------------
+
+@subsubheading Examples
+
+The following will evaluate successfully:
+
+@example
+(import (scheme)
+  (uriel object-property)
+  (checks)
+  (srfi parameters))
+
+(check-set-mode! 'report-failed)
+
+(check
+    (let ((prop (make-object-property))
+          (a (vector 1 2 3))
+          (b (vector 4 5 6))
+          (c (vector 7 8 9)))
+      (prop a 1)
+      (prop b 2)
+      (list (prop a) (prop b) (prop c)))
+  => '(1 2 #f))
+
+(check
+    (let ((prop (parameterize ((object-property-initial-capacity 10)
+                               (object-property-default-value 'quack))
+                  (make-object-property)))
+          (a (vector 1 2 3))
+          (b (vector 4 5 6))
+          (c (vector 7 8 9)))
+      (prop a 1)
+      (prop b 2)
+      (list (prop a) (prop b) (prop c)))
+  => '(1 2 quack))
+
+(check-report)
+@end example
+
+@c end of file

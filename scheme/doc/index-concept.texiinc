@@ -1,4 +1,4 @@
-@node concept index, function index, references, Top
+@node concept index
 @appendix An entry for each concept
 
 @printindex cp

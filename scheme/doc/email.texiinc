@@ -1,0 +1,508 @@
+@node email
+@chapter Email processing
+
+
+@menu
+* email addresses::             Parsing email addresses.
+@end menu
+
+@c page
+@node email addresses
+@section Parsing email addresses
+
+
+The @library{email addresses} library implements a lexer and parser for
+email addresses.  The parser tries to be compliant to @rfc{} 2822
+``Internet Message Format'' (@url{http://www.ietf.org/rfc/rfc2822.txt}).
+
+This library would not exist without the work Peter Simons did for the
+C++ library @samp{librfc822} (@url{http://cryp.to/librfc2822/}, @aurl{}
+last verified Mon Aug 24, 2009).
+
+This library is built on top of @library{classes} and
+@library{generics}.
+
+@menu
+* email addresses components::  Parsed components.
+* email addresses types::       Record types.
+* email addresses lexer::       Splitting an address into tokens.
+* email addresses parser::      Splitting an address into logical units.
+@end menu
+
+@c page
+@node email addresses components
+@subsection Parsed components
+
+
+The following is an overview of an email address' components.
+
+@table @strong
+@item Comments
+Comments are strings enclosed in parentheses and may be present at any
+point in an address.
+
+@item Domain
+A list of strings separated by dots:
+
+@example
+alpha.beta.gamma
+@result{} domain strings = alpha beta gamma
+@end example
+
+@item Domain literal
+A dotted quad enclosed in square brackets:
+
+@example
+[101.102.103.104]
+domain literal @result{} 101.102.103.104
+@end example
+
+@item Local part
+A list of strings separated by dots:
+
+@example
+alpha.beta.gamma
+@result{} domain strings = alpha beta gamma
+@end example
+
+@item Address specification
+
+@example
+marco@@localhost
+@result{} local part = marco
+@result{} domain     = localhost
+@end example
+
+@item Route
+
+@example
+@@alpha.it,@@beta.it:
+@result{} first domain  = alpha.it
+@result{} second domain = beta.it
+@end example
+
+@item Route address
+
+@example
+<@@alpha.it,@@beta.it:marco@@there.it>
+@result{} route      = @@alpha.it,@@beta.it
+@result{} local part = marco
+@result{} domain     = there.it
+@end example
+
+@item Mailbox
+
+@example
+"Marco Maggi" <@@alpha.it,@@beta.it:marco@@there.it>
+@result{} phrase (quoted literal) = "Marco Maggi"
+@result{} route                   = @@alpha.it,@@beta.it
+@result{} local part              = marco
+@result{} domain                  = there.it
+
+my address <marco@@there.it>
+@result{} phrase (atoms)          = my address
+@result{} route                   =
+@result{} local part              = marco
+@result{} domain                  = there.it
+@end example
+
+Lists of mailboxes are mailboxes separated by @code{,}:
+
+@example
+<marco@@there.it>, <marco@@localhost>, <root@@localhost>
+@result{} first mailbox  = <marco@@there.it>
+@result{} second mailbox = <marco@@localhost>
+@result{} third mailbox  = <root@@localhost>
+@end example
+
+@item Group
+List of mailboxes enclosed in @samp{: ... ;} with optional phrase:
+
+@example
+: marco@@localhost, <marco@@there.com> ;
+@result{} phrase         =
+@result{} first mailbox  = marco@@localhost
+@result{} second mailbox = marco@@there.com
+
+:marco@@localhost, "Marco Maggi" (a comment) <marco@@there.com> ;
+@result{} phrase         =
+@result{} first mailbox  = marco@@localhost
+@result{} second mailbox = "Marco Maggi" <marco@@there.com>
+
+mailing-list :marco@@localhost, ,,, ,, ,
+   ,, "Marco Maggi" <marco@@there.com> ;
+@result{} phrase         = mailing-list
+@result{} first mailbox  = marco@@localhost
+@result{} second mailbox = "Marco Maggi" <marco@@there.com>
+@end example
+
+@item Address
+An address is a list of mailboxes and groups separated by @samp{,}.
+@end table
+
+@c page
+@node email addresses types
+@subsection Record types
+
+
+All the record types defined by @library{email addresses} are meant to
+be handled with the facilities of the @library{classes} library.
+@nauref{classes, Record utilities}
+
+@menu
+* email addresses domain::              Domain.
+* email addresses local-part::          Local part.
+* email addresses addr-spec::           Address specification.
+* email addresses route::               Route.
+* email addresses mailbox::             Mailbox.
+* email addresses group::               Group of mailboxes.
+@end menu
+
+@c page
+@node email addresses domain
+@subsubsection Domain
+
+
+@deftp Class @aclass{domain}
+Represent the domain portion of an address specification.
+@end deftp
+
+
+@defcv {Immutable Field} @aclass{domain} literal?
+A boolean, true if the domain is composed of four numeric components.
+@end defcv
+
+
+@defcv {Immutable Field} @aclass{domain} subdomains
+The list of strings representing the domain components.
+@end defcv
+
+
+@defun <domain>-literal? @var{dom}
+@defunx <domain>-subdomains @var{dom}
+Field accessors.
+@end defun
+
+
+@defun <domain>? @var{obj}
+@defunx <domain>?/or-false @var{obj}
+Return @true{} if @var{obj} is a record of type @class{domain}.  The
+@samp{/or-false} variant also returns @true{} if @var{obj} is @false{}.
+@end defun
+
+
+@defun assert-<domain>? @var{obj}
+@defunx assert-<domain>?/or-false @var{obj}
+Raise an exception if @var{obj} is not a record of type @class{domain}
+or the values in the fields are invalid.  The @samp{/or-false} variant
+allows @var{obj} to be @false{}.
+@end defun
+
+
+@deffn Method object->string (@var{o} <domain>)
+Return the string representation of @var{o}: The subdomain strings are
+joined with a dot; if @var{o} represents a literal domain, the string is
+enclosed in square parentheses.
+@end deffn
+
+@c page
+@node email addresses local-part
+@subsubsection Local part
+
+
+@deftp Class @aclass{local-part}
+Holds a list of local part strings.  The local part is a single string,
+but for parsing reasons it is accumulated as a list of strings.
+@end deftp
+
+
+@defcv {Immutable Field} @aclass{local-part} subparts
+A list of strings.
+@end defcv
+
+
+@defun <local-part>-subparts @var{lp}
+Field accessor.
+@end defun
+
+
+@deffn {Generic Function} object->string (@var{o} <local-part>)
+Return the string representation of @var{o}.
+@end deffn
+
+@c page
+@node email addresses addr-spec
+@subsubsection Address specification
+
+
+@deftp Class @aclass{addr-spec}
+Holds an address specification: a local part and a domain.
+@end deftp
+
+
+@defcv {Immutable Field} @aclass{addr-spec} local-part
+Holds a @class{local-part} record.
+@end defcv
+
+
+@defcv {Immutable Field} @aclass{addr-spec} domain
+Holds a @class{domain} record.
+@end defcv
+
+
+@defun <addr-spec>-local-part @var{as}
+@defunx <addr-spec>-domain @var{as}
+Field accessors.
+@end defun
+
+
+@deffn Method object->string (@var{o} <addr-spec>)
+Return the string representation of @var{o}.
+@end deffn
+
+@c page
+@node email addresses route
+@subsubsection Route
+
+
+@deftp Class @aclass{route}
+Holds a list of domains to be used to route the message to the final
+destination.
+@end deftp
+
+
+@defcv {Immutable Field} @aclass{route} domains
+A list of @class{domain} records.
+@end defcv
+
+
+@deffn Method object->string (@var{o} <route>)
+Return the string representation of @var{o}.
+@end deffn
+
+@c page
+@node email addresses mailbox
+@subsubsection Mailbox
+
+
+@deftp Class @aclass{mailbox}
+Hold a mailbox specification.
+@end deftp
+
+
+@defcv {Immutable Field} @aclass{mailbox} display-name
+Holds the phrase string.
+@end defcv
+
+
+@defcv {Immutable Field} @aclass{mailbox} route
+Holds @false{} or a @class{route} record.
+@end defcv
+
+
+@defcv {Immutable Field} @aclass{mailbox} addr-spec
+Holds an @class{addr-spec} record.
+@end defcv
+
+
+@defun <mailbox>-display-name @var{mb}
+@defunx <mailbox>-route @var{mb}
+@defunx <mailbox>-addr-spec @var{mb}
+Field accessors.
+@end defun
+
+
+@deffn {Generic Function} object->string (@var{o} <mailbox>)
+Return the string representation of @var{o}.
+@end deffn
+
+@c page
+@node email addresses group
+@subsubsection Group of mailboxes
+
+
+@deftp Class @aclass{group}
+Holds a list of mailboxes and a phrase.
+@end deftp
+
+
+@defcv {Immutable Field} @aclass{group} display-name
+Holds the phrase string.
+@end defcv
+
+
+@defcv {Immutable Field} @aclass{group} mailboxes
+Holds a list of @class{mailbox} records.
+@end defcv
+
+
+@defun <group>-display-name @var{gr}
+@defunx <group>-mailboxes @var{gr}
+Field accessors.
+@end defun
+
+
+@deffn {Generic Function} object->string (@var{o} <group>)
+Return the string representation of @var{o}.
+@end deffn
+
+@c page
+@node email addresses lexer
+@subsection Splitting an address into tokens
+
+
+The lexer for the @library{email addresses} library is built upon the
+@library{silex} lexer.  @ref{silex, A lexical analyser generator}
+
+
+@defun make-address-lexer @var{IS}
+Return an email address lexer closure drawing tokens from the input
+system @var{IS}.  The input system must have been created using the
+@library{silex} library.
+@end defun
+
+
+@deffn Parameter address-lexer-allows-comments
+If set to true when @func{make-address-lexer} is invoked, the lexer
+closure returns also comment tokens; else comment tokens are silently
+discarded.
+@end deffn
+
+
+@defun address->tokens @var{IS}
+Wrapper for @func{make-address-lexer} which reads all the tokens and
+returns them as a list.
+@end defun
+
+
+The lexer closure is a thunk returning @class{lexical-token} records
+with the following categories:
+
+@table @samp
+@item DOT
+@itemx COMMA
+@itemx COLON
+@itemx SEMICOLON
+@itemx AT
+Represent the named character; the semantic value is the character
+itself.
+
+@item ANGLE-OPEN
+@itemx ANGLE-CLOSE
+Represent the @samp{#\<} and @samp{#\>} characters; the semantic value
+is the character itself.
+
+@item ATOM
+The component of local parts and domains; the semantic value is the
+string.  See @acronym{RFC} 2822 section ``3.2.4 Atom''.
+
+@item DOMAIN-LITERAL-OPEN
+The opening of a domain literal; the semantic value is a string
+containing the single character @samp{[}.
+
+@item DOMAIN-LITERAL-CLOSE
+The closing of a domain literal; the semantic value is a string
+containing the single character @samp{]}.
+
+@item DOMAIN-LITERAL-INTEGER
+A component of domain literal; the semantic value is an integer number
+between @math{0} included and @math{256} excluded.
+
+@item QUOTED-TEXT
+A quoted text element; the semantic value is the string.
+@end table
+
+@c page
+@node email addresses parser
+@subsection Parsing tokens
+
+
+The parser for the @library{email addresses} library is built upon the
+@library{lalr} parser generator and makes use of the @library{lalr
+lr-driver} driver.  @ref{lalr, A LALR(1) parser generator}
+
+
+@defun make-address-parser
+Return a new parser closure, to be used as explained in @ref{lalr
+parser, Running the parser}.  If the parsing completes successfully, the
+return value of the closure is a list of @class{mailbox} and or
+@class{group} records.  @ref{email addresses types, Record types}
+@end defun
+
+
+Given the helper functions:
+
+@example
+(import (rnrs)
+  (email addresses)
+  (silex)
+  (records))
+
+(define (error-handler message token)
+  (error #f message token))
+
+(define (doit string)
+  (let* ((IS      (lexer-make-IS :string string
+                                 :counters 'all))
+         (lexer   (make-address-lexer IS))
+         (parser  (make-address-parser)))
+    (parser lexer error-handler)))
+@end example
+
+@noindent
+here is an example of parsing a list of mailboxes:
+
+@example
+(define result
+  (doit "marco.maggi@@here.it, <marco.maggi@@there.it>"))
+
+(length result)
+@result{} 2
+
+(<mailbox>? (car result))
+@result{} #t
+
+(<mailbox>? (cadr result))
+@result{} #t
+
+(object->string (car result))
+@result{} "<marco.maggi@@here.it>"
+
+(object->string (cadr result))
+@result{} "<marco.maggi@@there.it>"
+@end example
+
+@noindent
+and here an example of parsing a group:
+
+@example
+(define result
+  (doit "the group: marco.maggi@@here.it, <marco.maggi@@there.it>, \r
+Marco Maggi <mrc.mgg@@here.it>;"))
+
+(length result)
+@result{} 1
+
+(<group>? (car result))
+@result{} #t
+
+(let* ((group       (car result))
+       (mailboxes   (<group>-mailboxes group)))
+
+  (length mailboxes)
+  @result{} 3
+
+  (<group>-display-name group)
+  @result{} "the group"
+
+  (object->string (car mailboxes))
+  @result{} "<marco.maggi@@here.it>"
+
+  (object->string (cadr mailboxes))
+  @result{} "<marco.maggi@@there.it>"
+
+  (object->string (<mailbox>-addr-spec (caddr mailboxes))))
+  @result{} "mrc.mgg@@here.it"
+@end example
+
+@c end of file

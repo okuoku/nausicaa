@@ -1,4 +1,4 @@
-@node ffi, notes, deferred exceptions, Top
+@node ffi
 @chapter Foreign--functions interface
 
 

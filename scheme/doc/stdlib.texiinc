@@ -1,4 +1,4 @@
-@node stdlib, nausicaa, baselib, Top
+@node stdlib
 @chapter Standard libraries
 
 

@@ -1,4 +1,4 @@
-@node deferred exceptions, ffi, compensations, Top
+@node deferred exceptions
 @chapter Deferred exceptions
 
 

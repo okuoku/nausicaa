@@ -1,0 +1,67 @@
+@node combinators
+@chapter Combinators
+
+
+The following combinators are exported by @library{combinators}.
+
+
+@deffn Syntax K @var{form} . @var{forms}
+Evaluate all the forms like the standard @func{begin}, but return the
+value of the first form.
+
+@example
+(define-syntax K
+  (syntax-rules ()
+    ((_ ?expr0 ?expr ...)
+     (call-with-values
+         (lambda () ?expr0)
+       (lambda x
+         ?expr ...
+         (apply values x))))))
+@end example
+
+This is the same as the @func{begin0} syntax.
+@end deffn
+
+
+@deffn Syntax Y @var{func}
+Build a recursive function with no name.
+
+@example
+(define-syntax Y
+  (syntax-rules ()
+    ((_ ?func)
+     (let ((F ?func))
+       ((lambda (f)
+          (F (lambda (. args)
+               (apply (f f) args))))
+        (lambda (f)
+          (F (lambda (. args)
+               (apply (f f) args)))))))))
+@end example
+
+The combinator has to called like this:
+
+@example
+((Y (lambda (f)
+      (lambda (. args)
+        (do-something-with-args args)
+        (if (condition) (f args))))
+    arg1 arg2 ...))
+@end example
+@end deffn
+
+
+@deffn Syntax S @var{x} @var{y} @var{z}
+The S combinator:
+
+@example
+(define-syntax S
+  (syntax-rules ()
+    ((_ ?x ?y ?z)
+     (let ((Z ?z))
+       (?x Z (?y Z))))))
+@end example
+@end deffn
+
+@c end of file

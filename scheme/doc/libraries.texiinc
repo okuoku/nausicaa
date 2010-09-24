@@ -1,0 +1,659 @@
+@node libraries
+@chapter Libraries inspection
+
+
+The @library{libraries} library implements routines to inspect
+@func{library} forms as defined by @rnrs{6}.
+
+@menu
+* libraries jargon::            Definition of terms.
+* libraries names::             Handling @rnrs{6} library names.
+* libraries references::        Handling @rnrs{6} library references.
+* libraries imports::           Handling @rnrs{6} library import
+                                specifications.
+* libraries searching::         Finding libraries on the system.
+* libraries libraries::         Handling @rnrs{6} libraries.
+@end menu
+
+@c page
+@node libraries jargon
+@section Definition of terms
+
+
+@subsubheading List of renamings
+
+
+A ``list of renamings'' is a list of lists; each sublist has two symbols
+as elements:
+
+@example
+((@cmeta{internal symbol0}      @cmeta{external symbol0})
+ (@cmeta{internal symbol}       @cmeta{external symbol})
+ ...)
+@end example
+
+@noindent
+a list of renamings represents the identifiers exported by a library or
+the identifiers imported by a library.
+
+In the first case: the external symbol is the one visible by code which
+imports this library; the internal symbol is the one bound with
+@func{define} or @func{define-syntax} in the body of this library.
+
+In the second case: the external symbol is the one visible in the body
+of this library; the internal symbol is the one exported by the imported
+library.
+
+If we know the library reference and the list of renamings, we can build
+an import set with:
+
+@example
+(only (rename <library reference> . <renamings>))
+@end example
+
+@c page
+@node libraries names
+@section Handling @rnrs{6} library names
+
+
+The bindings documented in this section are exported by the
+@library{libraries names} library.
+
+@menu
+* libraries names typedefs::    Type definitions.
+* libraries names utilities::   Utility functions.
+@end menu
+
+@c page
+@node libraries names typedefs
+@subsection Type definitions
+
+
+@deftp Class @aclass{library-name}
+Class type representing library names as specified by @rnrs{6}.
+@end deftp
+
+
+@defcv {Immutable Field} @aclass{library-name} identifiers
+List of identifiers in the library reference specification.
+@end defcv
+
+
+@defcv {Immutable Field} @aclass{library-name} version
+The version specification as a, possibly null, list of exact,
+non--negative, integers.
+@end defcv
+
+
+@defun make-<library-name> @var{sexp}
+Parse @var{sexp} as an symbolic expression representing a library name
+as specified by @rnrs{6}; build and return a new @class{library-name}
+object representing it.  If @var{sexp} is not valid: raise an assertion
+violation.
+@end defun
+
+
+@defun <library-name>? @var{obj}
+Return @true{} if @var{obj} is an object of type @class{library-name}.
+@end defun
+
+
+@defun <library-name>-identifiers @var{name}
+@defunx <library-name>-version @var{name}
+Accessors for the fields of @class{library-name} objects.
+@end defun
+
+
+@deftypemethod @aclass{library-name} <boolean> identifiers=? (@var{name} @aclass{library-name})
+Return @true{} if the arguments are library names having equal list of
+identifiers; else return @false{}.
+@end deftypemethod
+
+
+@deftypemethod @aclass{library-name} <boolean> = (@var{name} @aclass{library-name})
+@deftypemethodx @aclass{library-name} <boolean> < (@var{name} @aclass{library-name})
+@deftypemethodx @aclass{library-name} <boolean> <= (@var{name} @aclass{library-name})
+Return @true{} if the arguments have equal list of identifiers and
+version specifications satisfying the selected predicate; else return
+@false{}.
+@end deftypemethod
+
+
+Examples:
+
+@example
+(let ((a (make-<library-name> '(x y (1 2))))
+      (b (make-<library-name> '(x y (1 3))))
+      (c (make-<library-name> '(x y (1 4))))
+      (d (make-<library-name> '(x y (2 1)))))
+
+  (list-sort (lambda/with ((a <library-name>) (b <library-name>))
+               (a.< b))
+    (list a d c b))
+  @result{} (list a b c d)
+
+  )
+@end example
+
+
+@c page
+@node libraries names utilities
+@subsection Utility functions
+
+
+@defun library-name? @var{obj}
+Return @true{} if @var{obj} is a valid library name as specified by
+@rnrs{6}.
+@end defun
+
+
+@defun library-name-decompose @var{obj}
+Interpret @var{obj} as an symbolic expression representing a library
+name as specified by @rnrs{6}.  Return two values: the list of
+identifiers, the version specification.  If @var{obj} is not a valid
+library name: return @false{} and @false{}.
+@end defun
+
+
+@defun library-name->identifiers @var{obj}
+If @var{obj} is a valid library name as specified by @rnrs{6}, return
+the list of identifiers; else return @false{}.
+@end defun
+
+
+@defun library-name->version @var{obj}
+If @var{obj} is a valid library name as specified by @rnrs{6}, return
+the version specification; else return @false{}.
+@end defun
+
+
+@defun library-name-identifiers=? @vari{name} @varii{name}
+Return @true{} if the arguments are library names having equal list of
+identifiers; else return @false{}.  If the arguments are not valid
+library names: the behaviour of this function is undefined.
+@end defun
+
+
+@defun library-name=? @vari{name} @varii{name}
+@defunx library-name<? @vari{name} @varii{name}
+@defunx library-name<=? @vari{name} @varii{name}
+Return @true{} if the arguments are library names having equal list of
+identifiers and version specifications satisfying the selected
+predicate; else return @false{}.  If the arguments are not valid library
+names: the behaviour of this function is undefined.
+@end defun
+
+
+@defun library-version=? @vari{version} @varii{version}
+@defunx library-version<? @vari{version} @varii{version}
+@defunx library-version<=? @vari{version} @varii{version}
+Return @true{} if the arguments are library versions satisfying the
+selected predicate; else return @false{}.  If the arguments are not
+valid library names: the behaviour of this function is undefined.
+@end defun
+
+@c page
+@node libraries references
+@section Handling @rnrs{6} library references
+
+The bindings documented in this section are exported by the
+@library{libraries references} library.
+
+@menu
+* libraries references typedefs::   Type definitions.
+* libraries references utilities::  Utility functions.
+@end menu
+
+@c page
+@node libraries references typedefs
+@subsection Type definitions
+
+
+@deftp Class @aclass{library-reference}
+Class type representing library references as specified by @rnrs{6}.
+@end deftp
+
+
+@defcv {Immutable Field} @aclass{library-reference} identifiers
+List of identifiers in the library reference specification.
+@end defcv
+
+
+@defcv {Immutable Field} @aclass{library-reference} version-reference
+The version specification as a, possibly null, list of exact,
+non--negative, integers.
+@end defcv
+
+
+@defcv {Immutable Field} @aclass{library-reference} reference
+The full library reference specification.
+@end defcv
+
+
+@defun make-<library-reference> @var{sexp}
+Parse @var{sexp} as an symbolic expression representing a library
+reference as specified by @rnrs{6}; build and return a new
+@class{library-reference} object representing it.  If @var{sexp} is not
+valid: raise an assertion violation.
+@end defun
+
+
+@defun <library-reference>? @var{obj}
+Return @true{} if @var{obj} is an object of type @class{library-reference}.
+@end defun
+
+
+@defun <library-reference>-identifiers @var{reference}
+@defunx <library-reference>-version-reference @var{reference}
+Accessors for the fields of @class{library-reference} objects.
+@end defun
+
+
+@deftypemethod @aclass{library-reference} @aclass{boolean} conforming? (@var{name} @aclass{library-name})
+Return @true{} if the name conforms to the reference; else return
+@false{}.
+@end deftypemethod
+
+@c page
+@node libraries references utilities
+@subsection Utility functions
+
+
+@defun library-reference? @var{obj}
+Return @true{} if @var{obj} is a valid library reference as specified by
+@rnrs{6}.
+@end defun
+
+
+@defun library-reference-decompose @var{obj}
+Interpret @var{obj} as an symbolic expression representing a library
+reference as specified by @rnrs{6}.  Return two values: the list of
+identifiers, the version reference.  If @var{obj} is not a valid library
+reference: return @false{} and @false{}.
+@end defun
+
+
+@defun library-reference->identifiers @var{obj}
+If @var{obj} is a valid library reference as specified by @rnrs{6},
+return the list of identifiers; else return @false{}.
+@end defun
+
+
+@defun library-reference->version @var{obj}
+If @var{obj} is a valid library reference as specified by @rnrs{6},
+return the version reference; else return @false{}.
+@end defun
+
+
+@defun library-reference-identifiers=? @vari{reference} @varii{reference}
+Return @true{} if the arguments are library references having equal list
+of identifiers; else return @false{}.  If the arguments are not valid
+library references: the behaviour of this function is undefined.
+@end defun
+
+
+@defun conforming-sub-version-and-sub-version-reference? @var{sub-version} @var{sub-version-reference}
+Interpret @var{sub-version} as a sub--version number as specified by
+@rnrs{6} and @var{sub-version-reference} as a sub--version reference as
+specified by @rnrs{6}.  Return @true{} if the sub--version conforms to
+the sub--version reference; else return @false{}.  If the arguments are
+not valid sub--version and sub--version reference: the behaviour of this
+function is undefined.
+@end defun
+
+
+@defun conforming-version-and-version-reference? @vari{version} @varii{version-reference}
+Interpret @var{version} as a version symbolic expression as specified by
+@rnrs{6} and @var{version-reference} as a version reference symbolic
+expression as specified by @rnrs{6}.  Return @true{} if the version
+conforms to the version reference; else return @false{}.  If the
+arguments are not valid version and version reference: the behaviour of
+this function is undefined.
+@end defun
+
+
+@defun conforming-library-name-and-library-reference? @var{name} @var{reference}
+Interpret @var{name} as a library name symbolic expression as specified
+by @rnrs{6} and @var{reference} as a library reference symbolic
+expression as specified by @rnrs{6}.  Return @true{} if the name
+conforms to the reference; else return @false{}.  If the arguments are
+not valid name and reference: the behaviour of this function is
+undefined.
+@end defun
+
+@c page
+@node libraries imports
+@section Handling @rnrs{6} library import specifications
+
+
+The bindings documented in this section are exported by the
+@library{libraries import-specs} library.
+
+@menu
+* libraries imports typedefs::  Type definitions.
+* libraries imports utilities:: Utility functions.
+@end menu
+
+@c page
+@node libraries imports typedefs
+@subsection Type definitions
+
+
+@subsubheading Import sets
+
+
+@deftp Class @aclass{import-set}
+Type representing import sets as specified by @rnrs{6}.
+@end deftp
+
+
+@defcv {Immutable Field} @aclass{import-set} subset
+The core of this import set; it can be another @class{import-set} object
+or a @class{library-reference} object.
+@end defcv
+
+
+@defcv {Immutable Field} @aclass{import-set} bindings-transformer
+A function to apply to a list renamings to obtain the imported bindings.
+@end defcv
+
+
+@defcv {Immutable Field} @aclass{import-set} original
+The original symbolic expression of this import set.
+@end defcv
+
+
+@defcv {Immutable Field} @aclass{import-set} library-reference
+The @class{library-reference} object nested in this import set.
+@end defcv
+
+
+@defun make-<import-set> @var{sexp}
+Parse the symbolic expression @var{sexp} as an import sets as specified
+by @rnrs{6}; return a new @class{import-set} object.  Raise an assertion
+violation if @var{sexp} is invalid.
+@end defun
+
+
+@defun <import-set>? @var{obj}
+Return @true{} if @var{obj} is a record of type @class{import-set}.
+@end defun
+
+
+@defun <import-set>-subset @var{iset}
+@defunx <import-set>-bindings-transformer @var{iset}
+@defunx <import-set>-original @var{iset}
+@defunx <import-set>-library-reference @var{iset}
+Accessors for the fields of @class{import-set} records.
+@end defun
+
+
+@defmethod @aclass{import-set} apply @var{renamings}
+Apply the import set specification to the list of @var{renamings},
+returning the processed list of renamings (which can be null).  It
+applies recursively the specifications of the nested import sets.
+@end defmethod
+
+@c ------------------------------------------------------------
+
+@subsubheading Import specifications
+
+
+@deftp Class @aclass{import-spec}
+Type representing import specifications as specified by @rnrs{6}.
+@end deftp
+
+
+@defcv {Immutable Field} @aclass{import-spec} import-set
+The core of this import specification; it can be an @class{import-set}
+object or a @class{library-reference} object.
+@end defcv
+
+
+@defcv {Immutable Field} @aclass{import-spec} import-levels
+A list of exact integers representing the import levels for which this
+import set was requested.  It contains at least one element.
+@end defcv
+
+
+@defcv {Immutable Field} @aclass{import-spec} original
+The original symbolic expression of this import set.
+@end defcv
+
+
+@defcv {Immutable Field} @aclass{import-spec} library-reference
+The @class{library-reference} object nested in this import set.
+@end defcv
+
+
+@defun make-<import-spec> @var{sexp}
+Parse the symbolic expression @var{sexp} as an import specification as
+specified by @rnrs{6}; return a new @class{import-spec} object.  Raise
+an assertion violation if @var{sexp} is invalid.
+@end defun
+
+
+@defun <import-spec>? @var{obj}
+Return @true{} if @var{obj} is a record of type @class{import-spec}.
+@end defun
+
+
+@defun <import-spec>-import-set @var{iset}
+@defunx <import-spec>-import-levels @var{iset}
+@defunx <import-spec>-original @var{iset}
+@defunx <import-spec>-library-reference @var{iset}
+Accessors for the fields of @class{import-spec} records.
+@end defun
+
+
+@defmethod @aclass{import-spec} apply @var{renamings}
+Apply the import set specification to the list of @var{renamings},
+returning the processed list of renamings (which can be null).  It
+applies recursively the specifications of the nested import sets.
+
+@example
+(let-fields (((o <import-spec>)
+              (make <import-spec>
+                '(prefix
+                     (except
+                       (only
+                         (rename (alpha beta (1))
+                                 (ae aee)
+                                 (be bee)
+                                 (ce cee))
+                          bee cee)
+                       bee)
+                    px:))))
+  (o.apply '((a ae)
+             (b be)
+             (c ce)
+             (d de)
+             (f fe)
+             (g ge))))
+@result{} ((c px:cee))
+@end example
+@end defmethod
+
+@c page
+@node libraries imports utilities
+@subsection Utility functions
+
+
+@defun apply-import-spec/only renamings list-of-identifiers
+Apply the @code{only} import specification.  @var{renamings} must be a
+list of renamings.  @var{list-of-identifiers} must be the list of
+symbols to accept in the @var{renamings}, all the others are discarded.
+
+@example
+(apply-import-spec/only '((a ea) (b eb) (c ec))
+                        '(eb ec))
+@result{} ((b eb) (c ec))
+@end example
+@end defun
+
+
+@defun apply-import-spec/except @var{renamings} @var{list-of-identifiers}
+Apply the @code{except} import specification.  @var{renamings} must be a
+list of renamings.  @var{list-of-identifiers} must be the list of
+symbols to discard in the @var{renamings}, all the others are accepted.
+
+@example
+(apply-import-spec/except '((a ea) (b eb) (c ec))
+                          '(eb ec))
+@result{} ((a ea))
+@end example
+@end defun
+
+
+@defun apply-import-spec/prefix @var{renamings} @var{prefix-symbol}
+Apply the @code{prefix} import specification.  @var{renamings} must be a
+list of renamings.  @var{prefix-symbol} must be the symbol to prefix to
+the second symbol in the @var{renamings}.
+
+@example
+(apply-import-spec/prefix '((a ea) (b eb) (c ec))
+                          'ciao:)
+@result{} ((a ciao:ea) (b ciao:eb) (c ciao:ec))
+@end example
+@end defun
+
+
+@defun apply-import-spec/rename @var{renamings} @var{renamings-spec}
+Apply the @code{rename} import specification.  @var{renamings} must be a
+list of renamings.  @var{renamings-spec} must be the list of renamings
+specifying the rename operation for @var{renamings}.
+
+@example
+(apply-import-spec/rename '((a ea) (b eb) (c ec))
+                          '((eb ebb) (ec ecc)))
+@result{} ((a ea) (b ebb) (c ecc))
+@end example
+@end defun
+
+@c page
+@node libraries searching
+@section Finding libraries on the system
+
+
+The bindings documented in this section are exported by the
+@library{libraries} library.
+
+@menu
+* libraries searching system::  Searching libraries on file systems.
+@end menu
+
+@c page
+@node libraries searching system
+@subsection Searching libraries on file systems
+
+
+@subsubheading Search path
+
+
+@deffn Parameter library-search-path-environment-variable
+Holds a string representing the system environment variable holding the
+search path for libraries; it is initialised to @samp{SCHEME_LIBPATH}.
+The search path is meant to be a colon--separated list of directory
+pathnames.
+@end deffn
+
+
+@defun library-search-path
+Read the value of the @code{library-search-path-environment-variable}
+parameter and return a list of strings representing the directory
+pathnames in the search path.
+@end defun
+
+
+@deffn Parameter library-search-path-function
+Hold a thunk which, when evaluated, returns a list of strings
+representing the directories pathnames in the search path; it is
+initialised to @func{library-search-path}.
+@end deffn
+
+@c ------------------------------------------------------------
+
+@subsubheading Finding pathnames
+
+
+@defvr Constant library-file-extensions
+A list of strings representing extensions for library files; its value
+is:
+
+@table @asis
+@item @samp{.ikarus.sls} @samp{.sls} @samp{.scm} @samp{.ss}
+For Ikarus Scheme.
+
+@item @samp{.larceny.sls} @samp{.sls} @samp{.scm} @samp{.ss}
+For Larceny Scheme.
+
+@item @samp{.mosh.sls} @samp{.sls} @samp{.scm} @samp{.ss}
+For Mosh Scheme.
+
+@item @samp{.petite.sls} @samp{.sls} @samp{.scm} @samp{.ss}
+For Petite Chez Scheme.
+
+@item @samp{.ypsilon.sls} @samp{.sls} @samp{.scm} @samp{.ss}
+For Ypsilon Scheme.
+@end table
+@end defvr
+
+
+@defun scan-library-search-path @var{reference}
+Given the @class{library-reference} record @var{reference}, make use of
+the thunk in @func{library-search-path-function} and the extensions in
+@code{library-file-extensions} to scan the file systems in search of
+compliant libraries.  Return a list of strings, possibly null,
+representing the file pathnames.
+
+This function searches for all the files whose pathname is prefixed with
+a directory in the search path and suffixed with a relative pathname
+built by joining the identifiers in the library reference with a
+separator; finally the extensions are tried in turn.  This function
+ignores library version specifications in pathnames.
+@end defun
+
+
+@deffn Parameter scan-library-search-path-function
+Holds a function which, when applied to a @class{library-reference}
+record, scans the file systems and returns a list of file pathnames
+matching the reference.  It is initialised to
+@func{scan-library-search-path}.
+@end deffn
+
+@c ------------------------------------------------------------
+
+@subsubheading Loading libraries
+
+
+@defun load-libraries-from-files @var{reference}
+Given the @class{library-reference} record @var{reference}, make use of
+the function in @func{scan-library-search-path-function} to find
+matching libraries and return a list of @class{library} records
+representing them.  If loading a library fails: the error is ignored and
+that pathname skipped.
+@end defun
+
+@c page
+@node libraries libraries
+@section Handling @rnrs{6} libraries
+
+
+The bindings documented in this section are exported by the
+@library{libraries} library.
+
+@menu
+* libraries libraries typedefs::    Type definitions.
+* libraries libraries utilities::   Utility functions.
+@end menu
+
+@c page
+@node libraries libraries typedefs
+@subsection Type definitions
+
+@c page
+@node libraries libraries utilities
+@subsection Utility functions
+
+
+@c end of file

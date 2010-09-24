@@ -1,0 +1,575 @@
+@node json
+@chapter Parsing and generating @json{} text
+
+
+The @library{json} library implements a parser which converts @json{}
+text to Scheme S-expressions and a set of functions to generate @json{}
+text from Scheme values.
+
+@menu
+* json intro::                  Introduction to @json{}.
+* json decoding::               Decoding @json{} text.
+* json encoding::               Encoding @json{} text.
+* json error::                  Error handlers and condition objects.
+@end menu
+
+@c page
+@node json intro
+@section Introduction to @json{}
+
+
+@json{} (JavaScript Object Notation) is a lightweight data--interchange
+format; full informations on the notation are available
+at:@footnote{@aurl{} last verified Mon May 31, 2010.}
+
+@center @url{http://www.json.org/}
+
+@noindent
+the specification is also available in @rfc{} 4627.
+
+The @library{json} library parses @json{} text using the @library{silex
+lexer} and @library{lalr lr-driver} libraries; given the terminals,
+optionally surrounded by white spaces:
+
+@example
+BEGIN_ARRAY             [
+END_ARRAY               ]
+BEGIN_OBJECT            @{
+END_OBJECT              @}
+NAME_SEPARATOR          :
+VALUE_SEPARATOR         ,
+
+FALSE                   "false"
+NULL                    "null"
+TRUE                    "true"
+@end example
+
+@noindent
+with the addition of @samp{NUMBER} and @samp{STRING}, the grammar is:
+
+@example
+((json-text     (object)
+                (array))
+
+ (object        (BEGIN_OBJECT END_OBJECT)
+                (BEGIN_OBJECT pair END_OBJECT)
+                (BEGIN_OBJECT pair pair-rest END_OBJECT))
+
+ (pair          (STRING NAME_SEPARATOR value))
+ (pair-rest     (VALUE_SEPARATOR pair)
+                (VALUE_SEPARATOR pair pair-rest))
+
+ (array         (BEGIN_ARRAY END_ARRAY)
+                (BEGIN_ARRAY value END_ARRAY)
+                (BEGIN_ARRAY value value-rest END_ARRAY))
+
+ (value         (FALSE)
+                (NULL)
+                (TRUE)
+                (NUMBER)
+                (STRING)
+                (object)
+                (array))
+ (value-rest    (VALUE_SEPARATOR value)
+                (VALUE_SEPARATOR value value-rest)))
+@end example
+
+@library{json} turns @json{} text into a Scheme S--expression; @json{}
+pairs become Scheme pairs:
+
+@example
+"Height": 600           @expansion{} ("Height" . 600)
+"Hello" : "Ciao"        @expansion{} ("Hello"  . "Ciao")
+@end example
+
+@noindent
+objects become lists:
+
+@example
+@{ "Height": 600" @}
+@expansion{} (("Height" . 600))
+
+@{ "Height": 600, "Hello" : "Ciao" @}
+@expansion{} (("Height" . 600) ("Hello"  . "Ciao"))
+@end example
+
+@noindent
+arrays become vectors:
+
+@example
+[ "Ciao", "Hello", "Salut" ]
+@expansion{} #("Ciao" "Hello" "Salut")
+@end example
+
+@noindent
+the literal @samp{true} becomes @true{}, the literal @samp{false}
+becomes @false{}, the literal @samp{null} becomes @code{()}.
+
+@c page
+@node json decoding
+@section Decoding @json{} text
+
+
+@menu
+* json decoding intro::         Introduction to decoding @json{}.
+* json decoding lexer::         Lexing @json{} text.
+* json decoding parser::        Parsing @json{} text.
+* json decoding string::        Decoding @json{} strings.
+@end menu
+
+@c page
+@node json decoding intro
+@subsection Introduction to decoding @json{}
+
+
+The @api{} documented in this section allows parsing of @json{} text.
+There are two types of parsers: one converting a full @json{} fragment
+into an S--expression; one calling functions for each ``event'' in
+incoming @json{} text.  To setup conversion to S--expression we do:
+
+@example
+(import (rnrs)
+  (silex lexer)
+  (json))
+
+(define json-text
+  "@{ \"Hello\" : true, \"Ciao\": false @}")
+
+(define IS
+  (lexer-make-IS (:string json-text)
+                 (:counters 'all)))
+
+(define lexer
+  (make-json-rfc-lexer IS))
+
+(define parser
+  (make-json-parser))
+
+(define (error-handler msg tok)
+  (error 'json-parser msg tok))
+
+(parser lexer error-handler)
+@result{} (("Hello" . #t) ("Ciao" . #f))
+@end example
+
+Here is a set of meaningless examples using the event parser:
+
+@example
+(import (nausicaa)
+  (json)
+  (silex lexer))
+
+
+(define (doit string)
+  (let* ((IS      (lexer-make-IS (:string string)
+                                 (:counters 'all)))
+         (lexer   (make-json-rfc-lexer IS))
+         (result  '())
+         (handler (lambda args
+                    (set-cons! result args)))
+         (parser  (make-json-event-parser
+                    (:begin-object  handler)
+                    (:end-object    handler)
+                    (:begin-array   handler)
+                    (:end-array     handler)
+                    (:begin-pair    handler)
+                    (:end-pair      handler)
+                    (:atom          handler))))
+    (parser lexer (make-json-error-handler 'json-parser))
+    (reverse result)))
+
+(doit "@{ @}")
+@result{} '((begin-object) (end-object))
+
+(doit "@{ \"key\" : 123 @}")
+@result{} ((begin-object)
+    (begin-pair "key")
+    (number 123)
+    (end-pair)
+    (end-object))
+
+(doit "@{ \"key\" : \"value\" @}")
+@result{} ((begin-object)
+    (begin-pair "key")
+    (string "value")
+    (end-pair)
+    (end-object))
+
+(doit "@{ \"key\" : true, \"yek\": false @}")
+@result{} ((begin-object)
+    (begin-pair "key")
+    (true #t)
+    (end-pair)
+    (begin-pair "yek")
+    (false #f)
+    (end-pair)
+    (end-object))
+
+(doit "[ 1 ]")
+@result{} ((begin-array)
+    (number 1)
+    (end-array))
+
+(doit "[ 1, 2, 3 ]")
+@result{} ((begin-array)
+    (number 1)
+    (number 2)
+    (number 3)
+    (end-array))
+
+(doit "[ 1, \"ciao\", true ]")
+@result{} '((begin-array)
+    (number 1)
+    (string "ciao")
+    (true #t)
+    (end-array))
+
+(doit "[ 1, @{ \"ciao\": 123 @}, true ]")
+@result{} ((begin-array)
+    (number 1)
+    (begin-object)
+    (begin-pair "ciao")
+    (number 123)
+    (end-pair)
+    (end-object)
+    (true #t)
+    (end-array))
+@end example
+
+@c page
+@node json decoding lexer
+@subsection Lexing @json{} text
+
+
+The following bindings are exported by the @library{json} library.
+
+
+@defun make-json-rfc-lexer @var{input-system}
+Build and return a @library{silex} lexer for @json{} text using
+@var{input-system}; the lexer will parse @json{} text conforming to
+@rfc{} 4627.
+
+Each time the lexer function is invoked, it returns a
+@class{lexical-token} record with category in the following set of
+symbols:
+
+@example
+BEGIN_ARRAY             END_ARRAY
+BEGIN_OBJECT            END_OBJECT
+NAME_SEPARATOR          VALUE_SEPARATOR
+
+FALSE TRUE NULL NUMBER STRING
+@end example
+
+@noindent
+with the addition of @code{*eoi*} for end--of--input and
+@code{*lexer-error*} for invalid input.  The semantic values in the
+records are the @json{} values converted to Scheme values: strings,
+numbers, true, false, null, and characters for the @json{} structural
+characters.
+
+When a token with category @code{*lexer-error*} is returned: its
+semantic value is set to the offending fragment from the input; at most
+@math{10} characters from the input are included, followed by an
+ellipsis if the fragment is not at the end of input.  For example the
+following @json{} object:
+
+@example
+@{ \"Count\" . 12, \"ciao\": false @}
+@end example
+
+@noindent
+has the dot as first offending character, the @code{*lexer-error*} token
+will have the string @code{" . 12, \"ci..."} as semantic value.
+@end defun
+
+
+@defun make-json-extended-lexer @var{input-system}
+Like @func{make-json-rfc-lexer} but supports the following non--@rfc{}
+extensions:
+
+@itemize
+@item
+The literal @samp{Infinity} is decoded as the positive infinity,
+@samp{+inf.0}.
+
+@item
+The literal @samp{-Infinity} is decoded as the negative infinity,
+@samp{-inf.0}.
+
+@item
+The literal @samp{NaN} is decoded as not--a--number, @samp{+nan.0}.
+
+@item
+Numbers are accepted in binary, octal and hexadecimal format when they
+are prefixed, respectively, by: @samp{#b} or @samp{#B}, @samp{#o} or
+@samp{#O}, @samp{#x} or @samp{#X}.  Decoding is performed by
+@func{number->string}.
+@end itemize
+@end defun
+
+
+@defun json->tokens @var{input-system}
+Read @json{} text from @var{input-system} and return a list of
+@class{lexical-token} records.  Processing of input stops at the first
+token with category @code{*eoi*} or @code{*lexer-error*}.
+@end defun
+
+@c page
+@node json decoding parser
+@subsection Parsing @json{} text
+
+
+The following bindings are exported by the @library{json} library.
+
+
+@defun make-json-parser
+Build and return a new @json{} parser using @library{lalr lr-driver};
+the returned value is a parser function as described in @ref{lalr
+parser}.  The parser function returns the S--expression representing the
+@json{} text; notice that strings in the S--expression are @strong{not}
+processed by @func{json-decode-string}.
+@end defun
+
+
+@deffn Syntax make-json-event-parser @ameta{clause} ...
+Build and return a new @json{} parser which calls provided functions
+when parsing elements.  The returned parser function matches the
+interface of the parser functions based upon @library{lalr lr-driver}.
+
+Parsing is driven by the clauses described below.
+@end deffn
+
+
+@deffn {Event Parser Clause} :begin-object @var{handler}
+Used when the parser receives a @code{BEGIN_OBJECT} token.
+@var{handler} is called with the symbol @code{begin-object} as single
+argument.
+@end deffn
+
+
+@deffn {Event Parser Clause} :end-object @var{handler}
+Used when the parser receives a @code{END_OBJECT} token.  @var{handler}
+is called with the symbol @code{end-object} as single argument.
+@end deffn
+
+
+@deffn {Event Parser Clause} :begin-array @var{handler}
+Used when the parser receives a @code{BEGIN_ARRAY} token.  @var{handler}
+is called with the symbol @code{begin-array} as single argument.
+@end deffn
+
+
+@deffn {Event Parser Clause} :end-array @var{handler}
+Used when the parser receives a @code{END_ARRAY} token.  @var{handler}
+is called with the symbol @code{end-array} as single argument.
+@end deffn
+
+
+@deffn {Event Parser Clause} :begin-pair @var{handler}
+Used when the parser processes the name of a pair.  @var{handler} is
+called with the symbol @code{begin-pair} as first argument and the
+string representing the pair's name as second argument.
+@end deffn
+
+
+@deffn {Event Parser Clause} :end-pair @var{handler}
+Used when the parser terminates processing of a pair.  @var{handler} is
+called with the symbol @code{end-pair} as single argument.
+@end deffn
+
+
+@deffn {Event Parser Clause} :atom @var{handler}
+Used when the parser parses the value of a pair or an array element
+being a string, a literal or a number.  When the value is:
+
+@table @asis
+@item A number
+@var{handler} is called with the symbol @code{number} as first argument
+and the number itself as second argument.
+
+@item A string
+@var{handler} is called with the symbol @code{string} as first argument
+and the string itself as second argument.  The string is @strong{not}
+processed with @func{json-decode-string}.
+
+@item The literal true
+@var{handler} is called with the symbol @code{true} as first argument
+and @true{} as second argument.
+
+@item The literal false
+@var{handler} is called with the symbol @code{false} as first argument
+and @false{} as second argument.
+
+@item The literal null
+@var{handler} is called with the symbol @code{null} as first argument
+and @code{()} as second argument.
+@end table
+@end deffn
+
+@c page
+@node json decoding string
+@subsection Decoding @json{} strings
+
+
+The following bindings are exported by the @library{json} library.
+
+
+@defun json-decode-string @var{input-string}
+Decode a @json{} string returning a Scheme string.  @var{input-string}
+must not be enclosed in double quotes.  Examples:
+
+@example
+(json-decode-string "")         @result{} ""
+(json-decode-string "a")        @result{} "a"
+(json-decode-string "ciao")     @result{} "ciao"
+(json-decode-string "\\\"")     @result{} "\""
+(json-decode-string "\\/")      @result{} "/"
+(json-decode-string "\\b")      @result{} "\b"
+(json-decode-string "\\f")      @result{} "\f"
+(json-decode-string "\\n")      @result{} "\n"
+(json-decode-string "\\r")      @result{} "\r"
+(json-decode-string "\\t")      @result{} "\t"
+(json-decode-string "\\u005C")  @result{} "\\"
+
+(json-decode-string "inizio\\\"\\/\\b\\f\\n\\r\\tfine")
+@result{} "inizio\"/\b\f\n\r\tfine"
+
+(json-decode-string "\\u0063\\u0069\\u0061\\u006f")
+@result{} "ciao"
+
+(json-decode-string "ciao \\\"hello\\\" salut")
+@result{} "ciao \"hello\" salut"
+@end example
+@end defun
+
+@c page
+@node json encoding
+@section Encoding @json{} text
+
+
+@defun json-make-pair @var{name} @var{value}
+@defunx json-make-pair @var{name} @var{value} @var{encode-value?}
+Build and return a string representing a @json{} pair.
+
+@var{name} must be a string and it is always encoded with
+@func{json-encode-string}.
+
+@var{value} can be a string, a number, @true{}, @false{} or @code{()}.
+When @var{value} is a string and @var{encode-value?} is true:
+@var{value} is encoded with @func{json-encode-string};
+@var{encode-value?} defaults to true.
+@end defun
+
+
+@defun json-make-pair* @var{name} @var{value}
+@defunx json-make-pair* @var{name} @var{value} @var{encode-value?}
+Like @func{json-make-pair} but with the following extensions:
+
+@itemize
+@item
+If @var{value} is positive infinity, it is encoded as the literal
+@samp{Infinity}.
+
+@item
+If @var{value} is positive infinity, it is encoded as the literal
+@samp{-Infinity}.
+
+@item
+If @var{value} is not--a--number, it is encoded as the literal
+@samp{NaN}.
+@end itemize
+@end defun
+
+
+@defun json-make-object @var{pair} ...
+Given a list of strings representing @json{} pairs return a string
+representing a @json{} object.
+@end defun
+
+
+@defun json-make-array @var{list-or-vector}
+Given a list or vector of strings representing @json{} values return a
+string representing a @json{} array.
+
+@example
+(json-make-array '("12" "34" "56"))
+@result{} "[ 12, 34, 56 ]"
+
+(json-make-array '#("12" "34" "56"))
+@result{} "[ 12, 34, 56 ]"
+@end example
+@end defun
+
+
+@defun json-encode-string @var{input-string}
+Encode a Scheme string to its representation as @json{} string; return a
+string.  All the characters whose integer representation is outside the
+range @math{[32, 126]} are represented with the @samp{\uXXXX} sequence,
+where @samp{X} is a hexadecimal digit.  Examples:
+
+@example
+(json-encode-string "")         @result{} ""
+(json-encode-string "ciao")     @result{} "ciao"
+(json-encode-string "\"")       @result{} "\\\""
+(json-encode-string "/")        @result{} "\\/"
+(json-encode-string "\b")       @result{} "\\b"
+(json-encode-string "\f")       @result{} "\\f"
+(json-encode-string "\n")       @result{} "\\n"
+(json-encode-string "\r")       @result{} "\\r"
+(json-encode-string "\t")       @result{} "\\t"
+(json-encode-string " ")        @result{} " "
+(json-encode-string "\x127;")   @result{} "\\u0127"
+(json-encode-string "\x1234;")  @result{} "\\u1234"
+@end example
+@end defun
+
+@c page
+@node json error
+@section Error handlers and condition objects
+
+
+@menu
+* json error conditions::       @json{}--related condition objects.
+* json error handlers::         Error handlers for @json{} parsers.
+@end menu
+
+@c page
+@node json error conditions
+@subsection @json{}--related condition objects
+
+
+@deftp {Condition Type} &json-parser-error
+Tag condition objects as being generated by the @json{} parser.  It is
+derived from @condition{error}.
+@end deftp
+
+
+@defun make-json-parser-error-condition
+Return a new @condition{json-parser-error} condition object.
+@end defun
+
+
+@defun json-parser-error-condition? @var{obj}
+Return true if @var{obj} is a condition object of type
+@condition{json-parser-error}.
+@end defun
+
+@c page
+@node json error handlers
+@subsection Error handlers for @json{} parsers
+
+
+@defun make-json-error-handler @var{who}
+Return a closure to be used as error handler for @json{} parsers.
+@var{who} must be the value for the @condition{who} condition.
+
+When the handler is invoked it raises an exception of types:
+@condition{json-parser-error}, @condition{who}, @condition{message},
+@condition{irritants}.
+
+The value in the @condition{irritants} object is a list with a single
+element: the offending string from the input.
+@end defun
+
+@c end of file

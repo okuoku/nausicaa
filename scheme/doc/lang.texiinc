@@ -1,4 +1,4 @@
-@node lang, pretty-print, conditions, Top
+@node lang
 @chapter Simple language extensions
 
 

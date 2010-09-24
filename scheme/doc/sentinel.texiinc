@@ -1,4 +1,4 @@
-@node sentinel, makers, shared-structures, Top
+@node sentinel
 @chapter The sentinel value
 
 

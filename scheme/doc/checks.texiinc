@@ -1,0 +1,254 @@
+@node checks
+@chapter Lightweight testing
+
+
+The @library{checks} library provides a simple mechanism for testing
+Scheme programs.  This library re--exports all the bindings from the
+@library{debugging} library.  As a primitive example, the expression:
+
+@example
+(check (+ 1 1) => 3)
+@end example
+
+@noindent
+evaluates the expression @code{(+ 1 1)} and compares the result with the
+expected result @samp{3} provided after the syntactic keyword @samp{=>}.
+Then the outcome of this comparison is reported in human--readable form
+by printing a message of the form:
+
+@example
+(+ 1 1) @result{} 2 ; *** failed ***
+; expected result: 3
+@end example
+
+
+@menu
+* checks select::               Selecting tests to be run.
+* checks eval::                 Evaluating code.
+* checks result::               Handling multiple results.
+@end menu
+
+@c page
+@node checks select
+@section Selecting tests to be run
+
+
+As usage example, let's assume that the system environment variable
+@env{CHECK_TEST_NAME} is set to @code{yellow}:
+
+@example
+(parameterise ((check-test-name 'yellow))
+
+  ;; this is evaluated
+  (check
+      (do-something)
+    => 123)
+
+  ;; this is evaluated, too
+  (check
+      (do-some-other-thing)
+    => 456))
+
+(parameterise ((check-test-name 'blue))
+
+  ;; this is NOT evaluated
+  (check
+      (do-something)
+    => #t)
+
+  ;; this is NOT evaluated
+  (check
+      (do-some-other-thing)
+    => #f))
+
+;; this is evaluated
+(check "yellow-one"
+    (do-something)
+  => 123)
+
+;; this is NOT evaluated
+(check 'red
+    (do-something)
+  => #t)
+@end example
+
+
+@defvr {Environment Variable} CHECK_TEST_NAME
+The system environment variable used to select tests in a test suite
+file.  The value of the variable must be the name, or the prefix of the
+name, or the suffix of the name, of one or more tests.
+@end defvr
+
+
+@deffn Parameter check-test-name
+Holds the name of the current test or tests.  Must be set to @false{}, a
+string or a symbol.
+@end deffn
+
+@c page
+@node checks eval
+@section Evaluating code
+
+
+@deffn Syntax check @var{expr} (=> @var{equal}) @var{expected}
+@deffnx Syntax check @var{expr} => @var{expected}
+@deffnx Syntax check @var{name} @var{expr} (=> @var{equal}) @var{expected}
+@deffnx Syntax check @var{name} @var{expr} => @var{expected}
+Evaluate @var{expr} and compare the value to the value of @var{expected}
+using the predicate @var{equal}, which is @func{equal?} when omitted.
+Then a report is printed according to the current mode setting (see
+below) and the outcome is recorded in a global state to be used in
+@func{check-report}.
+
+The precise order of evaluation is that first @var{equal} and
+@var{expected} are evaluated (in unspecified order) and then @var{expr}
+is evaluated.  Example: @code{(check (+ 1 1) => 2)}.
+
+When @var{name} is given: it is the name of this test, @ref{checks
+select, Selecting tests to be run}.
+@end deffn
+
+
+@deffn Syntax check-ec @meta{qualifier} ... @var{expr} (=> @var{equal}) @var{expected} (@var{argument*})
+@deffnx Syntax check-ec @meta{qualifier} ... @var{expr} => @var{expected} (@var{argument*})
+@deffnx Syntax check-ec @meta{qualifier} ... @var{expr} (=> @var{equal}) @var{expected}
+@deffnx Syntax check-ec @meta{qualifier} ... @var{expr} => @var{expected}
+An eager comprehension for executing a parametric sequence of checks.
+To use this syntax we have to import the @library{loops} library.
+
+Enumerate the sequence of bindings specified by the @meta{qualifier}
+syntaxes.  For each binding evaluate @var{equal} and @var{expected} in
+unspecified order. Then evaluate @var{expr} and compare the value
+obtained to the value of @var{expected} using the value of @var{equal}
+as predicate, which is @func{equal?} when omitted.
+
+The comprehension stops after the first failed check, if there is any.
+Then a report is printed according to the current mode setting (see
+below) and the outcome is recorded in a global state to be used in
+@func{check-report}.  The entire @func{check-ec} counts as a single
+check.
+
+In case the check fails @var{argument*} is used for constructing an
+informative message with the argument values.  Use @var{argument*} to
+list the relevant free variables of @var{expr} (see examples) that you
+want to have printed.
+
+A @meta{qualifier} is any qualifier of an eager comprehension.
+
+Examples:
+
+@example
+(check-ec (: e 100)
+          (positive? (expt 2 e))
+          => #t (e)) ; fails on fixnums
+
+(check-ec (: e 100)
+          (:let x (expt 2.0 e))
+          (= (+ x 1) x)
+          => #f (x)) ; fails
+
+(check-ec (: x 10)
+          (: y 10)
+          (: z 10)
+          (* x (+ y z))
+          => (+ (* x y) (* x z))
+             (x y z)) ; passes with 10^3 cases checked
+@end example
+@end deffn
+
+
+@defun check-report
+Print a summary and the first failed check, if there is any, depending
+on the current mode settings.
+@end defun
+
+
+@defun check-set-mode! @var{mode}
+Set the current mode to @var{mode}, which must be a symbol among:
+@code{off}, @code{summary}, @code{report-failed}, @code{report}; the
+default is @code{report}.  Note that you can change the mode at any
+time, and that @func{check}, @func{check-ec} and @func{check-report} use
+the current value.
+
+The mode symbols have the following meaning:
+
+@table @code
+@item off
+do not execute any of the checks;
+
+@item summary
+print only summary in @func{check-report} and nothing else;
+
+@item report-failed
+report failed checks when they happen, and in summary;
+
+@item report
+report every example executed.
+@end table
+@end defun
+
+
+@defun check-reset!
+Reset the global state (counters of correct/failed examples) to the
+state immediately after loading the module for the first time, i.e. no
+checks have been executed.
+@end defun
+
+
+@defun check-passed? @var{expected-total-count}
+Return @true{} if there were no failed checks and
+@var{expected-total-count} correct checks, @false{} otherwise.
+
+Rationale: This procedure can be used in automatized tests by
+terminating a test program with the statement:
+
+@example
+(exit (if (check-passed? n) 0 1))
+@end example
+@end defun
+
+
+@deffn Syntax false-if-exception @var{form0} @var{form} ...
+Evaluate all the @var{form}s as in @func{begin}.  If an exception is
+raised: return @false{}.
+@end deffn
+
+
+@deffn Syntax check-for-true @var{expr}
+@deffnx Syntax check-for-true @var{name} @var{expr}
+@deffnx Syntax check-for-false @var{expr}
+@deffnx Syntax check-for-false @var{name} @var{expr}
+Evaluate @var{expr} in a @func{check} form, expecting a non--false or
+@false{} value as result.
+
+When @var{name} is given: it is the name of this test, @ref{checks
+select, Selecting tests to be run}.
+@end deffn
+
+@c page
+@node checks result
+@section Handling multiple results
+
+
+@deffn Syntax with-result @var{form0} @var{form} ...
+Evaluate all the @var{form}s, as in @func{begin}, in a dynamic
+environment in which an implicit result variable is defined.  The
+implicit variable is handled as a list.
+
+Return a list whose first value is the return value of the last
+@var{form} and whose second value is the value of the implicit variable.
+@end deffn
+
+
+@defun add-result @var{obj}
+Append @var{obj} to the list in the implicit variable defined by
+@func{with-result}.
+@end defun
+
+
+@defun get-result
+Return the current value of the implicit variable defined by
+@func{with-result}.
+@end defun
+
+@c end of file

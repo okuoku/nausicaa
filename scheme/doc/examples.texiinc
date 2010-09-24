@@ -1,4 +1,4 @@
-@node examples, binfmt, notes, Top
+@node examples
 @appendix Scheme programming examples
 
 

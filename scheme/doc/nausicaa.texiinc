@@ -1,4 +1,4 @@
-@node nausicaa, cond-expand, stdlib, Top
+@node nausicaa
 @chapter The @library{nausicaa} language
 
 

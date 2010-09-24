@@ -1,4 +1,4 @@
-@node function index, variable index, concept index, Top
+@node function index
 @appendix An entry for each function
 
 @printindex fn

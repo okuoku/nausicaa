@@ -141,12 +141,24 @@ Revised^6 Report on the algorithmic language Scheme
 @acronym{ISO}
 @end macro
 
+@macro json{}
+@acronym{JSON}
+@end macro
+
 @macro posix{}
 @acronym{POSIX}
 @end macro
 
 @macro rfc{}
 @acronym{RFC}
+@end macro
+
+@macro uid{}
+@acronym{UID}
+@end macro
+
+@macro uri{}
+@acronym{URI}
 @end macro
 
 @macro utf{}
@@ -159,6 +171,22 @@ Revised^6 Report on the algorithmic language Scheme
 
 @macro tai{}
 @acronym{TAI}
+@end macro
+
+@macro dst{}
+@acronym{DST}
+@end macro
+
+@macro gmt{}
+@acronym{GMT}
+@end macro
+
+@macro jdn{}
+@acronym{JDN}
+@end macro
+
+@macro mjdn{}
+@acronym{MJDN}
 @end macro
 
 @c ------------------------------------------------------------
@@ -462,7 +490,7 @@ Revised^6 Report on the algorithmic language Scheme
 
 @c To be used as @value{AUTHOR_EMAIL} whenever we need to include the
 @c email of the *single* author of this document.
-@set AUTHOR_EMAIL               @email{marco.maggi-ipsu@@gna.org}
+@set AUTHOR_EMAIL               @email{marco.maggi-ipsu@@poste.it}
 
 @c To be used as @value{COPYRIGHT_YEARS} whenever we need to include the
 @c list of copyright years.
@@ -565,7 +593,7 @@ the list of original documents and their authors.  See also the
 
 @c page
 @ifnottex
-@node Top, overview, (dir), (dir)
+@node Top
 @top @value{TITLE}
 
 @insertcopying
@@ -596,7 +624,59 @@ Basic libraries
 More libraries
 
 * ffi::                         Foreign functions interface.
-* notes::
+* generics::                    Multimethods dispatching.
+* enumerations::                Enumeration sets utilities.
+* lists::                       Lists library.
+* char-sets::                   Character sets library.
+* asciis::                      @ascii{} characters library.
+* strings::                     Strings library.
+* vectors::                     Vectors library.
+* bytevectors::                 Bytevectors.
+* arrays::                      Multidimensional arrays.
+* streams::                     Streams library.
+* comparisons::                 Comparison functions.
+* loops::                       Loop constructs.
+* random::                      Sources of random bits.
+* msgcat::                      Messages catalog for internationalisation.
+* time::                        Time data types and procedures.
+* format::                      Formatting strings.
+* checks::                      Lightweight testing.
+* debugging::                   Debugging utilities.
+* queues::                      Simple queues.
+* stacks::                      Simple stacks.
+* object-properties::           Object properties.
+* cleanup-handlers::            Cleaning up.
+* combinators::                 Combinators.
+* keywords::                    Keyword values.
+* variables::                   Defining storage locations.
+* scmobj::                      A simple object system.
+* sexps::                       Handling symbolic expressions.
+* matches::                     Pattern matching.
+* irregex::                     IrRegular expressions.
+* pregexp::                     Portable regular expressions for Scheme.
+* parser-tools::                Lexer and parser utilities.
+* silex::                       A lexical analyser generator.
+* lalr::                        A LALR(1) parser generator.
+* packrat::                     Packrat parser.
+* csv::                         Comma--separated values (@acronym{CSV}) utilities.
+* email::                       Email processing.
+* infix::                       Infix notation utilities.
+* getopts::                     Parsing command line arguments.
+* armor::                       @ascii{} armor encoding/decoding.
+* json::                        Parsing and generating @json{} text.
+* net::                         Network--related libraries.
+* uri::                         Uniform resource identifiers.
+* interps::                     Evaluating code in a limited environment.
+* libraries::                   Libraries inspection.
+
+Low level libraries
+
+* kmp::                         Knuth--Morris--Pratt searching.
+* one-dimension::               One dimensional extended ranges.
+
+Appendices
+
+* notes::                       Miscellaneous notes on everything.
 * examples::                    Scheme programming examples.
 * binfmt::                      Launching programs directly.
 * credits::                     Credits.
@@ -611,544 +691,21 @@ Indexes
 * variable index::              An entry for each variable.
 * type index::                  An entry for each type.
 
-
-
-@detailmenu
- --- The Detailed Node Listing ---
-
-Overview of the distribution
-
-* overview implementation::     Supported implementations.
-* overview porting::            On writing portable code.
-* overview libraries::          Other libraries.
-* overview binfmt::             Launching Scheme programs directly.
-
-The Scheme language
-
-* scheme overview::             Overview of Scheme.
-* scheme requirements::         Requirement levels.
-* scheme numbers::              Numbers.
-* scheme lex::                  Lexical syntax and datum syntax.
-* scheme basic::                Semantic concepts.
-* scheme entry::                Entry format.
-* scheme library::              Libraries.
-* scheme programs::             Top-level programs.
-* scheme syntax::               Primitive syntax.
-* scheme expansion::            Expansion process.
-* scheme derived::              Sample definitions for derived forms.
-
-Overview of Scheme
-
-* scheme overview intro::         Introduction.
-* scheme overview basic types::   Basic types.
-* scheme overview expressions::   Expressions.
-* scheme overview variables::     Variables and binding.
-* scheme overview definitions::   Definitions.
-* scheme overview forms::         Forms.
-* scheme overview procedures::    Procedures.
-* scheme overview syntax::        Procedure calls and syntactic keywords.
-* scheme overview assignment::    Assignment.
-* scheme overview macros::        Derived forms and macros.
-* scheme overview data::          Syntactic data and datum values.
-* scheme overview continuations:: Continuations.
-* scheme overview libraries::     Libraries.
-* scheme overview programs::      Top--level programs.
-
-Numbers
-
-* scheme numbers tower::        Numerical tower.
-* scheme numbers exactness::    Exactness.
-* scheme numbers fix flo::      Fixnums and flonums.
-* scheme numbers requirements:: Implementation requirements.
-* scheme numbers inf nan::      Infinities and NaNs.
-* scheme numbers minus zero::   Distinguished @math{-0.0}.
-
-Lexical syntax and datum syntax
-
-* scheme lex intro::            Introduction.
-* scheme lex notation::         Notation.
-* scheme lex syntax::           Lexical syntax.
-* scheme lex datum::            Datum syntax.
-
-Lexical syntax
-
-* scheme lex syntax formal account::           Formal account.
-* scheme lex syntax line endings::             Line endings.
-* scheme lex syntax whitespace and comments::  Whitespace and comments.
-* scheme lex syntax identifiers::              Identifiers.
-* scheme lex syntax booleans::                 Booleans.
-* scheme lex syntax characters::               Characters.
-* scheme lex syntax strings::                  Strings.
-* scheme lex syntax numbers::                  Numbers.
-
-Datum syntax
-
-* scheme lex datum formal account::  Formal account.
-* scheme lex datum pairs and lists:: Pairs and lists.
-* scheme lex datum vectors::         Vectors.
-* scheme lex datum bytevectors::     Bytevectors.
-* scheme lex datum abbreviations::   Abbreviations.
-
-Semantic concepts
-
-* scheme basic programs and libraries::      Programs and libraries.
-* scheme basic variables keywords regions::  Variables, keywords,
-                                             and regions.
-* scheme basic exceptions::                  Exceptional situations.
-* scheme basic argument checking::           Argument checking.
-* scheme basic syntax violations::           Syntax violations.
-* scheme basic safety::                      Safety.
-* scheme basic boolean values::              Boolean values.
-* scheme basic multiple return values::      Multiple return values.
-* scheme basic unspecified behavior::        Unspecified behavior.
-* scheme basic storage model::               Storage model.
-* scheme basic proper tail recursion::       Proper tail recursion.
-* scheme basic dynamic extent::              Dynamic extent and the
-                                             dynamic environment.
-
-Entry format
-
-* scheme entry syntax::              Syntax entries.
-* scheme entry procedure::           Procedure entries.
-* scheme entry implementation resp:: Implementation responsibilities.
-* scheme entry other kinds::         Other kinds of entries.
-* scheme entry equivalent::          Equivalent entries.
-* scheme entry evaluation examples:: Evaluation examples.
-* scheme entry naming conventions::  Naming conventions.
-
-Libraries
-
-* scheme library form::           Library form.
-* scheme library import export::  Import and export levels.
-* scheme library examples::       Examples.
-
-Library form
-
-* scheme library form decl::      Library declaration.
-* scheme library form names::     Library names.
-* scheme library form export::    The export specification.
-* scheme library form import::    The import specification.
-* scheme library form version::   The version reference.
-* scheme library form conflicts:: Handling conflicts.
-* scheme library form body::      Library bodies.
-
-Top--level programs
-
-* scheme programs syntax::      Top-level program syntax.
-* scheme programs semantics::   Top-level program semantics.
-
-Primitive syntax
-
-* scheme syntax primitive::     Primitive expression types.
-* scheme syntax macros::        Macros.
-
-Base library
-
-* baselib types::               Base types.
-* baselib definitions::         Definitions.
-* baselib bodies::              Bodies.
-* baselib expressions::         Expressions.
-* baselib predicates::          Equivalence and procedure predicates.
-* baselib math::                Mathematics.
-* baselib booleans::            Booleans.
-* baselib lists::               Pairs and lists.
-* baselib symbols::             Symbols.
-* baselib characters::          Characters.
-* baselib strings::             Strings.
-* baselib vectors::             Vectors.
-* baselib errors::              Errors and violations.
-* baselib control::             Control features.
-* baselib iteration::           Iteration.
-* baselib quasiquotation::      Quasiquotation.
-* baselib syntax binding::      Binding constructs for syntactic keywords.
-* baselib transformers::        Macro transformers.
-* baselib tail call::           Tail calls and tail contexts.
-
-Definitions
-
-* baselib definitions variables::  Variables definitions.
-* baselib definitions syntax::     Syntax definitions.
-
-Expressions
-
-* baselib expressions quotation::       Quotation.
-* baselib expressions procedures::      Procedures.
-* baselib expressions conditionals::    Conditionals.
-* baselib expressions assignments::     Assignments.
-* baselib expressions derived cond::    Derived conditionals.
-* baselib expressions binding::         Binding constructs.
-* baselib expressions sequencing::      Sequencing.
-
-Mathematics
-
-* baselib math exactness::      Propagation of exactness and inexactness.
-* baselib math infinities::     Representability of infinities and NaNs.
-* baselib math semantics::      Semantics of common operations.
-* baselib math ops::            Numerical operations.
-* baselib math string::         Numerical input and output.
-
-Semantics of common operations
-
-* baselib math semantics integer::      Integer division.
-* baselib math semantics trascend::     Transcendental functions.
-
-Numerical operations
-
-* baselib math ops type pred::          Numerical type predicates.
-* baselib math ops exactness::          Generic conversion.
-* baselib math ops value pred::         Value predicates.
-* baselib math ops comparison::         Comparison.
-* baselib math ops arithmetic::         Arithmetic operations.
-* baselib math ops part::               Part separation.
-* baselib math ops trascend::           Trascendental functions.
-* baselib math ops exponentiation::     Exponentiation functions.
-* baselib math ops complex::            Complex numbers functions.
-
-Standard libraries
-
-* stdlib unicode::              Unicode.
-* stdlib bytevector::           Bytevectors.
-* stdlib list::                 List utilities.
-* stdlib sorting::              Sorting.
-* stdlib control::              Control structures.
-* stdlib records::              Records.
-* stdlib exceptions::           Exceptions and conditions.
-* stdlib io::                   Input/output.
-* stdlib files::                File system.
-* stdlib programlib::           Command line access and exit values.
-* stdlib arithmetics::          Arithmetics.
-* stdlib syntax-case::          Syntax-case.
-* stdlib hashtable::            Hashtables.
-* stdlib enum::                 Enumerations.
-* stdlib complib::              Composite library.
-* stdlib eval::                 Evaluation.
-* stdlib mutable pairs::        Mutable pairs.
-* stdlib mutable strings::      Mutable strings.
-* stdlib rfive compat::         @rnrs{5} compatibility.
-
-Unicode
-
-* stdlib unicode characters::   Characters.
-* stdlib unicode strings::      Strings.
-
-Bytevectors
-
-* stdlib bytevector endianness::        Endianness.
-* stdlib bytevector general::           General operations.
-* stdlib bytevector bytes and octets::  Operations on bytes and octets.
-* stdlib bytevector integers::          Operations on integers of
-                                        arbitrary size.
-* stdlib bytevector integers 16::       Operations on 16-bit integers.
-* stdlib bytevector integers 32::       Operations on 32-bit integers.
-* stdlib bytevector integers 64::       Operations on 64-bit integers.
-* stdlib bytevector flonum::            Operations on @ieee{} 754
-                                        representations.
-* stdlib bytevector strings::           Operations on strings.
-
-Records
-
-* stdlib records intro::                Introduction.
-* stdlib records mutability::           Mutability and equivalence
-                                        of records.
-* stdlib records syntactic layer::      Syntactic layer.
-* stdlib records procedural layer::     Procedural layer.
-* stdlib records inspection::           Inspection.
-
-Exceptions and conditions
-
-* stdlib exceptions exceptions::        Exceptions.
-* stdlib exceptions conditions::        Conditions.
-
-Conditions
-
-* stdlib exceptions conditions objects::        Condition objects.
-* stdlib exceptions conditions types::          Standard condition types.
-
-Input/output
-
-* stdlib io conditions::        Condition types.
-* stdlib io port::              Port input/output.
-* stdlib io simple::            Simple input/output.
-
-Port input/output
-
-* stdlib io port file names::           File names.
-* stdlib io port file options::         File options.
-* stdlib io port buffer modes::         Buffer modes.
-* stdlib io port transcoders::          Transcoders.
-* stdlib io port eof object::           End of file object.
-* stdlib io port io ports::             Input and output ports.
-* stdlib io port input ports::          Input ports.
-* stdlib io port binary input::         Binary input.
-* stdlib io port textual input::        Textual input.
-* stdlib io port output ports::         Output ports.
-* stdlib io port binary output::        Binary output.
-* stdlib io port textual output::       Textual output.
-* stdlib io port input output ports::   Input/output ports.
-
-Arithmetics
-
-* stdlib arithmetics bitwise::          Bitwise operations.
-* stdlib arithmetics fixnum::           Fixnums.
-* stdlib arithmetics flonum::           Flonums.
-* stdlib arithmetics exact bitwise::    Exact bitwise arithmetic.
-
-Syntax--case
-
-* stdlib syntax-case intro::            Informal introduction
-                                        for beginners.
-* stdlib syntax-case hygiene::          Hygiene.
-* stdlib syntax-case objects::          Syntax objects.
-* stdlib syntax-case transformers::     Transformers.
-* stdlib syntax-case parsing::          Parsing input and producing
-                                        output.
-* stdlib syntax-case identifier::       Identifier predicates.
-* stdlib syntax-case conversion::       Syntax-object and datum
-                                        conversions.
-* stdlib syntax-case temporaries::      Generating lists of temporaries.
-* stdlib syntax-case derived::          Derived forms and procedures.
-* stdlib syntax-case violations::       Syntax violations.
-
-Examples
-
-* stdlib syntax-case lisp::             Common Lisp style macros.
-
-Hashtables
-
-* stdlib hashtable constructors::       Constructors.
-* stdlib hashtable procedures::         Procedures.
-* stdlib hashtable inspection::         Inspection.
-* stdlib hashtable hash functions::     Hash functions.
-
-The @library{nausicaa} language
-
-* nausicaa libs::               Component libraries.
-* nausicaa functions::          Normalised functions.
-* nausicaa syntax::             Extended syntaxes.
-* nausicaa environment::        Accessing environment variables.
-
-More condition types
-
-* conditions define::           Defining new condition types.
-* conditions mismatch::         General mismatch error.
-* conditions num-args::         Wrong number of arguments error.
-
-Simple language extensions
-
-* lang lang::                   Language constructs.
-* lang let::                    Binding constructs.
-* lang loop::                   Loop constructs.
-* lang id::                     Bindings mutations.
-* lang define::                 Macro definition helpers.
-
-Maker syntaxes
-
-* makers intro::                Introduction to maker macros.
-* makers api::                  Defining makers.
-
-Record utilities
-
-* classes define::              Defining new class types.
-* classes make::                Record makers.
-* classes pred::                Record type predicates.
-* classes inspect::             Class and instance inspection.
-* classes dot::                 Using dot notation.
-* classes builtin::             Conventional type descriptors.
-
-Defining new class types
-
-* classes define class::        Defining class types.
-* classes define inherit::      Defining hierarchies of classes.
-* classes define protocol::     Defining constructor protocols.
-* classes define maker::        Defining class makers.
-* classes define predicate::    Defining class predicates.
-* classes define virtual::      Defining classes having virtual
-                                fields.
-* classes define method::       Defining classes having methods.
-* classes define setter::       Defining classes having custom
-                                setters and getters.
-* classes define bindings::     Defining classes having custom
-                                bindings.
-* classes define labels::       Defining labels.
-
-Using dot notation
-
-* classes dot with::            Basic dot notation usage.
-* classes dot let::             Local bindings.
-* classes dot lambda::          Function bindings.
-* classes dot setter::          Setters and getters.
-
-Conventional type descriptors
-
-* classes builtin chart::       A chart for predefined builtin types.
-* classes builtin base::        Basic conventional types.
-* classes builtin list::        Pairs and lists types.
-* classes builtin compound::    Non--list compound types.
-* classes builtin number::      Numeric objects types.
-* classes builtin port::        Input/output port objects types.
-* classes builtin string::      Character and string types.
-* classes builtin misc::        Miscellaneous conventional types.
-
-Compensation stacks
-
-* compensations usage::         Basic compensations usage.
-* compensations api::           Compensations @api{}.
-
-Deferred exceptions
-
-* deferred exceptions intro::   Introduction.
-* deferred exceptions usage::   Usage examples.
-* deferred exceptions api::     Programming interface.
-
-Foreign--functions interface
-
-* ffi core::                    Foreign--functions interface.
-* ffi memory::                  Low level memory handling.
-* ffi cstrings::                C language strings handling.
-* ffi errno::                   C language system errors.
-
-Foreign--functions interface
-
-* ffi core libraries::          Installed libraries.
-* ffi core conditions::         Condition objects.
-* ffi core types::              Interface to C language types.
-* ffi core sizeof::             Sizes and limits.
-* ffi core pointers::           Pointer objects.
-* ffi core access::             Direct access to memory blocks.
-* ffi core call::               Callouts and callbacks.
-* ffi core struct::             Accessing data structures.
-* ffi core headers::            Inspecting foreign header files.
-* ffi core generator::          Generating an interface.
-
-Condition objects
-
-* ffi core conditions library-name::    Foreign library names.
-* ffi core conditions shared-object::   Shared objects.
-* ffi core conditions foreign-symbol::  Foreign symbols.
-* ffi core conditions opening::         Shared objects opening error.
-* ffi core conditions lookup::          Shared objects lookup error.
-
-Callouts and callbacks
-
-* ffi core call shared::        Dynamic loading of libraries.
-* ffi core call out::           Calling foreign functions.
-* ffi core call back::          Calling Scheme functions.
-* ffi core call macros::        Utility macros.
-* ffi core call platform::      Low level interface.
-
-Inspecting foreign header files
-
-* ffi core headers setup::      Setting up the C language environment.
-* ffi core headers includes::   Including header files.
-* ffi core headers valueof::    Determining the value of expressions.
-* ffi core headers sizeof::     Determining the size of data types.
-* ffi core headers typeof::     Determining the basic type of data
-                                types.
-* ffi core headers alignof::    Determining the alignment of data
-                                types.
-* ffi core headers strideof::   Determining the array stride of data
-                                types.
-* ffi core headers offsetof::   Determining the offset of fields in
-                                data structures.
-* ffi core headers inspect::    Full inspection of data types.
-* ffi core headers string::     Determining string values.
-* ffi core headers common::     Common groups of tests.
-
-Low level memory handling
-
-* ffi memory conditions::       Out of memory errors.
-* ffi memory alloc::            Allocation functions.
-* ffi memory blocks::           Memory blocks.
-* ffi memory cache::            Caching memory blocks.
-* ffi memory compensate::       Compensations.
-* ffi memory operations::       Operations.
-* ffi memory bytevectors::      Bytevectors conversion.
-
-Independent libraries
-
-* ffi memory mempool::          Allocation from a memory pool.
-* ffi memory refcount::         Reference counting.
-* ffi memory membuffer::        Memory buffers.
-* ffi memory guarded::          Guarded memory allocation.
-
-Allocation functions
-
-* ffi memory alloc system::     System functions.
-* ffi memory alloc platform::   Platform functions.
-* ffi memory alloc primitive::  Primitive functions.
-* ffi memory alloc high::       Exception raising functions.
-* ffi memory alloc examples::   Memory allocation examples.
-
-Memory blocks
-
-* ffi memory blocks type::        Record type definition.
-* ffi memory blocks clone::       Duplicating blocks.
-* ffi memory blocks conversion::  Conversion between blocks and other
-                                  objects.
-* ffi memory blocks portions::    Dealing with block portions.
-* ffi memory blocks misc::        Miscellaneous stuff.
-
-C language strings handling
-
-* ffi cstrings constants::      Constant values.
-* ffi cstrings inspection::     Inspecting cstrings.
-* ffi cstrings operations::     Acting upon cstrings.
-* ffi cstrings conversion::     Converting to and from cstrings.
-* ffi cstrings argv::           Converting arrays of cstrings.
-
-C language system errors
-
-* ffi errno values::            Error codes.
-* ffi errno enumerations::      Enumeration type.
-* ffi errno conversion::        Conversion of error codes.
-* ffi errno condition::         Raising exceptions.
-
-Miscellaneous notes on everything
-
-* notes nan::                   How to deal with not--a--number.
-
-How to deal with not--a--number
-
-* notes nan inf::               How to deal with infinities.
-* notes nan nan::               Understanding not--a--number.
-
-Scheme programming examples
-
-* examples macros::             Exploring macro mechanisms.
-
-Exploring macro mechanisms
-
-* examples macros phases::      Bits about phases.
-* examples macros underscore::  About the underscore.
-* examples macros patterns::    About writing patterns.
-* examples macros literals::    About literal identifiers.
-* examples macros syntax::      Syntax objects and you.
-
-Syntax objects and you
-
-* examples macros syntax not::   What we do not do.
-
-Launching programs directly
-
-* binfmt overview::             Overview of the mechanism.
-* binfmt loading::              Loading the module.
-* binfmt registry::             The registry.
-* binfmt using::                Using the mechanism.
-* binfmt control::              Controlling the mechanism.
-* binfmt hints::                Hints.
-* binfmt scheme::               Running Scheme programs.
-
-@end detailmenu
 @end menu
 
 @end ifnottex
 
 @c page
+@c chapters on basic language
+
 @include overview.texiinc
 @include scheme.texiinc
 @include baselib.texiinc
 @include stdlib.texiinc
 @include nausicaa.texiinc
+
+@c chapters on core libraries
+
 @include cond-expand.texiinc
 @include unimplemented.texiinc
 @include conditions.texiinc
@@ -1161,9 +718,60 @@ Launching programs directly
 @include classes.texiinc
 @include compensations.texiinc
 @include deferred-exceptions.texiinc
-@include ffi.texiinc
 
-@c ------------------------------------------------------------
+@c chapters on more libraries
+
+@include ffi.texiinc
+@include generics.texiinc
+@include enumerations.texiinc
+@include lists.texiinc
+@include char-sets.texiinc
+@include asciis.texiinc
+@include strings.texiinc
+@include vectors.texiinc
+@include bytevectors.texiinc
+@include arrays.texiinc
+@include streams.texiinc
+@include comparisons.texiinc
+@include loops.texiinc
+@include random.texiinc
+@include msgcat.texiinc
+@include time.texiinc
+@include formations.texiinc
+@include checks.texiinc
+@include debugging.texiinc
+@include queues.texiinc
+@include stacks.texiinc
+@include object-properties.texiinc
+@include cleanup-handlers.texiinc
+@include combinators.texiinc
+@include keywords.texiinc
+@include variables.texiinc
+@include scmobj.texiinc
+@include sexps.texiinc
+@include matches.texiinc
+@include irregex.texiinc
+@include pregexp.texiinc
+@include parser-tools.texiinc
+@include silex.texiinc
+@include lalr.texiinc
+@include packrat.texiinc
+@include csv.texiinc
+@include email.texiinc
+@include infix.texiinc
+@include getopts.texiinc
+@include armor.texiinc
+@include json.texiinc
+@include net.texiinc
+@include uri.texiinc
+@include interps.texiinc
+@include libraries.texiinc
+
+@c chapters on low level libraries
+
+@include kmp.texiinc
+@include one-dimension.texiinc
+
 @c appendices
 
 @include notes.texiinc
@@ -1171,13 +779,11 @@ Launching programs directly
 @include binfmt.texiinc
 @include credits.texiinc
 
-@c ------------------------------------------------------------
 @c licenses
 
 @include gpl-3.0.texiinc
 @include fdl-1.3.texiinc
 
-@c ------------------------------------------------------------
 @c indices
 
 @include references.texiinc
