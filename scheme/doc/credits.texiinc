@@ -20,14 +20,14 @@ the source code files; the port to @rnrs{6} included in this project is
 the work of Derick Eddington.
 
 @table @code
-@item Ikarus
-An almost @rnrs{6} compliant implementation of the Scheme programming
-language.  It is the creation of Abdulaziz Ghuloum.
+@c @item Ikarus
+@c An almost @rnrs{6} compliant implementation of the Scheme programming
+@c language.  It is the creation of Abdulaziz Ghuloum.
 
-@item Larceny
-An also @rnrs{6} compliant implementation of the Scheme programming
-language.  It is the creation of William D.  Clinger, Lars T Hansen and
-Lightship Software, Incorporated, with contributions by other people.
+@c @item Larceny
+@c An also @rnrs{6} compliant implementation of the Scheme programming
+@c language.  It is the creation of William D.  Clinger, Lars T Hansen and
+@c Lightship Software, Incorporated, with contributions by other people.
 
 @item Mosh
 An @rnrs{6} compliant implementation of the Scheme programming language.

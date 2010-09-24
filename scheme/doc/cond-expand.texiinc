@@ -68,9 +68,11 @@ Examples:
 What follows is the list of supported features.
 
 @table @code
-@item ikarus
-@itemx larceny
-@itemx mosh
+@c @item ikarus
+@c @itemx larceny
+@item mosh
+@itemx petite
+@itemx vicare
 @itemx ypsilon
 The name of the underlying Scheme implementation.
 

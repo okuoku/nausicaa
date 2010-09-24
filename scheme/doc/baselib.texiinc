@@ -2726,10 +2726,11 @@ newly allocated.  If no pairs are allocated, @var{obj} is returned.
 @quotation
 @rnrs{6} mandates that this function requires at least the argument
 @var{obj}; it is illegal to call this function with no arguments.
-Despite this: The Scheme implementations supported by Nausicaa (Larceny,
-Ikarus, Mosh, Ypsilon) allow calling this function with no arguments, in
-which case the return value is the empty string.  The @library{nausicaa}
-language will ensure this behaviour.  (Fri Jun 5, 2009)
+Despite this: The Scheme implementations supported by Nausicaa (Mosh,
+Petite Chez, Vicare, Ypsilon) allow calling this function with no
+arguments, in which case the return value is the empty string.  The
+@library{nausicaa} language will ensure this behaviour.  (Fri Jun 5,
+2009)
 @end quotation
 @end deffn
 

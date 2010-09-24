@@ -85,10 +85,10 @@ make the change visible to other points in the program.  For example:
 @end example
 
 @noindent
-when executed by Ypsilon and Larceny will print @code{"ab9d"}, while
-when executed by Ikarus and Mosh will print @code{"abcd"} (last verified
-with revisions checked out on Fri Jun 5, 2009).  To avoid this problem
-completely, we can change the program in this way:
+when executed by Ypsilon will print @code{"ab9d"}, while when executed
+by Mosh will print @code{"abcd"} (last verified with revisions checked
+out on Fri Jun 5, 2009).  To avoid this problem completely, we can
+change the program in this way:
 
 @example
 (import (rnrs)

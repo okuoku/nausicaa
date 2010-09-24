@@ -32,22 +32,22 @@ conflicts may arise.
 @value{PACKAGE} supports the following Scheme implementations:
 
 @table @strong
-@item Ikarus
-It is an almost @rnrs{6} compliant implementation of the Scheme
-programming language.  It is the creation of Abdulaziz Ghuloum.
+@c @item Ikarus
+@c It is an almost @rnrs{6} compliant implementation of the Scheme
+@c programming language.  It is the creation of Abdulaziz Ghuloum.
 
-@center @url{http://launchpad.net/ikarus}
+@c @center @url{http://launchpad.net/ikarus}
 
-@item Larceny
-It is an also @rnrs{6} compliant implementation of the Scheme
-programming language.  It is the creation of William D.  Clinger, Lars T
-Hansen and Lightship Software, Incorporated, with contributions by other
-people.
+@c @item Larceny
+@c It is an also @rnrs{6} compliant implementation of the Scheme
+@c programming language.  It is the creation of William D.  Clinger, Lars T
+@c Hansen and Lightship Software, Incorporated, with contributions by other
+@c people.
 
-@center @url{http://www.ccs.neu.edu/home/will/Larceny/}
+@c @center @url{http://www.ccs.neu.edu/home/will/Larceny/}
 
-Larceny's support does @strong{not} include the foreign--functions
-interface.
+@c Larceny's support does @strong{not} include the foreign--functions
+@c interface.
 
 @item Mosh
 It is an @rnrs{6} compliant implementation of the Scheme programming
@@ -70,11 +70,14 @@ language.  It is produced by Cadence Research Systems.
 
 Petite's support does @strong{not} include the foreign--functions
 interface.
-@end table
 
-@noindent
-when referring to all of these we can use the @acronym{LIMPY}
-abbreviation.
+@item Vicare Scheme
+It is an almost @rnrs{6} compliant implementation of the Scheme
+programming language, forked from Ikarus Scheme.  Originally, Ikarus is
+the creation of Abdulaziz Ghuloum.
+
+@center @url{http://github.com/marcomaggi/vicare/}
+@end table
 
 @c page
 @node overview porting

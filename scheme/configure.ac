@@ -2,7 +2,7 @@ dnl configure.ac --
 dnl
 
 AC_INIT([nausicaa],[0.2d2],[marco.maggi-ipsu@poste.it])
-DS_BEGIN([./src/libraries/nausicaa.ikarus.sls])
+DS_BEGIN([./src/libraries/nausicaa.vicare.sls])
 AC_CANONICAL_TARGET
 AC_SUBST([NAUSICAA_OS],[$target_os])
 NAUSICAA_BEGIN

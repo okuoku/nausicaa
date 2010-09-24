@@ -581,17 +581,20 @@ A list of strings representing extensions for library files; its value
 is:
 
 @table @asis
-@item @samp{.ikarus.sls} @samp{.sls} @samp{.scm} @samp{.ss}
-For Ikarus Scheme.
+@c @item @samp{.ikarus.sls} @samp{.sls} @samp{.scm} @samp{.ss}
+@c For Ikarus Scheme.
 
-@item @samp{.larceny.sls} @samp{.sls} @samp{.scm} @samp{.ss}
-For Larceny Scheme.
+@c @item @samp{.larceny.sls} @samp{.sls} @samp{.scm} @samp{.ss}
+@c For Larceny Scheme.
 
 @item @samp{.mosh.sls} @samp{.sls} @samp{.scm} @samp{.ss}
 For Mosh Scheme.
 
 @item @samp{.petite.sls} @samp{.sls} @samp{.scm} @samp{.ss}
 For Petite Chez Scheme.
+
+@item @samp{.vicare.sls} @samp{.sls} @samp{.scm} @samp{.ss}
+For Vicare Scheme.
 
 @item @samp{.ypsilon.sls} @samp{.sls} @samp{.scm} @samp{.ss}
 For Ypsilon Scheme.

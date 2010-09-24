@@ -130,9 +130,9 @@ to be installed.
 implementations with the R6RS  standard is included.  To run
 them:
 
-    $ make test-ikarus-compat
-    $ make test-larceny-compat
     $ make test-mosh-compat
+    $ make test-petite-compat
+    $ make test-vicare-compat
     $ make test-ypsilon-compat
 
 to run them all:
@@ -145,10 +145,9 @@ beware that the execution of these tests may take minutes.
 to run the test suite against the installed libraries using
 the following makefile rules:
 
-ltest-installed		- run test for Larceny
-itest-installed		- run test for Ikarus
 mtest-installed		- run test for Mosh
 ptest-installed		- run test for Petite Chez Scheme
+vtest-installed		- run test for Vicare
 ytest-installed		- run test for Ypsilon
 
 

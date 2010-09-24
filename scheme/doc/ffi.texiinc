@@ -19,12 +19,12 @@ libraries:
 plus a plethora of other sublibraries.
 
 Not all the Scheme implementations provide an @ffi{} usable by Nausicaa;
-only Ikarus, Mosh, Vicare and Ypsilon are supported.  At present,
-Nausicaa's @ffi{} is tested only @gnu{}+Linux systems, which means that
-it expects to access some function in the @gnu{} C Library; on other
-platforms, we can try, at installation time, to select a C library
-pathname with the @option{--with-libc-shared-object} command line option
-of the @command{configure} script.
+only Mosh, Vicare and Ypsilon are supported.  At present, Nausicaa's
+@ffi{} is tested only @gnu{}+Linux systems, which means that it expects
+to access some function in the @gnu{} C Library; on other platforms, we
+can try, at installation time, to select a C library pathname with the
+@option{--with-libc-shared-object} command line option of the
+@command{configure} script.
 
 @menu
 * ffi core::                    Foreign--functions interface.
@@ -350,36 +350,36 @@ The internal types are further converted to type identifiers recognised
 by the underlying Scheme implementation, according to the following
 tables.
 
-@float Table
-@multitable {0123456789012345678} {Ikarus and Vicare type}
-@headitem Internal type @tab Ikarus and Vicare type
-@item @code{int8_t}             @tab @code{signed-char}
-@item @code{int16_t}            @tab @code{signed-short}
-@item @code{int32_t}            @tab @code{signed-int}
-@item @code{int64_t}            @tab @code{signed-long-long}
-@item @code{uint8_t}            @tab @code{unsigned-char}
-@item @code{uint16_t}           @tab @code{unsigned-short}
-@item @code{uint32_t}           @tab @code{unsigned-int}
-@item @code{uint64_t}           @tab @code{unsigned-long-long}
-@item @code{signed-char}        @tab @code{signed-char}
-@item @code{unsigned-char}      @tab @code{unsigned-char}
-@item @code{signed-short}       @tab @code{signed-short}
-@item @code{unsigned-short}     @tab @code{unsigned-short}
-@item @code{signed-int}         @tab @code{signed-int}
-@item @code{unsigned-int}       @tab @code{unsigned-int}
-@item @code{signed-long}        @tab @code{signed-long}
-@item @code{unsigned-long}      @tab @code{unsigned-long}
-@item @code{signed-long-long}   @tab @code{signed-long-long}
-@item @code{unsigned-long-long} @tab @code{unsigned-long-long}
-@item @code{float}              @tab @code{float}
-@item @code{double}             @tab @code{double}
-@item @code{pointer}            @tab @code{pointer}
-@item @code{callback}           @tab @code{pointer}
-@item @code{void}               @tab @code{void}
-@end multitable
-@caption{Mapping from Nausicaa's internal types to Ikarus' and Vicare's
-types (Ikarus revision 1870; last updated Tue May 11, 2010).}
-@end float
+@c @float Table
+@c @multitable {0123456789012345678} {Ikarus and Vicare type}
+@c @headitem Internal type @tab Ikarus and Vicare type
+@c @item @code{int8_t}             @tab @code{signed-char}
+@c @item @code{int16_t}            @tab @code{signed-short}
+@c @item @code{int32_t}            @tab @code{signed-int}
+@c @item @code{int64_t}            @tab @code{signed-long-long}
+@c @item @code{uint8_t}            @tab @code{unsigned-char}
+@c @item @code{uint16_t}           @tab @code{unsigned-short}
+@c @item @code{uint32_t}           @tab @code{unsigned-int}
+@c @item @code{uint64_t}           @tab @code{unsigned-long-long}
+@c @item @code{signed-char}        @tab @code{signed-char}
+@c @item @code{unsigned-char}      @tab @code{unsigned-char}
+@c @item @code{signed-short}       @tab @code{signed-short}
+@c @item @code{unsigned-short}     @tab @code{unsigned-short}
+@c @item @code{signed-int}         @tab @code{signed-int}
+@c @item @code{unsigned-int}       @tab @code{unsigned-int}
+@c @item @code{signed-long}        @tab @code{signed-long}
+@c @item @code{unsigned-long}      @tab @code{unsigned-long}
+@c @item @code{signed-long-long}   @tab @code{signed-long-long}
+@c @item @code{unsigned-long-long} @tab @code{unsigned-long-long}
+@c @item @code{float}              @tab @code{float}
+@c @item @code{double}             @tab @code{double}
+@c @item @code{pointer}            @tab @code{pointer}
+@c @item @code{callback}           @tab @code{pointer}
+@c @item @code{void}               @tab @code{void}
+@c @end multitable
+@c @caption{Mapping from Nausicaa's internal types to Ikarus' and Vicare's
+@c types (Ikarus revision 1870; last updated Tue May 11, 2010).}
+@c @end float
 
 
 @float Table
@@ -4152,9 +4152,8 @@ Field accessors for condition objects of type
 
 
 The functions described in this section are usable only when the Scheme
-implementation provides guardians (only Ikarus at present, Tue Oct 13,
-2009).  The following bindings are exported by @library{ffi memory
-guarded-malloc}.
+implementation provides guardians.  The following bindings are exported
+by @library{ffi memory guarded-malloc}.
 
 
 @defun malloc/guarded @var{number-of-bytes}

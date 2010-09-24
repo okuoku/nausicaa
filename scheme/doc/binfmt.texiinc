@@ -176,14 +176,14 @@ system we can use @file{/etc/rc.d/rc.local}.
 
 To do it we can add to the shell script a chunk of code like the
 following, which activates the mechanism for Scheme programs compiled
-with Larceny:
+with Vicare:
 
 @example
 if test -f /proc/sys/fs/binfmt_misc/register ; then
-  test -f /proc/sys/fs/binfmt_misc/LARCENY && \
-    echo -1 >/proc/sys/fs/binfmt_misc/LARCENY
+  test -f /proc/sys/fs/binfmt_misc/VICARE && \
+    echo -1 >/proc/sys/fs/binfmt_misc/VICARE
   echo \
-   ':LARCENY:M:2:fasl::/opt/larceny/last/scheme-script:' \
+   ':VICARE:M:3:!vicare::/opt/vicare/last/scheme-script:' \
    >/proc/sys/fs/binfmt_misc/register
 fi
 @end example
@@ -202,17 +202,17 @@ remove the configuration from the registry if it is already there; this
 is done by testing the existence of the special file:
 
 @example
-/proc/sys/fs/binfmt_misc/LARCENY
+/proc/sys/fs/binfmt_misc/VICARE
 @end example
 
 @noindent
-echoing @code{-1} in it removes the Larceny record;
+echoing @code{-1} in it removes the Vicare record;
 
 @item
-echo the Larceny record into the registry with the following fields:
+echo the Vicare record into the registry with the following fields:
 
 @table @code
-@item LARCENY
+@item VICARE
 It is the name of the special file representing the record in the
 registry.
 
@@ -225,15 +225,15 @@ The offset of the magic string into the file.
 @item fasl
 The magic string itself.
 
-@item /opt/larceny/last/scheme-script
-The full pathname to the Larceny @rnrs{6} runtime system executable.
+@item /opt/vicare/last/scheme-script
+The full pathname to the Vicare @rnrs{6} runtime system executable.
 @end table
 
 We see that the @code{mask} field is set to the empty string, that is:
 no mask is applied and @code{fasl} is matched literally.
 @end enumerate
 
-To determine the magic string for the Larceny compiled programs: compile
+To determine the magic string for the Vicare compiled programs: compile
 a program and read the compiled file, for example with @command{less} or
 Emacs; we will see that the first bytes are @code{#!fasl}.
 
@@ -289,15 +289,15 @@ operations.
 
 We can enable/disable recognition of a single binary format by echoing
 @code{0} or @code{1} to the format specific special file under
-@file{/proc/sys/fs/binfmt_misc}.  For example for @code{LARCENY}, at the
+@file{/proc/sys/fs/binfmt_misc}.  For example for @code{VICARE}, at the
 shell prompt and with superuser privileges:
 
 @example
 # enable
-$ echo 1 >/proc/sys/fs/binfmt_misc/LARCENY
+$ echo 1 >/proc/sys/fs/binfmt_misc/VICARE
 
 # disable
-$ echo 0 >/proc/sys/fs/binfmt_misc/LARCENY
+$ echo 0 >/proc/sys/fs/binfmt_misc/VICARE
 @end example
 
 @noindent
@@ -305,18 +305,18 @@ disabled formats are @strong{not} removed from the internal table.
 
 Applying the command @command{cat} to the format's special file tells us
 the current status of that format and its configuration; for example for
-@code{LARCENY}, at the shell prompt:
+@code{VICARE}, at the shell prompt:
 
 @example
-$ cat /proc/sys/fs/binfmt_misc/LARCENY
+$ cat /proc/sys/fs/binfmt_misc/VICARE
 @end example
 
 We can remove a specific format entry from the registry echoing
-@code{-1} to its special file; for @code{LARCENY} at the shell prompt
+@code{-1} to its special file; for @code{VICARE} at the shell prompt
 and with superuser privileges:
 
 @example
-$ echo -1 >/proc/sys/fs/binfmt_misc/LARCENY
+$ echo -1 >/proc/sys/fs/binfmt_misc/VICARE
 @end example
 
 @noindent
@@ -347,20 +347,20 @@ compiled Scheme programs.  @value{PACKAGE} adheres to the following
 rules, which we can change by customising the files in the distribution:
 
 @enumerate
-@item
-Ikarus Scheme source programs are recognised if the file starts with the
-string @code{;;;!ikarus}, the @code{binfmt_misc} configuration will look
-for the string @code{!ikarus} at zero--based offset 3 in the file.
+@c @item
+@c Ikarus Scheme source programs are recognised if the file starts with the
+@c string @code{;;;!ikarus}, the @code{binfmt_misc} configuration will look
+@c for the string @code{!ikarus} at zero--based offset 3 in the file.
 
-@item
-Larceny Scheme source programs are recognised if the file starts with
-the string @code{;;;!larceny}, the @code{binfmt_misc} configuration will
-look for the string @code{!larceny} at zero--based offset 3 in the file.
+@c @item
+@c Larceny Scheme source programs are recognised if the file starts with
+@c the string @code{;;;!larceny}, the @code{binfmt_misc} configuration will
+@c look for the string @code{!larceny} at zero--based offset 3 in the file.
 
-@item
-Larceny Scheme compiled programs are recognised if the file starts with
-the string @code{#!fasl}, the @code{binfmt_misc} configuration will look
-for the string @code{fasl} at zero--based offset 2 in the file.
+@c @item
+@c Larceny Scheme compiled programs are recognised if the file starts with
+@c the string @code{#!fasl}, the @code{binfmt_misc} configuration will look
+@c for the string @code{fasl} at zero--based offset 2 in the file.
 
 @item
 Mosh Scheme source programs are recognised if the file starts with the
@@ -387,32 +387,32 @@ The script can be executed at system boot time and again later any
 number of times: at each run it resets and reinitialises the
 configuration for Scheme programs.
 
-@item
-Ikarus Scheme source programs are run through a Bourne shell script
-(@file{/bin/sh} interpreter) named @file{ikarus-scheme-script} installed
-in the @code{$(bindir)} directory.  The script calls Ikarus with:
+@c @item
+@c Ikarus Scheme source programs are run through a Bourne shell script
+@c (@file{/bin/sh} interpreter) named @file{ikarus-scheme-script} installed
+@c in the @code{$(bindir)} directory.  The script calls Ikarus with:
 
-@example
-exec "$IKARUS" --r6rs-script "$@@"
-@end example
+@c @example
+@c exec "$IKARUS" --r6rs-script "$@@"
+@c @end example
 
-@noindent
-where @code{$IKARUS} is the Ikarus executable discovered by the
-@command{configure} script of @value{PACKAGE}.
+@c @noindent
+@c where @code{$IKARUS} is the Ikarus executable discovered by the
+@c @command{configure} script of @value{PACKAGE}.
 
-@item
-Larceny Scheme both source and compiled programs are run through a
-Bourne shell script (@file{/bin/sh} interpreter) named
-@file{larceny-scheme-script} installed in the @code{$(bindir)}
-directory.  The script calls Larceny with:
+@c @item
+@c Larceny Scheme both source and compiled programs are run through a
+@c Bourne shell script (@file{/bin/sh} interpreter) named
+@c @file{larceny-scheme-script} installed in the @code{$(bindir)}
+@c directory.  The script calls Larceny with:
 
-@example
-exec "$LARCENY" -r6rs -program "$@@"
-@end example
+@c @example
+@c exec "$LARCENY" -r6rs -program "$@@"
+@c @end example
 
-@noindent
-where @code{$LARCENY} is the Larceny executable discovered by the
-@command{configure} script of @value{PACKAGE}.
+@c @noindent
+@c where @code{$LARCENY} is the Larceny executable discovered by the
+@c @command{configure} script of @value{PACKAGE}.
 
 @item
 Mosh Scheme source programs are run through a Bourne shell script
@@ -469,9 +469,9 @@ embedded in the @code{binfmt_misc} registry entry.
 
 @item
 Installation of specific Scheme implementation @command{scheme-script}
-executables is problematic because of file name collision.  For example:
-both Larceny and Ikarus try to install a @command{scheme-script}
-program, which one is installed?
+executables is problematic because of file name collision.
+@c For example: both Larceny and Ikarus try to install a
+@c @command{scheme-script} program, which one is installed?
 
 The approach of @value{PACKAGE} is to use none of those and rely on
 custom scripts.
