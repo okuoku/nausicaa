@@ -706,8 +706,10 @@ DS_TEXI_FLAGS		= -I $$(ds_texi_SRCDIR)		\
 			  -I $$(ds_texi_BUILDDIR)	\
 			  -I $$(infrastructuredir)	\
 			  $$(texi_MORE_FLAGS)
-DS_TEXI2INFO_FLAGS	= $$(DS_TEXI_FLAGS) --no-split
-DS_TEXI2HTML_FLAGS	= $$(DS_TEXI_FLAGS) --no-split --html
+DS_TEXI2INFO_SPLIT_FLAGS	?= --no-split
+DS_TEXI2HTML_SPLIT_FLAGS	?= --no-split
+DS_TEXI2INFO_FLAGS	= $$(DS_TEXI_FLAGS) $$(DS_TEXI2INFO_SPLIT_FLAGS)
+DS_TEXI2HTML_FLAGS	= $$(DS_TEXI_FLAGS) $$(DS_TEXI2HTML_SPLIT_FLAGS) --html
 DS_TEXI2DVI_FLAGS	= $$(DS_TEXI_FLAGS) --dvi --tidy \
 				--build-dir=$$(ds_texi_BUILDDIR)
 DS_TEXI2PDF_FLAGS	= $$(DS_TEXI_FLAGS) --dvipdf --tidy \
