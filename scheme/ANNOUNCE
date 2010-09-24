@@ -7,7 +7,7 @@ Subject: [announce] Nausicaa/Scheme --- tag 0.2a0
 
 Nausicaa is a distribution  of Scheme language libraries for
 R6RS  Scheme  implementations.   Currently  it  attempts  to
-support Ikarus, Larceny, Mosh, Petite Chez and Ypsilon.
+support Mosh, Petite Chez, Vicare and Ypsilon.
 
   Nausicaa/Scheme   is  the   core   package;  it   provides
 foundation  libraries and  implements the  infrastructure of
@@ -38,11 +38,13 @@ development takes place at:
 the documentation is available on line:
 
      <http://marcomaggi.github.com/docs/nausicaa.html>
-   <http://marcomaggi.github.com/docs/nausicaa-more.html>
 
 
 Notes for --- tag 0.2a0
 -------------------------------
+
+* Starting  with revision  Larceny  and Ikarus  are no  more
+  supported.
 
 * Added WITH-ACCESSOR-AND-MUTATOR to (language-extensions).
 
