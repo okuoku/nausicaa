@@ -127,7 +127,7 @@
     (only (syntax-utilities) define-auxiliary-syntax)
     (times-and-dates seconds-and-subseconds)
     (times-and-dates gregorian)
-    (times-and-dates julian-day)
+    (times-and-dates julian-calendar)
     (times-and-dates compat))
 
 
