@@ -103,10 +103,9 @@ A realisation of Terrestrial Time is the
 @dfn{International Atomic Time}}, which is based on the notional passage
 of proper time on Earth's surface.
 
-Time coordinates on the @tai{} scale are conventionally expressed using
-traditional means of specifying days, for example: the @acronym{SI}
-seconds and the time coordinates defined by the proleptic Gregorian
-calendar.  @ref{time intro gregorian, Gregorian calendar}.
+Time coordinates on the @tai{} scale are expressed using the
+@acronym{SI} seconds and the time coordinates defined by the proleptic
+Gregorian calendar.  @ref{time intro gregorian, Gregorian calendar}.
 
 The timestamp @samp{2010-08-05T11:22:33Z} is valid on the @tai{} scale
 with the usual count of years, month and days on the Gregorian calendar.
@@ -1261,123 +1260,452 @@ Return a copy of a @class{time} instance.
 @node time date
 @section Date object
 
-A @emph{Date} object consists of the following components:
 
-@table @emph
-@item Nanosecond
-An integer between 0 and 999,999,999, inclusive.
+A date is a timestamp on the @utc{} scale expressed in the proleptic
+gregorian calendar coordinates; it is defined by the tuple: year, month,
+day, hours, minutes, seconds, nanoseconds, time zone offset in seconds
+accounting also for Daylight Saving Time, a boolean value signaling if
+the Daylight Saving Time is on.
 
-@item Second
-An integer 0 and 60, inclusive, (60 represents a leap second).
+@class{date} objects are immutable once created.  Notice that to do
+operations with dates, like the arithmetic ones, we have to convert the
+@class{date} objects to @class{time} objects.
 
-@item Minute
-An integer between 0 and 59, inclusive.
+The following bindings are exported by the @library{times-and-dates}
+library.
 
-@item Hour
-An integer between 0 and 23, inclusive.
 
-@item Day
-An integer between 1 and 31, inclusive, the upper limit depending on the
-month and year of the point in time.
+@deftp Class @aclass{date}
+Type representing a timestamp in the proleptic gregorian calendar
+coordinates, on the @utc{} scale.
+@end deftp
 
-@item Month
-An integer between 1 and 12, inclusive; in which 1 means January, 2
-February, and so on.
 
-@item Year
-An integer representing the year.
+@defcv {Immutable Field} @aclass{date} year
+An exact integer representing the year in the local time.  There is
+almost no limit to the range of allowed values, but the number must be
+encoded according to the following rules:
 
-@item Time zone
-An integer representing the number of seconds East of @gmt{} for this
-timezone.
+@itemize
+@item
+Years after the conventional birth of Christ are positive.
+
+@item
+Years before the conventional birth of Christ are negative.
+
+@item
+The value zero is forbidden because the between 1 Annus Dominis and 1
+Before Christ there is no year zero.
+@end itemize
+
+Also notice that to convert a @class{date} instance to a @class{time}
+instance, the year must be greater than or equal to @math{-4714}, that
+is past 4714 Before Christ.
+@end defcv
+
+
+@defcv {Immutable Field} @aclass{date} month
+An exact integer in the range @math{[1, 12]} representing the month in
+the local time; in which @math{1} means January, @math{2} February, and
+so on.
+@end defcv
+
+
+@defcv {Immutable Field} @aclass{date} day
+An exact integer in one of the ranges:
+
+@table @math
+@item [1, 31]
+In January (@math{1}), March (@math{3}), May (@math{5}), July
+(@math{7}), August (@math{8}), October (@math{10}), December
+(@math{12}).
+
+@item [1, 30]
+In April (@math{4}), June (@math{6}), September (@math{9}), November
+(@math{11}).
+
+@item [1, 28]
+In February (@math{2}) of non--leap years.
+
+@item [1, 29]
+In February (@math{2}) of leap years.
 @end table
 
+@noindent
+representing the day number in the local time.
+@end defcv
 
 
-Date objects are immutable once created.  Notice that to do operations
-with date, like the arithmetic ones, we have to convert the date objects
-to time objects.
+@defcv {Immutable Field} @aclass{date} hour
+An exact integer in the range @math{[0, 23]} representing the hours
+count in the local time.
+@end defcv
 
 
-@defun make-date @var{nanosecond} @var{second} @var{minute} @var{hour} @var{day} @var{month} @var{year} @var{zone-offset}
-Creates a date object.
-@end defun
+@defcv {Immutable Field} @aclass{date} minute
+An exact integer in the range @math{[0, 59]} representing the minutes
+count in the local time.
+@end defcv
 
 
-@defun date? @var{object}
-Return @true{} if @var{object} is a @emph{Date} object; otherwise return
-@false{}.
-@end defun
+@defcv {Immutable Field} @aclass{date} second
+An exact integer usually in the range @math{[0, 59]}, but in the range
+@math{[0, 60]} when the day has a leap second inserted, representing the
+seconds count in the local time.
+@end defcv
 
 
-@defun date-nanosecond @var{date}
-Return the @emph{Nanosecond} component of @var{date}.
-@end defun
+@defcv {Immutable Field} @aclass{date} nanosecond
+An exact integer in the range @math{[0, 999999999]} representing the
+nanoseconds count in the local time.
+@end defcv
 
 
-@defun date-second @var{date}
-Return the @emph{Second} component of @var{date}.
-@end defun
+@defcv {Immutable Field} @aclass{date} zone-offset
+An exact integer representing both the number of seconds East of @gmt{}
+for the local time zone and the offset introduced by Daylight Saving
+Time.  To compute the timestamp in time zone zero without Daylight
+Saving Time: this offset must be @strong{subtracted} from the other
+fields.
+@end defcv
 
 
-@defun date-minute @var{date}
-Return the @emph{Minute} component of @var{date}.
-@end defun
+@defcv {Immutable Field} @aclass{date} daylight-saving-time?
+A boolean, true if Daylight Saving Time is on.
+@end defcv
+
+@c ------------------------------------------------------------
+
+@subsubheading Other fields and methods
 
 
-@defun date-hour @var{date}
-Return the @emph{Hour} component of @var{date}.
-@end defun
+@defcv {Immutable Virtual Field} @aclass{date} year-day
+Return the ordinal day of the year of this date; January 1 is @math{1},
+January 2 is @math{2}, February 1 is @math{32}, and so on.
+@end defcv
 
 
-@defun date-day @var{date}
-Return the @emph{Date} component of @var{date}.
-@end defun
+@defcv {Immutable Virtual Field} @aclass{date} week-day
+Return the day of the week of this date; Sunday is @math{0}, Monday is
+@math{1}, and so on.
+@end defcv
 
 
-@defun date-month @var{date}
-Return the @emph{Month} component of @var{date}.
-@end defun
-
-
-@defun date-year @var{date}
-Return the @emph{Year} component of @var{date}.
-@end defun
-
-
-@defun date-zone-offset @var{date}
-Return the @emph{Time zone} component of @var{date}.
-@end defun
-
-
-@defun date-year-day @var{date}
-Return the ordinal day of the year of this date.  January 1 is 1, etc.
-@end defun
-
-
-@defun date-week-day @var{date}
-Return the day of the week of this date, where Sunday=0, Monday=1, etc.
-@end defun
-
-
-@defun date-week-number date day-of-week-starting-week
+@defmethod @aclass{date} week-number @var{day-of-week-starting-week}
 Return the ordinal week of the year which holds this date, ignoring a
 first partial week.  @var{day-of-week-starting-week} is the integer
 corresponding to the day of the week which is to be considered the first
 day of the week (Sunday=0, Monday=1, etc.).
+@end defmethod
+
+
+@defmethod @aclass{date} leap-year?
+Return true if the year in the date is a leap year.
+@end defmethod
+
+
+@defmethod @aclass{date} number-of-days-since-year-beginning
+Return the number of days since the beginning of the year.
+@end defmethod
+
+@c ------------------------------------------------------------
+
+@subsubheading Traditional record @api{}
+
+
+@defun make-<date> @var{nanosecond} @var{second} @var{minute} @var{hour} @var{day} @var{month} @var{year} @var{zone-offset}
+Creates a date object.
 @end defun
 
 
+@defun <date>? @var{obj}
+Return true if @var{obj} is a @class{date} instance.
+@end defun
+
+
+@defun <date>-year @var{date}
+@defunx <date>-month @var{date}
+@defunx <date>-day @var{date}
+@defunx <date>-hour @var{date}
+@defunx <date>-minute @var{date}
+@defunx <date>-second @var{date}
+@defunx <date>-nanosecond @var{date}
+@defunx <date>-zone-offset @var{date}
+@defunx <date>-daylight-saving-time? @var{date}
+Accessors for the fields of a @class{date} instance.
+@end defun
+
+
+@defun <date>-year-day @var{date}
+Accessor for the @code{year-day} field.
+@end defun
+
+
+@defun <date>-week-day @var{date}
+Accessor for the @code{week-day} field.
+@end defun
+
+
+@defun <date>-week-number @var{date} @var{day-of-week-starting-week}
+Like invoking the @code{week-number} method of @var{date}.
+@end defun
 
 @c page
 @node time utils
 @section Miscellaneous utilities
 
 @menu
+* time utils types::            Type predicates and assertions.
 * time utils secs::             Seconds and nanoseconds utilities.
 * time utils year::             Gregorian years and weeks.
 * time utils julian::           Julian calendar utilities.
 @end menu
+
+@c page
+@node time utils types
+@subsection Type predicates and assertions
+
+
+Before using the assertion syntaxes consider using directly the
+predicate with @func{assert}.  The following bindings are exported by
+the @library{times-and-dates types} library.
+
+@c ------------------------------------------------------------
+
+@subsubheading Type predicates
+
+
+@defmac years-type? @var{obj}
+Return true if @var{obj} is a valid value for a count of years.
+@end defmac
+
+
+@defmac month-type? @var{obj}
+Return true if @var{obj} is a valid value for a month index.
+@end defmac
+
+
+@defmac hours-type? @var{obj}
+Return true if @var{obj} is a valid value for a count of hours.
+@end defmac
+
+
+@defmac minutes-type? @var{obj}
+Return true if @var{obj} is a valid value for a count of minutes.
+@end defmac
+
+
+@defmac seconds-type? @var{obj}
+Return true if @var{obj} is a valid value for a count of seconds.
+@end defmac
+
+
+@defmac milliseconds-type? @var{obj}
+Return true if @var{obj} is a valid value for a count of milliseconds.
+@end defmac
+
+
+@defmac microseconds-type? @var{obj}
+Return true if @var{obj} is a valid value for a count of microseconds.
+@end defmac
+
+
+@defmac nanoseconds-type? @var{obj}
+Return true if @var{obj} is a valid value for a count of nanoseconds.
+@end defmac
+
+@c ------------------------------------------------------------
+
+@subsubheading Range predicates
+
+@defmac date-years-range? @var{obj}
+Return true if @var{obj}, which must be a number satisfying
+@func{years-type?}, is in the range allowed for a count of years.
+@end defmac
+
+
+@defmac date-month-range? @var{obj}
+Return true if @var{obj}, which must be a number satisfying
+@func{month-type?}, is in the range allowed for a month index.
+@end defmac
+
+
+@defmac date-hours-range? @var{obj}
+Return true if @var{obj}, which must be a number satisfying
+@func{hours-type?}, is in the range allowed for a count of hours.
+@end defmac
+
+
+@defmac date-minutes-range? @var{obj}
+Return true if @var{obj}, which must be a number satisfying
+@func{minutes-type?}, is in the range allowed for a count of minutes.
+@end defmac
+
+
+@defmac date-seconds-range? @var{obj}
+Return true if @var{obj}, which must be a number satisfying
+@func{seconds-type?}, is in the range allowed for a count of seconds
+excluding leap seconds.
+@end defmac
+
+
+@defmac date-seconds-range?/with-leap @var{obj}
+Return true if @var{obj}, which must be a number satisfying
+@func{seconds-type?}, is in the range allowed for a count of seconds
+including leap seconds.
+@end defmac
+
+
+@defmac date-milliseconds-range? @var{obj}
+Return true if @var{obj}, which must be a number satisfying
+@func{milliseconds-type?}, is in the range allowed for a count of
+milliseconds.
+@end defmac
+
+
+@defmac date-microseconds-range? @var{obj}
+Return true if @var{obj}, which must be a number satisfying
+@func{microseconds-type?}, is in the range allowed for a count of
+microseconds.
+@end defmac
+
+
+@defmac date-nanoseconds-range? @var{obj}
+Return true if @var{obj}, which must be a number satisfying
+@func{nanoseconds-type?}, is in the range allowed for a count of
+nanoseconds.
+@end defmac
+
+@c ------------------------------------------------------------
+
+@subsubheading Type assertions
+
+
+In the following macros, the raised value is a compound condition object
+of type: @condition{assertion}, @condition{who}, @condition{message},
+@condition{irritants}.  The @var{who} argument is used for the
+@condition{who} condition.
+
+
+@defmac assert-years-type @var{who} @var{obj}
+Raise an assertion violation if @var{obj} is not a valid value for a
+count of years.
+@end defmac
+
+
+@defmac assert-month-type @var{who} @var{obj}
+Raise an assertion violation if @var{obj} is not a valid value for a
+month index.
+@end defmac
+
+
+@defmac assert-hours-type @var{who} @var{obj}
+Raise an assertion violation if @var{obj} is not a valid value for a
+count of hours.
+@end defmac
+
+
+@defmac assert-minutes-type @var{who} @var{obj}
+Raise an assertion violation if @var{obj} is not a valid value for a
+count of minutes.
+@end defmac
+
+
+@defmac assert-seconds-type @var{who} @var{obj}
+Raise an assertion violation if @var{obj} is not a valid value for a
+count of seconds.
+@end defmac
+
+
+@defmac assert-milliseconds-type @var{who} @var{obj}
+Raise an assertion violation if @var{obj} is not a valid value for a
+count of milliseconds.
+@end defmac
+
+
+@defmac assert-microseconds-type @var{who} @var{obj}
+Raise an assertion violation if @var{obj} is not a valid value for a
+count of microseconds.
+@end defmac
+
+
+@defmac assert-nanoseconds-type @var{who} @var{obj}
+Raise an assertion violation if @var{obj} is not a valid value for a
+count of nanoseconds.
+@end defmac
+
+@c ------------------------------------------------------------
+
+@subsubheading Range assertions
+
+
+In the following macros, the raised value is a compound condition object
+of type: @condition{assertion}, @condition{who}, @condition{message},
+@condition{irritants}.  The @var{who} argument is used for the
+@condition{who} condition.
+
+
+@defmac assert-date-years-range @var{who} @var{obj}
+Raise an assertion violation if @var{obj}, which must be a number
+satisfying @func{years-type?}, is not in the range allowed for a count
+of years.
+@end defmac
+
+
+@defmac assert-date-month-range @var{who} @var{obj}
+Raise an assertion violation if @var{obj}, which must be a number
+satisfying @func{month-type?}, is not in the range allowed for a month
+index.
+@end defmac
+
+
+@defmac assert-date-hours-range @var{who} @var{obj}
+Raise an assertion violation if @var{obj}, which must be a number
+satisfying @func{hours-type?}, is not in the range allowed for a count
+of hours.
+@end defmac
+
+
+@defmac assert-date-minutes-range @var{who} @var{obj}
+Raise an assertion violation if @var{obj}, which must be a number
+satisfying @func{minutes-type?}, is not in the range allowed for a count
+of minutes.
+@end defmac
+
+
+@defmac assert-date-seconds-range @var{who} @var{obj}
+Raise an assertion violation if @var{obj}, which must be a number
+satisfying @func{seconds-type?}, is not in the range allowed for a count
+of seconds.
+@end defmac
+
+
+@defmac assert-date-seconds-range/with-leap @var{who} @var{obj}
+Raise an assertion violation if @var{obj}, which must be a number
+satisfying @func{seconds-type?}, is not in the range allowed for a count
+of seconds.
+@end defmac
+
+
+@defmac assert-date-milliseconds-range @var{who} @var{obj}
+Raise an assertion violation if @var{obj}, which must be a number
+satisfying @func{milliseconds-type?}, is not in the range allowed for a
+count of milliseconds.
+@end defmac
+
+
+@defmac assert-date-microseconds-range @var{who} @var{obj}
+Raise an assertion violation if @var{obj}, which must be a number
+satisfying @func{microseconds-type?}, is not in the range allowed for a
+count of microseconds.
+@end defmac
+
+
+@defmac assert-date-nanoseconds-range @var{who} @var{obj}
+Raise an assertion violation if @var{obj}, which must be a number
+satisfying @func{nanoseconds-type?}, is not in the range allowed for a
+count of nanoseconds.
+@end defmac
 
 @c page
 @node time utils secs
@@ -1616,8 +1944,8 @@ couple of counts.  The comparison is performed on normalised counts.
 @end defun
 
 
-@defun utc->tai @var{utc-seconds}
-@defunx tai->utc @var{tai-seconds}
+@defun utc-seconds->tai-seconds @var{utc-seconds}
+@defunx tai-seconds->utc-seconds @var{tai-seconds}
 Convert a count of seconds since the Unix Epoch from @utc{} to @tai{}
 and vice versa.
 @end defun
@@ -1843,27 +2171,51 @@ Julian Day Numbers and Modified Julian Day Numbers as exact integers.
 @subsubheading Conversion to/from seconds and nanoseconds
 
 
-@defun utc-seconds-and-nanoseconds->julian-day @var{utc-seconds} @var{nanoseconds}
+@defun utc-seconds-and-nanoseconds->julian-day-number @var{utc-seconds} @var{nanoseconds}
 Return the Julian Day Number representing the given counts of @utc{}
 seconds (time zone zero) since the Unix Epoch and nanoseconds.
 @end defun
 
 
-@defun tai-seconds-and-nanoseconds->julian-day @var{tai-seconds} @var{nanoseconds}
+@defun tai-seconds-and-nanoseconds->julian-day-number @var{tai-seconds} @var{nanoseconds}
 Return the Julian Day Number representing the given counts of @tai{}
 seconds (time zone zero) since the Unix Epoch and nanoseconds.
 @end defun
 
 
-@defun julian-day->utc-seconds-and-nanoseconds @var{jdn}
+@defun julian-day-number->utc-seconds-and-nanoseconds @var{jdn}
 Return two values: the @utc{} seconds count (time zone zero) since the
 Unix Epoch and nanoseconds counts representing @var{jdn}.
 @end defun
 
 
-@defun julian-day->tai-seconds-and-nanoseconds @var{jdn}
+@defun julian-day-number->tai-seconds-and-nanoseconds @var{jdn}
 Return two values: the @tai{} seconds count (time zone zero) since the
 Unix Epoch and nanoseconds counts representing @var{JDN}.
+@end defun
+
+
+@defun utc-seconds-and-nanoseconds->julian-date @var{utc-seconds} @var{nanoseconds}
+Return the Julian Date representing the given counts of @utc{} seconds
+(time zone zero) since the Unix Epoch and nanoseconds.
+@end defun
+
+
+@defun tai-seconds-and-nanoseconds->julian-date @var{tai-seconds} @var{nanoseconds}
+Return the Julian Date representing the given counts of @tai{} seconds
+(time zone zero) since the Unix Epoch and nanoseconds.
+@end defun
+
+
+@defun julian-date->utc-seconds-and-nanoseconds @var{jd}
+Return two values: the @utc{} seconds count (time zone zero) since the
+Unix Epoch and nanoseconds counts representing @var{jd}.
+@end defun
+
+
+@defun julian-date->tai-seconds-and-nanoseconds @var{jd}
+Return two values: the @tai{} seconds count (time zone zero) since the
+Unix Epoch and nanoseconds counts representing @var{jd}.
 @end defun
 
 @c ------------------------------------------------------------
@@ -1911,13 +2263,13 @@ values: year, month, day, hours, minutes, seconds, nanoseconds.
 @subsubheading Conversion between @jdn{} and @mjdn{}
 
 
-@defun julian-day->modified-julian-day @var{jdn}
+@defun julian-day-number->modified-julian-day-number @var{jdn}
 Return the Modified Julian Day Number corresponding to the Julian Day
 Number @var{jdn}.
 @end defun
 
 
-@defun modified-julian-day->julian-day @var{mjdn}
+@defun modified-julian-day-number->julian-day-number @var{mjdn}
 Return the Julian Day Number corresponding to the Modified Julian Day
 Number @var{mjdn}.
 @end defun

@@ -87,11 +87,23 @@
     $tai-epoch-in-jd
 
     ;; conversion
-    time-point->julian-date			julian-date->time-point
-    julian-day-encode-number			julian-day-decode-number
-    julian-day->modified-julian-day		modified-julian-day->julian-day
-    utc-seconds-and-nanoseconds->julian-day	julian-day->utc-seconds-and-nanoseconds
-    tai-seconds-and-nanoseconds->julian-day	julian-day->tai-seconds-and-nanoseconds
+    time-point->julian-date	julian-date->time-point
+    julian-day-encode-number	julian-day-decode-number
+
+    utc-seconds-and-nanoseconds->julian-day-number
+    tai-seconds-and-nanoseconds->julian-day-number
+
+    julian-day-number->utc-seconds-and-nanoseconds
+    julian-day-number->tai-seconds-and-nanoseconds
+
+    utc-seconds-and-nanoseconds->julian-date
+    tai-seconds-and-nanoseconds->julian-date
+
+    julian-date->utc-seconds-and-nanoseconds
+    julian-date->tai-seconds-and-nanoseconds
+
+    julian-day-number->modified-julian-day-number
+    modified-julian-day-number->julian-day-number
     )
   (import (rnrs)
     (infix)
@@ -180,13 +192,9 @@
 ;;;; julian day number, encoding to and decoding from proleptic Gregorian calendar
 
 (define (julian-day-encode-number year month day)
-  ;;Return  an exact integer  representing the  Julian Day,  starting at
-  ;;noon, for  the given  date; does the  computation for  the Gregorian
-  ;;calendar.  Assumes the given date is correct.
-  ;;
-  ;;Notice that the returned value is not the "public" Julian Day number
-  ;;defined by this library: the  returned value is missing the fraction
-  ;;corresponding to hours, minutes, seconds and nanoseconds.
+  ;;Return an exact integer representing the Julian Day Number, starting
+  ;;at noon, for the given  date; does the computation for the proleptic
+  ;;Gregorian calendar.  Assumes the given date is correct.
   ;;
   ;;From the Calendar FAQ, section 2.16.1.
   ;;
@@ -207,15 +215,14 @@
 	   - 32045)))
 
 (define (julian-day-decode-number jdn)
-  ;;Return  4  values:  seconds,  day,  month,  year  in  the  Gregorian
-  ;;calendar.
+  ;;Return  3  values:  year,  month,  day in  the  proleptic  Gregorian
+  ;;calendar.  This function assumes that JDN is an exact integer.
   ;;
   ;;*NOTE* Watch out for precedence of * and // !!!
   ;;
   ;;From the Calendar FAQ, section 2.16.1.
   ;;
-  (let* ((days	(truncate jdn))
-	 (a	(infix days + 32044))
+  (let* ((a	(infix jdn + 32044))
 	 (b	(infix (4 * a + 3) // 146097))
 	 (c	(infix a - (146097 * b) // 4))
 	 (d	(infix (4 * c + 3) // 1461))
@@ -227,56 +234,75 @@
 		;Year.  This adjusts year,  taking care of the fact that
 		;between 1 Annus Dominis and 1 Before Christ there is no
 		;year zero.  See the Calendar FAQ for details.
-     (infix m + 3 - 12 * (m // 10))			  ;month
-     (infix e + 1 - (153 * m + 2) // 5)			  ;day
+     (infix m + 3 - 12 * (m // 10))	;month
+     (infix e + 1 - (153 * m + 2) // 5)	;day
      )))
 
 
 ;;;; conversion to and from Julian Day Number and Modified Julian Day Number
 
-(define (julian-day->modified-julian-day julian-day)
-  (- julian-day 4800001/2))
+(define (julian-day-number->modified-julian-day-number jdn)
+  (- jdn 4800001/2))
 
-(define (modified-julian-day->julian-day modified-julian-day)
-  (+ modified-julian-day 4800001/2))
+(define (modified-julian-day-number->julian-day-number mjdn)
+  (+ mjdn 4800001/2))
 
 
-;;;; conversion to and from seconds and nanoseconds
+;;;; conversion between seconds+nanoseconds and julian day number
 
-(define (utc-seconds-and-nanoseconds->julian-day utc-seconds nanoseconds)
-  ;;Return the  Julian Day Number  representing the given counts  of UTC
-  ;;seconds and nanoseconds.
-  ;;
-  (infix $tai-epoch-in-jd +
-	 (utc-seconds + nanoseconds / $number-of-nanoseconds-in-one-second)
-	 / $number-of-seconds-in-one-day))
-
-
-(define (julian-day->utc-seconds-and-nanoseconds jdn)
-  ;;Return  two   values:  the   UTC  seconds  and   nanoseconds  counts
-  ;;representing JDN.
-  ;;
-  (let ((nanoseconds (* (- jdn $tai-epoch-in-jd)
-			$number-of-seconds-in-one-day
-			$number-of-nanoseconds-in-one-second)))
-    (values (div nanoseconds $number-of-nanoseconds-in-one-second)
-	    (mod nanoseconds $number-of-nanoseconds-in-one-second))))
-
-;;; --------------------------------------------------------------------
-
-(define (tai-seconds-and-nanoseconds->julian-day tai-seconds nanoseconds)
+(define (tai-seconds-and-nanoseconds->julian-day-number tai-seconds nanoseconds)
   ;;Return the  Julian Day Number  representing the given counts  of TAI
   ;;seconds and nanoseconds.
   ;;
-  (utc-seconds-and-nanoseconds->julian-day (tai->utc tai-seconds) nanoseconds))
+  (infix $tai-epoch-in-jd +
+	 (tai-seconds + nanoseconds / $number-of-nanoseconds-in-one-second)
+	 / $number-of-seconds-in-one-day))
 
-(define (julian-day->tai-seconds-and-nanoseconds jdn)
+
+(define (julian-day-number->tai-seconds-and-nanoseconds jdn)
   ;;Return  two   values:  the   TAI  seconds  and   nanoseconds  counts
   ;;representing JDN.
   ;;
-  (receive (utc-seconds nanoseconds)
-      (julian-day->utc-seconds-and-nanoseconds jdn)
-    (values (utc->tai utc-seconds) nanoseconds)))
+  ;;The strategy is: convert JDN to the total count of nanoseconds since
+  ;;the Epoch  on the TAI scale,  then convert the  count of nanoseconds
+  ;;into TAI-seconds and nanoseconds.
+  ;;
+  (let ((tai-nanosecs-since-epoch (* (- jdn $tai-epoch-in-jd)
+				     $number-of-seconds-in-one-day
+				     $number-of-nanoseconds-in-one-second)))
+    (values (div tai-nanosecs-since-epoch $number-of-nanoseconds-in-one-second)
+	    (mod tai-nanosecs-since-epoch $number-of-nanoseconds-in-one-second))))
+
+;;; --------------------------------------------------------------------
+
+(define (utc-seconds-and-nanoseconds->julian-day-number utc-seconds nanoseconds)
+  ;;Return the  Julian Day Number  representing the given counts  of UTC
+  ;;seconds and nanoseconds.
+  ;;
+  (tai-seconds-and-nanoseconds->julian-day-number (utc-seconds->tai-seconds utc-seconds) nanoseconds))
+
+(define (julian-day-number->utc-seconds-and-nanoseconds jdn)
+  ;;Return  two   values:  the   UTC  seconds  and   nanoseconds  counts
+  ;;representing JDN.
+  ;;
+  (receive (tai-seconds nanoseconds)
+      (julian-day-number->tai-seconds-and-nanoseconds jdn)
+    (values (tai-seconds->utc-seconds tai-seconds) nanoseconds)))
+
+
+;;;; conversion between seconds+nanoseconds and julian date
+
+(define (utc-seconds-and-nanoseconds->julian-date utc-seconds nanoseconds)
+  #f)
+
+(define (tai-seconds-and-nanoseconds->julian-date tai-seconds nanoseconds)
+  #f)
+
+(define (julian-date->utc-seconds-and-nanoseconds jd)
+  (values #f #f))
+
+(define (julian-date->tai-seconds-and-nanoseconds jd)
+  (values #f #f))
 
 
 ;;;; done

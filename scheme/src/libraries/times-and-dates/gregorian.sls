@@ -65,6 +65,9 @@
     $number-of-days-the-first-day-of-each-month/non-leap-year
     $number-of-days-the-first-day-of-each-month/leap-year
 
+    ;; conversions
+    tai-seconds-and-nanoseconds->utc-date-fields
+
     ;; year functions
     gregorian-leap-year?	gregorian-year-number-of-days-since-beginning
     gregorian-natural-year	gregorian-year-western-easter-month-and-day
@@ -73,8 +76,10 @@
     ;; week functions
     gregorian-index-of-day-in-week	gregorian-number-of-days-before-first-week)
   (import (rnrs)
-    (only (language-extensions) define-constant)
-    (infix))
+    (only (language-extensions) define-constant receive)
+    (infix)
+    (times-and-dates seconds-and-subseconds)
+    (times-and-dates julian-calendar))
 
 
 ;;;; constants
@@ -149,6 +154,49 @@
      335))	;Dec	305 + 30
 
 
+;;;; conversion between seconds and nanoseconds and date fields
+
+(define (tai-seconds-and-nanoseconds->utc-date-fields tai-seconds nanoseconds tz-offset)
+  ;;TZ-OFFSET must be the time zone offset in seconds.
+  ;;
+  (define (%tai-second-right-before-leap-second? tai-seconds)
+    ;;Return  true  if  TAI-SECONDS  is  right  before  a  leap  second;
+    ;;TAI-SECONDS must be a count of seconds since the Unix Epoch on the
+    ;;TAI scale; TAI-SECONDS can  be zero, positive or negative.
+    ;;
+    (find (lambda (x)
+	    (= tai-seconds (- (+ (car x) (cdr x)) 1)))
+	  $leap-second-table))
+  (define (%utc-seconds-and-nanoseconds->date utc-seconds nanoseconds aux-seconds)
+    ;;Convert a seconds  count on the UTC scale  and a nanoseconds count
+    ;;to a <date> object.  AUX-SECONDS must be a count of seconds to put
+    ;;in the  seconds field of the <date>  object; if it is  false it is
+    ;;ignored.
+    ;;
+    (receive (year month day secs)
+	(julian-day-decode-number
+	 (utc-seconds-and-nanoseconds->julian-day-number (+ utc-seconds tz-offset) nanoseconds))
+      (let* ((hours    (div secs $number-of-seconds-in-one-hour))
+	     (rem      (mod secs $number-of-seconds-in-one-hour))
+	     (minutes  (div rem 60))
+	     (seconds  (mod rem 60)))
+	(values nanoseconds (or aux-seconds seconds) minutes hours
+		day month year tz-offset))))
+
+  (if (%tai-second-right-before-leap-second? tai-seconds)
+;;;IF IT IS THE LEAP SECOND!!!!????
+      ;;If  it's  *right* before  the  leap,  we  need to  pretend  to
+      ;;subtract a second  and set the seconds explicitly  in the date
+      ;;object.
+      ;;
+      ;;Notice that a leap second is always at 60 seconds in its minute,
+      ;;so TAI-SECONDS is  right before a leap second if it  is at 59 in
+      ;;its minute.
+      ;;
+      (%utc-seconds-and-nanoseconds->date (- (tai-seconds->utc-seconds tai-seconds) 1) nanoseconds 60)
+    (%utc-seconds-and-nanoseconds->date (tai-seconds->utc-seconds tai-seconds) nanoseconds #f)))
+
+
 ;;;; year functions
 
 (define (gregorian-leap-year? year)
@@ -165,17 +213,21 @@
 (define (gregorian-list-of-leap-years inclusive-start inclusive-end)
   ;;Return a list of leap years in the selected range of years.
   ;;
-  (let loop ((year inclusive-start)
-	     (ell  '()))
-    (if (<= inclusive-end year)
-	(reverse ell)
-      (loop (+ 1 year)
-	    (if (gregorian-leap-year? year)
-		(cons year ell)
-	      ell)))))
+  (let-values (((inclusive-start inclusive-end)
+		(if (< inclusive-start inclusive-end)
+		    (values inclusive-start inclusive-end)
+		  (values inclusive-end inclusive-start))))
+    (let loop ((year inclusive-start)
+	       (ell  '()))
+      (if (<= inclusive-end year)
+	  (reverse ell)
+	(loop (+ 1 year)
+	      (if (gregorian-leap-year? year)
+		  (cons year ell)
+		ell))))))
 
 (define (gregorian-year-number-of-days-since-beginning year month day)
-  ;;Return the  number of days  from the beginning  of the year  for the
+  ;;Return the  number of days since  the beginning of the  year for the
   ;;specified date.  Assume that the given date is correct.
   ;;
   (+ day (vector-ref (if (gregorian-leap-year? year)

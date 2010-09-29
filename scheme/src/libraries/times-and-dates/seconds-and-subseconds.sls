@@ -105,7 +105,8 @@
     sn<			sn>
     sn<=		sn>=
 
-    utc->tai		tai->utc
+    ;; scale conversion
+    utc-seconds->tai-seconds		tai-seconds->utc-seconds
     )
   (import (rnrs)
     (only (language-extensions)
@@ -407,10 +408,10 @@
 	      (- (cdr elm))
 	    (loop (cdr table))))))))
 
-(define (utc->tai seconds)
+(define (utc-seconds->tai-seconds seconds)
   (+ seconds (%utc-to-tai-leap-second-delta seconds)))
 
-(define (tai->utc seconds)
+(define (tai-seconds->utc-seconds seconds)
   (+ seconds (%tai-to-utc-leap-second-delta seconds)))
 
 

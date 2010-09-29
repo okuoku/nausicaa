@@ -107,6 +107,12 @@
     make-<time> <time>?
     <time>-deep-clone
     <time>-shallow-clone
+    <time>-seconds
+    <time>-nanoseconds
+    <time>-full-seconds
+    <time>-full-milliseconds
+    <time>-full-microseconds
+    <time>-full-nanoseconds
     <time>-=
     <time>-<
     <time>-<=
@@ -128,6 +134,7 @@
     (times-and-dates seconds-and-subseconds)
     (times-and-dates gregorian)
     (times-and-dates julian-calendar)
+    (times-and-dates types)
     (times-and-dates compat))
 
 
@@ -456,34 +463,36 @@
 	 (modified-julian-day	#f))
   (maker-protocol
    (lambda (make-seconds-and-nanoseconds)
-     (define (%make-time-from-julian-day jdn)
-       (let ((nanosecs (infix $number-of-nanoseconds-in-one-second * $number-of-seconds-in-one-day
-			      * (jdn - $tai-epoch-in-jd))))
-	 ((make-seconds-and-nanoseconds)
-	  (utc->tai (floor (/ nanosecs $number-of-nanoseconds-in-one-second)))
-	  (mod nanosecs $number-of-nanoseconds-in-one-second))))
-     (define (%make-time-from-modified-julian-day mjdn)
-       (%make-time-from-julian-day make-seconds-and-nanoseconds (+ mjdn 4800001/2)))
-
-     (lambda (secs millisecs microsecs nanosecs jd jdn mjdn)
+     (lambda (secs millisecs microsecs nanosecs
+		   julian-date julian-day-number modified-julian-day-number)
        (assert (%seconds-unit-count? secs))
        (assert (%seconds-unit-count? millisecs))
        (assert (%seconds-unit-count? microsecs))
        (assert (%seconds-unit-count? nanosecs))
-       (cond (jdn
-	      (assert (exact? jdn))
-	      (%make-time-from-julian-day make-seconds-and-nanoseconds jdn))
-	     (mjdn
-	      (assert (exact? mjdn))
-	      (%make-time-from-modified-julian-day make-seconds-and-nanoseconds mjdn))
+       (cond (julian-day-number
+	      (assert (exact? julian-day-number))
+	      (julian-day-number-><time> make-seconds-and-nanoseconds julian-day-number))
+	     (modified-julian-day-number
+	      (assert (exact? modified-julian-day-number))
+	      (modified-julian-day-number-><time> make-seconds-and-nanoseconds modified-julian-day-number))
 	     (else
 	      (receive (secs nanosecs)
 		  (smun->sn secs millisecs microsecs nanosecs)
 		((make-seconds-and-nanoseconds secs nanosecs))))))))
 
   (virtual-fields (immutable julian-day)
-		  (immutable modified-julian-day))
+		  (immutable modified-julian-day)
+		  (immutable julian-date))
   (methods deep-clone shallow-clone date = < > <= >= + -))
+
+;;; --------------------------------------------------------------------
+
+(define <time>-seconds			<seconds-and-nanoseconds>-seconds)
+(define <time>-nanoseconds		<seconds-and-nanoseconds>-nanoseconds)
+(define <time>-full-seconds		<seconds-and-nanoseconds>-full-seconds)
+(define <time>-full-milliseconds	<seconds-and-nanoseconds>-full-milliseconds)
+(define <time>-full-microseconds	<seconds-and-nanoseconds>-full-microseconds)
+(define <time>-full-nanoseconds		<seconds-and-nanoseconds>-full-nanoseconds)
 
 ;;; --------------------------------------------------------------------
 
@@ -596,99 +605,59 @@
    ((T)
     (<time>-date T (%local-tz-offset)))
    (((T <time>) tz-offset)
-    (define (%tai-before-leap-second? second)
-      (find (lambda (x)
-	      (= second (- (+ (car x) (cdr x)) 1)))
-	    $leap-second-table))
-    (define (%utc-seconds-and-nanoseconds->date utc-seconds nanoseconds tz-offset aux-seconds)
-      ;;Convert a seconds count on the UTC scale and a nanoseconds count
-      ;;to a <date>  object.  TZ-OFFSET must be the  time zone offset in
-      ;;seconds.  AUX-SECONDS must  be a count of seconds  to put in the
-      ;;seconds  field  of the  <date>  object; if  it  is  false it  is
-      ;;ignored.
-      ;;
-      (receive (year month day secs)
-	  (julian-day-decode-number
-	   (utc-seconds-and-nanoseconds->julian-day (+ utc-seconds tz-offset) nanoseconds))
-	(let* ((hours    (div secs $number-of-seconds-in-one-hour))
-	       (rem      (mod secs $number-of-seconds-in-one-hour))
-	       (minutes  (div rem 60))
-	       (seconds  (mod rem 60)))
-	  (make <date>
-	    nanoseconds (or aux-seconds seconds) minutes hours
-	    day month year tz-offset))))
-
-    (if (%tai-before-leap-second? T.seconds)
-	;;If  it's  *right* before  the  leap,  we  need to  pretend  to
-	;;subtract a second  and set the seconds explicitly  in the date
-	;;object.
-	(%utc-seconds-and-nanoseconds->date (- (tai->utc T.seconds) 1) T.nanoseconds tz-offset 60)
-      (%utc-seconds-and-nanoseconds->date (tai->utc T.seconds) T.nanoseconds tz-offset #f))
-    )))
+    (receive (nanoseconds seconds minutes hours day month year)
+	(tai-seconds-and-nanoseconds->utc-date-fields T.seconds T.nanoseconds tz-offset)
+      (make <date>
+	nanoseconds seconds minutes hours day month year tz-offset)))))
 
 ;;; --------------------------------------------------------------------
 
 (define (<time>-julian-day (T <time>))
-  ;;Return the Julian day representing T.
+  ;;Return the Julian Day Number representing T.
   ;;
-  (tai-seconds-and-nanoseconds->julian-day T.seconds T.nanoseconds))
+  (tai-seconds-and-nanoseconds->julian-day-number T.seconds T.nanoseconds))
 
 (define (<time>-modified-julian-day (T <time>))
-  ;;Return the Modified Julian day representing T.
+  ;;Return the Modified Julian Day Number representing T.
   ;;
-  (julian-day->modified-julian-day T.julian-day))
+  (julian-day-number->modified-julian-day-number T.julian-day))
 
-
-;;;; current time
+(define (<time>-julian-date (T <time>))
+  ;;Return the Julian Date representing T.
+  #f)
 
-(define (%get-time-of-day)
-  (let ((ct (host:current-time)))
-    (values (host:time-second ct)
-            (host:time-nanosecond ct))))
+;;; --------------------------------------------------------------------
 
-(define (current-time)
-  (receive (seconds nanoseconds)
-      (%get-time-of-day)
-    (receive (seconds nanoseconds)
-	(sn-normalise seconds nanoseconds)
-      (make <time>
-	(utc->tai seconds)
-	nanoseconds))))
-
-(define (current-julian-day)
-  ;;Return a Julian Date representing the current time.
+(define (julian-day-number-><time> jdn)
+  ;;Build and  return a  new <time> instance  representing a  Julian Day
+  ;;Number, JDN, interpreted on the UTC scale.  The strategy is: convert
+  ;;JDN to the total count  of nanoseconds since the Epoch, then convert
+  ;;the  nanoseconds into  UTC-seconds+nanoseconds, finally  convert the
+  ;;UTC seconds to TAI seconds.
   ;;
-  (let (((T <time>) (current-time)))
-    T.julian-day))
+  (assert (exact?   jdn))
+  (assert (integer? jdn))
+  (receive (secs nanosecs)
+      (julian-day-number->tai-seconds-and-nanoseconds jdn)
+    (make-<time> secs nanosecs)))
 
-(define (current-modified-julian-day)
-  ;;Return a Modified Julian Day value representing the current time.
+(define (modified-julian-day-number-><time> mjdn)
+  ;;Build  and return a  new <time>  instance representing  the Modified
+  ;;Julian Day Number, MJDN, on the UTC scale.
   ;;
-  (let (((T <time>) (current-time)))
-    T.modified-julian-day))
+  (assert (exact?   mjdn))
+  (assert (integer? mjdn))
+  (julian-day-number-><time> (modified-julian-day-number->julian-day-number mjdn)))
 
-(define-constant time-resolution
-  host:time-resolution)
-
-(define current-date
-  ;;Return a <date> object representin "now".
+(define (julian-date-><time> jd)
+  ;;Build and return  a new <time> instance representing  a Julian Date,
+  ;;JD, interpreted on the UTC scale.
   ;;
-  (case-lambda
-   (()
-    (current-date (%local-tz-offset)))
-   ((tz-offset)
-    (let (((T <time>) (current-time)))
-      (T.date tz-offset)))))
-
-(define (current-year)
-  (let (((D <date>) (current-date)))
-    D.year))
-
-(define (current-century)
-  (* 100 (div0 (current-year) 100)))
-
-(define (%local-tz-offset)
-  (host:time-gmt-offset (host:current-time)))
+  (assert (exact?   jd))
+  (assert (integer? jd))
+  (receive (secs nanosecs)
+      (julian-date->tai-seconds-and-nanoseconds jd)
+    (make-<time> secs nanosecs)))
 
 
 (define-class <date>
@@ -700,8 +669,9 @@
 	  (mutable day)
 	  (mutable month)
 	  (mutable year)
-	  (mutable zone-offset))
-  (virtual-fields (immutable year-day date-year-day)
+	  (mutable zone-offset)
+	  (immutable daylight-saving-time?))
+  (virtual-fields (immutable year-day)
 		  (immutable index-of-day-in-week)
 		  (immutable number-of-days-since-year-beginning)
 		  (immutable time))
@@ -796,10 +766,11 @@
     ;;
     (let ((jdays (- (julian-day-encode-number D.year D.month D.day)
 		    $tai-epoch-in-jd)))
-      (values (utc->tai (infix ((jdays - 1/2) * 24 + D.hour) * $number-of-seconds-in-one-hour
-			       + D.minute * 60
-			       + D.second
-			       - D.zone-offset))
+      (values (utc-seconds->tai-seconds
+	       (infix ((jdays - 1/2) * 24 + D.hour) * $number-of-seconds-in-one-hour
+		      + D.minute * 60
+		      + D.second
+		      - D.zone-offset))
 	      D.nanosecond)))
 
   (receive (seconds nanoseconds)
@@ -1046,7 +1017,7 @@
 
 	    (#\s . ,(lambda ((D <date>) pad-char port)
 		      (%display (let (((T <time>) D.time))
-				  (tai->utc T.seconds)))))
+				  (tai-seconds->utc-seconds T.seconds)))))
 
 	    (#\S . ,(lambda ((D <date>) pad-char port)
 		      (%display (%padding (if (> D.nanosecond $number-of-nanoseconds-in-one-second)
@@ -1498,6 +1469,58 @@
 	  ))))
 
   (main))
+
+
+;;;; current time
+
+(define (%get-time-of-day)
+  (let ((ct (host:current-time)))
+    (values (host:time-second ct)
+            (host:time-nanosecond ct))))
+
+(define (current-time)
+  (receive (seconds nanoseconds)
+      (%get-time-of-day)
+    (receive (seconds nanoseconds)
+	(sn-normalise seconds nanoseconds)
+      (make <time>
+	(utc-seconds->tai-seconds seconds)
+	nanoseconds))))
+
+(define (current-julian-day)
+  ;;Return a Julian Date representing the current time.
+  ;;
+  (let (((T <time>) (current-time)))
+    T.julian-day))
+
+(define (current-modified-julian-day)
+  ;;Return a Modified Julian Day value representing the current time.
+  ;;
+  (let (((T <time>) (current-time)))
+    T.modified-julian-day))
+
+(define-constant time-resolution
+  host:time-resolution)
+
+(define current-date
+  ;;Return a <date> object representin "now".
+  ;;
+  (case-lambda
+   (()
+    (current-date (%local-tz-offset)))
+   ((tz-offset)
+    (let (((T <time>) (current-time)))
+      (T.date tz-offset)))))
+
+(define (current-year)
+  (let (((D <date>) (current-date)))
+    D.year))
+
+(define (current-century)
+  (* 100 (div0 (current-year) 100)))
+
+(define (%local-tz-offset)
+  (host:time-gmt-offset (host:current-time)))
 
 
 ;;;; done

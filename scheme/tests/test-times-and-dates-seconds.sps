@@ -326,16 +326,16 @@
       ((_ ?utc-seconds ?leap)
        (begin
 	 (check
-	     (utc->tai ?utc-seconds)
+	     (utc-seconds->tai-seconds ?utc-seconds)
 	   => (+ ?utc-seconds ?leap))
 	 (check
-	     (utc->tai (+ 1 ?utc-seconds))
+	     (utc-seconds->tai-seconds (+ 1 ?utc-seconds))
 	   => (+ 1 ?utc-seconds ?leap))
 	 (check
-	     (tai->utc (+ ?utc-seconds ?leap))
+	     (tai-seconds->utc-seconds (+ ?utc-seconds ?leap))
 	   => ?utc-seconds)
 	 (check
-	     (tai->utc (+ 1 ?utc-seconds ?leap))
+	     (tai-seconds->utc-seconds (+ 1 ?utc-seconds ?leap))
 	   => (+ 1 ?utc-seconds))
 	 ))))
 

@@ -156,7 +156,7 @@
     (syntax-rules ()
       ((_ ?year ?month ?day ?mjdn)
        (check
-	   (julian-day->modified-julian-day (julian-day-encode-number ?year ?month ?day))
+	   (julian-day-number->modified-julian-day-number (julian-day-encode-number ?year ?month ?day))
 	 => ?mjdn))))
 
   (define-syntax check-date
@@ -165,7 +165,7 @@
        (check
 	   (call-with-values
 	       (lambda ()
-		 (julian-day-decode-number (modified-julian-day->julian-day ?mjdn)))
+		 (julian-day-decode-number (modified-julian-day-number->julian-day-number ?mjdn)))
 	     list)
 	 => '(?year ?month ?day)))))
 
