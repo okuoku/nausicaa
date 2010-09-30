@@ -1466,9 +1466,10 @@ Like invoking the @code{week-number} method of @var{date}.
 @subsection Type predicates and assertions
 
 
-Before using the assertion syntaxes consider using directly the
-predicate with @func{assert}.  The following bindings are exported by
-the @library{times-and-dates types} library.
+Before using the assertions proposed here consider using directly the
+predicate with @func{assert}: the only advantage of these assertions is
+an error message a bit more explicative.  The following bindings are
+exported by the @library{times-and-dates types} library.
 
 @c ------------------------------------------------------------
 
@@ -1482,6 +1483,11 @@ Return true if @var{obj} is a valid value for a count of years.
 
 @defmac month-type? @var{obj}
 Return true if @var{obj} is a valid value for a month index.
+@end defmac
+
+
+@defmac day-type? @var{obj}
+Return true if @var{obj} is a valid value for a day index.
 @end defmac
 
 
@@ -1527,6 +1533,24 @@ Return true if @var{obj}, which must be a number satisfying
 @defmac date-month-range? @var{obj}
 Return true if @var{obj}, which must be a number satisfying
 @func{month-type?}, is in the range allowed for a month index.
+@end defmac
+
+
+@defmac date-day-range? @var{obj} @var{month-index}
+Return true if @var{obj}, which must be a number satisfying
+@func{day-type?}, is in the range allowed for a the month whose index is
+@var{month-index} in a non--leap year.
+
+If @var{month-index} is invalid: raise an assertion violation.
+@end defmac
+
+
+@defmac date-day-range?/leap-year @var{obj} @var{month-index}
+Return true if @var{obj}, which must be a number satisfying
+@func{day-type?}, is in the range allowed for a the month whose index is
+@var{month-index} in a leap year.
+
+If @var{month-index} is invalid: raise an assertion violation.
 @end defmac
 
 
@@ -1599,9 +1623,21 @@ month index.
 @end defmac
 
 
+@defmac assert-day-type @var{who} @var{obj}
+Raise an assertion violation if @var{obj} is not a valid value for a day
+index.
+@end defmac
+
+
 @defmac assert-hours-type @var{who} @var{obj}
 Raise an assertion violation if @var{obj} is not a valid value for a
 count of hours.
+@end defmac
+
+
+@defmac assert-hours-type @var{who} @var{obj}
+Raise an assertion violation if @var{obj} is not a valid value for a day
+index.
 @end defmac
 
 
@@ -1659,6 +1695,24 @@ index.
 @end defmac
 
 
+@defmac assert-date-day-range @var{who} @var{obj} @var{month-index}
+Raise an assertion violation if @var{obj}, which must be a number
+satisfying @func{day-type?}, is not in the range allowed for a day index
+in the month whose index is @var{month-index} in a non--leap year.
+
+If @var{month-index} is invalid: raise an assertion violation.
+@end defmac
+
+
+@defmac assert-date-day-range/leap-year @var{who} @var{obj} @var{month-index}
+Raise an assertion violation if @var{obj}, which must be a number
+satisfying @func{day-type?}, is not in the range allowed for a day index
+in the month whose index is @var{month-index} in a leap year.
+
+If @var{month-index} is invalid: raise an assertion violation.
+@end defmac
+
+
 @defmac assert-date-hours-range @var{who} @var{obj}
 Raise an assertion violation if @var{obj}, which must be a number
 satisfying @func{hours-type?}, is not in the range allowed for a count
@@ -1676,14 +1730,14 @@ of minutes.
 @defmac assert-date-seconds-range @var{who} @var{obj}
 Raise an assertion violation if @var{obj}, which must be a number
 satisfying @func{seconds-type?}, is not in the range allowed for a count
-of seconds.
+of seconds excluding the leap second.
 @end defmac
 
 
 @defmac assert-date-seconds-range/with-leap @var{who} @var{obj}
 Raise an assertion violation if @var{obj}, which must be a number
 satisfying @func{seconds-type?}, is not in the range allowed for a count
-of seconds.
+of seconds including the leap second.
 @end defmac
 
 

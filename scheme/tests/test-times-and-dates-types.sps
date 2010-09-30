@@ -42,6 +42,9 @@
   (check (month-type? 12) => #t)
   (check (month-type? #\a) => #f)
 
+  (check (day-type? 12) => #t)
+  (check (day-type? #\a) => #f)
+
   (check (hours-type? 12) => #t)
   (check (hours-type? #\a) => #f)
 
@@ -86,6 +89,7 @@
 
   (check-type assert-years-type		1900	#\a)
   (check-type assert-month-type		12	#\a)
+  (check-type assert-day-type		12	#\a)
   (check-type assert-hours-type		12	#\a)
   (check-type assert-minutes-type	12	#\a)
   (check-type assert-seconds-type	12	#\a)
@@ -107,6 +111,22 @@
   (check (date-month-range? 1)		=> #t)
   (check (date-month-range? 0)		=> #f)
   (check (date-month-range? 13)		=> #f)
+
+  (check (date-day-range? 12 1)		=> #t)
+  (check (date-day-range?  1 1)		=> #t)
+  (check (date-day-range? 31 1)		=> #t)
+  (check (date-day-range? 28 2)		=> #t)
+  (check (date-day-range?  0 1)		=> #f)
+  (check (date-day-range? 32 1)		=> #f)
+  (check (date-day-range? 29 2)		=> #f)
+
+  (check (date-day-range?/leap-year 12 1)	=> #t)
+  (check (date-day-range?/leap-year  1 1)	=> #t)
+  (check (date-day-range?/leap-year 31 1)	=> #t)
+  (check (date-day-range?/leap-year 29 2)	=> #t)
+  (check (date-day-range?/leap-year  0 1)	=> #f)
+  (check (date-day-range?/leap-year 32 1)	=> #f)
+  (check (date-day-range?/leap-year 30 2)	=> #f)
 
   (check (date-hours-range? 0)		=> #t)
   (check (date-hours-range? 10)		=> #t)
@@ -163,12 +183,13 @@
 	 ...
 	 (check
 	     (guard (E ((assertion-violation? E)
-			#t)
-		       (else #f))
-	       (eval '(?func 'dummy ?ok)
+;;;			(write E)(newline)
+			'good)
+		       (else 'bad))
+	       (eval '(?func 'dummy ?bad)
 		     (environment '(rnrs)
 				  '(times-and-dates types))))
-	   => #t)
+	   => 'good)
 	 ...
 	 ))))
 
@@ -183,6 +204,22 @@
   (check-range assert-date-milliseconds-range		(0 999)		(-1 1000))
   (check-range assert-date-microseconds-range		(0 999)		(-1 1000))
   (check-range assert-date-nanoseconds-range		(0 999)		(-1 1000))
+
+  (check-range (lambda (who day)
+		 (assert-date-day-range who day 1))
+	       (1 12 31) (0 32))
+
+  (check-range (lambda (who day)
+		 (assert-date-day-range who day 2))
+	       (1 12 28) (0 29))
+
+  (check-range (lambda (who day)
+		 (assert-date-day-range/leap-year who day 1))
+	       (12 31 28) (0 32))
+
+  (check-range (lambda (who day)
+		 (assert-date-day-range/leap-year who day 2))
+	       (1 12 29) (0 30))
 
   #t)
 

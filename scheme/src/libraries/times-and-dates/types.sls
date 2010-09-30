@@ -176,7 +176,10 @@
      (<= 1 obj 30))
     ((2)
      (<= 1 obj 28))
-    (else #f)))
+    (else
+     (assertion-violation 'date-day-range?
+       "month index out of range while validating day index"
+       month-index))))
 
 (define-inline (date-day-range?/leap-year obj month-index)
   (case month-index
@@ -186,7 +189,10 @@
      (<= 1 obj 30))
     ((2)
      (<= 1 obj 29))
-    (else #f)))
+    (else
+     (assertion-violation 'date-day-range?
+       "month index out of range while validating day index"
+       month-index))))
 
 (define-inline (date-hours-range? obj)
   (<= 0 obj 23))
@@ -222,20 +228,33 @@
   (value-description	"month index in date"))
 
 (define-inline (assert-date-day-range who obj month-index)
-  (if (date-day-range? obj month-index)
-      #t
-    (assertion-violation who
-      (string-append "expected adequate day index for month index "
-		     (number->string month-index) " in date")
-      obj)))
+  (%assert-date-day-range who obj month-index 28 ""))
 
 (define-inline (assert-date-day-range/leap-year who obj month-index)
-  (if (date-day-range?/leap-year obj month-index)
-      #t
-    (assertion-violation who
-      (string-append "expected adequate day index for month index "
-		     (number->string month-index) " in date with leap year")
-      obj)))
+  (%assert-date-day-range who obj month-index 29 " with leap year"))
+
+(define (%assert-date-day-range who obj month-index february-up-day message-tail)
+  (define (%assert up-day)
+    (if (<= 1 obj up-day)
+	#t
+      (assertion-violation who
+	(string-append "expected day index in range [1, "
+		       (number->string up-day)
+		       "] for month index "
+		       (number->string month-index) " in date"
+		       message-tail)
+	obj)))
+  (case month-index
+    ((1 3 5 7 8 10 12)
+     (%assert 31))
+    ((4 6 9 11)
+     (%assert 30))
+    ((2)
+     (%assert february-up-day))
+    (else
+     (assertion-violation who
+       "month index out of range while validating day index"
+       month-index))))
 
 (define-type-assertion date-hours-range
   (predicate		date-hours-range?)
