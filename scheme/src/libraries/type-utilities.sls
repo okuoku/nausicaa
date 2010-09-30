@@ -33,6 +33,7 @@
     predicate
     type-description
     value-description
+    make-function
     )
   (import (rnrs)
     (makers)
@@ -45,12 +46,14 @@
 (synux.define-auxiliary-syntax predicate)
 (synux.define-auxiliary-syntax type-description)
 (synux.define-auxiliary-syntax value-description)
+(synux.define-auxiliary-syntax make-function)
 
 (define-maker (define-type-assertion name)
   %define-type-assertion
   ((predicate		#f)
    (type-description	#f)
-   (value-description	#f)))
+   (value-description	#f)
+   (make-function	#f)))
 
 (define-syntax %define-type-assertion
   (lambda (stx)
@@ -59,7 +62,7 @@
       ;;evaluates  to  a   predicate  function.   ?TYPE-DESCRIPTION  and
       ;;?VALUE-DESCRIPTION can be anything which evaluates to a string.
       ;;
-      ((_ ?name ?predicate ?type-description ?value-description)
+      ((_ ?name ?predicate ?type-description ?value-description ?make-function)
        (let ()
 	 (define (%synner message subform)
 	   (syntax-violation 'define-type-assertion message stx subform))
@@ -68,10 +71,12 @@
 	   (%synner "expected identifier as assertion object name" #'?name))
 
 	 (with-syntax ((FUNCNAME (synux.identifier-prefix 'assert- #'?name)))
-	   #'(begin
+	   #`(begin
 	       (define the-message
 		 (string-append "expected " ?type-description " as " ?value-description))
-	       (define-inline (FUNCNAME who obj)
+	       (#,(if (syntax->datum #'?make-function)
+		      #'define
+		    #'define-inline) (FUNCNAME who obj)
 		 (if (?predicate obj)
 		     #t
 		   (assertion-violation who the-message obj))))
