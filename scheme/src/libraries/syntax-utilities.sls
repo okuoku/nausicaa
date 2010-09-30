@@ -45,6 +45,7 @@
     syntax-maker-identifier		syntax-predicate-identifier
     syntax-accessor-identifier		syntax-mutator-identifier
     syntax-dot-notation-identifier
+    identifier-general-append
 
     ;; definition clauses handling
     validate-list-of-clauses		filter-clauses
@@ -193,17 +194,18 @@
   (eq? (syntax->datum id1) (syntax->datum id2)))
 
 
-(define (%general-string-append . args)
-  (let-values (((port getter) (open-string-output-port)))
-    (let loop ((args args))
-      (if (null? args)
-	  (getter)
-	(let ((thing (car args)))
-	  (display (if (identifier? (car args))
-		       (identifier->string (car args))
-		     (car args))
-		   port)
-	  (loop (cdr args)))))))
+(define (identifier-general-append arg . args)
+  (let ((args (cons arg args)))
+    (let-values (((port getter) (open-string-output-port)))
+      (let loop ((args args))
+	(if (null? args)
+	    (getter)
+	  (let ((thing (car args)))
+	    (display (if (identifier? (car args))
+			 (identifier->string (car args))
+		       (car args))
+		     port)
+	    (loop (cdr args))))))))
 
 (define-syntax identifier->string
   (syntax-rules ()
@@ -216,10 +218,10 @@
      (datum->syntax ?context-identifier (string->symbol ?string)))))
 
 (define (identifier-prefix prefix identifier)
-  (string->identifier identifier (%general-string-append prefix identifier)))
+  (string->identifier identifier (identifier-general-append prefix identifier)))
 
 (define (identifier-suffix identifier suffix)
-  (string->identifier identifier (%general-string-append identifier suffix)))
+  (string->identifier identifier (identifier-general-append identifier suffix)))
 
 (define (syntax-maker-identifier type-identifier)
   (identifier-prefix "make-" type-identifier))
@@ -229,22 +231,22 @@
 
 (define (syntax-accessor-identifier type-identifier field-identifier)
   (string->identifier type-identifier
-		      (%general-string-append type-identifier "-" field-identifier)))
+		      (identifier-general-append type-identifier "-" field-identifier)))
 
 (define (syntax-mutator-identifier type-identifier field-identifier)
   (string->identifier type-identifier
-		      (%general-string-append type-identifier "-" field-identifier "-set!")))
+		      (identifier-general-append type-identifier "-" field-identifier "-set!")))
 
 (define (syntax-dot-notation-identifier variable-identifier field-identifier)
   (string->identifier variable-identifier
-		      (%general-string-append variable-identifier "." field-identifier)))
+		      (identifier-general-append variable-identifier "." field-identifier)))
 
 
 (define (validate-list-of-clauses clauses synner)
   ;;Scan the unwrapped  syntax object CLAUSES expecting a  list with the
   ;;format:
   ;;
-  ;;    ((<keyword identifier> <thing> ...) ...)
+  ;;    ((<identifier> <thing> ...) ...)
   ;;
   ;;SYNNER must be a closure used to raise a syntax violation if a parse
   ;;error occurs; it must accept  two arguments: the message string, the
@@ -263,11 +265,11 @@
 (define (filter-clauses keyword-identifier clauses)
   ;;Given a list of clauses with the format:
   ;;
-  ;;    ((<keyword identifier> <thing> ...) ...)
+  ;;    ((<identifier> <thing> ...) ...)
   ;;
   ;;look for  the ones having  KEYWORD-IDENTIFIER as car and  return the
-  ;;selected  clauses in  a single  list; return  the empty  list  if no
-  ;;matching clause is found.
+  ;;selected clauses  in a  list; return the  empty list if  no matching
+  ;;clause is found.
   ;;
   (assert (identifier? keyword-identifier))
   (let next-clause ((clauses  clauses)
@@ -286,7 +288,7 @@
   ;;Scan the unwrapped  syntax object CLAUSES expecting a  list with the
   ;;format:
   ;;
-  ;;    ((<keyword identifier> <thing> ...) ...)
+  ;;    ((<identifier> <thing> ...) ...)
   ;;
   ;;then verify that the <keyword  identifier> syntax objects are in the
   ;;list of identifiers MANDATORY-KEYWORDS or in the list of identifiers
@@ -386,7 +388,6 @@
   (syntax-rules ()
     ((_ ?name)
      (define-syntax ?name (syntax-rules ())))))
-
 
 
 ;;;; done

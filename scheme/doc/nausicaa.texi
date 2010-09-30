@@ -611,6 +611,7 @@ Basic libraries
 * unimplemented::               Unimplemented error condition.
 * conditions::                  More condition types.
 * lang::                        Simple language extensions.
+* syntax utils::                Syntax utilities.
 * pretty-print::                Pretty printing.
 * parameters::                  Parameter objects.
 * shared-structures::           External representation for data
@@ -711,6 +712,7 @@ Indexes
 @include unimplemented.texiinc
 @include conditions.texiinc
 @include lang.texiinc
+@include syntax-utilities.texiinc
 @include pretty-print.texiinc
 @include parameters.texiinc
 @include shared-structures.texiinc
