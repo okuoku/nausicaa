@@ -847,6 +847,7 @@
     with-class
     setf				getf
     define/with-class			define/with-class*
+    defmethod
     lambda/with-class			lambda/with-class*
     case-lambda/with-class		case-lambda/with-class*
     receive/with-class

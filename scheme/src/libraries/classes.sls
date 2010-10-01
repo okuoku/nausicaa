@@ -1,4 +1,4 @@
-;;; -*- coding: utf-8-unix -*-
+;;; -*- coding: utf-8 -*-
 ;;;
 ;;;Part of: Nausicaa/Scheme
 ;;;Contents: record types as classes
@@ -76,6 +76,7 @@
     with-class
     setf				getf
     define/with-class			define/with-class*
+    defmethod
     lambda/with-class			lambda/with-class*
     case-lambda/with-class		case-lambda/with-class*
     receive/with-class
@@ -120,11 +121,6 @@
        (with-accessor-and-mutator (?spec ...) ?body0 ?body ...)))
     ((_ () ?body0 ?body ...)
      (begin ?body0 ?body ...))))
-
-(define (%vector-copy dst src len)
-  (do ((i 0 (+ 1 i)))
-      ((= i len))
-    (vector-set! dst i (vector-ref src i))))
 
 
 (define (%make-default-protocol rtd)
@@ -300,13 +296,11 @@
   ;;Expand into the record type  descriptor (RTD) record associated to a
   ;;class name.
   ;;
-  (lambda (stx)
-    (syntax-case stx ()
-      ((_ ?class-name)
-       (free-identifier=? #'?class-name #'<top>)
-       #'(record-type-descriptor <top>))
-      ((_ ?class-name)
-       #'(?class-name class-record-type-descriptor)))))
+  (syntax-rules (<top>)
+    ((_ <top>)
+     (record-type-descriptor <top>))
+    ((_ ?class-name)
+     (?class-name class-record-type-descriptor))))
 
 ;;; --------------------------------------------------------------------
 
@@ -314,63 +308,53 @@
   ;;Expand into the class' public constructor descriptor associated to a
   ;;class name.
   ;;
-  (lambda (stx)
-    (syntax-case stx ()
-      ((_ ?class-name)
-       (free-identifier=? #'?class-name #'<top>)
-       #'(record-constructor-descriptor ?class-name))
-      ((_ ?class-name)
-       #'(?class-name public-constructor-descriptor)))))
+  (syntax-rules (<top>)
+    ((_ <top>)
+     (record-constructor-descriptor <top>))
+    ((_ ?class-name)
+     (?class-name public-constructor-descriptor))))
 
 (define-syntax class-superclass-constructor-descriptor
   ;;Expand into the  class' superclass constructor descriptor associated
   ;;to a class name.
   ;;
-  (lambda (stx)
-    (syntax-case stx ()
-      ((_ ?class-name)
-       (free-identifier=? #'?class-name #'<top>)
-       #'(record-constructor-descriptor ?class-name))
-      ((_ ?class-name)
-       #'(?class-name superclass-constructor-descriptor)))))
+  (syntax-rules (<top>)
+    ((_ <top>)
+     (record-constructor-descriptor <top>))
+    ((_ ?class-name)
+     (?class-name superclass-constructor-descriptor))))
 
 (define-syntax class-from-fields-constructor-descriptor
   ;;Expand into the class' from-fields constructor descriptor associated
   ;;to a class name.
   ;;
-  (lambda (stx)
-    (syntax-case stx ()
-      ((_ ?class-name)
-       (free-identifier=? #'?class-name #'<top>)
-       #'(record-constructor-descriptor ?class-name))
-      ((_ ?class-name)
-       #'(?class-name from-fields-constructor-descriptor)))))
+  (syntax-rules (<top>)
+    ((_ <top>)
+     (record-constructor-descriptor <top>))
+    ((_ ?class-name)
+     (?class-name from-fields-constructor-descriptor))))
 
 ;;; --------------------------------------------------------------------
 
 (define-syntax class-type-uid
   ;;Expand into the class type UID associated to a class name.
   ;;
-  (lambda (stx)
-    (syntax-case stx ()
-      ((_ ?class-name)
-       (free-identifier=? #'?class-name #'<top>)
-       #'(record-type-uid (record-type-descriptor <top>)))
-      ((_ ?class-name)
-       #'(?class-name class-type-uid)))))
+  (syntax-rules (<top>)
+    ((_ <top>)
+     (record-type-uid (record-type-descriptor <top>)))
+    ((_ ?class-name)
+     (?class-name class-type-uid))))
 
 (define-syntax class-uid-list
   ;;Expand into  the list of type UIDs  of the parents of  a class name.
   ;;The first element is the UID of the class itself, then comes the UID
   ;;of the parent, then the UID of the parent's parent, etc.
   ;;
-  (lambda (stx)
-    (syntax-case stx ()
-      ((_ ?class-name)
-       (free-identifier=? #'?class-name #'<top>)
-       #'(list (record-type-uid (record-type-descriptor <top>))))
-      ((_ ?class-name)
-       #'(?class-name class-uid-list)))))
+  (syntax-rules (<top>)
+    ((_ <top>)
+     (list (record-type-uid (record-type-descriptor <top>))))
+    ((_ ?class-name)
+     (?class-name class-uid-list))))
 
 ;;; --------------------------------------------------------------------
 
@@ -408,10 +392,9 @@
   ;;predicate selected in the DEFINE-CLASS form.
   ;;
   (lambda (stx)
-    (syntax-case stx ()
+    (syntax-case stx (<top>)
 
-      ((_ ?obj ?class-name)
-       (free-identifier=? #'?class-name #'<top>)
+      ((_ ?obj <top>)
        (syntax #t))
 
       ((_ ?obj ?class-name)
@@ -482,16 +465,28 @@
 
 (define-syntax define-class
   (lambda (stx)
-    (define (generate-field-indexes number-of-fields)
-      ;;Derived  from   IOTA  from  (lists);  generate   a  sequence  of
-      ;;non-negative exact integers to be  used as indexes in the vector
-      ;;of concrete fields.
-      ;;
-      (do ((count number-of-fields (- count 1))
-	   (val (- number-of-fields 1) (- val 1))
-	   (ret '() (cons val ret)))
-	  ((<= count 0)
-	   ret)))
+    (define (main)
+      (syntax-case stx (fields mutable immutable parent sealed opaque parent-rtd nongenerative
+			       virtual-fields methods method predicate setter getter inherit
+			       bindings)
+
+	((_ (?name ?constructor ?predicate) ?clause ...)
+	 (all-identifiers? #'(?name ?constructor ?predicate))
+	 (doit stx #'?name #'?constructor #'?predicate (unwrap-syntax-object #'(?clause ...))))
+
+	((_ ?name ?clause ...)
+	 (identifier? #'?name)
+	 (doit stx #'?name
+	       (syntax-maker-identifier #'?name)
+	       (syntax-predicate-identifier #'?name)
+	       (unwrap-syntax-object #'(?clause ...))))
+
+	((_ ?name-spec . ?clauses)
+	 (syntax-violation 'define-class
+	   "invalid name specification in class definition"
+	   (syntax->datum stx)
+	   (syntax->datum #'?name-spec)))
+	))
 
     (define (doit input-form class-identifier constructor-identifier predicate-identifier clauses)
       ;;Parse the definition clauses and generate the output forms.
@@ -898,17 +893,20 @@
 	      	     #'(CUSTOM-PREDICATE ?arg))
 
 	      	    ((_ with-class-bindings-of
-	      		(?inherit-concrete-fields
+	      		(?use-dot-notation
+			 ?inherit-concrete-fields
 	      		 ?inherit-virtual-fields
 	      		 ?inherit-methods
 	      		 ?inherit-setter-and-getter)
 	      		?variable-name ?arg (... ...))
-	      	     (for-all boolean? (syntax->datum #'(?inherit-concrete-fields
+	      	     (for-all boolean? (syntax->datum #'(?use-dot-notation
+							 ?inherit-concrete-fields
 	      						 ?inherit-virtual-fields
 	      						 ?inherit-methods
 	      						 ?inherit-setter-and-getter)))
 	      	     #'(with-class-bindings
-	      		(?inherit-concrete-fields
+	      		(?use-dot-notation
+			 ?inherit-concrete-fields
 	      		 ?inherit-virtual-fields
 	      		 ?inherit-methods
 	      		 ?inherit-setter-and-getter)
@@ -927,96 +925,82 @@
 
 	      (define-syntax with-class-bindings
 	      	(syntax-rules ()
-	      	  ((_ (?inherit-concrete-fields
+	      	  ((_ (?use-dot-notation
+		       ?inherit-concrete-fields
 	      	       ?inherit-virtual-fields
 	      	       ?inherit-methods
 	      	       ?inherit-setter-and-getter)
 	      	      ?variable-name ?body0 ?body (... ...))
-	      	   (SUPERCLASS-NAME with-class-bindings-of (INHERIT-CONCRETE-FIELDS?
+	      	   (SUPERCLASS-NAME with-class-bindings-of (?use-dot-notation
+							    INHERIT-CONCRETE-FIELDS?
 	      						    INHERIT-VIRTUAL-FIELDS?
 	      						    INHERIT-METHODS?
 	      						    INHERIT-SETTER-AND-GETTER?)
 	      			    ?variable-name
 	      			    (with-class-bindings/concrete-fields
-	      			     ?inherit-concrete-fields ?variable-name
+	      			     ?inherit-concrete-fields ?use-dot-notation ?variable-name
 	      			     (with-class-bindings/virtual-fields
-	      			      ?inherit-virtual-fields ?variable-name
+	      			      ?inherit-virtual-fields ?use-dot-notation ?variable-name
 	      			      (with-class-bindings/methods
-	      			       ?inherit-methods ?variable-name
+	      			       ?inherit-methods ?use-dot-notation ?variable-name
 	      			       (with-class-bindings/setter-and-getter
 	      				?inherit-setter-and-getter ?variable-name
-	      				(BINDINGS-MACRO ?class-name ?variable-name
+	      				(BINDINGS-MACRO CLASS-NAME ?variable-name
 	      						?body0 ?body (... ...))))))))
 	      	  ))
 
 	      (define-syntax with-class-bindings/concrete-fields
-	      	(lambda (stx)
-	      	  (syntax-case stx ()
-	      	    ((_ ?inherit-concrete-fields ?variable-name . ?body)
-	      	     (syntax->datum #'?inherit-concrete-fields)
-	      	     #'(%with-class-fields ?variable-name
-	      				   ((MUTABILITY FIELD ACCESSOR/MUTATOR ...) ...)
-	      				   . ?body))
-	      	    ((_ ?inherit-fields ?variable-name . ?body)
-	      	     #'(begin . ?body))
-	      	    )))
+		(syntax-rules ()
+		  ((_ #t ?use-dot-notation ?variable-name . ?body)
+		   (%with-class-fields ?use-dot-notation ?variable-name
+				       ((MUTABILITY FIELD ACCESSOR/MUTATOR ...) ...)
+				       . ?body))
+		  ((_ #f ?use-dot-notation ?variable-name . ?body)
+		   (begin . ?body))
+		  ))
 
 	      (define-syntax with-class-bindings/virtual-fields
-	      	(lambda (stx)
-	      	  (syntax-case stx ()
-	      	    ((_ ?inherit-virtual-fields ?variable-name . ?body)
-	      	     (syntax->datum #'?inherit-virtual-fields)
-	      	     #'(%with-class-fields ?variable-name
-	      				   ((VIRTUAL-MUTABILITY VIRTUAL-FIELD
-								VIRTUAL-ACCESSOR/MUTATOR ...) ...)
-	      				   . ?body))
-	      	    ((_ ?inherit-fields ?variable-name . ?body)
-	      	     #'(begin . ?body))
-	      	    )))
+		(syntax-rules ()
+		  ((_ #t ?use-dot-notation ?variable-name . ?body)
+		   (%with-class-fields ?use-dot-notation ?variable-name
+				       ((VIRTUAL-MUTABILITY VIRTUAL-FIELD
+							    VIRTUAL-ACCESSOR/MUTATOR ...) ...)
+				       . ?body))
+		  ((_ #f ?use-dot-notation ?variable-name . ?body)
+		   (begin . ?body))
+		  ))
 
 	      (define-syntax with-class-bindings/methods
-	      	(lambda (stx)
-	      	  (syntax-case stx ()
-	      	    ((_ ?inherit-methods ?variable-name . ?body)
-	      	     (syntax->datum #'?inherit-methods)
-	      	     #'(%with-class-methods ?variable-name ((METHOD METHOD-IDENTIFIER) ...) . ?body))
-	      	    ((_ ?inherit-methods ?variable-name . ?body)
-	      	     #'(begin . ?body))
-	      	    )))
+		(syntax-rules ()
+		  ((_ #t ?use-dot-notation ?variable-name . ?body)
+		   (%with-class-methods ?use-dot-notation ?variable-name
+					((METHOD METHOD-IDENTIFIER) ...) . ?body))
+		  ((_ #f ?use-dot-notation ?variable-name . ?body)
+		   (begin . ?body))
+		  ))
 
 	      (define-syntax with-class-bindings/setter-and-getter
-	      	(lambda (stx)
-	      	  (syntax-case stx ()
-	      	    ((_ ?inherit-setter-and-getter ?variable-name . ?body)
-	      	     (syntax->datum #'?inherit-setter-and-getter)
-	      	     #'(%with-class-setter-and-getter ?variable-name SETTER GETTER . ?body))
-	      	    ((_ ?inherit-setter-and-getter ?variable-name . ?body)
-	      	     #'(begin . ?body))
-	      	    )))
+		(syntax-rules ()
+		  ((_ #t ?variable-name . ?body)
+		   (%with-class-setter-and-getter ?variable-name SETTER GETTER . ?body))
+		  ((_ #f ?variable-name . ?body)
+		   (begin . ?body))
+		  ))
 
 	      ))))
 
-    (syntax-case stx (fields mutable immutable parent sealed opaque parent-rtd nongenerative
-			     virtual-fields methods method predicate setter getter inherit
-			     bindings)
+    (define (generate-field-indexes number-of-fields)
+      ;;Derived  from   IOTA  from  (lists);  generate   a  sequence  of
+      ;;non-negative exact integers to be  used as indexes in the vector
+      ;;of concrete fields.
+      ;;
+      (do ((count number-of-fields (- count 1))
+	   (val (- number-of-fields 1) (- val 1))
+	   (ret '() (cons val ret)))
+	  ((<= count 0)
+	   ret)))
 
-      ((_ (?name ?constructor ?predicate) ?clause ...)
-       (all-identifiers? #'(?name ?constructor ?predicate))
-       (doit stx #'?name #'?constructor #'?predicate (unwrap-syntax-object #'(?clause ...))))
-
-      ((_ ?name ?clause ...)
-       (identifier? #'?name)
-       (doit stx #'?name
-	     (syntax-maker-identifier #'?name)
-	     (syntax-predicate-identifier #'?name)
-	     (unwrap-syntax-object #'(?clause ...))))
-
-      ((_ ?name-spec . ?clauses)
-       (syntax-violation 'define-class
-	 "invalid name specification in class definition"
-	 (syntax->datum stx)
-	 (syntax->datum #'?name-spec)))
-      )))
+    (main)))
 
 
 (define-syntax %define-class/output-forms/fields-accessors-and-mutators
@@ -1096,6 +1080,27 @@
   ;;used in the inheritance hierarchy of classes.
   ;;
   (lambda (stx)
+
+    (define (main)
+      (syntax-case stx ()
+	((_ (?name ?predicate) ?clause ...)
+	 (all-identifiers? #'(?name ?predicate))
+	 (doit stx #'?name #'?predicate
+	       (unwrap-syntax-object #'(?clause ...))))
+
+	((_ ?name ?clause ...)
+	 (identifier? #'?name)
+	 (doit stx #'?name
+	       (syntax-predicate-identifier #'?name)
+	       (unwrap-syntax-object #'(?clause ...))))
+
+	((_ ?name-spec . ?clauses)
+	 (syntax-violation 'define-label
+	   "invalid name specification in label definition"
+	   (syntax->datum #'?input-form)
+	   (syntax->datum #'?name-spec)))
+	))
+
     (define (doit input-form label-identifier predicate-identifier clauses)
       ;;Parse the definition clauses and generate the output forms.
       ;;
@@ -1236,17 +1241,20 @@
 		     #'(PREDICATE ?arg))
 
 		    ((_ with-class-bindings-of
-			(?inherit-concrete-fields ;this comes from WITH-CLASS
+			(?use-dot-notation ;this comes from WITH-CLASS
+			 ?inherit-concrete-fields
 			 ?inherit-virtual-fields
 			 ?inherit-methods
 			 ?inherit-setter-and-getter)
 			?variable-name ?arg (... ...))
-		     (for-all boolean? (syntax->datum #'(?inherit-concrete-fields
+		     (for-all boolean? (syntax->datum #'(?use-dot-notation
+							 ?inherit-concrete-fields
 							 ?inherit-virtual-fields
 							 ?inherit-methods
 							 ?inherit-setter-and-getter)))
 		     #'(with-label-bindings
-			(?inherit-virtual-fields
+			(?use-dot-notation
+			 ?inherit-virtual-fields
 			 ?inherit-methods
 			 ?inherit-setter-and-getter)
 			?variable-name ?arg (... ...)))
@@ -1260,18 +1268,20 @@
 
 	      (define-syntax with-label-bindings
 		(syntax-rules ()
-		  ((_ (?inherit-virtual-fields ?inherit-methods ?inherit-setter-and-getter)
+		  ((_ (?use-dot-notation
+		       ?inherit-virtual-fields ?inherit-methods ?inherit-setter-and-getter)
 		      ?variable-name ?body0 ?body (... ...))
 		   (SUPERLABEL-IDENTIFIER
-		    with-class-bindings-of (#f
+		    with-class-bindings-of (?use-dot-notation
+					    #f
 					    INHERIT-VIRTUAL-FIELDS?
 					    INHERIT-METHODS?
 					    INHERIT-SETTER-AND-GETTER?)
 		    ?variable-name
 		    (with-label-bindings/virtual-fields
-		     ?inherit-virtual-fields ?variable-name
+		     ?inherit-virtual-fields ?use-dot-notation ?variable-name
 		     (with-label-bindings/methods
-		      ?inherit-methods ?variable-name
+		      ?inherit-methods ?use-dot-notation ?variable-name
 		      (with-label-bindings/setter-and-getter
 		       ?inherit-setter-and-getter ?variable-name
 		       (BINDINGS-MACRO LABEL-NAME ?variable-name
@@ -1279,59 +1289,35 @@
 		  ))
 
 	      (define-syntax with-label-bindings/virtual-fields
-		(lambda (stx)
-		  (syntax-case stx ()
-		    ((_ ?inherit-virtual-fields ?variable-name . ?body)
-		     (syntax->datum #'?inherit-virtual-fields)
-		     #'(%with-class-fields ?variable-name
-					   ((VIRTUAL-MUTABILITY VIRTUAL-FIELD VIRTUAL-ACCESSOR/MUTATOR ...)
-					    ...)
-					   . ?body))
-		    ((_ ?inherit-fields ?variable-name . ?body)
-		     #'(begin . ?body))
-		    )))
+		(syntax-rules ()
+		  ((_ #t ?use-dot-notation ?variable-name . ?body)
+		   (%with-class-fields ?use-dot-notation  ?variable-name
+				       ((VIRTUAL-MUTABILITY VIRTUAL-FIELD VIRTUAL-ACCESSOR/MUTATOR ...)
+					...)
+				       . ?body))
+		  ((_ #f ?use-dot-notation ?variable-name . ?body)
+		   (begin . ?body))
+		  ))
 
 	      (define-syntax with-label-bindings/methods
-		(lambda (stx)
-		  (syntax-case stx ()
-		    ((_ ?inherit-methods ?variable-name . ?body)
-		     (syntax->datum #'?inherit-methods)
-		     #'(%with-class-methods ?variable-name ((METHOD METHOD-FUNCTION) ...)
-					    . ?body))
-		    ((_ ?inherit-methods ?variable-name . ?body)
-		     #'(begin . ?body))
-		    )))
+		(syntax-rules ()
+		  ((_ #t ?use-dot-notation ?variable-name . ?body)
+		   (%with-class-methods ?use-dot-notation ?variable-name ((METHOD METHOD-FUNCTION) ...)
+					. ?body))
+		  ((_ #f ?use-dot-notation ?variable-name . ?body)
+		   (begin . ?body))
+		  ))
 
 	      (define-syntax with-label-bindings/setter-and-getter
-		(lambda (stx)
-		  (syntax-case stx ()
-		    ((_ ?inherit-setter-and-getter ?variable-name . ?body)
-		     (syntax->datum #'?inherit-setter-and-getter)
-		     #'(%with-class-setter-and-getter ?variable-name SETTER GETTER . ?body))
-		    ((_ ?inherit-setter-and-getter ?variable-name . ?body)
-		     #'(begin . ?body))
-		    )))
-
+		(syntax-rules ()
+		  ((_ #t ?variable-name . ?body)
+		   (%with-class-setter-and-getter ?variable-name SETTER GETTER . ?body))
+		  ((_ #f ?variable-name . ?body)
+		   (begin . ?body))
+		  ))
 	      ))))
 
-    (syntax-case stx ()
-      ((_ (?name ?predicate) ?clause ...)
-       (all-identifiers? #'(?name ?predicate))
-       (doit stx #'?name #'?predicate
-	     (unwrap-syntax-object #'(?clause ...))))
-
-      ((_ ?name ?clause ...)
-       (identifier? (syntax ?name))
-       (doit stx #'?name
-	     (syntax-predicate-identifier #'?name)
-	     (unwrap-syntax-object #'(?clause ...))))
-
-      ((_ ?name-spec . ?clauses)
-       (syntax-violation 'define-label
-	 "invalid name specification in label definition"
-	 (syntax->datum (syntax ?input-form))
-	 (syntax->datum (syntax ?name-spec))))
-      )))
+    (main)))
 
 
 (define $virtual-methods-table
@@ -1398,31 +1384,55 @@
   ;;nested uses of WITH-ACCESSOR-AND-MUTATOR from (language-extensions).
   ;;
   (lambda (stx)
-    (syntax-case stx ()
+    (syntax-case stx (mutable immutable)
 
       ;;Process a field clause with both accessor and mutator.
-      ((_ ?variable-name ((?mutable ?field ?accessor ?mutator) ?clause ...) . ?body)
-       (and (identifier? #'?mutable) (free-identifier=? #'?mutable #'mutable)
-	    (identifier? #'?variable-name)
+      ((_ #t	;use dot notation
+	  ?variable-name ((mutable ?field ?accessor ?mutator) ?clause ...) . ?body)
+       (and (identifier? #'?variable-name)
 	    (identifier? #'?field)
 	    (identifier? #'?accessor)
 	    (identifier? #'?mutator))
        #`(with-accessor-and-mutator ((#,(syntax-dot-notation-identifier #'?variable-name #'?field)
        				      ?variable-name ?accessor ?mutator))
-       				    (%with-class-fields ?variable-name (?clause ...) . ?body)))
+       				    (%with-class-fields #t ?variable-name (?clause ...) . ?body)))
 
       ;;Process a field clause with accessor only.
-      ((_ ?variable-name ((?immutable ?field ?accessor) ?clause ...) . ?body)
-       (and (identifier? #'?immutable) (free-identifier=? #'?immutable #'immutable)
-	    (identifier? #'?variable-name)
+      ((_ #t	;use dot notation
+	  ?variable-name ((immutable ?field ?accessor) ?clause ...) . ?body)
+       (and (identifier? #'?variable-name)
 	    (identifier? #'?field)
 	    (identifier? #'?accessor))
        #`(with-accessor-and-mutator ((#,(syntax-dot-notation-identifier #'?variable-name #'?field)
 				      ?variable-name ?accessor))
-				    (%with-class-fields ?variable-name (?clause ...) . ?body)))
+				    (%with-class-fields #t ?variable-name (?clause ...) . ?body)))
+
+      ;;Process a field clause with both accessor and mutator.
+      ((_ #f	;do not use dot notation
+	  ?this ((mutable ?field ?accessor ?mutator) ?clause ...) . ?body)
+       (and (identifier? #'?this)
+	    (identifier? #'?field)
+	    (identifier? #'?accessor)
+	    (identifier? #'?mutator))
+       ;;Notice that  ?FIELD was not  introduced in the same  context of
+       ;;?THIS, so we have to create a new identifier with the same name
+       ;;of ?FIELD and the same context of ?THIS.
+       #`(with-accessor-and-mutator ((#,(datum->syntax #'?this (syntax->datum #'?field))
+				      ?this ?accessor ?mutator))
+				    (%with-class-fields #f ?this (?clause ...) . ?body)))
+
+      ;;Process a field clause with accessor only.
+      ((_ #f	;do not use dot notation
+	  ?this ((immutable ?field ?accessor) ?clause ...) . ?body)
+       (and (identifier? #'?this)
+	    (identifier? #'?field)
+	    (identifier? #'?accessor))
+       #'(with-accessor-and-mutator ((#,(datum->syntax #'?this (syntax->datum #'?field))
+				      ?this ?accessor))
+				    (%with-class-fields #f ?this (?clause ...) . ?body)))
 
       ;;No more field clauses, output the body.
-      ((_ ?variable-name () . ?body)
+      ((_ ?use-dot-notation ?variable-name () . ?body)
        (identifier? #'?variable-name)
        #'(begin . ?body))
 
@@ -1485,7 +1495,8 @@
     (syntax-case stx ()
 
       ;;Generate the methods' syntaxes.
-      ((_ ?variable-name ((?method ?function-name) ...) . ?body)
+      ((_ #t	;use dot notation
+	  ?variable-name ((?method ?function-name) ...) . ?body)
        (all-identifiers? #'(?variable-name ?method ... ?function-name ...))
        (with-syntax (((METHOD ...) (map (lambda (method/stx)
 					  (syntax-dot-notation-identifier #'?variable-name method/stx))
@@ -1496,8 +1507,24 @@
 			...)
 	     . ?body)))
 
+      ;;Generate the methods' syntaxes.
+      ((_ #f	;do not use dot notation
+	  ?this ((?method ?function-name) ...) . ?body)
+       (all-identifiers? #'(?this ?method ... ?function-name ...))
+       ;;Notice that ?METHOD  was not introduced in the  same context of
+       ;;?THIS, so we have to create a new identifier with the same name
+       ;;of ?METHOD and the same context of ?THIS.
+       (with-syntax (((METHOD ...) (map (lambda (method/stx)
+					  (datum->syntax #'?this (syntax->datum method/stx)))
+				     #'(?method ...))))
+	 #'(let-syntax ((METHOD (syntax-rules ()
+				  ((_ ?arg (... ...))
+				   (?function-name ?this ?arg (... ...)))))
+			...)
+	     . ?body)))
+
       ;;No methods, output the body.
-      ((_ ?variable-name () . ?body)
+      ((_ ?use-dot-notation ?variable-name () . ?body)
        (identifier? #'?variable-name)
        #'(begin . ?body))
 
@@ -1529,18 +1556,18 @@
   ;;which is the syntax having knowledge of the context of <class>.
   ;;
   (lambda (stx)
-    (syntax-case stx ()
+    (syntax-case stx (<top>)
 
       ;;If the  class is "<top>" skip  it, because "<top>"  has no class
       ;;bindings.
-      ((_ ((?var ?class0 ?class ...) ?clause ...) ?body0 ?body ...)
-       (and (identifier? #'?var) (identifier? #'?class0) (free-identifier=? #'?class0 #'<top>))
+      ((_ ((?var <top> ?class ...) ?clause ...) ?body0 ?body ...)
+       (identifier? #'?var)
        #'(%with-class-bindings ((?var ?class ...) ?clause ...) ?body0 ?body ...))
 
       ;;Process the next class in the clause.
       ((_ ((?var ?class0 ?class ...) ?clause ...) ?body0 ?body ...)
        (and (identifier? #'?var) (identifier? #'?class0))
-       #'(?class0 with-class-bindings-of (#t #t #t #t) ;enable everything
+       #'(?class0 with-class-bindings-of (#t #t #t #t #t) ;enable everything
 		  ?var
 		  (%with-class-bindings ((?var ?class ...) ?clause ...) ?body0 ?body ...)))
 
@@ -1557,13 +1584,16 @@
 (define-syntax setf
   (lambda (stx)
     (syntax-case stx (setter setter-multi-key set!)
+
       ((_ (?variable-name ?key0 ?key ...) ?value)
        (identifier? #'?variable-name)
        #`(#,(%variable-name->Setter-name #'?variable-name)
 	  ?key0 ?key ... ?value))
+
        ((_ ?variable-name ?value)
        (identifier? #'?variable-name)
 	#'(set! ?variable-name ?value))
+
        )))
 
 (define-syntax getf
@@ -1821,6 +1851,22 @@
      (define ?variable ?expression))
     ((_ ?variable)
      (define ?variable))))
+
+(define-syntax defmethod
+  (lambda (stx)
+    (syntax-case stx ()
+      ((_ ?class (?method-name . ?args) ?body0 ?body ...)
+       (with-syntax ((FUNCNAME	(string->identifier
+				 #'?method-name
+				 (identifier-general-append #'?class "-" #'?method-name)))
+		     (THIS	(datum->syntax #'?method-name 'this)))
+	 #'(define/with-class (FUNCNAME THIS . ?args)
+	     (?class with-class-bindings-of (#f #t #t #t #t) ;enable everything, but dot notation
+	 	     THIS ?body0 ?body ...))
+	 ))
+      )))
+
+;;; --------------------------------------------------------------------
 
 (define-syntax lambda/with-class
   (syntax-rules ()
