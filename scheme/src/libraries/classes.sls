@@ -1320,45 +1320,54 @@
     (main)))
 
 
+;;;; virtual methods
+;;
+;;Each virtual method has a name (method name) and a class (the class it
+;;belongs to).   There is a hash  table ($VIRTUAL-METHODS-TABLE) mapping
+;;virtual method names to hash  tables; the nested hash tables map class
+;;UIDs to method implementation procedures.
+;;
+
 (define $virtual-methods-table
   (make-eq-hashtable))
 
 (define-syntax define-virtual-method
   (lambda (stx)
-    (define who 'define-virtual-method)
+    (define (%synner message subform)
+      (syntax-violation 'define-virtual-method message (syntax->datum stx) (syntax->datum subform)))
+
     (syntax-case stx ()
 
+      ;;Define a method without implementation.
       ((_ ?class ?name)
        #'(define-virtual-method ?class ?name #f))
 
       ((_ ?class ?name ?lambda)
-       (not (identifier? #'?class))
-       (syntax-violation who "expected class identifier as first argument" (syntax->datum stx)))
-
-      ((_ ?class ?name ?lambda)
-       (not (identifier? #'?name))
-       (syntax-violation who "expected method name identifier as second argument" (syntax->datum stx)))
-
-      ((_ ?class ?name ?lambda)
-       #`(begin
-	   (define the-table
-	     (or (hashtable-ref $virtual-methods-table '?name #f)
-		 (let ((table (make-eq-hashtable)))
-		   (hashtable-set! $virtual-methods-table '?name table)
-		   table)))
-	   (define the-implementation
-	     (let ((f ?lambda))
-	       (when f
-		 (hashtable-set! the-table (class-type-uid ?class) f))
-	       f))
-	   (define-syntax #,(syntax-method-identifier #'?class #'?name)
-	     (syntax-rules ()
-	       ;;This  is  a  method,  so  we  know  that  ?self  is  an
-	       ;;identifier: we can safely use it multiple times.
-	       ((_ ?self . ?args)
-		((%retrieve-virtual-method-implementation the-table (record-type-of ?self) '?name)
-		 ?self . ?args))))
-	   ))
+       (begin
+	 (unless (identifier? #'?class)
+	   (%synner "expected class identifier as first argument" #'?class))
+	 (unless (identifier? #'?name)
+	   (%synner "expected method name identifier as second argument" #'?name))
+	 #`(begin
+	     (define the-table
+	       (or (hashtable-ref $virtual-methods-table '?name #f)
+		   (let ((table (make-eq-hashtable)))
+		     (hashtable-set! $virtual-methods-table '?name table)
+		     table)))
+	     (define the-implementation
+	       (let ((f ?lambda))
+		 (when f
+		   (hashtable-set! the-table (class-type-uid ?class) f))
+		 f))
+	     (define-syntax #,(syntax-method-identifier #'?class #'?name)
+	       (syntax-rules ()
+		 ;;This  is  a  method,  so  we  know  that  ?self  is  an
+		 ;;identifier: we can safely use it multiple times.
+		 ((_ ?self . ?args)
+		  ((%retrieve-virtual-method-implementation the-table (record-type-of ?self) '?name)
+		   ?self . ?args))))
+	     )
+	 ))
       )))
 
 (define (%retrieve-virtual-method-implementation method-table rtd method-symbol-name)
