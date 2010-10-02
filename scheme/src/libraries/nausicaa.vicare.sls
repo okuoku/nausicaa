@@ -828,7 +828,7 @@
     make				make-from-fields
     make*
     define-virtual-method
-    defmethod
+    defmethod				defmethod-virtual
 
     ;; inspection macros
     class-record-type-descriptor

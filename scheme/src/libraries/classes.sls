@@ -57,6 +57,7 @@
     make				make-from-fields
     make*
     define-virtual-method
+    defmethod				defmethod-virtual
 
     ;; inspection macros
     class-record-type-descriptor
@@ -76,7 +77,6 @@
     with-class
     setf				getf
     define/with-class			define/with-class*
-    defmethod
     lambda/with-class			lambda/with-class*
     case-lambda/with-class		case-lambda/with-class*
     receive/with-class
@@ -1361,12 +1361,12 @@
 		 f))
 	     (define-syntax #,(syntax-method-identifier #'?class #'?name)
 	       (syntax-rules ()
-		 ;;This  is  a  method,  so  we  know  that  ?self  is  an
-		 ;;identifier: we can safely use it multiple times.
+		 ;;This  is  a method,  so  we  know  that ?SELF  is  an
+		 ;;identifier bound to the class instance: we can safely
+		 ;;use it multiple times.
 		 ((_ ?self . ?args)
 		  ((%retrieve-virtual-method-implementation the-table (record-type-of ?self) '?name)
-		   ?self . ?args))))
-	     )
+		   ?self . ?args)))))
 	 ))
       )))
 
@@ -1378,13 +1378,13 @@
 		     " for class "  (symbol->string (record-type-name rtd))
 		     " having uid " (symbol->string (record-type-uid  rtd)))
       #f))
-  (let next-rtd ((rtd rtd))
+  (let next-parent-rtd ((rtd rtd))
     (if rtd
 	(let ((uid (record-type-uid rtd)))
 	  (if (eq? uid 'nausicaa:builtin:<top>)
 	      (%error-missing-implementation)
 	    (or (hashtable-ref method-table uid #f)
-		(next-rtd (record-type-parent rtd)))))
+		(next-parent-rtd (record-type-parent rtd)))))
       (%error-missing-implementation))))
 
 
@@ -1436,7 +1436,7 @@
        (and (identifier? #'?this)
 	    (identifier? #'?field)
 	    (identifier? #'?accessor))
-       #'(with-accessor-and-mutator ((#,(datum->syntax #'?this (syntax->datum #'?field))
+       #`(with-accessor-and-mutator ((#,(datum->syntax #'?this (syntax->datum #'?field))
 				      ?this ?accessor))
 				    (%with-class-fields #f ?this (?clause ...) . ?body)))
 
@@ -1865,13 +1865,26 @@
   (lambda (stx)
     (syntax-case stx ()
       ((_ ?class (?method-name . ?args) ?body0 ?body ...)
-       (with-syntax ((FUNCNAME	(string->identifier
-				 #'?method-name
-				 (identifier-general-append #'?class "-" #'?method-name)))
-		     (THIS	(datum->syntax #'?method-name 'this)))
+       (with-syntax
+	   ((FUNCNAME	(string->identifier #'?method-name
+					    (identifier-general-append #'?class "-" #'?method-name)))
+	    (THIS	(datum->syntax #'?method-name 'this)))
 	 #'(define/with-class (FUNCNAME THIS . ?args)
 	     (?class with-class-bindings-of (#f #t #t #t #t) ;enable everything, but dot notation
 	 	     THIS ?body0 ?body ...))
+	 ))
+      )))
+
+(define-syntax defmethod-virtual
+  (lambda (stx)
+    (syntax-case stx ()
+      ((_ ?class (?method-name . ?args) ?body0 ?body ...)
+       (with-syntax ((THIS (datum->syntax #'?method-name 'this)))
+	 #'(begin
+	     (define/with-class (the-method THIS . ?args)
+	       (?class with-class-bindings-of (#f #t #t #t #t) ;enable everything, but dot notation
+		       THIS ?body0 ?body ...))
+	     (define-virtual-method ?class ?method-name the-method))
 	 ))
       )))
 

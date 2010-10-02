@@ -824,9 +824,9 @@
     ;; usage macros
     define-class			define-foreign-class
     define-label			is-a?
-    defmethod
     make				make-from-fields
     make*
+    defmethod				defmethod-virtual
     define-virtual-method
 
     ;; inspection macros

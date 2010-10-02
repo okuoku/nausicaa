@@ -38,7 +38,7 @@
 
 (parametrise ((check-test-name	'defmethod))
 
-  (let ()
+  (let ()	;mutable fields
 
     (define-class <alpha>
       (fields (mutable a)
@@ -48,6 +48,55 @@
     (define-class <beta>
       (fields (mutable c)
 	      (mutable d)))
+
+    (defmethod <alpha> (the-this)
+      this)
+
+    (defmethod <alpha> (red)
+      (list a b))
+
+    (defmethod <alpha> (blue (o <beta>))
+      (list a b o.c o.d))
+
+    (defmethod <alpha> (green (o <beta>))
+      (cons #\a (blue o)))
+
+    (let/with-class (((p <alpha>) (make <alpha> 1 2)))
+      (check
+    	  (p.the-this)
+	=> p))
+
+    (check
+    	(let/with-class (((p <alpha>) (make <alpha> 1 2)))
+    	  (p.red))
+      => '(1 2))
+
+    (check
+    	(let/with-class (((p <alpha>) (make <alpha> 1 2))
+    			 ((q <beta>)  (make <beta>  3 4)))
+    	  (p.blue q))
+      => '(1 2 3 4))
+
+    (check
+    	(let/with-class (((p <alpha>) (make <alpha> 1 2))
+    			 ((q <beta>)  (make <beta>  3 4)))
+    	  (p.green q))
+      => '(#\a 1 2 3 4))
+
+    #f)
+
+;;; --------------------------------------------------------------------
+
+  (let ()	;immutable fields
+
+    (define-class <alpha>
+      (fields (immutable a)
+	      (immutable b))
+      (methods red blue green the-this))
+
+    (define-class <beta>
+      (fields (immutable c)
+	      (immutable d)))
 
     (defmethod <alpha> (the-this)
       this)

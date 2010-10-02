@@ -26,13 +26,14 @@
 
 
 (import (nausicaa)
+  (rnrs eval)
   (checks))
 
 (check-set-mode! 'report-failed)
 (display "*** testing class virtual methods\n")
 
 
-(parametrise ((check-test-name	'virtual-methods))
+(parametrise ((check-test-name	'basic))
 
   (let ()
 
@@ -111,6 +112,107 @@
       => 'beta)
 
     #f)
+
+  #t)
+
+
+(parametrise ((check-test-name	'defmethod))
+
+  (let ()
+
+    (define-class <alpha>
+      (fields a)
+      (methods the-a the-b the-c))
+
+    (defmethod <alpha> (the-a n)
+      (+ n a))
+
+    (define-virtual-method <alpha> the-b)
+
+    (defmethod-virtual <alpha> (the-c)
+      'alpha)
+
+    (define-class <beta>
+      (inherit <alpha>)
+      (methods the-b the-c))
+
+    ;;Provides the implementation for both <alpha> and <beta>.
+    (defmethod-virtual <beta> (the-b)
+      (+ 10 a))
+
+    ;;Overrides the implementation of <alpha>.
+    (defmethod-virtual <beta> (the-c)
+      (list (the-a 3) 'beta))
+
+    ;; <alpha> methods
+
+    (check
+    	(let (((o <alpha>) (make <alpha> 2)))
+    	  (o.the-a 1))
+      => 3)
+
+    (check
+    	(guard (E ((syntax-violation? E)
+;;;(write (condition-message E))(newline)
+    		   #t)
+    		  (else
+;;;(write (condition-message E))(newline)
+		   #f))
+    	  (let (((o <alpha>) (make <alpha> 2)))
+    	    (o.the-b)))
+      => #t)
+
+    (check
+    	(let (((o <alpha>) (make <alpha> 2)))
+    	  (o.the-c))
+      => 'alpha)
+
+    ;; <beta> methods
+
+    (check
+    	(let (((o <beta>) (make <beta> 2)))
+    	  (o.the-a 1))
+      => 3)
+
+    (check
+    	(let (((o <beta>) (make <beta> 2)))
+    	  (o.the-b))
+      => 12)
+
+    (check
+    	(let (((o <beta>) (make <beta> 2)))
+    	  (o.the-c))
+      => '(5 beta))
+
+    (check	;A  <beta> object  seen as  <alpha> object  provides the
+    		;virtual method implementation.
+    	(let (((o <alpha>) (make <beta> 2)))
+    	  (o.the-c))
+      => '(5 beta))
+
+    #f)
+
+  #t)
+
+
+(parametrise ((check-test-name	'errors))
+
+  (check ;try to call an unimplemented virtual method
+      (guard (E ((syntax-violation? E)
+;;;(write (condition-message E))(newline)
+		 #t)
+		(else #f))
+	(eval '(let ()
+		 (define-class <alpha>
+		   (fields a)
+		   (methods the-a))
+
+		 (define-virtual-method <alpha> the-a)
+
+		 (let (((o <alpha>) (make <alpha> 2)))
+		   (o.the-a)))
+	      (environment '(nausicaa))))
+    => #t)
 
   #t)
 
