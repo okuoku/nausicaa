@@ -1340,8 +1340,14 @@
 
       ;;Define a method without implementation.
       ((_ ?class ?name)
+       (all-identifiers? #'(?class ?name))
        #'(define-virtual-method ?class ?name #f))
 
+      ;;Define a method with implementation.
+      ((_ ?class (?name ?this . ?args) ?body0 ?body ...)
+       #'(define-virtual-method ?class ?name (lambda/with-class (?this . ?args) ?body0 ?body ...)))
+
+      ;;Define a method with an expression as implementation.
       ((_ ?class ?name ?lambda)
        (begin
 	 (unless (identifier? #'?class)

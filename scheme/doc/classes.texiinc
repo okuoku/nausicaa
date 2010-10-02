@@ -456,23 +456,23 @@ some other way.
 @subsection Defining classes having methods
 
 
-@deffn {Auxiliary Syntax} methods @ameta{method spec}*
-Add methods to the enclosing class definition; the @meta{method spec}
+@deffn {Auxiliary Syntax} methods @var{method-spec}*
+Add methods to the enclosing class definition; the @var{method-spec}
 arguments can be of the form:
 
 @example
-@cmeta{method}
-(@cmeta{method})
-(@cmeta{method} @cmeta{method name})
+@var{method}
+(@var{method})
+(@var{method} @var{method-name})
 @end example
 
 @noindent
-where @meta{method} and @meta{method name} must be identifiers; in the
+where @var{method} and @var{method-name} must be identifiers; in the
 first two forms the function name is built in the same way the field
-accessor names are built: appending a dash and @meta{method} to the
+accessor names are built: appending a dash and @var{method} to the
 class type name.  This clause can be used multiple times.
 
-The @meta{method name} must be an identifier bound to a Scheme function
+The @var{method-name} must be an identifier bound to a Scheme function
 or syntax which will be invoked as method; it must accept as first
 argument the record which is the subject of the application.
 
@@ -529,8 +529,8 @@ different class types of the same hierarchy, @ref{classes dot with,
 @end deffn
 
 
-@deffn {Auxiliary Syntax} method (@ameta{name} . @ameta{formals}) . @ameta{body}
-@deffnx {Auxiliary Syntax} method @ameta{name} @ameta{expression}
+@deffn {Auxiliary Syntax} method (@var{name} . @var{formals}) . @var{body}
+@deffnx {Auxiliary Syntax} method @var{name} @var{expression}
 Add a method to the enclosing class definition; the method is applicable
 only through an automatically generated macro, which is bound by
 @func{with-class} to an identifier in dot notation.  This clause can be
@@ -540,41 +540,41 @@ When the first form is used, the method definition is added to the
 methods list as if the following clause had been used:
 
 @example
-(methods @cmeta{other methods} ...
-         (@cmeta{name} function-name))
+(methods @var{other-methods} ...
+         (@var{name} function-name))
 @end example
 
 @noindent
 the function definition is expanded to:
 
 @example
-(define/with-class (function-name . @cmeta{formals}) . @cmeta{body})
+(define/with-class (function-name . @var{formals}) . @var{body})
 @end example
 
 @noindent
 where @code{function-name} is an automatically generated identifier
-built by appending a dash and @meta{name} to the class type name.  The
-first argument in @meta{formals} will be the class instance.
+built by appending a dash and @var{name} to the class type name.  The
+first argument in @var{formals} will be the class instance.
 
 When the second form is used, the method definition is added to the
 methods list as if the following clause had been used:
 
 @example
-(methods @cmeta{other methods} ...
-         (@cmeta{name} function-name))
+(methods @var{other-methods} ...
+         (@var{name} function-name))
 @end example
 
 @noindent
 the function definition is expanded to:
 
 @example
-(define function-name @cmeta{expression})
+(define function-name @var{expression})
 @end example
 
 @noindent
 where @code{function-name} is an automatically generated identifier
-built by appending a dash and @meta{name} to the class type name; the
-@meta{expression} must evaluate to a function accepting at least one
+built by appending a dash and @var{name} to the class type name; the
+@var{expression} must evaluate to a function accepting at least one
 argument: the class instance.
 
 @example
@@ -627,7 +627,7 @@ argument: the class instance.
 @end deffn
 
 
-@deffn {Auxiliary Syntax} method-syntax @ameta{name} @ameta{transformer}
+@deffn {Auxiliary Syntax} method-syntax @var{name} @var{transformer}
 Add a method to the enclosing class definition; the method is applicable
 only through an automatically generated macro, which is bound by
 @func{with-class} to an identifier in dot notation.  This clause can be
@@ -637,28 +637,29 @@ The method definition is added to the methods list as if the following
 clause had been used:
 
 @example
-(methods @cmeta{other methods} ...
-         (@cmeta{name} transformer-name))
+(methods @var{other-methods} ...
+         (@var{name} transformer-name))
 @end example
 
 @noindent
 the macro definition is expanded to:
 
 @example
-(define-syntax transformer-name @cmeta{transformer})
+(define-syntax transformer-name @var{transformer})
 @end example
 
 @noindent
 where @code{transformer-name} is an automatically generated identifier
-built by appending a dash and @meta{name} to the class type name.
-@meta{transformer} must expand to a macro transformer.  The first
+built by appending a dash and @var{name} to the class type name.
+@var{transformer} must expand to a macro transformer.  The first
 argument to the macro will be the class instance.
 @end deffn
 
 
-@deffn Syntax define-virtual-method @ameta{class name} @ameta{method name}
-@deffnx Syntax define-virtual-method @ameta{class name} @ameta{method name} @ameta{expr}
-Define a virtual method for @meta{class name}; the virtual methods of a
+@deffn Syntax define-virtual-method @var{class-name} @var{method-name}
+@deffnx Syntax define-virtual-method @var{class-name} @var{method-name} @var{expr}
+@deffnx Syntax define-virtual-method @var{class-name} (@var{method-name} . @var{args}) . @var{body})
+Define a virtual method for @var{class-name}; the virtual methods of a
 class can be overridden by implementations in subclasses.  For example:
 
 @example
@@ -675,8 +676,8 @@ class can be overridden by implementations in subclasses.  For example:
 (define-virtual-method <alpha> the-method
   (lambda (o) 'alpha))
 
-(define-virtual-method <beta> the-method
-  (lambda (o) 'beta))
+(define-virtual-method <beta> (the-method o)
+  'beta)
 
 (let (((o <alpha>) (make <beta> 2)))
   (o.the-method))
@@ -688,16 +689,34 @@ mostly it is still faster than a call to a generic function as
 implemented by the @library{classes} library; @naumoreref{generics,
 Multimethod dispatching}.
 
-A virtual method must be declared in the definition of @meta{class name}
-as an ordinary method with the @code{methods} clause; @meta{method name}
-must be an identifier specifying the name of the method and @meta{expr}
-must be an expression evaluating to the method implementation.  When
-@meta{expr} is missing: the virtual method exists, but it has no
-implementation for @meta{class name}.
+A virtual method must be declared in the definition of @var{class-name}
+as an ordinary method with the @code{methods} clause; @var{method-name}
+must be an identifier specifying the name of the method and @var{expr}
+must be an expression evaluating to the method implementation.
 
-A virtual method without implementation does not forbid the
-instantiation of a class.  Only classes can have virtual methods, labels
-cannot.
+When the first syntax is used: the virtual method exists, but it has no
+implementation for @var{class-name}.  A virtual method without
+implementation does not forbid the instantiation of a class, but trying
+to call that method will result in a syntax violation.
+
+When the last syntax is used, it expands in the usage of
+@func{lambda/with-class}; for example:
+
+@example
+(define-virtual-method <beta> (the-method o)
+  'beta)
+@end example
+
+@noindent
+is equivalent to:
+
+@example
+(define-virtual-method <beta> the-method
+  (lambda/with-class (o)
+    'beta))
+@end example
+
+Only classes can have virtual methods, labels cannot.
 @end deffn
 
 @c ------------------------------------------------------------
