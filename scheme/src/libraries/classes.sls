@@ -1889,7 +1889,7 @@
 	 #'(begin
 	     (define/with-class (the-method THIS . ?args)
 	       (?class with-class-bindings-of (#f #t #t #t #t) ;enable everything, but dot notation
-		       THIS ?body0 ?body ...))
+	     	       THIS ?body0 ?body ...))
 	     (define-virtual-method ?class ?method-name the-method))
 	 ))
       )))

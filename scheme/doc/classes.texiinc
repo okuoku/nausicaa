@@ -719,6 +719,73 @@ is equivalent to:
 Only classes can have virtual methods, labels cannot.
 @end deffn
 
+
+@defmac defmethod @var{class} (@var{method-name} . @var{args}) @varo{body} @var{body} ...
+Define a method function for @var{class} called @var{method-name}; the
+identifier @var{method-name} must be listed in the @func{methods} clause
+of @var{class}.  This macro behaves like @func{define/with-class}, but
+does not use dot notation to access the fields and methods of the
+instance of @var{class}; rather it defines implicitly the first function
+argument called @code{this} bound to the class instance, and defines an
+identifier macro for each field and method, without prefixing the names,
+in such a way that the following code works:
+
+@example
+(define-class <alpha>
+  (fields (mutable a)
+          (mutable b))
+  (methods red blue green the-this))
+
+(define-class <beta>
+  (fields (mutable c)
+          (mutable d)))
+
+(defmethod <alpha> (the-this)
+  this)
+
+(defmethod <alpha> (red)
+  (list a b))
+
+(defmethod <alpha> (blue (o <beta>))
+  (list a b o.c o.d))
+
+(defmethod <alpha> (green (o <beta>))
+  (cons #\a (blue o)))
+
+(let/with-class (((p <alpha>) (make <alpha> 1 2)))
+  (check
+      (p.the-this)
+    @result{} p))
+
+(check
+    (let/with-class (((p <alpha>) (make <alpha> 1 2)))
+      (p.red))
+  @result{} '(1 2))
+
+(check
+    (let/with-class (((p <alpha>) (make <alpha> 1 2))
+                     ((q <beta>)  (make <beta>  3 4)))
+      (p.blue q))
+  @result{} '(1 2 3 4))
+
+(check
+    (let/with-class (((p <alpha>) (make <alpha> 1 2))
+                     ((q <beta>)  (make <beta>  3 4)))
+      (p.green q))
+  @result{} '(#\a 1 2 3 4))
+@end example
+
+The binding of @code{this} is simple: there are @strong{no} identifier
+macros with @code{this.} prefix to access fields and methods.  Usually
+we do not need to use @code{this} at all.
+@end defmac
+
+
+@defmac defmethod-virtual @var{class} (@var{method-name} . @var{args}) @varo{body} @var{body} ...
+Like @func{defmethod} but defines a virtual method as if
+@func{define-virtual-method} was used.
+@end defmac
+
 @c ------------------------------------------------------------
 
 @subsubheading Method overloading
