@@ -76,7 +76,7 @@ it is @strong{not} associated to a record type as defined by
 @cindex Definition, Foreign class types
 
 
-@deffn Syntax define-class @ameta{name spec} @ameta{class clause}*
+@defmac define-class @var{name-spec} @var{class-clause} ...
 Define a new record type satisfying the constraints of a class
 definition; expand to a regular record type definition using
 @rsixlibrary{records procedural} and some additional syntax definitions
@@ -86,23 +86,23 @@ The arguments are compatible with the ones of @func{define-record-type}:
 every regular record type definition can be turned into a class
 definition simply by changing @func{define-record-type} into
 @func{define-class}.  In addition to all the clauses of
-@func{define-record-type}, the @meta{class clause} arguments can be the
+@func{define-record-type}, the @var{class-clause} arguments can be the
 auxiliary syntaxes described in this section.
 
-If none of the @meta{class clause} arguments is a @func{inherit} or
+If none of the @var{class-clause} arguments is a @func{inherit} or
 @func{parent} or @func{parent-rtd} syntax, the clause @code{(inherit
 <top>)} is added to the record definition.  @ref{classes builtin base,
 Basic conventional @rtd{}s}.
 
-If none of the @meta{class clause} arguments is a @func{nongenerative}
+If none of the @var{class-clause} arguments is a @func{nongenerative}
 syntax, the clause @code{(nongenerative)} is added to the record
 definition; however, notice that it is unsafe to use automatically
 generated @acronym{UID}s, it is better and useful to explicitly select a
 unique identifier.
-@end deffn
+@end defmac
 
 
-@deffn Syntax define-foreign-class @ameta{name spec} @ameta{class clause}*
+@defmac define-foreign-class @var{name-spec} @var{class-clause} ...
 Like @func{define-class}, but inserts a @func{public-protocol} clause
 and a @func{maker-protocol} clause whose constructors raise an assertion
 violation if called.  Foreign classes are not meant to be instantiated,
@@ -122,7 +122,7 @@ to establish if an object matches the type of a foreign class.
 Foreign classes can have virtual fields and methods; it is a syntax
 violation to declare concrete fields in the body of a foreign class
 definition.
-@end deffn
+@end defmac
 
 @c page
 @node classes define inherit
@@ -152,11 +152,11 @@ only one among @func{inherit}, @func{parent} and @func{parent-rtd} can
 be used at once.
 
 
-@deffn {Auxiliary Syntax} inherit @ameta{class name}
-@deffnx {Auxiliary Syntax} inherit @ameta{class name} (@ameta{option} ...)
-Make the class type of the enclosing definition a subtype of @meta{class
-name}; it is @strong{not} possible to mimic what @func{inherit} does
-using @func{parent} or @func{parent-rtd}.
+@deffn {Auxiliary Syntax} inherit @var{class-name}
+@deffnx {Auxiliary Syntax} inherit @var{class-name} (@var{option} ...)
+Make the class type of the enclosing definition a subtype of
+@var{class-name}; it is @strong{not} possible to mimic what
+@func{inherit} does using @func{parent} or @func{parent-rtd}.
 
 The concrete fields of the superclass are always included in the class
 type, making the underlying superclass record type a parent of the new
@@ -165,7 +165,7 @@ which members of the superclass are accessible through the dot notation
 implemented by the @func{with-class} syntax.
 
 A missing or empty list of options means expose everything: concrete
-fields, virtual fields, methods, setter and getter; each @meta{option}
+fields, virtual fields, methods, setter and getter; each @var{option}
 argument can be one among:
 
 @table @code
@@ -255,7 +255,7 @@ superclass constructor is the one directly specified in the clause.
 @end itemize
 
 
-@deffn {Auxiliary Syntax} protocol @ameta{expression}
+@deffn {Auxiliary Syntax} protocol @var{expression}
 Select the default constructor protocol function for all the other
 constructors; when not used: the default protocol is the one
 automatically provided by @func{make-record-constructor-descriptor} when
@@ -263,13 +263,13 @@ invoked with the @var{protocol} argument set to @false{}.
 @end deffn
 
 
-@deffn {Auxiliary Syntax} public-protocol @ameta{expression}
+@deffn {Auxiliary Syntax} public-protocol @var{expression}
 Select the public constructor's protocol function, overriding the
 default one.
 @end deffn
 
 
-@deffn {Auxiliary Syntax} superclass-protocol @ameta{expression}
+@deffn {Auxiliary Syntax} superclass-protocol @var{expression}
 Select the superclass constructor's protocol function, overriding the
 default one.
 @end deffn
@@ -279,7 +279,7 @@ default one.
 @subsection Defining class makers
 
 
-@deffn {Auxiliary Syntax} maker (@ameta{positional-arg} ...) (@ameta{optional-keyword} @ameta{optional-default}) ...
+@deffn {Auxiliary Syntax} maker (@var{positional-arg} ...) (@var{optional-keyword} @var{optional-default}) ...
 Define the specification of the maker to be used by @func{make*};
 Defining a maker for a class means defining a specialised macro with
 @func{define-maker}.  The @func{maker} clause in the following
@@ -323,7 +323,7 @@ public constructor.
 @end deffn
 
 
-@deffn {Auxiliary Syntax} maker-protocol @ameta{expression}
+@deffn {Auxiliary Syntax} maker-protocol @var{expression}
 Select the maker constructor's protocol function.  When this clause is
 not used: the maker syntax expands to an application of the public
 constructor function.
@@ -357,7 +357,7 @@ Here is a meaningless usage example:
 @subsection Defining class predicates
 
 
-@deffn {Auxiliary Syntax} predicate @ameta{predicate name}
+@deffn {Auxiliary Syntax} predicate @var{predicate-name}
 Select a custom predicate function or syntax to be used to identify
 instances of classes with the @func{is-a?} macro.  When not given, the
 predicate of the underlying record type is used.  This clause is useful
@@ -377,10 +377,11 @@ example:
 @subsection Defining class having virtual fields
 
 
-@deffn {Auxiliary Syntax} virtual-fields @ameta{field spec}*
-Add virtual fields to the enclosing class definition; the @meta{field
-spec} arguments have the same syntax as the @func{fields} ones, but with
-different semantics.  This clause can be used multiple times.
+@deffn {Auxiliary Syntax} virtual-fields @var{field-spec} ...
+Add virtual fields to the enclosing class definition; the
+@var{field-spec} arguments have the same syntax as the @func{fields}
+ones, but with different semantics.  This clause can be used multiple
+times.
 
 An immutable virtual field is defined by a field name and a field
 accessor which can be applied to a class instance to compute a value.  A
@@ -456,7 +457,7 @@ some other way.
 @subsection Defining classes having methods
 
 
-@deffn {Auxiliary Syntax} methods @var{method-spec}*
+@deffn {Auxiliary Syntax} methods @var{method-spec} ...
 Add methods to the enclosing class definition; the @var{method-spec}
 arguments can be of the form:
 
@@ -656,9 +657,9 @@ argument to the macro will be the class instance.
 @end deffn
 
 
-@deffn Syntax define-virtual-method @var{class-name} @var{method-name}
-@deffnx Syntax define-virtual-method @var{class-name} @var{method-name} @var{expr}
-@deffnx Syntax define-virtual-method @var{class-name} (@var{method-name} . @var{args}) . @var{body})
+@defmac define-virtual-method @var{class-name} @var{method-name}
+@defmacx define-virtual-method @var{class-name} @var{method-name} @var{expr}
+@defmacx define-virtual-method @var{class-name} (@var{method-name} . @var{args}) . @var{body})
 Define a virtual method for @var{class-name}; the virtual methods of a
 class can be overridden by implementations in subclasses.  For example:
 
@@ -717,7 +718,7 @@ is equivalent to:
 @end example
 
 Only classes can have virtual methods, labels cannot.
-@end deffn
+@end defmac
 
 
 @defmac defmethod @var{class} (@var{method-name} . @var{args}) @varo{body} @var{body} ...
@@ -823,22 +824,22 @@ library.  Example:
 @subsection Defining classes having custom setters and getters
 
 
-@deffn {Auxiliary Syntax} setter @ameta{setter name}
-@deffnx {Auxiliary Syntax} getter @ameta{getter name}
+@deffn {Auxiliary Syntax} setter @var{setter-name}
+@deffnx {Auxiliary Syntax} getter @var{getter-name}
 Define a setter or getter binding to be used by @func{setf} or
-@func{getf}.  @ameta{setter name} and @ameta{getter name} must be
+@func{getf}.  @var{setter-name} and @var{getter-name} must be
 identifiers bound to a function or macro which is invoked by @func{setf}
 and @func{getf} as:
 
 @example
-(@cmeta{setter name} @cmeta{variable} @cmetao{key} @cmeta{key} ... @cmeta{value})
-(@cmeta{getter name} @cmeta{variable} @cmetao{key} @cmeta{key} ...)
+(@var{setter-name} @var{variable} @varo{key} @var{key} ... @var{value})
+(@var{getter-name} @var{variable} @varo{key} @var{key} ...)
 @end example
 
 @noindent
-where: @meta{variable} is the identifier to which the class instance is
-bound, @meta{key} are the setter and getter keys, @meta{value} is the
-new value.  Example:
+where: @var{variable} is the identifier to which the class instance is
+bound, @var{key} are the setter and getter keys, @var{value} is the new
+value.  Example:
 
 @example
 (define-class <alpha>
@@ -873,8 +874,8 @@ another example:
 @end example
 
 The number of keys to be used by the setter and getter is unspecified:
-it is enforced by the function or macro bound to @meta{setter name} and
-@ameta{getter name}.
+it is enforced by the function or macro bound to @var{setter-name} and
+@var{getter-name}.
 @end deffn
 
 @c page
@@ -882,7 +883,7 @@ it is enforced by the function or macro bound to @meta{setter name} and
 @subsection Defining classes having custom bindings
 
 
-@deffn Syntax bindings @ameta{macro name}
+@deffn {Auxiliary Syntax} bindings @var{macro-name}
 Select the name of a macro to be used by @func{with-class} to define
 class--specific bindings.  Meaningless example:
 
@@ -937,8 +938,8 @@ be used to dispatch generic functions defined by the @library{generics}
 library (foreign classes can).
 
 
-@deffn Syntax define-label @ameta{name} @ameta{clause}*
-@deffnx Syntax define-label (@ameta{name} @ameta{predicate}) @ameta{clause}*
+@defmac define-label @var{name} @var{clause} ...
+@defmacx define-label (@var{name} @var{predicate}) @var{clause} ...
 Define a new label type.  Labels are somewhat like classes, but with no
 concrete fields, no underlying record type and no constructor protocols,
 no virtual methods; labels cannot be instantiated.
@@ -965,16 +966,16 @@ corresponding clause for classes.
 They have the same syntax and semantics of the corresponding clauses for
 classes.
 @end table
-@end deffn
+@end defmac
 
 @c page
 @node classes make
 @section Record makers
 
 
-@deffn Syntax make @ameta{class name} @ameta{expression} ...
-Expand to the application of the public constructor of @meta{class name}
-to the results of evaluating the @meta{expression} arguments, which can
+@defmac make @var{class-name} @var{expression} ...
+Expand to the application of the public constructor of @var{class-name}
+to the results of evaluating the @var{expression} arguments, which can
 be any expression and are evaluated only once.  For example, given:
 
 @example
@@ -1024,34 +1025,34 @@ Example:
   (define a
     (make <alpha> 1.2)))
 @end example
-@end deffn
+@end defmac
 
 
-@deffn Syntax make* @ameta{class name} @ameta{maker clause} ...
-Expand to the application of the maker constructor of @meta{class name}
-to the results of parsing the @meta{maker clause} arguments.
+@defmac make* @var{class-name} @var{maker-clause} ...
+Expand to the application of the maker constructor of @var{class-name}
+to the results of parsing the @var{maker-clause} arguments.
 
 This macro allows both mandatory, positional arguments and optional
 arguments as specified with the @code{maker} clause of
 @func{define-class}.  The maker will use the maker--specific constructor
 if one was specified, else it will default to the public constructor.
-@end deffn
+@end defmac
 
 
-@deffn Syntax make-from-fields @ameta{class name} @ameta{expression} ...
+@defmac make-from-fields @var{class-name} @var{expression} ...
 Like @func{make} but the expression arguments must evaluate to the raw
 field values; it uses the default constructor functions.  This macro is
 useful especially for debugging purposes.
-@end deffn
+@end defmac
 
 @c page
 @node classes pred
 @section Record type predicates
 
 
-@deffn Syntax is-a? @ameta{expression} @ameta{class name}
-Expand to the application of the class predicate of @meta{class name} to
-the result of evaluating @meta{expression}, which can be any expression
+@defmac is-a? @var{expression} @var{class-name}
+Expand to the application of the class predicate of @var{class-name} to
+the result of evaluating @var{expression}, which can be any expression
 and is evaluated only once.
 
 This macro uses the predicate selected with the @code{predicate} clause
@@ -1118,7 +1119,7 @@ Example:
              1 2 3)))
     (is-a? x <alpha>)))
 @end example
-@end deffn
+@end defmac
 
 @c page
 @node classes inspect
@@ -1128,55 +1129,56 @@ Example:
 @subsubheading Type descriptors
 
 
-@deffn Syntax class-type-descriptor @ameta{class name}
-Expand to the class descriptor associated to @meta{class name}.
-@end deffn
+@defmac class-type-descriptor @var{class-name}
+Expand to the class descriptor associated to @var{class-name}.
+@end defmac
 
 
-@deffn Syntax class-record-type-descriptor @ameta{class name}
-Expand to the record type descriptor associated to @meta{class name}.
-It is a replacement of @func{record-type-descriptor} for record types
+@defmac class-record-type-descriptor @var{class-name}
+Expand to the record type descriptor associated to @var{class-name}.  It
+is a replacement of @func{record-type-descriptor} for record types
 defined by @func{define-class}.
-@end deffn
+@end defmac
 
 @c ------------------------------------------------------------
 
 @subsubheading Constructor descriptors
 
-@deffn Syntax class-public-constructor-descriptor @ameta{class name}
-Expand to the public constructor descriptor associated to @meta{class
-name}.
-@end deffn
+
+@defmac class-public-constructor-descriptor @var{class-name}
+Expand to the public constructor descriptor associated to
+@var{class-name}.
+@end defmac
 
 
-@deffn Syntax class-superclass-constructor-descriptor @ameta{class name}
+@defmac class-superclass-constructor-descriptor @var{class-name}
 Expand to the superclass constructor descriptor associated to
-@meta{class name}.
-@end deffn
+@var{class-name}.
+@end defmac
 
 
-@deffn Syntax class-from-fields-constructor-descriptor @ameta{class name}
+@defmac class-from-fields-constructor-descriptor @var{class-name}
 Expand to the from--fields constructor descriptor associated to
-@meta{class name}.
-@end deffn
+@var{class-name}.
+@end defmac
 
 @c ------------------------------------------------------------
 
 @subsubheading Unique class identifiers
 
-@deffn Syntax class-type-uid @ameta{class name}
+@defmac class-type-uid @var{class-name}
 Expand to the quoted symbol representing the class' @acronym{UID}.
-@end deffn
+@end defmac
 
 
-@deffn Syntax class-uid-list @ameta{class name}
+@defmac class-uid-list @var{class name}
 Expand into the list of type @acronym{UID}s of the parents of
-@meta{class name}.  The first element is the @acronym{UID} of the class
+@var{class-name}.  The first element is the @acronym{UID} of the class
 itself, then comes the @acronym{UID} of the parent, then the
 @acronym{UID} of the parent's parent, etc.  When inspecting a type whose
 parents are all classes (rather than records), the last element is
 always the @acronym{UID} of @class{top}.
-@end deffn
+@end defmac
 
 
 @defun class-uid-list-of @var{obj}
@@ -1208,14 +1210,14 @@ function supports both regular and conventional record type descriptors.
 @subsubheading Class hierarchy
 
 
-@deffn Syntax class-parent-rtd-list @ameta{class name}
+@defmac class-parent-rtd-list @var{class-name}
 Expand into the list of record type descriptors which are parents of
-@meta{class name}.  The first element of the list is the @acronym{RTD}
-of @meta{class name} itself, then comes the @acronym{RTD} of the parent,
+@var{class-name}.  The first element of the list is the @acronym{RTD} of
+@var{class-name} itself, then comes the @acronym{RTD} of the parent,
 then the @acronym{RTD} of the parent's parent, etc.  When inspecting a
 type whose parents are all classes (rather than records), the last
 element is always the @acronym{RTD} of @class{top}.
-@end deffn
+@end defmac
 
 
 @defun record-type-parent? @var{maybe-parent-rtd} @var{maybe-child-rtd}
@@ -1297,52 +1299,52 @@ The @func{with-class} syntax is the basic tool providing dot notation
 in fields and methods usage.
 
 
-@deffn Syntax with-class (@ameta{clause} ...) @ameta{body}
+@defmac with-class (@var{clause} ...) @var{body}
 Expand into a nested @func{let-syntax} forms which define: identifier
 syntaxes to access and mutate fields and virtual fields of objects and
 records; macros to invoke methods of objects and records; macros to use
 the getter and setter associated to a class.
 
-Each @meta{clause} must have the form:
+Each @var{clause} must have the form:
 
 @example
-(@cmeta{variable name} @cmetao{class name} @cmeta{class name} ...)
+(@var{variable-name} @varo{class-name} @var{class-name} ...)
 @end example
 
 @noindent
-where @meta{class name} must be a class type name; @meta{variable name}
+where @var{class-name} must be a class type name; @var{variable-name}
 must be an identifier bound to the object or record to be used as
 ``subject''.  When multiple class names are included, the clause is
 equivalent to the sequence of clauses:
 
 @example
-(@cmeta{variable name} @cmetao{class name})
-(@cmeta{variable name} @cmeta{class name})
-(@cmeta{variable name} ...)
+(@var{variable-name} @varo{class-name})
+(@var{variable-name} @var{class-name})
+(@var{variable-name} ...)
 @end example
 
 The identifier syntax for a field named @samp{alpha} is built as:
 
 @example
-@cmeta{variable name}.alpha
+@var{variable-name}.alpha
 @end example
 
 @noindent
 that is: variable name, dot, field name; the same goes for method's
 macros.
 
-When a @meta{variable name} as no type: we can use @class{top} as its
+When a @var{variable-name} as no type: we can use @class{top} as its
 conventional class type name; this can be useful when expanding macros
 making use of @func{with-class}.
 
-One identifier syntax for each field and virtual field of @meta{class
-name} is defined; one macro for each method of @meta{class name} is
-defined.  Mutable fields generate a full identifier syntax with accessor
-and mutator; immutable fields generate only the accessor identifier
-syntax.
+One identifier syntax for each field and virtual field of
+@var{class-name} is defined; one macro for each method of
+@var{class-name} is defined.  Mutable fields generate a full identifier
+syntax with accessor and mutator; immutable fields generate only the
+accessor identifier syntax.
 
-The fields and methods of the ancestors of @ameta{class name} are
-handled as if the code was the following:
+The fields and methods of the ancestors of @var{class-name} are handled
+as if the code was the following:
 
 @example
 (define-class <alpha>
@@ -1367,7 +1369,7 @@ handled as if the code was the following:
 @noindent
 so that the members of a superclass are shadowed by the members of its
 subclass.
-@end deffn
+@end defmac
 
 
 Usage example:
@@ -1669,25 +1671,24 @@ and duplication of names of methods is allowed, too:
 @subsection Local bindings
 
 
-@deffn Syntax let/with-class ((@ameta{var} @ameta{init}) ...) @ameta{body}
+@defmac let/with-class ((@var{var} @var{init}) ...) . @var{body}
 Like @func{let} but automatically enclose the body in a
 @func{with-class} syntax using the specified class types.  Each
-@meta{var} element can be one among:
+@var{var} element can be one among:
 
 @example
-@ameta{id}
-(@ameta{id} @ametao{class name} @ameta{class name} ...)
+@var{id}
+(@var{id} @varo{class-name} @var{class-name} ...)
 @end example
 
 @noindent
-in which: @meta{id} must be an identifier representing the variable
-name, @ameta{class name} must be an identifier representing a class
-name.
+in which: @var{id} must be an identifier representing the variable name,
+@var{class-name} must be an identifier representing a class name.
 
-If all the @meta{var} arguments are in the first form (untyped
-variable): @func{let/with-class} defaults to @func{let} as defined by
-@rnrs{6}.  If at least one @meta{var} has type: the untyped ones default
-to bindings with @class{top} as conventional class type name.
+If all the @var{var} arguments are in the first form (untyped variable):
+@func{let/with-class} defaults to @func{let} as defined by @rnrs{6}.  If
+at least one @var{var} has type: the untyped ones default to bindings
+with @class{top} as conventional class type name.
 
 @example
 (define-class <fraction>
@@ -1706,33 +1707,31 @@ to bindings with @class{top} as conventional class type name.
   (list a.numerator b.denominator))
 @result{} (2 5)
 @end example
-@end deffn
+@end defmac
 
 
-@deffn Syntax let*/with-class ((@ameta{var} @ameta{init}) ...) @ameta{body}
+@defmac let*/with-class ((@var{var} @var{init}) ...) . @var{body}
 Like @func{let*} but automatically enclose the body in a
 @func{with-class} syntax using the specified class types.  Each
-@meta{var} element can be one among:
+@var{var} element can be one among:
 
 @example
-@ameta{id}
-(@ameta{id} @ametao{class name} @ameta{class name} ...)
+@var{id}
+(@var{id} @varo{class-name} @var{class-name} ...)
 @end example
 
 @noindent
-in which: @meta{id} must be an identifier representing the variable
-name, @ameta{class name} must be an identifier representing a class
-name.
+in which: @var{id} must be an identifier representing the variable name,
+@var{class-name} must be an identifier representing a class name.
 
-If all the @meta{var} arguments are in the first form (untyped
-variable): @func{let*/with-class} defaults to @func{let*} as defined by
-@rnrs{6}.  If at least one @meta{var} has type: the untyped ones default
-to bindings with @class{top} as conventional class type name.
+If all the @var{var} arguments are in the first form (untyped variable):
+@func{let*/with-class} defaults to @func{let*} as defined by @rnrs{6}.
+If at least one @var{var} has type: the untyped ones default to bindings
+with @class{top} as conventional class type name.
 
-Given two bindings @metai{var}, @metai{init} and @metaii{var},
-@metaii{init} defined in sequence: @metaii{init} is evaluated in the
-region of the identifier syntaxes used to access the fields of
-@metai{var}.
+Given two bindings @vari{var}, @vari{init} and @varii{var}, @varii{init}
+defined in sequence: @varii{init} is evaluated in the region of the
+identifier syntaxes used to access the fields of @vari{var}.
 
 @smallexample
 (define-class <fraction>
@@ -1752,30 +1751,29 @@ region of the identifier syntaxes used to access the fields of
   b.number)
 @result{} 2/5
 @end smallexample
-@end deffn
+@end defmac
 
 
-@deffn Syntax letrec/with-class (((@ameta{var} @ametao{class name} @ameta{class name} ...) @ameta{init}) ...) @ameta{body}
+@defmac letrec/with-class ((@var{var} @var{init}) ...) . @var{body}
 Like @func{letrec} but automatically enclose the body in a
 @func{with-class} syntax using the specified class types.  Each
-@meta{var} element can be one among:
+@var{var} element can be one among:
 
 @example
-@ameta{id}
-(@ameta{id} @ametao{class name} @ameta{class name} ...)
+@var{id}
+(@var{id} @varo{class-name} @var{class-name} ...)
 @end example
 
 @noindent
-in which: @meta{id} must be an identifier representing the variable
-name, @ameta{class name} must be an identifier representing a class
-name.
+in which: @var{id} must be an identifier representing the variable name,
+@var{class-name} must be an identifier representing a class name.
 
-If all the @meta{var} arguments are in the first form (untyped
-variable): @func{letrec/with-class} defaults to @func{letrec} as defined
-by @rnrs{6}.  If at least one @meta{var} has type: the untyped ones
-default to bindings with @class{top} as conventional class type name.
+If all the @var{var} arguments are in the first form (untyped variable):
+@func{letrec/with-class} defaults to @func{letrec} as defined by
+@rnrs{6}.  If at least one @var{var} has type: the untyped ones default
+to bindings with @class{top} as conventional class type name.
 
-The @meta{init} expressions can contain references to the identifier
+The @var{init} expressions can contain references to the identifier
 syntaxes, as long as they are not resolved.
 
 @smallexample
@@ -1797,31 +1795,29 @@ syntaxes, as long as they are not resolved.
   (list (a.proc) (b.proc)))
 @result{} ((1 . 2) (1 . 2))
 @end smallexample
-@end deffn
+@end defmac
 
 
-@deffn Syntax letrec*/with-class (((@ameta{var} @ametao{class name} @ameta{class name} ...) @ameta{init}) ...) @ameta{body}
+@defmac letrec*/with-class ((@var{var} @var{init}) ...) . @var{body}
 Like @func{letrec*} but automatically enclose the body in a
 @func{with-class} syntax using the specified class types.  Each
-@meta{var} element can be one among:
+@var{var} element can be one among:
 
 @example
-@ameta{id}
-(@ameta{id} @ametao{class name} @ameta{class name} ...)
+@var{id}
+(@var{id} @varo{class-name} @var{class-name} ...)
 @end example
 
 @noindent
-in which: @meta{id} must be an identifier representing the variable
-name, @ameta{class name} must be an identifier representing a class
-name.
+in which: @var{id} must be an identifier representing the variable name,
+@var{class-name} must be an identifier representing a class name.
 
-If all the @meta{var} arguments are in the first form (untyped
-variable): @func{letrec*/with-class} defaults to @func{letrec*} as
-defined by @rnrs{6}.  If at least one @meta{var} has type: the untyped
-ones default to bindings with @class{top} as conventional class type
-name.
+If all the @var{var} arguments are in the first form (untyped variable):
+@func{letrec*/with-class} defaults to @func{letrec*} as defined by
+@rnrs{6}.  If at least one @var{var} has type: the untyped ones default
+to bindings with @class{top} as conventional class type name.
 
-The @meta{init} expressions can contain references to the identifier
+The @var{init} expressions can contain references to the identifier
 syntaxes.
 
 @smallexample
@@ -1844,27 +1840,27 @@ syntaxes.
   c)
 @result{} ((1 . 2) (1 . 2))
 @end smallexample
-@end deffn
+@end defmac
 
 @c page
 @node classes dot lambda
 @subsection Function bindings
 
 
-@deffn Syntax lambda/with-class @ameta{formals} @ameta{body}
-Like @func{lambda} but encloses the body into a @func{with-class}
-syntax defining identifier syntaxes to access the fields and virtual
-fields of the arguments.  @meta{formals} must have the same form of the
-formals for @func{lambda}, but each @meta{variable} argument can be an
-identifier, as in @func{lambda}, or a list of the form:
+@defmac lambda/with-class @var{formals} @var{body}
+Like @func{lambda} but encloses the body into a @func{with-class} syntax
+defining identifier syntaxes to access the fields and virtual fields of
+the arguments.  @var{formals} must have the same form of the formals for
+@func{lambda}, but each @var{variable} argument can be an identifier, as
+in @func{lambda}, or a list of the form:
 
 @example
-(@cmeta{variable} @cmetao{class name} @ameta{class name} ...)
+(@var{variable} @varo{class-name} @var{class-name} ...)
 @end example
 
 @noindent
-in which case the @meta{variable} argument is meant to be of type
-@meta{class name} and the corresponding identifier syntaxes are defined.
+in which case the @var{variable} argument is meant to be of type
+@var{class-name} and the corresponding identifier syntaxes are defined.
 When an argument as no type: we can use @class{top} as its conventional
 class type name, or let @func{lambda/with-class} select @class{top}
 automatically.
@@ -1895,13 +1891,13 @@ automatically.
   o.numerator)
 @result{} 2
 @end example
-@end deffn
+@end defmac
 
 
-@deffn Syntax define/with-class (@ameta{variable} @ameta{formals}) @ameta{body}
-@deffnx Syntax define/with-class (@ameta{variable} . @ameta{formal}) @ameta{body}
-@deffnx Syntax define/with-class @ameta{variable} @ameta{expression}
-@deffnx Syntax define/with-class @ameta{variable}
+@defmac define/with-class (@var{variable} @var{formals}) @var{body}
+@defmacx define/with-class (@var{variable} . @var{formal}) @var{body}
+@defmacx define/with-class @var{variable} @var{expression}
+@defmacx define/with-class @var{variable}
 Like @func{define} but when used in the first and second forms expands
 to the use of @func{lambda/with-class}.
 
@@ -1927,10 +1923,10 @@ to the use of @func{lambda/with-class}.
   o.numerator)
 @result{} 2
 @end example
-@end deffn
+@end defmac
 
 
-@deffn Syntax lambda/with-class* @ameta{formals} @ameta{body}
+@defmac lambda/with-class* @var{formals} @var{body}
 Like @func{lambda/with-class*}, but prepends to the body a list of calls
 to @func{assert} to verify the type of the arguments.  For example:
 
@@ -1948,26 +1944,26 @@ is equivalent to:
   (assert (is-a? b <string>))
   ---)
 @end example
-@end deffn
+@end defmac
 
 
-@deffn Syntax case-lambda/with-class @ameta{case-lambda-clause} ...
-@deffnx Syntax case-lambda/with-class* @ameta{case-lambda-clause} ...
+@defmac Syntax case-lambda/with-class @var{case-lambda-clause} ...
+@defmacx Syntax case-lambda/with-class* @var{case-lambda-clause} ...
 The natural extensions of @func{lambda/with-class} and
 @func{lambda/with-class*} to @func{case-lambda}.
-@end deffn
+@end defmac
 
 
-@deffn Syntax define/with-class* (@ameta{variable} @ameta{formals}) @ameta{body}
-@deffnx Syntax define/with-class* (@ameta{variable} . @ameta{formal}) @ameta{body}
-@deffnx Syntax define/with-class* @ameta{variable} @ameta{expression}
-@deffnx Syntax define/with-class* @ameta{variable}
+@defmac define/with-class* (@var{variable} @var{formals}) @var{body}
+@defmacx define/with-class* (@var{variable} . @var{formal}) @var{body}
+@defmacx define/with-class* @var{variable} @var{expression}
+@defmacx define/with-class* @var{variable}
 Like @func{define/with-class}, but in the first and second forms expands
 to the use of @func{lambda/with-class*}.
-@end deffn
+@end defmac
 
 
-@deffn Syntax receive/with-class @ameta{formals} @ameta{expression} . @ameta{body}
+@defmac receive/with-class @var{formals} @var{expression} . @var{body}
 Like @func{receive} but expands to @func{lambda/with-class} rather than
 @func{lambda}:
 
@@ -1979,7 +1975,7 @@ Like @func{receive} but expands to @func{lambda/with-class} rather than
          (lambda () ?expression)
        (lambda/with-class ?formals ?form0 ?form ...)))))
 @end example
-@end deffn
+@end defmac
 
 @c page
 @node classes dot setter
@@ -2008,19 +2004,18 @@ In this document class specific setters and getters are described as
 @func{setf} and @func{getf} ``methods''.
 
 
-@deffn Syntax setf @ameta{place} @ameta{value}
-@deffnx Syntax setf @ameta{identifier} @ameta{value}
-Apply a class setter to the specified @meta{place} with the purpose of
-storing there @meta{value}.  The @meta{place} argument must have the
-form:
+@defmac setf @var{place} @var{value}
+@defmacx setf @var{identifier} @var{value}
+Apply a class setter to the specified @var{place} with the purpose of
+storing there @var{value}.  The @var{place} argument must have the form:
 
 @example
-(@cmeta{variable name} @cmetao{key} @cmeta{key} ...)
+(@var{variable-name} @varo{key} @var{key} ...)
 @end example
 
 @noindent
-where @meta{variable name} must be an identifier bound to the class
-instance, the @meta{key} values should select a storage location.  The
+where @var{variable-name} must be an identifier bound to the class
+instance, the @var{key} values should select a storage location.  The
 following meaningless example shows the mechanism:
 
 @example
@@ -2041,25 +2036,25 @@ The number of keys to be used by the setter is unspecified: it is
 enforced by the function or macro selected in the @func{setter} clause
 of @func{define-class}.
 
-When used with the @meta{identifier} argument: @func{setf} behaves as an
+When used with the @var{identifier} argument: @func{setf} behaves as an
 alias of @func{set!} (notice, though, that renaming @func{setf} to
 @func{set!} when importing the library, causes problems when using the
 @func{identifier-syntax} macro).
-@end deffn
+@end defmac
 
 
-@deffn Syntax getf @ameta{place}
-Apply a class getter to the specified @meta{place} with the purpose of
-accessing the value stored there.  The @meta{place} argument must have
+@defmac getf @var{place}
+Apply a class getter to the specified @var{place} with the purpose of
+accessing the value stored there.  The @var{place} argument must have
 the form:
 
 @example
-(@cmeta{variable name} @cmetao{key} @cmeta{key} ...)
+(@var{variable-name} @varo{key} @var{key} ...)
 @end example
 
 @noindent
-where @meta{variable name} must be an identifier bound to the class
-instance, the @meta{key} values should select a storage location.  The
+where @var{variable-name} must be an identifier bound to the class
+instance, the @var{key} values should select a storage location.  The
 following meaningless example shows the mechanism:
 
 @example
@@ -2083,7 +2078,7 @@ following meaningless example shows the mechanism:
 The number of keys to be used by the getter is unspecified: it is
 enforced by the function or macro selected in the @func{getter} clause
 of @func{define-class}.
-@end deffn
+@end defmac
 
 @c page
 @node classes builtin
@@ -2323,21 +2318,21 @@ Access the length of the bytevector.
 @end defcv
 
 
-@defmethod @aclass{bytevector} setf (@ameta{o} @ameta{index}) @ameta{value}
-@defmethodx @aclass{bytevector} setf (@ameta{o} @ameta{index} @ameta{type}) @ameta{value}
-@defmethodx @aclass{bytevector} setf (@ameta{o} @ameta{index} @ameta{type} @ameta{endian}) @ameta{value}
-Implemented as a macro: store @meta{value} at index @meta{index} of the
-bytevector @meta{o}.  The mutator is selected according to the following
+@defmethod @aclass{bytevector} setf (@var{o} @var{index}) @var{value}
+@defmethodx @aclass{bytevector} setf (@var{o} @var{index} @var{type}) @var{value}
+@defmethodx @aclass{bytevector} setf (@var{o} @var{index} @var{type} @var{endian}) @var{value}
+Implemented as a macro: store @var{value} at index @var{index} of the
+bytevector @var{o}.  The mutator is selected according to the following
 rules:
 
 @itemize
 @item
-When no @meta{type} nor @meta{endian} is used: the mutator is
+When no @var{type} nor @var{endian} is used: the mutator is
 @func{bytevector-u8-set!}.
 
 @item
-When both @meta{type} and @meta{endian} are used: the mutator is
-selected accordingly; @meta{type} can be one among:
+When both @var{type} and @var{endian} are used: the mutator is selected
+accordingly; @var{type} can be one among:
 
 @example
 u8  s8    u16 s16
@@ -2347,11 +2342,11 @@ single double
 @end example
 
 @noindent
-while @meta{endian} can be one among @samp{big} and @samp{little}.
+while @var{endian} can be one among @samp{big} and @samp{little}.
 
 @item
-When only @meta{type} is used: the mutator is selected accordingly among
-the native ones; @meta{type} can be one among:
+When only @var{type} is used: the mutator is selected accordingly among
+the native ones; @var{type} can be one among:
 
 @example
 u16n s16n
@@ -2362,21 +2357,21 @@ singlen doublen
 @end defmethod
 
 
-@defmethod @aclass{bytevector} getf (@ameta{o} @ameta{index})
-@defmethodx @aclass{bytevector} getf (@ameta{o} @ameta{index} @ameta{type})
-@defmethodx @aclass{bytevector} getf (@ameta{o} @ameta{index} @ameta{type} @ameta{endian})
-Implemented as a macro: return the value at index @meta{index} of the
-bytevector @meta{o}.  The accessor is selected according to the
-following rules:
+@defmethod @aclass{bytevector} getf (@var{o} @var{index})
+@defmethodx @aclass{bytevector} getf (@var{o} @var{index} @var{type})
+@defmethodx @aclass{bytevector} getf (@var{o} @var{index} @var{type} @var{endian})
+Implemented as a macro: return the value at index @var{index} of the
+bytevector @var{o}.  The accessor is selected according to the following
+rules:
 
 @itemize
 @item
-When no @meta{type} nor @meta{endian} is used: the mutator is
+When no @var{type} nor @var{endian} is used: the mutator is
 @func{bytevector-u8-ref}.
 
 @item
-When both @meta{type} and @meta{endian} are used: the accessor is
-selected accordingly; @meta{type} can be one among:
+When both @var{type} and @var{endian} are used: the accessor is selected
+accordingly; @var{type} can be one among:
 
 @example
 u8  s8    u16 s16
@@ -2386,11 +2381,11 @@ single double
 @end example
 
 @noindent
-while @meta{endian} can be one among @samp{big} and @samp{little}.
+while @var{endian} can be one among @samp{big} and @samp{little}.
 
 @item
-When only @meta{type} is used: the accessor is selected accordingly
-among the native ones; @meta{type} can be one among:
+When only @var{type} is used: the accessor is selected accordingly among
+the native ones; @var{type} can be one among:
 
 @example
 u16n s16n
