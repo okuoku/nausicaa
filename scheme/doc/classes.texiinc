@@ -686,8 +686,8 @@ class can be overridden by implementations in subclasses.  For example:
 
 A virtual method call is much slower than a concrete method call, but
 mostly it is still faster than a call to a generic function as
-implemented by the @library{classes} library; @naumoreref{generics,
-Multimethod dispatching}.
+implemented by the @library{classes} library; @ref{generics, Multimethod
+dispatching}.
 
 A virtual method must be declared in the definition of @var{class-name}
 as an ordinary method with the @code{methods} clause; @var{method-name}

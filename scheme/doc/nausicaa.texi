@@ -289,10 +289,6 @@ Revised^6 Report on the algorithmic language Scheme
 @ref{\NODE\,\TITLE\,\TITLE\,nausicaa}
 @end macro
 
-@macro naumoreref{NODE, TITLE}
-@ref{\NODE\,\TITLE\,\TITLE\,nausicaa-more}
-@end macro
-
 @c ------------------------------------------------------------
 @c RNRS document macros.
 @c ------------------------------------------------------------
@@ -507,8 +503,6 @@ Revised^6 Report on the algorithmic language Scheme
 This document describes version @version{} of @value{PACKAGE}, a set of
 Scheme libraries defining a slightly modified @rnrs{6} Scheme language
 and augmenting the features of the base and standard @rnrs{6} libraries.
-@naumoreref{Top, More Nausicaa Libraries} for the documentation of
-additional libraries.
 
 The project home page of Nausicaa is at:
 
