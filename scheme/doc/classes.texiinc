@@ -659,7 +659,7 @@ argument to the macro will be the class instance.
 
 @defmac define-virtual-method @var{class-name} @var{method-name}
 @defmacx define-virtual-method @var{class-name} @var{method-name} @var{expr}
-@defmacx define-virtual-method @var{class-name} (@var{method-name} . @var{args}) . @var{body})
+@defmacx define-virtual-method @var{class-name} (@var{method-name} . @var{args}) . @var{body}
 Define a virtual method for @var{class-name}; the virtual methods of a
 class can be overridden by implementations in subclasses.  For example:
 
