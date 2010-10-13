@@ -1958,16 +1958,13 @@ slackware-aux-$(1):
 
 endef
 
-#page
-## --------------------------------------------------------------------
-## Slackware helper functions.
-## --------------------------------------------------------------------
-
-#Build the Slackware binary package for a section.  Install the files in
-#a temporary location, then
+# Build the Slackware  binary package for a section.   Install the files
+# in a temporary location, then
 #
-#This  function  should be  called  under  "sudo"  in a  recursive  MAKE
-#execution.
+# This  function should  be  called  under "sudo"  in  a recursive  MAKE
+# execution.
+#
+# Arguments:
 #
 # 1 - the section: bin, doc, dev
 # 2 - the name of the variable holding the MAKEPKG to use
