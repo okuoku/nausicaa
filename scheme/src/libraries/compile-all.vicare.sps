@@ -128,6 +128,7 @@
   (only (uri))
   (only (net ipv6-addresses))
   (only (libraries))
+  (only (submodules))
   (only (interps))
 
   (only (armor conditions))

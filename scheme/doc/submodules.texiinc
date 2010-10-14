@@ -1,0 +1,47 @@
+@node submodules
+@chapter Nested modules
+
+
+The library @library{submodules} provides nested namespaces to be used
+inside of libraries and programs.  Example:
+
+@example
+(import (rnrs) (submodules))
+
+(submodule this
+    (export a b c)
+  (define a 1)
+  (define b 2)
+  (define d 3)
+  (define (c)
+    (+ a b d)))
+
+(check (this.c) @result{} 6)
+(check (list this.a this.b) @result{} '(1 2))
+this.d @error{} undefined symbol
+@end example
+
+
+@defmac submodule @var{name} (export @varo{symbol} @var{symbol} ...) @var{body0} @var{body} ...
+@defmacx submodule @var{name} (export @varo{symbol} @var{symbol} ...) (prefix @var{prefix}) @var{body0} @var{body} ...
+Define a submodule called @var{name} which exports the list of
+@var{symbol} from its body.  The @var{body} forms are evaluated as if in
+the body of a @func{let} form.
+@end defmac
+
+
+@deffn {Auxiliary Syntax} export @varo{symbol} @var{symbol} ...
+Select the list of bindings to export from the submodule.
+@end deffn
+
+
+@deffn {Auxiliary Syntax} prefix
+@deffnx {Auxiliary Syntax} prefix @var{prefix}
+Select the prefix to prepend to exported symbols.  @var{prefix} can be a
+string or symbol literal.  When @func{prefix} is omitted: it defaults to
+the module name with a dot appended.  To specify an empty prefix: use
+the empty string literal as @var{prefix} or use @func{prefix} with no
+argument.
+@end deffn
+
+@c end of file
