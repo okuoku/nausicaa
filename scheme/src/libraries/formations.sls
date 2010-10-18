@@ -319,18 +319,19 @@
     (assertion-violation 'format
       "invalid format string" irritant))
 
-  (let*-values
-      (((sarg)		(string? arg0))
-       ((format-string)	(cond (sarg
-			       arg0)
-			      ((null? args)
-			       (invalid-string arg0))
-			      (else
-			       (let ((s (car args)))
-				 (unless (string? s)
-				   (invalid-string s))
-				 s))))
-       ((port getter)	(cond (sarg
+  (let ((sarg (string? arg0)))
+    (let*-values
+	( ;;((sarg)		(string? arg0)) ;workaround for a bug in mosh
+	 ((format-string)	(cond (sarg
+				       arg0)
+				      ((null? args)
+				       (invalid-string arg0))
+				      (else
+				       (let ((s (car args)))
+					 (unless (string? s)
+					   (invalid-string s))
+					 s))))
+	 ((port getter)	(cond (sarg
 			       (open-string-output-port))
 			      ((boolean? arg0)
 			       (if arg0
@@ -343,17 +344,17 @@
 			      (else
 			       (assertion-violation 'format
 				 "invalid destination" arg0))))
-       ((arglist)	(if sarg args (cdr args))))
+	 ((arglist)	(if sarg args (cdr args))))
 
-    (set! destination-port port)
-    (let ((arg-pos (format:format format-string arglist))
-	  (arg-len (length arglist)))
-      (cond ((> arg-pos arg-len)
-	     (error 'format
-	       "missing argument" (- arg-pos arg-len)))
-	    (format:flush-output
-	     (flush-output-port port)))
-      (and getter (getter)))))
+      (set! destination-port port)
+      (let ((arg-pos (format:format format-string arglist))
+	    (arg-len (length arglist)))
+	(cond ((> arg-pos arg-len)
+	       (error 'format
+		 "missing argument" (- arg-pos arg-len)))
+	      (format:flush-output
+	       (flush-output-port port)))
+	(and getter (getter))))))
 
 
 ;;;; helpers, output to destination

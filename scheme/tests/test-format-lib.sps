@@ -41,8 +41,6 @@
 
 ;;; --------------------------------------------------------------------
 
-(format 'wo)
-
   (check
       (guard (exc (else
 		   (condition-message exc)))
