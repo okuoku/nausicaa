@@ -1,4 +1,4 @@
-;;; -*- coding: utf-8-unix -*-
+;;; -*- coding: utf-8 -*-
 ;;;
 ;;;Part of: Nausicaa/Scheme
 ;;;Contents: helper macros for constructors
@@ -25,77 +25,84 @@
 ;;;
 
 
+#!r6rs
 (library (makers)
-  (export define-maker)
+  (export define-maker define-auxiliary-syntax
+	  mandatory with without)
   (import (rnrs)
     ;;Notice that  we need  to have the  helpers in a  different library
     ;;loaded for  expand, because  the functions are  used by  the newly
     ;;defined macros, not only by DEFINE-MAKER.
-    (for (makers helpers) expand))
+    (for (makers helpers) expand)
+    (only (syntax-utilities) define-auxiliary-syntax))
+
+  (define-auxiliary-syntax mandatory with without)
 
 
 (define-syntax define-maker
   (lambda (stx)
-    (syntax-case stx ()
 
-      ((_ ?name ?maker-sexp ?keywords-and-defaults)
-       (not (or (identifier? #'?name)
-		(let ((L (syntax->list #'?name)))
-		  (and (pair? L)
-		       (identifier? (car L))))))
-       (syntax-violation 'define-maker
-	 "expected identifier as maker name in maker definition"
-	 (syntax->datum stx) (syntax->datum #'?name)))
+    (define (main)
+      ;;Validate  and normalise  the  input form.   Call OUTPUT-FORM  to
+      ;;generate the output form.
+      ;;
+      (syntax-case stx ()
 
-      ((_ ?name ?maker-sexp ?keywords-and-defaults)
-       (invalid-keywords-and-values? #'?keywords-and-defaults)
-       (syntax-violation 'define-maker
-	 "invalid format for keywords and defaults in maker definition"
-	 (syntax->datum stx) (syntax->datum #'?keywords-and-defaults)))
+	((_ ?name ?maker-sexp ?keywords-and-defaults)
+	 (not (or (identifier? #'?name)
+		  ;;A list with an identifier in the first position.
+		  (let ((L (unwrap-syntax-object #'?name)))
+		    (and (pair? L)
+			 (identifier? (car L))))))
+	 (%synner "expected identifier as maker name in maker definition" #'?name))
 
-      ((_ (?name ?var ...) . ?forms)
-       (not (for-all symbol? (syntax->datum #'(?var ...))))
-       (syntax-violation 'define-maker
-	 "expected identifiers as positional argument names"
-	 (syntax->datum stx) (syntax->datum #'(?var ...))))
+	((_ ?name ?maker-sexp ?keywords-and-defaults)
+	 (invalid-keywords-and-values? #'?keywords-and-defaults)
+	 (%synner "invalid format for keywords and defaults in maker definition" #'?keywords-and-defaults))
 
-      ((_ (?name ?var ...) (?maker ?arg ...) ((?keyword ?default) ...))
-       (identifier? #'?maker)
-       #'(output-forms (?name ?var ...) (?maker ?arg ...) ((?keyword ?default) ...)))
+	((_ (?name ?var ...) . ?forms)
+	 (not (for-all symbol? (syntax->datum #'(?var ...))))
+	 (%synner "expected identifiers as positional argument names" #'(?var ...)))
 
-      ((_ ?name (?maker ?arg ...) ((?keyword ?default) ...))
-       (identifier? #'?maker)
-       #'(output-forms (?name) (?maker ?arg ...) ((?keyword ?default) ...)))
+	((?k (?name ?var ...) (?maker ?arg ...) ((?keyword ?default ?option ...) ...))
+	 (identifier? #'?maker)
+	 (output-form #'(?k (?name ?var ...) (?maker ?arg ...) ((?keyword ?default ?option ...) ...))))
 
-      ((_ (?name ?var ...) ?maker ((?keyword ?default) ...))
-       (identifier? #'?maker)
-       #'(output-forms (?name ?var ...) (?maker) ((?keyword ?default) ...)))
+	((?k ?name (?maker ?arg ...) ((?keyword ?default ?option ...) ...))
+	 (identifier? #'?maker)
+	 (output-form #'(?k (?name) (?maker ?arg ...) ((?keyword ?default ?option ...) ...))))
 
-      ((_ ?name ?maker ((?keyword ?default) ...))
-       (identifier? #'?maker)
-       #'(output-forms (?name) (?maker) ((?keyword ?default) ...)))
+	((?k (?name ?var ...) ?maker ((?keyword ?default ?option ...) ...))
+	 (identifier? #'?maker)
+	 (output-form #'(?k (?name ?var ...) (?maker) ((?keyword ?default ?option ...) ...))))
 
-      (_
-       (syntax-violation 'define-maker "invalid maker definition" (syntax->datum stx)))
-      )))
+	((?k ?name ?maker ((?keyword ?default ?option ...) ...))
+	 (identifier? #'?maker)
+	 (output-form #'(?k (?name) (?maker) ((?keyword ?default ?option ...) ...))))
 
-(define-syntax output-forms
-  (lambda (stx)
-    (syntax-case stx ()
-      ((_ (?name ?var ...) (?maker ?arg ...) ((?keyword ?default) ...))
-       (with-syntax (((MAKER)	(generate-temporaries #'(?maker)))
-		     ((ARG ...) (generate-temporaries #'(?arg ...)))
-		     ((VAR ...) (generate-temporaries #'(?default ...))))
-	 #'(begin
-	     (define ARG ?arg) ...
-	     (define VAR ?default) ...
-	     (define-syntax ?name
-	       (lambda (use)
-		 (syntax-case use ()
-		   ((_ ?var ... . ?args)
-		    #`(?maker ARG ... ?var ...
-			      #,@(parse-input-form-stx (quote ?name) use #'?args
-						      #'((?keyword VAR) ...)))))))))))))
+	(_
+	 (%synner "invalid maker definition" #f))
+	))
+
+    (define (output-form stx)
+      ;;Generate the output form.
+      ;;
+      (syntax-case stx ()
+	((_ (?name ?use-argument ...) (?maker ?fixed-argument ...) ((?keyword ?default ?option ...) ...))
+	 #'(define-syntax ?name
+	     (lambda (use)
+	       (syntax-case use ()
+		 ((_ ?use-argument ... . ?use-rest-args)
+		  #`(?maker ?fixed-argument ... ?use-argument ...
+			    #,@(parse-input-form-stx (quote ?name) use #'?use-rest-args
+						     #'((?keyword ?default ?option ...) ...)))))))
+	 )))
+
+    (define (%synner message subform)
+      (syntax-violation 'define-maker
+	message (syntax->datum stx) (and subform (syntax->datum subform))))
+
+    (main)))
 
 
 ;;;; done

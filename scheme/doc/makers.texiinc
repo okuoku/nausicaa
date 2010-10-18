@@ -4,8 +4,8 @@
 
 The @library{makers} library provides a constructor for macro
 definitions; its nominal purpose is to define macros which wrap
-constructors for records and similar, allowing the use of ``keywords''
-to specify non--positional arguments.
+constructors for records and similar entities, allowing the use of
+``keywords'' to specify non--positional arguments.
 
 @menu
 * makers intro::                Introduction to maker macros.
@@ -17,11 +17,28 @@ to specify non--positional arguments.
 @section Introduction to maker macros
 
 
+It happens to define a function or macro accepting a number of arguments
+greater than three:
+
+@example
+(define (the-func a b c d e f g h i)
+  ...)
+@end example
+
+@noindent
+in these cases it can be difficult to remember the order of the
+arguments; it can also be desirable to define default values for some or
+all the arguments, so that at the call site some arguments can be
+omitted.  The @library{makers} library implements a solution to this
+problem.
+
 The following examples show the expansion of a simple maker with neither
 fixed nor variable arguments, only optional keyword arguments:
 
 @example
 (import (rnrs) (makers))
+
+(define-auxiliary-syntax :alpha :beta :gamma)
 
 (define-maker doit
   list ((:alpha     1)
@@ -30,9 +47,9 @@ fixed nor variable arguments, only optional keyword arguments:
 
 (doit)                  @expansion{} (list 1 2 3)
 
-(doit (:alpha 10))      @expansion{} (list 10 2 3)
-(doit (:beta 20))       @expansion{} (list 1 20 3)
-(doit (:gamma 30))      @expansion{} (list 1 2 30)
+(doit (:alpha   10))    @expansion{} (list 10 2 3)
+(doit (:beta    20))    @expansion{} (list 1 20 3)
+(doit (:gamma   30))    @expansion{} (list 1 2 30)
 
 (doit (:alpha   10)
       (:beta    20))    @expansion{} (list 10 20 3)
@@ -62,6 +79,8 @@ variable arguments, plus optional keyword arguments:
 
 @example
 (import (rnrs) (makers))
+
+(define-auxiliary-syntax :alpha :beta :gamma)
 
 (define-maker (doit a b)
   (list #\a #\b)
@@ -94,6 +113,91 @@ variable arguments, plus optional keyword arguments:
       (:beta    20))    @expansion{} (list #\a #\b #\p #\q 1 20 30)
 @end example
 
+Each default value can be any expression and it is evaluated every time
+the maker is used:
+
+@example
+(import (rnrs) (makers))
+
+(define-auxiliary-syntax :alpha :beta :gamma)
+
+(define g
+  (let ((counter 0))
+    (lambda ()
+      (set! counter (+ 1 counter))
+      counter)))
+
+(define default2 (- (/ 9 3) 1))
+
+(define-maker doit
+  list ((:alpha     1)
+        (:beta      default2)
+        (:gamma     (g))))
+
+(doit)                  @result{} ( 1  2  1)
+(doit (:alpha 10))      @result{} (10  2  2)
+(doit (:beta  20))      @result{} ( 1 20  3)
+(doit (:gamma 30))      @result{} ( 1  2 30)
+@end example
+
+A maker invocation can expand itself into another macro use; this allows
+us to detect whether an optional argument was used or not:
+
+@example
+(import (rnrs) (makers) (sentinel))
+
+(define-auxiliary-syntax :alpha :beta :gamma)
+
+(define-maker doit
+  subdoit
+  ((:alpha  1)
+   (:beta   2)
+   (:gamma  sentinel)))
+
+(define-syntax subdoit
+  (lambda (stx)
+    (syntax-case stx ()
+      ((_ ?alpha ?beta ?gamma)
+       (and (identifier? #'?gamma)
+            (free-identifier=? #'?gamma #'sentinel))
+       #'(list ?alpha ?beta 3))
+      ((_ ?alpha ?beta ?gamma)
+       #'(list ?alpha ?beta ?gamma))
+      )))
+
+(doit)                  @result{} ( 1  2  3)
+(doit (:alpha 10))      @result{} (10  2  3)
+(doit (:beta  20))      @result{} ( 1 20  3)
+(doit (:gamma 30))      @result{} ( 1  2 30)
+@end example
+
+We can define a maker in the body of a library and export it, we just
+have to remember to export the auxiliary syntaxes, too:
+
+@example
+(library (the-lib)
+  (export doit alpha beta gamma)
+  (import (rnrs) (makers))
+
+  (define-auxiliary-syntax alpha beta gamma)
+  (define-maker doit
+    list ((alpha     1)
+          (beta      2)
+          (gamma     3)))
+  )
+
+(library (exec)
+  (export)
+  (import (rnrs)
+    (prefix (the-lib) lib.))
+
+  (lib.doit)                  @expansion{} (list 1 2 3)
+  (lib.doit (lib.alpha   10)) @expansion{} (list 10 2 3)
+  (lib.doit (lib.beta    20)) @expansion{} (list 1 20 3)
+  (lib.doit (lib.gamma   30)) @expansion{} (list 1 2 30)
+  )
+@end example
+
 @c page
 @node makers api
 @section Defining makers
@@ -102,72 +206,81 @@ variable arguments, plus optional keyword arguments:
 The following bindings are exported by the @library{makers} library.
 
 
-@deffn Syntax define-maker @ameta{name spec} @ameta{maker sexp} @meta{keywords and defaults}
-Define a new maker macro.  @meta{name spec} has one of the forms:
+@defmac define-maker @var{name-spec} @var{maker-sexp} @var{keywords-and-defaults}
+Define a new maker macro.  @var{name-spec} has one of the forms:
 
 @example
-@cmeta{name identifier}
-(@cmeta{name identifier} @cmeta{positional arg} ...)
+@var{name-identifier}
+(@var{name-identifier} @var{positional-arg} ...)
 @end example
 
 @noindent
-where @meta{name identifier} is the name of the defined macro and each
-@meta{positional arg} is an identifier, name of a mandatory, positional
+where @var{name-identifier} is the name of the defined macro and each
+@var{positional-arg} is an identifier, name of a mandatory positional
 argument for the macro.
 
-@meta{maker sexp} has one of the forms:
+@var{maker-sexp} has one of the forms:
 
 @example
-@cmeta{maker name}
-(@cmetao{maker name} @cmeta{maker expr} ...)
+@var{maker-name}
+(@varo{maker-expr} @var{maker-expr} ...)
 @end example
 
 @noindent
-where @meta{maker name} must be an identifier and each @meta{maker expr}
-is an expression evaluated at runtime, only once, in the lexical context
-of the @func{define-maker} macro use, even if the defined macro is never
-used.
+where @var{maker-name} must be an identifier and each @var{maker-expr}
+is an expression evaluated in the lexical context of the
+@func{define-maker} macro use; the expressions are evaluated every time
+the maker is used.
 
-@meta{keywords and defaults} defines optional arguments selected with a
-keyword and a value; it has the form:
+@var{keywords-and-defaults} defines optional arguments selected with an
+auxiliary syntax and a value; it has the form:
 
 @example
-((@cmeta{keyword}   @cmeta{default})
+((@var{auxiliary-syntax}   @var{default-expr})
  ...)
 @end example
 
 @noindent
-where each @meta{keyword} is an identifier selecting the keyword's
-symbol and @meta{default} is an expression representing the default
-value for the argument; the expressions are all evaluated only once in
-the lexical context of the @func{define-maker} macro use, even if the
-resulting default value is never used.  Notice that the @meta{keyword}
-identifiers are matched against the values in the macro use by comparing
-the symbols with @func{eq?}, so they are @strong{not} handled as
-identifiers (bound or free).
+where each @var{auxiliary-syntax} is an identifier and
+@var{default-expr} is an expression representing the default value for
+the argument; the expressions are all evaluated in the lexical context
+of the @func{define-maker} macro use, the expressions are evaluated
+every time the maker is used.
 
-When the new macro is used without optional keywords, it is expanded to:
+Notice that the @var{auxiliary-syntax} identifiers are matched against
+the values in the macro use by comparing the syntax objects with
+@func{free-identifier=?}.
+
+When the new macro is used without optional auxiliary syntaxes, it is
+expanded to:
 
 @example
 ;; single maker expression, no positional arguments
-(@cmeta{maker expr result})
+(@var{maker-expr-result})
 
 ;; single maker expression, positional arguments
-(@cmeta{maker expr result}
- @cmetao{positional arg} @cmeta{positional arg} ...)
+(@var{maker-expr-result}
+ @varo{positional-arg} @var{positional-arg} ...)
 
 ;; multiple maker expressions, no positional arguments
-(@cmetao{maker expr result} @cmeta{maker expr result} ...)
+(@varo{maker-expr-result} @var{maker-expr-result} ...)
 
 ;; multiple maker expressions, positional arguments
-(@cmetao{maker expr result} @cmeta{maker expr result} ...
- @cmetao{positional arg} @cmeta{positional arg} ...)
+(@varo{maker-expr-result} @var{maker-expr-result} ...
+ @varo{positional-arg} @var{positional-arg} ...)
 @end example
 
-When the new macro is used with optional keywords, the expressions in
-the keywords, or the default values, are appended to the output form in
-the same order as the corresponding keywords in @meta{keywords and
-defaults}.
-@end deffn
+When the new macro is used with optional auxiliary syntaxes, the
+expressions in the synaxes, or the default expressions, are appended to
+the output form in the same order as the corresponding syntaxes in
+@var{keywords-and-defaults}.
+@end defmac
+
+
+@defmac define-auxiliary-syntax @var{symbol}
+@defmacx define-auxiliary-syntax @varo{symbol} @var{symbol} ...
+This is the binding from @library{syntax-utilities}, it is reexported by
+@library{makers}.
+@end defmac
 
 @c end of file

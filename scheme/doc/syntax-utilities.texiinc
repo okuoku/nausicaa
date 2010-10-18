@@ -229,10 +229,12 @@ the invalid subform.
 @end defun
 
 
-@defun define-auxiliary-syntax @var{symbol}
-Define an auxiliary syntax whose name is @var{symbol}.  The defined
-syntax is meant to be used as keyword in definitions, like @code{fields}
-and @code{protocol} for @func{define-record-type}.
-@end defun
+@defmac define-auxiliary-syntax @var{symbol}
+@defmacx define-auxiliary-syntax @varo{symbol} @var{symbol} ...
+Define one or more auxiliary syntaxs whose names are the @var{symbol}
+arguments.  The defined syntaxes are meant to be used as keywords in
+definitions, like @code{fields} and @code{protocol} for
+@func{define-record-type}.
+@end defmac
 
 @c end of file

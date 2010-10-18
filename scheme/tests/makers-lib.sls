@@ -1,4 +1,4 @@
-;;; -*- coding: utf-8-unix -*-
+;;; -*- coding: utf-8 -*-
 ;;;
 ;;;Part of: Nausicaa/Scheme
 ;;;Contents: auxiliary library for testing makers
@@ -25,10 +25,15 @@
 ;;;
 
 
+#!r6rs
 (library (makers-lib)
-  (export doit1 doit2 doit3 doit4)
+  (export doit1 doit2 doit3 doit4 :alpha :beta :gamma)
   (import (rnrs)
     (makers))
+
+  (define-auxiliary-syntax :alpha)
+  (define-auxiliary-syntax :beta)
+  (define-auxiliary-syntax :gamma)
 
   (define v 2)
   (define t "abc")

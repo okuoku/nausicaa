@@ -26,35 +26,21 @@
 
 
 (library (makers helpers)
-  (export syntax->list invalid-keywords-and-values? parse-input-form-stx)
+  (export unwrap-syntax-object invalid-keywords-and-values? parse-input-form-stx)
   (import (rnrs)
-    (for (only (rnrs) quote quasiquote syntax quasisyntax) (meta -1)))
+    (for (only (rnrs) quote quasiquote syntax quasisyntax) (meta -1))
+    (only (syntax-utilities) unwrap-syntax-object))
 
 
-(define (syntax->list stx)
-  (syntax-case stx ()
-    (()		'())
-    ((?car . ?cdr)
-     (and (identifier? #'?car)
-	  (or (free-identifier=? #'?car #'quote)
-	      (free-identifier=? #'?car #'quasiquote)
-	      (free-identifier=? #'?car #'syntax)
-	      (free-identifier=? #'?car #'quasisyntax)))
-     #'(?car . ?cdr))
-    ((?car . ?cdr)
-     (cons (syntax->list #'?car) (syntax->list #'?cdr)))
-    (?atom
-     #'?atom)))
-
 (define (invalid-keywords-and-values? keywords-and-values)
   (not (for-all (lambda (key-and-value)
 		  (and (identifier? (car key-and-value))
 		       (null? (cddr key-and-value))))
-		(syntax->list keywords-and-values))))
+		(unwrap-syntax-object keywords-and-values))))
 
 (define (parse-input-form-stx who input-form-stx arguments-stx keywords-and-defaults)
   (define unwrapped-keywords-and-defaults
-    (syntax->list keywords-and-defaults))
+    (unwrap-syntax-object keywords-and-defaults))
   (define (%keywords-join keywords-and-defaults)
     ;;Given an alist  of keywords and default values,  join the keywords
     ;;into a string with a comma as separator; return the string.  To be
@@ -78,37 +64,42 @@
 		  (display (car keys) port)
 		  (loop (cdr keys))))))))))
 
-  (define (synner message subform)
-    (syntax-violation who message (syntax->datum input-form-stx) (syntax->datum subform)))
+  (define (%synner message subform)
+    (syntax-violation who message (syntax->datum input-form-stx) (and subform (syntax->datum subform))))
 
-  (let ((unwrapped-arguments-stx (syntax->list arguments-stx)))
+  (let ((unwrapped-arguments-stx (unwrap-syntax-object arguments-stx)))
 
     ;;Make sure that UNWRAPPED-ARGUMENTS-STX  has the correct format and
     ;;only    holds    subforms    starting    with   a    keyword    in
     ;;KEYWORDS-AND-DEFAULTS; any order is allowed.
     (for-each (lambda (key-and-argument)
 		(unless (pair? key-and-argument)
-		  (synner "expected pair as maker clause argument" key-and-argument))
+		  (%synner "expected pair as maker clause argument" key-and-argument))
 		(unless (identifier? (car key-and-argument))
-		  (synner "expected identifier as first element of maker argument clause"
-			  key-and-argument))
+		  (%synner "expected identifier as first element of maker argument clause"
+			   key-and-argument))
 		(unless (null? (cddr key-and-argument))
-		  (synner "expected list of two values as maker clause argument" key-and-argument))
+		  (%synner "expected list of two values as maker clause argument" key-and-argument))
 		(unless (exists (lambda (key-and-default)
-				  (eq? (syntax->datum (car key-and-default))
-				       (syntax->datum (car key-and-argument))))
+				  ;; (eq? (syntax->datum (car key-and-default))
+				  ;;      (syntax->datum (car key-and-argument)))
+				  (free-identifier=? (car key-and-default)
+						     (car key-and-argument)))
 				unwrapped-keywords-and-defaults)
-		  (synner (string-append "unrecognised argument keyword, expected one among: "
-					 (%keywords-join unwrapped-keywords-and-defaults))
-			  (car key-and-argument))))
+		  (%synner (string-append "unrecognised argument keyword, expected one among: "
+					  (%keywords-join unwrapped-keywords-and-defaults))
+			   (car key-and-argument))))
       unwrapped-arguments-stx)
 
     ;;Build  and return a  list of  arguments' syntax  objects, possibly
     ;;using the given defaults.
     (map (lambda (key-and-default)
 	   (or (exists (lambda (key-and-argument)
-			 (and (eq? (syntax->datum (car key-and-default))
-				   (syntax->datum (car key-and-argument)))
+			 ;; (and (eq? (syntax->datum (car key-and-default))
+			 ;; 	   (syntax->datum (car key-and-argument)))
+			 ;;      (cadr key-and-argument))
+			 (and (free-identifier=? (car key-and-default)
+						 (car key-and-argument))
 			      (cadr key-and-argument)))
 		       unwrapped-arguments-stx)
 	       (cadr key-and-default)))

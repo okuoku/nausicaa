@@ -387,7 +387,12 @@
 (define-syntax define-auxiliary-syntax
   (syntax-rules ()
     ((_ ?name)
-     (define-syntax ?name (syntax-rules ())))))
+     (define-syntax ?name (syntax-rules ())))
+    ((_ ?name0 ?name ...)
+     (begin
+       (define-syntax ?name0 (syntax-rules ()))
+       (define-auxiliary-syntax ?name ...)))
+    ))
 
 
 ;;;; done

@@ -1,4 +1,4 @@
-;;; -*- coding: utf-8-unix -*-
+;;; -*- coding: utf-8 -*-
 ;;;
 ;;;Part of: Nausicaa/Scheme
 ;;;Contents: test file for makers
@@ -25,17 +25,21 @@
 ;;;
 
 
+#!r6rs
 (import (nausicaa)
   (rnrs eval)
   (makers)
-  (makers-lib)	;this is in the tests directory
-  (checks))
+  (prefix (makers-lib) lib.)	;this is in the tests directory
+  (checks)
+  (sentinel))
 
 (check-set-mode! 'report-failed)
 (display "*** testing makers\n")
 
 
 (parametrise ((check-test-name	'base))
+
+  (define-auxiliary-syntax :alpha :beta :gamma)
 
   (let ((v 2))	;variable arguments, no fixed arguments
 
@@ -275,202 +279,281 @@
   #t)
 
 
+(parametrise ((check-test-name	'defaults))
+
+  (define-auxiliary-syntax :alpha)
+  (define-auxiliary-syntax :beta)
+  (define-auxiliary-syntax :gamma)
+
+  (let ()	;optional arguments with side effects
+
+    (define g
+      (let ((counter 0))
+	(lambda ()
+	  (set! counter (+ 1 counter))
+	  counter)))
+
+    (define default2 (- (/ 9 3) 1))
+
+    (define-maker doit
+      list ((:alpha	1)
+	    (:beta	default2)
+	    (:gamma	(g))))
+
+    (check
+	(doit)
+      => '(1 2 1))
+
+    (check
+    	(doit (:alpha 10))
+      => '(10 2 2))
+
+    (check
+    	(doit (:beta 20))
+      => '(1 20 3))
+
+    (check
+    	(doit (:gamma 30))
+      => '(1 2 30))
+
+    #f)
+
+;;; --------------------------------------------------------------------
+
+  (let ()	;detecing ungiven argument
+
+    (define-maker doit
+      subdoit ((:alpha	1)
+	       (:beta	2)
+	       (:gamma	sentinel)))
+
+    (define-syntax subdoit
+      (lambda (stx)
+	(syntax-case stx ()
+	  ((_ ?alpha ?beta ?gamma)
+	   (and (identifier? #'?gamma) (free-identifier=? #'?gamma #'sentinel))
+	   #'(list ?alpha ?beta 3))
+	  ((_ ?alpha ?beta ?gamma)
+	   #'(list ?alpha ?beta ?gamma))
+	  )))
+
+    (check
+	(doit)
+      => '(1 2 3))
+
+    (check
+    	(doit (:alpha 10))
+      => '(10 2 3))
+
+    (check
+    	(doit (:beta 20))
+      => '(1 20 3))
+
+    (check
+    	(doit (:gamma 30))
+      => '(1 2 30))
+
+    #f)
+
+  #t)
+
+
 (parametrise ((check-test-name	'library))
 
 ;;; these tests make use of the makers from (makers-lib)
 
   (check
-      (doit1)
+      (lib.doit1)
     => '(1 2 3))
 
   (check
-      (doit1 (:alpha 10))
+      (lib.doit1 (lib.:alpha 10))
     => '(10 2 3))
 
   (check
-      (doit1 (:beta 20))
+      (lib.doit1 (lib.:beta 20))
     => '(1 20 3))
 
   (check
-      (doit1 (:gamma 30))
+      (lib.doit1 (lib.:gamma 30))
     => '(1 2 30))
 
   (check
-      (doit1 (:alpha	10)
-	     (:beta	20))
+      (lib.doit1 (lib.:alpha	10)
+		 (lib.:beta	20))
     => '(10 20 3))
 
   (check
-      (doit1 (:alpha	10)
-	     (:gamma	30))
+      (lib.doit1 (lib.:alpha	10)
+		 (lib.:gamma	30))
     => '(10 2 30))
 
   (check
-      (doit1 (:gamma	30)
-	     (:beta	20))
+      (lib.doit1 (lib.:gamma	30)
+		 (lib.:beta	20))
     => '(1 20 30))
 
   (check
-      (doit1 (:alpha	10)
-	     (:beta	20)
-	     (:gamma	30))
+      (lib.doit1 (lib.:alpha	10)
+		 (lib.:beta	20)
+		 (lib.:gamma	30))
     => '(10 20 30))
 
   (check
       (let ((b 7))
-	(doit1 (:beta	(+ 6 (* 2 b)))
-	       (:alpha	(+ 2 8))))
+	(lib.doit1 (lib.:beta	(+ 6 (* 2 b)))
+		   (lib.:alpha	(+ 2 8))))
     => '(10 20 3))
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (doit2)
+      (lib.doit2)
     => '(#\a #\b 1 2 3))
 
   (check
-      (doit2 (:alpha 10))
+      (lib.doit2 (lib.:alpha 10))
     => '(#\a #\b 10 2 3))
 
   (check
-      (doit2 (:beta 20))
+      (lib.doit2 (lib.:beta 20))
     => '(#\a #\b 1 20 3))
 
   (check
-      (doit2 (:gamma 30))
+      (lib.doit2 (lib.:gamma 30))
     => '(#\a #\b 1 2 30))
 
   (check
-      (doit2 (:alpha	10)
-	     (:beta	20))
+      (lib.doit2 (lib.:alpha	10)
+		 (lib.:beta	20))
     => '(#\a #\b 10 20 3))
 
   (check
-      (doit2 (:alpha	10)
-	     (:gamma	30))
+      (lib.doit2 (lib.:alpha	10)
+		 (lib.:gamma	30))
     => '(#\a #\b 10 2 30))
 
   (check
-      (doit2 (:gamma	30)
-	     (:beta	20))
+      (lib.doit2 (lib.:gamma	30)
+		 (lib.:beta	20))
     => '(#\a #\b 1 20 30))
 
   (check
-      (doit2 (:alpha	10)
-	     (:beta	20)
-	     (:gamma	30))
+      (lib.doit2 (lib.:alpha	10)
+		 (lib.:beta	20)
+		 (lib.:gamma	30))
     => '(#\a #\b 10 20 30))
 
   (check
       (let ((b 7))
-	(doit2 (:beta	(+ 6 (* 2 b)))
-	       (:alpha	(+ 2 8))))
+	(lib.doit2 (lib.:beta	(+ 6 (* 2 b)))
+		   (lib.:alpha	(+ 2 8))))
     => '(#\a #\b 10 20 3))
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (doit3 #\a #\b)
+      (lib.doit3 #\a #\b)
     => '(#\a #\b 1 2 3))
 
   (check
-      (doit3 #\a #\b
-	     (:alpha 10))
+      (lib.doit3 #\a #\b
+		 (lib.:alpha 10))
     => '(#\a #\b 10 2 3))
 
   (check
-      (doit3 #\a #\b
-	     (:beta 20))
+      (lib.doit3 #\a #\b
+		 (lib.:beta 20))
     => '(#\a #\b 1 20 3))
 
   (check
-      (doit3 #\a #\b
-	     (:gamma 30))
+      (lib.doit3 #\a #\b
+		 (lib.:gamma 30))
     => '(#\a #\b 1 2 30))
 
   (check
-      (doit3 #\a #\b
-	     (:alpha	10)
-	     (:beta	20))
+      (lib.doit3 #\a #\b
+		 (lib.:alpha	10)
+		 (lib.:beta	20))
     => '(#\a #\b 10 20 3))
 
   (check
-      (doit3 #\a #\b
-	     (:alpha	10)
-	     (:gamma	30))
+      (lib.doit3 #\a #\b
+		 (lib.:alpha	10)
+		 (lib.:gamma	30))
     => '(#\a #\b 10 2 30))
 
   (check
-      (doit3 #\a #\b
-	     (:gamma	30)
-	     (:beta	20))
+      (lib.doit3 #\a #\b
+		 (lib.:gamma	30)
+		 (lib.:beta	20))
     => '(#\a #\b 1 20 30))
 
   (check
-      (doit3 #\a #\b
-	     (:alpha	10)
-	     (:beta	20)
-	     (:gamma	30))
+      (lib.doit3 #\a #\b
+		 (lib.:alpha	10)
+		 (lib.:beta	20)
+		 (lib.:gamma	30))
     => '(#\a #\b 10 20 30))
 
   (check
       (let ((b 7))
-	(doit3 #\a #\b
-	       (:beta	(+ 6 (* 2 b)))
-	       (:alpha	(+ 2 8))))
+	(lib.doit3 #\a #\b
+		   (lib.:beta	(+ 6 (* 2 b)))
+		   (lib.:alpha	(+ 2 8))))
     => '(#\a #\b 10 20 3))
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (doit4 #\p #\q)
+      (lib.doit4 #\p #\q)
     => '(#\a #\b #\p #\q 1 2 3))
 
   (check
-      (doit4 #\p #\q
-	     (:alpha 10))
+      (lib.doit4 #\p #\q
+		 (lib.:alpha 10))
     => '(#\a #\b #\p #\q 10 2 3))
 
   (check
-      (doit4 #\p #\q
-	     (:beta 20))
+      (lib.doit4 #\p #\q
+		 (lib.:beta 20))
     => '(#\a #\b #\p #\q 1 20 3))
 
   (check
-      (doit4 #\p #\q
-	     (:gamma 30))
+      (lib.doit4 #\p #\q
+		 (lib.:gamma 30))
     => '(#\a #\b #\p #\q 1 2 30))
 
   (check
-      (doit4 #\p #\q
-	     (:alpha	10)
-	     (:beta	20))
+      (lib.doit4 #\p #\q
+		 (lib.:alpha	10)
+		 (lib.:beta	20))
     => '(#\a #\b #\p #\q 10 20 3))
 
   (check
-      (doit4 #\p #\q
-	     (:alpha	10)
-	     (:gamma	30))
+      (lib.doit4 #\p #\q
+		 (lib.:alpha	10)
+		 (lib.:gamma	30))
     => '(#\a #\b #\p #\q 10 2 30))
 
   (check
-      (doit4 #\p #\q
-	     (:gamma	30)
-	     (:beta	20))
+      (lib.doit4 #\p #\q
+		 (lib.:gamma	30)
+		 (lib.:beta	20))
     => '(#\a #\b #\p #\q 1 20 30))
 
   (check
-      (doit4 #\p #\q
-	     (:alpha	10)
-	     (:beta	20)
-	     (:gamma	30))
+      (lib.doit4 #\p #\q
+		 (lib.:alpha	10)
+		 (lib.:beta	20)
+		 (lib.:gamma	30))
     => '(#\a #\b #\p #\q 10 20 30))
 
   (check
       (let ((b 7))
-	(doit4 #\p #\q
-	       (:beta	(+ 6 (* 2 b)))
-	       (:alpha	(+ 2 8))))
+	(lib.doit4 #\p #\q
+		   (lib.:beta	(+ 6 (* 2 b)))
+		   (lib.:alpha	(+ 2 8))))
     => '(#\a #\b #\p #\q 10 20 3))
 
   #t)
