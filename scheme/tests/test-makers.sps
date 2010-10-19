@@ -358,6 +358,62 @@
   #t)
 
 
+(parametrise ((check-test-name	'options))
+
+  (define-auxiliary-syntax alpha)
+  (define-auxiliary-syntax beta)
+  (define-auxiliary-syntax gamma)
+
+  (let ()	;mandatory clause
+    (define-maker doit
+      list ((alpha	1)
+	    (beta	2 (mandatory))
+	    (gamma	3)))
+
+    (check (doit (beta 20))	=> '(1 20 3))
+
+    #f)
+
+  (let ()	;optional clause
+    (define-maker doit
+      list ((alpha	1 (optional))
+	    (beta	2)
+	    (gamma	3)))
+
+    (check (doit (beta 20))	=> '(1 20 3))
+    #f)
+
+  (let ()	;clause to be used along
+    (define-maker doit
+      list ((alpha	1 (with beta))
+	    (beta	2)
+	    (gamma	3)))
+
+    (check (doit (alpha 10) (beta 20))	=> '(10 20 3))
+    #f)
+
+  (let ()	;mutually exclusive clauses
+    (define-maker doit
+      list ((alpha	1 (without beta))
+	    (beta	2)
+	    (gamma	3)))
+
+    (check (doit (alpha 10))	=> '(10 2 3))
+    #f)
+
+  (let ()	;cross mutually exclusive clauses
+    (define-maker doit
+      list ((alpha	1 (without beta))
+	    (beta	2 (without alpha))
+	    (gamma	3)))
+
+    (check (doit (alpha 10))	=> '(10 2 3))
+    (check (doit (beta  20))	=> '(1 20 3))
+    #f)
+
+  #t)
+
+
 (parametrise ((check-test-name	'library))
 
 ;;; these tests make use of the makers from (makers-lib)
@@ -559,7 +615,7 @@
   #t)
 
 
-(parametrise ((check-test-name	'errors))
+(parametrise ((check-test-name	'definition-errors))
 
   (check
       (guard (E ((syntax-violation? E)
@@ -593,23 +649,7 @@
 	      (environment '(rnrs) '(makers))))
     => "expected identifiers as positional argument names")
 
-  (check
-      (guard (E ((syntax-violation? E)
-		 (condition-message E))
-		(else
-		 (write E)(newline)
-		 #f))
-	(eval '(let ()
-		 (define-maker doit
-		   list
-		   ((alpha	1)
-		    (beta	2)
-		    (gamma	3)))
-		 (doit (123 9)))
-	      (environment '(rnrs) '(makers))))
-    => "expected identifier as first element of maker argument clause")
-
-  (check
+  (check	;unknown clause
       (guard (E ((syntax-violation? E)
 		 (condition-message E))
 		(else
@@ -624,6 +664,162 @@
 		 (doit (ciao 9)))
 	      (environment '(rnrs) '(makers))))
     => "unrecognised argument keyword, expected one among: alpha, beta, gamma")
+
+  #t)
+
+
+(parametrise ((check-test-name	'use-errors))
+
+  (check	;invalid clause
+      (guard (E ((syntax-violation? E)
+		 (condition-message E))
+		(else
+		 (write E)(newline)
+		 #f))
+	(eval '(let ()
+		 (define-maker doit
+		   list
+		   ((alpha	1)
+		    (beta	2)
+		    (gamma	3)))
+		 (doit #(alpha 9)))
+	      (environment '(rnrs) '(makers))))
+    => "expected pair as maker clause")
+
+  (check	;invalid clause
+      (guard (E ((syntax-violation? E)
+		 (condition-message E))
+		(else
+		 (write E)(newline)
+		 #f))
+	(eval '(let ()
+		 (define-maker doit
+		   list
+		   ((alpha	1)
+		    (beta	2)
+		    (gamma	3)))
+		 (doit (123 9)))
+	      (environment '(rnrs) '(makers))))
+    => "expected identifier as first element of maker clause")
+
+  (check	;invalid clause
+      (guard (E ((syntax-violation? E)
+		 (condition-message E))
+		(else
+		 (write E)(newline)
+		 #f))
+	(eval '(let ()
+		 (define-maker doit
+		   list
+		   ((alpha	1)
+		    (beta	2)
+		    (gamma	3)))
+		 (doit (alpha 9 10)))
+	      (environment '(rnrs) '(makers))))
+    => "expected list of two values as maker clause")
+
+
+  #t)
+
+
+(parametrise ((check-test-name	'option-errors))
+
+  (check	;missing mandatory clause
+      (guard (E ((syntax-violation? E)
+		 (list (condition-message E) (syntax-violation-subform E)))
+		(else
+		 (write E)(newline)
+		 #f))
+	(eval '(let ()
+		 (define-maker doit
+		   list ((alpha	1 (mandatory))
+			 (beta	2)
+			 (gamma	3)))
+		 (doit (beta 20)))
+	      (environment '(rnrs) '(makers))))
+    => '("missing mandatory maker clause" alpha))
+
+  (check	;missing clause to be used along
+      (guard (E ((syntax-violation? E)
+		 (list (condition-message E) (syntax-violation-subform E)))
+		(else
+		 (write E)(newline)
+		 #f))
+	(eval '(let ()
+		 (define-maker doit
+		   list ((alpha	1 (with beta))
+			 (beta	2)
+			 (gamma	3)))
+		 (doit (alpha 20)))
+	      (environment '(rnrs) '(makers))))
+    => '("maker clause \"alpha\" used without companion clause" beta))
+
+  (check	;clause used along with mutually exclusive clause
+      (guard (E ((syntax-violation? E)
+		 (list (condition-message E) (syntax-violation-subform E)))
+		(else
+		 (write E)(newline)
+		 #f))
+	(eval '(let ()
+		 (define-maker doit
+		   list ((alpha	1 (without beta))
+			 (beta	2)
+			 (gamma	3)))
+		 (doit (alpha 20) (beta 30)))
+	      (environment '(rnrs) '(makers))))
+    => '("maker clause \"alpha\" used with mutually exclusive clause" beta))
+
+  (check	;keyword declared in its own list of companion clauses
+      (guard (E ((syntax-violation? E)
+		 (list (condition-message E) (syntax-violation-subform E)))
+		(else
+		 (write E)(newline)
+		 #f))
+	(eval '(define-maker doit
+		 list ((alpha	1 (with alpha))
+		       (beta	2)
+		       (gamma	3)))
+	      (environment '(rnrs) '(makers))))
+    => '("maker clause keyword used in its own list of companion clauses" alpha))
+
+  (check	;keyword declared in its own list of mutually exclusive clauses
+      (guard (E ((syntax-violation? E)
+		 (list (condition-message E) (syntax-violation-subform E)))
+		(else
+		 (write E)(newline)
+		 #f))
+	(eval '(define-maker doit
+		 list ((alpha	1 (without alpha))
+		       (beta	2)
+		       (gamma	3)))
+	      (environment '(rnrs) '(makers))))
+    => '("maker clause keyword used in its own list of mutually exclusive clauses" alpha))
+
+  (check	;same keywords in both companion clauses and mutually exclusive clauses
+      (guard (E ((syntax-violation? E)
+		 (list (condition-message E) (syntax-violation-subform E)))
+		(else
+		 (write E)(newline)
+		 #f))
+	(eval '(define-maker doit
+		 list ((alpha	1 (without beta) (with beta))
+		       (beta	2)
+		       (gamma	3)))
+	      (environment '(rnrs) '(makers))))
+    => '("maker clause includes the same keywords in both companion clauses and mutually exclusive clauses" (beta)))
+
+  (check	;same keywords in both companion clauses and mutually exclusive clauses
+      (guard (E ((syntax-violation? E)
+		 (list (condition-message E) (syntax-violation-subform E)))
+		(else
+		 (write E)(newline)
+		 #f))
+	(eval '(define-maker doit
+		 list ((alpha	1 (without beta gamma) (with beta gamma))
+		       (beta	2)
+		       (gamma	3)))
+	      (environment '(rnrs) '(makers))))
+    => '("maker clause includes the same keywords in both companion clauses and mutually exclusive clauses" (beta gamma)))
 
   #t)
 

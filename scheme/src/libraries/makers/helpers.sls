@@ -26,29 +26,129 @@
 
 
 (library (makers helpers)
-  (export unwrap-syntax-object invalid-keywords-and-values? parse-input-form-stx)
+  (export parse-maker-input-form)
   (import (rnrs)
     (for (only (rnrs) quote quasiquote syntax quasisyntax) (meta -1))
-    (only (syntax-utilities) unwrap-syntax-object))
+    (only (syntax-utilities) unwrap-syntax-object identifier->string))
 
 
-(define (invalid-keywords-and-values? keywords-and-values)
-  (not (for-all (lambda (key-and-value)
-		  (and (identifier? (car key-and-value))
-		       (null? (cddr key-and-value))))
-		(unwrap-syntax-object keywords-and-values))))
+(define (parse-maker-input-form who input-form-stx arguments-stx keywords-defaults-options)
+  ;;Parse ARGUMENTS-STX  looking for  the auxiliary syntaxes  defined in
+  ;;KEYWORDS-DEFAULTS-OPTIONS.
+  ;;
+  ;;WHO must be an identifier  representing the caller of this function;
+  ;;to  be used  in  the  "&who" condition  object  when raising  syntax
+  ;;violation errors.
+  ;;
+  ;;INPUT-FORM-STX must be the original full input form; to be used when
+  ;;raising syntax violation errors.
+  ;;
+  ;;ARGUMENTS-STX must be a syntax  objects holding a list of clauses in
+  ;;the form:
+  ;;
+  ;;	((?keyword ?value) ...)
+  ;;
+  ;;where ?KEYWORD  is an identifier;  this list represents the  list of
+  ;;clauses given in a maker invocation.
+  ;;
+  ;;KEYWORDS-DEFAULTS-OPTIONS  must be  a list  of lists  in  which each
+  ;;sublist  represents a  clause  for  the maker;  the  format of  each
+  ;;sublist must be:
+  ;;
+  ;;	(?keyword ?default ?boolean ?with-list ?without-list)
+  ;;
+  ;;where: ?KEYWORD  is the  identifier of the  clause; ?DEFAULT  is the
+  ;;default value of the maker argument, to be used if the clause is not
+  ;;present  in  ARGUMENTS-STX; ?BOOLEAN  specifies  if  this clause  is
+  ;;mandatory  or   optional;  ?WITH-LIST  is  a   list  of  identifiers
+  ;;representing  the  clauses  with  which  this  clause  must  appear;
+  ;;?WITHOUT-LIST is a list of identifiers representing the clauses with
+  ;;which this clause is mutually exclusive.
+  ;;
+  ;;It is a syntax violation if: a mandatory clause is missing, a clause
+  ;;does not appear along with the  clauses in the "with" list, a clause
+  ;;appears along with one of the clauses in the "without" list.
+  ;;
+  (define (main arguments-stx keywords-defaults-options)
+    (for-each (lambda (key-and-value)
+		;;Make sure that ARGUMENTS-STX has the correct format.
+		(unless (pair? key-and-value)
+		  (%synner "expected pair as maker clause" key-and-value))
+		(unless (identifier? (car key-and-value))
+		  (%synner "expected identifier as first element of maker clause" key-and-value))
+		(unless (null? (cddr key-and-value))
+		  (%synner "expected list of two values as maker clause" key-and-value))
 
-(define (parse-input-form-stx who input-form-stx arguments-stx keywords-and-defaults)
-  (define unwrapped-keywords-and-defaults
-    (unwrap-syntax-object keywords-and-defaults))
-  (define (%keywords-join keywords-and-defaults)
-    ;;Given an alist  of keywords and default values,  join the keywords
-    ;;into a string with a comma as separator; return the string.  To be
-    ;;used to build error messages involving the list of keywords.
+		;;Make  sure  that  ARGUMENTS-STX  only  holds  subforms
+		;;starting with  a keyword in KEYWORDS-DEFAULTS-OPTIONS;
+		;;any order is allowed.
+		(let* ((keyword             (car key-and-value))
+		       (key-default-options (find (lambda (key-default-options)
+						    (keyword=? keyword (car key-default-options)))
+						  keywords-defaults-options)))
+		  (unless key-default-options
+		    (%synner (string-append "unrecognised argument keyword, expected one among: "
+					    (%keywords-join keywords-defaults-options))
+			     keyword))
+
+		  ;;Check  that  this clause  has  been  used along  the
+		  ;;"with" clauses.
+		  (for-each (lambda (with-keyword)
+			      (unless (exists (lambda (key-and-value)
+						(keyword=? with-keyword (car key-and-value)))
+					      arguments-stx)
+				(%synner (string-append "maker clause \""
+							(identifier->string keyword)
+							"\" used without companion clause")
+					 with-keyword)))
+		    (list-ref key-default-options 3))
+
+		  ;;Check that  this clause has NOT been  used along the
+		  ;;"without" clauses.
+		  (for-each (lambda (without-keyword)
+			      (when (exists (lambda (key-and-value)
+					      (keyword=? without-keyword (car key-and-value)))
+					    arguments-stx)
+				(%synner (string-append "maker clause \""
+							(identifier->string keyword)
+							"\" used with mutually exclusive clause")
+					 without-keyword)))
+		    (list-ref key-default-options 4))))
+      arguments-stx)
+
+    ;;Check that all the mandatory clauses are present in ARGUMENTS-STX.
+    (for-each (lambda (key-default-options)
+		(when (caddr key-default-options)
+		  (let ((keyword (car key-default-options)))
+		    (unless (exists (lambda (key-and-value)
+				      (keyword=? keyword (car key-and-value)))
+				    arguments-stx)
+		      (%synner "missing mandatory maker clause" keyword)))))
+      keywords-defaults-options)
+
+    ;;Build  and return a  list of  arguments' syntax  objects, possibly
+    ;;using the given defaults.
+    (map (lambda (key-default-options)
+	   (or (exists (lambda (key-and-value)
+			 ;; (and (eq? (syntax->datum (car key-default-options))
+			 ;; 	   (syntax->datum (car key-and-value)))
+			 ;;      (cadr key-and-value))
+			 (and (free-identifier=? (car key-default-options)
+						 (car key-and-value))
+			      (cadr key-and-value)))
+		       arguments-stx)
+	       (cadr key-default-options)))
+      keywords-defaults-options))
+
+  (define (%keywords-join keywords-defaults-options)
+    ;;Given  an  alist  of  keywords,  defaults and  options:  join  the
+    ;;keywords  into a  string with  a  comma as  separator; return  the
+    ;;string.  To be used to  build error messages involving the list of
+    ;;keywords as in "must be one among: alpha, beta, gamma".
     ;;
     (let ((keys (map (lambda (p)
 		       (symbol->string (syntax->datum (car p))))
-		  keywords-and-defaults)))
+		  keywords-defaults-options)))
       (if (null? keys)
 	  ""
 	(call-with-values
@@ -64,46 +164,15 @@
 		  (display (car keys) port)
 		  (loop (cdr keys))))))))))
 
+  (define keyword=? free-identifier=?)
+;;; (define (keyword=? id1 id2)
+;;;   (eq? (syntax->datum id1) (syntax->datum id2)))
+
   (define (%synner message subform)
     (syntax-violation who message (syntax->datum input-form-stx) (and subform (syntax->datum subform))))
 
-  (let ((unwrapped-arguments-stx (unwrap-syntax-object arguments-stx)))
-
-    ;;Make sure that UNWRAPPED-ARGUMENTS-STX  has the correct format and
-    ;;only    holds    subforms    starting    with   a    keyword    in
-    ;;KEYWORDS-AND-DEFAULTS; any order is allowed.
-    (for-each (lambda (key-and-argument)
-		(unless (pair? key-and-argument)
-		  (%synner "expected pair as maker clause argument" key-and-argument))
-		(unless (identifier? (car key-and-argument))
-		  (%synner "expected identifier as first element of maker argument clause"
-			   key-and-argument))
-		(unless (null? (cddr key-and-argument))
-		  (%synner "expected list of two values as maker clause argument" key-and-argument))
-		(unless (exists (lambda (key-and-default)
-				  ;; (eq? (syntax->datum (car key-and-default))
-				  ;;      (syntax->datum (car key-and-argument)))
-				  (free-identifier=? (car key-and-default)
-						     (car key-and-argument)))
-				unwrapped-keywords-and-defaults)
-		  (%synner (string-append "unrecognised argument keyword, expected one among: "
-					  (%keywords-join unwrapped-keywords-and-defaults))
-			   (car key-and-argument))))
-      unwrapped-arguments-stx)
-
-    ;;Build  and return a  list of  arguments' syntax  objects, possibly
-    ;;using the given defaults.
-    (map (lambda (key-and-default)
-	   (or (exists (lambda (key-and-argument)
-			 ;; (and (eq? (syntax->datum (car key-and-default))
-			 ;; 	   (syntax->datum (car key-and-argument)))
-			 ;;      (cadr key-and-argument))
-			 (and (free-identifier=? (car key-and-default)
-						 (car key-and-argument))
-			      (cadr key-and-argument)))
-		       unwrapped-arguments-stx)
-	       (cadr key-and-default)))
-      unwrapped-keywords-and-defaults)))
+  (main (unwrap-syntax-object arguments-stx)
+	(unwrap-syntax-object keywords-defaults-options)))
 
 
 ;;;; done

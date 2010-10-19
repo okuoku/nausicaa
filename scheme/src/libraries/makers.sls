@@ -28,15 +28,15 @@
 #!r6rs
 (library (makers)
   (export define-maker define-auxiliary-syntax
-	  mandatory with without)
+	  mandatory optional with without)
   (import (rnrs)
     ;;Notice that  we need  to have the  helpers in a  different library
     ;;loaded for  expand, because  the functions are  used by  the newly
     ;;defined macros, not only by DEFINE-MAKER.
     (for (makers helpers) expand)
-    (only (syntax-utilities) define-auxiliary-syntax))
+    (for (syntax-utilities) expand))
 
-  (define-auxiliary-syntax mandatory with without)
+  (define-auxiliary-syntax mandatory optional with without)
 
 
 (define-syntax define-maker
@@ -48,7 +48,7 @@
       ;;
       (syntax-case stx ()
 
-	((_ ?name ?maker-sexp ?keywords-and-defaults)
+	((_ ?name ?maker-sexp ?keywords-defaults-options)
 	 (not (or (identifier? #'?name)
 		  ;;A list with an identifier in the first position.
 		  (let ((L (unwrap-syntax-object #'?name)))
@@ -56,9 +56,9 @@
 			 (identifier? (car L))))))
 	 (%synner "expected identifier as maker name in maker definition" #'?name))
 
-	((_ ?name ?maker-sexp ?keywords-and-defaults)
-	 (invalid-keywords-and-values? #'?keywords-and-defaults)
-	 (%synner "invalid format for keywords and defaults in maker definition" #'?keywords-and-defaults))
+	((_ ?name ?maker-sexp ?keywords-defaults-options)
+	 (invalid-keywords-defaults-options? #'?keywords-defaults-options)
+	 (%synner "invalid clause format in maker definition" #'?keywords-defaults-options))
 
 	((_ (?name ?var ...) . ?forms)
 	 (not (for-all symbol? (syntax->datum #'(?var ...))))
@@ -89,14 +89,90 @@
       ;;
       (syntax-case stx ()
 	((_ (?name ?use-argument ...) (?maker ?fixed-argument ...) ((?keyword ?default ?option ...) ...))
-	 #'(define-syntax ?name
-	     (lambda (use)
-	       (syntax-case use ()
-		 ((_ ?use-argument ... . ?use-rest-args)
-		  #`(?maker ?fixed-argument ... ?use-argument ...
-			    #,@(parse-input-form-stx (quote ?name) use #'?use-rest-args
-						     #'((?keyword ?default ?option ...) ...)))))))
+	 (with-syntax ((((OPTION ...) ...) (map %parse-keyword-options
+					     (unwrap-syntax-object #'(?keyword ...))
+					     (unwrap-syntax-object #'((?option ...) ...)))))
+	   #'(define-syntax ?name
+	       (lambda (use)
+		 (syntax-case use ()
+		   ((_ ?use-argument ... . ?use-rest-args)
+		    #`(?maker ?fixed-argument ... ?use-argument ...
+			      #,@(parse-maker-input-form (quote ?name) use #'?use-rest-args
+							 #'((?keyword ?default OPTION ...) ...))))))))
 	 )))
+
+    (define (%parse-keyword-options keyword options-list)
+      ;;Parse the list of options for a maker keyword.  Accepted options
+      ;;are:
+      ;;
+      ;; (mandatory)		This option is mandatory.
+      ;; (optional)		This option is optional.
+      ;; (with ?id ...)		List of keywords required with this one.
+      ;; (without ?id ...)	List of keywords mutually exclusive with
+      ;;			this one.
+      ;;
+      ;;Return a  list of three  elements: a boolean specifying  if this
+      ;;option  is mandatory;  a  list of  identifiers representing  the
+      ;;keywords  with  which  this  keyword  must  appear;  a  list  of
+      ;;identifiers representing the keywords with which this keyword is
+      ;;mutually exclusive.
+      ;;
+      ;;If an  option is used  multiple times: the  last one is  the one
+      ;;that matters.
+      ;;
+      (let loop ((options-list	options-list)
+		 (mandatory?	#f)
+		 (with-list	'())
+		 (without-list	'()))
+	(if (null? options-list)
+	    (cond ((memp (lambda (id) (free-identifier=? id keyword)) with-list)
+		   (%synner "maker clause keyword used in its own list of companion clauses" keyword))
+		  ((memp (lambda (id) (free-identifier=? id keyword)) without-list)
+		   (%synner "maker clause keyword used in its own list of mutually exclusive clauses"
+			    keyword))
+		  ((intersection with-list without-list)
+		   => (lambda (result)
+			(%synner "maker clause includes the same keywords in both companion clauses and mutually exclusive clauses"
+				 (reverse result))))
+		  (else
+		   (list mandatory? with-list without-list)))
+	  (syntax-case (car options-list) (mandatory optional with without)
+	    ((mandatory)
+	     (loop (cdr options-list) #t with-list without-list))
+	    ((optional)
+	     (loop (cdr options-list) #f with-list without-list))
+	    ((with ?keyword ...)
+	     (all-identifiers? #'(?keyword ...))
+	     (loop (cdr options-list) mandatory?
+		   (unwrap-syntax-object #'(?keyword ...))
+		   without-list))
+	    ((without ?keyword ...)
+	     (all-identifiers? #'(?keyword ...))
+	     (loop (cdr options-list) mandatory? with-list
+		   (unwrap-syntax-object #'(?keyword ...))))
+	    (_
+	     (%synner (string-append "invalid options list for keyword \""
+				     (identifier->string keyword) "\"")
+		      options-list))))))
+
+    (define (intersection ell1 ell2)
+      (let ((result (fold-left (lambda (knil id1)
+				 (if (find (lambda (id2)
+					     (free-identifier=? id1 id2))
+					   ell2)
+				     (cons id1 knil)
+				   knil))
+			       '()
+			       ell1)))
+	(if (null? result) #f result)))
+
+    (define (invalid-keywords-defaults-options? keywords-defaults-options)
+      (let ((keywords-defaults-options (unwrap-syntax-object keywords-defaults-options)))
+	(not (and (list? keywords-defaults-options)
+		  (for-all (lambda (key-default-options)
+			     (and (identifier? (car key-default-options))
+				  (<= 2 (length key-default-options))))
+			   keywords-defaults-options)))))
 
     (define (%synner message subform)
       (syntax-violation 'define-maker
