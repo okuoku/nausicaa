@@ -100,19 +100,18 @@
   ;;Remove  the quoting  backslash characters  from STRING.   Return the
   ;;clean string.  See the tests in the test suite.
   ;;
-  (let ((len (string-length string)))
-    (let-values ( ;;((len) (string-length string)) ;workaround for a bug in mosh
-		 ((port getter)	(open-string-output-port)))
-      (do ((i 0 (+ 1 i)))
-	  ((= i len)
-	   (getter))
-	(let ((ch (string-ref string i))
-	      (i1 (+ 1 i)))
-	  (when (and (char=? #\\ ch)
-		     (not (= len i1)))
-	    (set! i i1)
-	    (set! ch (string-ref string i)))
-	  (put-char port ch))))))
+  (let-values (((len)		(string-length string))
+	       ((port getter)	(open-string-output-port)))
+    (do ((i 0 (+ 1 i)))
+	((= i len)
+	 (getter))
+      (let ((ch (string-ref string i))
+	    (i1 (+ 1 i)))
+	(when (and (char=? #\\ ch)
+		   (not (= len i1)))
+	  (set! i i1)
+	  (set! ch (string-ref string i)))
+	(put-char port ch)))))
 
 (define (display-name->string display-name)
   ;;Return  a   string  representation  of   DISPLAY-NAME  suitable  for
