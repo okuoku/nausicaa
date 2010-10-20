@@ -20,7 +20,9 @@ Topics
 
 This package distributes a  set of Scheme libraries defining
 an   augmented  R6RS   Scheme   language  and   implementing
-miscellaneous core features for a Scheme system.
+miscellaneous core features  for a Scheme system.  Currently
+it  attempts  to  support  Mosh,  Petite  Chez,  Vicare  and
+Ypsilon.
 
   For  a general introduction  of the  Nausicaa distribution
 see the file "README.nausicaa".
@@ -54,14 +56,35 @@ License   along   with    this   program.    If   not,   see
 4. Install
 ----------
 
-Basically we should do:
+After unpacking  the source distribution  archive, basically
+we should do:
 
-   $ cd scheme
+   $ cd nausicaa-0.2a2
    $ mkdir "=build"
    $ cd "=build"
-   $ ../configure
+   $ ../configure [options]
    $ make
    $ make install
+
+notice that,  by default, only support for  Vicare Scheme is
+turned on; to enable  support for a Scheme implementation we
+must use the following options for the "configure" script:
+
+  --enable-mosh		enables Mosh Scheme
+  --enable-petite	enables Petite Scheme
+  --enable-vicare	enables Vicare Scheme
+  --enable-ypsilon	enables Ypsilon Scheme
+
+to disable  support for a Scheme implementation  we must use
+the following options:
+
+  --disable-mosh	disables Mosh Scheme
+  --disable-petite	disables Petite Scheme
+  --disable-vicare	disables Vicare Scheme
+  --disable-ypsilon	disables Ypsilon Scheme
+
+we have  to remember that  Petite Scheme does  *not* support
+the full foreign-functions interface.
 
   To test what a rule will do use the "-n" option; example:
 

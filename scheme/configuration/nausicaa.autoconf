@@ -172,10 +172,10 @@ AC_DEFUN([NAUSICAA_OPTIONS],
    NAU_DS_ENABLE_OPTION([nausicaa_ENABLE_PETITE],[petite],[no],
      [whether usage of Petite Chez Scheme is enabled],
      [disable usage of Petite Chez Scheme])
-   NAU_DS_ENABLE_OPTION([nausicaa_ENABLE_VICARE],[vicare],[no],
+   NAU_DS_ENABLE_OPTION([nausicaa_ENABLE_VICARE],[vicare],[yes],
      [whether usage of Vicare Scheme is enabled],
      [disable usage of Vicare Scheme])
-   NAU_DS_ENABLE_OPTION([nausicaa_ENABLE_YPSILON],[ypsilon],[yes],
+   NAU_DS_ENABLE_OPTION([nausicaa_ENABLE_YPSILON],[ypsilon],[no],
      [whether usage of Ypsilon Scheme is enabled],
      [disable usage of Ypsilon Scheme])
 
