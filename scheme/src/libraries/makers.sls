@@ -89,9 +89,12 @@
       ;;
       (syntax-case stx ()
 	((_ (?name ?use-argument ...) (?maker ?fixed-argument ...) ((?keyword ?default ?option ...) ...))
-	 (with-syntax ((((OPTION ...) ...) (map %parse-keyword-options
-					     (unwrap-syntax-object #'(?keyword ...))
-					     (unwrap-syntax-object #'((?option ...) ...)))))
+	 (with-syntax ((((OPTION ...) ...)
+			(let ((list-of-keywords (unwrap-syntax-object #'(?keyword ...))))
+			  (map (lambda (keyword options-list)
+				 (%parse-keyword-options keyword options-list list-of-keywords))
+			    list-of-keywords
+			    (unwrap-syntax-object #'((?option ...) ...))))))
 	   #'(define-syntax ?name
 	       (lambda (use)
 		 (syntax-case use ()
@@ -101,7 +104,7 @@
 							 #'((?keyword ?default OPTION ...) ...))))))))
 	 )))
 
-    (define (%parse-keyword-options keyword options-list)
+    (define (%parse-keyword-options keyword options-list list-of-keywords)
       ;;Parse the list of options for a maker keyword.  Accepted options
       ;;are:
       ;;
@@ -135,6 +138,14 @@
 			(%synner "maker clause includes the same keywords in both companion clauses and mutually exclusive clauses"
 				 (reverse result))))
 		  (else
+		   (for-each (lambda (k)
+			       (unless (memp (lambda (id) (free-identifier=? k id)) list-of-keywords)
+				 (%synner "unknown keyword in list of companion clauses" k)))
+		     with-list)
+		   (for-each (lambda (k)
+			       (unless (memp (lambda (id) (free-identifier=? k id)) list-of-keywords)
+				 (%synner "unknown keyword in list of mutually exclusive clauses" k)))
+		     without-list)
 		   (list mandatory? with-list without-list)))
 	  (syntax-case (car options-list) (mandatory optional with without)
 	    ((mandatory)

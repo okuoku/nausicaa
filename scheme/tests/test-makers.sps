@@ -821,6 +821,32 @@
 	      (environment '(rnrs) '(makers))))
     => '("maker clause includes the same keywords in both companion clauses and mutually exclusive clauses" (beta gamma)))
 
+  (check	;unknown option in "with" clauses
+      (guard (E ((syntax-violation? E)
+		 (list (condition-message E) (syntax-violation-subform E)))
+		(else
+		 (write E)(newline)
+		 #f))
+	(eval '(define-maker doit
+		 list ((alpha	1 (with beta delta gamma))
+		       (beta	2)
+		       (gamma	3)))
+	      (environment '(rnrs) '(makers))))
+    => '("unknown keyword in list of companion clauses" delta))
+
+  (check	;unknown option in "without" clauses
+      (guard (E ((syntax-violation? E)
+		 (list (condition-message E) (syntax-violation-subform E)))
+		(else
+		 (write E)(newline)
+		 #f))
+	(eval '(define-maker doit
+		 list ((alpha	1 (without beta delta gamma))
+		       (beta	2)
+		       (gamma	3)))
+	      (environment '(rnrs) '(makers))))
+    => '("unknown keyword in list of mutually exclusive clauses" delta))
+
   #t)
 
 
