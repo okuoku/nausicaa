@@ -116,6 +116,15 @@
 		    (list-ref key-default-options 4))))
       arguments-stx)
 
+    ;;Check that each clause has been used at most once.
+    ;;
+    ;;We put this here rather than  in the loop above because we need to
+    ;;be sure that ARGUMENTS-STX has a valid format.
+    (for-each (lambda (key-and-value)
+		(unless (= 1 (%count (car key-and-value) arguments-stx))
+		  (%synner "maker clause used multiple times" (car key-and-value))))
+      arguments-stx)
+
     ;;Check that all the mandatory clauses are present in ARGUMENTS-STX.
     (for-each (lambda (key-default-options)
 		(when (caddr key-default-options)
@@ -139,6 +148,18 @@
 		       arguments-stx)
 	       (cadr key-default-options)))
       keywords-defaults-options))
+
+  (define (%count id unwrapped-arguments-stx)
+    ;;Return the count of ID in UNWRAPPED-ARGUMENTS-STX.
+    ;;
+    (let loop ((ell unwrapped-arguments-stx)
+	       (i   0))
+      (if (null? ell)
+	  i
+	(loop (cdr ell)
+	      (if (free-identifier=? id (caar ell))
+		  (+ i 1)
+		i)))))
 
   (define (%keywords-join keywords-defaults-options)
     ;;Given  an  alist  of  keywords,  defaults and  options:  join  the

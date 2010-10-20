@@ -718,6 +718,21 @@
 	      (environment '(rnrs) '(makers))))
     => "expected list of two values as maker clause")
 
+  (check	;clause used multiple times
+      (guard (E ((syntax-violation? E)
+		 (list (condition-message E) (syntax-violation-subform E)))
+		(else
+		 (write E)(newline)
+		 #f))
+	(eval '(let ()
+		 (define-maker doit
+		   list ((alpha	1)
+			 (beta	2)
+			 (gamma	3)))
+		 (doit (alpha 10) (alpha 11)))
+	      (environment '(rnrs) '(makers))))
+    => '("maker clause used multiple times" alpha))
+
 
   #t)
 

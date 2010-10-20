@@ -363,6 +363,9 @@ When the new macro is used with optional auxiliary syntaxes, the
 expressions in the synaxes, or the default expressions, are appended to
 the output form in the same order as the corresponding syntaxes in
 @var{keywords-defaults-options}.
+
+It is an error if the generated maker is invoked with a clause used
+multiple times.
 @end deffn
 
 
