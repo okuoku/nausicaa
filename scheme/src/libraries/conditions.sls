@@ -1,4 +1,4 @@
-;;; -*- coding: utf-8-unix -*-
+;;; -*- coding: utf-8 -*-
 ;;;
 ;;;Part of: Nausicaa/Scheme
 ;;;Contents: predefined condition types
@@ -25,6 +25,7 @@
 ;;;
 
 
+#!r6rs
 (library (conditions)
   (export
 
@@ -45,6 +46,7 @@
     raise-unimplemented-error)
   (import (rnrs)
     (unimplemented)
+    (makers)
     (only (auxiliary-syntaxes) parent fields)
     (for (syntax-utilities) expand))
 

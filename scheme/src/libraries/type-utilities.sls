@@ -37,7 +37,7 @@
     )
   (import (rnrs)
     (makers)
-    (prefix (syntax-utilities) synux.)
+    (for (prefix (syntax-utilities) synux.) expand run)
     (only (language-extensions) define-inline))
 
 

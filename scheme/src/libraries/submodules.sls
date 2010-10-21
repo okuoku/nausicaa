@@ -30,12 +30,12 @@
   (export submodule export prefix)
   (import (rnrs)
     (only (language-extensions) define-values)
-    (only (syntax-utilities)
-	  unwrap-syntax-object
-	  identifier-suffix
-	  all-identifiers?
-	  identifier-general-append
-	  define-auxiliary-syntax))
+    (only (syntax-utilities) define-auxiliary-syntax)
+    (for (only (syntax-utilities)
+	       unwrap-syntax-object
+	       identifier-suffix
+	       all-identifiers?
+	       identifier-general-append) expand))
 
 
 (define-auxiliary-syntax export)

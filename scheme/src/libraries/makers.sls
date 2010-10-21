@@ -34,7 +34,7 @@
     ;;loaded for  expand, because  the functions are  used by  the newly
     ;;defined macros, not only by DEFINE-MAKER.
     (for (makers helpers) expand)
-    (for (syntax-utilities) expand))
+    (for (syntax-utilities) expand run))
 
   (define-auxiliary-syntax mandatory optional with without)
 
