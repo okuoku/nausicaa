@@ -392,6 +392,9 @@
      (begin
        (define-syntax ?name0 (syntax-rules ()))
        (define-auxiliary-syntax ?name ...)))
+    ((_)	;allows this  syntax to be called with  no arguments and
+		;still expand to a definition
+     (define-syntax dummy (syntax-rules ())))
     ))
 
 
