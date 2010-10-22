@@ -71,11 +71,16 @@ fixed nor variable arguments, only optional clauses arguments:
             (+ 6 (* 2 b))
             3)
   #f)
+
+(doit (:alpha 10 20 30))
+@expansion{} (list 1 (list 10 20 30) 3)
 @end example
 
 @noindent
-the following examples show the expansion of a maker with both fixed and
-variable arguments, plus optional clauses arguments:
+notice the last example: when multiple values are used in an argument's
+clause, they are enclosed in a @func{list} form; the following examples
+show the expansion of a maker with both fixed and variable arguments,
+plus optional clauses arguments:
 
 @example
 (import (rnrs) (makers))
@@ -169,6 +174,35 @@ us to detect whether an optional argument was used or not:
 (doit (:alpha 10))      @result{} (10  2  3)
 (doit (:beta  20))      @result{} ( 1 20  3)
 (doit (:gamma 30))      @result{} ( 1  2 30)
+@end example
+
+@noindent
+and also to ``unpack'' multiple values used in the same argument clause:
+
+@example
+(import (rnrs) (makers) (sentinel))
+
+(define-auxiliary-syntax :alpha :beta :gamma)
+
+(define-maker doit
+  subdoit ((:alpha  1)
+           (:beta   2)
+           (:gamma  3)))
+
+(define-syntax subdoit
+  (lambda (stx)
+    (syntax-case stx (list)
+      ((_ ?alpha (list ?beta0 ...) ?gamma)
+       #'(list ?alpha ?beta0 ... ?gamma))
+      ((_ ?alpha ?beta ?gamma)
+       #'(list ?alpha ?beta ?gamma))
+      )))
+
+(check
+    (doit (:alpha 10)
+          (:beta #\a #\b #\c)
+          (:gamma 30))
+  => '(10 #\a #\b #\c 30))
 @end example
 
 We can define a maker in the body of a library and export it; we just

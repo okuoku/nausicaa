@@ -1,4 +1,4 @@
-;;; -*- coding: utf-8-unix -*-
+;;; -*- coding: utf-8 -*-
 ;;;
 ;;;Part of: Nausicaa/Scheme
 ;;;Contents: helper functions for makers
@@ -25,10 +25,11 @@
 ;;;
 
 
+#!r6rs
 (library (makers helpers)
   (export parse-maker-input-form)
   (import (rnrs)
-    (for (only (rnrs) quote quasiquote syntax quasisyntax) (meta -1))
+    (for (prefix (only (rnrs) list) rnrs.) (meta -1))
     (only (syntax-utilities) unwrap-syntax-object identifier->string))
 
 
@@ -46,7 +47,7 @@
   ;;ARGUMENTS-STX must be a syntax  objects holding a list of clauses in
   ;;the form:
   ;;
-  ;;	((?keyword ?value) ...)
+  ;;	((?keyword ?value0 ?value ...) ...)
   ;;
   ;;where ?KEYWORD  is an identifier;  this list represents the  list of
   ;;clauses given in a maker invocation.
@@ -70,22 +71,22 @@
   ;;appears along with one of the clauses in the "without" list.
   ;;
   (define (main arguments-stx keywords-defaults-options)
-    (for-each (lambda (key-and-value)
+    (for-each (lambda (key-and-values)
 		;;Make sure that ARGUMENTS-STX has the correct format.
-		(unless (pair? key-and-value)
-		  (%synner "expected pair as maker clause" key-and-value))
-		(unless (identifier? (car key-and-value))
-		  (%synner "expected identifier as first element of maker clause" key-and-value))
-		(unless (null? (cddr key-and-value))
-		  (%synner "expected list of two values as maker clause" key-and-value))
+		(unless (pair? key-and-values)
+		  (%synner "expected pair as maker clause" key-and-values))
+		(unless (identifier? (car key-and-values))
+		  (%synner "expected identifier as first element of maker clause" key-and-values))
+		(unless (<= 2 (length key-and-values))
+		  (%synner "expected list of two or more values as maker clause" key-and-values))
 
 		;;Make  sure  that  ARGUMENTS-STX  only  holds  subforms
 		;;starting with  a keyword in KEYWORDS-DEFAULTS-OPTIONS;
 		;;any order is allowed.
-		(let* ((keyword             (car key-and-value))
+		(let* ((keyword             (car key-and-values))
 		       (key-default-options (find (lambda (key-default-options)
 						    (keyword=? keyword (car key-default-options)))
-						  keywords-defaults-options)))
+					      keywords-defaults-options)))
 		  (unless key-default-options
 		    (%synner (string-append "unrecognised argument keyword, expected one among: "
 					    (%keywords-join keywords-defaults-options))
@@ -94,9 +95,9 @@
 		  ;;Check  that  this clause  has  been  used along  the
 		  ;;"with" clauses.
 		  (for-each (lambda (with-keyword)
-			      (unless (exists (lambda (key-and-value)
-						(keyword=? with-keyword (car key-and-value)))
-					      arguments-stx)
+			      (unless (exists (lambda (key-and-values)
+						(keyword=? with-keyword (car key-and-values)))
+					arguments-stx)
 				(%synner (string-append "maker clause \""
 							(identifier->string keyword)
 							"\" used without companion clause")
@@ -106,9 +107,9 @@
 		  ;;Check that  this clause has NOT been  used along the
 		  ;;"without" clauses.
 		  (for-each (lambda (without-keyword)
-			      (when (exists (lambda (key-and-value)
-					      (keyword=? without-keyword (car key-and-value)))
-					    arguments-stx)
+			      (when (exists (lambda (key-and-values)
+					      (keyword=? without-keyword (car key-and-values)))
+				      arguments-stx)
 				(%synner (string-append "maker clause \""
 							(identifier->string keyword)
 							"\" used with mutually exclusive clause")
@@ -120,32 +121,36 @@
     ;;
     ;;We put this here rather than  in the loop above because we need to
     ;;be sure that ARGUMENTS-STX has a valid format.
-    (for-each (lambda (key-and-value)
-		(unless (= 1 (%count (car key-and-value) arguments-stx))
-		  (%synner "maker clause used multiple times" (car key-and-value))))
+    (for-each (lambda (key-and-values)
+		(unless (= 1 (%count (car key-and-values) arguments-stx))
+		  (%synner "maker clause used multiple times" (car key-and-values))))
       arguments-stx)
 
     ;;Check that all the mandatory clauses are present in ARGUMENTS-STX.
     (for-each (lambda (key-default-options)
 		(when (caddr key-default-options)
 		  (let ((keyword (car key-default-options)))
-		    (unless (exists (lambda (key-and-value)
-				      (keyword=? keyword (car key-and-value)))
-				    arguments-stx)
+		    (unless (exists (lambda (key-and-values)
+				      (keyword=? keyword (car key-and-values)))
+			      arguments-stx)
 		      (%synner "missing mandatory maker clause" keyword)))))
       keywords-defaults-options)
 
     ;;Build  and return a  list of  arguments' syntax  objects, possibly
     ;;using the given defaults.
     (map (lambda (key-default-options)
-	   (or (exists (lambda (key-and-value)
-			 ;; (and (eq? (syntax->datum (car key-default-options))
-			 ;; 	   (syntax->datum (car key-and-value)))
-			 ;;      (cadr key-and-value))
-			 (and (free-identifier=? (car key-default-options)
-						 (car key-and-value))
-			      (cadr key-and-value)))
-		       arguments-stx)
+	   (or (let ((vals (exists (lambda (key-and-values)
+				     ;; (and (eq? (syntax->datum (car key-default-options))
+				     ;; 	   (syntax->datum (car key-and-values)))
+				     ;;      (cadr key-and-values))
+				     (and (free-identifier=? (car key-default-options)
+							     (car key-and-values))
+					  (cdr key-and-values)))
+			     arguments-stx)))
+		 (and vals (if (< 1 (length vals))
+			       (cons #'rnrs.list vals)
+			     (car vals))))
+	       ;;If not clause in the arguments: get the default.
 	       (cadr key-default-options)))
       keywords-defaults-options))
 

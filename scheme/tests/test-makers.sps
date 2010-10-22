@@ -91,6 +91,10 @@
 		(:alpha	(+ 2 8))))
       => '(10 20 3))
 
+    (check
+	(doit (:beta 10 20 30 40))
+      => '(1 (10 20 30 40) 3))
+
     #f)
 
 ;;; --------------------------------------------------------------------
@@ -320,7 +324,7 @@
 
 ;;; --------------------------------------------------------------------
 
-  (let ()	;detecing ungiven argument
+  (let ()	;detecting ungiven argument
 
     (define-maker doit
       subdoit ((:alpha	1)
@@ -352,6 +356,32 @@
     (check
     	(doit (:gamma 30))
       => '(1 2 30))
+
+    #f)
+
+;;; --------------------------------------------------------------------
+
+  (let ()	;unpacking multiple argument values
+
+    (define-maker doit
+      subdoit ((:alpha	1)
+	       (:beta	2)
+	       (:gamma	3)))
+
+    (define-syntax subdoit
+      (lambda (stx)
+	(syntax-case stx (list)
+	  ((_ ?alpha (list ?beta0 ...) ?gamma)
+	   #'(list ?alpha ?beta0 ... ?gamma))
+	  ((_ ?alpha ?beta ?gamma)
+	   #'(list ?alpha ?beta ?gamma))
+	  )))
+
+    (check
+	(doit (:alpha 10)
+	      (:beta #\a #\b #\c)
+	      (:gamma 30))
+      => '(10 #\a #\b #\c 30))
 
     #f)
 
@@ -714,9 +744,9 @@
 		   ((alpha	1)
 		    (beta	2)
 		    (gamma	3)))
-		 (doit (alpha 9 10)))
+		 (doit (alpha)))
 	      (environment '(rnrs) '(makers))))
-    => "expected list of two values as maker clause")
+    => "expected list of two or more values as maker clause")
 
   (check	;clause used multiple times
       (guard (E ((syntax-violation? E)
