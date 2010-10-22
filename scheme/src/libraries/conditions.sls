@@ -40,106 +40,116 @@
     condition-wrong-num-args/expected
     condition-wrong-num-args/given
     raise-wrong-num-args-error
+    procname expected given
 
     ;; unimplemented
     &unimplemented make-unimplemented-condition unimplemented-condition?
     raise-unimplemented-error)
   (import (rnrs)
+    (sentinel)
     (unimplemented)
     (makers)
     (only (auxiliary-syntaxes) parent fields)
-    (for (syntax-utilities) expand))
+    (for (only (syntax-utilities) all-identifiers?) expand)
+    (for (only (syntax-utilities) define-auxiliary-syntax) run))
 
 
-(define-syntax define-condition
-  (syntax-rules ()
-    ((_ ?name ?clause ...)
-     (%define-condition/collect-clauses (quote (define-condition ?name ?clause ...))
-					?name
-					() ;parent
-					() ;fields
-					?clause ...))))
+(define-maker (define-condition name)
+  %define-condition
+  ((parent &error)
+   (fields sentinel)))
 
-(define-syntax %define-condition/collect-clauses
+(define-syntax %define-condition
   (lambda (stx)
-    (define (synner message subform/stx)
-      (syntax-violation 'define-condition message (syntax->datum stx) (syntax->datum subform/stx)))
+    (define (main)
+      (syntax-case stx (list sentinel)
+	((_ ?name ?parent (list ?field ...))
+	 (begin
+	   (unless (identifier? #'?name)
+	     (%synner "expected identifier as condition name" #'?name))
+	   (unless (identifier? #'?parent)
+	     (%synner "expected identifier as condition parent name" #'(parent ?parent)))
+	   (unless (all-identifiers? #'(?field ...))
+	     (%synner "expected identifiers as condition field names" #'(fields ?field ...)))
 
-    (syntax-case stx (parent fields)
+	   (let ((name-str (%name-stx->name-str #'?name)))
+	     (with-syntax
+		 ((CONSTRUCTOR		(%name-str->constructor-name-stx #'?name name-str))
+		  (PREDICATE		(%name-str->predicate-name-stx   #'?name name-str))
+		  ((ACCESSOR ...)	(%accessors-stx #'?name name-str #'(?field ...)))
+		  (RAISE-STX-NAME	(%name-str->raise-syntax-name #'?name name-str)))
+	       #'(begin
+		   (define-condition-type ?name ?parent CONSTRUCTOR PREDICATE (?field ACCESSOR) ...)
 
-      ;; no more clauses
-      ((_ ?input-form ?name (?par ...) (?fie ...))
-       #'(%define-condition/fix-parent ?input-form ?name (?par ...) (?fie ...)))
+		   (define-auxiliary-syntax ?field ...)
 
-      ;; error if PARENT given twice
-      ((_ ?input-form ?name (?par) (?fie ...) (parent ?parent) ?clause ...)
-       (synner "PARENT clause given twice in condition type definition" #'(parent ?parent)))
+		   (define-maker (RAISE-STX-NAME who message)
+		     raise-it
+		     ((?field (syntax-violation 'RAISE-STX-NAME "missing field value" '?field)) ...))
 
-      ;; collect PARENT clause
-      ((_ ?input-form ?name () (?fie ...) (parent ?parent) ?clause ...)
-       #'(%define-condition/collect-clauses ?input-form ?name (?parent) (?fie ...) ?clause ...))
+		   (define-syntax raise-it
+		     (syntax-rules ()
+		       ((_ ?who ?message ?field ...)
+			(raise
+			 (condition (make-who-condition ?who)
+				    (make-message-condition ?message)
+				    (CONSTRUCTOR ?field ...)
+				    (make-non-continuable-violation))))))
+		   )))))
+	((?k ?name ?parent sentinel)
+	 #'(?k ?name ?parent (list)))
+	((?k ?name ?parent ?field)
+	 #'(?k ?name ?parent (list ?field)))
+	))
 
-      ;; error if FIELDS given twice
-      ((_ ?input-form ?name (?par ...) (?fie0 ?fie ...) (fields ?field ...) ?clause ...)
-       (synner "FIELDS clause given twice in condition type definition" #'(fields ?field ...)))
-
-      ;; error if field names are not identifiers
-      ((_ ?input-form ?name (?par ...) () (fields ?field ...) ?clause ...)
-       (not (all-identifiers? #'(?field ...)))
-       (synner "condition type field specification must be an identifier" #'(fields ?field ...)))
-
-      ;; collect FIELDS clause
-      ((_ ?input-form ?name (?par ...) () (fields ?field ...) ?clause ...)
-       #'(%define-condition/collect-clauses ?input-form ?name (?par ...) (?field ...) ?clause ...))
-      )))
-
-(define-syntax %define-condition/fix-parent
-  ;;If there is no parent, default to "&error"
-  ;;
-  (syntax-rules ()
-    ((_ ?input-form ?name () (?fie ...))
-     (%define-condition/output ?input-form ?name &error (?fie ...)))
-    ((_ ?input-form ?name (?parent) (?fie ...))
-     (%define-condition/output ?input-form ?name ?parent (?fie ...)))))
-
-(define-syntax %define-condition/output
-  (lambda (stx)
-    (define (%type-name->name type-name)
-      (let ((string-name (symbol->string type-name)))
+    (define (%name-stx->name-str type-name-stx)
+      ;;Given an identifier representing the condition object type name,
+      ;;check if  its first character is  an ampersand: if  it is return
+      ;;the name itself, as a string, with the ampersand stripped; if it
+      ;;is not, raise a syntax violation.
+      ;;
+      (let ((string-name (symbol->string (syntax->datum type-name-stx))))
 	(if (char=? #\& (string-ref string-name 0))
 	    (substring string-name 1 (string-length string-name))
-	  (assertion-violation 'define-condition
-	    "condition type name must begin with \"&\" character" type-name))))
-    (define (%name->constructor-name name)
-      (string->symbol (string-append "make-" name "-condition")))
-    (define (%name->predicate-name name)
-      (string->symbol (string-append name "-condition?")))
-    (define (%accessors name fields-stx)
-      (map (lambda (field)
-	     (string->symbol (string-append "condition-" name "/" (symbol->string field))))
-	(syntax->datum fields-stx)))
-    (define (%raise-syntax-name name)
-      (string->symbol (string-append "raise-" name "-error")))
-    (syntax-case stx ()
-      ((_ ?input-form ?name ?parent (?field ...))
-       (let ((name (%type-name->name (syntax->datum #'?name))))
-	 (with-syntax ((CONSTRUCTOR	(datum->syntax #'?name (%name->constructor-name name)))
-		       (PREDICATE	(datum->syntax #'?name (%name->predicate-name name)))
-		       ((ACCESSOR ...)	(datum->syntax #'?name (%accessors name #'(?field ...))))
-		       (RAISE-STX-NAME	(datum->syntax #'?name (%raise-syntax-name name))))
-	   #'(begin
-	       (define-condition-type ?name ?parent CONSTRUCTOR PREDICATE
-		 (?field ACCESSOR) ...)
+	  (%synner "condition type name must begin with \"&\" character" type-name-stx))))
 
-	       (define-syntax RAISE-STX-NAME
-		 (syntax-rules ()
-		   ((_ ?who ?message ?field ...)
-		    (raise
-		     (condition (make-who-condition ?who)
-				(make-message-condition ?message)
-				(CONSTRUCTOR ?field ...)
-				(make-non-continuable-violation))))))
-	       )))))))
+    (define (%name-str->constructor-name-stx lexical-context name-str)
+      ;;Given the condition type name as a string, return an identifier,
+      ;;in  LEXICAL-CONTEXT,  representing  the  name of  the  condition
+      ;;object's constructor.
+      ;;
+      (datum->syntax lexical-context (string->symbol (string-append "make-" name-str "-condition"))))
+
+    (define (%name-str->predicate-name-stx lexical-context name-str)
+      ;;Given the condition type name as a string, return an identifier,
+      ;;in  LEXICAL-CONTEXT,  representing  the  name of  the  condition
+      ;;object's predicate.
+      ;;
+      (datum->syntax lexical-context (string->symbol (string-append name-str "-condition?"))))
+
+    (define (%accessors-stx lexical-context name-str fields-stx)
+      ;;Given the  condition type name as  a string and  a syntax object
+      ;;holding a list of field  names, return a list of identifiers, in
+      ;;LEXICAL-CONTEXT,  representing   the  names  of   the  condition
+      ;;object's fields accessors.
+      ;;
+      (map (lambda (field-symbol)
+	     (datum->syntax lexical-context
+			    (string->symbol (string-append "condition-" name-str "/"
+							   (symbol->string field-symbol)))))
+	(syntax->datum fields-stx)))
+
+    (define (%name-str->raise-syntax-name lexical-context name-str)
+      ;;Given the condition type name as a string, return an identifier,
+      ;;in LEXICAL-CONTEXT, representing the  name of the syntax used to
+      ;;raise a compound condition object holding the type.
+      ;;
+      (datum->syntax lexical-context (string->symbol (string-append "raise-" name-str "-error"))))
+
+    (define (%synner message subform)
+      (syntax-violation 'define-condition message (syntax->datum stx) (syntax->datum subform)))
+
+    (main)))
 
 
 (define-condition &mismatch

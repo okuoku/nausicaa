@@ -72,7 +72,7 @@
   (fields pattern form))
 
 (define-inline (sexp-mismatch-error ?who ?pattern ?form)
-  (raise-sexp-mismatch-error ?who "S-expressions mismatch" ?pattern ?form))
+  (raise-sexp-mismatch-error ?who "S-expressions mismatch" (pattern ?pattern) (form ?form)))
 
 
 (define (sexp-match pattern form)

@@ -1,4 +1,4 @@
-;;; -*- coding: utf-8-unix -*-
+;;; -*- coding: utf-8 -*-
 ;;;
 ;;;Part of: Nausicaa/Scheme
 ;;;Contents: condition object typedefs
@@ -25,6 +25,7 @@
 ;;;
 
 
+#!r6rs
 (library (libraries conditions)
   (export
     &libraries-error
@@ -41,7 +42,8 @@
   (import (nausicaa))
 
 
-(define-condition &libraries-error (parent &error))
+(define-condition &libraries-error
+  (parent &error))
 
 (define-condition &library-not-found
   (parent &libraries-error)

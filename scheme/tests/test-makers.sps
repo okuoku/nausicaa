@@ -383,6 +383,12 @@
 	      (:gamma 30))
       => '(10 #\a #\b #\c 30))
 
+    (check
+	(doit (:alpha 10)
+	      (:beta #\a)
+	      (:gamma 30))
+      => '(10 #\a 30))
+
     #f)
 
   #t)
