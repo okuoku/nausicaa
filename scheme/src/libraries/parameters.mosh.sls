@@ -7,7 +7,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009, 2010 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -26,15 +26,9 @@
 
 #!r6rs
 (library (parameters)
-  (export make-parameter
-	  (rename (%parameterize parameterize)
-		  (%parameterize parameterise)
-		  (%parameterize parametrise)))
-  (import (rnrs)
-    (only (system) make-parameter parameterize))
-  (define-syntax %parameterize
-    (syntax-rules ()
-      ((_ ?bindings . ?body)
-       (parameterize ?bindings (let () . ?body))))))
+  (export make-parameter parameterize
+	  (rename (parameterize parameterise)
+		  (parameterize parametrise)))
+  (import (only (system) make-parameter parameterize)))
 
 ;;; end of file
