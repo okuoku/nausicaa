@@ -36,13 +36,19 @@ PROJECTS	= $(shell bash print-projects.sh)
 
 ## ------------------------------------------------------------
 
-CP		= cp --force --verbose --preserve=mode --
+CP		= cp -vp --
+#CP		= cp --force --verbose --preserve=mode --
 GIT		= git
-MKDIR		= mkdir --parents --verbose
-MV		= mv --verbose --
-RM		= rm --force --recursive --verbose --
-RM_SILENT	= rm --force --recursive --
-RMDIR		= rmdir --parents --ignore-fail-on-non-empty --
+#MKDIR		= mkdir --parents --verbose
+MKDIR		= mkdir -p
+#MV		= mv --verbose --
+MV		= mv -v --
+RM		= rm -rfv --
+#RM		= rm --force --recursive --verbose --
+RM_SILENT	= rm -rf --
+#RM_SILENT	= rm --force --recursive --
+RMDIR		= rm -rf --
+#RMDIR		= rmdir --parents --ignore-fail-on-non-empty --
 TAR		= tar
 
 ## ------------------------------------------------------------
