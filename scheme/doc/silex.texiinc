@@ -211,7 +211,7 @@ following formats are accepted:
 A string, including the parentheses.  Example:
 
 @example
-library-spec: "(calc-lexer)"
+(library-spec: "(calc-lexer)")
 ; -> (library (calc-lexer) ---)
 @end example
 
@@ -220,7 +220,7 @@ A symbol, which will be converted to string and to which parentheses
 will be added.  Example:
 
 @example
-library-spec: 'calc-lexer
+(library-spec: 'calc-lexer)
 ; -> (library (calc-lexer) ---)
 @end example
 
@@ -228,7 +228,7 @@ library-spec: 'calc-lexer
 A list of values, which will be simply converted to string.  Example:
 
 @example
-library-spec: '(calc-lexer)
+(library-spec: '(calc-lexer))
 ; -> (library (calc-lexer) ---)
 @end example
 @end itemize
@@ -245,7 +245,7 @@ specifications; for example, if we want to include the
 @library{sentinel} and @library{parameters} libraries we do:
 
 @example
-library-imports: '((sentinel) (parameters))
+(library-imports: '((sentinel) (parameters)))
 @end example
 
 If the lexer table is written to a proper Scheme library:
