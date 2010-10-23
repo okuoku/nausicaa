@@ -400,6 +400,21 @@ the output form in the same order as the corresponding syntaxes in
 
 It is an error if the generated maker is invoked with a clause used
 multiple times.
+
+When the clause of a generated maker is used with multiple values: the
+values are enclosed in a @func{list} form and the result is used as
+argument for the maker expression; for example:
+
+@example
+(import (rnrs) (makers))
+
+(define-auxiliary-syntax alpha:)
+
+(define-maker doit
+  vector ((alpha: 1 2 3)))
+
+(doit (alpha: 10 20 30)) @expansion{} (vector (list 1 2 3))
+@end example
 @end deffn
 
 
