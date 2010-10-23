@@ -1,4 +1,4 @@
-;;; -*- coding: utf-8-unix -*-
+;;; -*- coding: utf-8 -*-
 ;;;
 ;;;Part of: Nausicaa/Scheme
 ;;;Contents: infix string lexer specification for (silex)
@@ -25,19 +25,20 @@
 ;;;
 
 
+#!r6rs
 (import (nausicaa)
-  (silex)
+  (prefix (silex) lex.)
   (lalr))
 
-(lex (:input-file	"string-lexer.l")
-     (:output-file	"string-lexer.sls")
-     (:library-spec	"(infix string-lexer)")
-     (:library-imports	'((lalr lr-driver)
-			  (parser-tools lexical-token)
-			  (parser-tools source-location)))
-     (:table-name	'infix-string-lexer-table)
-     (:lexer-format	'code)
-     (:counters		'all))
+(lex.lex (lex.input-file:	"string-lexer.l")
+	 (lex.output-file:	"string-lexer.sls")
+	 (lex.library-spec:	"(infix string-lexer)")
+	 (lex.library-imports:	'((lalr lr-driver)
+				  (parser-tools lexical-token)
+				  (parser-tools source-location)))
+	 (lex.table-name:	'infix-string-lexer-table)
+	 (lex.lexer-format:	'code)
+	 (lex.counters:		'all))
 
 ;;; --------------------------------------------------------------------
 
@@ -47,12 +48,12 @@
 
 (lalr-parser
 
- (:output-file		"string-parser.sls")
- (:parser-name		'make-infix-string-parser)
- (:library-spec		'(infix string-parser))
-;;; (:library-imports	'((rnrs eval)))
+ (output-file:		"string-parser.sls")
+ (parser-name:		'make-infix-string-parser)
+ (library-spec:		'(infix string-parser))
+;;; (library-imports:	'((rnrs eval)))
 
- (:terminals	'(ID QUESTION-ID COLON-ID NUM LPAREN RPAREN COMMA
+ (terminals:	'(ID QUESTION-ID COLON-ID NUM LPAREN RPAREN COMMA
 		     (left: ADD SUB)
 		     (left: MUL DIV DIV0)
 		     (left: MOD)
@@ -61,7 +62,7 @@
 		     (nonassoc: UADD)
 		     (nonassoc: USUB)))
 
- (:rules '((expr		(expr ADD expr)		: (list $2 $1 $3)
+ (rules: '((expr		(expr ADD expr)		: (list $2 $1 $3)
 				(expr SUB expr)		: (list $2 $1 $3)
 				(expr DIV expr)		: (list $2 $1 $3)
 				(expr MUL expr)		: (list $2 $1 $3)
@@ -92,11 +93,11 @@
 
 (lalr-parser
 
- (:output-file		"sexp-parser.sls")
- (:parser-name		'make-infix-sexp-parser)
- (:library-spec		'(infix sexp-parser))
+ (output-file:		"sexp-parser.sls")
+ (parser-name:		'make-infix-sexp-parser)
+ (library-spec:		'(infix sexp-parser))
 
- (:terminals	'(ID QUESTION-ID COLON-ID NUM LPAREN RPAREN
+ (terminals:	'(ID QUESTION-ID COLON-ID NUM LPAREN RPAREN
 		     (left: ADD SUB)
 		     (left: MUL DIV DIV0)
 		     (left: MOD)
@@ -105,7 +106,7 @@
 		     (nonassoc: UADD)
 		     (nonassoc: USUB)))
 
- (:rules '((expr	(expr ADD expr)		: (list $2 $1 $3)
+ (rules: '((expr	(expr ADD expr)		: (list $2 $1 $3)
 			(expr SUB expr)		: (list $2 $1 $3)
 			(expr DIV expr)		: (list $2 $1 $3)
 			(expr MUL expr)		: (list $2 $1 $3)

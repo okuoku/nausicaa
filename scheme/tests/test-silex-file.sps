@@ -24,6 +24,7 @@
 ;;;
 
 
+#!r6rs
 (import (nausicaa)
   (checks)
   (sentinel)
@@ -41,7 +42,7 @@
 (test-calc calc-lexer-table/tree)
 
 ;;Test getting the chars until the end.
-(let* ((IS		(lexer-make-IS (:string "1+2+3") (:counters 'line)))
+(let* ((IS		(lexer-make-IS (string: "1+2+3") (counters: 'line)))
        (lexer		(lexer-make-lexer calc-lexer-table/code IS))
        (lexer-getc	(lexer-get-func-getc IS))
        (lexer-ungetc	(lexer-get-func-ungetc IS)))

@@ -24,30 +24,31 @@
 ;;;
 
 
+#!r6rs
 (import (rnrs)
   (silex)
-  (lalr))
+  (prefix (lalr) lalr.))
 
 
-(lex (:input-file	"generic-lexer.l")
-     (:output-file	"generic-lexer.sls")
-     (:library-spec	'(uri generic-lexer))
-     (:library-imports	'((silex default-error-handler)
+(lex (input-file:	"generic-lexer.l")
+     (output-file:	"generic-lexer.sls")
+     (library-spec:	'(uri generic-lexer))
+     (library-imports:	'((silex default-error-handler)
 			  (parser-tools lexical-token)
 			  (parser-tools source-location)))
-     (:table-name	'uri-generic-lexer-table)
-     (:counters		'all))
+     (table-name:	'uri-generic-lexer-table)
+     (counters:		'all))
 
 
-(lalr-parser
+(lalr.lalr-parser
 
- (:output-file		"generic-parser.sls")
- (:parser-name		'make-uri-generic-parser)
- (:library-spec		'(uri generic-parser))
+ (lalr.output-file:		"generic-parser.sls")
+ (lalr.parser-name:		'make-uri-generic-parser)
+ (lalr.library-spec:		'(uri generic-parser))
 
- (:terminals		'(COLON SLASH QUESTION NUMBER-SIGN COMPONENT))
+ (lalr.terminals:		'(COLON SLASH QUESTION NUMBER-SIGN COMPONENT))
 
- (:rules
+ (lalr.rules:
   '((uri
 
 ;;;      scheme                   authority       path              query              fragment
@@ -91,14 +92,14 @@
 
 #;(lalr-parser
 
- (:output-file		"generic-parser.sls")
- (:parser-name		'make-uri-generic-parser)
- (:library-spec		'(uri generic-parser))
+ (output-file:		"generic-parser.sls")
+ (parser-name:		'make-uri-generic-parser)
+ (library-spec:		'(uri generic-parser))
 
- (:terminals		'(AT COLON QUESTION SHARP SLASH DOUBLE_SLASH OPEN_BRACKET CLOSE_BRACKET
+ (terminals:		'(AT COLON QUESTION SHARP SLASH DOUBLE_SLASH OPEN_BRACKET CLOSE_BRACKET
 			     SCHEME_STRING USERINFO_STRING IPVFUTURE_STRING))
 
- (:rules
+ (rules:
   '((uri
      (scheme COLON hier-part)		: #f
      (scheme COLON hier-part uri-tail)	: #f)

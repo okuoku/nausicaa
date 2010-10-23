@@ -105,9 +105,9 @@ not described here):
 ;;
 ;; The library exports the table bound to "calc-table".
 
-(lex (:input-file "calc.l") (:output-file "calc-lib.sls")
-     (:library-spec "(calc)")
-     (:table-name 'calc-table))
+(lex (input-file: "calc.l") (:output-file: "calc-lib.sls")
+     (library-spec: "(calc)")
+     (table-name: 'calc-table))
 
 
 ;; Generate a DEFINE form in that binds the lexer table
@@ -116,9 +116,9 @@ not described here):
 ;;
 ;; Use the Scheme code table format.
 
-(lex (:input-file "calc.l") (:output-file "calc-def.sls")
-     (:lexer-format 'code)
-     (:table-name 'calc-table))
+(lex (input-file: "calc.l") (output-file: "calc-def.sls")
+     (lexer-format: 'code)
+     (table-name: 'calc-table))
 
 ;; Generate the lexer table, evaluate it and return it
 ;; as value immediately usable.
@@ -137,7 +137,7 @@ fact that: When the input reaches the end, the lexer closure returns the
 
 @example
 (define (tokenize table string)
-  (let* ((IS    (lexer-make-IS (:string string)))
+  (let* ((IS    (lexer-make-IS (string: string)))
          (lexer (lexer-make-lexer table IS))
     (do ((token (lexer) (lexer))
          (out   '()))
@@ -160,12 +160,12 @@ fact that: When the input reaches the end, the lexer closure returns the
 The following bindings are exported by the @library{silex} library.
 
 
-@deffn Syntax lex @ameta{clause} ...
+@deffn Syntax lex @var{clause} ...
 Build a new lexer table from a lexer specification.  @ref{silex syntax,
 Syntax of the specification}
 
-The behaviour of this function is configured with the given
-@meta{clause} arguments; See below for the list of supported options.
+The behaviour of this function is configured with the given @var{clause}
+arguments; see below for the list of supported options.
 
 The specification can be loaded from a file, or read from a textual
 input port, or acquired from a Scheme string.
@@ -176,28 +176,28 @@ evaluated using the @library{rnrs eval} library and returned as value.
 @end deffn
 
 
-@deffn Clause :input-string @var{spec-str}
+@deffn {Auxiliary Syntax} input-string: @var{spec-str}
 Instruct @func{lex} to build the lexer tables from the specification in
 the given Scheme string.  When used together, this option supersedes
-@samp{:input-file} and @samp{:input-port}.
+@samp{input-file:} and @samp{input-port:}.
 @end deffn
 
 
-@deffn Clause :input-port @var{port}
+@deffn {Auxiliary Syntax} input-port: @var{port}
 Instruct @func{lex} to build the lexer tables from the specification
 read from the given textual input port.  When used together, this option
-supersedes @samp{:input-file}.
+supersedes @samp{input-file:}.
 @end deffn
 
 
-@deffn Clause :input-file @var{pathname}
+@deffn {Auxiliary Syntax} input-file: @var{pathname}
 Instruct @func{lex} to build the lexer tables from the specification in
 the selected file.  @var{pathname} must be a string representing an
 existent file pathname.
 @end deffn
 
 
-@deffn Clause :library-spec @var{library-name}
+@deffn {Auxiliary Syntax} library-spec: @var{library-name}
 Instruct @func{lex} to build the output as a proper Scheme library.
 This means a Scheme string is built, representing a @func{library} form.
 The string may contain Scheme comments.  When this option is not used
@@ -211,7 +211,7 @@ following formats are accepted:
 A string, including the parentheses.  Example:
 
 @example
-:library-spec "(calc-lexer)"
+library-spec: "(calc-lexer)"
 ; -> (library (calc-lexer) ---)
 @end example
 
@@ -220,7 +220,7 @@ A symbol, which will be converted to string and to which parentheses
 will be added.  Example:
 
 @example
-:library-spec 'calc-lexer
+library-spec: 'calc-lexer
 ; -> (library (calc-lexer) ---)
 @end example
 
@@ -228,24 +228,24 @@ will be added.  Example:
 A list of values, which will be simply converted to string.  Example:
 
 @example
-:library-spec '(calc-lexer)
+library-spec: '(calc-lexer)
 ; -> (library (calc-lexer) ---)
 @end example
 @end itemize
 
-It is mandatory to use the option @samp{:table-name} along with
-@samp{:library-spec}.
+It is mandatory to use the option @samp{table-name:} along with
+@samp{library-spec:}.
 @end deffn
 
 
-@deffn Clause :library-imports @var{import-list}
+@deffn {Auxiliary Syntax} library-imports: @var{import-list}
 Select a list of libraries which must be imported when using the
 generated lexer.  @var{import-list} must be a list of library
 specifications; for example, if we want to include the
 @library{sentinel} and @library{parameters} libraries we do:
 
 @example
-:library-imports '((sentinel) (parameters))
+library-imports: '((sentinel) (parameters))
 @end example
 
 If the lexer table is written to a proper Scheme library:
@@ -258,48 +258,48 @@ nor an evaluated library.
 @end deffn
 
 
-@deffn Clause :table-name @var{name}
+@deffn {Auxiliary Syntax} table-name: @var{name}
 Instruct @func{lex} to output a @func{define} form defining a binding
 between @var{name} and the table vector.  @var{name} can be a string or
 symbol, and it must represent a valid identifier.
 
-When this option is used along with @samp{:library-spec}, the
+When this option is used along with @samp{library-spec:}, the
 @func{library} form will export the identifier @var{name}.
 @end deffn
 
 
-@deffn Clause :output-value #t|#f
+@deffn {Auxiliary Syntax} output-value: #t|#f
 When the argument is @true{}, instruct @func{lex} to evaluate the vector
 table using the @library{rnrs eval} library and to return the result,
 which is then directly usable.
 
-The list of libraries selected by @samp{:library-imports} is added to
+The list of libraries selected by @samp{library-imports:} is added to
 the environment used for the evaluation.  By default, the environment
 always includes @library{rnrs}, and also @library{silex lexer} when the
 selected lexer format is @samp{code}.
 
-It is an error to use this option along with @samp{:table-name}.  When
-used together, this option supersedes @samp{:output-file} and
-@samp{:output-port}.
+It is an error to use this option along with @samp{table-name:}.  When
+used together, this option supersedes @samp{output-file:} and
+@samp{output-port:}.
 @end deffn
 
 
-@deffn Clause :output-port @var{port}
+@deffn {Auxiliary Syntax} output-port: @var{port}
 Instruct @func{lex} to write the output as string in the given textual
 output port.
 
-When used together, this option supersedes @samp{:output-file}.
+When used together, this option supersedes @samp{output-file:}.
 @end deffn
 
 
-@deffn Clause :output-file @var{pathname}
+@deffn {Auxiliary Syntax} output-file: @var{pathname}
 Instruct @func{lex} to save the output in a file with given pathname.
 This is especially useful when the output is a proper @func{library} or
 @func{define} form.
 @end deffn
 
 
-@deffn Clause :lexer-format @var{format}
+@deffn {Auxiliary Syntax} lexer-format: @var{format}
 Instruct @func{lex} about the format of the lexer table.  @var{format}
 can be one among the following symbols: @samp{decision-tree},
 @samp{code}, @samp{portable}; the default is @samp{decision-tree}.
@@ -307,7 +307,7 @@ can be one among the following symbols: @samp{decision-tree},
 @end deffn
 
 
-@deffn Clause :pretty-print #t|#f
+@deffn {Auxiliary Syntax} pretty-print: #t|#f
 Instruct @func{lex} to pretty--print the contents of the table.
 Normally, the table is displayed as a compact mass of characters fitting
 in about @math{75} columns.  The option is useful only for a developer
@@ -316,7 +316,7 @@ option is always pretty--printed, the others are not by default.
 @end deffn
 
 
-@deffn Clause :counters @var{which-ones}
+@deffn {Auxiliary Syntax} counters: @var{which-ones}
 Instruct @func{lex} about which counters will be available to the lexer.
 
 Counters are managed by the input system, and can be used by the lexer.
@@ -324,7 +324,7 @@ The following values for @var{which-ones} are available: @samp{all},
 @samp{line}, @samp{none}; @samp{line} is the default.  The more counters
 the input system maintains, the more it is slowed down.
 
-Notice that the same @samp{:counters} option must be given to @func{lex}
+Notice that the same @samp{counters:} option must be given to @func{lex}
 and to @func{lexer-make-IS}, a mismatch will result in undefined
 behaviour.  This is because an input system is independent from a lexer
 table, and it is more efficient to build tables for a specific set of
@@ -341,9 +341,9 @@ low level services.  The following bindings are exported by the
 @library{silex lexer} library.
 
 
-@deffn Syntax lexer-make-IS @ameta{clauses} ...
+@deffn Syntax lexer-make-IS @var{clauses} ...
 Build and return a new input system.  The behaviour of this function is
-configured with the given @meta{clauses}; see below for the list of
+configured with the given @var{clauses}; see below for the list of
 supported options.
 
 Input characters can come from a string, a port or the return value of a
@@ -356,28 +356,28 @@ the input.
 @end deffn
 
 
-@deffn Clause :string @var{string}
+@deffn {Auxiliary Syntax} string: @var{string}
 Instruct @func{lexer-make-IS} to build an input system that will take
 characters from the supplied string.  When the input system is
 initialized with a string, it takes a copy of it.  This way, eventual
 mutations of the string do not affect the analysis.
 
-When used together, this option supersedes @samp{:port} and
-@samp{:procedure}.
+When used together, this option supersedes @samp{port:} and
+@samp{procedure:}.
 @end deffn
 
 
-@deffn Clause :port @var{port}
+@deffn {Auxiliary Syntax} port: @var{port}
 Instruct @func{lexer-make-IS} to build an input system that will read
 characters from the supplied textual input port.  The input system never
 closes itself the port it has received, this task is left to the
 program.
 
-When used together, this option supersedes @samp{:procedure}.
+When used together, this option supersedes @samp{procedure:}.
 @end deffn
 
 
-@deffn Clause :procedure @var{proc}
+@deffn {Auxiliary Syntax} procedure: @var{proc}
 Instruct @func{lexer-make-IS} to build an input system that will read
 characters invoking the supplied procedure.
 
@@ -394,7 +394,7 @@ indicator, it is not called again.
 @end deffn
 
 
-@deffn Clause :counters @var{which-ones}
+@deffn {Auxiliary Syntax} counters: @var{which-ones}
 Instruct @func{lexer-make-IS} about which counters to make available to
 the lexer.
 
@@ -403,7 +403,7 @@ The following values for @var{which-ones} are available: @samp{all},
 @samp{line}, @samp{none}; @samp{line} is the default.  The more counters
 the input system maintains, the more it is slowed down.
 
-Notice that the same @samp{:counters} option must be given to @func{lex}
+Notice that the same @samp{counters:} option must be given to @func{lex}
 and to @func{lexer-make-IS}, a mismatch will result in undefined
 behaviour.  This is because an input system is independent from a lexer
 table, and it is more efficient to build tables for a specific set of

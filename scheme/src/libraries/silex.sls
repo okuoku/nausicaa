@@ -47,7 +47,20 @@
 
 #!r6rs
 (library (silex)
-  (export lex)
+  (export
+    lex
+    input-file:
+    input-port:
+    input-string:
+    library-spec:
+    library-imports:
+    table-name:
+    pretty-print:
+    counters:
+    lexer-format:
+    output-value:
+    output-file:
+    output-port:)
   (import (rnrs)
     (only (language-extensions) begin0)
     (parameters)
@@ -70,21 +83,35 @@
 
 ;;;; module main.scm
 
+(define-auxiliary-syntax
+  input-file:
+  input-port:
+  input-string:
+  library-spec:
+  library-imports:
+  table-name:
+  pretty-print:
+;;;  counters:		;already defined in (silex lexer)
+  lexer-format:
+  output-value:
+  output-file:
+  output-port:)
+
 (define-maker lex
-  %lex ((:input-file		#f)
-	(:input-port		#f)
-	(:input-string		#f)
+  %lex ((input-file:		#f)
+	(input-port:		#f)
+	(input-string:		#f)
 
-	(:library-spec		#f)
-	(:library-imports	'())
-	(:table-name		#f)
-	(:pretty-print		#f)
-	(:counters		'line)
-	(:lexer-format		'decision-tree)
+	(library-spec:		#f)
+	(library-imports:	'())
+	(table-name:		#f)
+	(pretty-print:		#f)
+	(counters:		'line)
+	(lexer-format:		'decision-tree)
 
-	(:output-value		#f)
-	(:output-file		#f)
-	(:output-port		#f)
+	(output-value:		#f)
+	(output-file:		#f)
+	(output-port:		#f)
 	))
 
 (define (%lex input-file input-port input-string
@@ -111,7 +138,7 @@
 		       (assertion-violation 'lex
 			 "missing input method for lexer")))))
 	(lambda ()
-	  (let ((IS (lexer-make-IS (:port input-port) (:counters 'all))))
+	  (let ((IS (lexer-make-IS (port: input-port) (counters: 'all))))
 	    (parameterize ((action-lexer	(lexer-make-lexer action-tables IS))
 			   (class-lexer	(lexer-make-lexer class-tables  IS))
 			   (macro-lexer	(lexer-make-lexer macro-tables  IS))

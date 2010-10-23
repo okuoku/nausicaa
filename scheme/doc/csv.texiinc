@@ -108,7 +108,7 @@ tokenise strings as follows:
 (define-keywords :string :counters)
 
 (define (tokenise string)
-  (let* ((IS    (lexer-make-IS :string string :counters 'all))
+  (let* ((IS    (lexer-make-IS (string: string) (counters: 'all)))
          (lexer (lexer-make-lexer csv-strings-table IS)))
     (do ((token (lexer) (lexer))
          (ell   '()))
@@ -151,7 +151,7 @@ notice that the input system has to be created with @samp{:counters
 (define-keywords :string)
 
 (define (tokenise string)
-  (let* ((IS    (lexer-make-IS :string string))
+  (let* ((IS    (lexer-make-IS (string: string)))
          (lexer (lexer-make-lexer csv-strings-table IS)))
     (let-values (((port the-string) (open-string-output-port)))
       (do ((token (lexer) (lexer)))
@@ -224,7 +224,7 @@ We can take advantage of this to tokenise unquoted data as follows:
 (define-keywords :string :counters)
 
 (define (tokenise string)
-  (let* ((IS    (lexer-make-IS :string string :counters 'all))
+  (let* ((IS    (lexer-make-IS (string: string) (counters: 'all)))
          (lexer (lexer-make-lexer csv-unquoted-data-table IS)))
     (do ((token (lexer) (lexer))
          (ell   '()))
@@ -272,8 +272,8 @@ check for the number of fields on each line.
     (csv->list/comma port (lambda (field) field)))
 
    ((port swirl-field)
-    (let* ((IS            (lexer-make-IS :port port
-                                         :counters 'all))
+    (let* ((IS            (lexer-make-IS (port: port)
+                                         (counters: 'all)))
            (string-lexer  (lexer-make-lexer
                             csv-strings-table IS))
            (data-lexer    (lexer-make-lexer
@@ -355,8 +355,8 @@ The following is a variant that allows to specify, via the
     (csv->list port separators (lambda (field) field)))
 
    ((port separators swirl-field)
-    (let* ((IS            (lexer-make-IS :port port
-                                         :counters 'all))
+    (let* ((IS            (lexer-make-IS (port: port)
+                                         (counters: 'all)))
            (string-lexer  (lexer-make-lexer
                             csv-strings-table IS))
            (data-lexer    (lexer-make-lexer

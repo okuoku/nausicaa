@@ -136,8 +136,8 @@ incoming @json{} text.  To setup conversion to S--expression we do:
   "@{ \"Hello\" : true, \"Ciao\": false @}")
 
 (define IS
-  (lexer-make-IS (:string json-text)
-                 (:counters 'all)))
+  (lexer-make-IS (string: json-text)
+                 (counters: 'all)))
 
 (define lexer
   (make-json-rfc-lexer IS))
@@ -161,20 +161,20 @@ Here is a set of meaningless examples using the event parser:
 
 
 (define (doit string)
-  (let* ((IS      (lexer-make-IS (:string string)
-                                 (:counters 'all)))
+  (let* ((IS      (lexer-make-IS (string: string)
+                                 (counters: 'all)))
          (lexer   (make-json-rfc-lexer IS))
          (result  '())
          (handler (lambda args
                     (set-cons! result args)))
          (parser  (make-json-event-parser
-                    (:begin-object  handler)
-                    (:end-object    handler)
-                    (:begin-array   handler)
-                    (:end-array     handler)
-                    (:begin-pair    handler)
-                    (:end-pair      handler)
-                    (:atom          handler))))
+                    (begin-object:  handler)
+                    (end-object:    handler)
+                    (begin-array:   handler)
+                    (end-array:     handler)
+                    (begin-pair:    handler)
+                    (end-pair:      handler)
+                    (atom:          handler))))
     (parser lexer (make-json-error-handler 'json-parser))
     (reverse result)))
 
@@ -332,54 +332,55 @@ processed by @func{json-decode-string}.
 @end defun
 
 
-@deffn Syntax make-json-event-parser @ameta{clause} ...
+@deffn Syntax make-json-event-parser @var{clause} ...
 Build and return a new @json{} parser which calls provided functions
 when parsing elements.  The returned parser function matches the
 interface of the parser functions based upon @library{lalr lr-driver}.
-
-Parsing is driven by the clauses described below.
 @end deffn
 
 
-@deffn {Event Parser Clause} :begin-object @var{handler}
+Event parsing is driven by the clauses described below.
+
+
+@deffn {Auxiliary Syntax} begin-object: @var{handler}
 Used when the parser receives a @code{BEGIN_OBJECT} token.
 @var{handler} is called with the symbol @code{begin-object} as single
 argument.
 @end deffn
 
 
-@deffn {Event Parser Clause} :end-object @var{handler}
+@deffn {Auxiliary Syntax} end-object: @var{handler}
 Used when the parser receives a @code{END_OBJECT} token.  @var{handler}
 is called with the symbol @code{end-object} as single argument.
 @end deffn
 
 
-@deffn {Event Parser Clause} :begin-array @var{handler}
+@deffn {Auxiliary Syntax} begin-array: @var{handler}
 Used when the parser receives a @code{BEGIN_ARRAY} token.  @var{handler}
 is called with the symbol @code{begin-array} as single argument.
 @end deffn
 
 
-@deffn {Event Parser Clause} :end-array @var{handler}
+@deffn {Auxiliary Syntax} end-array: @var{handler}
 Used when the parser receives a @code{END_ARRAY} token.  @var{handler}
 is called with the symbol @code{end-array} as single argument.
 @end deffn
 
 
-@deffn {Event Parser Clause} :begin-pair @var{handler}
+@deffn {Auxiliary Syntax} begin-pair: @var{handler}
 Used when the parser processes the name of a pair.  @var{handler} is
 called with the symbol @code{begin-pair} as first argument and the
 string representing the pair's name as second argument.
 @end deffn
 
 
-@deffn {Event Parser Clause} :end-pair @var{handler}
+@deffn {Auxiliary Syntax} end-pair: @var{handler}
 Used when the parser terminates processing of a pair.  @var{handler} is
 called with the symbol @code{end-pair} as single argument.
 @end deffn
 
 
-@deffn {Event Parser Clause} :atom @var{handler}
+@deffn {Auxiliary Syntax} atom: @var{handler}
 Used when the parser parses the value of a pair or an array element
 being a string, a literal or a number.  When the value is:
 

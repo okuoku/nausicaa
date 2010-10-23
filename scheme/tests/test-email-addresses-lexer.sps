@@ -1,4 +1,4 @@
-;;; -*- coding: utf-8-unix -*-
+;;; -*- coding: utf-8 -*-
 ;;;
 ;;;Part of: Nausicaa/Scheme
 ;;;Contents: tests for the email addresses lexer
@@ -25,6 +25,7 @@
 ;;;
 
 
+#!r6rs
 (import (nausicaa)
   (generics)
   (checks)
@@ -45,7 +46,7 @@
   (define (tokenise-string string)
     ;;This  is just  a  lexer, it  does  not check  for the  terminating
     ;;double-quote.
-    (let* ((IS		(lexer-make-IS (:string string) (:counters 'all)))
+    (let* ((IS		(lexer-make-IS (string: string) (counters: 'all)))
 	   (lexer	(lexer-make-lexer quoted-text-table IS))
 	   (out		'()))
       (do ((token (lexer) (lexer)))
@@ -103,7 +104,7 @@
 		       (if (eq? token 'COMMENT-OPEN)
 			   (string-append "(" (lex IS) ")")
 			 token))))))
-     (lexer-make-IS (:string string) (:counters 'all))))
+     (lexer-make-IS (string: string) (counters: 'all))))
 
 ;;; --------------------------------------------------------------------
 
@@ -129,7 +130,7 @@
 (parameterise ((check-test-name 'domain-literal-lexer))
 
   (define (tokenise-domain-literal string)
-    (let* ((IS    (lexer-make-IS (:string string) (:counters 'all)))
+    (let* ((IS    (lexer-make-IS (string: string) (counters: 'all)))
 	   (lexer (lexer-make-lexer domain-literals-table IS)))
       (let loop ((token (lexer))
 		 (toks  '()))
@@ -168,7 +169,7 @@
     (map (lambda (token)
 	   (cons (<lexical-token>-category token)
 		 (<lexical-token>-value    token)))
-      (address->tokens (lexer-make-IS (:string string) (:counters 'all)))))
+      (address->tokens (lexer-make-IS (string: string) (counters: 'all)))))
 
   (check	;a folding white space
       (doit "\r\n ")

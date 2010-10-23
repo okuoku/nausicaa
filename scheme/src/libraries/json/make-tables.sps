@@ -24,52 +24,53 @@
 ;;;
 
 
+#!r6rs
 (import (rnrs)
   (silex)
-  (lalr))
+  (prefix (lalr) lalr.))
 
 
-(lex (:input-file	"string-lexer.l")
-     (:output-file	"string-lexer.sls")
-     (:library-spec	'(json string-lexer))
-     (:library-imports	'((silex default-error-handler)
+(lex (input-file:	"string-lexer.l")
+     (output-file:	"string-lexer.sls")
+     (library-spec:	'(json string-lexer))
+     (library-imports:	'((silex default-error-handler)
 			  (parser-tools lexical-token)
 			  (parser-tools source-location)))
-     (:table-name	'json-string-lexer-table)
-     (:counters		'all))
+     (table-name:	'json-string-lexer-table)
+     (counters:		'all))
 
-(lex (:input-file	"rfc-lexer.l")
-     (:output-file	"rfc-lexer.sls")
-     (:library-spec	'(json rfc-lexer))
-     (:library-imports	'((silex default-error-handler)
+(lex (input-file:	"rfc-lexer.l")
+     (output-file:	"rfc-lexer.sls")
+     (library-spec:	'(json rfc-lexer))
+     (library-imports:	'((silex default-error-handler)
 			  (parser-tools lexical-token)
 			  (parser-tools source-location)))
-     (:table-name	'json-rfc-lexer-table)
-     (:counters		'all))
+     (table-name:	'json-rfc-lexer-table)
+     (counters:		'all))
 
-(lex (:input-file	"extended-lexer.l")
-     (:output-file	"extended-lexer.sls")
-     (:library-spec	'(json extended-lexer))
-     (:library-imports	'((silex default-error-handler)
+(lex (input-file:	"extended-lexer.l")
+     (output-file:	"extended-lexer.sls")
+     (library-spec:	'(json extended-lexer))
+     (library-imports:	'((silex default-error-handler)
 			  (parser-tools lexical-token)
 			  (parser-tools source-location)))
-     (:table-name	'json-extended-lexer-table)
-     (:counters		'all))
+     (table-name:	'json-extended-lexer-table)
+     (counters:		'all))
 
 
-(lalr-parser
+(lalr.lalr-parser
 
- (:output-file		"sexp-parser.sls")
- (:parser-name		'make-json-sexp-parser)
- (:library-spec		'(json sexp-parser))
+ (lalr.output-file:		"sexp-parser.sls")
+ (lalr.parser-name:		'make-json-sexp-parser)
+ (lalr.library-spec:		'(json sexp-parser))
 
- (:terminals		'(BEGIN_ARRAY END_ARRAY
-				      BEGIN_OBJECT END_OBJECT
-				      NAME_SEPARATOR VALUE_SEPARATOR
-				      FALSE TRUE NULL
-				      NUMBER STRING))
+ (lalr.terminals:		'(BEGIN_ARRAY END_ARRAY
+					      BEGIN_OBJECT END_OBJECT
+					      NAME_SEPARATOR VALUE_SEPARATOR
+					      FALSE TRUE NULL
+					      NUMBER STRING))
 
- (:rules
+ (lalr.rules:
   '((json-text
      (object)				: $1
      (array)				: $1)

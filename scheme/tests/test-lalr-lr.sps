@@ -24,6 +24,7 @@
 ;;;
 
 
+#!r6rs
 (import (nausicaa)
   (lalr)
   (sentinel)
@@ -66,10 +67,10 @@
 (define (debug:print-tables doit? terminals non-terminals)
   (when doit?
     (let ((port (current-output-port)))
-      (lalr-parser (:output-port port)
-		   (:expect #f)
-		   (:terminals terminals)
-		   (:rules non-terminals))
+      (lalr-parser (output-port: port)
+		   (expect: #f)
+		   (terminals: terminals)
+		   (rules: non-terminals))
       (newline port)
       (newline port))))
 
@@ -84,20 +85,20 @@
   (define (doit-1 . tokens)
     ;;A grammar that only accept a single terminal as input.
     (let* ((lexer		(make-lexer tokens))
-	   (make-parser		(make-lalr-parser (:output-value #t)
-						  (:expect #f)
-						  (:terminals '(A))
-						  (:rules '((e (A) : $1)))))
+	   (make-parser		(make-lalr-parser (output-value: #t)
+						  (expect: #f)
+						  (terminals: '(A))
+						  (rules: '((e (A) : $1)))))
            (parser		(make-parser)))
       (parser lexer error-handler)))
 
   (define (doit-2 . tokens)
     ;;A grammar that only accept a single terminal or the EOI.
     (let* ((lexer		(make-lexer tokens))
-	   (make-parser		(lalr-parser (:output-value #t)
-					     (:expect #f)
-					     (:terminals '(A))
-					     (:rules '((e (A) : $1
+	   (make-parser		(lalr-parser (output-value: #t)
+					     (expect: #f)
+					     (terminals: '(A))
+					     (rules: '((e (A) : $1
 							  ()  : 0)))))
            (parser		(make-parser)))
       (parser lexer error-handler)))
@@ -106,10 +107,10 @@
     ;;A grammar that accepts fixed sequences of a single terminal or the
     ;;EOI.
     (let* ((lexer		(make-lexer tokens))
-	   (make-parser		(lalr-parser (:output-value #t)
-					     (:expect #f)
-					     (:terminals '(A))
-					     (:rules '((e (A)     : (list $1)
+	   (make-parser		(lalr-parser (output-value: #t)
+					     (expect: #f)
+					     (terminals: '(A))
+					     (rules: '((e (A)     : (list $1)
 							  (A A)   : (list $1 $2)
 							  (A A A) : (list $1 $2 $3)
 							  ()      : 0)))))
@@ -120,10 +121,10 @@
     ;;A grammar accepting a sequence  of equal tokens.  The return value
     ;;is the value of the last parsed token.
     (let* ((lexer		(make-lexer tokens))
-	   (make-parser		(lalr-parser (:output-value #t)
-					     (:expect #f)
-					     (:terminals '(A))
-					     (:rules '((e (e A) : $2
+	   (make-parser		(lalr-parser (output-value: #t)
+					     (expect: #f)
+					     (terminals: '(A))
+					     (rules: '((e (e A) : $2
 							  (A)   : $1
 							  ()    : 0)))))
            (parser		(make-parser)))
@@ -133,10 +134,10 @@
     ;;A grammar accepting a sequence  of equal tokens.  The return value
     ;;is the list of values.
     (let* ((lexer		(make-lexer tokens))
-	   (make-parser		(lalr-parser (:output-value #t)
-					     (:expect #f)
-					     (:terminals '(A))
-					     (:rules '((e (e A) : (cons $2 $1)
+	   (make-parser		(lalr-parser (output-value: #t)
+					     (expect: #f)
+					     (terminals: '(A))
+					     (rules: '((e (e A) : (cons $2 $1)
 							  (A)   : (list $1)
 							  ()    : 0)))))
            (parser		(make-parser)))
@@ -267,9 +268,9 @@
   (define (doit . tokens)
     (let* ((lexer		(make-lexer tokens))
 	   (error-handler	(make-error-handler (lambda x x)))
-	   (make-parser		(lalr-parser (:output-value #t) (:expect #f)
-					     (:terminals terminals)
-					     (:rules non-terminals)))
+	   (make-parser		(lalr-parser (output-value: #t) (expect: #f)
+					     (terminals: terminals)
+					     (rules: non-terminals)))
            (parser		(make-parser)))
       (parser lexer error-handler)))
 
@@ -398,9 +399,9 @@
 ;;;same category of the lookahead that raises the error.
 
   (define make-parser
-    (lalr-parser (:output-value #t) (:expect #f)
-		 (:terminals '(A B C))
-		 (:rules '((alphas (alpha)		: $1
+    (lalr-parser (output-value: #t) (expect: #f)
+		 (terminals: '(A B C))
+		 (rules: '((alphas (alpha)		: $1
 				   (alphas alpha)	: $2)
 			   (alpha (A B)		: (list $1 $2)
 				  (C)		: $1
@@ -452,9 +453,9 @@
 ;;;Test the lexer returning a non-token value.
 
   (define make-parser
-    (lalr-parser (:output-value #t) (:expect #f)
-		 (:terminals '(A B C))
-		 (:rules '((alpha (A B)		: (list $1 $2)
+    (lalr-parser (output-value: #t) (expect: #f)
+		 (terminals: '(A B C))
+		 (rules: '((alpha (A B)		: (list $1 $2)
 				  (C)		: $1
 				  (error C)	: (list $1 $2))))))
 
@@ -503,9 +504,9 @@
       ))
 
   (define make-parser
-    (lalr-parser (:output-value #t) (:expect #f)
-		 (:terminals terminals)
-		 (:rules non-terminals)))
+    (lalr-parser (output-value: #t) (expect: #f)
+		 (terminals: terminals)
+		 (rules: non-terminals)))
 
   (define (doit . tokens)
     (let* ((lexer		(make-lexer tokens))
@@ -546,9 +547,9 @@
 		(O E C)		: $2)))
 
   (define make-parser
-    (lalr-parser (:output-value #t) (:expect #f)
-		 (:terminals terminals)
-		 (:rules non-terminals)))
+    (lalr-parser (output-value: #t) (expect: #f)
+		 (terminals: terminals)
+		 (rules: non-terminals)))
 
   (define (doit . tokens)
     (let* ((lexer		(make-lexer tokens))
@@ -610,10 +611,10 @@
 
 ;;   (define make-parser
 ;;     (lalr-parser
-;;      (:output-value #t :expect 0)
-;;      (:terminals '(N A S M D))
+;;      (output-value: #t expect: 0)
+;;      (terminals: '(N A S M D))
 
-;;      (:rules '((E (E A E)	: (list $2 $1 $3)
+;;      (rules: '((E (E A E)	: (list $2 $1 $3)
 ;; 		 (E S E)	: (list $2 $1 $3)
 ;; 		 (E M E)	: (list $2 $1 $3)
 ;; 		 (E D E)	: (list $2 $1 $3)
@@ -904,12 +905,12 @@
 
   (define make-parser
     (lalr-parser
-     (:output-value #t) (:expect 0)
-     (:terminals '(NUM (left:     ADD SUB)
+     (output-value: #t) (expect: 0)
+     (terminals: '(NUM (left:     ADD SUB)
 		       (right:    MUL DIV)
 		       (nonassoc: UNARY)))
 
-     (:rules '((EXPR (EXPR ADD EXPR)          : (list $2 $1 $3)
+     (rules: '((EXPR (EXPR ADD EXPR)          : (list $2 $1 $3)
 		     (EXPR SUB EXPR)          : (list $2 $1 $3)
 		     (EXPR MUL EXPR)          : (list $2 $1 $3)
 		     (EXPR DIV EXPR)          : (list $2 $1 $3)
@@ -1198,10 +1199,10 @@
 
   (define make-parser
     (lalr-parser
-     (:output-value #t) (:expect 0)
-     (:terminals '(NUM ADD SUB MUL DIV (nonassoc: UNARY)))
+     (output-value: #t) (expect: 0)
+     (terminals: '(NUM ADD SUB MUL DIV (nonassoc: UNARY)))
 
-     (:rules '((EXPR (EXPR ADD EXPR)          : (list $2 $1 $3)
+     (rules: '((EXPR (EXPR ADD EXPR)          : (list $2 $1 $3)
 		     (EXPR ADD EXPR ADD EXPR) : (list $1 $2 $3 $4 $5)
 
 		     (EXPR SUB EXPR)          : (list $2 $1 $3)
@@ -1517,9 +1518,9 @@
 		(O E C)		: $2)))
 
   (define make-parser
-    (lalr-parser (:output-value #t) (:expect #f)
-		 (:terminals terminals)
-		 (:rules non-terminals)))
+    (lalr-parser (output-value: #t) (expect: #f)
+		 (terminals: terminals)
+		 (rules: non-terminals)))
 
   (define (doit . tokens)
     (let* ((lexer		(make-lexer tokens))

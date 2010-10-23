@@ -1,4 +1,4 @@
-;;; -*- coding: utf-8-unix -*-
+;;; -*- coding: utf-8 -*-
 ;;;
 ;;;Part of: Nausicaa/Scheme
 ;;;Contents: URI handling
@@ -25,6 +25,7 @@
 ;;;
 
 
+#!r6rs
 (library (uri)
   (export
     <uri>

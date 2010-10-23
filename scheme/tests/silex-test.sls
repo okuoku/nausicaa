@@ -24,6 +24,7 @@
 ;;;
 
 
+#!r6rs
 (library (silex-test)
   (export test-calc)
   (import (except (nausicaa) =)
@@ -35,7 +36,7 @@
 (define (test-calc table)
 
   (define (tokenize string)
-    (let* ((IS		(lexer-make-IS (:string string) (:counters 'line)))
+    (let* ((IS		(lexer-make-IS (string: string) (counters: 'line)))
 	   (lexer	(lexer-make-lexer table IS)))
       (do ((token (lexer) (lexer))
 	   (out   '()))

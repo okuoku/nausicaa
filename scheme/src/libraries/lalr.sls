@@ -44,8 +44,18 @@
 #!r6rs
 (library (lalr)
   (export
-    lalr-parser
-    (rename (lalr-parser make-lalr-parser)))
+    lalr-parser (rename (lalr-parser make-lalr-parser))
+    library-spec:
+    library-imports:
+    parser-type:
+    parser-name:
+    output-value:
+    output-port:
+    output-file:
+    dump-table:
+    expect:
+    rules:
+    terminals:)
   (import (rename (rnrs)
 		  (error rnrs:error))
 ;;;    (debugging)
@@ -196,22 +206,35 @@
 				   (vector-ref v2 i)))))
 
 
+(define-auxiliary-syntax
+  library-spec:
+  library-imports:
+  parser-type:
+  parser-name:
+  output-value:
+  output-port:
+  output-file:
+  dump-table:
+  expect:
+  rules:
+  terminals:)
+
 (define-maker lalr-parser
   %lalr-parser
-  ((:library-spec	#f)
-   (:library-imports	'())
-   (:parser-type	'lr)
-   (:parser-name	#f)
+  ((library-spec:	#f)
+   (library-imports:	'())
+   (parser-type:	'lr)
+   (parser-name:	#f)
 
-   (:output-value	#f)
-   (:output-port	#f)
-   (:output-file	#f)
+   (output-value:	#f)
+   (output-port:	#f)
+   (output-file:	#f)
 
-   (:dump-table		#f)
+   (dump-table:		#f)
 
-   (:expect		0)
-   (:rules		#f)
-   (:terminals		#f)))
+   (expect:		0)
+   (rules:		#f)
+   (terminals:		#f)))
 
 (define (%lalr-parser library-spec library-imports parser-type parser-name
 		      output-value output-port output-file

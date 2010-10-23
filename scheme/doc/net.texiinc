@@ -48,8 +48,8 @@ To tokenise an IPv4 address string we can do:
   (parser-tools source-location))
 
 (define (make-address-lexer address-string)
-  (let ((IS (lexer-make-IS (:string address-string)
-                           (:counters 'all))))
+  (let ((IS (lexer-make-IS (string: address-string)
+                           (counters: 'all))))
     (lexer-make-lexer ipv4-address-lexer-table IS)))
 @end example
 
@@ -110,8 +110,8 @@ To parse an IPv4 address string we can do:
       string token.value)))
 
 (define (parse-address string)
-  (let* ((IS      (lexer-make-IS (:string string)
-                                 (:counters 'all)))
+  (let* ((IS      (lexer-make-IS (string: string)
+                                 (counters: 'all)))
          (lexer   (lexer-make-lexer ipv4-address-lexer-table IS))
          (parser  (make-ipv4-address-parser)))
     (parser lexer
@@ -400,8 +400,8 @@ To tokenise an IPv6 address string we can do:
   (parser-tools source-location))
 
 (define (make-address-lexer address-string)
-  (let ((IS (lexer-make-IS (:string address-string)
-                           (:counters 'all))))
+  (let ((IS (lexer-make-IS (string: address-string)
+                           (counters: 'all))))
     (lexer-make-lexer ipv6-address-lexer-table IS)))
 @end example
 
@@ -463,8 +463,8 @@ To parse an IPv6 address string we can do:
       string token.value)))
 
 (define (parse-address string)
-  (let* ((IS      (lexer-make-IS (:string string)
-                                 (:counters 'all)))
+  (let* ((IS      (lexer-make-IS (string: string)
+                                 (counters: 'all)))
          (lexer   (lexer-make-lexer ipv6-address-lexer-table IS))
          (parser  (make-ipv6-address-parser)))
     (parser lexer

@@ -26,6 +26,12 @@
     lexer-get-func-line		lexer-get-func-column
     lexer-get-func-offset
 
+    ;; auxiliary syntaxes
+    counters:
+    port:
+    procedure:
+    string:
+
     ;;Low level getters for the ":input-system" record fields.  They are
     ;;needed in the output tables with the "code" format.
     :input-system-start-go-to-end
@@ -92,12 +98,18 @@
 			    counters-type
 			  (assertion-violation who "invalid selection of counters type" counters-type)))))
 
+(define-auxiliary-syntax
+  counters:
+  port:
+  procedure:
+  string:)
+
 (define-maker lexer-make-IS
   %lexer-make-IS
-  ((:counters	'line)
-   (:port	#f)
-   (:procedure	#f)
-   (:string	#f)))
+  ((counters:	'line)
+   (port:	#f)
+   (procedure:	#f)
+   (string:	#f)))
 
 (define (lexer-make-lexer tables IS)
   (case (vector-ref tables 4) ; automaton type

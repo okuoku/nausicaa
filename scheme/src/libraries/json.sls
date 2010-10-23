@@ -1,4 +1,4 @@
-;;; -*- coding: utf-8-unix -*-
+;;; -*- coding: utf-8 -*-
 ;;;
 ;;;Part of: Nausicaa/Scheme
 ;;;Contents: lexer and parser for JSON
@@ -25,6 +25,7 @@
 ;;;
 
 
+#!r6rs
 (library (json)
   (export
     make-json-rfc-lexer		make-json-extended-lexer
@@ -35,6 +36,12 @@
     json-make-pair		json-make-pair*
     json-make-object
     json-make-array
+
+    ;; event parser clauses
+    begin-object:		end-object:
+    begin-array:		end-array:
+    begin-pair:			end-pair:
+    atom:
 
     &json-parser-error
     make-json-parser-error-condition
@@ -130,15 +137,24 @@
 
 ;;;; event parser
 
+(define-auxiliary-syntax
+  begin-object:
+  end-object:
+  begin-array:
+  end-array:
+  begin-pair:
+  end-pair:
+  atom:)
+
 (define-maker make-json-event-parser
   event-parser
-  ((:begin-object	#f)
-   (:end-object		#f)
-   (:begin-array	#f)
-   (:end-array		#f)
-   (:begin-pair		#f)
-   (:end-pair		#f)
-   (:atom		#f)))
+  ((begin-object:	#f)
+   (end-object:		#f)
+   (begin-array:	#f)
+   (end-array:		#f)
+   (begin-pair:		#f)
+   (end-pair:		#f)
+   (atom:		#f)))
 
 (define (event-parser %begin-object-handler %end-object-handler
 		      %begin-array-handler  %end-array-handler
@@ -321,7 +337,7 @@
     (getter)))
 
 (define (json-decode-string in-string)
-  (let* ((IS	(lexer-make-IS (:string in-string) (:counters 'all)))
+  (let* ((IS	(lexer-make-IS (string: in-string) (counters: 'all)))
 	 (lexer	(lexer-make-lexer json-string-lexer-table IS)))
     (let-values (((port getter) (open-string-output-port)))
       (do ((token (lexer) (lexer)))

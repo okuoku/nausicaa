@@ -24,65 +24,66 @@
 ;;;
 
 
+#!r6rs
 (import (rnrs)
   (silex)
-  (lalr))
+  (prefix (lalr) lalr.))
 
 
-(lex (:input-file	"quoted-text.l")
-     (:output-file	"quoted-text-lexer.sls")
-     (:library-spec	'(email addresses quoted-text-lexer))
-     (:library-imports	'((lalr lr-driver)
+(lex (input-file:	"quoted-text.l")
+     (output-file:	"quoted-text-lexer.sls")
+     (library-spec:	'(email addresses quoted-text-lexer))
+     (library-imports:	'((lalr lr-driver)
 			  (email addresses common)
 			  (parser-tools lexical-token)
 			  (parser-tools source-location)))
-     (:table-name	'quoted-text-table)
-     (:counters		'all))
+     (table-name:	'quoted-text-table)
+     (counters:		'all))
 
-(lex (:input-file	"comments.l")
-     (:output-file	"comments-lexer.sls")
-     (:library-spec	'(email addresses comments-lexer))
-     (:library-imports	'((lalr lr-driver)
+(lex (input-file:	"comments.l")
+     (output-file:	"comments-lexer.sls")
+     (library-spec:	'(email addresses comments-lexer))
+     (library-imports:	'((lalr lr-driver)
 			  (email addresses common)
 			  (parser-tools lexical-token)
 			  (parser-tools source-location)))
-     (:table-name	'comments-table)
-     (:counters		'all))
+     (table-name:	'comments-table)
+     (counters:		'all))
 
-(lex (:input-file	"domain-literals.l")
-     (:output-file	"domain-literals-lexer.sls")
-     (:library-spec	'(email addresses domain-literals-lexer))
-     (:library-imports	'((lalr lr-driver)
+(lex (input-file:	"domain-literals.l")
+     (output-file:	"domain-literals-lexer.sls")
+     (library-spec:	'(email addresses domain-literals-lexer))
+     (library-imports:	'((lalr lr-driver)
 			  (email addresses common)
 			  (parser-tools lexical-token)
 			  (parser-tools source-location)))
-     (:table-name	'domain-literals-table)
-     (:counters		'all))
+     (table-name:	'domain-literals-table)
+     (counters:		'all))
 
-(lex (:input-file	"lexer.l")
-     (:output-file	"lexer.sls")
-     (:library-spec	'(email addresses lexer))
-     (:library-imports	'((lalr lr-driver)
+(lex (input-file:	"lexer.l")
+     (output-file:	"lexer.sls")
+     (library-spec:	'(email addresses lexer))
+     (library-imports:	'((lalr lr-driver)
 			  (email addresses common)
 			  (parser-tools lexical-token)
 			  (parser-tools source-location)))
-     (:table-name	'address-table)
-     (:counters		'all))
+     (table-name:	'address-table)
+     (counters:		'all))
 
 
-(lalr-parser
+(lalr.lalr-parser
 
- (:output-file		"parser.sls")
- (:parser-name		'make-address-parser)
- (:library-spec		'(email addresses parser))
- (:library-imports	'((email addresses common) (strings)))
+ (lalr.output-file:	"parser.sls")
+ (lalr.parser-name:	'make-address-parser)
+ (lalr.library-spec:	'(email addresses parser))
+ (lalr.library-imports:	'((email addresses common) (strings)))
 
- (:terminals	'(DOT COMMA COLON SEMICOLON ATOM AT
-		      ANGLE-OPEN ANGLE-CLOSE
-		      DOMAIN-LITERAL-OPEN DOMAIN-LITERAL-CLOSE DOMAIN-LITERAL-INTEGER
-		      QUOTED-TEXT))
+ (lalr.terminals:	'(DOT COMMA COLON SEMICOLON ATOM AT
+			      ANGLE-OPEN ANGLE-CLOSE
+			      DOMAIN-LITERAL-OPEN DOMAIN-LITERAL-CLOSE DOMAIN-LITERAL-INTEGER
+			      QUOTED-TEXT))
 
- (:rules
+ (lalr.rules:
   '((address		(group address-rest)	: (cons $1 $2)
 			(mailbox address-rest)	: (cons $1 $2)
 			(address-rest)		: $1)

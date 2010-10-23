@@ -1,4 +1,4 @@
-;;; -*- coding: utf-8-unix -*-
+;;; -*- coding: utf-8 -*-
 ;;;
 ;;;Part of: Nausicaa/Scheme
 ;;;Contents: tests for IPv6 address object
@@ -25,6 +25,7 @@
 ;;;
 
 
+#!r6rs
 (import (nausicaa)
   (net ipv6-addresses)
   (silex lexer)
@@ -41,7 +42,7 @@
 (parametrise ((check-test-name	'lexing))
 
   (define (tokenise-address string)
-    (let* ((IS		(lexer-make-IS (:string string) (:counters 'all)))
+    (let* ((IS		(lexer-make-IS (string: string) (counters: 'all)))
 	   (lexer	(lexer-make-lexer ipv6-address-lexer-table IS))
 	   (out		'()))
       (define (push-token! (T <lexical-token>))
@@ -184,7 +185,7 @@
 	(make-irritants-condition (list string token.value))))))
 
   (define (parse-address string)
-    (let* ((IS		(lexer-make-IS (:string string) (:counters 'all)))
+    (let* ((IS		(lexer-make-IS (string: string) (counters: 'all)))
 	   (lexer	(lexer-make-lexer ipv6-address-lexer-table IS))
 	   (parser	(parser:make-ipv6-address-parser)))
       (parser lexer (make-ipv6-address-parser-error-handler 'parse-address string))))

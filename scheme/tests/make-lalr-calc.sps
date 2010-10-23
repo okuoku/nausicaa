@@ -33,18 +33,18 @@
 #!r6rs
 (import (rnrs)
   (lalr)
-  (silex))
+  (prefix (silex) lex.))
 
 
 ;;;; lexer
 
-(lex (:output-file "calc-parser-lexer.sls")
-     (:counters 'all)
-     (:library-spec "(calc-parser-lexer)")
-     (:library-imports '((parser-tools lexical-token)
-			 (parser-tools source-location)))
-     (:table-name 'calc-parser-lexer-table)
-     (:input-string "
+(lex.lex (lex.output-file: "calc-parser-lexer.sls")
+	 (lex.counters: 'all)
+	 (lex.library-spec: "(calc-parser-lexer)")
+	 (lex.library-imports: '((parser-tools lexical-token)
+				 (parser-tools source-location)))
+	 (lex.table-name: 'calc-parser-lexer-table)
+	 (lex.input-string: "
 blanks		[ \\9]+
 newline		[\\10\\13]+
 
@@ -158,28 +158,28 @@ cparen		\\)
 
 (lalr-parser
 
- (:output-file		"calc-parser.sls")
+ (output-file:		"calc-parser.sls")
 		;output a parser, called calc-parser, in a separate file
 
- (:parser-name		'make-calc-parser)
- (:library-spec		'(calc-parser))
- (:library-imports	'((calc-parser-helper) (rnrs eval)
+ (parser-name:		'make-calc-parser)
+ (library-spec:		'(calc-parser))
+ (library-imports:	'((calc-parser-helper) (rnrs eval)
 			  (parser-tools lexical-token)
 			  (parser-tools source-location)))
 
- (:dump-table		"calc-parser-tables.txt")
+ (dump-table:		"calc-parser-tables.txt")
 		;output to a file the human readable LALR table
 
-;;; (:expect		5)
+;;; (expect:		5)
 		;there should be no conflicts
 
- (:terminals	'(ID NUM ASSIGN LPAREN RPAREN NEWLINE COMMA
+ (terminals:	'(ID NUM ASSIGN LPAREN RPAREN NEWLINE COMMA
 		  (left: + -)
 		  (left: * / DIV MOD EXPT LESS GREAT LESSEQ GREATEQ EQUAL)
 		  (nonassoc: uminus)
 		  (nonassoc: uplus)))
 
- (:rules
+ (rules:
   '((script	(lines)			: $1)
 
     (lines	(lines line)		: (let ((result $2))

@@ -29,6 +29,7 @@
 ;;;
 
 
+#!r6rs
 (import (nausicaa)
   (silex lexer)
   (calc-parser)
@@ -57,7 +58,7 @@
 (parameterise ((check-test-name	'expressions))
 
   (define (doit string)
-    (let* ((IS		(lexer-make-IS (:string string) (:counters 'all)))
+    (let* ((IS		(lexer-make-IS (string: string) (counters: 'all)))
 	   (lexer	(lexer-make-lexer calc-parser-lexer-table IS))
 	   (parser	(make-calc-parser)))
       (parameterise ((table-of-variables    (make-eq-hashtable))
@@ -97,7 +98,7 @@
 (parameterise ((check-test-name	'retval))
 
   (define (doit string)
-    (let* ((IS		(lexer-make-IS (:string string) (:counters 'all)))
+    (let* ((IS		(lexer-make-IS (string: string) (counters: 'all)))
 	   (lexer	(lexer-make-lexer calc-parser-lexer-table IS))
 	   (parser	(make-calc-parser)))
       (parameterise ((table-of-variables    (make-eq-hashtable))

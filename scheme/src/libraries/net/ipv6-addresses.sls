@@ -1,4 +1,4 @@
-;;; -*- coding: utf-8-unix -*-
+;;; -*- coding: utf-8 -*-
 ;;;
 ;;;Part of: Nausicaa/Scheme
 ;;;Contents: IPv6 address object type
@@ -114,11 +114,11 @@
 (define (%make-ipv6-address-lexer string port proc)
   (lexer-make-lexer ipv6-address-lexer-table
 		    (cond ((and string (not port) (not proc))
-			   (lexer-make-IS (:string string) (:counters 'all)))
+			   (lexer-make-IS (string: string) (counters: 'all)))
 			  ((and port (not string) (not proc))
-			   (lexer-make-IS (:port port) (:counters 'all)))
+			   (lexer-make-IS (port: port) (counters: 'all)))
 			  ((and proc (not string) (not port))
-			   (lexer-make-IS (:procedure proc) (:counters 'all)))
+			   (lexer-make-IS (procedure: proc) (counters: 'all)))
 			  (else
 			   (syntax-violation 'make-ipv6-address-lexer
 			     "invalid or missing selection of input method" #f)))))

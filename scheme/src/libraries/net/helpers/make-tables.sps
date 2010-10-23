@@ -24,39 +24,40 @@
 ;;;
 
 
+#!r6rs
 (import (rnrs)
   (silex)
-  (lalr))
+  (prefix (lalr) lalr.))
 
 
-(lex (:input-file	"ipv6-address-lexer.l")
-     (:output-file	"ipv6-address-lexer.sls")
-     (:library-spec	'(net helpers ipv6-address-lexer))
-     (:library-imports	'((silex default-error-handler)
+(lex (input-file:	"ipv6-address-lexer.l")
+     (output-file:	"ipv6-address-lexer.sls")
+     (library-spec:	'(net helpers ipv6-address-lexer))
+     (library-imports:	'((silex default-error-handler)
 			  (parser-tools lexical-token)
 			  (parser-tools source-location)))
-     (:table-name	'ipv6-address-lexer-table)
-     (:counters		'all))
+     (table-name:	'ipv6-address-lexer-table)
+     (counters:		'all))
 
-(lex (:input-file	"ipv4-address-lexer.l")
-     (:output-file	"ipv4-address-lexer.sls")
-     (:library-spec	'(net helpers ipv4-address-lexer))
-     (:library-imports	'((silex default-error-handler)
+(lex (input-file:	"ipv4-address-lexer.l")
+     (output-file:	"ipv4-address-lexer.sls")
+     (library-spec:	'(net helpers ipv4-address-lexer))
+     (library-imports:	'((silex default-error-handler)
 			  (parser-tools lexical-token)
 			  (parser-tools source-location)))
-     (:table-name	'ipv4-address-lexer-table)
-     (:counters		'all))
+     (table-name:	'ipv4-address-lexer-table)
+     (counters:		'all))
 
 
-(lalr-parser
+(lalr.lalr-parser
 
- (:output-file		"ipv4-address-parser.sls")
- (:parser-name		'make-ipv4-address-parser)
- (:library-spec		'(net helpers ipv4-address-parser))
+ (lalr.output-file:		"ipv4-address-parser.sls")
+ (lalr.parser-name:		'make-ipv4-address-parser)
+ (lalr.library-spec:		'(net helpers ipv4-address-parser))
 
- (:terminals		'(DOT NUMBER PREFIX-LENGTH))
+ (lalr.terminals:		'(DOT NUMBER PREFIX-LENGTH))
 
- (:rules
+ (lalr.rules:
   '((ipv4-address
      (NUMBER DOT NUMBER DOT NUMBER DOT NUMBER)
 		: (list $1 $3 $5 $7)
@@ -64,18 +65,16 @@
 		: (list $1 $3 $5 $7 (list $8)))
     )))
 
-;;; end of file
-
 
-(lalr-parser
+(lalr.lalr-parser
 
- (:output-file		"ipv6-address-parser.sls")
- (:parser-name		'make-ipv6-address-parser)
- (:library-spec		'(net helpers ipv6-address-parser))
+ (lalr.output-file:		"ipv6-address-parser.sls")
+ (lalr.parser-name:		'make-ipv6-address-parser)
+ (lalr.library-spec:		'(net helpers ipv6-address-parser))
 
- (:terminals		'(COLON DOT SLASH NUMBER))
+ (lalr.terminals:		'(COLON DOT SLASH NUMBER))
 
- (:rules
+ (lalr.rules:
   '((ipv6-address
      (NUMBER double-colon-tail)		: (cons (string->number $1 16) $2)
      (NUMBER tail)			: (cons (string->number $1 16) $2)

@@ -442,8 +442,8 @@ Given the helper functions:
   (error #f message token))
 
 (define (doit string)
-  (let* ((IS      (lexer-make-IS :string string
-                                 :counters 'all))
+  (let* ((IS      (lexer-make-IS (string: string)
+                                 (counters: 'all)))
          (lexer   (make-address-lexer IS))
          (parser  (make-address-parser)))
     (parser lexer error-handler)))
