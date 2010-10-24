@@ -107,9 +107,9 @@
 (define-maker lexer-make-IS
   %lexer-make-IS
   ((counters:	'line)
-   (port:	#f)
-   (procedure:	#f)
-   (string:	#f)))
+   (port:	#f (without procedure: string:))
+   (procedure:	#f (without port: string:))
+   (string:	#f (without port: procedure:))))
 
 (define (lexer-make-lexer tables IS)
   (case (vector-ref tables 4) ; automaton type
