@@ -230,6 +230,7 @@ the invalid subform.
 
 
 @defmac define-auxiliary-syntax @var{symbol} ...
+@defmacx define-auxiliary-syntaxes @var{symbol} ...
 Define one or more auxiliary syntaxs whose names are the @var{symbol}
 arguments.  The defined syntaxes are meant to be used as keywords in
 definitions, like @code{fields} and @code{protocol} for

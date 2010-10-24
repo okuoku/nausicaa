@@ -1,4 +1,4 @@
-;;; -*- coding: utf-8-unix -*-
+;;; -*- coding: utf-8 -*-
 ;;;
 ;;;Part of: Nausicaa/Scheme
 ;;;Contents: helper functions for expand time processing
@@ -25,6 +25,7 @@
 ;;;
 
 
+#!r6rs
 (library (syntax-utilities)
   (export
 
@@ -51,7 +52,7 @@
     validate-list-of-clauses		filter-clauses
     validate-definition-clauses
 
-    define-auxiliary-syntax)
+    define-auxiliary-syntax		define-auxiliary-syntaxes)
   (import (rnrs))
 
 
@@ -396,6 +397,11 @@
 		;still expand to a definition
      (define-syntax dummy (syntax-rules ())))
     ))
+
+(define-syntax define-auxiliary-syntaxes
+  (syntax-rules ()
+    ((_ . ?args)
+     (define-auxiliary-syntax . ?args))))
 
 
 ;;;; done

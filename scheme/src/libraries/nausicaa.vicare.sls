@@ -790,6 +790,7 @@
 
     ;; other stuff
     pretty-print define-maker
+    define-auxiliary-syntax define-auxiliary-syntaxes
 
 ;;;; bindings from (conditions)
 

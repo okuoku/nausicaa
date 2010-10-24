@@ -27,7 +27,7 @@
 
 #!r6rs
 (library (makers)
-  (export define-maker define-auxiliary-syntax
+  (export define-maker define-auxiliary-syntax define-auxiliary-syntaxes
 	  mandatory optional with without)
   (import (rnrs)
     ;;Notice that  we need  to have the  helpers in a  different library
