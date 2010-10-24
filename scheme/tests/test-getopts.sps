@@ -1,4 +1,4 @@
-;;; -*- coding: utf-8-unix -*-
+;;; -*- coding: utf-8 -*-
 ;;;
 ;;;Part of: Nausicaa/Scheme
 ;;;Contents: tests for the (getopts) library
@@ -25,6 +25,7 @@
 ;;;
 
 
+#!r6rs
 (import (nausicaa)
   (strings)
   (vectors)
@@ -510,39 +511,39 @@
     (set-cons! result arg))
 
   (define-option interactive
-    (brief #\i)
-    (long "interactive")
-    (with-arg? #f)
-    (description "ask the user first")
-    (action register-without))
+    (brief: #\i)
+    (long: "interactive")
+    (require-argument: #f)
+    (description: "ask the user first")
+    (action: register-without))
 
   (define-option force
-    (brief #\f)
-    (long "force")
-    (with-arg? #f)
-    (description "hurt me plenty")
-    (action register-without))
+    (brief: #\f)
+    (long: "force")
+    (require-argument: #f)
+    (description: "hurt me plenty")
+    (action: register-without))
 
   (define-option help
-    (brief #\h)
-    (long "help")
-    (with-arg? #f)
-    (description "print help screen")
-    (action register-without))
+    (brief: #\h)
+    (long: "help")
+    (require-argument: #f)
+    (description: "print help screen")
+    (action: register-without))
 
   (define-option file
-    (brief #\F)
-    (long "file")
-    (with-arg? #t)
-    (description "input file")
-    (action register-with))
+    (brief: #\F)
+    (long: "file")
+    (require-argument: #t)
+    (description: "input file")
+    (action: register-with))
 
   (define-option archive
-    (brief #\A)
-    (long "archive")
-    (with-arg? #t)
-    (description "output archive")
-    (action register-with))
+    (brief: #\A)
+    (long: "archive")
+    (require-argument: #t)
+    (description: "output archive")
+    (action: register-with))
 
   (define options
     (list interactive force help file archive))

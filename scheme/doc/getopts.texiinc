@@ -9,7 +9,7 @@ library is built on top of @library{classes}.
 
 @menu
 * getopts intro::               Introduction.
-* getopts records::             Record types.
+* getopts types::               Type definitions.
 * getopts config::              Parser configuration.
 * getopts parser::              Parsing arguments.
 * getopts conditions::          Exceptions and condition objects.
@@ -105,8 +105,8 @@ could be made possible but, being unreadable, it is forbidden.
 Notice that a single dash, @samp{-}, is a valid non--option argument.
 
 @c page
-@node getopts records
-@section Record types
+@node getopts types
+@section Type definitions
 
 
 @deftp Class @aclass{option}
@@ -115,19 +115,20 @@ Type of records representing command line options.
 
 
 @defcv {Immutable Field} @aclass{option} brief
-A Scheme character representing a brief option selector; to specify an
-option with not brief selector, we can set this field to @false{}.
+A Scheme character representing a dash plus single character (brief)
+option selector; to specify an option with no brief selector, we can set
+this field to @false{}.
 @end defcv
 
 
 @defcv {Immutable Field} @aclass{option} long
 A Scheme string representing a long option selector, without the
-double--dash prefix; to specify an option with not long selector, we can
+double--dash prefix; to specify an option with no long selector, we can
 set this field to @false{}.
 @end defcv
 
 
-@defcv {Immutable Field} @aclass{option} with-arg?
+@defcv {Immutable Field} @aclass{option} requires-argument?
 Boolean, true if this option requires an argument.
 @end defcv
 
@@ -138,22 +139,62 @@ Scheme string describing this option, to be used in help screens.
 
 
 @defcv {Immutable Field} @aclass{option} action
-Semantic action, a closure to be invoked when this option is found.
+Semantic action, a closure to be invoked when this option is found on
+the command line.
 
 @itemize
 @item
-If the field @code{with-arg?} is set to @false{}, the closure is applied
-to a single value: The @class{option} record representing the option.
+If the field @code{requires-argument?} is set to @false{}: the closure
+is applied to a single value being the @class{option} record
+representing the option.
 
 @item
-If the field @code{with-arg?} is set to @true{}, the closure is applied
-to two values: the @class{option} record representing the option and the
-Scheme string representing the option's value.
+If the field @code{requires-argument?} is set to @true{}: the closure is
+applied to two values being the @class{option} record representing the
+option and the Scheme string representing the option's value.
 @end itemize
+
+We have to remember that @class{option} records can be compared with
+@func{eq?}.
 @end defcv
 
 
-@defun make-<option> @var{brief} @var{long} @var{with-arg?} @var{description} @var{action}
+@deffn Syntax {make @aclass{option}} @var{brief} @var{long} @var{requires-argument?} @var{description} @var{action}
+Build and return a new @class{option} record.
+@end deffn
+
+
+@defun <option>? @var{obj}
+Return true if @var{obj} is a record of type @class{option}.
+@end defun
+
+
+@deffn Syntax define-option @ameta{name} @ameta{clause} ...
+@deffnx {Auxiliary Syntax} brief: @ameta{char}
+@deffnx {Auxiliary Syntax} long: @ameta{string}
+@deffnx {Auxiliary Syntax} requires-argument: @ameta{bool}
+@deffnx {Auxiliary Syntax} description: @ameta{string}
+@deffnx {Auxiliary Syntax} action: @ameta{function}
+Build a new @class{option} record and bind it to @ameta{name}, which
+must be a Scheme symbol.  All the @ameta{clause} arguments must be
+subforms with an auxiliary syntactic keyword as first element.  Example:
+
+@example
+(define-option interactive
+  (brief:               #\i)
+  (long:                "interactive")
+  (requires-argument:   #f)
+  (description:         "ask the user first")
+  (action:              (lambda (option) ---)))
+@end example
+@end deffn
+
+@c ------------------------------------------------------------
+
+@subsubheading Traditional records @api{}
+
+
+@defun make-<option> @var{brief} @var{long} @var{requires-argument?} @var{description} @var{action}
 Build and return a new @class{option} record.
 @end defun
 
@@ -165,33 +206,11 @@ Return true if @var{obj} is a record of type @class{option}.
 
 @defun <option>-brief @var{record}
 @defunx <option>-long @var{record}
-@defunx <option>-with-arg? @var{record}
+@defunx <option>-requires-argument? @var{record}
 @defunx <option>-description @var{record}
 @defunx <option>-action @var{record}
 Accessors for the fields of an @class{option} record.
 @end defun
-
-
-@deffn Syntax define-option @ameta{name} @ameta{clause} ...
-@deffnx {Auxiliary Syntax} brief @ameta{char}
-@deffnx {Auxiliary Syntax} long @ameta{string}
-@deffnx {Auxiliary Syntax} with-arg? @ameta{bool}
-@deffnx {Auxiliary Syntax} description @ameta{string}
-@deffnx {Auxiliary Syntax} action @ameta{function}
-Build a new @class{option} record and bind it to @ameta{name}, which
-must be a Scheme symbol.  All the @ameta{clause} arguments must be
-subforms with an auxiliary syntactic keyword as first element.  Example:
-
-@example
-(define-option interactive
-  (brief        #\i)
-  (long         "interactive")
-  (with-arg?    #f)
-  (description  "ask the user first")
-  (action       (lambda (option)
-                  ---)))
-@end example
-@end deffn
 
 @c page
 @node getopts config
@@ -226,7 +245,7 @@ are all ignored; else they are interpreted as non--option arguments.
 
 
 @deffn Syntax getopts-options @var{symbol} ...
-Expands into an enumerated set of symbols to be used to configure the
+Expand into an enumerated set of symbols to be used to configure the
 operations of the @func{getopts} parser.
 @end deffn
 
@@ -243,7 +262,7 @@ of @class{option} records.  If the configuration option @code{delayed} is
 not used, the return value is @false{}.
 
 @var{argument-action} must be a Scheme function accepting a single
-argument: A Scheme string representing a command line non--option.
+argument: a Scheme string representing a command line non--option.
 
 The optional @var{config-options} must be an enumerated set of values
 from the @code{getopts-configuration} enumeration.
@@ -273,39 +292,39 @@ Meaningless usage example:
     (set-cons! result arg)))
 
 (define-option interactive
-  (brief #\i)
-  (long "interactive")
-  (with-arg? #f)
-  (description "ask the user first")
-  (action register-without))
+  (brief:               #\i)
+  (long:                "interactive")
+  (requires-argument:   #f)
+  (description:         "ask the user first")
+  (action:              register-without))
 
 (define-option force
-  (brief #\f)
-  (long "force")
-  (with-arg? #f)
-  (description "hurt me plenty")
-  (action register-without))
+  (brief:               #\f)
+  (long:                "force")
+  (requires-argument:   #f)
+  (description:         "hurt me plenty")
+  (action:              register-without))
 
 (define-option help
-  (brief #\h)
-  (long "help")
-  (with-arg? #f)
-  (description "print help screen")
-  (action register-without))
+  (brief:               #\h)
+  (long:                "help")
+  (requires-argument?:  #f)
+  (description:         "print help screen")
+  (action:              register-without))
 
 (define-option file
-  (brief #\F)
-  (long "file")
-  (with-arg? #t)
-  (description "input file")
-  (action register-with))
+  (brief:               #\F)
+  (long:                "file")
+  (requires-argument:   #t)
+  (description:         "input file")
+  (action:              register-with))
 
 (define-option archive
-  (brief #\A)
-  (long "archive")
-  (with-arg? #t)
-  (description "output archive")
-  (action register-with))
+  (brief:               #\A)
+  (long:                "archive")
+  (requires-argument:   #t)
+  (description:         "output archive")
+  (action:              register-with))
 
 (getopts (command-line)
          (list interactive force help file archive)

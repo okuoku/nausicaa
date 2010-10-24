@@ -1,4 +1,4 @@
-;;; -*- coding: utf-8-unix -*-
+;;; -*- coding: utf-8 -*-
 ;;;
 ;;;Part of: Nausicaa/Scheme
 ;;;Contents: command line options parsing
@@ -25,23 +25,26 @@
 ;;;
 
 
+#!r6rs
 (library (getopts)
   (export
 
+    <option>
     getopts			getopts-options
     define-option
 
-;;; --------------------------------------------------------------------
+    ;; auxiliary syntaxes
+    brief:			long:
+    require-argument:		description:
+    action:
 
-    <option>
+    ;; traditional records API
     make-<option>		<option>?
-
     <option>-brief		<option>-long
-    <option>-with-arg?		<option>-description
+    <option>-requires-argument?	<option>-description
     <option>-action
 
-;;; --------------------------------------------------------------------
-
+    ;; condition objects
     &getopts		make-getopts-condition	getopts-condition?
 
     &option		make-option-condition	option-condition?
@@ -70,9 +73,9 @@
     raise-unknown-option
     raise-option-requires-value
     raise-option-requires-no-value
-    raise-invalid-option
-    )
+    raise-invalid-option)
   (import (rnrs)
+    (makers)
     (classes)
     (only (language-extensions) set-cons!))
 
@@ -126,205 +129,30 @@
 	  (immutable long)
 		;A Scheme string representing a long option, without the
 		;leading "--".
-	  (immutable with-arg?)
+	  (immutable requires-argument?)
 		;Boolean, true if this option requires an argument.
 	  (immutable description)
 		;Scheme string describing this option.
 	  (immutable action)))
 		;Closure to be invoked when this option is found.
 
-(define-syntax define-option
-  (syntax-rules (brief long with-arg? description action)
-    ((_ ?name ?clause ...)
-     (%define-option/parse-clauses ?name
-				   (brief) (long) (with-arg?) (description) (action)
-				   ?clause ...))))
+(define-auxiliary-syntax
+  brief: long: require-argument: description: action:)
 
-
-(define-syntax %define-option/parse-clauses
-  (syntax-rules (brief long with-arg? description action)
+(define-maker (define-option name)
+  %define-option
+  ((brief:		#f)
+   (long:		#f)
+   (require-argument:	#f)
+   (description:	"undocumented option")
+   (action:		%default-action)))
 
-    ;;Parse BRIEF clause.
-    ((_ ?name
-	(brief		?brief ...)
-	(long		?long ...)
-	(with-arg?	?with-arg ...)
-	(description	?description ...)
-	(action		?action ...)
-	(brief ?expr)
-	?clause ...)
-     (%define-option/parse-clauses ?name
-				   (brief	?brief ... ?expr)
-				   (long	?long ...)
-				   (with-arg?	?with-arg ...)
-				   (description ?description ...)
-				   (action	?action ...)
-				   ?clause ...))
+(define (%default-action . args)
+  (error #f "missing semantic action while parsing command line option" args))
 
-    ;;Parse LONG clause.
-    ((_ ?name
-	(brief		?brief ...)
-	(long		?long ...)
-	(with-arg?	?with-arg ...)
-	(description	?description ...)
-	(action		?action ...)
-	(long ?expr)
-	?clause ...)
-     (%define-option/parse-clauses ?name
-				   (brief	?brief ...)
-				   (long	?long ... ?expr)
-				   (with-arg?	?with-arg ...)
-				   (description	?description ...)
-				   (action	?action ...)
-				   ?clause ...))
-
-    ;;Parse WITH-ARG? clause.
-    ((_ ?name
-	(brief		?brief ...)
-	(long		?long ...)
-	(with-arg?	?with-arg ...)
-	(description	?description ...)
-	(action		?action ...)
-	(with-arg? ?expr)
-	?clause ...)
-     (%define-option/parse-clauses ?name
-				   (brief	?brief ...)
-				   (long	?long ...)
-				   (with-arg?	?with-arg ... ?expr)
-				   (description	?description ...)
-				   (action	?action ...)
-				   ?clause ...))
-
-    ;;Parse DESCRIPTION clause.
-    ((_ ?name
-	(brief		?brief ...)
-	(long		?long ...)
-	(with-arg?	?with-arg ...)
-	(description	?description ...)
-	(action		?action ...)
-	(description ?expr)
-	?clause ...)
-     (%define-option/parse-clauses ?name
-				   (brief	?brief ...)
-				   (long	?long ...)
-				   (with-arg?	?with-arg ...)
-				   (description	?description ... ?expr)
-				   (action	?action ...)
-				   ?clause ...))
-
-    ;;Parse ACTION clause.
-    ((_ ?name
-	(brief		?brief ...)
-	(long		?long ...)
-	(with-arg?	?with-arg ...)
-	(description	?description ...)
-	(action		?action ...)
-	(action ?expr)
-	?clause ...)
-     (%define-option/parse-clauses ?name
-				   (brief	?brief ...)
-				   (long	?long ...)
-				   (with-arg?	?with-arg ...)
-				   (description	?description ...)
-				   (action	?action ... ?expr)
-				   ?clause ...))
-
-    ;;no more clauses to parse
-    ((_ ?name
-	(brief		?brief ...)
-	(long		?long ...)
-	(with-arg?	?with-arg ...)
-	(description	?description ...)
-	(action		?action ...))
-     (%define-option/add-defaults ?name
-				  (brief	?brief ...)
-				  (long		?long ...)
-				  (with-arg?	?with-arg ...)
-				  (description	?description ...)
-				  (action	?action ...)))))
-
-
-(define-syntax %define-option/add-defaults
-  (syntax-rules (brief long with-arg? description action)
-
-    ;;Process empty BRIEF clause.
-    ((_ ?name
-	(brief)
-	(long		?long ...)
-	(with-arg?	?with-arg ...)
-	(description	?description ...)
-	(action		?action ...))
-     (%define-option/add-defaults ?name
-				  (brief	#f)
-				  (long		?long ...)
-				  (with-arg?	?with-arg ...)
-				  (description	?description ...)
-				  (action	?action ...)))
-
-    ;;Process empty LONG clause.
-    ((_ ?name
-	(brief		?brief ...)
-	(long)
-	(with-arg?	?with-arg ...)
-	(description	?description ...)
-	(action		?action ...))
-     (%define-option/add-defaults ?name
-				  (brief	?brief ...)
-				  (long		#f)
-				  (with-arg?	?with-arg ...)
-				  (description	?description ...)
-				  (action	?action ...)))
-
-    ;;Process empty WITH-ARG? clause.
-    ((_ ?name
-	(brief		?brief ...)
-	(long		?long ...)
-	(with-arg?)
-	(description	?description ...)
-	(action		?action ...))
-     (%define-option/add-defaults ?name
-				  (brief	?brief ...)
-				  (long		?long ...)
-				  (with-arg?	#f)
-				  (description	?description ...)
-				  (action	?action ...)))
-
-    ;;Process empty DESCRIPTION clause.
-    ((_ ?name
-	(brief		?brief ...)
-	(long		?long ...)
-	(with-arg?	?with-arg ...)
-	(description)
-	(action		?action ...))
-     (%define-option/add-defaults ?name
-				  (brief	?brief ...)
-				  (long		?long ...)
-				  (with-arg?	?with-arg ...)
-				  (description	"undocumented option")
-				  (action	?action ...)))
-
-    ;;Process empty ACTION clause.
-    ((_ ?name
-	(brief		?brief ...)
-	(long		?long ...)
-	(with-arg?	?with-arg ...)
-	(description	?description ...)
-	(action))
-     (%define-option/add-defaults ?name
-				  (brief	?brief ...)
-				  (long		?long ...)
-				  (with-arg?	?with-arg ...)
-				  (description	?description ...)
-				  (action	(lambda args
-						  (error #f "missing semantic action")))))
-
-    ;;Everything processed.
-    ((_ ?name
-	(brief		?brief)
-	(long		?long)
-	(with-arg?	?with-arg)
-	(description	?description)
-	(action		?action))
+(define-syntax %define-option
+  (syntax-rules ()
+    ((_ ?name ?brief ?long ?with-arg ?description ?action)
      (define ?name
        (make-<option> ?brief ?long ?with-arg ?description ?action)))))
 
@@ -488,7 +316,7 @@
 		   (cond ((not option)
 			  (raise-unknown-option 'getopts long-string arg.ptr "unknown long option")
 			  (parse-next-argument (cdr command-line) marked-end-of-options?))
-			 ((<option>-with-arg? option)
+			 ((<option>-requires-argument? option)
 			  (cond (equal-index
 				 ;;Found  an option-with-value  with the
 				 ;;format '--option=value'.
@@ -534,7 +362,7 @@
 		     (cond ((not option)
 			    (raise-unknown-option 'getopts brief-char arg.ptr "unknown brief option"))
 
-			   ((<option>-with-arg? option)
+			   ((<option>-requires-argument? option)
 			    (cond ((and (< 1 j) (not (= (+ 1 j) arg.len)))
 				   ;;This brief  option requires a value
 				   ;;but it  is neither a  single option
