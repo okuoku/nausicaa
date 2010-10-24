@@ -36,7 +36,7 @@
   (checks))
 
 (check-set-mode! 'report-failed)
-(display "*** testing net Ipv4 address\n")
+(display "*** testing net IPv4 address\n")
 
 
 (parametrise ((check-test-name	'lexing))
@@ -452,7 +452,6 @@
 
 
 (parametrise ((check-test-name	'class-prefix))
-
 
   (check
       (let (((o <ipv4-address-prefix>)

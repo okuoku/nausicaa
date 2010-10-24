@@ -33,8 +33,8 @@ ipv4address-lexer} library.
 
 
 @defvr Constant ipv4-address-lexer-table
-A lexer table to be used by @library{silex lexer} to tokenise textual
-IPv4 address or IPv4 address prefix representations.
+A lexer table to be used by the library @library{silex lexer} to
+tokenise textual IPv4 address or IPv4 address prefix representations.
 @end defvr
 
 
@@ -385,8 +385,8 @@ ipv6address-lexer} library.
 
 
 @defvr Constant ipv6-address-lexer-table
-A lexer table to be used by @library{silex lexer} to tokenise textual
-IPv6 address or IPv6 address prefix representations.
+A lexer table to be used by the library @library{silex lexer} to
+tokenise textual IPv6 address or IPv6 address prefix representations.
 @end defvr
 
 

@@ -107,21 +107,31 @@
 
 (define-maker make-ipv6-address-lexer
   %make-ipv6-address-lexer
-  ((:string	#f)
-   (:port	#f)
-   (:procedure	#f)))
+  ;;These auxiliary keywords are the ones exported by (silex lexer).
+  ((string:	sentinel)
+   (port:	sentinel)
+   (procedure:	sentinel)))
 
-(define (%make-ipv6-address-lexer string port proc)
-  (lexer-make-lexer ipv6-address-lexer-table
-		    (cond ((and string (not port) (not proc))
-			   (lexer-make-IS (string: string) (counters: 'all)))
-			  ((and port (not string) (not proc))
-			   (lexer-make-IS (port: port) (counters: 'all)))
-			  ((and proc (not string) (not port))
-			   (lexer-make-IS (procedure: proc) (counters: 'all)))
-			  (else
-			   (syntax-violation 'make-ipv6-address-lexer
-			     "invalid or missing selection of input method" #f)))))
+(define-syntax %make-ipv6-address-lexer
+  (lambda (stx)
+    (syntax-case stx (sentinel)
+
+      ((_ ?string sentinel sentinel)
+       #'(lexer-make-lexer ipv6-address-lexer-table
+			 (lexer-make-IS (string: ?string) (counters: 'all))))
+
+      ((_ sentinel ?port sentinel)
+       #'(lexer-make-lexer ipv6-address-lexer-table
+			   (lexer-make-IS (port: ?port) (counters: 'all))))
+
+      ((_ sentinel sentinel ?procedure)
+       #'(lexer-make-lexer ipv6-address-lexer-table
+			   (lexer-make-IS (procedure: ?procedure) (counters: 'all))))
+
+      ((_ sentinel sentinel ?procedure)
+       (syntax-violation 'make-ipv6-address-lexer
+	 "invalid or missing selection of input method" (syntax->datum stx) #f))
+      )))
 
 (define (make-ipv6-address-parser who lexer irritants)
   (lambda ()
@@ -137,7 +147,7 @@
 				      (make-who-condition who)
 				      (make-message-condition "invalid IPv6 address string")
 				      (make-irritants-condition irritants))))))
-    (let* ((lexer	(make-ipv6-address-lexer  (:string the-string)))
+    (let* ((lexer	(make-ipv6-address-lexer  (string: the-string)))
 	   (parser	(make-ipv6-address-parser who lexer irritants))
 	   (ell		(parser)))
       (receive (addr-ell number-of-bits-in-prefix)
@@ -156,7 +166,7 @@
 				      (make-who-condition who)
 				      (make-message-condition "invalid IPv6 address prefix string")
 				      (make-irritants-condition irritants))))))
-    (let* ((lexer	(make-ipv6-address-lexer  (:string the-string)))
+    (let* ((lexer	(make-ipv6-address-lexer  (string: the-string)))
 	   (parser	(make-ipv6-address-parser who lexer irritants))
 	   (ell		(parser)))
       (receive (addr-ell number-of-bits-in-prefix)
