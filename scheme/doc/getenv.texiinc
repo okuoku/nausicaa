@@ -1,0 +1,15 @@
+@node getenv
+@chapter Accessing system environment variables
+
+
+The library @library{getenv} exports a simple interface to access system
+environment variables.
+
+
+@defun getenv @var{varname}
+Return a string representing the value of the environment variable
+@var{varname}; the string can be empty.  If the variable is not set
+return false.
+@end defun
+
+@c end of file

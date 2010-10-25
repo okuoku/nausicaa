@@ -665,6 +665,7 @@ More libraries
 * interps::                     Evaluating code in a limited environment.
 * libraries::                   Libraries inspection.
 * submodules::                  Nested modules.
+* getenv::                      Accessing system environment variables.
 
 Low level libraries
 
@@ -766,6 +767,7 @@ Indexes
 @include interps.texiinc
 @include libraries.texiinc
 @include submodules.texiinc
+@include getenv.texiinc
 
 @c chapters on low level libraries
 
