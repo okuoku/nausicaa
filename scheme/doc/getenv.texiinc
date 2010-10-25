@@ -3,7 +3,8 @@
 
 
 The library @library{getenv} exports a simple interface to access system
-environment variables.
+environment variables.  This library exists with the purpose of
+providing a lightweight interface for the expansion of macros.
 
 
 @defun getenv @var{varname}
