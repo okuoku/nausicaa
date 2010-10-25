@@ -879,9 +879,10 @@
     )
 
 
-  (import (for (except (rnrs) finite? infinite? nan? =) expand run)
+  (import (for (except (rnrs) finite? infinite? nan? = assert) expand run)
     (for (only (system) get-environment-variable get-environment-variables) expand run)
     (for (cond-expand) expand run)
+    (for (only (assertions) assert) expand run)
     (for (conditions) expand run)
     (for (language-extensions) expand run)
     (for (parameters) expand run)

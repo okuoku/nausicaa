@@ -879,10 +879,11 @@
     )
 
 
-  (import (for (except (rnrs) finite? infinite? nan? = max *) expand run)
+  (import (for (except (rnrs) finite? infinite? nan? = max * assert) expand run)
     (for (prefix (only (rnrs) *) ypsilon:) expand run)
     (for (only (core) lookup-process-environment process-environment->alist) expand run)
     (for (cond-expand) expand run)
+    (for (only (assertions) assert) expand run)
     (for (conditions) expand run)
     (for (language-extensions) expand run)
     (for (parameters) expand run)

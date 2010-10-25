@@ -880,10 +880,11 @@
     )
 
 
-  (import (for (except (rnrs) finite? infinite? nan? = * rational-valued?) expand run)
+  (import (for (except (rnrs) finite? infinite? nan? = * rational-valued? assert) expand run)
     (for (prefix (only (rnrs) * rational-valued?) petite:) expand run)
     (for (only (chezscheme) getenv) expand run)
     (for (cond-expand) expand run)
+    (for (only (assertions) assert) expand run)
     (for (conditions) expand run)
     (for (language-extensions) expand run)
     (for (parameters) expand run)
