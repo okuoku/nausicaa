@@ -34,12 +34,13 @@
 
 
 (define (%bool-from-env-var name default)
-  (case (string-downcase (getenv name))
-    (("true" "1")
-     #t)
-    (("false" "0")
-     #f)
-    (else default)))
+  (let ((v (getenv name)))
+    (case (and v (string-downcase v))
+      (("true" "1")
+       #t)
+      (("false" "0")
+       #f)
+      (else default))))
 
 (define enable-function-arguments-validation?
   ;;True  if the  functions must  perform the  full validation  of their

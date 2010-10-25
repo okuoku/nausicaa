@@ -611,6 +611,9 @@ Basic libraries
 * shared-structures::           External representation for data
                                 with shared structure.
 * sentinel::                    The sentinel value.
+* getenv::                      Accessing system environment variables.
+* configuration::               Overall configuration.
+* assertions::                  Organising assertions.
 * makers::                      Maker syntaxes.
 * classes::                     Record utilities.
 * compensations::               Compensation stacks.
@@ -665,7 +668,6 @@ More libraries
 * interps::                     Evaluating code in a limited environment.
 * libraries::                   Libraries inspection.
 * submodules::                  Nested modules.
-* getenv::                      Accessing system environment variables.
 
 Low level libraries
 
@@ -713,6 +715,9 @@ Indexes
 @include parameters.texiinc
 @include shared-structures.texiinc
 @include sentinel.texiinc
+@include getenv.texiinc
+@include configuration.texiinc
+@include assertions.texiinc
 @include makers.texiinc
 @include classes.texiinc
 @include compensations.texiinc
@@ -767,7 +772,6 @@ Indexes
 @include interps.texiinc
 @include libraries.texiinc
 @include submodules.texiinc
-@include getenv.texiinc
 
 @c chapters on low level libraries
 

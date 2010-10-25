@@ -36,12 +36,22 @@
     assert
 
     ;; validation form
-    validation-clauses
+    arguments
     who				number-of-arguments
     argument			formal
     ordinal			predicate
     description
 
+    ;; predicates
+    list-of-booleans?		list-of-booleans?/or-null	list-of-booleans?/or-false
+    list-of-numbers?		list-of-numbers?/or-null	list-of-numbers?/or-false
+    list-of-characters?		list-of-characters?/or-null	list-of-characters?/or-false
+    list-of-symbols?		list-of-symbols?/or-null	list-of-symbols?/or-false
+    list-of-strings?		list-of-strings?/or-null	list-of-strings?/or-false
+    list-of-vectors?		list-of-vectors?/or-null	list-of-vectors?/or-false
+    list-of-bytevectors?	list-of-bytevectors?/or-null	list-of-bytevectors?/or-false
+    list-of-hashtables?		list-of-hashtables?/or-null	list-of-hashtables?/or-false
+    list-of-procedures?		list-of-procedures?/or-null	list-of-procedures?/or-false
     )
   (import (except (rnrs) assert)
     (prefix (only (rnrs) assert) rnrs.)
@@ -69,30 +79,25 @@
   predicate
   description)
 
-(define-maker arguments
-  %validation-clauses
-  ((who				#f)
-   (number-of-arguments		0)
-   (argument			sentinel)))
-
 (define-maker %argument
   %internal-validation-clause
-  ((formal			sentinel)
-   (ordinal			0)
-   (predicate			sentinel)
-   (description			"undocumented argument")))
+  ((who			#f)
+   (number-of-arguments	0)
+   (formal		sentinel)
+   (ordinal		0)
+   (predicate		sentinel)
+   (description		"undocumented argument")))
 
-(define-syntax validation-clauses
+(define-syntax arguments
   (lambda (stx)
     (syntax-case stx (who number-of-arguments argument)
       ((_ (who ?who) (number-of-arguments ?number-of-arguments) (argument . ?clauses) ...)
        (if (config.enable-function-arguments-validation?)
-	   #'(begin
-	       (%internal-validation-clause (who ?who)
-					    (number-of-arguments ?number-of-arguments)
-					    . ?clauses)
-	       ...)
-	 #'(values))))))
+	   #'(define dummy
+	       (begin
+		 (%argument (who ?who) (number-of-arguments ?number-of-arguments) . ?clauses) ...
+		 #f))
+	 #'(define dummy))))))
 
 (define-syntax %internal-validation-clause
   ;;Expand  a single  function argument  validation clause.   The output
@@ -102,59 +107,27 @@
   ;;	  (assertion-violation <who> <description> <formal>))
   ;;
   (lambda (stx)
-
-    (define (main stx)
-      (syntax-case stx (who number-of-arguments argument ordinal predicate description)
-	((_ (who			?who)
-	    (number-of-arguments	?number-of-arguments)
-	    (formal		?formal)
-	    (ordinal		?ordinal)
-	    (predicate		?predicate)
-	    (description		?description))
-	 #`(unless (#,(%internal-validation-predicate #'?predicate) ?formal)
-	     (assertion-violation ?who
-	       (receive (port getter)
-		   (open-string-output-port)
-		 (let-syntax ((%display (syntax-rules ()
-					  ((_ ?thing)
-					   (display ?thing port)))))
-		   (%display "expected ")
-		   (%display ?description)
-		   (%display " ")
-		   #,(let ((ordinal (syntax->datum #'?ordinal)))
-		       (cond ((= 1 (syntax->datum #'?number-of-arguments))
-			      #'(%display "as unique argument"))
-			     (else
-			      #'(begin
-				  (%display "as argument number ")
-				  (%display ?ordinal)))))
-		   (getter)))
-	       ?formal)))))
-
-    (define (%internal-validation-predicate stx)
-      ;;If the argument is an  identifier: expand to the binding in this
-      ;;library; if the argument is a list holding an identifier: expand
-      ;;to the binding in the environment of the input form.
-      ;;
-      ;;This trick  allows us  not to export  from this library  all the
-      ;;automatically generated predicate bindings.
-      ;;
-      (syntax-case stx ()
-	(?predicate
-	 (identifier? #'?predicate)
-	 #'(begin ?predicate))
-	((?predicate)
-	 (identifier? #'?predicate)
-	 (datum->syntax #'validation-clauses (syntax->datum #'?predicate))
-;;;	 #`(begin #,(datum->syntax #'validation-clauses (syntax->datum #'?predicate)))
-;;;	 #'(begin ?predicate)
-	 )
-	(_
-	 (syntax-violation 'validation-clauses
-	   "invalid PREDICATE clause in function argument declaration"
-	   stx #f))))
-
-    (main stx)))
+    (syntax-case stx ()
+      ((_ ?who ?number-of-arguments ?formal ?ordinal ?predicate ?description)
+       #`(unless (?predicate ?formal)
+	   (assertion-violation ?who
+	     (receive (port getter)
+		 (open-string-output-port)
+	       (let-syntax ((%display (syntax-rules ()
+					((_ ?thing)
+					 (display ?thing port)))))
+		 (%display "expected ")
+		 (%display ?description)
+		 (%display " ")
+		 #,(let ((ordinal (syntax->datum #'?ordinal)))
+		     (cond ((= 1 (syntax->datum #'?number-of-arguments))
+			    #'(%display "as unique argument"))
+			   (else
+			    #'(begin
+				(%display "as argument number ")
+				(%display ?ordinal)))))
+		 (getter)))
+	     ?formal))))))
 
 
 (define-syntax define-list-of-values-predicates
