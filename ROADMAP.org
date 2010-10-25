@@ -1,0 +1,6 @@
+* 0.2
+
+** Import in Nausicas/Scheme some sort of contract library.
+
+** Establish a versioning scheme for libraries.
+
