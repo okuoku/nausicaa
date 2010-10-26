@@ -41,7 +41,7 @@
       (list a b c))
 
     (define-contract doit %doit
-      integer? string? symbol?)
+      (integer? string? symbol?))
 
     (check
 	(doit 1 "two" 'three)
@@ -83,7 +83,7 @@
 	(vector a b c)))
 
     (define-contract doit %doit
-      integer? string? symbol? -> list?)
+      (integer? string? symbol? -> list?))
 
     (check
 	(doit 1 "two" 'three)
@@ -124,6 +124,123 @@
 
     #f)
 
+  #t)
+
+
+(parametrise ((check-test-name	'define/contract))
+
+  (let ()	;no internal body substitutions
+    (define/contract (doit a b c)
+      (integer? string? symbol? -> list?)
+      (list a b c))
+
+    (check
+	(doit 1 "two" 'three)
+      => '(1 "two" three))
+
+    (check
+	(guard (E ((assertion-violation? E)
+		   #t)
+		  (else E))
+	  (doit #\a "two" 'three))
+      => #t)
+
+    (check
+	(guard (E ((assertion-violation? E)
+		   #t)
+		  (else E))
+	  (doit 1 2 'three))
+      => #t)
+
+    (check
+	(guard (E ((assertion-violation? E)
+		   #t)
+		  (else E))
+	  (doit 1 "two" 3))
+      => #t)
+
+    #f)
+
+;;; --------------------------------------------------------------------
+
+  (let ()	;internal body substitutions
+
+    (define/contract (doit n)
+      (integer? -> (lambda (x) (or (not x) (integer? x))))
+      (if (zero? n)
+	  #f
+	(doit (- n 1))))
+
+    (check
+	(doit 10)
+      => #f)
+
+    (check
+	(guard (E ((assertion-violation? E)
+		   #t)
+		  (else E))
+	  (doit 'ciao))
+      => #t)
+
+    #f)
+
+  #t)
+
+
+(parametrise ((check-test-name	'outer-contracts))
+
+  (let ()
+
+    (with-outer-contracts
+     ((doit (integer? -> (lambda (x) (or (not x) (integer? x))))))
+     (define (doit n)
+       (if (zero? n)
+	   #f
+	 (doit (- n 1))))
+     )
+
+    (check
+	(doit 10)
+      => #f)
+
+    (check
+	(guard (E ((assertion-violation? E)
+		   #t)
+		  (else E))
+	  (doit 'ciao))
+      => #t)
+
+    #f)
+
+;;; --------------------------------------------------------------------
+
+  (let ()
+
+    (with-outer-contracts
+     ((a (integer? -> integer?))
+      (b (integer? -> integer?)))
+     (define (a n)
+       (if (zero? n)
+	   n
+	 (b (- n 1))))
+     (define (b n)
+       (cond ((zero? n)
+	      n)
+	     ((= 123 n)
+	      #f)
+	     (else
+	      (a (- n 1)))))
+     (check (b 123) => #f))
+
+    (check (a 10) => 0)
+    (check
+	(guard (E ((assertion-violation? E)
+		   #t)
+		  (else E))
+	  (b 123))
+      => #t)
+
+    #f)
 
   #t)
 

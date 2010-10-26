@@ -614,6 +614,7 @@ Basic libraries
 * getenv::                      Accessing system environment variables.
 * configuration::               Overall configuration.
 * assertions::                  Organising assertions.
+* contracts::                   Function call contracts.
 * makers::                      Maker syntaxes.
 * classes::                     Record utilities.
 * compensations::               Compensation stacks.
@@ -718,6 +719,7 @@ Indexes
 @include getenv.texiinc
 @include configuration.texiinc
 @include assertions.texiinc
+@include contracts.texiinc
 @include makers.texiinc
 @include classes.texiinc
 @include compensations.texiinc

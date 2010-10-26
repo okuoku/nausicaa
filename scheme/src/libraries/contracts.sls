@@ -27,36 +27,74 @@
 
 #!r6rs
 (library (contracts)
-  (export define-contract ->)
+  (export define-contract -> define/contract with-outer-contracts)
   (import (rnrs)
-    (prefix (assertions) ass.)
-    (only (syntax-utilities) define-auxiliary-syntax))
+    (prefix (configuration) config.)
+    (only (syntax-utilities) define-auxiliary-syntax identifier-subst))
 
-
 (define-auxiliary-syntax ->)
 
+
 (define-syntax define-contract
   (lambda (stx)
     (syntax-case stx (->)
 
-      ((_ ?name ?keyword ?predicate ... -> ?ret-predicate)
-       (with-syntax (((ARG ...) (generate-temporaries #'(?predicate ...))))
-	 #'(define-syntax ?name
-	     (identifier-syntax
-	      (lambda (ARG ...)
-		(let ((result (?keyword (begin (ass.assert (?predicate ARG)) ARG)
-					...)))
-		  (ass.assert (?ret-predicate result))
-		  result))))))
+      ((_ ?name ?keyword (?predicate ... -> ?ret-predicate))
+       (if (config.enable-function-arguments-validation?)
+	   (with-syntax (((ARG ...) (generate-temporaries #'(?predicate ...))))
+	     #'(define-syntax ?name
+		 (identifier-syntax
+		  (lambda (ARG ...)
+		    (let ((result (?keyword (begin (assert (?predicate ARG)) ARG)
+					    ...)))
+		      (assert (?ret-predicate result))
+		      result)))))
+	 #'?keyword))
 
-      ((_ ?name ?keyword ?predicate ...)
-       (with-syntax (((ARG ...) (generate-temporaries #'(?predicate ...))))
-	 #'(define-syntax ?name
-	     (identifier-syntax
-	      (lambda (ARG ...)
-		(?keyword (begin (ass.assert (?predicate ARG)) ARG)
-			  ...))))))
+      ((_ ?name ?keyword (?predicate ...))
+       (if (config.enable-function-arguments-validation?)
+	   (with-syntax (((ARG ...) (generate-temporaries #'(?predicate ...))))
+	     #'(define-syntax ?name
+		 (identifier-syntax
+		  (lambda (ARG ...)
+		    (?keyword (begin (assert (?predicate ARG)) ARG)
+			      ...)))))
+	 #'?keyword))
 
+      )))
+
+
+(define-syntax define/contract
+  (lambda (stx)
+    (syntax-case stx (->)
+      ((_ (?name . ?args)
+	  (?predicate ... -> ?ret-predicate)
+	  ?body0 ?body ...)
+       (with-syntax (((KEYWORD) (generate-temporaries #'(?name))))
+	 ;; (define out
+	 ;;   #`(begin
+	 ;;       (define-contract ?name KEYWORD ?predicate ... -> ?ret-predicate)
+	 ;;       (define (KEYWORD . ?args)
+	 ;; 	 #,@(identifier-subst `((,#'?name . ,#'KEYWORD)) #'(?body0 ?body ...)))))
+	 ;; (write (syntax->datum out))(newline)(newline)
+	 ;; out
+	 #`(begin
+	     (define-contract ?name KEYWORD (?predicate ... -> ?ret-predicate))
+	     (define (KEYWORD . ?args)
+	       #,@(identifier-subst #'(?name) #'(KEYWORD) #'(?body0 ?body ...))))
+	 ))
+      )))
+
+
+(define-syntax with-outer-contracts
+  (lambda (stx)
+    (syntax-case stx ()
+      ((_ ((?name (?predicate ... -> ?ret-predicate)) ...) ?body0 ?body ...)
+       (with-syntax (((KEYWORD ...) (generate-temporaries #'(?name ...))))
+	 #`(begin
+	     (define-contract ?name KEYWORD (?predicate ... -> ?ret-predicate))
+	     ...
+	     #,@(identifier-subst #'(?name ...) #'(KEYWORD ...) #'(?body0 ?body ...)))))
       )))
 
 

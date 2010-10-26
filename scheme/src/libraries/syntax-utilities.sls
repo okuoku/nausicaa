@@ -39,6 +39,7 @@
     ;; identifiers handling
     all-identifiers?			duplicated-identifiers?
     identifier-memq			symbol-identifier=?
+    identifier-subst
 
     ;; common identifier names constructor
     identifier->string			string->identifier
@@ -193,6 +194,37 @@
   (assert (identifier? id1))
   (assert (identifier? id2))
   (eq? (syntax->datum id1) (syntax->datum id2)))
+
+(define (identifier-subst src-ids dst-ids stx)
+  (define (%subst stx src dst)
+    (syntax-case stx ()
+
+      ((?car . ?cdr)
+       (and (identifier? #'?car)
+	    (or (free-identifier=? #'?car #'quote)
+		(free-identifier=? #'?car #'quasiquote)
+		(free-identifier=? #'?car #'syntax)
+		(free-identifier=? #'?car #'quasisyntax)))
+       #'(?car . ?cdr))
+
+      ((?car . ?cdr)
+       (identifier? #'?car)
+       (cons (if (free-identifier=? src #'?car) dst #'?car)
+	     (%subst #'?cdr src dst)))
+
+      ((?car . ?cdr)
+       (cons (%subst #'?car src dst) (%subst #'?cdr src dst)))
+
+      (#(?item ...)
+       (list->vector (%subst #'(?item ...) src dst)))
+
+      (_ stx)))
+
+  ;;We assume that it is more likely that the ALIST holds a single pair.
+  (fold-left %subst
+	     stx
+	     (unwrap-syntax-object src-ids)
+	     (unwrap-syntax-object dst-ids)))
 
 
 (define (identifier-general-append arg . args)

@@ -1,0 +1,49 @@
+@node contracts
+@chapter Function call contracts
+
+
+The library @library{contracts} defines
+
+
+@deffn Syntax define-contract @var{name} @var{keyword} (@var{pred} ...)
+@deffnx Syntax define-contract @var{name} @var{keyword} (@var{pred} ... -> @var{ret-pred})
+@deffnx {Auxiliary Syntax} ->
+Define an identifier syntax @var{name} which can be used in place of the
+identifier @var{keyword} to reference a function.  The result of the
+@var{pred} expressions are applied to the arguments at the call site to
+validate the values; the result of the @var{ret-pred} expression is
+applied to the return value at the call site to validate the value.
+
+If a predicate returns false: @func{assert} from the library
+@rsixlibrary{base} is used to raise an assertion violation.
+
+Example:
+
+@example
+(import (rnrs) (contracts))
+
+(define (%doit a b c)
+  (list a b c))
+
+(define-contract doit %doit
+  (integer? string? symbol? -> list?))
+
+(doit 1 "two" 'three)
+@expansion{} ((lambda (A B C)
+       (let ((result (%doit (begin
+                              (assert (integer? A))
+                              A)
+                            (begin
+                              (assert (string?  B))
+                              B)
+                            (begin
+                              (assert (symbol?  C))
+                              C))))
+         (ass.assert (list? result))
+         result))
+      1 "two" 'three)
+@end example
+@end deffn
+
+
+@c end of file

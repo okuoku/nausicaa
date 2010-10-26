@@ -106,6 +106,31 @@ starting with it; return false if @var{identifier} is not present.
 Return true if the identifier arguments have the same name.
 @end defun
 
+
+@defun identifier-subst @var{src-ids} @var{dst-ids} @var{stx}
+Substitute occurrences of identifiers in @var{stx}.  @var{stx} must be a
+syntax object, wrapped or unwrapped.  @var{src-ids} and @var{dst-ids}
+must be syntax objects holding lists of identifiers with equal length;
+each identifier from @var{src-ids} is substituted with the corresponding
+identifier from @var{dst-ids}.
+
+It is typical that @var{src-ids} are identifiers from an input form of a
+macro use, while @var{dst-ids} is built with
+@func{generate-temporaries}; the following is a meaningless example:
+
+@example
+(define-syntax doit
+  (lambda (stx)
+    (syntax-case stx ()
+      ((_ ?name ...)
+       (with-syntax (((NAME ...)
+                      (generate-temporaries #'(?name ...))))
+         (identifier-subst #'(?name ...)
+                           #'(NAME  ...)
+                           stx))))))
+@end example
+@end defun
+
 @c page
 @node syntax utils identifiers
 @section Constructing identifiers
