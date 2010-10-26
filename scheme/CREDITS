@@ -96,6 +96,14 @@ Written by Marco Maggi.
 
 Written by Marco Maggi.
 
+
+(contracts)
+-----------
+
+Written by  Marco Maggi  with great inspiration  from the  Racket Scheme
+contract libraries.  No code comes from Racket.
+
+
 (csv)
 (csv *)
 -------

@@ -27,7 +27,8 @@
 
 (library (configuration)
   (export enable-function-arguments-validation?
-	  enable-assertions?)
+	  enable-assertions?
+	  enable-contracts?)
   (import (rnrs)
     (parameters)
     (getenv))
@@ -55,6 +56,14 @@
   ;;True if the assertions must be included.
   ;;
   (make-parameter (%bool-from-env-var "NAUSICAA_ENABLE_ASSERTIONS" #t)
+    (lambda (v)
+      (assert (boolean? v))
+      v)))
+
+(define enable-contracts?
+  ;;True if usage of contracts must be included.
+  ;;
+  (make-parameter (%bool-from-env-var "NAUSICAA_ENABLE_CONTRACTS" #t)
     (lambda (v)
       (assert (boolean? v))
       v)))

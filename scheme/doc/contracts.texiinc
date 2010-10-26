@@ -2,17 +2,32 @@
 @chapter Function call contracts
 
 
-The library @library{contracts} defines
+The library @library{contracts} provides ways to use macro identifiers
+to validate the arguments and return value of functions; the concept is
+to include the validation code at the call site (rather than in the body
+of the function) to allow the construction of better error messages and
+debugging informations.
+
+Extensive use of contracts significantly increases the size of the
+expanded code; for this reason the @library{contracts} library excludes
+its features at expansion time when the @func{enable-contracts?}
+parameter from the @library{configuration} library is set to false.
 
 
 @deffn Syntax define-contract @var{name} @var{keyword} (@var{pred} ...)
 @deffnx Syntax define-contract @var{name} @var{keyword} (@var{pred} ... -> @var{ret-pred})
+@deffnx Syntax define-contract @var{name} @var{keyword} (@var{pred} ... -> (@varo{ret-pred} @var{ret-pred} ...))
 @deffnx {Auxiliary Syntax} ->
 Define an identifier syntax @var{name} which can be used in place of the
-identifier @var{keyword} to reference a function.  The result of the
-@var{pred} expressions are applied to the arguments at the call site to
-validate the values; the result of the @var{ret-pred} expression is
-applied to the return value at the call site to validate the value.
+identifier @var{keyword} to reference a function.  The functions bound
+to the @var{pred} identifiers are applied to the arguments at the call
+site to validate the values; the functions bound to the @var{ret-pred}
+identifiers are applied to the return values at the call site to
+validate them.
+
+The function must accept a number of arguments equal to the number of
+@var{pred} identifiers and return a number of values equal to the number
+of @var{ret-pred} identifiers.
 
 If a predicate returns false: @func{assert} from the library
 @rsixlibrary{base} is used to raise an assertion violation.
@@ -39,10 +54,73 @@ Example:
                             (begin
                               (assert (symbol?  C))
                               C))))
-         (ass.assert (list? result))
+         (assert (list? result))
          result))
       1 "two" 'three)
 @end example
+
+Notice that it is possible to define a contract for a function, then use
+it or not in its own body, recursively:
+
+@example
+(define-contract alpha %alpha
+  (integer? -> integer?))
+
+(define (%alpha n)
+  ;; recursive use without contract
+  (if (zero? n)
+      1
+    (%alpha (- n 1))))
+
+(define-contract beta %beta
+  (integer? -> integer?))
+
+(define (%beta n)
+  ;; recursive use with contract
+  (if (zero? n)
+      1
+    (beta (- n 1))))
+@end example
+@end deffn
+
+
+@deffn Syntax define/contract (@var{name} . @var{args}) @var{contract} @varo{body} @var{body} ...
+@deffnx {Auxiliary Syntax} ->
+Define a new function and a contract for its arguments and return value.
+It is almost equivalent to:
+
+@example
+(define-contract @var{name} keyword @var{contract})
+
+(define (keyword . @var{args})
+  @varo{body} @var{body} ...)
+@end example
+
+@noindent
+but additionally all the occurrences of @var{name} in the @var{body}
+forms is substituted with @code{keyword}; this means that recursive use
+of the defined function is possible, without enforcing the contract (in
+other words: the function can internally violate its contract).
+@end deffn
+
+
+@deffn Syntax with-outer-contracts ((@var{name} @var{contract}) ...) @varo{body} @var{body} ...
+@deffnx {Auxiliary Syntax} ->
+Expand to a sequence of contract definitions of the form:
+
+@example
+(define-contract @var{name} keyword @var{contract})
+...
+@end example
+
+@noindent
+followed by the @var{body} forms in which the occurrences of the
+identifiers @var{name} have been substituted with the automatically
+generated identifiers @code{keyword}.
+
+This allows functions defined in the @var{body} form to call each other
+without enforcing the contracts, while other functions referencing
+@var{name} will be subjected to the contracts.
 @end deffn
 
 

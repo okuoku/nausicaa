@@ -40,7 +40,8 @@
     (define (%doit a b c)
       (list a b c))
 
-    (define-contract doit %doit
+    (define-contract doit
+	%doit
       (integer? string? symbol?))
 
     (check
@@ -82,7 +83,8 @@
 	  (list a b c)
 	(vector a b c)))
 
-    (define-contract doit %doit
+    (define-contract doit
+	%doit
       (integer? string? symbol? -> list?))
 
     (check
@@ -109,6 +111,106 @@
 		  (else E))
 	  (doit 1 "two" 3))
       => #t)
+
+    (check
+	(guard (E ((assertion-violation? E)
+;;;		   (write E)(newline)
+		   #t)
+		  (else E))
+	  (parametrise ((flag #f))
+            (doit 1 "two" 'three)))
+      => #t)
+
+    ;; (parametrise ((flag #f))
+    ;;   (doit 1 "two" 'three))
+
+    #f)
+
+;;; --------------------------------------------------------------------
+
+  (let ()	;multiple return value check
+
+    (define flag
+      (make-parameter #t))
+
+    (define (%doit a b c)
+      (if (flag)
+	  (values a (list b c))
+	(values a (vector b c))))
+
+    (define-contract doit
+	%doit
+      (integer? string? symbol? -> (integer? list?)))
+
+    (check
+	(call-with-values
+	    (lambda () (doit 1 "two" 'three))
+	  list)
+      => '(1 ("two" three)))
+
+    (check
+	(guard (E ((assertion-violation? E)
+		   #t)
+		  (else E))
+	  (call-with-values
+	      (lambda ()
+		(doit #\a "two" 'three))
+	    list))
+      => #t)
+
+    (check
+	(guard (E ((assertion-violation? E)
+		   #t)
+		  (else E))
+	  (call-with-values
+	      (lambda () (doit 1 2 'three))
+	    list))
+      => #t)
+
+    (check
+	(guard (E ((assertion-violation? E)
+		   #t)
+		  (else E))
+	  (call-with-values
+	      (lambda () (doit 1 "two" 3))
+	    list))
+      => #t)
+
+    (check
+	(guard (E ((assertion-violation? E)
+;;;		   (write E)(newline)
+		   #t)
+		  (else E))
+	  (parametrise ((flag #f))
+	    (call-with-values
+		(lambda () (doit 1 "two" 'three))
+	      list)))
+      => #t)
+
+    ;; (parametrise ((flag #f))
+    ;;   (doit 1 "two" 'three))
+
+    #f)
+
+;;; --------------------------------------------------------------------
+
+  (let ()	;no arguments check
+
+    (define flag
+      (make-parameter #t))
+
+    (define (%doit)
+      (if (flag)
+	  '(1 "two" three)
+	'#(1 "two" three)))
+
+    (define-contract doit
+	%doit
+      (-> list?))
+
+    (check
+	(doit)
+      => '(1 "two" three))
 
     (check
 	(guard (E ((assertion-violation? E)
@@ -165,8 +267,11 @@
 
   (let ()	;internal body substitutions
 
+    (define (pred x)
+      (or (not x) (integer? x)))
+
     (define/contract (doit n)
-      (integer? -> (lambda (x) (or (not x) (integer? x))))
+      (integer? -> pred)
       (if (zero? n)
 	  #f
 	(doit (- n 1))))
@@ -191,13 +296,14 @@
 
   (let ()
 
-    (with-outer-contracts
-     ((doit (integer? -> (lambda (x) (or (not x) (integer? x))))))
-     (define (doit n)
-       (if (zero? n)
-	   #f
-	 (doit (- n 1))))
-     )
+    (define (pred x)
+      (or (not x) (integer? x)))
+
+    (with-outer-contracts ((doit (integer? -> pred)))
+      (define (doit n)
+	(if (zero? n)
+	    #f
+	  (doit (- n 1)))))
 
     (check
 	(doit 10)
@@ -216,21 +322,20 @@
 
   (let ()
 
-    (with-outer-contracts
-     ((a (integer? -> integer?))
-      (b (integer? -> integer?)))
-     (define (a n)
-       (if (zero? n)
-	   n
-	 (b (- n 1))))
-     (define (b n)
-       (cond ((zero? n)
-	      n)
-	     ((= 123 n)
-	      #f)
-	     (else
-	      (a (- n 1)))))
-     (check (b 123) => #f))
+    (with-outer-contracts ((a (integer? -> integer?))
+			   (b (integer? -> integer?)))
+      (define (a n)
+	(if (zero? n)
+	    n
+	  (b (- n 1))))
+      (define (b n)
+	(cond ((zero? n)
+	       n)
+	      ((= 123 n)
+	       #f)
+	      (else
+	       (a (- n 1)))))
+      (check (b 123) => #f))
 
     (check (a 10) => 0)
     (check

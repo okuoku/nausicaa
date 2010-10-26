@@ -31,6 +31,18 @@ used to configure this parameter; recognised values are: @code{true},
 @end deffn
 
 
+@deffn Parameter enable-contracts?
+A boolean value, true if the code should include validation of contracts
+as defined by the @library{contracts} library.  If set to false: the
+contracts are excluded at code expansion time.
+
+The default value is true.  When the library is instantiated, the system
+environment variable @env{NAUSICAA_ENABLE_CONTRACTS} is accessed and
+used to configure this parameter; recognised values are: @code{true},
+@code{false}, @code{1}, @code{0}.
+@end deffn
+
+
 @deffn Parameter enable-function-arguments-validation?
 A boolean value, true if the functions should include assertions to
 validate their arguments.  If set to false: the assertions are excluded
