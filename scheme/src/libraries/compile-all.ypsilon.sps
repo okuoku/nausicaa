@@ -37,6 +37,7 @@
   (only (getenv))
   (only (configuration))
   (only (assertions))
+  (only (contracts))
   (only (makers))
   (only (classes))
   (only (deferred-exceptions))
