@@ -27,8 +27,8 @@
 
 #!r6rs
 (library (contracts)
-  (export define-contract -> define/contract with-outer-contracts
-	  let-contract)
+  (export define-contract let-contract ->
+	  define/contract with-outer-contracts)
   (import (rnrs)
     (prefix (configuration) config.)
     (syntax-utilities)
@@ -47,6 +47,7 @@
        (identifier? #'?predicate)
        (begin
 	 (assert-name-keyword #'?name #'?keyword %synner)
+	 ;;The test for enabled contracts is performed by the procedure.
 	 #`(define-syntax ?name
 	     #,(build-variable-identifier-syntax #'?keyword #'?predicate))))
 
@@ -87,7 +88,7 @@
 				(assert (?ret-predicate  RET))
 				...
 				(values RET ...))))))))))
-	   dummy-definition-stx)))
+	   #'(define-syntax dummy (syntax-rules ())))))
 
       (_
        (%synner "invalid input form in contract definition" #f))
@@ -131,8 +132,9 @@
 						  (assert (?ret-predicate  RET))
 						  ...
 						  (values RET ...))))))
-			   (let-contract ?contracts ?body0 ?body ...)))))
-		 dummy-definition-stx)))))
+			   (let-contract ?contracts ?body0 ?body ...)))))))
+	   #'(let-syntax ((?name (identifier-syntax ?keyword)))
+	       (let-contract ?contracts ?body0 ?body ...)))))
 
       (_
        (%synner "invalid input form in contract definition" #f))

@@ -31,7 +31,7 @@
   (export
     parse-contract ->
     build-variable-identifier-syntax
-    assert-name-keyword dummy-definition-stx)
+    assert-name-keyword)
   (import (rnrs)
     (only (syntax-utilities) define-auxiliary-syntax))
 
@@ -66,20 +66,21 @@
   ;;Return a syntax object representing the IDENTIFIER-SYNTAX invocation
   ;;needed for the identifier macro of a variable.
   ;;
-  #`(identifier-syntax
-     (_
-      (let ((v #,keyword)) ;we want to reference ?KEYWORD only once
-	(assert (#,predicate v))
-	v))
-     ((set! _ ??val)
-      (let ((v ??val)) ;we want to evaluate ??VAL only once
-	(assert (#,predicate v))
-	(set! #,keyword v)))))
+  (if (config.enable-contracts?)
+      #`(identifier-syntax
+	 (_
+	  (let ((v #,keyword)) ;we want to reference ?KEYWORD only once
+	    (assert (#,predicate v))
+	    v))
+	 ((set! _ ??val)
+	  (let ((v ??val)) ;we want to evaluate ??VAL only once
+	    (assert (#,predicate v))
+	    (set! #,keyword v))))
+    #`(identifier-syntax
+       (_ #,keyword)
+       ((set! _ ?val) (set! #,keyword ?val)))))
 
 
-(define dummy-definition-stx
-  #'(define-syntax dummy (syntax-rules ())))
-
 (define (assert-name-keyword name keyword synner)
   (unless (identifier? name)
     (synner "expected identifier as contract name" name))
