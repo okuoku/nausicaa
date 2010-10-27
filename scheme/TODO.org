@@ -138,3 +138,8 @@
 
   Finish the libraries inspector.
 
+* contracts
+
+  Write better assertion violation reporting using a custom macro rather
+  than ASSERT from (rnrs base).
+
