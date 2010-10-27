@@ -88,7 +88,7 @@
 				(assert (?ret-predicate  RET))
 				...
 				(values RET ...))))))))))
-	   #'(define-syntax dummy (syntax-rules ())))))
+	   #'(define-syntax ?name (identifier-syntax ?keyword)))))
 
       (_
        (%synner "invalid input form in contract definition" #f))
