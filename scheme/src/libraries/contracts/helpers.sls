@@ -33,6 +33,7 @@
     build-variable-identifier-syntax
     assert-name-keyword)
   (import (rnrs)
+    (prefix (configuration) config.)
     (only (syntax-utilities) define-auxiliary-syntax))
 
 (define-auxiliary-syntax ->)
