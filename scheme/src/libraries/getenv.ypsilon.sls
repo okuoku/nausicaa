@@ -27,7 +27,7 @@
 
 #!r6rs
 (library (getenv)
-  (export getenv)
+  (export (rename (lookup-process-environment getenv)))
   (import (only (core) lookup-process-environment)))
 
 ;;; end of file
