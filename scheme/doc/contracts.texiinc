@@ -14,25 +14,65 @@ its features at expansion time when the @func{enable-contracts?}
 parameter from the @library{configuration} library is set to false.
 
 
-@deffn Syntax define-contract @var{name} @var{keyword} (@var{pred} ...)
-@deffnx Syntax define-contract @var{name} @var{keyword} (@var{pred} ... -> @var{ret-pred})
-@deffnx Syntax define-contract @var{name} @var{keyword} (@var{pred} ... -> (@varo{ret-pred} @var{ret-pred} ...))
+@deffn Syntax define-contract @var{name} @var{keyword} @var{contract}
 @deffnx {Auxiliary Syntax} ->
 Define an identifier syntax @var{name} which can be used in place of the
-identifier @var{keyword} to reference a function.  The functions bound
-to the @var{pred} identifiers are applied to the arguments at the call
-site to validate the values; the functions bound to the @var{ret-pred}
-identifiers are applied to the return values at the call site to
-validate them.
+identifier @var{keyword} to reference a variable, function or macro.
+@var{contract} can be one among:
 
-The function must accept a number of arguments equal to the number of
-@var{pred} identifiers and return a number of values equal to the number
-of @var{ret-pred} identifiers.
+@example
+(@var{arg-predicate} ... -> @var{ret-predicate} ...)
+(@var{arg-predicate} ... ->)
+(@var{arg-predicate} ...)
+(-> @var{ret-predicate} ...)
+@var{predicate}
+@end example
+
+@noindent
+where @var{predicate}, @var{arg-predicate} and @var{ret-predicate} are
+identifiers; in the last case the contract is for a variable, in the
+other cases it is for a function or macro.
+
+The contract for a variable validates the value using the selected
+@var{predicate} whenever the variable is accessed or mutated.  When a
+variable is accessed: @var{keyword} is referenced only once.  When a
+variable is mutated: its new value's expression is evaluated only once.
+Notice that the contract is @strong{not} enforced for the initialisation
+value bound to @var{keyword}.
+
+The contract for a function or macro validates the arguments with the
+functions bound to @var{arg-predicate} and validates the return values
+with the functions bound to @var{ret-predicate}; the function or macro
+bound to @var{keyword} must accept a number of arguments equal to the
+number of @var{arg-predicate} identifiers and return a number of values
+equal to the number of @var{ret-predicate} identifiers; a function can
+have no arguments and no return values; notice that a function
+referenced through an identifier syntax cannot take a ``rest'' argument.
+When applying the function or macro @var{keyword} is referenced only
+once.
 
 If a predicate returns false: @func{assert} from the library
 @rsixlibrary{base} is used to raise an assertion violation.
 
-Example:
+Example of variable with contract:
+
+@example
+(import (rnrs) (contracts))
+
+(define-contract alpha %alpha integer?)
+(define %alpha 123)
+
+alpha @result{} 123
+
+(begin
+  (set! alpha 456)
+  alpha) @result{} 456
+
+(set! alpha #\a) @error{} assertion violation
+@end example
+
+
+Example of function with contract:
 
 @example
 (import (rnrs) (contracts))
@@ -40,7 +80,8 @@ Example:
 (define (%doit a b c)
   (list a b c))
 
-(define-contract doit %doit
+(define-contract doit
+    %doit
   (integer? string? symbol? -> list?))
 
 (doit 1 "two" 'three)
@@ -63,7 +104,8 @@ Notice that it is possible to define a contract for a function, then use
 it or not in its own body, recursively:
 
 @example
-(define-contract alpha %alpha
+(define-contract alpha
+    %alpha
   (integer? -> integer?))
 
 (define (%alpha n)
@@ -72,7 +114,8 @@ it or not in its own body, recursively:
       1
     (%alpha (- n 1))))
 
-(define-contract beta %beta
+(define-contract beta
+    %beta
   (integer? -> integer?))
 
 (define (%beta n)
@@ -81,26 +124,86 @@ it or not in its own body, recursively:
       1
     (beta (- n 1))))
 @end example
+
+The fact that a function with a contract does not support the ``rest''
+argument is a bit annoying; we can overcome this limitation as follows:
+
+@example
+(import (rnrs) (contracts))
+
+(define-contract doit
+    %doit
+  (integer? integers? -> vector?))
+
+(define (integers? ell)
+  (for-all integer? ell))
+
+(define (%doit n ell)
+  (vector n ell))
+
+(doit 1 (list 2 3 4))
+@result{} #(1 (2 3 4))
+
+(apply (lambda (n . args)
+         (doit n args))
+       '(1 2 3 4))
+@result{} #(1 (2 3 4))
+@end example
+
+@noindent
+it involves an ugly notation, but it works.
+@end deffn
+
+
+@deffn Syntax let-contract ((@var{name} @var{keyword} @var{contract}) ...) @varo{body} @var{body}
+@deffnx {Auxiliary Syntax} ->
+Does the same job of @func{define-contract} but with a syntax similar to
+@func{let-syntax}; the relation between @func{let-contract} and
+@func{define-contract} is the same as the relation between
+@func{let-syntax} and @func{define-syntax}.
 @end deffn
 
 
 @deffn Syntax define/contract (@var{name} . @var{args}) @var{contract} @varo{body} @var{body} ...
+@deffnx Syntax define/contract @var{name} @var{contract} @var{expression}
+@deffnx Syntax define/contract @var{name} @var{contract}
 @deffnx {Auxiliary Syntax} ->
-Define a new function and a contract for its arguments and return value.
-It is almost equivalent to:
+Define a new variable and a contract for its value, or a function and a
+contract for its arguments and return values.  The first form is
+equivalent to:
 
 @example
-(define-contract @var{name} keyword @var{contract})
+(define-contract @var{name}
+    keyword
+  @var{contract})
 
 (define (keyword . @var{args})
   @varo{body} @var{body} ...)
 @end example
 
 @noindent
-but additionally all the occurrences of @var{name} in the @var{body}
-forms is substituted with @code{keyword}; this means that recursive use
-of the defined function is possible, without enforcing the contract (in
-other words: the function can internally violate its contract).
+and notice that the defined function can reference itself recursively
+with the @var{name} identifier, so, internally, it has to satisfy its
+contract.  The second form is equivalent to:
+
+@example
+(define-contract @var{name}
+    keyword
+  @var{contract})
+
+(define keyword @var{expression})
+@end example
+
+@noindent
+and the third to:
+
+@example
+(define-contract @var{name}
+    keyword
+  @var{contract})
+
+(define keyword)
+@end example
 @end deffn
 
 

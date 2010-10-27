@@ -27,109 +27,148 @@
 
 #!r6rs
 (library (contracts)
-  (export define-contract -> define/contract with-outer-contracts)
+  (export define-contract -> define/contract with-outer-contracts
+	  let-contract)
   (import (rnrs)
     (prefix (configuration) config.)
-    (syntax-utilities))
-
-(define-auxiliary-syntax ->)
+    (syntax-utilities)
+    (for (contracts helpers) run expand))
 
 
 (define-syntax define-contract
   (lambda (stx)
-    (define (main stx)
-      (syntax-case stx (-> values)
-
-	;;Multiple return values.
-	;;
-	;;Notice  that the  only reason  for the  ?RET-PREDICATE pattern
-	;;variables to  be enclosed in parentheses is  to allow ellipses
-	;;for   both   ?PREDICATE   and  ?RET-predicate;   without   the
-	;;parentheses the two ellipses would be at the same level.
-	;;
-	((_ ?name ?keyword (?predicate ... -> (?ret-predicate0 ?ret-predicate ...)))
-	 (begin
-	   (%assert-name-keyword #'?name #'?keyword)
-	   (for-each %assert-predicate
-	     (unwrap-syntax-object #'(?predicate ... ?ret-predicate0 ?ret-predicate ...)))
-	   (if (config.enable-contracts?)
-	       (with-syntax
-		   (((ARG ...)      (generate-temporaries #'(?predicate ...)))
-		    ((RET0 RET ...) (generate-temporaries #'(?ret-predicate0 ?ret-predicate ...))))
-		 #'(define-syntax ?name
-		     (identifier-syntax
-		      (lambda (ARG ...)
-			(let-values
-			    (((RET0 RET ...)
-			      (?keyword (begin (assert (?predicate ARG)) ARG) ...)))
-			  (assert (?ret-predicate0 RET0))
-			  (assert (?ret-predicate  RET))
-			  ...
-			  (values RET0 RET ...))))))
-	     dummy-definition-stx)))
-
-	;;Single return value.
-	((_ ?name ?keyword (?predicate ... -> ?ret-predicate))
-	 (begin
-	   (%assert-name-keyword #'?name #'?keyword)
-	   (for-each %assert-predicate
-	     (unwrap-syntax-object #'(?predicate ... ?ret-predicate)))
-	   (if (config.enable-contracts?)
-	       (with-syntax (((ARG ...) (generate-temporaries #'(?predicate ...))))
-		 #'(define-syntax ?name
-		     (identifier-syntax
-		      (lambda (ARG ...)
-			(let ((return (?keyword (begin (assert (?predicate ARG)) ARG) ...)))
-			  (assert (?ret-predicate return))
-			  return)))))
-	     dummy-definition-stx)))
-
-	;;No return value.
-	((_ ?name ?keyword (?predicate ...))
-	 (begin
-	   (%assert-name-keyword #'?name #'?keyword)
-	   (for-each %assert-predicate
-	     (unwrap-syntax-object #'(?predicate ...)))
-	   (if (config.enable-contracts?)
-	       (with-syntax (((ARG ...) (generate-temporaries #'(?predicate ...))))
-		 #'(define-syntax ?name
-		     (identifier-syntax
-		      (lambda (ARG ...)
-			(?keyword (begin (assert (?predicate ARG)) ARG)
-				  ...)))))
-	     dummy-definition-stx)))
-	))
-
-    (define (%assert-name-keyword name keyword)
-      (unless (identifier? name)
-	(%synner "expected identifier as contract name" name))
-      (unless (identifier? keyword)
-	(%synner "expected identifier as contract keyword" keyword)))
-
-    (define (%assert-predicate stx)
-      (unless (identifier? stx)
-	(%synner "expected identifier as contract predicate" stx)))
-
     (define (%synner message subform)
       (syntax-violation 'define-contract message (syntax->datum stx) (syntax->datum subform)))
 
-    (define dummy-definition-stx
-      #'(define-syntax dummy (syntax-rules ())))
+    (syntax-case stx ()
 
-    (main stx)))
+      ;; variable contract
+      ((_ ?name ?keyword ?predicate)
+       (identifier? #'?predicate)
+       (begin
+	 (assert-name-keyword #'?name #'?keyword %synner)
+	 #`(define-syntax ?name
+	     #,(build-variable-identifier-syntax #'?keyword #'?predicate))))
+
+      ;; function contract
+      ((_ ?name ?keyword ?contract)
+       ;;We want to support the following forms for a ?CONTRACT:
+       ;;
+       ;;    (?predicate ... -> ?ret-predicate ...)
+       ;;    (?predicate ...)
+       ;;    (-> ?ret-predicate ...)
+       ;;
+       ;;but SYNTAX-CASE  cannot handle multiple ellipses  at the same
+       ;;level;  also, by  experimenting,  it has  been verified  that
+       ;;using an ellipsis and a rest pattern variable as in:
+       ;;
+       ;;    (?predicate ... -> ?ret-predicate0 . ?ret-predicates)
+       ;;
+       ;;also  is   not  handles  by  SYNTAX-CASE.   So   we  use  the
+       ;;PARSE-CONTRACT function  to split a  contract's syntax object
+       ;;into a list of ?PREDICATE and a list of ?RET-PREDICATE.
+       ;;
+       (begin
+	 (assert-name-keyword #'?name #'?keyword %synner)
+	 (if (config.enable-contracts?)
+	     (let-values (((preds ret-preds) (parse-contract #'?contract %synner)))
+	       (with-syntax (((?predicate ...) preds)
+			     ((ARG ...)        (generate-temporaries preds)))
+		 (with-syntax ((APPLICATION #'(?keyword (begin (assert (?predicate ARG)) ARG) ...)))
+		   (if (null? ret-preds)
+		       #'(define-syntax ?name
+			   (identifier-syntax (lambda (ARG ...) APPLICATION)))
+		     (with-syntax (((?ret-predicate ...) ret-preds)
+				   ((RET ...)            (generate-temporaries ret-preds)))
+		       #'(define-syntax ?name
+			   (identifier-syntax
+			    (lambda (ARG ...)
+			      (let-values (((RET ...) APPLICATION))
+				(assert (?ret-predicate  RET))
+				...
+				(values RET ...))))))))))
+	   dummy-definition-stx)))
+
+      (_
+       (%synner "invalid input form in contract definition" #f))
+
+      )))
+
+
+(define-syntax let-contract
+  (lambda (stx)
+    (define (%synner message subform)
+      (syntax-violation 'let-contract message (syntax->datum stx) (syntax->datum subform)))
+
+    (syntax-case stx ()
+
+      ((_ () ?body0 ?body ...)
+       #'(begin ?body0 ?body ...))
+
+      ((_ ((?name ?keyword ?predicate) . ?contracts) ?body0 ?body ...)
+       (identifier? #'?predicate)
+       (begin
+	 (assert-name-keyword #'?name #'?keyword %synner)
+	 #`(let-syntax ((?name #,(build-variable-identifier-syntax #'?keyword #'?predicate)))
+	     (let-contract ?contracts ?body0 ?body ...))))
+
+      ((_ ((?name ?keyword ?contract) . ?contracts) ?body0 ?body ...)
+       (begin
+	 (assert-name-keyword #'?name #'?keyword %synner)
+	 (if (config.enable-contracts?)
+	     (let-values (((preds ret-preds) (parse-contract #'?contract %synner)))
+	       (with-syntax (((?predicate ...) preds)
+			     ((ARG ...)        (generate-temporaries preds)))
+		 (with-syntax ((APPLICATION #'(?keyword (begin (assert (?predicate ARG)) ARG) ...)))
+		   (if (null? ret-preds)
+		       #'(let-syntax ((?name (identifier-syntax (lambda (ARG ...) APPLICATION))))
+			   (let-contract ?contracts ?body0 ?body ...))
+		     (with-syntax (((?ret-predicate ...) ret-preds)
+				   ((RET ...)            (generate-temporaries ret-preds)))
+		       #'(let-syntax ((?name (identifier-syntax
+					      (lambda (ARG ...)
+						(let-values (((RET ...) APPLICATION))
+						  (assert (?ret-predicate  RET))
+						  ...
+						  (values RET ...))))))
+			   (let-contract ?contracts ?body0 ?body ...)))))
+		 dummy-definition-stx)))))
+
+      (_
+       (%synner "invalid input form in contract definition" #f))
+      )))
 
 
 (define-syntax define/contract
   (lambda (stx)
     (syntax-case stx (->)
-      ((_ (?name . ?args) ?contract ?body0 ?body ...)
+
+      ((_ (?name . ?args) (?contract0 ?contract ...) ?body0 ?body ...)
        (if (config.enable-contracts?)
-	   (with-syntax (((KEYWORD) (generate-temporaries #'(?name))))
-	     #`(begin
-		 (define-contract ?name KEYWORD ?contract)
-		 (define (KEYWORD . ?args)
-		   #,@(identifier-subst #'(?name) #'(KEYWORD) #'(?body0 ?body ...)))))
+	   #`(begin
+	       (define-contract ?name keyword (?contract0 ?contract ...))
+	       (define (keyword . ?args) ?body0 ?body ...))
 	 #'(define (?name . ?args) ?body0 ?body ...)))
+
+      ((_ ?name ?contract ?expression)
+       (identifier? #'?name)
+       (if (config.enable-contracts?)
+	   #'(begin
+	       (define-contract ?name keyword ?contract)
+	       (define keyword ?expression))
+	 #'(define ?name ?expression)))
+
+      ((_ ?name ?contract)
+       (identifier? #'?name)
+       (if (config.enable-contracts?)
+	   #'(begin
+	       (define-contract ?name keyword ?contract)
+	       (define keyword))
+	 #'(define ?name)))
+
+      (_
+       (syntax-violation 'define/contract "invalid syntax in contract definition" stx #f))
+
       )))
 
 
