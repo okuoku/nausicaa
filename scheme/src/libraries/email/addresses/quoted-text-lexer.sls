@@ -1,7 +1,7 @@
 (library (email addresses quoted-text-lexer)
   (export
     quoted-text-table)
-  (import (rnrs) (silex lexer)(lalr lr-driver)(email addresses common)(parser-tools lexical-token)(parser-tools source-location))
+  (import (rnrs) (silex lexer)(email addresses common)(parser-tools lexical-token)(parser-tools source-location))
 
 ;
 ; Table generated from the file quoted-text.l by SILex 1.0
