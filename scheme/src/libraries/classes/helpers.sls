@@ -384,9 +384,9 @@
 	(values '() '())
       (syntax-case (car clauses) (maker)
 
-	((maker (?positional-arg ...) (?optional-keyword ?optional-default) ...)
+	((maker (?positional-arg ...) (?optional-keyword ?optional-default ?option ...) ...)
 	 (all-identifiers? #'(?optional-keyword ...))
-	 (values #'(?positional-arg ...) #'((?optional-keyword ?optional-default) ...)))
+	 (values #'(?positional-arg ...) #'((?optional-keyword ?optional-default ?option ...) ...)))
 
 	(_
 	 (synner "invalid maker clause" (car clauses)))

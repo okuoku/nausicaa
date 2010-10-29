@@ -763,7 +763,10 @@
 	     (((VIRTUAL-MUTABILITY VIRTUAL-FIELD VIRTUAL-ACCESSOR/MUTATOR ...) ...)
 	      virtual-fields)
 
-	     ((FIELD-INDEX ...)			(generate-field-indexes (length fields))))
+	     ((FIELD-INDEX ...)			(generate-field-indexes (length fields)))
+
+	     ;;This exists only to have better error messages.
+	     (MAKER-NAME			(identifier-prefix "maker-of-" class-identifier)))
 
 	  #'(begin
 	      (define the-parent-rtd		PARENT-RTD)
@@ -884,7 +887,7 @@
 	      	     #'(CONSTRUCTOR-IDENTIFIER ?arg (... ...)))
 
 	      	    ((_ make* ?arg (... ...))
-	      	     #'(the-maker ?arg (... ...)))
+	      	     #'(MAKER-NAME ?arg (... ...)))
 
 	      	    ((_ make-from-fields ?arg (... ...))
 	      	     #'(from-fields-constructor ?arg (... ...)))
@@ -919,7 +922,7 @@
 	      	       (syntax->datum #'?keyword)))
 	      	    )))
 
-	      (%define-class/output-forms/maker CLASS-NAME the-maker maker-constructor
+	      (%define-class/output-forms/maker CLASS-NAME MAKER-NAME maker-constructor
 						(MAKER-POSITIONAL-ARG ...)
 						(MAKER-OPTIONAL-ARG ...))
 
