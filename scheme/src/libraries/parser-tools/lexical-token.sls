@@ -5,7 +5,7 @@
 ;;;
 ;;;Abstract
 ;;;
-;;;	The  LEXICAL-TOKEN record  type describes  tokens produced  by a
+;;;	The <LEXICAL-TOKEN>  record type describes tokens  produced by a
 ;;;	lexer and consumed  by a parser.  It is meant to  be used by all
 ;;;	the parser libraries distributed with Nausicaa.
 ;;;
@@ -34,6 +34,14 @@
 (library (parser-tools lexical-token)
   (export
     <lexical-token>
+
+    ;; auxiliary syntaxes
+    category:
+    location:
+    value:
+    length:
+
+    ;; traditional records API
     make-<lexical-token>
     make-<lexical-token>/end-of-input
     make-<lexical-token>/lexer-error
@@ -48,15 +56,31 @@
     <lexical-token>?/end-of-input
     <lexical-token>?/lexer-error
     <lexical-token>?/special)
-  (import (nausicaa))
+  (import (nausicaa)
+    (makers)
+    (only (syntax-utilities) define-auxiliary-syntaxes))
 
 
+(define-auxiliary-syntaxes
+  category:
+  location:
+  value:
+  length:)
+
 (define-class <lexical-token>
+  (nongenerative nausicaa:parser-tools:<lexical-token>)
+  (maker ()
+	 (category:	#f (mandatory))
+	 (location:	#f)
+	 (value:	#f)
+	 (length:	0))
   (fields (immutable category)
 	  (immutable location)
 	  (immutable value)
 	  (immutable length))
-  (nongenerative nausicaa:parser-tools:<lexical-token>))
+  (virtual-fields (immutable end-of-input?	<lexical-token>?/end-of-input)
+		  (immutable lexer-error?	<lexical-token>?/lexer-error)
+		  (immutable special?		<lexical-token>?/special)))
 
 (define (make-<lexical-token>/end-of-input location)
   (make-<lexical-token> '*eoi* location (eof-object) 0))
@@ -66,15 +90,18 @@
 
 (define (<lexical-token>?/end-of-input obj)
   (and (<lexical-token>? obj)
-       (eq? '*eoi* (<lexical-token>-category obj))))
+       (eq? '*eoi* (<lexical-token>-category obj))
+       #t))
 
 (define (<lexical-token>?/lexer-error obj)
   (and (<lexical-token>? obj)
-       (eq? '*lexer-error* (<lexical-token>-category obj))))
+       (eq? '*lexer-error* (<lexical-token>-category obj))
+       #t))
 
 (define (<lexical-token>?/special obj)
   (and (<lexical-token>? obj)
-       (memq (<lexical-token>-category obj) '(*eoi* *lexer-error*))))
+       (memq (<lexical-token>-category obj) '(*eoi* *lexer-error*))
+       #t))
 
 
 ;;;; done

@@ -49,10 +49,16 @@
     (let* ((IS		(lexer-make-IS (string: string) (counters: 'all)))
 	   (lexer	(lexer-make-lexer quoted-text-table IS))
 	   (out		'()))
-      (do ((token (lexer) (lexer)))
-	  ((<lexical-token>?/end-of-input token)
-	   (reverse out))
-	(set! out (cons token out)))))
+      ;; (do ((token (lexer) (lexer)))
+      ;; 	  ((<lexical-token>?/end-of-input token)
+      ;; 	   (reverse out))
+      ;; 	(set! out (cons token out)))
+      (let loop (((token <lexical-token>) (lexer))
+		 (out '()))
+	(if token.end-of-input?
+	    (reverse out)
+	  (loop (lexer) (cons token out))))
+      ))
 
 ;;; --------------------------------------------------------------------
 

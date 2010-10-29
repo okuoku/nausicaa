@@ -304,19 +304,38 @@ Return a string representation of @var{o}.  It is a wrapper for
 
 Lexical token records are meant to store informations about a token from
 the input stream; they should be produced by the lexer and consumed by
-the parser.  The following bindings are exported by the
-@library{parser-tools lexical-token} library; this library is built on
-top of @library{classes}.
+the parser.  For example, when the lexer tokenises the number @math{123}
+from the string @samp{123}, it can build a record with:
 
-@menu
-* parser-tools token type::     The record type.
-* parser-tools token maker::    Record makers.
-* parser-tools token pred::     Predicates.
-@end menu
+@example
+(let ((position ---))
+  (make <lexical-token> 'NUMBER position 123 3))
+@end example
 
-@c page
-@node parser-tools token type
-@subsection The record type
+@noindent
+while when tokenising a string it can do:
+
+@example
+(let ((position ---))
+  (make <lexical-token> 'STRING position "some text" 9))
+@end example
+
+When the lexer has to signal the end--of--input, it must return a token
+with category @samp{*eoi*}, and continue to return it if it is called
+again and again; it can do:
+
+@example
+(let ((position ---))
+  (make <lexical-token> '*eoi* position (eof-object)))
+@end example
+
+When the lexer closure has to signal a lexer error (an invalid character
+from the input stream), it must return a token with category
+@samp{*lexer-error*}.
+
+The following bindings are exported by the @library{parser-tools
+lexical-token} library; this library is built on top of
+@library{classes}.
 
 
 @deftp Class @aclass{lexical-token}
@@ -350,46 +369,40 @@ zero.
 @end defcv
 
 
-@defun <lexical-token>-category @var{tok}
-@defunx <lexical-token>-location @var{tok}
-@defunx <lexical-token>-value @var{tok}
-@defunx <lexical-token>-length @var{tok}
-Accessors for the fields of @class{lexical-token} records.
-@end defun
-
-@c page
-@node parser-tools token maker
-@subsection Record makers
+@defcv {Immutable Virtual Field} @aclass{lexical-token} end-of-input?
+True if the token has category @samp{*eoi*}.
+@end defcv
 
 
-For example, when the lexer tokenises the number @math{123} from the
-string @samp{123}, it can build a record with:
+@defcv {Immutable Virtual Field} @aclass{lexical-token} lexer-error?
+True if the token has category @samp{*lexer-error*}.
+@end defcv
 
-@example
-(let ((position ---))
-  (make-<lexical-token> 'NUMBER position 123 3))
-@end example
 
-@noindent
-while when tokenising a string it can do:
+@defcv {Immutable Virtual Field} @aclass{lexical-token} special?
+True if the token has category @samp{*eoi*} or @samp{*lexer-error*}.
+@end defcv
 
-@example
-(let ((position ---))
-  (make-<lexical-token> 'STRING position "some text" 9))
-@end example
 
-When the lexer has to signal the end--of--input, it must return a token
-with category @samp{*eoi*}, and continue to return it if it is called
-again and again; it can do:
+@deffn Syntax {make @aclass{lexical-token}} @var{category} @var{location} @var{value} @var{length}
+Build and return a new record of type @class{lexical-token}.
+@end deffn
 
-@example
-(let ((position ---))
-  (make-lexical-token '*eoi* position (eof-object)))
-@end example
 
-When the lexer closure has to signal a lexer error (an invalid character
-from the input stream), it must return a token with category
-@samp{*lexer-error*}.
+@deffn Syntax {make* @aclass{lexical-token}} @var{clause} ...
+@deffnx {Auxiliary Syntax} category: @var{category}
+@deffnx {Auxiliary Syntax} location: @var{location}
+@deffnx {Auxiliary Syntax} value: @var{value}
+@deffnx {Auxiliary Syntax} length: @var{length}
+Build and return a new record of type @class{lexical-token}.  The
+@func{category:} clause is mandatory; @var{location} defaults to
+@false{}; @var{value} defaults to @false{}; @var{length} defaults to
+zero.
+@end deffn
+
+@c ------------------------------------------------------------
+
+@subsubheading Traditional records @api{}
 
 
 @defun make-<lexical-token> @var{category} @var{location} @var{value} @var{length}
@@ -414,10 +427,10 @@ represent a lexer error.  The field @samp{category} is set to
 arguments.
 @end defun
 
-@c page
-@node parser-tools token pred
-@subsection Predicates
 
+@defun <lexical-token>? @var{obj}
+Return true if @var{obj} is a record of type of @class{lexical-token}.
+@end defun
 
 @defun <lexical-token>? @var{obj}
 Return true if @var{obj} is an instance of @class{lexical-token}.
@@ -439,6 +452,14 @@ category @func{eq?} to the symbol @samp{*lexer-error*}.
 @defun <lexical-token>?/special @var{obj}
 Return true if @var{obj} is an instance of @class{lexical-token} having
 category @func{eq?} to the symbol @samp{*eoi*} or @samp{*lexer-error*}.
+@end defun
+
+
+@defun <lexical-token>-category @var{tok}
+@defunx <lexical-token>-location @var{tok}
+@defunx <lexical-token>-value @var{tok}
+@defunx <lexical-token>-length @var{tok}
+Accessors for the fields of @class{lexical-token} records.
 @end defun
 
 @c end of file
