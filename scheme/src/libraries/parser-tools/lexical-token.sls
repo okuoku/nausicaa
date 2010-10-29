@@ -56,7 +56,8 @@
     <lexical-token>?/end-of-input
     <lexical-token>?/lexer-error
     <lexical-token>?/special)
-  (import (nausicaa)
+  (import (rnrs)
+    (classes)
     (makers)
     (only (syntax-utilities) define-auxiliary-syntaxes))
 
