@@ -47,8 +47,7 @@
     ;;This  is just  a  lexer, it  does  not check  for the  terminating
     ;;double-quote.
     (let* ((IS		(lexer-make-IS (string: string) (counters: 'all)))
-	   (lexer	(lexer-make-lexer quoted-text-table IS))
-	   (out		'()))
+	   (lexer	(lexer-make-lexer quoted-text-table IS)))
       ;; (do ((token (lexer) (lexer)))
       ;; 	  ((<lexical-token>?/end-of-input token)
       ;; 	   (reverse out))
@@ -138,9 +137,9 @@
   (define (tokenise-domain-literal string)
     (let* ((IS    (lexer-make-IS (string: string) (counters: 'all)))
 	   (lexer (lexer-make-lexer domain-literals-table IS)))
-      (let loop ((token (lexer))
+      (let loop (((token <lexical-token>) (lexer))
 		 (toks  '()))
-	(if (<lexical-token>?/end-of-input token)
+	(if token.end-of-input?
 	    (reverse toks)
 	  (loop (lexer) (cons token toks))))))
 
