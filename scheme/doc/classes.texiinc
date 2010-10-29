@@ -1842,6 +1842,40 @@ syntaxes.
 @end smallexample
 @end defmac
 
+
+@defmac do/with-class ((@var{var} @var{init} @var{step}) ...) (@var{test} @var{expression} ...) @var{command} ...
+Like @func{do} from @rsixlibrary{control}, but each @var{var} element
+can be one among:
+
+@example
+@var{id}
+(@var{id} @varo{class-name} @var{class-name} ...)
+@end example
+
+@noindent
+in which: @var{id} must be an identifier representing the variable name,
+@var{class-name} must be an identifier representing a class name.  The
+@var{step}, @var{expression} and @var{command} expressions can use dot
+notation with @var{id}.
+@end defmac
+
+
+@defmac do*/with-class ((@var{var} @var{init} @var{step}) ...) (@var{test} @var{expression} ...) @var{command} ...
+Like @func{do*} from @library{language-extensions}, but each @var{var}
+element can be one among:
+
+@example
+@var{id}
+(@var{id} @varo{class-name} @var{class-name} ...)
+@end example
+
+@noindent
+in which: @var{id} must be an identifier representing the variable name,
+@var{class-name} must be an identifier representing a class name.  The
+@var{step}, @var{expression} and @var{command} expressions can use dot
+notation with @var{id}.
+@end defmac
+
 @c page
 @node classes dot lambda
 @subsection Function bindings

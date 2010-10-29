@@ -2378,6 +2378,48 @@
 	(list a r.b))
     => '(1 2))
 
+;;; --------------------------------------------------------------------
+;;; do/with-class
+
+  (check
+      (do/with-class ((a 0 (+ 1 a))
+		      (b 3 (- b 1)))
+		     ((zero? b) a))
+    => 3)
+
+  (check
+      (do/with-class ((a 0 (+ 1 a))
+		      ((b <integer>) 3 (- b 1)))
+		     (b.zero? a))
+    => 3)
+
+  (check
+      (do/with-class (((a <number>) 0 (+ 1 a))
+		      ((b <integer>) 3 (- b 1)))
+		     (b.zero? a.odd?))
+    => #t)
+
+;;; --------------------------------------------------------------------
+;;; do*/with-class
+
+  (check
+      (do*/with-class ((a 0 (+ 1 a))
+		       (b 3 (- b 1)))
+		      ((zero? b) a))
+    => 3)
+
+  (check
+      (do*/with-class ((a 0 (+ 1 a))
+		       ((b <integer>) 3 (- b 1)))
+		      (b.zero? a))
+    => 3)
+
+  (check
+      (do*/with-class (((a <number>) 0 (+ 1 a))
+		       ((b <integer>) 3 (- b 1)))
+		      (b.zero? a.odd?))
+    => #t)
+
   #t)
 
 

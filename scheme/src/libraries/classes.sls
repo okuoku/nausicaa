@@ -82,6 +82,7 @@
     receive/with-class
     let/with-class			let*/with-class
     letrec/with-class			letrec*/with-class
+    do/with-class			do*/with-class
 
     ;; auxiliary syntaxes
     parent sealed opaque parent-rtd nongenerative
@@ -1623,7 +1624,7 @@
 	  ?key0 ?key ...)))))
 
 
-;;;; LET wrappers
+;;;; LET and DO wrappers
 
 ;;This is used below to distinguish between named-LET and ordinary LET.
 (define no-loop)
@@ -1847,6 +1848,72 @@
       (_
        (syntax-violation '%letrec*/with-class "invalid input form" (syntax->datum stx)))
       )))
+
+(define-syntax do/with-class
+  (syntax-rules ()
+    ((_ ((?var ?init ?step ...) ...)
+	(?test ?expr ...)
+	?form ...)
+     (let-syntax ((the-expr (syntax-rules ()
+			      ((_)
+			       (values))
+			      ((_ ?-expr0 ?-expr (... ...))
+			       (begin ?-expr0 ?-expr (... ...)))))
+		  (the-step (syntax-rules ()
+			      ((_ ?-var)
+			       ?-var)
+			      ((_ ?-var ?-step)
+			       ?-step)
+			      ((_ ?-var ?-step0 ?-step (... ...))
+			       (syntax-violation 'do/with-class
+				 "invalid step specification"
+				 '(?-step0 ?-step (... ...)))))))
+       (let/with-class loop ((?var ?init) ...)
+		       (if ?test
+			   (the-expr ?expr ...)
+			 (begin
+			   ?form ...
+			   (loop (the-step ?var ?step ...) ...))))))))
+
+(define-syntax do*/with-class
+  (lambda (stx)
+    (define (%parse-var stx)
+      (syntax-case stx ()
+	(?id
+	 (identifier? #'?id)
+	 #'?id)
+	((?id ?class ...)
+	 (all-identifiers? #'(?id ?class ...))
+	 #'?id)
+	(_
+	 (syntax-violation 'do*/with-class "invalid binding declaration" stx))))
+    (syntax-case stx ()
+      ((_ ((?var ?init ?step ...) ...)
+	  (?test ?expr ...)
+	  ?form ...)
+       (with-syntax (((ID ...) (map %parse-var (unwrap-syntax-object #'(?var ...)))))
+	 #'(let-syntax ((the-expr (syntax-rules ()
+				    ((_)
+				     (values))
+				    ((_ ?-expr0 ?-expr (... ...))
+				     (begin ?-expr0 ?-expr (... ...)))))
+			(the-step (syntax-rules ()
+				    ((_ ?-var)
+				     ?-var)
+				    ((_ ?-var ?-step)
+				     ?-step)
+				    ((_ ?-var ?-step0 ?-step (... ...))
+				     (syntax-violation 'do/with-class
+				       "invalid step specification"
+				       '(?-step0 ?-step (... ...)))))))
+	     (let*/with-class ((?var ?init) ...)
+	       (let/with-class loop ((?var ID) ...)
+		 (if ?test
+		     (the-expr ?expr ...)
+		   (begin
+		     ?form ...
+		     (loop (the-step ID ?step ...) ...))))))
+	 )))))
 
 
 ;;;; DEFINE and LAMBDA wrappers

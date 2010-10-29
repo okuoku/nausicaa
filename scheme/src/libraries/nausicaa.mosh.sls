@@ -241,7 +241,7 @@
     current-input-port
     current-output-port
     datum->syntax
-;;;replaced by define/with from (classes)
+;;;replaced by define/with-class from (classes)
 ;;; define
     define-condition-type
     define-enumeration
@@ -256,7 +256,8 @@
     div-and-mod
     div0
     div0-and-mod0
-    do
+;;;replaced by do/with-class
+;;;    do
     dynamic-wind
     else
     endianness
@@ -785,7 +786,7 @@
     define-values define-constant
 
     ;; miscellaneous
-    symbol*->string symbol->string/maybe do*
+    symbol*->string symbol->string/maybe
 
     ;; other stuff
     pretty-print define-maker
@@ -820,7 +821,9 @@
      (define/with-class*	define)
      (lambda/with-class*	lambda)
      (case-lambda/with-class*	case-lambda)
-     (receive/with-class	receive))
+     (receive/with-class	receive)
+     (do/with-class		do)
+     (do*/with-class		do*))
 
     ;; usage macros
     define-class			define-foreign-class
@@ -853,6 +856,7 @@
     receive/with-class
     let/with-class			let*/with-class
     letrec/with-class			letrec*/with-class
+    do/with-class			do*/with-class
 
     ;; auxiliary syntaxes
     inherit predicate maker setter getter bindings

@@ -41,7 +41,9 @@ definition.  @ref{conditions, More condition types}.
 
 @item language-extension
 Simple language extensions, mostly syntaxes.  @ref{lang, Simple language
-extensions}.  Notice that @func{receive} is @strong{not} reexported.
+extensions}.  Notice that @func{receive} and @func{do*} are @strong{not}
+reexported, rather the corresponding bindings from @library{classes} are
+used and renamed to @func{receive} and @func{do*}.
 
 @item pretty-print
 Provides the @func{pretty-print} function.  @ref{pretty-print, Pretty
@@ -63,8 +65,8 @@ Maker syntaxes}.
 
 @item classes
 Provides record type extensions.  @ref{classes, Record utilities}.
-Notice that @func{receive/with-class} is reexported with its name and
-also as @func{receive}.
+Notice that @func{receive/with-class} and @func{do*/with-class} are
+reexported with their name and also as @func{receive} and @func{do*}.
 
 @item compensations
 Compensation stacks.  @ref{compensations, Compensation stacks}.
@@ -157,6 +159,7 @@ define
 lambda                  case-lambda
 let                     let*
 letrec                  letrec*
+do
 @end example
 
 @noindent
@@ -168,6 +171,7 @@ define/with-class*
 lambda/with-class*       case-lambda/with-class*
 let/with-class           let*/with-class
 letrec/with-class        letrec*/with-class
+do/with-class
 @end example
 
 @noindent
