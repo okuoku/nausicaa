@@ -1942,27 +1942,57 @@
     (syntax-case stx ()
       ((_ ?class (?method-name . ?args) ?body0 ?body ...)
        (with-syntax
-	   ((FUNCNAME	(string->identifier #'?method-name
-					    (identifier-general-append #'?class "-" #'?method-name)))
+	   ((FUNCNAME	(syntax-method-identifier #'?class #'?method-name))
 	    (THIS	(datum->syntax #'?method-name 'this)))
+	 ;;This output form must be kept in sync with the output form of
+	 ;;DEFMETHOD-VIRTUAL below.
 	 #'(define/with-class (FUNCNAME THIS . ?args)
 	     (?class with-class-bindings-of (#f #t #t #t #t) ;enable everything, but dot notation
-	 	     THIS ?body0 ?body ...))
-	 ))
-      )))
+	 	     THIS ?body0 ?body ...)))))))
 
 (define-syntax defmethod-virtual
   (lambda (stx)
     (syntax-case stx ()
       ((_ ?class (?method-name . ?args) ?body0 ?body ...)
        (with-syntax ((THIS (datum->syntax #'?method-name 'this)))
+	 ;;Notice that  we cannot expand this syntax  using DEFMETHOD as
+	 ;;something like:
+	 ;;
+	 ;; (begin
+	 ;;   (defmethod ?class (?method-name . ?args) ?body0 ?body ...)
+	 ;;   (define-virtual-method ?class ?method-name FUNCNAME))
+	 ;;
+	 ;;where FUNCNAME  is built with:
+	 ;;
+	 ;;  (syntax-method-identifier #'?class #'?method-name)
+	 ;;
+	 ;;this  is because  DEFMETHOD  and DEFINE-VIRTUAL-METHOD  would
+	 ;;create a procedure  and a macro bound to  the same identifier
+	 ;;"<class>-<method-name>": this cause an expand error.
+	 ;;
+	 ;;Also, it is not possible to expand the macro to:
+	 ;;
+	 ;; (begin
+	 ;;   (defmethod ?class (the-method . ?args) ?body0 ?body ...)
+	 ;;   (define-virtual-method ?class ?method-name FUNCNAME))
+	 ;;
+	 ;;where FUNCNAME  is built with:
+	 ;;
+	 ;;  (syntax-method-identifier #'?class #'the-method)
+	 ;;
+	 ;;because  the expander  renames "the-method"  before expanding
+	 ;;DEFMETHOD, so the generated procedure name is not FUNCNAME.
+	 ;;
+	 ;;In   the   end,   our   only   option  is   to   repeat   the
+	 ;;DEFINE/WITH-CLASS as  below, keeping it in sync  with the one
+	 ;;in the definition of DEFMETHOD.
+	 ;;
 	 #'(begin
 	     (define/with-class (the-method THIS . ?args)
 	       (?class with-class-bindings-of (#f #t #t #t #t) ;enable everything, but dot notation
-	     	       THIS ?body0 ?body ...))
+		       THIS ?body0 ?body ...))
 	     (define-virtual-method ?class ?method-name the-method))
-	 ))
-      )))
+	 )))))
 
 ;;; --------------------------------------------------------------------
 
