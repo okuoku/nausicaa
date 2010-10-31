@@ -566,4 +566,50 @@ makes use of @meta{accessor} and @meta{mutator} to access and mutate
 @end example
 @end deffn
 
+
+@deffn Syntax define-constant @var{name} @var{expression}
+Bind @var{name} to the result of @var{expression} as @func{define} would
+do, but additionally make @var{name} impossible to be the first argument
+to @func{set!} from @rsixlibrary{base}.
+@end deffn
+
+
+@deffn Syntax define-syntax* (@var{name} @var{stx}) @varo{body} @var{body} ...
+Like @func{define-syntax} but allows a more function-like definition and
+introduces some bindings in the body.  The following macro use:
+
+@example
+(define-syntax* (@var{name} @var{stx})
+  @varo{body} @var{body} ...)
+@end example
+
+@noindent
+expands to:
+
+@example
+(define-syntax @var{name}
+  (lambda (@var{stx})
+    @var{bindings} ...
+    @varo{body} @var{body} ...))
+@end example
+
+@noindent
+currently @var{bindings} is:
+
+@example
+(define synner
+  (case-lambda
+   ((message)
+    (synner message #f))
+   ((message subform)
+    (syntax-violation @var{name} message
+      (syntax->datum @var{stx}) (syntax->datum subform)))))
+@end example
+
+@noindent
+that is: a function called @func{synner} which can be used to raise a
+syntax violation.
+@end deffn
+
+
 @c end of file

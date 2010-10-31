@@ -759,6 +759,7 @@
     zero?
 
 
+;;;; bindings from (language-extensions)
 
     ;; predicates
     non-negative? non-positive?
@@ -783,7 +784,7 @@
 
     ;; simple syntaxes
     dotimes dolist loop-upon-list ensure
-    define-values define-constant
+    define-values define-constant define-syntax*
 
     ;; miscellaneous
     symbol*->string symbol->string/maybe

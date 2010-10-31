@@ -186,7 +186,7 @@
     set-cons! incr! decr!
     define-identifier-accessor-mutator identifier-syntax-accessor-mutator
     with-accessor-and-mutator
-    define-inline define-values define-constant
+    define-inline define-values define-constant define-syntax*
     syntax-rules* syntax-case* partial-macro-expand partial-macro-expand-and-print)
   (import (rnrs)
     (pretty-print))
@@ -525,6 +525,22 @@
        (define ghost ?expr)
        (define-syntax ?name
 	 (identifier-syntax ghost))))))
+
+(define-syntax define-syntax*
+  (lambda (stx)
+    (syntax-case stx ()
+      ((_ (?name ?stx) ?body0 ?body ...)
+       (and (identifier? #'?name) (identifier? #'?stx))
+       (with-syntax ((SYNNER (datum->syntax #'?name 'synner)))
+	 #'(define-syntax ?name
+	     (lambda (?stx)
+	       (define SYNNER
+		 (case-lambda
+		  ((message)
+		   (SYNNER message #f))
+		  ((message subform)
+		   (syntax-violation '?name message (syntax->datum ?stx) (syntax->datum subform)))))
+	       ?body0 ?body ...)))))))
 
 
 ;;;; expandable macro transformers
