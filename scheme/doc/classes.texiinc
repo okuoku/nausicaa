@@ -954,7 +954,8 @@ corresponding clause for classes.
 @item predicate
 Select a predicate function to be used to identify values with the
 @func{is-a?} macro; it has the same syntax and semantics of the
-corresponding clause for classes.
+corresponding clause for classes.  If a predicate is not selected: it
+defaults to a function which always returns @true{}.
 
 @item virtual-fields
 @itemx method

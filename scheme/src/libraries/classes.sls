@@ -104,24 +104,12 @@
     (for (classes helpers)	expand)
     (for (prefix (sentinel) sentinel.) expand)
     (makers)
+    (contracts)
     (auxiliary-syntaxes)
+    (only (language-extensions)
+	  define-syntax*
+	  with-accessor-and-mutator)
     (classes top))
-
-
-;;;; helpers
-
-(define-syntax with-accessor-and-mutator
-  (syntax-rules ()
-    ((_ ((?name ?thing ?accessor ?mutator) ?spec ...) ?body0 ?body ...)
-     (let-syntax ((?name (identifier-syntax
-			  (_              (?accessor ?thing))
-			  ((set! _ ?expr) (?mutator ?thing ?expr)))))
-       (with-accessor-and-mutator (?spec ...) ?body0 ?body ...)))
-    ((_ ((?name ?thing ?accessor) ?spec ...) ?body0 ?body ...)
-     (let-syntax ((?name (identifier-syntax (?accessor ?thing))))
-       (with-accessor-and-mutator (?spec ...) ?body0 ?body ...)))
-    ((_ () ?body0 ?body ...)
-     (begin ?body0 ?body ...))))
 
 
 (define (%make-default-protocol rtd)
@@ -1230,10 +1218,7 @@
 	  #'(begin
 	      (define PREDICATE
 		(let ((p CUSTOM-PREDICATE))
-		  (or p (lambda (x)
-			  (assertion-violation (quote PREDICATE)
-			    "no predicate definition for label"
-			    (quote ?input-form))))))
+		  (or p (lambda (x) #t))))
 
 	      DEFINITION ...
 
@@ -1552,82 +1537,82 @@
 
 ;;;; core public syntaxes to access fields, methods, setters and getters
 
-(define-syntax with-class
+(define-syntax* (with-class stx)
   ;;This  is the  public entry  point  for fields,  methods, setter  and
-  ;;getter access;  the name WITH-CLASS is  a bit misleading  but it is
-  ;;cute.  Just  hand everything to  %WITH-CLASS-BINDINGS: the recursive
-  ;;%WITH-CLASS-BINDINGS needs to allow input forms which we do not want
-  ;;for WITH-CLASS.
+  ;;getter access;  the name  WITH-CLASS is a  bit misleading but  it is
+  ;;cute.  The gist of it is to expand:
+  ;;
+  ;;  (with-class ((<var> <class>) . <body>))
+  ;;
+  ;;into:
+  ;;
+  ;;  (<class> with-class-bindings-of (#t #t #t #t #t) <var> . <body>)
+  ;;
+  ;;which is the syntax having  knowledge of the context of <class>; the
+  ;;list of true  values enable all the dot  notation syntaxes.  We want
+  ;;the full expansion of:
+  ;;
+  ;;  (with-class ((<var> <class0> <class1>)) . <body>)
+  ;;
+  ;;to be:
+  ;;
+  ;;  (<class0> with-class-bindings-of (#t #t #t #t #t) <var>
+  ;;    (<class1> with-class-bindings-of (#t #t #t #t #t) <var>
+  ;;      . <body>))
+  ;;
+  ;;that is:  a single  contract function for  each clause and  then one
+  ;;nested with-class-bindings-of for each given class.
   ;;
   ;;We  allow  an  empty list  of  clauses  because  it is  useful  when
   ;;expanding other macros into WITH-CLASS uses.
   ;;
-  (syntax-rules ()
-    ((_ (?clause ...) ?body0 ?body ...)
-     (%with-class-bindings (?clause ...) ?body0 ?body ...))))
+  (syntax-case stx (<top>)
+    ((_ () ?body0 ?body ...)
+     #'(begin ?body0 ?body ...))
 
-(define-syntax %with-class-bindings
-  ;;The  core syntax  for  fields, methods,  setter  and getter  access.
-  ;;Expand into nested uses of:
-  ;;
-  ;;  (<class> with-class-bindings-of ...)
-  ;;
-  ;;which is the syntax having knowledge of the context of <class>.
-  ;;
-  (lambda (stx)
-    (syntax-case stx (<top>)
+    ((_ ((?var) ?clause ...) ?body0 ?body ...)
+     (identifier? #'?var)
+     #'(with-class (?clause ...) ?body0 ?body ...))
 
-      ;;If the  class is "<top>" skip  it, because "<top>"  has no class
-      ;;bindings.
-      ((_ ((?var <top> ?class ...) ?clause ...) ?body0 ?body ...)
-       (identifier? #'?var)
-       #'(%with-class-bindings ((?var ?class ...) ?clause ...) ?body0 ?body ...))
+    ((_ ((?var <top> ?class ...) ?clause ...) ?body0 ?body ...)
+     (identifier? #'?var)
+     #'(with-class ((?var ?class ...) ?clause ...) ?body0 ?body ...))
 
-      ;;Process the next class in the clause.
-      ((_ ((?var ?class0 ?class ...) ?clause ...) ?body0 ?body ...)
-       (and (identifier? #'?var) (identifier? #'?class0))
-       #'(?class0 with-class-bindings-of (#t #t #t #t #t) ;enable everything
-		  ?var
-		  (%with-class-bindings ((?var ?class ...) ?clause ...) ?body0 ?body ...)))
+    ((_ ((?var ?class0 ?class ...) ?clause ...) ?body0 ?body ...)
+     (identifier? #'?var)
+     #'(?class0 with-class-bindings-of (#t #t #t #t #t) ?var
+		(with-class ((?var ?class ...) ?clause ...) ?body0 ?body ...)))
 
-      ;;No more classes, move to the next clause.
-      ((_ ((?var) ?clause ...) ?body0 ?body ...)
-       #'(%with-class-bindings (?clause ...) ?body0 ?body ...))
+    (_
+     (synner "invalid clause in with-class form"))))
 
-      ;;No more clauses, expand the body.
-      ((_ () ?body0 ?body ...)
-       #'(begin ?body0 ?body ...)))))
+(define-syntax* (setf stx)
+  (syntax-case stx (setter setter-multi-key set!)
 
-;;; --------------------------------------------------------------------
+    ((_ (?variable-name ?key0 ?key ...) ?value)
+     (identifier? #'?variable-name)
+     #`(#,(%variable-name->Setter-name #'?variable-name) ?key0 ?key ... ?value))
 
-(define-syntax setf
-  (lambda (stx)
-    (syntax-case stx (setter setter-multi-key set!)
+    ((_ ?variable-name ?value)
+     (identifier? #'?variable-name)
+     #'(set! ?variable-name ?value))
 
-      ((_ (?variable-name ?key0 ?key ...) ?value)
-       (identifier? #'?variable-name)
-       #`(#,(%variable-name->Setter-name #'?variable-name)
-	  ?key0 ?key ... ?value))
+    (_
+     (synner "invalid class setter syntax" #f))))
 
-       ((_ ?variable-name ?value)
-       (identifier? #'?variable-name)
-	#'(set! ?variable-name ?value))
-
-       )))
-
-(define-syntax getf
-  (lambda (stx)
-    (syntax-case stx (setter setter-multi-key set!)
-      ((_ (?variable-name ?key0 ?key ...))
-       (identifier? #'?variable-name)
-       #`(#,(%variable-name->Getter-name #'?variable-name)
-	  ?key0 ?key ...)))))
+(define-syntax* (getf stx)
+  (syntax-case stx (setter setter-multi-key set!)
+    ((_ (?variable-name ?key0 ?key ...))
+     (identifier? #'?variable-name)
+     #`(#,(%variable-name->Getter-name #'?variable-name) ?key0 ?key ...))
+    (_
+     (synner "invalid class getter syntax" #f))))
 
 
 ;;;; LET and DO wrappers
 
 ;;This is used below to distinguish between named-LET and ordinary LET.
-(define no-loop)
+(define-auxiliary-syntax no-loop)
 
 (define-syntax %do-let/no-types
   ;;Produce the  output forms for a  LET form in which  all the bindings
@@ -1636,7 +1621,7 @@
   (lambda (stx)
     (syntax-case stx (no-loop)
 
-      ;;Ordinary LET, no bindings.  Expand to ?LET to allow <definition>
+      ;;Ordinary LET,  no bindings: expand  to ?LET to  allow definition
       ;;forms in the body.
       ((_ ?let ?let/with-class no-loop () ?body0 ?body ...)
        #'(?let () ?body0 ?body ...))
@@ -1657,49 +1642,13 @@
 
       ;;At least one binding has types.
       ((_ ?let ?let/with-class ?loop   ((?var ?init) ...) ?body0 ?body ...)
-       #'(%do-let/add-top ?let ?let/with-class ?loop () ((?var ?init) ...) ?body0 ?body ...))
+       (with-syntax (((VAR ...) (map (lambda (var)
+				       (if (pair? var) var (list var #'<top>)))
+				  (unwrap-syntax-object #'(?var ...)))))
+	 #'(?let/with-class ?loop ((VAR ?init) ...) ?body0 ?body ...)))
 
       (_
        (syntax-violation '%do-let/no-types "invalid input form" (syntax->datum stx)))
-      )))
-
-(define-syntax %do-let/add-top
-  ;;Add <top>  to the  bindings with no  type.  Then hand  everything to
-  ;;?LET/WITH-CLASS.
-  ;;
-  (lambda (stx)
-    (syntax-case stx ()
-
-      ;;No more bindings to collect.
-      ((_ ?let ?let/with-class ?loop (?bind ...) () ?body0 ?body ...)
-       #'(?let/with-class ?loop (?bind ...) ?body0 ?body ...))
-
-      ;;Add <top> as type to an untyped binding.
-      ((_ ?let ?let/with-class ?loop (?bind ...) ((?var0 ?init0) (?var ?init) ...) ?body0 ?body ...)
-       (identifier? #'?var0)
-       #'(%do-let/add-top ?let ?let/with-class ?loop
-			  (?bind ... ((?var0 <top>) ?init0))
-			  ((?var ?init) ...)
-			  ?body0 ?body ...))
-
-      ;;Add <top> as type to an untyped binding.
-      ((_ ?let ?let/with-class ?loop (?bind ...) (((?var0) ?init0) (?var ?init) ...) ?body0 ?body ...)
-       (identifier? #'?var0)
-       #'(%do-let/add-top ?let ?let/with-class ?loop
-			  (?bind ... ((?var0 <top>) ?init0))
-			  ((?var ?init) ...)
-			  ?body0 ?body ...))
-
-      ;;Collect a typed binding.
-      ((_ ?let ?let/with-class ?loop (?bind ...)
-	  (((?var0 ?class0 ?class ...) ?init0) (?var ?init) ...) ?body0 ?body ...)
-       #'(%do-let/add-top ?let ?let/with-class ?loop
-			  (?bind ... ((?var0 ?class0 ?class ...) ?init0))
-			  ((?var ?init) ...)
-			  ?body0 ?body ...))
-
-      (_
-       (syntax-violation '%do-let/add-top "invalid input form" (syntax->datum stx)))
       )))
 
 ;;; --------------------------------------------------------------------
@@ -1723,13 +1672,33 @@
   (lambda (stx)
     (syntax-case stx (no-loop)
 
-      ((_ no-loop (((?var ?class0 ?class ...) ?init) ...) ?body0 ?body ...)
-       #'(let ((?var ?init) ...)
-	   (with-class ((?var ?class0 ?class ...) ...) ?body0 ?body ...)))
+      ((_ no-loop (((?var ?class ...) ?init) ...) ?body0 ?body ...)
+       (with-syntax (((CONTRACT ...) (generate-temporaries #'(?var ...))))
+	 #'(let ((?var ?init) ...)
+	     (let-syntax ((CONTRACT (identifier-syntax (lambda (obj)
+							 (and (is-a? obj ?class) ...))))
+			  ...)
+	       (enforce-contracts (CONTRACT ?var) ...)
+	       (let-contract ((?var ?var CONTRACT) ...)
+		 (let ()
+		   (with-class ((?var ?class ...) ...) ?body0 ?body ...))
+		 )))))
+
+      ;;((_ no-loop (((?var ?class0 ?class ...) ?init) ...) ?body0 ?body ...)
+      ;; #'(let ((?var ?init) ...)
+      ;; 	   (with-class ((?var ?class0 ?class ...) ...) ?body0 ?body ...)))
 
       ((_ ?loop (((?var ?class0 ?class ...) ?init) ...) ?body0 ?body ...)
-       #'(let ?loop ((?var ?init) ...)
-	   (with-class ((?var ?class0 ?class ...) ...) ?body0 ?body ...)))
+       (with-syntax (((CONTRACT ...) (generate-temporaries #'(?var ...))))
+	 #'(let ?loop ((?var ?init) ...)
+	     (let-syntax ((CONTRACT (identifier-syntax (lambda (obj)
+							 (and (is-a? obj ?class) ...))))
+			  ...)
+	       (enforce-contracts (CONTRACT ?var) ...)
+	       (let-contract ((?var ?var CONTRACT) ...)
+		 (let ()
+		   (with-class ((?var ?class0 ?class ...) ...) ?body0 ?body ...))
+		 )))))
 
       (_
        (syntax-violation '%let/with-class "invalid input form" (syntax->datum stx)))
@@ -1737,117 +1706,110 @@
 
 ;;; --------------------------------------------------------------------
 
-(define-syntax let*/with-class
+(define-syntax* (let*/with-class stx)
   ;;Entry point for LET* with types.
   ;;
-  (lambda (stx)
-    (syntax-case stx (no-loop)
-      ((_ ((?var ?init) ...) ?body0 ?body ...)
-       #'(%do-let/no-types let* %let*/with-class no-loop ((?var ?init) ...) ?body0 ?body ...))
-      (_
-       (syntax-violation 'let*/with-class "invalid input form" (syntax->datum stx)))
-      )))
+  (syntax-case stx (no-loop)
+    ((_ ((?var ?init) ...) ?body0 ?body ...)
+     #'(%do-let/no-types let* %let*/with-class no-loop ((?var ?init) ...) ?body0 ?body ...))
+    (_
+     (synner "invalid input form"))))
 
-(define-syntax %let*/with-class
+(define-syntax* (%let*/with-class stx)
   ;;Produce output forms for LET* with types.
   ;;
-  (lambda (stx)
-    (syntax-case stx (no-loop)
+  (syntax-case stx (no-loop)
 
-      ((_ no-loop (((?var0 ?class0 ?class00 ...) ?init0)
-		   ((?var1 ?class1 ?class11 ...) ?init1)
-		   ...)
-	  ?body0 ?body ...)
-       (let ((id (duplicated-identifiers? #'(?var0 ?var1 ...))))
-	 (if id
-	     (syntax-violation 'let*/with-class "duplicated binding names"
-	       (syntax->datum stx) (syntax->datum id))
-	   #'(let ((?var0 ?init0))
-	       (with-class ((?var0 ?class0 ?class00 ...))
-		 (let*/with-class (((?var1 ?class1 ?class11 ...) ?init1) ...) ?body0 ?body ...))))))
+    ((_ no-loop (((?var0 ?class0 ?class00 ...) ?init0)
+		 ((?var1 ?class1 ?class11 ...) ?init1)
+		 ...)
+	?body0 ?body ...)
+     (let ((id (duplicated-identifiers? #'(?var0 ?var1 ...))))
+       (if id
+	   (synner "duplicated binding names" id)
+	 #'(%let/with-class no-loop (((?var0 ?class0 ?class00 ...) ?init0))
+	     (let*/with-class (((?var1 ?class1 ?class11 ...) ?init1) ...) ?body0 ?body ...))
+	 )))
 
-      ((_ no-loop () ?body0 ?body ...)
-       #'(begin ?body0 ?body ...))
-
-      ((_ ?loop . ?rest)
-       (syntax-violation 'let*/with-class "named LET* is not allowed" (syntax->datum stx)))
-
-      (_
-       (syntax-violation '%let*/with-class "invalid input form" (syntax->datum stx)))
-      )))
+    ((_ no-loop () ?body0 ?body ...)
+     #'(begin ?body0 ?body ...))
+    ((_ ?loop . ?rest)
+     (synner "named LET* is not allowed"))
+    (_
+     (synner "invalid input form"))))
 
 ;;; --------------------------------------------------------------------
 
-(define-syntax letrec/with-class
+(define-syntax* (letrec/with-class stx)
   ;;Entry point for LETREC with types.
   ;;
-  (lambda (stx)
-    (syntax-case stx ()
-      ((_ ((?var ?init) ...) ?body0 ?body ...)
-       #'(%do-let/no-types letrec %letrec/with-class no-loop ((?var ?init) ...) ?body0 ?body ...))
-      (_
-       (syntax-violation 'letrec/with-class "invalid input form" (syntax->datum stx)))
-      )))
+  (syntax-case stx ()
+    ((_ ((?var ?init) ...) ?body0 ?body ...)
+     #'(%do-let/no-types letrec %letrec/with-class no-loop ((?var ?init) ...) ?body0 ?body ...))
+    (_
+     (synner "invalid input form"))))
 
-(define-syntax %letrec/with-class
-  ;;Produce output forms for LETREC with types.
+(define-syntax* (%letrec/with-class stx)
+  ;;Produce  output forms  for LETREC  with types.   We rely  on  LET to
+  ;;detect duplicated bindings.
   ;;
-  (lambda (stx)
-    (syntax-case stx (no-loop)
+  (syntax-case stx (no-loop)
 
-      ((_ no-loop (((?var ?class0 ?class ...) ?init)
-		   ...)
-	  ?body0 ?body ...)
-       ;;We rely on LET to detect duplicated bindings.
-       (with-syntax (((T ...) (generate-temporaries #'(?var ...))))
-	 #'(let ((?var sentinel.undefined) ...)
-	     (with-class ((?var ?class0 ?class ...) ...)
-	       (let ((T ?init) ...)
-		 (set! ?var T) ...
-		 ?body0 ?body ...)))))
+    ((_ no-loop (((?var ?class0 ?class ...) ?init) ...) ?body0 ?body ...)
+     (with-syntax (((T ...) (generate-temporaries #'(?var ...)))
+		   ((C ...) (generate-temporaries #'(?var ...))))
+       #'(let ((?var sentinel.undefined) ...)
+	   (let-syntax ((C (identifier-syntax (lambda (obj) (and (is-a? obj ?class) ...))))
+			...)
+	     (let-contract ((?var ?var C) ...)
+	       (with-class ((?var ?class0 ?class ...) ...)
+		 (let ((T ?init) ...) ;do not enforce the order of evaluation of ?INIT
+		   (set! ?var T) ...
+		   ?body0 ?body ...)))))
+       ))
 
-      ((_ ?loop . ?rest)
-       (syntax-violation 'letrec/with-class "named LETREC is not allowed" (syntax->datum stx)))
-
-      (_
-       (syntax-violation '%letrec/with-class "invalid input form" (syntax->datum stx)))
-      )))
+    ((_ ?loop . ?rest)
+     (synner "named LETREC is not allowed"))
+    (_
+     (synner "invalid input form"))))
 
 ;;; --------------------------------------------------------------------
 
-(define-syntax letrec*/with-class
+(define-syntax* (letrec*/with-class stx)
   ;;Entry point for LETREC* with types.
   ;;
-  (lambda (stx)
-    (syntax-case stx ()
-      ((_ ((?var ?init) ...) ?body0 ?body ...)
-       #'(%do-let/no-types letrec* %letrec*/with-class no-loop ((?var ?init) ...) ?body0 ?body ...))
-      (_
-       (syntax-violation 'letrec*/with-class "invalid input form" (syntax->datum stx)))
-      )))
+  (syntax-case stx ()
+    ((_ ((?var ?init) ...) ?body0 ?body ...)
+     #'(%do-let/no-types letrec* %letrec*/with-class no-loop ((?var ?init) ...) ?body0 ?body ...))
+    (_
+     (synner "invalid input form"))))
 
-(define-syntax %letrec*/with-class
+(define-syntax* (%letrec*/with-class stx)
   ;;Produce output forms for LETREC* with types.
   ;;
   ;;The  difference between  LETREC and  LETREC*  is only  the order  of
   ;;evaluation of ?INIT, which is enforced in LETREC*.
   ;;
-  (lambda (stx)
-    (syntax-case stx (no-loop)
+  (syntax-case stx (no-loop)
 
-      ((_ no-loop (((?var ?class0 ?class ...) ?init) ...) ?body0 ?body ...)
-       ;;We rely on LET to detect duplicated bindings.
-       #'(let ((?var #f) ...)
-	   (with-class ((?var ?class0 ?class ...) ...)
-	     (set! ?var ?init) ...
-	     ?body0 ?body ...)))
+    ((_ no-loop (((?var ?class0 ?class ...) ?init) ...) ?body0 ?body ...)
+     ;;We rely on LET to detect duplicated bindings.
+     (with-syntax (((C ...) (generate-temporaries #'(?var ...))))
+       #'(let ((?var sentinel.undefined) ...)
+	   (let-syntax ((C (identifier-syntax (lambda (obj) (and (is-a? obj ?class) ...))))
+			...)
+	     (let-contract ((?var ?var C) ...)
+	       (with-class ((?var ?class0 ?class ...) ...)
+		 (set! ?var ?init) ... ;enforces the order of evaluation of ?INIT
+		 ?body0 ?body ...))))
+       ))
 
-      ((_ ?loop . ?rest)
-       (syntax-violation 'letrec*/with-class "named LETREC* is not allowed" (syntax->datum stx)))
+    ((_ ?loop . ?rest)
+     (synner "named LETREC* is not allowed"))
+    (_
+     (synner "invalid input form"))))
 
-      (_
-       (syntax-violation '%letrec*/with-class "invalid input form" (syntax->datum stx)))
-      )))
+;;; --------------------------------------------------------------------
 
 (define-syntax do/with-class
   (syntax-rules ()
@@ -1875,45 +1837,44 @@
 			   ?form ...
 			   (loop (the-step ?var ?step ...) ...))))))))
 
-(define-syntax do*/with-class
-  (lambda (stx)
-    (define (%parse-var stx)
-      (syntax-case stx ()
-	(?id
-	 (identifier? #'?id)
-	 #'?id)
-	((?id ?class ...)
-	 (all-identifiers? #'(?id ?class ...))
-	 #'?id)
-	(_
-	 (syntax-violation 'do*/with-class "invalid binding declaration" stx))))
+(define-syntax* (do*/with-class stx)
+  (define (%parse-var stx)
     (syntax-case stx ()
-      ((_ ((?var ?init ?step ...) ...)
-	  (?test ?expr ...)
-	  ?form ...)
-       (with-syntax (((ID ...) (map %parse-var (unwrap-syntax-object #'(?var ...)))))
-	 #'(let-syntax ((the-expr (syntax-rules ()
-				    ((_)
-				     (values))
-				    ((_ ?-expr0 ?-expr (... ...))
-				     (begin ?-expr0 ?-expr (... ...)))))
-			(the-step (syntax-rules ()
-				    ((_ ?-var)
-				     ?-var)
-				    ((_ ?-var ?-step)
-				     ?-step)
-				    ((_ ?-var ?-step0 ?-step (... ...))
-				     (syntax-violation 'do/with-class
-				       "invalid step specification"
-				       '(?-step0 ?-step (... ...)))))))
-	     (let*/with-class ((?var ?init) ...)
-	       (let/with-class loop ((?var ID) ...)
-		 (if ?test
-		     (the-expr ?expr ...)
-		   (begin
-		     ?form ...
-		     (loop (the-step ID ?step ...) ...))))))
-	 )))))
+      (?id
+       (identifier? #'?id)
+       #'?id)
+      ((?id ?class ...)
+       (all-identifiers? #'(?id ?class ...))
+       #'?id)
+      (_
+       (synner "invalid binding declaration"))))
+  (syntax-case stx ()
+    ((_ ((?var ?init ?step ...) ...)
+	(?test ?expr ...)
+	?form ...)
+     (with-syntax (((ID ...) (map %parse-var (unwrap-syntax-object #'(?var ...)))))
+       #'(let-syntax ((the-expr (syntax-rules ()
+				  ((_)
+				   (values))
+				  ((_ ?-expr0 ?-expr (... ...))
+				   (begin ?-expr0 ?-expr (... ...)))))
+		      (the-step (syntax-rules ()
+				  ((_ ?-var)
+				   ?-var)
+				  ((_ ?-var ?-step)
+				   ?-step)
+				  ((_ ?-var ?-step0 ?-step (... ...))
+				   (syntax-violation 'do/with-class
+				     "invalid step specification"
+				     '(?-step0 ?-step (... ...)))))))
+	   (let*/with-class ((?var ?init) ...)
+	     (let/with-class loop ((?var ID) ...)
+			     (if ?test
+				 (the-expr ?expr ...)
+			       (begin
+				 ?form ...
+				 (loop (the-step ID ?step ...) ...))))))
+       ))))
 
 
 ;;;; DEFINE and LAMBDA wrappers
@@ -1996,13 +1957,54 @@
 
 ;;; --------------------------------------------------------------------
 
-(define-syntax lambda/with-class
-  (syntax-rules ()
+(define-syntax* (lambda/with-class stx)
+  (define (%parse-formals formals)
+    (let loop ((formals	formals)
+	       (args	'())	;list of formal identifiers
+	       (cls	'()))	;list of lists of class identifiers
+      (syntax-case formals (<top>)
+	(()
+	 (values (reverse args) (reverse cls) #f))
+	(?rest
+	 (identifier? #'?rest)
+	 (values (reverse args) (reverse cls) #'?rest))
+	((?car . ?cdr)
+	 (identifier? #'?car)
+	 (loop #'?cdr (cons #'?car args) (cons #'(<top>) cls)))
+	(((?id ?cls0 ?cls ...) . ?cdr)
+	 (all-identifiers? #'(?id ?cls0 ?cls ...))
+	 (loop #'?cdr (cons #'?id args) (cons #'(?cls0 ?cls ...) cls)))
+	(_
+	 (synner "invalid formals in lambda definition" formals))
+	)))
+
+  (syntax-case stx ()
+
+    ((_ ?identifier . ?body)
+     (identifier? #'?identifier)
+     #'(lambda ?identifier . ?body))
+
     ((_ ?formals . ?body)
-     (%lambda/collect-classes-and-arguments #f ?formals
-					    () ;collected classes
-					    () ;collected args
-					    . ?body))))
+     (let-values (((args cls rest) (%parse-formals #'?formals)))
+       (with-syntax (((ARG ...)		args)
+		     (((CLS ...) ...)	cls))
+	 (if rest
+	     #`(lambda (ARG ... . #,rest)
+		 (with-class ((ARG CLS ...) ...) . ?body))
+	   #'(lambda (ARG ...)
+	       (with-class ((ARG CLS ...) ...) . ?body))))))
+
+    (_
+     (synner "invalid syntax in lambda definition" stx))
+    ))
+
+;; (define-syntax lambda/with-class
+;;   (syntax-rules ()
+;;     ((_ ?formals . ?body)
+;;      (%lambda/collect-classes-and-arguments #f ?formals
+;; 					    () ;collected classes
+;; 					    () ;collected args
+;; 					    . ?body))))
 
 (define-syntax lambda/with-class*
   (syntax-rules ()

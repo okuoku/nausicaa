@@ -1,4 +1,4 @@
-;;; -*- coding: utf-8-unix -*-
+;;; -*- coding: utf-8 -*-
 ;;;
 ;;;Part of: Nausicaa/Scheme
 ;;;Contents: implementation of <top> class bindings
@@ -25,6 +25,7 @@
 ;;;
 
 
+#!r6rs
 (library (classes top)
   (export <top> <top>-superclass <top>-superlabel <top>-bindings)
   (import (rnrs))

@@ -25,6 +25,7 @@
 ;;;
 
 
+#!r6rs
 (import (nausicaa)
   (checks)
   (debugging)
@@ -2120,6 +2121,47 @@
     => #t)
 
 ;;; --------------------------------------------------------------------
+;;; let/with-class, type violation
+
+  (let ()
+
+    (define-class <alpha>
+      (fields a))
+
+    (define-class <beta>
+      (inherit <alpha>)
+      (fields b))
+
+    (check
+	(guard (E ((assertion-violation? E)
+;;;		   (write (condition-message E))(newline)
+		   #t)
+		  (else E))
+	  (let/with-class (((o <alpha>) 1))
+	    o.a))
+      => #t)
+
+    (check
+	(guard (E ((assertion-violation? E)
+;;;		   (write (condition-message E))(newline)
+		   #t)
+		  (else E))
+	  (let/with-class (((o <alpha> <beta>) 1))
+	    o.a))
+      => #t)
+
+    (check
+	(guard (E ((assertion-violation? E)
+		   #t)
+		  (else E))
+	  (let/with-class (((o <alpha>) (make <alpha> 1)))
+	    (set! o 123)
+	    o.a))
+      => #t)
+
+    #f)
+
+;;; --------------------------------------------------------------------
 ;;; let*/with-class
 
   (let ()
@@ -2172,6 +2214,47 @@
 			((r <gamma> <alpha>) (make <gamma> 1 2 3 4 5 6 7 8 9)))
 	(list a r.b))
     => '(1 2))
+
+;;; --------------------------------------------------------------------
+;;; let*/with-class, type violation
+
+  (let ()
+
+    (define-class <alpha>
+      (fields a))
+
+    (define-class <beta>
+      (inherit <alpha>)
+      (fields b))
+
+    (check
+	(guard (E ((assertion-violation? E)
+;;;		   (write (condition-message E))(newline)
+		   #t)
+		  (else E))
+	  (let*/with-class (((o <alpha>) 1))
+	    o.a))
+      => #t)
+
+    (check
+	(guard (E ((assertion-violation? E)
+;;;		   (write (condition-message E))(newline)
+		   #t)
+		  (else E))
+	  (let*/with-class (((o <alpha> <beta>) 1))
+	    o.a))
+      => #t)
+
+    (check
+	(guard (E ((assertion-violation? E)
+		   #t)
+		  (else E))
+	  (let*/with-class (((o <alpha>) (make <alpha> 1)))
+	    (set! o 123)
+	    o.a))
+      => #t)
+
+    #f)
 
 ;;; --------------------------------------------------------------------
 ;;; letrec/with-class
@@ -2258,6 +2341,47 @@
 			  ((r <gamma> <alpha>) (make <gamma> 1 2 3 4 5 6 7 8 9)))
 	(list a r.b))
     => '(1 2))
+
+;;; --------------------------------------------------------------------
+;;; letrec/with-class, type violation
+
+  (let ()
+
+    (define-class <alpha>
+      (fields a))
+
+    (define-class <beta>
+      (inherit <alpha>)
+      (fields b))
+
+    (check
+	(guard (E ((assertion-violation? E)
+;;;		   (write (condition-message E))(newline)
+		   #t)
+		  (else E))
+	  (letrec/with-class (((o <alpha>) 1))
+	    o.a))
+      => #t)
+
+    (check
+	(guard (E ((assertion-violation? E)
+;;;		   (write (condition-message E))(newline)
+		   #t)
+		  (else E))
+	  (letrec/with-class (((o <alpha> <beta>) 1))
+	    o.a))
+      => #t)
+
+    (check
+	(guard (E ((assertion-violation? E)
+		   #t)
+		  (else E))
+	  (letrec/with-class (((o <alpha>) (make <alpha> 1)))
+	    (set! o 123)
+	    o.a))
+      => #t)
+
+    #f)
 
 ;;; --------------------------------------------------------------------
 ;;; letrec*/with-class
@@ -2377,6 +2501,47 @@
 			   ((r <gamma> <alpha>) (make <gamma> 1 2 3 4 5 6 7 8 9)))
 	(list a r.b))
     => '(1 2))
+
+;;; --------------------------------------------------------------------
+;;; letrec*/with-class, type violation
+
+  (let ()
+
+    (define-class <alpha>
+      (fields a))
+
+    (define-class <beta>
+      (inherit <alpha>)
+      (fields b))
+
+    (check
+	(guard (E ((assertion-violation? E)
+;;;		   (write (condition-message E))(newline)
+		   #t)
+		  (else E))
+	  (letrec*/with-class (((o <alpha>) 1))
+	    o.a))
+      => #t)
+
+    (check
+	(guard (E ((assertion-violation? E)
+;;;		   (write (condition-message E))(newline)
+		   #t)
+		  (else E))
+	  (letrec*/with-class (((o <alpha> <beta>) 1))
+	    o.a))
+      => #t)
+
+    (check
+	(guard (E ((assertion-violation? E)
+		   #t)
+		  (else E))
+	  (letrec*/with-class (((o <alpha>) (make <alpha> 1)))
+	    (set! o 123)
+	    o.a))
+      => #t)
+
+    #f)
 
 ;;; --------------------------------------------------------------------
 ;;; do/with-class

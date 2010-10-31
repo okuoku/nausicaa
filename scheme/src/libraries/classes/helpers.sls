@@ -1,4 +1,4 @@
-;;; -*- coding: utf-8-unix -*-
+;;; -*- coding: utf-8 -*-
 ;;;
 ;;;Part of: Nausicaa/Scheme
 ;;;Contents: helper definitions for classes library
@@ -25,6 +25,7 @@
 ;;;
 
 
+#!r6rs
 (library (classes helpers)
   (export
     %variable-name->Setter-name		%variable-name->Getter-name
