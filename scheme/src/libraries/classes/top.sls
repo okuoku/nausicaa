@@ -28,7 +28,8 @@
 #!r6rs
 (library (classes top)
   (export <top> <top>-superclass <top>-superlabel <top>-bindings)
-  (import (rnrs))
+  (import (rnrs)
+    (classes internal-auxiliary-syntaxes))
 
 
 (define-record-type <top>
@@ -36,41 +37,43 @@
 
 (define-syntax <top>-superclass
   (lambda (stx)
-    (syntax-case stx (class-record-type-descriptor
-		      class-type-uid
-		      class-uid-list
-		      public-constructor-descriptor
-		      superclass-constructor-descriptor
-		      from-fields-constructor-descriptor
-		      parent-rtd-list
-		      make make-from-fields is-a?
-		      with-class-bindings-of)
+    (syntax-case stx (:class-record-type-descriptor
+		      :class-type-uid
+		      :class-uid-list
+		      :from-fields-constructor-descriptor
+		      :is-a?
+		      :make
+		      :make-from-fields
+		      :parent-rtd-list
+		      :public-constructor-descriptor
+		      :superclass-constructor-descriptor
+		      :with-class-bindings-of)
 
-      ((_ class-record-type-descriptor)
+      ((_ :class-record-type-descriptor)
        #'(record-type-descriptor <top>))
 
-      ((_ class-type-uid)
+      ((_ :class-type-uid)
        #'(quote nausicaa:builtin:<top>))
 
-      ((_ class-uid-list)
+      ((_ :class-uid-list)
        #'(quote (nausicaa:builtin:<top>)))
 
-      ((_ public-constructor-descriptor)
+      ((_ :public-constructor-descriptor)
        #'(record-constructor-descriptor <top>))
 
-      ((_ superclass-constructor-descriptor)
+      ((_ :superclass-constructor-descriptor)
        #'(record-constructor-descriptor <top>))
 
-      ((_ from-fields-constructor-descriptor)
+      ((_ :from-fields-constructor-descriptor)
        #'(record-constructor-descriptor <top>))
 
-      ((_ parent-rtd-list)
+      ((_ :parent-rtd-list)
        #'(list (record-type-descriptor <top>)))
 
-      ((_ is-a? ?arg)
+      ((_ :is-a? ?arg)
        #'(<top>? ?arg))
 
-      ((_ with-class-bindings-of ?inherit-options ?variable-name ?body0 ?body ...)
+      ((_ :with-class-bindings-of ?inherit-options ?variable-name ?body0 ?body ...)
        #'(begin ?body0 ?body ...))
 
       ((_ ?keyword . ?rest)
@@ -80,12 +83,12 @@
 	 (syntax->datum #'?keyword))))))
 
 (define-syntax <top>-superlabel
-  (syntax-rules (is-a? with-class-bindings-of)
+  (syntax-rules (:is-a? :with-class-bindings-of)
 
-    ((_ is-a? ?arg)
+    ((_ :is-a? ?arg)
      #t)
 
-    ((_ with-class-bindings-of ?inherit-options ?variable-name . ?body)
+    ((_ :with-class-bindings-of ?inherit-options ?variable-name . ?body)
      (begin . ?body))
 
     ((_ ?keyword . ?rest)

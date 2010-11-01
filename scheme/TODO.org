@@ -14,9 +14,6 @@
   Rewrite the  DEFINE-CLASS and DEFINE-LABEL expansions to  use a single
   LET-SYNTAX form.
 
-  Define auxiliary syntaxes to use  as first arguments to the class name
-  macros.  Do not export those auxiliary syntaxes.
-
 * generics
 
   Profile and improve method dispatching.
