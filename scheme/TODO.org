@@ -4,6 +4,19 @@
   remove the need for --compatible.
 
 * nausicaa
+* TODO makers
+
+  Refactor the helpers library to  use a number of one-purpose functions
+  that can be composed to build different maker parsing policies.
+
+* TODO classes
+
+  Rewrite the  DEFINE-CLASS and DEFINE-LABEL expansions to  use a single
+  LET-SYNTAX form.
+
+  Define auxiliary syntaxes to use  as first arguments to the class name
+  macros.  Do not export those auxiliary syntaxes.
+
 * generics
 
   Profile and improve method dispatching.
