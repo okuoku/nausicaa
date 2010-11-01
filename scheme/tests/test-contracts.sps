@@ -51,11 +51,12 @@
       => 456)
 
     (check
-	(guard (E ((assertion-violation? E)
-		   #t)
+	(guard (E ((contract-violation? E)
+		   ;;;(display (condition-message E))(newline)
+		   (condition-contract-violation/subject E))
 		  (else E))
 	  (set! alpha #\a))
-      => #t)
+      => '%alpha)
 
     #f)
 
@@ -66,11 +67,12 @@
     (define-contract beta %beta integer?)
 
     (check
-	(guard (E ((assertion-violation? E)
-		   #t)
+	(guard (E ((contract-violation? E)
+		   ;;;(display (condition-message E))(newline)
+		   (condition-contract-violation/subject E))
 		  (else E))
 	  beta)
-      => #t)
+      => '%beta)
 
     #f)
 
@@ -92,25 +94,28 @@
       => '(1 "two" three))
 
     (check
-	(guard (E ((assertion-violation? E)
-		   #t)
+	(guard (E ((contract-violation? E)
+		   ;;;(display (condition-message E))(newline)
+		   (condition-contract-violation/subject E))
 		  (else E))
 	  (doit #\a "two" 'three))
-      => #t)
+      => '%doit)
 
     (check
-	(guard (E ((assertion-violation? E)
-		   #t)
+	(guard (E ((contract-violation? E)
+		   ;;;(display (condition-message E))(newline)
+		   (condition-contract-violation/subject E))
 		  (else E))
 	  (doit 1 2 'three))
-      => #t)
+      => '%doit)
 
     (check
-	(guard (E ((assertion-violation? E)
-		   #t)
+	(guard (E ((contract-violation? E)
+		   ;;;(display (condition-message E))(newline)
+		   (condition-contract-violation/subject E))
 		  (else E))
 	  (doit 1 "two" 3))
-      => #t)
+      => '%doit)
 
     #f)
 
@@ -135,34 +140,37 @@
       => '(1 "two" three))
 
     (check
-	(guard (E ((assertion-violation? E)
-		   #t)
+	(guard (E ((contract-violation? E)
+		   ;;;(display (condition-message E))(newline)
+		   (condition-contract-violation/subject E))
 		  (else E))
 	  (doit #\a "two" 'three))
-      => #t)
+      => '%doit)
 
     (check
-	(guard (E ((assertion-violation? E)
-		   #t)
+	(guard (E ((contract-violation? E)
+		   ;;;(display (condition-message E))(newline)
+		   (condition-contract-violation/subject E))
 		  (else E))
 	  (doit 1 2 'three))
-      => #t)
+      => '%doit)
 
     (check
-	(guard (E ((assertion-violation? E)
-		   #t)
+	(guard (E ((contract-violation? E)
+		   ;;;(display (condition-message E))(newline)
+		   (condition-contract-violation/subject E))
 		  (else E))
 	  (doit 1 "two" 3))
-      => #t)
+      => '%doit)
 
     (check
-	(guard (E ((assertion-violation? E)
-;;;		   (write E)(newline)
-		   #t)
+	(guard (E ((contract-violation? E)
+		   ;;;(display (condition-message E))(newline)
+		   (condition-contract-violation/subject E))
 		  (else E))
 	  (parametrise ((flag #f))
             (doit 1 "two" 'three)))
-      => #t)
+      => '%doit)
 
     ;; (parametrise ((flag #f))
     ;;   (doit 1 "two" 'three))
@@ -192,46 +200,46 @@
       => '(1 ("two" three)))
 
     (check
-	(guard (E ((assertion-violation? E)
-		   #t)
+	(guard (E ((contract-violation? E)
+		   ;;;(display (condition-message E))(newline)
+		   (condition-contract-violation/subject E))
 		  (else E))
 	  (call-with-values
 	      (lambda ()
 		(doit #\a "two" 'three))
 	    list))
-      => #t)
+      => '%doit)
 
     (check
-	(guard (E ((assertion-violation? E)
-		   #t)
+	(guard (E ((contract-violation? E)
+		   ;;;(display (condition-message E))(newline)
+		   (condition-contract-violation/subject E))
 		  (else E))
 	  (call-with-values
 	      (lambda () (doit 1 2 'three))
 	    list))
-      => #t)
+      => '%doit)
 
     (check
-	(guard (E ((assertion-violation? E)
-		   #t)
+	(guard (E ((contract-violation? E)
+;;;(display (condition-message E))(newline)
+		   (condition-contract-violation/subject E))
 		  (else E))
 	  (call-with-values
 	      (lambda () (doit 1 "two" 3))
 	    list))
-      => #t)
+      => '%doit)
 
     (check
-	(guard (E ((assertion-violation? E)
-;;;		   (write E)(newline)
-		   #t)
+	(guard (E ((contract-violation? E)
+		   ;;;(display (condition-message E))(newline)
+		   (condition-contract-violation/subject E))
 		  (else E))
 	  (parametrise ((flag #f))
 	    (call-with-values
 		(lambda () (doit 1 "two" 'three))
 	      list)))
-      => #t)
-
-    ;; (parametrise ((flag #f))
-    ;;   (doit 1 "two" 'three))
+      => '%doit)
 
     #f)
 
@@ -256,16 +264,13 @@
       => '(1 "two" three))
 
     (check
-	(guard (E ((assertion-violation? E)
-;;;		   (write E)(newline)
-		   #t)
+	(guard (E ((contract-violation? E)
+		   ;;;(display (condition-message E))(newline)
+		   (condition-contract-violation/subject E))
 		  (else E))
 	  (parametrise ((flag #f))
-            (doit 1 "two" 'three)))
-      => #t)
-
-    ;; (parametrise ((flag #f))
-    ;;   (doit 1 "two" 'three))
+            (doit)))
+      => '%doit)
 
     #f)
 
@@ -310,21 +315,24 @@
       => '(1 "two" three))
 
     (check
-	(guard (E ((assertion-violation? E)
+	(guard (E ((contract-violation? E)
+		   ;;;(display (condition-message E))(newline)
 		   #t)
 		  (else E))
 	  (doit #\a "two" 'three))
       => #t)
 
     (check
-	(guard (E ((assertion-violation? E)
+	(guard (E ((contract-violation? E)
+		   ;;;(display (condition-message E))(newline)
 		   #t)
 		  (else E))
 	  (doit 1 2 'three))
       => #t)
 
     (check
-	(guard (E ((assertion-violation? E)
+	(guard (E ((contract-violation? E)
+		   ;;;(display (condition-message E))(newline)
 		   #t)
 		  (else E))
 	  (doit 1 "two" 3))
@@ -350,7 +358,8 @@
       => #f)
 
     (check
-	(guard (E ((assertion-violation? E)
+	(guard (E ((contract-violation? E)
+		   ;;;(display (condition-message E))(newline)
 		   #t)
 		  (else E))
 	  (doit 'ciao))
@@ -373,7 +382,8 @@
       => 456)
 
     (check
-	(guard (E ((assertion-violation? E)
+	(guard (E ((contract-violation? E)
+		   ;;;(display (condition-message E))(newline)
 		   #t)
 		  (else E))
 	  (set! alpha #\a))
@@ -391,7 +401,8 @@
     (check (alpha 123) => 124)
 
     (check
-	(guard (E ((assertion-violation? E)
+	(guard (E ((contract-violation? E)
+		   ;;;(display (condition-message E))(newline)
 		   #t)
 		  (else E))
 	  (alpha #\a))
@@ -410,14 +421,14 @@
       => 456)
 
     (check
-	(guard (E ((assertion-violation? E)
+	(guard (E ((contract-violation? E)
+		   ;;;(display (condition-message E))(newline)
 		   #t)
 		  (else E))
 	  (set! alpha #\a))
       => #t)
 
     #f)
-
 
   #t)
 
@@ -440,7 +451,8 @@
       => #f)
 
     (check
-	(guard (E ((assertion-violation? E)
+	(guard (E ((contract-violation? E)
+		   ;;;(display (condition-message E))(newline)
 		   #t)
 		  (else E))
 	  (doit 'ciao))
@@ -469,7 +481,8 @@
 
     (check (a 10) => 0)
     (check
-	(guard (E ((assertion-violation? E)
+	(guard (E ((contract-violation? E)
+		   ;;;(display (condition-message E))(newline)
 		   #t)
 		  (else E))
 	  (b 123))
@@ -491,22 +504,24 @@
 	    alpha)
 	=> 456)
       (check
-	  (guard (E ((assertion-violation? E)
-		     #t)
+	  (guard (E ((contract-violation? E)
+		     ;;;(display (condition-message E))(newline)
+		     (condition-contract-violation/subject E))
 		    (else E))
 	    (set! alpha #\a))
-	=> #t)
+	=> 'alpha)
       #f)
     #f)
 
   (let ((%beta "ciao"))	;reference assertion violation on initial value
     (let-contract ((beta %beta integer?))
       (check
-	  (guard (E ((assertion-violation? E)
-		     #t)
+	  (guard (E ((contract-violation? E)
+		     ;;;(display (condition-message E))(newline)
+		     (condition-contract-violation/subject E))
 		    (else E))
 	    beta)
-	=> #t))
+	=> '%beta))
     #f)
 
   (let ((alpha 123) ;multiple contracts
@@ -520,11 +535,12 @@
 	    alpha)
 	=> 456)
       (check
-	  (guard (E ((assertion-violation? E)
-		     #t)
+	  (guard (E ((contract-violation? E)
+		     ;;;(display (condition-message E))(newline)
+		     (condition-contract-violation/subject E))
 		    (else E))
 	    (set! alpha #\a))
-	=> #t)
+	=> 'alpha)
       (check beta => "ciao")
       (check
 	  (begin
@@ -532,11 +548,12 @@
 	    beta)
 	=> "hello")
       (check
-	  (guard (E ((assertion-violation? E)
-		     #t)
+	  (guard (E ((contract-violation? E)
+		     ;;;(display (condition-message E))(newline)
+		     (condition-contract-violation/subject E))
 		    (else E))
 	    (set! beta #\a))
-	=> #t)
+	=> 'beta)
       #f)
     #f)
 
@@ -556,25 +573,28 @@
 	=> '(1 "two" three))
 
       (check
-	  (guard (E ((assertion-violation? E)
-		     #t)
+	  (guard (E ((contract-violation? E)
+		     ;;;(display (condition-message E))(newline)
+		     (condition-contract-violation/subject E))
 		    (else E))
 	    (doit #\a "two" 'three))
-	=> #t)
+	=> '%doit)
 
       (check
-	  (guard (E ((assertion-violation? E)
-		     #t)
+	  (guard (E ((contract-violation? E)
+		     ;;;(display (condition-message E))(newline)
+		     (condition-contract-violation/subject E))
 		    (else E))
 	    (doit 1 2 'three))
-	=> #t)
+	=> '%doit)
 
       (check
-	  (guard (E ((assertion-violation? E)
-		     #t)
+	  (guard (E ((contract-violation? E)
+		     ;;;(display (condition-message E))(newline)
+		     (condition-contract-violation/subject E))
 		    (else E))
 	    (doit 1 "two" 3))
-	=> #t)
+	=> '%doit)
 
       #f)
     #f)
@@ -593,31 +613,34 @@
 	  (doit 1 "two" 'three)
 	=> '(1 "two" three))
       (check
-	  (guard (E ((assertion-violation? E)
-		     #t)
+	  (guard (E ((contract-violation? E)
+		     ;;;(display (condition-message E))(newline)
+		     (condition-contract-violation/subject E))
 		    (else E))
 	    (doit #\a "two" 'three))
-	=> #t)
+	=> '%doit)
       (check
-	  (guard (E ((assertion-violation? E)
-		     #t)
+	  (guard (E ((contract-violation? E)
+		     ;;;(display (condition-message E))(newline)
+		     (condition-contract-violation/subject E))
 		    (else E))
 	    (doit 1 2 'three))
-	=> #t)
+	=> '%doit)
       (check
-	  (guard (E ((assertion-violation? E)
-		     #t)
+	  (guard (E ((contract-violation? E)
+		     ;;;(display (condition-message E))(newline)
+		     (condition-contract-violation/subject E))
 		    (else E))
 	    (doit 1 "two" 3))
-	=> #t)
+	=> '%doit)
       (check
-	  (guard (E ((assertion-violation? E)
-;;;		   (write E)(newline)
-		     #t)
+	  (guard (E ((contract-violation? E)
+		     ;;;(display (condition-message E))(newline)
+		     (condition-contract-violation/subject E))
 		    (else E))
 	    (parametrise ((flag #f))
 	      (doit 1 "two" 'three)))
-	=> #t)
+	=> '%doit)
       #f)
     #f)
 
@@ -637,40 +660,43 @@
 	    list)
 	=> '(1 ("two" three)))
       (check
-	  (guard (E ((assertion-violation? E)
-		     #t)
+	  (guard (E ((contract-violation? E)
+		     ;;;(display (condition-message E))(newline)
+		     (condition-contract-violation/subject E))
 		    (else E))
 	    (call-with-values
 		(lambda ()
 		  (doit #\a "two" 'three))
 	      list))
-	=> #t)
+	=> '%doit)
       (check
-	  (guard (E ((assertion-violation? E)
-		     #t)
+	  (guard (E ((contract-violation? E)
+		     ;;;(display (condition-message E))(newline)
+		     (condition-contract-violation/subject E))
 		    (else E))
 	    (call-with-values
 		(lambda () (doit 1 2 'three))
 	      list))
-	=> #t)
+	=> '%doit)
       (check
-	  (guard (E ((assertion-violation? E)
-		     #t)
+	  (guard (E ((contract-violation? E)
+		     ;;;(display (condition-message E))(newline)
+		     (condition-contract-violation/subject E))
 		    (else E))
 	    (call-with-values
 		(lambda () (doit 1 "two" 3))
 	      list))
-	=> #t)
+	=> '%doit)
       (check
-	  (guard (E ((assertion-violation? E)
-;;;		   (write E)(newline)
-		     #t)
+	  (guard (E ((contract-violation? E)
+		     ;;;(display (condition-message E))(newline)
+		     (condition-contract-violation/subject E))
 		    (else E))
 	    (parametrise ((flag #f))
 	      (call-with-values
 		  (lambda () (doit 1 "two" 'three))
 		list)))
-	=> #t)
+	=> '%doit)
       #f)
     #f)
 
@@ -689,13 +715,13 @@
 	  (doit)
 	=> '(1 "two" three))
       (check
-	  (guard (E ((assertion-violation? E)
-;;;		   (write E)(newline)
-		     #t)
+	  (guard (E ((contract-violation? E)
+		     ;;;(display (condition-message E))(newline)
+		     (condition-contract-violation/subject E))
 		    (else E))
 	    (parametrise ((flag #f))
-	      (doit 1 "two" 'three)))
-	=> #t)
+	      (doit)))
+	=> '%doit)
       #f)
     #f)
 

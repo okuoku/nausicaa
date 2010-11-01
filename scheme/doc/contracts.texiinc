@@ -51,8 +51,10 @@ referenced through an identifier syntax cannot take a ``rest'' argument.
 When applying the function or macro, @var{subject} is referenced only
 once.
 
-If a predicate returns false: @func{assert} from the library
-@rsixlibrary{base} is used to raise an assertion violation.
+If a predicate returns false: a non--continuable exception is raised
+with types @condition{contract-violation}, @condition{message} and
+@condition{irritants}.  The @condition{irritants} condition object holds
+a list with a single item: the offending value.
 
 Example of variable with contract:
 
@@ -84,20 +86,7 @@ Example of function with contract:
     %doit
   (integer? string? symbol? -> list?))
 
-(doit 1 "two" 'three)
-@expansion{} ((lambda (A B C)
-       (let ((result (%doit (begin
-                              (assert (integer? A))
-                              A)
-                            (begin
-                              (assert (string?  B))
-                              B)
-                            (begin
-                              (assert (symbol?  C))
-                              C))))
-         (assert (list? result))
-         result))
-      1 "two" 'three)
+(doit 1 "two" 'three) @result{} (1 "two" 'three)
 @end example
 
 Notice that it is possible to define a contract for a function, then use
@@ -229,5 +218,28 @@ without enforcing the contracts, while other functions referencing
 @var{keyword} will be subjected to the contracts.
 @end deffn
 
+
+@deftp {Condition Type} &contract-violation
+Condition object type used to signal a contract violation.
+@end deftp
+
+
+@defun make-contract-violation-condition @var{subject}
+Build and return a new condition object of type
+@condition{contract-violation}.  @var{subject} must be a symbol
+representing the subject of the contract.
+@end defun
+
+
+@defun contract-violation? @var{obj}
+Return true if @var{obj} is a condition object of type
+@condition{contract-violation}.
+@end defun
+
+
+@defun condition-contract-violation/subject @var{condition}
+Given an argument of type @condition{contract-violation} return the
+value of the @code{subject} field.
+@end defun
 
 @c end of file

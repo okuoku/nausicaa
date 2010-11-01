@@ -29,7 +29,12 @@
 (library (contracts)
   (export define-contract let-contract ->
 	  define/contract with-outer-contracts
-	  enforce-contracts)
+	  enforce-contracts
+
+	  &contract-violation
+	  make-contract-violation-condition
+	  contract-violation?
+	  condition-contract-violation/subject)
   (import (rnrs)
     (prefix (configuration) config.)
     (syntax-utilities)
@@ -47,13 +52,13 @@
 
 (define-syntax* (define-contract stx)
   (syntax-case stx ()
-    ((_ ?name ?keyword ?contract)
+    ((_ ?keyword ?subject ?contract)
      (begin
-       (assert-name-keyword #'?name #'?keyword synner)
-       #`(define-syntax ?name
+       (assert-keyword-subject #'?keyword #'?subject synner)
+       #`(define-syntax ?keyword
 	   #,(if (identifier? #'?contract)
-		 (build-variable-identifier-syntax #'?keyword #'?contract)
-	       (build-function-identifier-syntax #'?keyword #'?contract synner)))
+		 (build-variable-identifier-syntax #'?keyword #'?subject #'?contract)
+	       (build-function-identifier-syntax #'?keyword #'?subject #'?contract synner)))
        ))
     (_
      (synner "invalid input form in contract definition" #f))))
@@ -65,20 +70,21 @@
     ((_ () ?body0 ?body ...)
      #'(begin ?body0 ?body ...))
 
-    ((_ ((?name ?keyword ?contract) ...) ?body0 ?body ...)
-     (let ((names	(unwrap-syntax-object #'(?name ...)))
-	   (keywords	(unwrap-syntax-object #'(?keyword ...)))
+    ((_ ((?keyword ?subject ?contract) ...) ?body0 ?body ...)
+     (let ((keywords	(unwrap-syntax-object #'(?keyword ...)))
+	   (subjects	(unwrap-syntax-object #'(?subject ...)))
 	   (contracts	(unwrap-syntax-object #'(?contract ...))))
-       (for-all (lambda (name keyword)
-		  (assert-name-keyword name keyword synner))
-	 names keywords)
-       (with-syntax (((RHS ...)
-		      (map (lambda (keyword-stx contract-stx)
-			     (if (identifier? contract-stx)
-				 (build-variable-identifier-syntax keyword-stx contract-stx)
-			       (build-function-identifier-syntax keyword-stx contract-stx synner)))
-			keywords contracts)))
-	 #'(let-syntax ((?name RHS) ...) ?body0 ?body ...)
+       (for-all (lambda (keyword subject)
+		  (assert-keyword-subject keyword subject synner))
+	 keywords subjects)
+       (with-syntax
+	   (((RHS ...)
+	     (map (lambda (keyword-stx subject-stx contract-stx)
+		    (if (identifier? contract-stx)
+			(build-variable-identifier-syntax keyword-stx subject-stx contract-stx)
+		      (build-function-identifier-syntax keyword-stx subject-stx contract-stx synner)))
+	       keywords subjects contracts)))
+	 #'(let-syntax ((?keyword RHS) ...) ?body0 ?body ...)
 	 )))
 
     (_

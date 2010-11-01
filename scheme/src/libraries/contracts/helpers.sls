@@ -32,15 +32,27 @@
     ->
     build-variable-identifier-syntax
     build-function-identifier-syntax
-    assert-name-keyword)
+    assert-keyword-subject
+
+    &contract-violation
+    make-contract-violation-condition
+    (rename (contract-violation-condition? contract-violation?))
+    condition-contract-violation/subject)
   (import (rnrs)
+(pretty-print)
+    (conditions)
     (prefix (configuration) config.)
     (only (syntax-utilities) define-auxiliary-syntax))
 
 (define-auxiliary-syntax ->)
 
 
-(define (build-variable-identifier-syntax variable-stx predicate-stx)
+(define-condition &contract-violation
+  (parent &assertion)
+  (fields subject))
+
+
+(define (build-variable-identifier-syntax keyword-stx variable-stx predicate-stx)
   ;;Return a syntax object representing the IDENTIFIER-SYNTAX invocation
   ;;needed for the identifier macro of a variable.
   ;;
@@ -55,26 +67,44 @@
   ;;        ((key #,(build-variable-identifier-syntax #'var #'pred)))
   ;;      . body)
   ;;
+  (define (%make-assert var)
+    #`(unless (#,predicate-stx #,var)
+    	(raise
+    	 (condition
+    	  (make-contract-violation-condition (quote #,variable-stx))
+	  (make-irritants-condition (list #,var))
+    	  (make-message-condition
+	   (string-append #,(string-append "contract for variable \""
+					   (symbol->string (syntax->datum variable-stx))
+					   "\" and keyword \""
+					   (symbol->string (syntax->datum keyword-stx))
+					   "\" with predicate \""
+					   (symbol->string (syntax->datum predicate-stx))
+					   "\" violated by value: ")
+			  (call-with-string-output-port
+			      (lambda (port)
+				(write #,var port)))))))))
   (if (config.enable-contracts?)
-      #`(identifier-syntax
-	 (_
-	  (let ((v #,variable-stx)) ;we want to reference ?KEYWORD only once
-	    (assert (#,predicate-stx v))
-	    v))
-	 ((set! _ ??val)
-	  (let ((v ??val)) ;we want to evaluate ??VAL only once
-	    (assert (#,predicate-stx v))
-	    (set! #,variable-stx v))))
+      (with-syntax ((V (datum->syntax variable-stx 'v)))
+	#`(identifier-syntax
+	   (_
+	    (let ((V #,variable-stx)) ;we want to reference VARIABLE-STX only once
+	      #,(%make-assert #'V)
+	      V))
+	   ((set! _ ?val)
+	    (let ((V ?val)) ;we want to evaluate ?VAL only once
+	      #,(%make-assert #'V)
+	      (set! #,variable-stx V)))))
     #`(identifier-syntax
        (_ #,variable-stx)
        ((set! _ ?val) (set! #,variable-stx ?val)))))
 
 
-(define (build-function-identifier-syntax function-stx contract-stx synner)
+(define (build-function-identifier-syntax keyword-stx subject-stx contract-stx synner)
   ;;Return a syntax object representing the IDENTIFIER-SYNTAX invocation
   ;;needed for the identifier macro of a function or macro.
   ;;
-  ;;FUNCTION-STX must be an identifier referencing the function or macro
+  ;;SUBJECT-STX must be an  identifier referencing the function or macro
   ;;to wrap; CONTRACT-STX must be the syntax object holding the contract
   ;;for a function or macro; SYNNER must be the function used to raise a
   ;;syntax violation for the calling macro transformer.
@@ -86,24 +116,134 @@
   ;;        ((key #,(build-function-identifier-syntax #'var #'contract)))
   ;;      . body)
   ;;
-  (if (not (config.enable-contracts?))
-      #'(identifier-syntax function-stx)
-    (let-values (((argument-predicates return-value-predicates)
-		  (parse-function-contract contract-stx synner)))
-      (with-syntax (((PRED ...)	argument-predicates)
-		    ((ARG ...)	(generate-temporaries argument-predicates)))
-	(with-syntax ((APPLICATION #`(#,function-stx (begin (assert (PRED ARG)) ARG) ...)))
-	  (if (null? return-value-predicates)
-	      #'(identifier-syntax (lambda (ARG ...) APPLICATION))
-	    (with-syntax (((RET-PRED ...) return-value-predicates)
-			  ((RET ...)      (generate-temporaries return-value-predicates)))
-	      #'(identifier-syntax
+  (define (main)
+    (if (not (config.enable-contracts?))
+	#'(identifier-syntax subject-stx)
+      (let*-values (((argument-predicates retval-predicates)
+		     (parse-function-contract contract-stx synner))
+		    ((argument-formals)	(generate-temporaries argument-predicates))
+		    ((retval-formals)	(generate-temporaries retval-predicates))
+		    ((argument-reporter)	(datum->syntax keyword-stx 'reporter))
+		    ((retval-reporter)	(datum->syntax keyword-stx 'retval-reporter)))
+	(with-syntax
+	    (((ARG ...) argument-formals)
+	     ((RET ...) retval-formals)
+	     ((ARGUMENT ...)
+	      (if (null? argument-formals)
+		  '()
+		(%make-list-of-argument-assertions argument-formals argument-predicates
+						   argument-reporter)))
+	     ((RETVAL ...)
+	      (if (null? retval-formals)
+		  '()
+		(%make-list-of-retval-assertions retval-formals retval-predicates retval-reporter)))
+	     (ARGUMENT-REPORTER-DEFINITION
+	      (if (null? argument-formals)
+		  #f
+		(%make-argument-reporter-definition argument-reporter)))
+	     (RETVAL-REPORTER-DEFINITION
+	      (if (null? retval-formals)
+		  #f
+		(%make-retval-reporter-definition retval-reporter))))
+	  (if (null? retval-formals)
+	      (if (null? argument-formals)
+		  #`(identifier-syntax #,subject-stx)
+		#`(identifier-syntax
+		   (lambda (ARG ...)
+		     ARGUMENT-REPORTER-DEFINITION
+		     (#,subject-stx ARGUMENT ...))))
+	    (if (null? argument-formals)
+		#`(identifier-syntax
+		   (lambda ()
+		     RETVAL-REPORTER-DEFINITION
+		     (let-values (((RET ...) (#,subject-stx)))
+		       (values RETVAL ...))))
+	      #`(identifier-syntax
 		 (lambda (ARG ...)
-		   (let-values (((RET ...) APPLICATION))
-		     (assert (RET-PRED  RET))
-		     ...
-		     (values RET ...))))
-	      )))))))
+		   ARGUMENT-REPORTER-DEFINITION
+		   RETVAL-REPORTER-DEFINITION
+		   (let-values (((RET ...) (#,subject-stx ARGUMENT ...)))
+		     (values RETVAL ...))))))
+	  ))))
+
+  (define (%make-list-of-argument-assertions argument-formals argument-predicates argument-reporter)
+    (let loop ((asserts		'())
+	       (index		1)
+	       (predicates	argument-predicates)
+	       (formals		argument-formals))
+      (if (null? predicates)
+	  (reverse asserts)
+	(loop (cons #`(begin
+			(unless (#,(car predicates) #,(car formals))
+			  (#,argument-reporter #,(car formals) #,(number->string index)))
+			#,(car formals))
+		    asserts)
+	      (+ 1 index)
+	      (cdr predicates)
+	      (cdr formals)))))
+
+  (define (%make-list-of-retval-assertions retval-formals retval-predicates retval-reporter)
+    (let loop ((asserts		'())
+	       (index		1)
+	       (predicates	retval-predicates)
+	       (formals		retval-formals))
+      (if (null? predicates)
+	  (reverse asserts)
+	(loop (cons #`(begin
+			(unless (#,(car predicates) #,(car formals))
+			  (#,retval-reporter #,(car formals) #,(number->string index)))
+			#,(car formals))
+		    asserts)
+	      (+ 1 index)
+	      (cdr predicates)
+	      (cdr formals)))))
+
+  (define (%make-argument-reporter-definition argument-reporter)
+    #`(define (#,argument-reporter argument argument-index)
+	(raise
+	 (condition
+	  (make-contract-violation-condition (quote #,subject-stx))
+	  (make-irritants-condition (list argument))
+	  (make-message-condition
+	   (string-append
+	    #,(string-append "contract for function or macro \""
+			     (symbol->string (syntax->datum subject-stx))
+			     "\" and keyword \""
+			     (symbol->string (syntax->datum keyword-stx))
+			     "\" with contract \""
+			     (%obj->string (syntax->datum contract-stx))
+			     "\" violated by argument number ")
+	    argument-index ": "
+	    (call-with-string-output-port
+		(lambda (port)
+		  (write argument port)))))))))
+
+  (define (%make-retval-reporter-definition retval-reporter)
+    #`(define (#,retval-reporter retval retval-index)
+	(raise
+	 (condition
+	  (make-contract-violation-condition (quote #,subject-stx))
+	  (make-irritants-condition (list retval))
+	  (make-message-condition
+	   (string-append
+	    #,(string-append "contract for function or macro \""
+			     (symbol->string (syntax->datum subject-stx))
+			     "\" and keyword \""
+			     (symbol->string (syntax->datum keyword-stx))
+			     "\" with contract \""
+			     (%obj->string (syntax->datum contract-stx))
+			     "\" violated by return value number ")
+	    retval-index ": "
+	    (call-with-string-output-port
+		(lambda (port)
+		  (write retval port)))))))))
+
+  (define (%obj->string obj)
+    (call-with-string-output-port
+	(lambda (port)
+	  (write obj port))))
+
+  (main))
 
 
 (define (parse-function-contract contract-stx synner)
@@ -145,11 +285,11 @@
        (synner "expected identifier as contract predicate" stx)))))
 
 
-(define (assert-name-keyword name keyword synner)
-  (unless (identifier? name)
-    (synner "expected identifier as contract name" name))
+(define (assert-keyword-subject keyword subject synner)
   (unless (identifier? keyword)
-    (synner "expected identifier as contract keyword" keyword)))
+    (synner "expected identifier as contract keyword" keyword))
+  (unless (identifier? subject)
+    (synner "expected identifier as contract subject" subject)))
 
 
 ;;;; done
