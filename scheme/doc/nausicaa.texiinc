@@ -167,8 +167,8 @@ from @library{rnrs} are replaced by the following syntaxes from
 @library{classes}:
 
 @example
-define/with-class*
-lambda/with-class*       case-lambda/with-class*
+define/with-class
+lambda/with-class        case-lambda/with-class
 let/with-class           let*/with-class
 letrec/with-class        letrec*/with-class
 do/with-class

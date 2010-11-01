@@ -76,10 +76,8 @@
     ;; dot notation syntaxes
     with-class
     setf				getf
-    define/with-class			define/with-class*
-    lambda/with-class			lambda/with-class*
-    case-lambda/with-class		case-lambda/with-class*
-    receive/with-class
+    define/with-class			lambda/with-class
+    case-lambda/with-class		receive/with-class
     let/with-class			let*/with-class
     letrec/with-class			letrec*/with-class
     do/with-class			do*/with-class
@@ -1579,7 +1577,7 @@
      #'(with-class ((?var ?class ...) ?clause ...) ?body0 ?body ...))
 
     ((_ ((?var ?class0 ?class ...) ?clause ...) ?body0 ?body ...)
-     (identifier? #'?var)
+     (and (identifier? #'?var) (identifier? #'?class0))
      #'(?class0 with-class-bindings-of (#t #t #t #t #t) ?var
 		(with-class ((?var ?class ...) ?clause ...) ?body0 ?body ...)))
 
@@ -1598,15 +1596,17 @@
      #'(set! ?variable-name ?value))
 
     (_
-     (synner "invalid class setter syntax" #f))))
+     (synner "invalid class setter syntax"))))
 
 (define-syntax* (getf stx)
   (syntax-case stx (setter setter-multi-key set!)
+
     ((_ (?variable-name ?key0 ?key ...))
      (identifier? #'?variable-name)
      #`(#,(%variable-name->Getter-name #'?variable-name) ?key0 ?key ...))
+
     (_
-     (synner "invalid class getter syntax" #f))))
+     (synner "invalid class getter syntax"))))
 
 
 ;;;; LET and DO wrappers
@@ -1666,43 +1666,23 @@
        (syntax-violation 'let/with-class "invalid input form" (syntax->datum stx)))
       )))
 
-(define-syntax %let/with-class
+(define-syntax* (%let/with-class stx)
   ;;Produce output forms for LET with types.
   ;;
-  (lambda (stx)
-    (syntax-case stx (no-loop)
+  (syntax-case stx (no-loop)
 
-      ((_ no-loop (((?var ?class ...) ?init) ...) ?body0 ?body ...)
-       (with-syntax (((CONTRACT ...) (generate-temporaries #'(?var ...))))
-	 #'(let ((?var ?init) ...)
-	     (let-syntax ((CONTRACT (identifier-syntax (lambda (obj)
-							 (and (is-a? obj ?class) ...))))
-			  ...)
-	       (enforce-contracts (CONTRACT ?var) ...)
-	       (let-contract ((?var ?var CONTRACT) ...)
-		 (let ()
-		   (with-class ((?var ?class ...) ...) ?body0 ?body ...))
-		 )))))
+    ((_ no-loop (((?var ?class ...) ?init) ...) ?body0 ?body ...)
+     (with-syntax (((CONTRACT ...) (generate-temporaries #'(?var ...))))
+       #'(let ((?var ?init) ...)
+	   (with-class ((?var ?class ...) ...) ?body0 ?body ...))))
 
-      ;;((_ no-loop (((?var ?class0 ?class ...) ?init) ...) ?body0 ?body ...)
-      ;; #'(let ((?var ?init) ...)
-      ;; 	   (with-class ((?var ?class0 ?class ...) ...) ?body0 ?body ...)))
+    ((_ ?loop (((?var ?class0 ?class ...) ?init) ...) ?body0 ?body ...)
+     (with-syntax (((CONTRACT ...) (generate-temporaries #'(?var ...))))
+       #'(let ?loop ((?var ?init) ...)
+	   (with-class ((?var ?class0 ?class ...) ...) ?body0 ?body ...))))
 
-      ((_ ?loop (((?var ?class0 ?class ...) ?init) ...) ?body0 ?body ...)
-       (with-syntax (((CONTRACT ...) (generate-temporaries #'(?var ...))))
-	 #'(let ?loop ((?var ?init) ...)
-	     (let-syntax ((CONTRACT (identifier-syntax (lambda (obj)
-							 (and (is-a? obj ?class) ...))))
-			  ...)
-	       (enforce-contracts (CONTRACT ?var) ...)
-	       (let-contract ((?var ?var CONTRACT) ...)
-		 (let ()
-		   (with-class ((?var ?class0 ?class ...) ...) ?body0 ?body ...))
-		 )))))
-
-      (_
-       (syntax-violation '%let/with-class "invalid input form" (syntax->datum stx)))
-      )))
+    (_
+     (synner "invalid input form"))))
 
 ;;; --------------------------------------------------------------------
 
@@ -1756,17 +1736,12 @@
   (syntax-case stx (no-loop)
 
     ((_ no-loop (((?var ?class0 ?class ...) ?init) ...) ?body0 ?body ...)
-     (with-syntax (((T ...) (generate-temporaries #'(?var ...)))
-		   ((C ...) (generate-temporaries #'(?var ...))))
+     (with-syntax (((T ...) (generate-temporaries #'(?var ...))))
        #'(let ((?var sentinel.undefined) ...)
-	   (let-syntax ((C (identifier-syntax (lambda (obj) (and (is-a? obj ?class) ...))))
-			...)
-	     (let-contract ((?var ?var C) ...)
-	       (with-class ((?var ?class0 ?class ...) ...)
-		 (let ((T ?init) ...) ;do not enforce the order of evaluation of ?INIT
-		   (set! ?var T) ...
-		   ?body0 ?body ...)))))
-       ))
+	   (with-class ((?var ?class0 ?class ...) ...)
+	     (let ((T ?init) ...) ;do not enforce the order of evaluation of ?INIT
+	       (set! ?var T) ...
+	       ?body0 ?body ...)))))
 
     ((_ ?loop . ?rest)
      (synner "named LETREC is not allowed"))
@@ -1796,13 +1771,9 @@
      ;;We rely on LET to detect duplicated bindings.
      (with-syntax (((C ...) (generate-temporaries #'(?var ...))))
        #'(let ((?var sentinel.undefined) ...)
-	   (let-syntax ((C (identifier-syntax (lambda (obj) (and (is-a? obj ?class) ...))))
-			...)
-	     (let-contract ((?var ?var C) ...)
-	       (with-class ((?var ?class0 ?class ...) ...)
-		 (set! ?var ?init) ... ;enforces the order of evaluation of ?INIT
-		 ?body0 ?body ...))))
-       ))
+	   (with-class ((?var ?class0 ?class ...) ...)
+	     (set! ?var ?init) ... ;enforces the order of evaluation of ?INIT
+	     ?body0 ?body ...))))
 
     ((_ ?loop . ?rest)
      (synner "named LETREC* is not allowed"))
@@ -1997,83 +1968,6 @@
     (_
      (synner "invalid syntax in lambda definition" stx))
     ))
-
-;; (define-syntax lambda/with-class
-;;   (syntax-rules ()
-;;     ((_ ?formals . ?body)
-;;      (%lambda/collect-classes-and-arguments #f ?formals
-;; 					    () ;collected classes
-;; 					    () ;collected args
-;; 					    . ?body))))
-
-(define-syntax lambda/with-class*
-  (syntax-rules ()
-    ((_ ?formals . ?body)
-     (%lambda/collect-classes-and-arguments #t ?formals
-					    () ;collected classes
-					    () ;collected args
-					    . ?body))))
-
-(define-syntax %lambda/collect-classes-and-arguments
-  ;;Analyse the list of formals  collecting a list of argument names and
-  ;;a list of class names.
-  ;;
-  (syntax-rules ()
-
-    ;;Matches when the next argument to be processed has a type.
-    ((_ ?add-assertions ((?arg ?cls0 ?cls ...) . ?args) (?collected-cls ...) (?collected-arg ...) . ?body)
-     (%lambda/collect-classes-and-arguments ?add-assertions ?args
-					    (?collected-cls ... (?cls0 ?cls ...))
-					    (?collected-arg ... ?arg)
-					    . ?body))
-
-    ;;Matches when the next argument to be processed has no type.
-    ((_ ?add-assertions (?arg . ?args) (?collected-cls ...) (?collected-arg ...) . ?body)
-     (%lambda/collect-classes-and-arguments ?add-assertions ?args
-					    (?collected-cls ... (<top>))
-					    (?collected-arg ... ?arg)
-					    . ?body))
-
-    ;;Matches when  all the  arguments have been  processed and  NO rest
-    ;;argument is present.  This MUST come before the one below.
-    ((_ #f () ((?collected-cls ...) ...) (?collected-arg ...) . ?body)
-     (lambda (?collected-arg ...)
-       (with-class ((?collected-arg ?collected-cls ...) ...) . ?body)))
-    ((_ #t () ((?collected-cls ...) ...) (?collected-arg ...) . ?body)
-     (lambda (?collected-arg ...)
-       (%add-assertions ((?collected-cls ...) ...) (?collected-arg ...))
-       (let ()
-	 (with-class ((?collected-arg ?collected-cls ...) ...) . ?body))))
-
-    ;;Matches two cases: (1) when  all the arguments have been processed
-    ;;and only  the rest argument is  there; (2) when the  formals is an
-    ;;identifier, example: (lambda args ---).
-    ((_ #f ?rest ((?collected-cls ...) ...) (?collected-arg ...) . ?body)
-     (lambda (?collected-arg ... . ?rest)
-       (with-class ((?collected-arg ?collected-cls ...) ...) . ?body)))
-    ((_ #t ?rest ((?collected-cls ...) ...) (?collected-arg ...) . ?body)
-     (lambda (?collected-arg ... . ?rest)
-       (%add-assertions ((?collected-cls ...) ...) (?collected-arg ...))
-       (let ()
-	 (with-class ((?collected-arg ?collected-cls ...) ...) . ?body))))
-    ))
-
-(define-syntax %add-assertions
-  (syntax-rules (<top>)
-
-    ;;Drop arguments of class "<top>",  all the values are implicitly of
-    ;;type "<top>".
-    ((_ ((<top>) ?cls ...) (?arg0 ?arg ...))
-     (%add-assertions (?cls ...) (?arg ...)))
-
-    ;;Add an assertion.
-    ((_ ((?cls0 ...) ?cls ...) (?arg0 ?arg ...))
-     (begin (assert (is-a? ?arg0 ?cls0)) ...
-	    (%add-assertions (?cls ...) (?arg ...))))
-
-    ;;No more arguments.
-    ((_ () ())
-     (values))))
 
 (define-syntax receive/with-class
   (syntax-rules ()

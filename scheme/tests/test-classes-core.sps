@@ -2123,43 +2123,43 @@
 ;;; --------------------------------------------------------------------
 ;;; let/with-class, type violation
 
-  (let ()
+;;   (let ()
 
-    (define-class <alpha>
-      (fields a))
+;;     (define-class <alpha>
+;;       (fields a))
 
-    (define-class <beta>
-      (inherit <alpha>)
-      (fields b))
+;;     (define-class <beta>
+;;       (inherit <alpha>)
+;;       (fields b))
 
-    (check
-	(guard (E ((assertion-violation? E)
-;;;		   (write (condition-message E))(newline)
-		   #t)
-		  (else E))
-	  (let/with-class (((o <alpha>) 1))
-	    o.a))
-      => #t)
+;;     (check
+;; 	(guard (E ((assertion-violation? E)
+;; ;;;		   (write (condition-message E))(newline)
+;; 		   #t)
+;; 		  (else E))
+;; 	  (let/with-class (((o <alpha>) 1))
+;; 	    o.a))
+;;       => #t)
 
-    (check
-	(guard (E ((assertion-violation? E)
-;;;		   (write (condition-message E))(newline)
-		   #t)
-		  (else E))
-	  (let/with-class (((o <alpha> <beta>) 1))
-	    o.a))
-      => #t)
+;;     (check
+;; 	(guard (E ((assertion-violation? E)
+;; ;;;		   (write (condition-message E))(newline)
+;; 		   #t)
+;; 		  (else E))
+;; 	  (let/with-class (((o <alpha> <beta>) 1))
+;; 	    o.a))
+;;       => #t)
 
-    (check
-	(guard (E ((assertion-violation? E)
-		   #t)
-		  (else E))
-	  (let/with-class (((o <alpha>) (make <alpha> 1)))
-	    (set! o 123)
-	    o.a))
-      => #t)
+;;     (check
+;; 	(guard (E ((assertion-violation? E)
+;; 		   #t)
+;; 		  (else E))
+;; 	  (let/with-class (((o <alpha>) (make <alpha> 1)))
+;; 	    (set! o 123)
+;; 	    o.a))
+;;       => #t)
 
-    #f)
+;;     #f)
 
 ;;; --------------------------------------------------------------------
 ;;; let*/with-class
@@ -2218,43 +2218,43 @@
 ;;; --------------------------------------------------------------------
 ;;; let*/with-class, type violation
 
-  (let ()
+;;   (let ()
 
-    (define-class <alpha>
-      (fields a))
+;;     (define-class <alpha>
+;;       (fields a))
 
-    (define-class <beta>
-      (inherit <alpha>)
-      (fields b))
+;;     (define-class <beta>
+;;       (inherit <alpha>)
+;;       (fields b))
 
-    (check
-	(guard (E ((assertion-violation? E)
-;;;		   (write (condition-message E))(newline)
-		   #t)
-		  (else E))
-	  (let*/with-class (((o <alpha>) 1))
-	    o.a))
-      => #t)
+;;     (check
+;; 	(guard (E ((assertion-violation? E)
+;; ;;;		   (write (condition-message E))(newline)
+;; 		   #t)
+;; 		  (else E))
+;; 	  (let*/with-class (((o <alpha>) 1))
+;; 	    o.a))
+;;       => #t)
 
-    (check
-	(guard (E ((assertion-violation? E)
-;;;		   (write (condition-message E))(newline)
-		   #t)
-		  (else E))
-	  (let*/with-class (((o <alpha> <beta>) 1))
-	    o.a))
-      => #t)
+;;     (check
+;; 	(guard (E ((assertion-violation? E)
+;; ;;;		   (write (condition-message E))(newline)
+;; 		   #t)
+;; 		  (else E))
+;; 	  (let*/with-class (((o <alpha> <beta>) 1))
+;; 	    o.a))
+;;       => #t)
 
-    (check
-	(guard (E ((assertion-violation? E)
-		   #t)
-		  (else E))
-	  (let*/with-class (((o <alpha>) (make <alpha> 1)))
-	    (set! o 123)
-	    o.a))
-      => #t)
+;;     (check
+;; 	(guard (E ((assertion-violation? E)
+;; 		   #t)
+;; 		  (else E))
+;; 	  (let*/with-class (((o <alpha>) (make <alpha> 1)))
+;; 	    (set! o 123)
+;; 	    o.a))
+;;       => #t)
 
-    #f)
+;;     #f)
 
 ;;; --------------------------------------------------------------------
 ;;; letrec/with-class
@@ -2345,43 +2345,43 @@
 ;;; --------------------------------------------------------------------
 ;;; letrec/with-class, type violation
 
-  (let ()
+;;   (let ()
 
-    (define-class <alpha>
-      (fields a))
+;;     (define-class <alpha>
+;;       (fields a))
 
-    (define-class <beta>
-      (inherit <alpha>)
-      (fields b))
+;;     (define-class <beta>
+;;       (inherit <alpha>)
+;;       (fields b))
 
-    (check
-	(guard (E ((assertion-violation? E)
-;;;		   (write (condition-message E))(newline)
-		   #t)
-		  (else E))
-	  (letrec/with-class (((o <alpha>) 1))
-	    o.a))
-      => #t)
+;;     (check
+;; 	(guard (E ((assertion-violation? E)
+;; ;;;		   (write (condition-message E))(newline)
+;; 		   #t)
+;; 		  (else E))
+;; 	  (letrec/with-class (((o <alpha>) 1))
+;; 	    o.a))
+;;       => #t)
 
-    (check
-	(guard (E ((assertion-violation? E)
-;;;		   (write (condition-message E))(newline)
-		   #t)
-		  (else E))
-	  (letrec/with-class (((o <alpha> <beta>) 1))
-	    o.a))
-      => #t)
+;;     (check
+;; 	(guard (E ((assertion-violation? E)
+;; ;;;		   (write (condition-message E))(newline)
+;; 		   #t)
+;; 		  (else E))
+;; 	  (letrec/with-class (((o <alpha> <beta>) 1))
+;; 	    o.a))
+;;       => #t)
 
-    (check
-	(guard (E ((assertion-violation? E)
-		   #t)
-		  (else E))
-	  (letrec/with-class (((o <alpha>) (make <alpha> 1)))
-	    (set! o 123)
-	    o.a))
-      => #t)
+;;     (check
+;; 	(guard (E ((assertion-violation? E)
+;; 		   #t)
+;; 		  (else E))
+;; 	  (letrec/with-class (((o <alpha>) (make <alpha> 1)))
+;; 	    (set! o 123)
+;; 	    o.a))
+;;       => #t)
 
-    #f)
+;;     #f)
 
 ;;; --------------------------------------------------------------------
 ;;; letrec*/with-class
@@ -2505,43 +2505,43 @@
 ;;; --------------------------------------------------------------------
 ;;; letrec*/with-class, type violation
 
-  (let ()
+;;   (let ()
 
-    (define-class <alpha>
-      (fields a))
+;;     (define-class <alpha>
+;;       (fields a))
 
-    (define-class <beta>
-      (inherit <alpha>)
-      (fields b))
+;;     (define-class <beta>
+;;       (inherit <alpha>)
+;;       (fields b))
 
-    (check
-	(guard (E ((assertion-violation? E)
-;;;		   (write (condition-message E))(newline)
-		   #t)
-		  (else E))
-	  (letrec*/with-class (((o <alpha>) 1))
-	    o.a))
-      => #t)
+;;     (check
+;; 	(guard (E ((assertion-violation? E)
+;; ;;;		   (write (condition-message E))(newline)
+;; 		   #t)
+;; 		  (else E))
+;; 	  (letrec*/with-class (((o <alpha>) 1))
+;; 	    o.a))
+;;       => #t)
 
-    (check
-	(guard (E ((assertion-violation? E)
-;;;		   (write (condition-message E))(newline)
-		   #t)
-		  (else E))
-	  (letrec*/with-class (((o <alpha> <beta>) 1))
-	    o.a))
-      => #t)
+;;     (check
+;; 	(guard (E ((assertion-violation? E)
+;; ;;;		   (write (condition-message E))(newline)
+;; 		   #t)
+;; 		  (else E))
+;; 	  (letrec*/with-class (((o <alpha> <beta>) 1))
+;; 	    o.a))
+;;       => #t)
 
-    (check
-	(guard (E ((assertion-violation? E)
-		   #t)
-		  (else E))
-	  (letrec*/with-class (((o <alpha>) (make <alpha> 1)))
-	    (set! o 123)
-	    o.a))
-      => #t)
+;;     (check
+;; 	(guard (E ((assertion-violation? E)
+;; 		   #t)
+;; 		  (else E))
+;; 	  (letrec*/with-class (((o <alpha>) (make <alpha> 1)))
+;; 	    (set! o 123)
+;; 	    o.a))
+;;       => #t)
 
-    #f)
+;;     #f)
 
 ;;; --------------------------------------------------------------------
 ;;; do/with-class
@@ -2750,156 +2750,6 @@
   #t)
 
 
-(parametrise ((check-test-name	'lambda-with*))
-
-;;; untyped
-
-  (let ((f (lambda/with-class* (a)
-	     a)))
-    (check (f 123) => 123)
-    #f)
-
-  (let ((f (lambda/with-class* (a b)
-	     (list a b))))
-    (check (f 1 2) => '(1 2))
-    #f)
-
-  (let ((f (lambda/with-class* (a b c)
-	     (list a b c))))
-    (check (f 1 2 3) => '(1 2 3))
-    #f)
-
-  (let ((f (lambda/with-class* args
-	     (list->vector args))))
-    (check (f) => '#())
-    (check (f 1) => '#(1))
-    (check (f 1 2) => '#(1 2))
-    (check (f 1 2 3) => '#(1 2 3))
-    #f)
-
-  (let ((f (lambda/with-class* (a . rest)
-	     (vector a rest))))
-    (check (f 1) => '#(1 ()))
-    (check (f 1 2) => '#(1 (2)))
-    (check (f 1 2 3 4) => '#(1 (2 3 4)))
-    #f)
-
-  (let ((f (lambda/with-class* (a b . rest)
-	     (vector a b rest))))
-    (check (f 1 2) => '#(1 2 ()))
-    (check (f 1 2 3) => '#(1 2 (3)))
-    (check (f 1 2 3 4) => '#(1 2 (3 4)))
-    #f)
-
-;;; --------------------------------------------------------------------
-;;; typed
-
-  (let ()
-
-    (define-class <fraction>
-      (fields (mutable number))
-      (virtual-fields (mutable numerator)
-		      (mutable denominator)))
-
-    (define <fraction>-numerator
-      (lambda/with-class* ((o <fraction>))
-	(numerator o.number)))
-
-    (define <fraction>-numerator-set!
-      (lambda/with-class* ((o <fraction>) v)
-	(set! o.number (/ v (denominator o.number)))))
-
-    (define <fraction>-denominator
-      (lambda/with-class* ((o <fraction>))
-	(denominator o.number)))
-
-    (define <fraction>-denominator-set!
-      (lambda/with-class* ((o <fraction>) (v <top>))
-	(set! o.number (/ (numerator o.number) v))))
-
-    (let ((f (lambda/with-class* ((a <fraction>))
-	       a.numerator)))
-      (check (f (make-<fraction> 2/3)) => 2)
-      #f)
-
-    (let ((f (lambda/with-class* ((a <fraction>) (b <complex>))
-	       (list a.numerator b.magnitude))))
-      (check (f (make-<fraction> 2/3) -4) => '(2 4))
-      #f)
-
-    (let ((f (lambda/with-class* ((a <fraction>) b (c <fraction>))
-	       (list a.numerator b c.denominator))))
-      (check (f (make-<fraction> 2/3) 4 (make-<fraction> 5/6)) => '(2 4 6))
-      #f)
-
-    (let ((f (lambda/with-class* ((a <fraction>) . rest)
-	       (vector a.numerator rest))))
-      (check (f (make-<fraction> 11/12)) => '#(11 ()))
-      (check (f (make-<fraction> 11/12) 2) => '#(11 (2)))
-      (check (f (make-<fraction> 11/12) 2 3 4) => '#(11 (2 3 4)))
-      #f)
-
-    (let ((f (lambda/with-class* ((a <fraction>) b . rest)
-	       (vector a.numerator b rest))))
-      (check (f (make-<fraction> 11/12) 2) => '#(11 2 ()))
-      (check (f (make-<fraction> 11/12) 2 3) => '#(11 2 (3)))
-      (check (f (make-<fraction> 11/12) 2 3 4) => '#(11 2 (3 4)))
-      #f)
-
-    #f)
-
-;;; --------------------------------------------------------------------
-;;; type error
-
-  (check
-      (guard (E ((assertion-violation? E)
-;;;		 (write (condition-message E))(newline)
-		 #t)
-		(else
-;;;		 (write E)(newline)
-                 #f))
-	(eval '(let ((f (lambda/with-class* ((a <number>))
-			  #f)))
-		 (f "ciao"))
-	      (environment '(nausicaa) '(classes))))
-    => #t)
-
-  (check
-      (guard (E ((assertion-violation? E)
-;;;		 (write (condition-message E))(newline)
-		 #t)
-		(else
-;;;		 (write E)(newline)
-                 #f))
-	(eval '(let ((f (lambda/with-class* ((a <number>) (b <string>))
-			  #f)))
-		 (f 1 2))
-	      (environment '(nausicaa) '(classes))))
-    => #t)
-
-;;; --------------------------------------------------------------------
-;;; use the records from (records-lib)
-
-  (check
-      (let ((r (make <gamma> 1 2 3 4 5 6 7 8 9))
-	    (f (lambda/with-class* ((r <gamma> <beta> <alpha>))
-		 (list r.a r.b r.c
-		       r.d r.e r.f
-		       r.g r.h r.i))))
-	(f r))
-    => '(1 2 3 4 5 6 7 8 9))
-
-  (check	;use the records from (records-lib)
-      (let ((r (make <gamma> 1 2 3 4 5 6 7 8 9))
-	    (s (make <beta>  10 20 30 40 50 60))
-	    (f (lambda/with-class* ((r <gamma> <alpha>) (s <beta> <alpha>))
-		 (list r.a r.g s.a s.d))))
-	(f r s))
-    => '(1 7 10 40))
-
-  #t)
-
-
 (parametrise ((check-test-name	'define-with))
 
   (let ()
@@ -3012,82 +2862,6 @@
       (let ((r (make <gamma> 1 2 3 4 5 6 7 8 9))
 	    (s (make <beta>  10 20 30 40 50 60)))
 	(define/with-class (f (r <gamma> <alpha>) (s <beta> <alpha>))
-	  (list r.a r.g s.a s.d))
-	(f r s))
-    => '(1 7 10 40))
-
-  #t)
-
-
-(parametrise ((check-test-name	'define-with*))
-
-  (define-class <fraction>
-    (fields (mutable number))
-    (virtual-fields (mutable numerator)
-		    (mutable denominator)))
-
-  (define/with-class* (<fraction>-numerator (o <fraction>))
-    (numerator o.number))
-
-  (define/with-class* (<fraction>-numerator-set! (o <fraction>) (v <top>))
-    (set! o.number (/ v (denominator o.number))))
-
-  (define/with-class* (<fraction>-denominator (o <fraction>))
-    (denominator o.number))
-
-  (define/with-class* (<fraction>-denominator-set! (o <fraction>) (v <top>))
-    (set! o.number (/ (numerator o.number) v)))
-
-  (let ()
-    (define/with-class* (f (a <fraction>))
-      a.numerator)
-    (check (f (make-<fraction> 2/3)) => 2)
-    #f)
-
-  (let ()
-    (define/with-class* (f (a <fraction>) (b <complex>))
-      (list a.numerator b.magnitude))
-    (check (f (make-<fraction> 2/3) -4) => '(2 4))
-    #f)
-
-  (let ()
-    (define/with-class* (f (a <fraction>) b (c <fraction>))
-      (list a.numerator b c.denominator))
-    (check (f (make-<fraction> 2/3) 4 (make-<fraction> 5/6)) => '(2 4 6))
-    #f)
-
-  (let ()
-    (define/with-class* (f (a <fraction>) . rest)
-      (vector a.numerator rest))
-    (check (f (make-<fraction> 11/12)) => '#(11 ()))
-    (check (f (make-<fraction> 11/12) 2) => '#(11 (2)))
-    (check (f (make-<fraction> 11/12) 2 3 4) => '#(11 (2 3 4)))
-    #f)
-
-  (let ()
-    (define/with-class* (f (a <fraction>) b . rest)
-      (vector a.numerator b rest))
-    (check (f (make-<fraction> 11/12) 2) => '#(11 2 ()))
-    (check (f (make-<fraction> 11/12) 2 3) => '#(11 2 (3)))
-    (check (f (make-<fraction> 11/12) 2 3 4) => '#(11 2 (3 4)))
-    #f)
-
-;;; --------------------------------------------------------------------
-;;; use the records from (records-lib)
-
-  (check
-      (let ((r (make <gamma> 1 2 3 4 5 6 7 8 9)))
-	(define/with-class* (f (r <gamma> <beta> <alpha>))
-	  (list r.a r.b r.c
-		r.d r.e r.f
-		r.g r.h r.i))
-	(f r))
-    => '(1 2 3 4 5 6 7 8 9))
-
-  (check	;use the records from (records-lib)
-      (let ((r (make <gamma> 1 2 3 4 5 6 7 8 9))
-	    (s (make <beta>  10 20 30 40 50 60)))
-	(define/with-class* (f (r <gamma> <alpha>) (s <beta> <alpha>))
 	  (list r.a r.g s.a s.d))
 	(f r s))
     => '(1 7 10 40))
@@ -3289,235 +3063,6 @@
 		 (list r.a r.g s.a s.d)))))
 	(f r s))
     => '(1 7 10 40))
-
-  #t)
-
-
-(parametrise ((check-test-name	'case-lambda-with*))
-
-;;; untyped
-
-  (let ((f (case-lambda/with-class*
-	    ((a)
-	     a))))
-    (check (f 123) => 123)
-    #f)
-
-  (let ((f (case-lambda/with-class*
-	    ((a b)
-	     (list a b)))))
-    (check (f 1 2) => '(1 2))
-    #f)
-
-  (let ((f (case-lambda/with-class*
-	    ((a b c)
-	     (list a b c)))))
-    (check (f 1 2 3) => '(1 2 3))
-    #f)
-
-  (let ((f (case-lambda/with-class*
-	    (args
-	     (list->vector args)))))
-    (check (f) => '#())
-    (check (f 1) => '#(1))
-    (check (f 1 2) => '#(1 2))
-    (check (f 1 2 3) => '#(1 2 3))
-    #f)
-
-  (let ((f (case-lambda/with-class*
-	    ((a . rest)
-	     (vector a rest)))))
-    (check (f 1) => '#(1 ()))
-    (check (f 1 2) => '#(1 (2)))
-    (check (f 1 2 3 4) => '#(1 (2 3 4)))
-    #f)
-
-  (let ((f (case-lambda/with-class*
-	    ((a b . rest)
-	     (vector a b rest)))))
-    (check (f 1 2) => '#(1 2 ()))
-    (check (f 1 2 3) => '#(1 2 (3)))
-    (check (f 1 2 3 4) => '#(1 2 (3 4)))
-    #f)
-
-;;; --------------------------------------------------------------------
-;;; typed
-
-  (let ()
-
-    (define-class <fraction>
-      (fields (mutable number))
-      (virtual-fields (mutable numerator)
-		      (mutable denominator)))
-
-    (define <fraction>-numerator
-      (case-lambda/with-class*
-       (((o <fraction>))
-	(numerator o.number))))
-
-    (define <fraction>-numerator-set!
-      (case-lambda/with-class*
-       (((o <fraction>) v)
-	(set! o.number (/ v (denominator o.number))))))
-
-    (define <fraction>-denominator
-      (case-lambda/with-class*
-       (((o <fraction>))
-	(denominator o.number))))
-
-    (define <fraction>-denominator-set!
-      (case-lambda/with-class*
-       (((o <fraction>) (v <top>))
-	(set! o.number (/ (numerator o.number) v)))))
-
-    (let ((f (case-lambda/with-class*
-	      (((a <fraction>))
-	       a.numerator))))
-      (check (f (make-<fraction> 2/3)) => 2)
-      #f)
-
-    (let ((f (case-lambda/with-class*
-	      (((a <fraction>) (b <complex>))
-	       (list a.numerator b.magnitude)))))
-      (check (f (make-<fraction> 2/3) -4) => '(2 4))
-      #f)
-
-    (let ((f (case-lambda/with-class*
-	      (((a <fraction>) b (c <fraction>))
-	       (list a.numerator b c.denominator)))))
-      (check (f (make-<fraction> 2/3) 4 (make-<fraction> 5/6)) => '(2 4 6))
-      #f)
-
-    (let ((f (case-lambda/with-class*
-	      (((a <fraction>) . rest)
-	       (vector a.numerator rest)))))
-      (check (f (make-<fraction> 11/12)) => '#(11 ()))
-      (check (f (make-<fraction> 11/12) 2) => '#(11 (2)))
-      (check (f (make-<fraction> 11/12) 2 3 4) => '#(11 (2 3 4)))
-      #f)
-
-    (let ((f (case-lambda/with-class*
-	      (((a <fraction>) b . rest)
-	       (vector a.numerator b rest)))))
-      (check (f (make-<fraction> 11/12) 2) => '#(11 2 ()))
-      (check (f (make-<fraction> 11/12) 2 3) => '#(11 2 (3)))
-      (check (f (make-<fraction> 11/12) 2 3 4) => '#(11 2 (3 4)))
-      #f)
-
-    #f)
-
-;;; --------------------------------------------------------------------
-;;; multiple clauses
-
-  (let ((f (case-lambda/with-class*
-	    ((a) a)
-	    ((a b) (list a b)))))
-    (check (f 1) => 1)
-    (check (f 1 2) => '(1 2))
-    #f)
-
-  (let ((f (case-lambda/with-class*
-	    ((a)	a)
-	    ((a b)	(list a b))
-	    ((a b c)	(list a b c))
-	    )))
-    (check (f 1) => 1)
-    (check (f 1 2) => '(1 2))
-    (check (f 1 2 3) => '(1 2 3))
-    #f)
-
-  (let ()
-
-    (define-class <fraction>
-      (fields (mutable number))
-      (virtual-fields (immutable numerator)
-		      (immutable denominator)))
-
-    (define <fraction>-numerator
-      (case-lambda/with-class*
-       (((o <fraction>))
-	(numerator o.number))))
-
-    (define <fraction>-denominator
-      (case-lambda/with-class*
-       (((o <fraction>))
-	(denominator o.number))))
-
-    (let ((f (case-lambda/with-class*
-	      (((a <fraction>))
-	       a.numerator)
-	      (((a <fraction>) (b <string>))
-	       (list a.numerator b.length)))))
-      (check (f (make-<fraction> 2/3)) => 2)
-      (check (f (make-<fraction> 2/3) "ciao") => '(2 4))
-      #f)
-
-    (let ((f (case-lambda/with-class*
-	      (((a <fraction>))
-	       a.numerator)
-	      (((a <fraction>) (b <string>))
-	       (list a.numerator b.length))
-	      (((a <fraction>) (b <string>) (c <char>))
-	       (list a.numerator b.length c.upcase)))))
-      (check (f (make-<fraction> 2/3)) => 2)
-      (check (f (make-<fraction> 2/3) "ciao") => '(2 4))
-      (check (f (make-<fraction> 2/3) "ciao" #\a) => '(2 4 #\A))
-      #f)
-
-    #f)
-
-;;; --------------------------------------------------------------------
-;;; use the records from (records-lib)
-
-  (check
-      (let ((r (make <gamma> 1 2 3 4 5 6 7 8 9))
-	    (f (case-lambda/with-class*
-		(((r <gamma> <beta> <alpha>))
-		 (list r.a r.b r.c
-		       r.d r.e r.f
-		       r.g r.h r.i)))))
-	(f r))
-    => '(1 2 3 4 5 6 7 8 9))
-
-  (check	;use the records from (records-lib)
-      (let ((r (make <gamma> 1 2 3 4 5 6 7 8 9))
-	    (s (make <beta>  10 20 30 40 50 60))
-	    (f (case-lambda/with-class*
-		(((r <gamma> <alpha>) (s <beta> <alpha>))
-		 (list r.a r.g s.a s.d)))))
-	(f r s))
-    => '(1 7 10 40))
-
-;;; --------------------------------------------------------------------
-;;; type error
-
-  (check
-      (guard (E ((assertion-violation? E)
-;;;		 (write (condition-message E))(newline)
-		 #t)
-		(else
-;;;		 (write E)(newline)
-                 #f))
-	(eval '(let ((f (case-lambda/with-class*
-			 (((a <number>))
-			  #f))))
-		 (f "ciao"))
-	      (environment '(nausicaa) '(classes))))
-    => #t)
-
-  (check
-      (guard (E ((assertion-violation? E)
-;;;		 (write (condition-message E))(newline)
-		 #t)
-		(else
-;;;		 (write E)(newline)
-                 #f))
-	(eval '(let ((f (case-lambda/with-class*
-			 (((a <number>) (b <string>))
-			  #f))))
-		 (f 1 2))
-	      (environment '(nausicaa) '(classes))))
-    => #t)
 
   #t)
 

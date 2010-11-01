@@ -1309,43 +1309,52 @@ the getter and setter associated to a class.
 Each @var{clause} must have the form:
 
 @example
-(@var{variable-name} @varo{class-name} @var{class-name} ...)
+(@var{identifier} @var{class} ...)
 @end example
 
 @noindent
-where @var{class-name} must be a class type name; @var{variable-name}
-must be an identifier bound to the object or record to be used as
-``subject''.  When multiple class names are included, the clause is
-equivalent to the sequence of clauses:
+where @var{class} must be an identifier representing a class name;
+@var{identifier} must be an identifier bound to the object or record to
+be used as ``subject''.  When multiple class names are present in a
+single clause, the clause is equivalent to the sequence of clauses:
 
 @example
-(@var{variable-name} @varo{class-name})
-(@var{variable-name} @var{class-name})
-(@var{variable-name} ...)
+(@var{identifier} @var{class})
+(@var{identifier} ...)
+@end example
+
+@noindent
+when multiple clauses are present, the @func{with-class} form is
+equivalent to nested @func{with-class} forms as follows:
+
+@example
+(with-class ((@vari{var} @vari{class}) (@varii{var} @varii{class})) . @var{body})
+@equiv{} (with-class ((@vari{var} @vari{class}))
+     (with-class ((@varii{var} @varii{class}))
+       . @var{body}))
 @end example
 
 The identifier syntax for a field named @samp{alpha} is built as:
 
 @example
-@var{variable-name}.alpha
+@var{identifier}.alpha
 @end example
 
 @noindent
 that is: variable name, dot, field name; the same goes for method's
 macros.
 
-When a @var{variable-name} as no type: we can use @class{top} as its
+When a @var{identifier} as no type: we can use @class{top} as its
 conventional class type name; this can be useful when expanding macros
 making use of @func{with-class}.
 
-One identifier syntax for each field and virtual field of
-@var{class-name} is defined; one macro for each method of
-@var{class-name} is defined.  Mutable fields generate a full identifier
-syntax with accessor and mutator; immutable fields generate only the
-accessor identifier syntax.
+One identifier syntax for each field and virtual field of @var{class} is
+defined; one macro for each method of @var{class} is defined.  Mutable
+fields generate a full identifier syntax with accessor and mutator;
+immutable fields generate only the accessor identifier syntax.
 
-The fields and methods of the ancestors of @var{class-name} are handled
-as if the code was the following:
+The fields and methods of the ancestors of @var{class} are handled as in
+the following example:
 
 @example
 (define-class <alpha>
@@ -1361,14 +1370,16 @@ as if the code was the following:
 
 (define o (make <gamma> ---))
 
-(with-class ((o <alpha>))
-  (with-class ((o <beta>))
-    (with-class ((o <gamm>))
-      ---)))
+(with-class ((o <gamma>))
+  ---)
+@equiv{} (with-class ((o <alpha>))
+     (with-class ((o <beta>))
+       (with-class ((o <gamma>))
+         ---)))
 @end example
 
 @noindent
-so that the members of a superclass are shadowed by the members of its
+so that the syntaxes of a superclass are shadowed by the syntaxes of its
 subclass.
 @end defmac
 
@@ -1379,9 +1390,9 @@ Usage example:
 (define-class <alpha>
   (fields (mutable a)))
 
-(define r (make-<alpha> 123))
-(define s (make-<alpha> #\a))
-(define t (make-<alpha> 1.0))
+(define r (make <alpha> 123))
+(define s (make <alpha> #\a))
+(define t (make <alpha> 1.0))
 
 (with-class ((r <alpha>)
              (s <alpha>)
@@ -1411,7 +1422,7 @@ an example with virtual fields:
 (define (<fraction>-denominator o)
   (denominator (<fraction>-number o)))
 
-(define o (make-<fraction> 2/3))
+(define o (make <fraction> 2/3))
 
 (with-class ((o <fraction>))
   (list o.numerator o.denominator))
@@ -1430,7 +1441,7 @@ shadow the subclass' members:
   (inherit <alpha>)
   (fields (immutable b)))
 
-(define o (make-<beta> 1 2))
+(define o (make <beta> 1 2))
 
 (with-class ((o <beta> <alpha>))
   (list o.a o.b))
@@ -1470,18 +1481,18 @@ an example with methods, external definitions:
 
 ;; tests
 
-(let ((o (make-<fraction> 2/3)))
+(let ((o (make <fraction> 2/3)))
   (with-class ((o <fraction>))
     (o.denominator)))
 @result{} 3
 
-(let ((o (make-<fraction> 2/3)))
+(let ((o (make <fraction> 2/3)))
   (with-class ((o <fraction>))
     (o.product 10)
     o.numerator))
 @result{} 20
 
-(let ((o (make-<fraction> 2/3)))
+(let ((o (make <fraction> 2/3)))
   (with-class ((o <fraction>))
     (o.the-list 10 11 12 13)))
 @result{} (2 10 11 12 13)
@@ -1515,23 +1526,23 @@ another example with methods, internal definitions:
 
 ;; tests
 
-(let ((o (make-<fraction> 2/3)))
+(let ((o (make <fraction> 2/3)))
   (with-class ((o <fraction>))
     o.numerator))
 @result{} 2
 
-(let ((o (make-<fraction> 2/3)))
+(let ((o (make <fraction> 2/3)))
   (with-class ((o <fraction>))
     (o.denominator)))
 @result{} 3
 
-(let ((o (make-<fraction> 2/3)))
+(let ((o (make <fraction> 2/3)))
   (with-class ((o <fraction>))
     (o.product 10)
     o.numerator))
 @result{} 20
 
-(let ((o (make-<fraction> 2/3)))
+(let ((o (make <fraction> 2/3)))
   (with-class ((o <fraction>))
     (o.the-list 10 11 12 13)))
 @result{} (2 10 11 12 13)
@@ -1550,7 +1561,7 @@ parent classes:
   (fields b)
   (virtual-fields (immutable a <alpha>-a)))
 
-(let ((o (make-<beta> 1 2)))
+(let ((o (make <beta> 1 2)))
   (with-class ((o <beta>))
     (list o.a o.b)))
 @result{} (1 2)
@@ -1574,13 +1585,9 @@ hierarchy, is allowed by @rnrs{6}:
   (parent <alpha>)
   (fields a))
 
-(let ((o (make-<beta> 1 2)))
-
-  (<alpha>-a o) @result{} 1
-
-  (<beta>-a o) @result{} 2
-
-  )
+(let ((o (make <beta> 1 2)))
+  (<alpha>-a o)  @result{} 1
+  (<beta>-a  o)) @result{} 2
 @end example
 
 @noindent
@@ -1600,7 +1607,7 @@ in the same way duplication of names of virtual fields is allowed:
 (define (<beta>-a o)
   2)
 
-(let ((o (make-<beta>)))
+(let ((o (make <beta>)))
 
   (with-class ((o <alpha>))
     o.a) @result{} 1
@@ -1620,9 +1627,7 @@ in the same way duplication of names of virtual fields is allowed:
     o.a) @result{} 2
 
   (with-class ((o <beta> <alpha>)) ;the last takes precedence
-    o.a) @result{} 1
-
-  )
+    o.a)) @result{} 1
 @end example
 
 @noindent
@@ -1642,7 +1647,7 @@ and duplication of names of methods is allowed, too:
 (define (<beta>-a o)
   2)
 
-(let ((o (make-<beta>)))
+(let ((o (make <beta>)))
 
   (with-class ((o <alpha>))
     (o.a)) @result{} 1
@@ -1662,14 +1667,27 @@ and duplication of names of methods is allowed, too:
     (o.a)) @result{} 2
 
   (with-class ((o <beta> <alpha>)) ;the last takes precedence
-    (o.a)) @result{} 1
-
-  )
+    (o.a))) @result{} 1
 @end example
 
 @c page
 @node classes dot let
 @subsection Local bindings
+
+
+The following macros integrate the facilities of the @func{with-class}
+macro with the binding facilities of the @func{let}, @func{let*},
+@func{letrec} and @func{letrec*} syntaxes from @rsixlibrary{base} and
+the @func{do} syntax from @rsixlibrary{control}.
+
+@quotation
+@strong{NOTE} It is possible to use the facilities of the
+@library{contracts} library to assert that the type of values involved
+in the bindings is the one selected by the class identifiers.  Merging
+the features of contracts along with the bindings--with--classes macros
+may result in inflexible code or bloated code after the expansion; so,
+for the time being, this merging is not implemented.
+@end quotation
 
 
 @defmac let/with-class ((@var{var} @var{init}) ...) . @var{body}
@@ -1679,17 +1697,17 @@ Like @func{let} but automatically enclose the body in a
 
 @example
 @var{id}
-(@var{id} @varo{class-name} @var{class-name} ...)
+(@var{id} @var{class} ...)
 @end example
 
 @noindent
 in which: @var{id} must be an identifier representing the variable name,
-@var{class-name} must be an identifier representing a class name.
+@var{class} must be identifiers representing class names.
 
 If all the @var{var} arguments are in the first form (untyped variable):
 @func{let/with-class} defaults to @func{let} as defined by @rnrs{6}.  If
 at least one @var{var} has type: the untyped ones default to bindings
-with @class{top} as conventional class type name.
+with @class{top} as conventional class name.
 
 @example
 (define-class <fraction>
@@ -1703,8 +1721,8 @@ with @class{top} as conventional class type name.
 (define (<fraction>-denominator o)
   (denominator (<fraction>-number o)))
 
-(let/with-class (((a <fraction>) (make-<fraction> 2/3))
-                 ((b <fraction>) (make-<fraction> 4/5)))
+(let/with-class (((a <fraction>) (make <fraction> 2/3))
+                 ((b <fraction>) (make <fraction> 4/5)))
   (list a.numerator b.denominator))
 @result{} (2 5)
 @end example
@@ -1718,17 +1736,17 @@ Like @func{let*} but automatically enclose the body in a
 
 @example
 @var{id}
-(@var{id} @varo{class-name} @var{class-name} ...)
+(@var{id} @var{class} ...)
 @end example
 
 @noindent
 in which: @var{id} must be an identifier representing the variable name,
-@var{class-name} must be an identifier representing a class name.
+@var{class} must be identifiers representing class names.
 
 If all the @var{var} arguments are in the first form (untyped variable):
 @func{let*/with-class} defaults to @func{let*} as defined by @rnrs{6}.
 If at least one @var{var} has type: the untyped ones default to bindings
-with @class{top} as conventional class type name.
+with @class{top} as conventional class name.
 
 Given two bindings @vari{var}, @vari{init} and @varii{var}, @varii{init}
 defined in sequence: @varii{init} is evaluated in the region of the
@@ -1746,8 +1764,8 @@ identifier syntaxes used to access the fields of @vari{var}.
 (define (<fraction>-denominator o)
   (denominator (<fraction>-number o)))
 
-(let*/with-class (((a <fraction>) (make-<fraction> 2/3))
-                  ((b <fraction>) (make-<fraction>
+(let*/with-class (((a <fraction>) (make <fraction> 2/3))
+                  ((b <fraction>) (make <fraction>
                                     (/ a.numerator 5))))
   b.number)
 @result{} 2/5
@@ -1762,17 +1780,17 @@ Like @func{letrec} but automatically enclose the body in a
 
 @example
 @var{id}
-(@var{id} @varo{class-name} @var{class-name} ...)
+(@var{id} @var{class} ...)
 @end example
 
 @noindent
 in which: @var{id} must be an identifier representing the variable name,
-@var{class-name} must be an identifier representing a class name.
+@var{class} must be identifiers representing class names.
 
 If all the @var{var} arguments are in the first form (untyped variable):
 @func{letrec/with-class} defaults to @func{letrec} as defined by
 @rnrs{6}.  If at least one @var{var} has type: the untyped ones default
-to bindings with @class{top} as conventional class type name.
+to bindings with @class{top} as conventional class name.
 
 The @var{init} expressions can contain references to the identifier
 syntaxes, as long as they are not resolved.
@@ -1787,10 +1805,10 @@ syntaxes, as long as they are not resolved.
           (immutable proc)))
 
 (letrec/with-class
-     (((a <alpha>) (make-<alpha>
+     (((a <alpha>) (make <alpha>
                      1 (lambda ()
                          (cons a.value b.value))))
-      ((b <beta>)  (make-<beta>
+      ((b <beta>)  (make <beta>
                      2 (lambda ()
                          (cons a.value b.value)))))
   (list (a.proc) (b.proc)))
@@ -1806,20 +1824,24 @@ Like @func{letrec*} but automatically enclose the body in a
 
 @example
 @var{id}
-(@var{id} @varo{class-name} @var{class-name} ...)
+(@var{id} @var{class} ...)
 @end example
 
 @noindent
 in which: @var{id} must be an identifier representing the variable name,
-@var{class-name} must be an identifier representing a class name.
+@var{class} must be identifiers representing class names.
 
 If all the @var{var} arguments are in the first form (untyped variable):
 @func{letrec*/with-class} defaults to @func{letrec*} as defined by
 @rnrs{6}.  If at least one @var{var} has type: the untyped ones default
-to bindings with @class{top} as conventional class type name.
+to bindings with @class{top} as conventional class name.
 
 The @var{init} expressions can contain references to the identifier
-syntaxes.
+syntaxes, as long as they are not resolved.
+
+The only difference between @func{letrec/with-class} and
+@func{letrec*/with-class} is that the latter enforces the order of
+evaluation of the @var{init} expressions.
 
 @smallexample
 (define-class <alpha>
@@ -1831,10 +1853,10 @@ syntaxes.
           (immutable proc)))
 
 (letrec*/with-class
-    (((a <alpha>) (make-<alpha>
+    (((a <alpha>) (make <alpha>
                     1 (lambda ()
                         (cons a.value b.value))))
-     ((b <beta>)  (make-<beta>
+     ((b <beta>)  (make <beta>
                     2 (lambda ()
                         (cons a.value b.value))))
      ((c <top>)   (list (a.proc) (b.proc))))
@@ -1850,12 +1872,12 @@ can be one among:
 
 @example
 @var{id}
-(@var{id} @varo{class-name} @var{class-name} ...)
+(@var{id} @var{class} ...)
 @end example
 
 @noindent
 in which: @var{id} must be an identifier representing the variable name,
-@var{class-name} must be an identifier representing a class name.  The
+@var{class} must be identifiers representing class names.  The
 @var{step}, @var{expression} and @var{command} expressions can use dot
 notation with @var{id}.
 @end defmac
@@ -1867,19 +1889,34 @@ element can be one among:
 
 @example
 @var{id}
-(@var{id} @varo{class-name} @var{class-name} ...)
+(@var{id} @var{class} ...)
 @end example
 
 @noindent
 in which: @var{id} must be an identifier representing the variable name,
-@var{class-name} must be an identifier representing a class name.  The
+@var{class} must be identifiers representing class names.  The
 @var{step}, @var{expression} and @var{command} expressions can use dot
-notation with @var{id}.
+notation with @var{id}.  When multiple variables are defined, each
+@var{init} expression can use dot notation with the previous bindings.
 @end defmac
 
 @c page
 @node classes dot lambda
 @subsection Function bindings
+
+
+The following macros integrate the facilities of the @func{with-class}
+macro with the function creation facilities of the @func{lambda} and
+@func{case-lambda} syntaxes from @rsixlibrary{base}.
+
+@quotation
+@strong{NOTE} It is possible to use the facilities of the
+@library{contracts} library to assert that the type of arguments to the
+functions is the one selected by the class identifiers.  Merging the
+features of contracts along with the function construction macros may
+result in inflexible code or bloated code after the expansion; so, for
+the time being, this merging is not implemented.
+@end quotation
 
 
 @defmac lambda/with-class @var{formals} @var{body}
@@ -1890,15 +1927,15 @@ the arguments.  @var{formals} must have the same form of the formals for
 in @func{lambda}, or a list of the form:
 
 @example
-(@var{variable} @varo{class-name} @var{class-name} ...)
+(@var{variable} @var{class} ...)
 @end example
 
 @noindent
 in which case the @var{variable} argument is meant to be of type
-@var{class-name} and the corresponding identifier syntaxes are defined.
-When an argument as no type: we can use @class{top} as its conventional
-class type name, or let @func{lambda/with-class} select @class{top}
-automatically.
+@var{class} and the corresponding identifier syntaxes are defined.  When
+an argument as no class specifiers: we can use @class{top} as its
+conventional class name, or let @func{lambda/with-class} select
+@class{top} automatically.
 
 @example
 (define-class <fraction>
@@ -1922,7 +1959,7 @@ automatically.
   (lambda/with-class ((o <fraction>) v)
     (set! o.number (/ (numerator o.number) v))))
 
-(let/with-class (((o <fraction>) (make-<fraction> 2/3)))
+(let/with-class (((o <fraction>) (make <fraction> 2/3)))
   o.numerator)
 @result{} 2
 @end example
@@ -1933,8 +1970,8 @@ automatically.
 @defmacx define/with-class (@var{variable} . @var{formal}) @var{body}
 @defmacx define/with-class @var{variable} @var{expression}
 @defmacx define/with-class @var{variable}
-Like @func{define} but when used in the first and second forms expands
-to the use of @func{lambda/with-class}.
+Like @func{define} but when used in the first and second forms it
+expands to the use of @func{lambda/with-class}.
 
 @example
 (define-class <fraction>
@@ -1954,47 +1991,15 @@ to the use of @func{lambda/with-class}.
 (define/with-class (<fraction>-denominator-set! (o <fraction>) v)
   (set! o.number (/ (numerator o.number) v)))
 
-(let/with-class (((o <fraction>) (make-<fraction> 2/3)))
+(let/with-class (((o <fraction>) (make <fraction> 2/3)))
   o.numerator)
 @result{} 2
 @end example
 @end defmac
 
 
-@defmac lambda/with-class* @var{formals} @var{body}
-Like @func{lambda/with-class*}, but prepends to the body a list of calls
-to @func{assert} to verify the type of the arguments.  For example:
-
-@example
-(lambda/with-class* ((a <number>) (b <string>))
-  ---)
-@end example
-
-@noindent
-is equivalent to:
-
-@example
-(lambda/with-class ((a <number>) (b <string>))
-  (assert (is-a? a <number>))
-  (assert (is-a? b <string>))
-  ---)
-@end example
-@end defmac
-
-
 @defmac Syntax case-lambda/with-class @var{case-lambda-clause} ...
-@defmacx Syntax case-lambda/with-class* @var{case-lambda-clause} ...
-The natural extensions of @func{lambda/with-class} and
-@func{lambda/with-class*} to @func{case-lambda}.
-@end defmac
-
-
-@defmac define/with-class* (@var{variable} @var{formals}) @var{body}
-@defmacx define/with-class* (@var{variable} . @var{formal}) @var{body}
-@defmacx define/with-class* @var{variable} @var{expression}
-@defmacx define/with-class* @var{variable}
-Like @func{define/with-class}, but in the first and second forms expands
-to the use of @func{lambda/with-class*}.
+The natural extension of @func{lambda/with-class}.
 @end defmac
 
 
@@ -2035,7 +2040,7 @@ and similar:
 @result{} (10 #f salut)
 @end example
 
-In this document class specific setters and getters are described as
+In this document: class specific setters and getters are described as
 @func{setf} and @func{getf} ``methods''.
 
 

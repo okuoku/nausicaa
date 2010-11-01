@@ -820,9 +820,9 @@
      (let*/with-class		let*)
      (letrec/with-class		letrec)
      (letrec*/with-class	letrec*)
-     (define/with-class*	define)
-     (lambda/with-class*	lambda)
-     (case-lambda/with-class*	case-lambda)
+     (define/with-class		define)
+     (lambda/with-class		lambda)
+     (case-lambda/with-class	case-lambda)
      (receive/with-class	receive)
      (do/with-class		do)
      (do*/with-class		do*))
@@ -852,10 +852,8 @@
     ;; dot notation syntaxes
     with-class
     setf				getf
-    define/with-class			define/with-class*
-    lambda/with-class			lambda/with-class*
-    case-lambda/with-class		case-lambda/with-class*
-    receive/with-class
+    define/with-class			lambda/with-class
+    case-lambda/with-class		receive/with-class
     let/with-class			let*/with-class
     letrec/with-class			letrec*/with-class
     do/with-class			do*/with-class
