@@ -3,7 +3,7 @@
 
 
 The library @library{contracts} provides ways to use macro identifiers
-to validate the arguments and return value of functions; the concept is
+to validate the arguments and return values of functions; the concept is
 to include the validation code at the call site (rather than in the body
 of the function) to allow the construction of better error messages and
 debugging informations.
@@ -14,10 +14,10 @@ its features at expansion time when the @func{enable-contracts?}
 parameter from the @library{configuration} library is set to false.
 
 
-@deffn Syntax define-contract @var{name} @var{keyword} @var{contract}
+@deffn Syntax define-contract @var{keyword} @var{subject} @var{contract}
 @deffnx {Auxiliary Syntax} ->
-Define an identifier syntax @var{name} which can be used in place of the
-identifier @var{keyword} to reference a variable, function or macro.
+Define an identifier syntax @var{keyword} which can be used in place of the
+identifier @var{subject} to reference a variable, function or macro.
 @var{contract} can be one among:
 
 @example
@@ -35,20 +35,20 @@ other cases it is for a function or macro.
 
 The contract for a variable validates the value using the selected
 @var{predicate} whenever the variable is accessed or mutated.  When a
-variable is accessed: @var{keyword} is referenced only once.  When a
+variable is accessed: @var{subject} is referenced only once.  When a
 variable is mutated: its new value's expression is evaluated only once.
 Notice that the contract is @strong{not} enforced for the initialisation
-value bound to @var{keyword}.
+value bound to @var{subject}.
 
 The contract for a function or macro validates the arguments with the
 functions bound to @var{arg-predicate} and validates the return values
 with the functions bound to @var{ret-predicate}; the function or macro
-bound to @var{keyword} must accept a number of arguments equal to the
+bound to @var{subject} must accept a number of arguments equal to the
 number of @var{arg-predicate} identifiers and return a number of values
 equal to the number of @var{ret-predicate} identifiers; a function can
 have no arguments and no return values; notice that a function
 referenced through an identifier syntax cannot take a ``rest'' argument.
-When applying the function or macro @var{keyword} is referenced only
+When applying the function or macro, @var{subject} is referenced only
 once.
 
 If a predicate returns false: @func{assert} from the library
@@ -155,7 +155,7 @@ it involves an ugly notation, but it works.
 @end deffn
 
 
-@deffn Syntax let-contract ((@var{name} @var{keyword} @var{contract}) ...) @varo{body} @var{body}
+@deffn Syntax let-contract ((@var{keyword} @var{subject} @var{contract}) ...) @varo{body} @var{body} ...
 @deffnx {Auxiliary Syntax} ->
 Does the same job of @func{define-contract} but with a syntax similar to
 @func{let-syntax}; the relation between @func{let-contract} and
@@ -167,16 +167,16 @@ form.
 @end deffn
 
 
-@deffn Syntax define/contract (@var{name} . @var{args}) @var{contract} @varo{body} @var{body} ...
-@deffnx Syntax define/contract @var{name} @var{contract} @var{expression}
-@deffnx Syntax define/contract @var{name} @var{contract}
+@deffn Syntax define/contract (@var{keyword} . @var{args}) @var{contract} @varo{body} @var{body} ...
+@deffnx Syntax define/contract @var{keyword} @var{contract} @var{expression}
+@deffnx Syntax define/contract @var{keyword} @var{contract}
 @deffnx {Auxiliary Syntax} ->
 Define a new variable and a contract for its value, or a function and a
 contract for its arguments and return values.  The first form is
 equivalent to:
 
 @example
-(define-contract @var{name}
+(define-contract @var{keyword}
     keyword
   @var{contract})
 
@@ -186,11 +186,11 @@ equivalent to:
 
 @noindent
 and notice that the defined function can reference itself recursively
-with the @var{name} identifier, so, internally, it has to satisfy its
+with the @var{keyword} identifier, so, internally, it has to satisfy its
 contract.  The second form is equivalent to:
 
 @example
-(define-contract @var{name}
+(define-contract @var{keyword}
     keyword
   @var{contract})
 
@@ -201,7 +201,7 @@ contract.  The second form is equivalent to:
 and the third to:
 
 @example
-(define-contract @var{name}
+(define-contract @var{keyword}
     keyword
   @var{contract})
 
@@ -210,23 +210,23 @@ and the third to:
 @end deffn
 
 
-@deffn Syntax with-outer-contracts ((@var{name} @var{contract}) ...) @varo{body} @var{body} ...
+@deffn Syntax with-outer-contracts ((@var{keyword} @var{contract}) ...) @varo{body} @var{body} ...
 @deffnx {Auxiliary Syntax} ->
 Expand to a sequence of contract definitions of the form:
 
 @example
-(define-contract @var{name} keyword @var{contract})
+(define-contract @var{keyword} subject @var{contract})
 ...
 @end example
 
 @noindent
 followed by the @var{body} forms in which the occurrences of the
-identifiers @var{name} have been substituted with the automatically
-generated identifiers @code{keyword}.
+identifiers @var{keyword} have been substituted with the automatically
+generated identifiers @code{subject}.
 
 This allows functions defined in the @var{body} form to call each other
 without enforcing the contracts, while other functions referencing
-@var{name} will be subjected to the contracts.
+@var{keyword} will be subjected to the contracts.
 @end deffn
 
 
