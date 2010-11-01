@@ -161,6 +161,9 @@ Does the same job of @func{define-contract} but with a syntax similar to
 @func{let-syntax}; the relation between @func{let-contract} and
 @func{define-contract} is the same as the relation between
 @func{let-syntax} and @func{define-syntax}.
+
+Notice the @func{let-contract} expands into a single @func{let-syntax}
+form.
 @end deffn
 
 

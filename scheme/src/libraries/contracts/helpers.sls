@@ -29,8 +29,9 @@
 #!r6rs
 (library (contracts helpers)
   (export
-    parse-contract ->
+    ->
     build-variable-identifier-syntax
+    build-function-identifier-syntax
     assert-name-keyword)
   (import (rnrs)
     (prefix (configuration) config.)
@@ -39,11 +40,92 @@
 (define-auxiliary-syntax ->)
 
 
-(define (parse-contract contract-stx synner)
+(define (build-variable-identifier-syntax variable-stx predicate-stx)
+  ;;Return a syntax object representing the IDENTIFIER-SYNTAX invocation
+  ;;needed for the identifier macro of a variable.
+  ;;
+  ;;VARIABLE-STX  must  be  an   identifier  referencing  the  value  to
+  ;;validate;  PREDICATE-STX  must  be  an  identifier  referencing  the
+  ;;validation predicate.
+  ;;
+  ;;The returned  form can  be used as  right-hand side of  a LET-SYNTAX
+  ;;binding:
+  ;;
+  ;;  #`(let-syntax
+  ;;        ((key #,(build-variable-identifier-syntax #'var #'pred)))
+  ;;      . body)
+  ;;
+  (if (config.enable-contracts?)
+      #`(identifier-syntax
+	 (_
+	  (let ((v #,variable-stx)) ;we want to reference ?KEYWORD only once
+	    (assert (#,predicate-stx v))
+	    v))
+	 ((set! _ ??val)
+	  (let ((v ??val)) ;we want to evaluate ??VAL only once
+	    (assert (#,predicate-stx v))
+	    (set! #,variable-stx v))))
+    #`(identifier-syntax
+       (_ #,variable-stx)
+       ((set! _ ?val) (set! #,variable-stx ?val)))))
+
+
+(define (build-function-identifier-syntax function-stx contract-stx synner)
+  ;;Return a syntax object representing the IDENTIFIER-SYNTAX invocation
+  ;;needed for the identifier macro of a function or macro.
+  ;;
+  ;;FUNCTION-STX must be an identifier referencing the function or macro
+  ;;to wrap; CONTRACT-STX must be the syntax object holding the contract
+  ;;for a function or macro; SYNNER must be the function used to raise a
+  ;;syntax violation for the calling macro transformer.
+  ;;
+  ;;The returned  form can  be used as  right-hand side of  a LET-SYNTAX
+  ;;binding:
+  ;;
+  ;;  #`(let-syntax
+  ;;        ((key #,(build-function-identifier-syntax #'var #'contract)))
+  ;;      . body)
+  ;;
+  (if (not (config.enable-contracts?))
+      #'(identifier-syntax function-stx)
+    (let-values (((argument-predicates return-value-predicates)
+		  (parse-function-contract contract-stx synner)))
+      (with-syntax (((PRED ...)	argument-predicates)
+		    ((ARG ...)	(generate-temporaries argument-predicates)))
+	(with-syntax ((APPLICATION #`(#,function-stx (begin (assert (PRED ARG)) ARG) ...)))
+	  (if (null? return-value-predicates)
+	      #'(identifier-syntax (lambda (ARG ...) APPLICATION))
+	    (with-syntax (((RET-PRED ...) return-value-predicates)
+			  ((RET ...)      (generate-temporaries return-value-predicates)))
+	      #'(identifier-syntax
+		 (lambda (ARG ...)
+		   (let-values (((RET ...) APPLICATION))
+		     (assert (RET-PRED  RET))
+		     ...
+		     (values RET ...))))
+	      )))))))
+
+
+(define (parse-function-contract contract-stx synner)
   ;;Parse the contract's  syntax object and return two  values: the list
   ;;of  identifiers referencing  the  argument predicates,  the list  of
   ;;identifiers  referencing  the return  values  predicates.  Both  the
   ;;returned lists can be null.
+  ;;
+  ;;We want to support the following forms for a CONTRACT-STX:
+  ;;
+  ;;    (?predicate ... -> ?ret-predicate ...)
+  ;;    (?predicate ...)
+  ;;    (-> ?ret-predicate ...)
+  ;;
+  ;;but SYNTAX-CASE  cannot handle multiple ellipses at  the same level;
+  ;;also, by experimenting, it has  been verified that using an ellipsis
+  ;;and a rest pattern variable as in:
+  ;;
+  ;;    (?predicate ... -> ?ret-predicate0 . ?ret-predicates)
+  ;;
+  ;;also is not handles by SYNTAX-CASE.  So we use a loop and unwrap the
+  ;;syntax object element by element.
   ;;
   (let loop ((stx	contract-stx)
 	     (in-preds?	#t)
@@ -61,25 +143,6 @@
 	 (loop #'?cdr in-preds? preds (cons #'?car ret-preds))))
       (else
        (synner "expected identifier as contract predicate" stx)))))
-
-
-(define (build-variable-identifier-syntax keyword predicate)
-  ;;Return a syntax object representing the IDENTIFIER-SYNTAX invocation
-  ;;needed for the identifier macro of a variable.
-  ;;
-  (if (config.enable-contracts?)
-      #`(identifier-syntax
-	 (_
-	  (let ((v #,keyword)) ;we want to reference ?KEYWORD only once
-	    (assert (#,predicate v))
-	    v))
-	 ((set! _ ??val)
-	  (let ((v ??val)) ;we want to evaluate ??VAL only once
-	    (assert (#,predicate v))
-	    (set! #,keyword v))))
-    #`(identifier-syntax
-       (_ #,keyword)
-       ((set! _ ?val) (set! #,keyword ?val)))))
 
 
 (define (assert-name-keyword name keyword synner)
