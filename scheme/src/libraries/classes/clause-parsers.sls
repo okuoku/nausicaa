@@ -28,8 +28,6 @@
 #!r6rs
 (library (classes clause-parsers)
   (export
-    syntax-method-identifier
-
     ;; label-specific clause collectors
     %collect-clause/label/inherit
     %collect-clause/label/predicate
@@ -66,9 +64,6 @@
     (classes helpers)
     (for (classes top) (meta -1))
     (for (auxiliary-syntaxes) (meta -1)))
-
-
-(define syntax-method-identifier syntax-accessor-identifier)
 
 
 ;;;; class-specific definition clauses collectors

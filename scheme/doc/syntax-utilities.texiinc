@@ -182,6 +182,13 @@ additionally @func{syntax-mutator-identifier} appends @code{-set!}.
 @end defun
 
 
+@defun syntax-method-identifier @var{type-identifier} @var{field-identifier}
+Return a new identifier, in the same context of @var{type-identifier},
+whose name is built by joining the arguments with a dash @code{-}.  This
+function is meant to be used to build class's method function names.
+@end defun
+
+
 @defun syntax-dot-notation-identifier @var{variable-identifier} @var{field-identifier}
 Return a new identifier, in the same context of @var{type-identifier},
 whose name is built by joining the arguments with a dot.

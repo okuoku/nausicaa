@@ -46,12 +46,13 @@
     identifier-prefix			identifier-suffix
     syntax-maker-identifier		syntax-predicate-identifier
     syntax-accessor-identifier		syntax-mutator-identifier
-    syntax-dot-notation-identifier
+    syntax-dot-notation-identifier	(rename (syntax-accessor-identifier
+						 syntax-method-identifier))
     identifier-general-append
 
-    ;; definition clauses handling
-    validate-list-of-clauses		filter-clauses
-    validate-definition-clauses
+    ;; clauses helpers
+    validate-list-of-clauses		validate-definition-clauses
+    filter-clauses
 
     define-auxiliary-syntax		define-auxiliary-syntaxes)
   (import (rnrs))
