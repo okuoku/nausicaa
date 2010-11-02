@@ -33,10 +33,11 @@
   (export
     make-field-bindings
     make-method-bindings
-    make-setter-and-getter-bindings
+    make-setter-getter-bindings
     )
   (import (rnrs)
-    (syntax-utilities))
+    (syntax-utilities)
+    (classes helpers))
 
 
 (define (make-field-bindings use-dot-notation? variable-stx clauses-stx synner)
@@ -141,7 +142,7 @@
   (main))
 
 
-(define (make-setter-and-getter-bindings variable-stx Setter-stx Getter-stx)
+(define (make-setter-getter-bindings variable-stx Setter-stx Getter-stx)
   ;;Build and return a list of lists representing LET-SYNTAX bindings to
   ;;be used by the setter and getter macros.
   ;;

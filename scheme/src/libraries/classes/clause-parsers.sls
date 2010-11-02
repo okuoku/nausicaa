@@ -26,9 +26,8 @@
 
 
 #!r6rs
-(library (classes helpers)
+(library (classes clause-parsers)
   (export
-    %variable-name->Setter-name		%variable-name->Getter-name
     syntax-method-identifier
 
     ;; label-specific clause collectors
@@ -64,22 +63,11 @@
     (for (only (rnrs base) define-syntax) (meta -1))
     (gensym)
     (syntax-utilities)
+    (classes helpers)
     (for (classes top) (meta -1))
     (for (auxiliary-syntaxes) (meta -1)))
 
 
-(define (%variable-name->Setter-name variable-name-stx)
-  (datum->syntax variable-name-stx
-		 (string->symbol
-		  (string-append (symbol->string (syntax->datum variable-name-stx))
-				 ".__nausicaa_private_Setter_identifier_syntax"))))
-
-(define (%variable-name->Getter-name variable-name-stx)
-  (datum->syntax variable-name-stx
-		 (string->symbol
-		  (string-append (symbol->string (syntax->datum variable-name-stx))
-				 ".__nausicaa_private_Getter_identifier_syntax"))))
-
 (define syntax-method-identifier syntax-accessor-identifier)
 
 
