@@ -9,10 +9,9 @@
   Refactor the helpers library to  use a number of one-purpose functions
   that can be composed to build different maker parsing policies.
 
-* TODO classes
+* classes
 
-  Rewrite the  DEFINE-CLASS and DEFINE-LABEL expansions to  use a single
-  LET-SYNTAX form.
+  Rewrite the DEFINE-CLASS and DEFINE-LABEL as makers?
 
 * generics
 
