@@ -253,7 +253,7 @@
   ;;CLAUSES.
   ;;
   ;;Return  the clause  expression or  false if  no PROTOCOL  clause was
-  ;;found.
+  ;;found; return false if no PROTOCOL clause is present.
   ;;
   ;;SYNNER must  be the closure  used to raise  a syntax violation  if a
   ;;parse  error  occurs; it  must  accept  two  arguments: the  message
@@ -371,10 +371,10 @@
   ;;MAKER clause  and parse it; there  must be only one  MAKER clause in
   ;;CLAUSES.
   ;;
-  ;;Return two values: a list  of identifiers representing the fixed and
-  ;;mandatory  arguments   to  the  maker,  a  list   of  maker  clauses
-  ;;representing  optional arguments.   If no  MAKER clause  is present:
-  ;;return null and null.
+  ;;Return two  values: a  syntax object holding  a list  of identifiers
+  ;;representing the  mandatory arguments to the maker,  a syntax object
+  ;;holding a list of maker clauses representing optional arguments.  If
+  ;;no MAKER clause is present: return false and false.
   ;;
   ;;SYNNER must  be the closure  used to raise  a syntax violation  if a
   ;;parse  error  occurs; it  must  accept  two  arguments: the  message
@@ -382,7 +382,7 @@
   ;;
   (let ((clauses (filter-clauses #'maker clauses)))
     (if (null? clauses)
-	(values '() '())
+	(values #f #f)
       (syntax-case (car clauses) (maker)
 
 	((maker (?positional-arg ...) (?optional-keyword ?optional-default ?option ...) ...)

@@ -1979,6 +1979,19 @@
     #f)
 
 ;;; --------------------------------------------------------------------
+;;; no maker
+
+  (let ()
+    (define-class <alpha>
+      (fields a b))
+
+    (check	;when no MAKER is defined default to public constructor
+	(is-a? (make* <alpha> 1 2) <alpha>)
+      => #t)
+
+    #f)
+
+;;; --------------------------------------------------------------------
 ;;; errors
 
     (check	;bad MAKER clause
@@ -2004,19 +2017,6 @@
 		(environment '(nausicaa))))
       => '((maker (a) (b 1))
 	   (maker (b) (a 2))))
-
-    (check	;no MAKER defined
-	(guard (E ((syntax-violation? E)
-;;;(debug-print-condition "no MAKER defined:" E)
-		   (syntax-violation-form E))
-		  (else #f))
-	  (eval '(let ()
-		   (define-class <alpha>
-		     (fields a b))
-		   (make* <alpha> 1 2)
-		   #f)
-		(environment '(nausicaa))))
-      => '(make* <alpha> 1 2))
 
     #t)
 

@@ -320,6 +320,10 @@ makers}.
 The maker will use the maker--specific constructor if one was specified
 with the @code{maker-protocol} clause, else it will default to the
 public constructor.
+
+When no maker is defined, the @func{make*} macro can still be used to
+instantiate the class: it defaults to use the public protocol, so it
+becomes equivalent to a @func{make} use.
 @end deffn
 
 
