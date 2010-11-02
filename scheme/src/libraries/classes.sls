@@ -98,16 +98,13 @@
   (import (rnrs)
     (rnrs mutable-strings)
     (for (syntax-utilities)	expand)
-    (for (gensym)		expand)
     (for (classes helpers)	expand)
+    (for (classes binding-makers) expand)
     (for (prefix (sentinel) sentinel.) expand)
     (makers)
     (contracts)
     (auxiliary-syntaxes)
-    (only (language-extensions)
-	  define-values
-	  define-syntax*
-	  with-accessor-and-mutator)
+    (language-extensions)
     (classes internal-auxiliary-syntaxes)
     (classes top))
 
@@ -762,7 +759,9 @@
 					    #'(make-record-constructor-descriptor
 					       THE-RTD THE-PARENT-CD THE-MAKER-PROTOCOL)
 					  #'THE-PUBLIC-CD))
-	     )
+	     (FIELD-SPECS		fields)
+	     (VIRTUAL-FIELD-SPECS	virtual-fields)
+	     (METHOD-SPECS		methods))
 	  #'(begin
 	      (define the-parent-rtd	PARENT-RTD-FORM)
 	      (define THE-PARENT-CD	PARENT-CD-FORM)
@@ -772,9 +771,6 @@
 					     (quote #((MUTABILITY FIELD) ...))))
 
 	      (define THE-PREDICATE (record-predicate THE-RTD))
-
-	      FIELD-DEFINITION ...
-	      METHOD-DEFINITION ...
 
 	      ;;The protocol to use with the MAKE-FROM-FIELDS macro.
 	      (define THE-FROM-FIELDS-PROTOCOL	(%make-default-protocol THE-RTD))
@@ -828,6 +824,10 @@
 							   (record-parent-list the-parent-rtd)
 							 '())))
 			  the-list)))))
+
+	      FIELD-DEFINITION ...
+	      METHOD-DEFINITION ...
+	      MAKER-DEFINITION
 
 	      (define-syntax THE-CLASS
 		(lambda (stx)
@@ -926,71 +926,92 @@
 		       (syntax->datum #'?keyword)))
 		    )))
 
-	      MAKER-DEFINITION
-
 	      (define-syntax with-class-bindings
-		(syntax-rules ()
-		  ((_ (?use-dot-notation
-		       ?inherit-concrete-fields
-		       ?inherit-virtual-fields
-		       ?inherit-methods
-		       ?inherit-setter-and-getter)
-		      ?variable-name ?body0 ?body (... ...))
-		   (THE-SUPERCLASS :with-class-bindings-of (?use-dot-notation
-							    INHERIT-CONCRETE-FIELDS?
-							    INHERIT-VIRTUAL-FIELDS?
-							    INHERIT-METHODS?
-							    INHERIT-SETTER-AND-GETTER?)
-				   ?variable-name
-				   (with-class-bindings/concrete-fields
-				    ?inherit-concrete-fields ?use-dot-notation ?variable-name
-				    (with-class-bindings/virtual-fields
-				     ?inherit-virtual-fields ?use-dot-notation ?variable-name
-				     (with-class-bindings/methods
-				      ?inherit-methods ?use-dot-notation ?variable-name
-				      (with-class-bindings/setter-and-getter
-				       ?inherit-setter-and-getter ?variable-name
-				       (BINDINGS-MACRO THE-CLASS ?variable-name
-						       ?body0 ?body (... ...))))))))
-		  ))
+		(lambda (stx)
+		  (define (synner message subform)
+		    (syntax-violation 'with-class-bindings
+		      message (syntax->datum stx) (syntax->datum subform)))
+		  (define-inline (or-null bool form)
+		    (if (syntax->datum bool)
+			form
+		      '()))
+		  (syntax-case stx ()
+		    ((_ (?use-dot-notation
+			 ?inherit-concrete-fields
+			 ?inherit-virtual-fields
+			 ?inherit-methods
+			 ?inherit-setter-and-getter)
+			?variable-name ?body0 ?body (... ...))
+		     (let ((use-dot-notation? (syntax->datum #'?use-dot-notation)))
+		       (with-syntax
+			   ((((CFVAR CFVAL) (... ...))
+			     (or-null
+			      #'?inherit-concrete-fields
+			      (make-field-bindings use-dot-notation? #'?variable-name
+						   #'FIELD-SPECS synner)))
+			    (((VFVAR VFVAL) (... ...))
+			     (or-null
+			      #'?inherit-virtual-fields
+			      (make-field-bindings use-dot-notation? #'?variable-name
+						   #'VIRTUAL-FIELD-SPECS synner)))
+			    (((MVAR MVAL) (... ...))
+			     (or-null
+			      #'?inherit-methods
+			      (make-method-bindings use-dot-notation? #'?variable-name
+						    #'METHOD-SPECS synner)))
+			    (((SGVAR SGVAL) (... ...))
+			     (or-null
+			      #'?inherit-setter-and-getter
+			      (make-setter-and-getter-bindings #'?variable-name
+							       #'SETTER #'GETTER synner)))
+			    )
+			 #'(THE-SUPERCLASS
+			    :with-class-bindings-of (?use-dot-notation
+						     INHERIT-CONCRETE-FIELDS?
+						     INHERIT-VIRTUAL-FIELDS?
+						     INHERIT-METHODS?
+						     INHERIT-SETTER-AND-GETTER?)
+			    ?variable-name
+			    (let-syntax ((CFVAR CFVAL) (... ...)
+					 (VFVAR VFVAL) (... ...)
+					 (MVAR  MVAL)  (... ...)
+					 )
+			      (BINDINGS-MACRO THE-CLASS ?variable-name ?body0 ?body (... ...))))
+			 ))))))
 
-	      (define-syntax with-class-bindings/concrete-fields
-		(syntax-rules ()
-		  ((_ #t ?use-dot-notation ?variable-name . ?body)
-		   (%with-class-fields ?use-dot-notation ?variable-name
-				       ((MUTABILITY FIELD ACCESSOR/MUTATOR ...) ...)
-				       . ?body))
-		  ((_ #f ?use-dot-notation ?variable-name . ?body)
-		   (begin . ?body))
-		  ))
+	      ;; (define-syntax with-class-bindings
+	      ;; 	(syntax-rules ()
+	      ;; 	  ((_ (?use-dot-notation
+	      ;; 	       ?inherit-concrete-fields
+	      ;; 	       ?inherit-virtual-fields
+	      ;; 	       ?inherit-methods
+	      ;; 	       ?inherit-setter-and-getter)
+	      ;; 	      ?variable-name ?body0 ?body (... ...))
+	      ;; 	   (THE-SUPERCLASS :with-class-bindings-of (?use-dot-notation
+	      ;; 						    INHERIT-CONCRETE-FIELDS?
+	      ;; 						    INHERIT-VIRTUAL-FIELDS?
+	      ;; 						    INHERIT-METHODS?
+	      ;; 						    INHERIT-SETTER-AND-GETTER?)
+	      ;; 			   ?variable-name
+	      ;; 			   (with-class-bindings/concrete-fields
+	      ;; 			    ?inherit-concrete-fields ?use-dot-notation ?variable-name
+	      ;; 			    (with-class-bindings/virtual-fields
+	      ;; 			     ?inherit-virtual-fields ?use-dot-notation ?variable-name
+	      ;; 			     (with-class-bindings/methods
+	      ;; 			      ?inherit-methods ?use-dot-notation ?variable-name
+	      ;; 			      (with-class-bindings/setter-and-getter
+	      ;; 			       ?inherit-setter-and-getter ?variable-name
+	      ;; 			       (BINDINGS-MACRO THE-CLASS ?variable-name
+	      ;; 					       ?body0 ?body (... ...))))))))
+	      ;; 	  ))
 
-	      (define-syntax with-class-bindings/virtual-fields
-		(syntax-rules ()
-		  ((_ #t ?use-dot-notation ?variable-name . ?body)
-		   (%with-class-fields ?use-dot-notation ?variable-name
-				       ((VIRTUAL-MUTABILITY VIRTUAL-FIELD
-							    VIRTUAL-ACCESSOR/MUTATOR ...) ...)
-				       . ?body))
-		  ((_ #f ?use-dot-notation ?variable-name . ?body)
-		   (begin . ?body))
-		  ))
-
-	      (define-syntax with-class-bindings/methods
-		(syntax-rules ()
-		  ((_ #t ?use-dot-notation ?variable-name . ?body)
-		   (%with-class-methods ?use-dot-notation ?variable-name
-					((METHOD METHOD-IDENTIFIER) ...) . ?body))
-		  ((_ #f ?use-dot-notation ?variable-name . ?body)
-		   (begin . ?body))
-		  ))
-
-	      (define-syntax with-class-bindings/setter-and-getter
-		(syntax-rules ()
-		  ((_ #t ?variable-name . ?body)
-		   (%with-class-setter-and-getter ?variable-name SETTER GETTER . ?body))
-		  ((_ #f ?variable-name . ?body)
-		   (begin . ?body))
-		  ))
+	      ;; (define-syntax with-class-bindings/setter-and-getter
+	      ;; 	(syntax-rules ()
+	      ;; 	  ((_ #t ?variable-name . ?body)
+	      ;; 	   (%with-class-setter-and-getter ?variable-name SETTER GETTER . ?body))
+	      ;; 	  ((_ #f ?variable-name . ?body)
+	      ;; 	   (begin . ?body))
+	      ;; 	  ))
 
 	      )))))
 
@@ -1405,61 +1426,6 @@
       (_
        (synner "invalid syntax in with-class-fields"))))
 
-  (define (make-field-bindings use-dot-notation? variable-stx clauses-stx synner)
-    ;;Build and return a  list of lists representing LET-SYNTAX bindings
-    ;;to be used to access the fields of a class or label.
-    ;;
-    ;;USE-DOT-NOTATION? must  be a boolean  value: true if  dot notation
-    ;;must be  used, false  if the field  name identifiers must  be used
-    ;;directly.
-    ;;
-    ;;VARIABLE-STX must  be the identifier  bound to the class  or label
-    ;;instance;  if  USE-DOT-NOTATION?  is  false, VARIABLE-STX  is  the
-    ;;identifier of the "this" method argument.
-    ;;
-    ;;CLAUSES-STX must be the list  of clauses defining the fields; each
-    ;;clause must be in one of the forms:
-    ;;
-    ;;   (mutable   ?field ?accessor ?mutator)
-    ;;   (immutable ?field ?accessor)
-    ;;
-    ;;SYNNER must  be a function  used to raise syntax  violation errors
-    ;;with the context of the caller.
-    ;;
-    (define (main)
-      (assert (boolean? use-dot-notation?))
-      (assert (identifier? variable-stx))
-      (map (lambda (clause-stx)
-	     (make-single-field-binding clause-stx synner))
-	(unwrap-syntax-object clauses-stx)))
-
-    (define (make-single-field-binding clause-stx synner)
-      (define (make-keyword field-stx)
-	(if use-dot-notation?
-	    (syntax-dot-notation-identifier variable-stx field-stx)
-	  ;;If dot  notation is off,  VARIABLE-STX is the  identifier of
-	  ;;the "this" method argument.
-	  ;;
-	  ;;Notice that FIELD-STX was not introduced in the same context
-	  ;;of VARIABLE-STX, so we have  to create a new identifier with
-	  ;;the  same  name  of   FIELD-STX  and  the  same  context  of
-	  ;;VARIABLE-STX.
-	  (datum->syntax variable-stx (syntax->datum field-stx))))
-      (syntax-case clause-stx (mutable immutable)
-	((mutable ?field ?accessor ?mutator)
-	 #`(#,(make-keyword #'?field)
-	    (identifier-syntax
-	     (_              (?accessor #,variable-stx))
-	     ((set! _ ?expr) (?mutator  #,variable-stx ?expr)))))
-	((immutable ?field ?accessor)
-	 #`(#,(make-keyword #'?field)
-	    (identifier-syntax
-	     (?accessor #,variable-stx))))
-	(_
-	 (synner "invalid syntax in field clause" clause-stx))))
-
-    (main))
-
   (main))
 
 
@@ -1478,53 +1444,6 @@
 	 #'(let-syntax (BINDING ...) . ?body)))
       (_
        (synner "invalid syntax in with-class-methods"))))
-
-  (define (make-method-bindings use-dot-notation variable-stx clauses-stx synner)
-    ;;Build and return a  list of lists representing LET-SYNTAX bindings
-    ;;to be used to call the methods of a class or label.
-    ;;
-    ;;USE-DOT-NOTATION? must  be a boolean  value: true if  dot notation
-    ;;must be  used, false if the  method name identifiers  must be used
-    ;;directly.
-    ;;
-    ;;VARIABLE-STX must  be the identifier  bound to the class  or label
-    ;;instance;  if  USE-DOT-NOTATION?  is  false, VARIABLE-STX  is  the
-    ;;identifier of the "this" method argument.
-    ;;
-    ;;CLAUSE-STX must be a syntax  object holding the list of clauses in
-    ;;the form:
-    ;;
-    ;;   ((?method ?function-name) ...)
-    ;;
-    ;;SYNNER must  be a function  used to raise syntax  violation errors
-    ;;with the context of the caller.
-    ;;
-    (define (main)
-      (map (lambda (clause-stx)
-	     (syntax-case clause-stx ()
-	       ((?method ?function-name)
-		(make-single-method-binding use-dot-notation variable-stx
-					    #'?method #'?function-name))
-	       (_
-		(synner "invalid method specification clause" clause-stx))))
-	(unwrap-syntax-object clauses-stx)))
-
-    (define (make-single-method-binding use-dot-notation? variable-stx method-stx function-name-stx)
-      #`(#,(if use-dot-notation?
-	       (syntax-dot-notation-identifier variable-stx method-stx)
-	     ;;If dot notation is off, VARIABLE-STX is the identifier of
-	     ;;the "this" method argument.
-	     ;;
-	     ;;Notice  that METHOD-STX  was not  introduced in  the same
-	     ;;context  of VARIABLE-STX,  so  we have  to  create a  new
-	     ;;identifier with the same  name of METHOD-STX and the same
-	     ;;context of VARIABLE-STX.
-	     (datum->syntax variable-stx (syntax->datum method-stx)))
-	 (syntax-rules ()
-	   ((_ ?arg (... ...))
-	    (#,function-name-stx #,variable-stx ?arg (... ...))))))
-
-    (main))
 
   (main))
 
@@ -1545,29 +1464,6 @@
 	 #`(let-syntax (BINDING ...) . ?body)))
       (_
        (synner "invalid syntax in with-setter-and-getter"))))
-
-  (define (make-setter-and-getter-bindings variable-stx Setter-stx Getter-stx)
-    (define (main)
-      (append (if (not (syntax->datum Setter-stx))
-		  '()
-		(list (make-Setter-binding variable-stx Setter-stx)))
-	      (if (not (syntax->datum Getter-stx))
-		  '()
-		(list (make-Getter-binding variable-stx Getter-stx)))))
-
-    (define (make-Setter-binding variable-stx setter-stx)
-      #`(#,(%variable-name->Setter-name variable-stx)
-	 (syntax-rules ()
-	   ((_ key0 key (... ...) value)
-	    (#,setter-stx #,variable-stx key0 key (... ...) value)))))
-
-    (define (make-Getter-binding variable-stx getter-stx)
-      #`(#,(%variable-name->Getter-name variable-stx)
-	 (syntax-rules ()
-	   ((_ key0 key (... ...))
-	    (#,getter-stx #,variable-stx key0 key (... ...))))))
-
-    (main))
 
   (main))
 

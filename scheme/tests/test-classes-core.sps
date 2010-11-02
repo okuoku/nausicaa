@@ -251,7 +251,7 @@
 	    (list p.a p.b p.c p.d)))
       => '(1 2 3 4))
 
-    (check
+    (check	;attempt to reference uninherited field
 	(guard (E ((undefined-violation? E)
 		   #t)
 		  (else #f))

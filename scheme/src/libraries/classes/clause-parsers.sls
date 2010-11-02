@@ -68,16 +68,16 @@
     (for (auxiliary-syntaxes) (meta -1)))
 
 
-(define (%variable-name->Setter-name variable-name/stx)
-  (datum->syntax variable-name/stx
+(define (%variable-name->Setter-name variable-name-stx)
+  (datum->syntax variable-name-stx
 		 (string->symbol
-		  (string-append (symbol->string (syntax->datum variable-name/stx))
+		  (string-append (symbol->string (syntax->datum variable-name-stx))
 				 ".__nausicaa_private_Setter_identifier_syntax"))))
 
-(define (%variable-name->Getter-name variable-name/stx)
-  (datum->syntax variable-name/stx
+(define (%variable-name->Getter-name variable-name-stx)
+  (datum->syntax variable-name-stx
 		 (string->symbol
-		  (string-append (symbol->string (syntax->datum variable-name/stx))
+		  (string-append (symbol->string (syntax->datum variable-name-stx))
 				 ".__nausicaa_private_Getter_identifier_syntax"))))
 
 (define syntax-method-identifier syntax-accessor-identifier)
