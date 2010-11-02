@@ -18,8 +18,6 @@ set -x
     --config-cache                              \
     --with-abi=local-slackware                  \
     --enable-use-sudo                           \
-    --enable-ikarus                             \
-    --disable-larceny                           \
     --enable-mosh                               \
     --enable-vicare                             \
     --disable-ypsilon                           \
