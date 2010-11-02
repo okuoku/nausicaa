@@ -4,15 +4,8 @@
   remove the need for --compatible.
 
 * nausicaa
-* TODO makers
-
-  Refactor the helpers library to  use a number of one-purpose functions
-  that can be composed to build different maker parsing policies.
-
+* DONE makers
 * classes
-
-  Rewrite the DEFINE-CLASS and DEFINE-LABEL as makers?
-
 * generics
 
   Profile and improve method dispatching.
