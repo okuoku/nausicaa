@@ -875,13 +875,13 @@
 		    ;; --------------------------------------------------
 
 		    ((_ :list-of-concrete-fields)
-		     #'((MUTABILITY FIELD ACCESSOR/MUTATOR ...) ...))
+		     #'(quote ((MUTABILITY FIELD ACCESSOR/MUTATOR ...) ...)))
 
 		    ((_ :list-of-virtual-fields)
-		     #'VIRTUAL-FIELD-SPECS)
+		     #'(quote VIRTUAL-FIELD-SPECS))
 
 		    ((_ :list-of-methods)
-		     #'METHOD-SPECS)
+		     #'(quote METHOD-SPECS))
 
 		    ;; --------------------------------------------------
 
