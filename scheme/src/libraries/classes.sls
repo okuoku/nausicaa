@@ -1282,50 +1282,49 @@
 (define $virtual-methods-table
   (make-eq-hashtable))
 
-(define-syntax define-virtual-method
-  (lambda (stx)
-    (define (%synner message subform)
-      (syntax-violation 'define-virtual-method message (syntax->datum stx) (syntax->datum subform)))
+(define-syntax* (define-virtual-method stx)
+  (syntax-case stx ()
 
-    (syntax-case stx ()
+    ;;Define a method without implementation.
+    ((_ ?class ?name)
+     (all-identifiers? #'(?class ?name))
+     #'(define-virtual-method ?class ?name #f))
 
-      ;;Define a method without implementation.
-      ((_ ?class ?name)
-       (all-identifiers? #'(?class ?name))
-       #'(define-virtual-method ?class ?name #f))
+    ;;Define a  method with implementation.   Being a method:  the first
+    ;;argument ?THIS must be present and it will be the instance itself.
+    ((_ ?class (?name ?this . ?args) ?body0 ?body ...)
+     #'(define-virtual-method ?class ?name (lambda/with-class (?this . ?args) ?body0 ?body ...)))
 
-      ;;Define a method with implementation.
-      ((_ ?class (?name ?this . ?args) ?body0 ?body ...)
-       #'(define-virtual-method ?class ?name (lambda/with-class (?this . ?args) ?body0 ?body ...)))
-
-      ;;Define a method with an expression as implementation.
-      ((_ ?class ?name ?lambda)
-       (begin
-	 (unless (identifier? #'?class)
-	   (%synner "expected class identifier as first argument" #'?class))
-	 (unless (identifier? #'?name)
-	   (%synner "expected method name identifier as second argument" #'?name))
-	 #`(begin
-	     (define the-table
-	       (or (hashtable-ref $virtual-methods-table '?name #f)
-		   (let ((table (make-eq-hashtable)))
-		     (hashtable-set! $virtual-methods-table '?name table)
-		     table)))
-	     (define the-implementation
-	       (let ((f ?lambda))
-		 (when f
-		   (hashtable-set! the-table (class-type-uid ?class) f))
-		 f))
-	     (define-syntax #,(syntax-method-identifier #'?class #'?name)
-	       (syntax-rules ()
-		 ;;This  is  a method,  so  we  know  that ?SELF  is  an
-		 ;;identifier bound to the class instance: we can safely
-		 ;;use it multiple times.
-		 ((_ ?self . ?args)
-		  ((%retrieve-virtual-method-implementation the-table (record-type-of ?self) '?name)
-		   ?self . ?args)))))
-	 ))
-      )))
+    ;;Define a method with an expression as implementation.
+    ((_ ?class ?name ?lambda)
+     (begin
+       (unless (identifier? #'?class)
+	 (synner "expected class identifier as first argument in virtual method definition" #'?class))
+       (unless (identifier? #'?name)
+	 (synner "expected method name identifier as second argument in virtual method definition"
+		 #'?name))
+       #`(begin
+	   (define the-table
+	     (or (hashtable-ref $virtual-methods-table '?name #f)
+		 (let ((table (make-eq-hashtable)))
+		   (hashtable-set! $virtual-methods-table '?name table)
+		   table)))
+	   (define the-implementation
+	     (let ((f ?lambda))
+	       (when f
+		 (hashtable-set! the-table (class-type-uid ?class) f))
+	       f))
+	   (define-syntax #,(syntax-method-identifier #'?class #'?name)
+	     (syntax-rules ()
+	       ;;This  is  a method,  so  we  know  that ?SELF  is  an
+	       ;;identifier bound to the class instance: we can safely
+	       ;;use it multiple times.
+	       ((_ ?self . ?args)
+		((%retrieve-virtual-method-implementation the-table (record-type-of ?self) '?name)
+		 ?self . ?args)))))
+       ))
+    (_
+     (synner "invalid virtual method definition"))))
 
 (define (%retrieve-virtual-method-implementation method-table rtd method-symbol-name)
   (define (%error-missing-implementation)
@@ -1733,6 +1732,12 @@
 
 (define-syntax* (lambda/with-class stx)
   (define (%parse-formals formals)
+    ;;Process a  LAMBDA formals argument for  the case in which  it is a
+    ;;list of identifiers or identifier+classes list.  Returns 3 values:
+    ;;a list of identifiers representing  the arguments; a list of lists
+    ;;representing the classes for each argument; false or an identifier
+    ;;representing the "rest" argument if present.
+    ;;
     (let loop ((formals	formals)
 	       (args	'())	;list of formal identifiers
 	       (cls	'()))	;list of lists of class identifiers
@@ -1749,8 +1754,7 @@
 	 (all-identifiers? #'(?id ?cls0 ?cls ...))
 	 (loop #'?cdr (cons #'?id args) (cons #'(?cls0 ?cls ...) cls)))
 	(_
-	 (synner "invalid formals in lambda definition" formals))
-	)))
+	 (synner "invalid formals in lambda definition" formals)))))
 
   (syntax-case stx ()
 
@@ -1769,8 +1773,7 @@
 	       (with-class ((ARG CLS ...) ...) . ?body))))))
 
     (_
-     (synner "invalid syntax in lambda definition" stx))
-    ))
+     (synner "invalid syntax in lambda definition" stx))))
 
 (define-syntax receive/with-class
   (syntax-rules ()
@@ -1779,133 +1782,60 @@
 	 (lambda () ?expression)
        (lambda/with-class ?formals ?form0 ?form ...)))))
 
-(define-syntax case-lambda/with-class
-  (syntax-rules ()
-    ((_ (?formals . ?body) ...)
-     (%case-lambda/collect-classes-and-arguments
-      #f
-      ()	;collected CASE-LAMBDA clauses
-      ()	;collected classes in current CASE-LAMBDA clause
-      ()	;collected args in current CASE-LAMBDA clause
-      (?formals . ?body)
-      ...))))
+(define-syntax* (case-lambda/with-class stx)
+  (define (main stx)
+    (syntax-case stx ()
+      ((_ (?formals . ?body) ...)
+       #`(case-lambda #,@(map %process-clause (unwrap-syntax-object #'((?formals . ?body) ...)))))
+      (_
+       (synner "invalid syntax in case-lambda definition"))))
 
-(define-syntax %case-lambda/collect-classes-and-arguments
-  ;;Analyse the list of formals  collecting a list of argument names and
-  ;;a list of class names.
-  ;;
-  (syntax-rules ()
+  (define (%process-clause clause)
+    ;;Process a  single CASE-LAMBDA  clause returning the  clause itself
+    ;;with the body embraced by WITH-CLASS inserted if needed.
+    ;;
+    (syntax-case clause ()
+      ((() . ?body)
+       #'(() . ?body))
+      ((?formals . ?body)
+       (identifier? #'?formals)
+       #'(?formals . ?body))
+      ((?formals . ?body)
+       (let-values (((args cls rest) (%parse-formals #'?formals)))
+	 (with-syntax (((ARG ...)	args)
+		       (((CLS ...) ...)	cls))
+	   (if rest
+	       #`((ARG ... . #,rest)
+		  (with-class ((ARG CLS ...) ...) . ?body))
+	     #'((ARG ...)
+		(with-class ((ARG CLS ...) ...) . ?body))))))))
 
-    ;;Matches when  the next  argument to be  processed, in  the current
-    ;;CASE-LAMBDA clause, has a type.
-    ((_ ?add-assertions
-	(?collected-case-lambda-clause ...)
-	(?collected-cls ...)
-	(?collected-arg ...)
-	(((?arg ?cls0 ?cls ...) . ?args) . ?body)
-	?case-lambda-clause ...)
-     (%case-lambda/collect-classes-and-arguments
-      ?add-assertions
-      (?collected-case-lambda-clause ...)
-      (?collected-cls ... (?cls0 ?cls ...))
-      (?collected-arg ... ?arg)
-      (?args . ?body)
-      ?case-lambda-clause ...))
+  (define (%parse-formals formals)
+    ;;Process a  LAMBDA formals argument for  the case in which  it is a
+    ;;list of identifiers or identifier+classes list.  Returns 3 values:
+    ;;a list of identifiers representing  the arguments; a list of lists
+    ;;representing the classes for each argument; false or an identifier
+    ;;representing the "rest" argument if present.
+    ;;
+    (let loop ((formals	formals)
+	       (args	'())	;list of formal identifiers
+	       (cls	'()))	;list of lists of class identifiers
+      (syntax-case formals (<top>)
+	(()
+	 (values (reverse args) (reverse cls) #f))
+	(?rest
+	 (identifier? #'?rest)
+	 (values (reverse args) (reverse cls) #'?rest))
+	((?car . ?cdr)
+	 (identifier? #'?car)
+	 (loop #'?cdr (cons #'?car args) (cons #'(<top>) cls)))
+	(((?id ?cls0 ?cls ...) . ?cdr)
+	 (all-identifiers? #'(?id ?cls0 ?cls ...))
+	 (loop #'?cdr (cons #'?id args) (cons #'(?cls0 ?cls ...) cls)))
+	(_
+	 (synner "invalid formals in lambda definition" formals)))))
 
-    ;;Matches when  the next  argument to be  processed, in  the current
-    ;;CASE-LAMBDA clause, has no type.
-    ((_ ?add-assertions
-    	(?collected-case-lambda-clause ...)
-    	(?collected-cls ...)
-    	(?collected-arg ...)
-    	((?arg . ?args) . ?body)
-    	?case-lambda-clause ...)
-     (%case-lambda/collect-classes-and-arguments
-      ?add-assertions
-      (?collected-case-lambda-clause ...)
-      (?collected-cls ... (<top>))
-      (?collected-arg ... ?arg)
-      (?args . ?body)
-      ?case-lambda-clause ...))
-
-    ;;Matches when all the arguments in a clause have been processed and
-    ;;NO rest argument is present.  This MUST come before the one below.
-    ((_ #f
-	(?collected-case-lambda-clause ...)
-	((?collected-cls ...) ...)
-	(?collected-arg ...)
-	(() . ?body)
-	?case-lambda-clause ...)
-     (%case-lambda/collect-classes-and-arguments
-      #f
-      (?collected-case-lambda-clause ... ((?collected-arg ...)
-					  (with-class ((?collected-arg ?collected-cls ...)
-						       ...)
-					    . ?body)))
-      ()
-      ()
-      ?case-lambda-clause ...))
-    ((_ #t
-	(?collected-case-lambda-clause ...)
-	((?collected-cls ...) ...)
-	(?collected-arg ...)
-	(() . ?body)
-	?case-lambda-clause ...)
-     (%case-lambda/collect-classes-and-arguments
-      #t
-      (?collected-case-lambda-clause ... ((?collected-arg ...)
-					  (%add-assertions ((?collected-cls ...) ...)
-							   (?collected-arg ...))
-					  (let ()
-					    (with-class ((?collected-arg ?collected-cls ...)
-							 ...)
-					      . ?body))))
-      ()
-      ()
-      ?case-lambda-clause ...))
-
-    ;;Matches two  cases: (1)  when all the  arguments in a  clause have
-    ;;been processed and  only the rest argument is  there; (2) when the
-    ;;formals in a clause is an identifier (args ---).
-    ((_ #f
-	(?collected-case-lambda-clause ...)
-	((?collected-cls ...) ...)
-	(?collected-arg ...)
-	(?rest . ?body)
-	?case-lambda-clause ...)
-     (%case-lambda/collect-classes-and-arguments
-      #f
-      (?collected-case-lambda-clause ... ((?collected-arg ... . ?rest)
-					  (with-class ((?collected-arg ?collected-cls ...)
-						       ...)
-					    . ?body)))
-      ()
-      ()
-      ?case-lambda-clause ...))
-    ((_ #t
-	(?collected-case-lambda-clause ...)
-	((?collected-cls ...) ...)
-	(?collected-arg ...)
-	(?rest . ?body)
-	?case-lambda-clause ...)
-     (%case-lambda/collect-classes-and-arguments
-      #t
-      (?collected-case-lambda-clause ... ((?collected-arg ... . ?rest)
-					  (%add-assertions ((?collected-cls ...) ...)
-							   (?collected-arg ...))
-					  (let ()
-					    (with-class ((?collected-arg ?collected-cls ...)
-							 ...)
-					      . ?body))))
-      ()
-      ()
-      ?case-lambda-clause ...))
-
-    ;;Matches when all the CASE-LAMBDA clauses have been collected.
-    ((_ ?add-assertions (?collected-case-lambda-clause ...) () ())
-     (case-lambda ?collected-case-lambda-clause ...))
-
-    ))
+  (main stx))
 
 
 ;;;; builtin classes
