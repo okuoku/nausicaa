@@ -44,6 +44,7 @@
     %collect-clause/maker-protocol
     %collect-clause/superclass-protocol
     %collect-clause/maker
+    %collect-clause/maker-transformer
     %collect-clause/predicate
     %output-forms/concrete-fields
 
@@ -371,6 +372,31 @@
 	((maker (?positional-arg ...) (?optional-keyword ?optional-default ?option ...) ...)
 	 (all-identifiers? #'(?optional-keyword ...))
 	 (values #'(?positional-arg ...) #'((?optional-keyword ?optional-default ?option ...) ...)))
+
+	(_
+	 (synner "invalid maker clause" (car clauses)))
+	))))
+
+(define (%collect-clause/maker-transformer clauses synner)
+  ;;Given a  list of  class definition clauses  in CLAUSES,  extract the
+  ;;MAKER-TRANSFORMER  clause  and parse  it;  there  must  be only  one
+  ;;MAKER-TRANSFORMER clause in CLAUSES.
+  ;;
+  ;;Return a syntax object holding the transformer specification (either
+  ;;an  expression or an  identifier) or  false if  no MAKER-TRANSFORMER
+  ;;clause is present.
+  ;;
+  ;;SYNNER must  be the closure  used to raise  a syntax violation  if a
+  ;;parse  error  occurs; it  must  accept  two  arguments: the  message
+  ;;string, the subform.
+  ;;
+  (let ((clauses (filter-clauses #'maker-transformer clauses)))
+    (if (null? clauses)
+	#f
+      (syntax-case (car clauses) (maker-transformer)
+
+	((maker-transformer ?transformer)
+	 #'?transformer)
 
 	(_
 	 (synner "invalid maker clause" (car clauses)))

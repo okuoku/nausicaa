@@ -281,7 +281,7 @@ default one.
 
 @deffn {Auxiliary Syntax} maker (@var{positional-arg} ...) (@var{optional-keyword} @var{optional-default}) ...
 Define the specification of the maker to be used by @func{make*};
-Defining a maker for a class means defining a specialised macro with
+defining a maker for a class means defining a specialised macro with
 @func{define-maker}.  The @func{maker} clause in the following
 definition:
 
@@ -321,9 +321,66 @@ The maker will use the maker--specific constructor if one was specified
 with the @code{maker-protocol} clause, else it will default to the
 public constructor.
 
+If a @code{maker-transformer} clause is present: the use of @func{make*}
+will expand into a use of the specified maker transformer; the first
+argument to the maker transformer will be the maker constructor.  If no
+@code{maker-transformer} clause is present: the use of @func{make*} will
+expand into a call to the constructor.
+
 When no maker is defined, the @func{make*} macro can still be used to
 instantiate the class: it defaults to use the public protocol, so it
 becomes equivalent to a @func{make} use.
+@end deffn
+
+
+@deffn {Auxiliary Syntax} maker-transformer @var{transformer}
+Select a maker macro transformer to be used as expansion of
+@func{make*}.  @var{transformer} can be an identifier or an expression
+evaluating to a macro transformer.  The transformer will receive the
+maker protocol constructor as first argument, and it is meant to use it
+in its output form.
+
+This is an example of identifier transformer:
+
+@example
+(define-class <alpha>
+  (fields a b)
+  (maker (a)
+         (b 2))
+  (maker-transformer transformer))
+
+(define-syntax transformer
+  (syntax-rules ()
+    ((_ ?constructor ?a ?b)
+     (?constructor (+ 1 ?a) (+ 2 ?b)))))
+
+(let (((o <alpha>) (make* <alpha> 1)))
+  (list o.a o.b)) @result{} (2 4)
+
+(let (((o <alpha>) (make* <alpha> 1 (b 20))))
+  (list o.a o.b)) @result{} (2 22)
+@end example
+
+@noindent
+and this is an example of expression transformer:
+
+@example
+(define-class <alpha>
+  (fields a b)
+  (maker (a)
+         (b 2))
+  (maker-transformer
+   (lambda (stx)
+     (syntax-case stx ()
+       ((_ ?constructor ?a ?b)
+        #'(?constructor (+ 1 ?a) (+ 2 ?b)))))))
+
+(let (((o <alpha>) (make* <alpha> 1)))
+  (list o.a o.b)) @result{} (2 4)
+
+(let (((o <alpha>) (make* <alpha> 1 (b 20))))
+  (list o.a o.b)) @result{} (2 22)
+@end example
 @end deffn
 
 

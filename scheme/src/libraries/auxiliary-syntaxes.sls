@@ -1,4 +1,4 @@
-;;; -*- coding: utf-8-unix -*-
+;;; -*- coding: utf-8 -*-
 ;;;
 ;;;Part of: Nausicaa/Scheme
 ;;;Contents: auxiliary syntaxes
@@ -36,33 +36,33 @@
     protocol fields mutable immutable
 
     ;; custom bindings for (classes)
-    inherit predicate maker setter getter bindings
+    inherit predicate maker maker-transformer setter getter bindings
     public-protocol maker-protocol superclass-protocol virtual-fields
     methods method method-syntax
 
     ;; bindings for string and vector views
     view start past
     )
-  (import (rnrs)
-    (only (syntax-utilities) define-auxiliary-syntax))
+  (import (rnrs records syntactic)
+    (only (syntax-utilities) define-auxiliary-syntaxes))
+  (define-auxiliary-syntaxes
+    inherit
+    predicate
+    maker
+    maker-transformer
+    setter
+    getter
+    bindings
+    public-protocol
+    maker-protocol
+    superclass-protocol
+    virtual-fields
+    methods
+    method
+    method-syntax
 
-  (define-auxiliary-syntax inherit)
-  (define-auxiliary-syntax predicate)
-  (define-auxiliary-syntax maker)
-  (define-auxiliary-syntax setter)
-  (define-auxiliary-syntax getter)
-  (define-auxiliary-syntax bindings)
-  (define-auxiliary-syntax public-protocol)
-  (define-auxiliary-syntax maker-protocol)
-  (define-auxiliary-syntax superclass-protocol)
-  (define-auxiliary-syntax virtual-fields)
-  (define-auxiliary-syntax methods)
-  (define-auxiliary-syntax method)
-  (define-auxiliary-syntax method-syntax)
-
-  (define-auxiliary-syntax view)
-  (define-auxiliary-syntax start)
-  (define-auxiliary-syntax past)
-  )
+    view
+    start
+    past))
 
 ;;; end of file

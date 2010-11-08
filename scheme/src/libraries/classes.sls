@@ -85,7 +85,7 @@
     ;; auxiliary syntaxes
     parent sealed opaque parent-rtd nongenerative
     protocol fields mutable immutable
-    inherit predicate maker setter getter bindings
+    inherit predicate maker maker-transformer setter getter bindings
     public-protocol maker-protocol superclass-protocol
     virtual-fields methods method method-syntax
 
@@ -466,12 +466,12 @@
      '()
      ;; optional keywords
      (list #'parent #'sealed #'opaque #'parent-rtd #'nongenerative #'fields #'protocol
-	   #'inherit #'predicate #'maker #'setter #'getter #'bindings
+	   #'inherit #'predicate #'maker #'maker-transformer #'setter #'getter #'bindings
 	   #'public-protocol #'maker-protocol #'superclass-protocol
 	   #'virtual-fields #'methods #'method #'method-syntax)
      ;; at most once keywords
      (list #'parent #'sealed #'opaque #'parent-rtd #'nongenerative
-	   #'inherit #'predicate #'maker #'setter #'getter #'bindings
+	   #'inherit #'predicate #'maker #'maker-transformer #'setter #'getter #'bindings
 	   #'protocol #'public-protocol #'maker-protocol #'superclass-protocol)
      ;; mutually exclusive keywords sets
      (list (list #'inherit #'parent #'parent-rtd))
@@ -516,6 +516,10 @@
 	 ;;evaluates to the class' superclass protocol function.
 	 ((superclass-protocol)
 	  (%collect-clause/superclass-protocol clauses %synner))
+
+	 ;;False or a syntax object holding the maker transformer.
+	 ((maker-transformer)
+	  (%collect-clause/maker-transformer clauses %synner))
 
 	 ;;False/false or: a syntax object holding a list of identifiers
 	 ;;representing the positional arguments  to the maker; a syntax
@@ -748,7 +752,8 @@
 								#'THE-MAKER-CONSTRUCTOR
 								maker-positional-args
 								maker-optional-args
-								constructor-identifier))
+								maker-transformer
+								#'THE-PUBLIC-CONSTRUCTOR))
 	     (FROM-FIELDS-CD-FORM	(%make-from-fields-cd-form the-parent-is-a-class?
 								   #'THE-RTD
 								   #'THE-SUPERCLASS
@@ -1020,11 +1025,39 @@
 
   (define (%make-maker-definition the-maker the-maker-constructor
 				  maker-positional-args maker-optional-args
-				  public-constructor)
-    ;;Build and return a syntax  object holding the maker definition for
-    ;;this class; if  a maker was not declared for  this class: a syntax
-    ;;is  defined to  expand a  call to  the maker  into a  call  to the
-    ;;constructor.
+				  maker-transformer the-public-constructor)
+    ;;Build and return a syntax object holding the maker definitions for
+    ;;this  class.  If  no maker  is  specified: we  want the  following
+    ;;output forms with which MAKE* expansions equal MAKE expansions:
+    ;;
+    ;;	(define-syntax THE-MAKER
+    ;;	  (syntax-rules ()
+    ;;	    ((_ . ?args)
+    ;;	     (THE-PUBLIC-CONSTRUCTOR . ?args)))
+    ;;
+    ;;if a maker is specified, but no maker transformer is specified: we
+    ;;want the following  output forms, with which MAKE*  expands to the
+    ;;maker constructor:
+    ;;
+    ;;  (define-maker (THE-MAKER . MAKER-POSITIONAL-ARGS)
+    ;;    THE-MAKER-CONSTRUCTOR MAKER-OPTIONAL-ARGS)
+    ;;
+    ;;if both a  maker and a maker transformer  are specified, there are
+    ;;two cases:  (1) the specified maker transformer  is an identifier,
+    ;;so we want the following output forms:
+    ;;
+    ;;  (define-maker (THE-MAKER . MAKER-POSITIONAL-ARGS)
+    ;;    (MAKER-TRANSFORMER the-maker-constructor)
+    ;;    MAKER-OPTIONAL-ARGS)
+    ;;
+    ;;(2) the specified  maker transformer is an expression,  so we want
+    ;;the following output forms:
+    ;;
+    ;;  (define-maker (THE-MAKER . MAKER-POSITIONAL-ARGS)
+    ;;    (the-maker-transformer the-maker-constructor)
+    ;;    MAKER-OPTIONAL-ARGS)
+    ;;  (define-syntax the-maker-transformer
+    ;;    MAKER-TRANSFORMER)
     ;;
     ;;THE-MAKER must be an identifier representing the name of the maker
     ;;macro for this class;  THE-MAKER-CONSTRUCTOR must be an identifier
@@ -1038,16 +1071,34 @@
     ;;maker  optional clauses.   It  must  be false  when  no maker  was
     ;;declared.
     ;;
-    ;;PUBLIC-CONSTRUCTOR  must  be an  identifier  bound  to the  public
+    ;;MAKER-TRANSFORMER  must be  false or  a syntax  object if  a maker
+    ;;transformer is  specified; the syntax object can  be an identifier
+    ;;or not.
+    ;;
+    ;;THE-PUBLIC-CONSTRUCTOR must  be an identifier bound  to the public
     ;;constructor for the class, to be used when no maker was declared.
     ;;
-    (if (or maker-positional-args maker-optional-args)
-	#`(define-maker (#,the-maker #,@maker-positional-args)
-	    #,the-maker-constructor #,maker-optional-args)
-      #`(define-syntax #,the-maker
-	  (syntax-rules ()
-	    ((_ . ?args)
-	     (#,public-constructor . ?args))))))
+    (cond ((not (or maker-positional-args maker-optional-args))
+	   ;; no maker defined
+	   #`(define-syntax #,the-maker
+	       (syntax-rules ()
+		 ((_ . ?args)
+		  (#,the-public-constructor . ?args)))))
+	  ((not maker-transformer)
+	   ;; maker defined without maker transformer
+	   #`(define-maker (#,the-maker #,@maker-positional-args)
+	       #,the-maker-constructor #,maker-optional-args))
+	  ((identifier? maker-transformer)
+	   ;; maker defined with identifier maker transformer
+	   #`(define-maker (#,the-maker #,@maker-positional-args)
+	       (#,maker-transformer #,the-maker-constructor) #,maker-optional-args))
+	  (else
+	   ;; maker defined with expression maker transformer
+	   #`(begin
+	       (define-maker (#,the-maker #,@maker-positional-args)
+		 (the-maker-transformer #,the-maker-constructor) #,maker-optional-args)
+	       (define-syntax the-maker-transformer #,maker-transformer))
+	   )))
 
   (define (%synner msg subform)
     (syntax-violation 'define-class

@@ -1,4 +1,4 @@
-;;; -*- coding: utf-8-unix -*-
+;;; -*- coding: utf-8 -*-
 ;;;
 ;;;Part of: Nausicaa/Scheme
 ;;;Contents: tests for (classes)
@@ -1979,7 +1979,7 @@
     #f)
 
 ;;; --------------------------------------------------------------------
-;;; no maker
+;;; no maker, defaults to the public protocol
 
   (let ()
     (define-class <alpha>
@@ -1988,6 +1988,99 @@
     (check	;when no MAKER is defined default to public constructor
 	(is-a? (make* <alpha> 1 2) <alpha>)
       => #t)
+
+    #f)
+
+;;; --------------------------------------------------------------------
+;;; maker transformer
+
+  (let ()	;identifier transformer
+
+    (define-class <alpha>
+      (fields a b)
+      (maker (a)
+	     (b 2))
+      (maker-transformer transformer))
+
+    (define-syntax transformer
+      (syntax-rules ()
+	((_ ?constructor ?a ?b)
+	 (?constructor (+ 1 ?a) (+ 2 ?b)))))
+
+    (check
+	(let ((o (make <alpha> 1 2)))
+	  (with-class ((o <alpha>))
+	    (list o.a o.b)))
+      => '(1 2))
+
+    (check
+	(let ((o (make* <alpha> 1)))
+	  (with-class ((o <alpha>))
+	    (list o.a o.b)))
+      => '(2 4))
+
+    (check
+	(let ((o (make* <alpha> 1 (b 20))))
+	  (with-class ((o <alpha>))
+	    (list o.a o.b)))
+      => '(2 22))
+
+    #f)
+
+  (let ()	;expression transformer
+
+    (define-class <alpha>
+      (fields a b)
+      (maker (a)
+	     (b 2))
+      (maker-transformer
+       (lambda (stx)
+	 (syntax-case stx ()
+	   ((_ ?constructor ?a ?b)
+	    #'(?constructor (+ 1 ?a) (+ 2 ?b)))))))
+
+    (check
+	(let ((o (make <alpha> 1 2)))
+	  (with-class ((o <alpha>))
+	    (list o.a o.b)))
+      => '(1 2))
+
+    (check
+	(let ((o (make* <alpha> 1)))
+	  (with-class ((o <alpha>))
+	    (list o.a o.b)))
+      => '(2 4))
+
+    (check
+	(let ((o (make* <alpha> 1 (b 20))))
+	  (with-class ((o <alpha>))
+	    (list o.a o.b)))
+      => '(2 22))
+
+    #f)
+
+  (let ()	;maker-transformer without maker
+
+    (define-class <alpha>
+      (fields a b)
+      (maker-transformer transformer))
+
+    (define-syntax transformer
+      (syntax-rules ()
+	((_ ?constructor ?a ?b)
+	 (?constructor (+ 1 ?a) (+ 2 ?b)))))
+
+    (check
+	(let ((o (make <alpha> 1 2)))
+	  (with-class ((o <alpha>))
+	    (list o.a o.b)))
+      => '(1 2))
+
+    (check
+	(let ((o (make* <alpha> 1 2)))
+	  (with-class ((o <alpha>))
+	    (list o.a o.b)))
+      => '(1 2))
 
     #f)
 

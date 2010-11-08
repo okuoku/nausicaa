@@ -858,7 +858,7 @@
     do/with-class			do*/with-class
 
     ;; auxiliary syntaxes
-    inherit predicate maker setter getter bindings
+    inherit predicate maker maker-transformer setter getter bindings
     public-protocol maker-protocol superclass-protocol virtual-fields
     methods method method-syntax
 
