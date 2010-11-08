@@ -1,0 +1,50 @@
+@node identifier properties
+@chapter Expand--time identifier properties
+
+
+The library @library{identifier-properties} allows the association of
+objects to identifiers at expand time, using other identifiers as
+keywords.  Useless examples:
+
+@example
+(import (rnrs)
+  (identifier-properties)
+  (syntax-utilities))
+
+(define-auxiliary-syntax type)
+
+(define a "ciao")
+(define-identifier-property a type 'string)
+
+(define b 123)
+(define-identifier-property b type 'number)
+
+(define-syntax get-type
+  (lambda (stx)
+    (syntax-case stx ()
+      ((_ ?id)
+       (lookup-identifier-property #'?id #'type)))))
+
+(get-type a) @result{} string
+(get-type b) @result{} int
+@end example
+
+
+@deffn Syntax define-identifier-property @var{subject} @var{key} @var{value}
+Expand to a dummy definition; associate @var{value} to the identifier
+@var{subject} using the identifier @var{key} as key.
+@end deffn
+
+
+@defun lookup-identifier-property @var{subject} @var{key}
+@defunx lookup-identifier-property @var{subject} @var{key} @var{default}
+Function to be invoked at expand--time (typically in the body of a macro
+transformer); retrieve the value associated to the identifier
+@var{subject} using the identifeir @var{key} as key.  If no property is
+found, return @var{default} which defaults to false.
+
+This function is exported for expand by the library
+@library{identifier-properties}.
+@end defun
+
+@c end of file

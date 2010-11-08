@@ -36,19 +36,30 @@
 
 (parametrise ((check-test-name	'basic))
 
-  (define-syntax doit
-    (lambda (stx)
-      (syntax-case stx ()
-	((_ ?id)
-	 (begin
-	   (write (syntax->datum (lookup-identifier-property #'?id #'type)))
-	   (newline)
-	   #'(begin #f))))))
+  (let ((a "ciao")
+	(b 123))
 
-  (define a "ciao")
-  (define-identifier-property a type int)
-  (doit a)
+    (define-syntax get-type
+      (lambda (stx)
+	(syntax-case stx ()
+	  ((_ ?id)
+	   (lookup-identifier-property #'?id #'type)))))
 
+    (define-syntax get-spiffy
+      (lambda (stx)
+	(syntax-case stx ()
+	  ((_ ?id)
+	   (lookup-identifier-property #'?id #'spiffy)))))
+
+    (define-identifier-property a type 'int)
+
+    (check (get-type a) => 'int)
+    (check (get-type b) => #f)
+
+    (check (get-spiffy a) => #f)
+    (check (get-spiffy b) => #f)
+
+    #f)
   #t)
 
 

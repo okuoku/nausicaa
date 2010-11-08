@@ -30,25 +30,24 @@
   (export lookup-identifier-property id-hash $property-tables)
   (import (rnrs))
 
-
-(define (id-hash id)
-  (assert (identifier? id))
-  (symbol-hash (syntax->datum id)))
+  (define (id-hash id)
+    (assert (identifier? id))
+    (symbol-hash (syntax->datum id)))
 
-(define $property-tables
-  (make-hashtable id-hash free-identifier=?))
+  (define $property-tables
+    (make-hashtable id-hash free-identifier=?))
 
-(define (lookup-identifier-property subject key)
-  (assert (identifier? subject))
-  (assert (identifier? key))
-  (let ((table (hashtable-ref $property-tables key #f)))
-    (if table
-	(hashtable-ref table subject #f)
-      (assertion-violation 'lookup-identifier-property "unknown property key" key))))
-
-
-;;;; done
-
-)
+  (define lookup-identifier-property
+    (case-lambda
+     ((subject key)
+      (lookup-identifier-property subject key #f))
+     ((subject key default)
+      (assert (identifier? subject))
+      (assert (identifier? key))
+      (let ((table (hashtable-ref $property-tables key #f)))
+	(if table
+	    (hashtable-ref table subject default)
+	  default)))))
+  )
 
 ;;; end of file
