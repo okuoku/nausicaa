@@ -48,6 +48,7 @@
   (only (old-generics))
   (only (generics))
   (only (generics object-to-string))
+  (only (identifier-properties))
   (only (profiling))
   (only (enumerations))
   (only (lists))
