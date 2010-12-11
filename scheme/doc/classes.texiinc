@@ -2307,19 +2307,9 @@ Access the cdr of the pair.
 
 
 @deftp {Foreign Class} @aclass{list}
-Conventional type of objects satisfying @func{list?}.
+Conventional type of objects satisfying @func{list?}.  It is derived
+from @class{pair}.
 @end deftp
-
-
-@defcv {Immutable Virtual Field} @aclass{list} car
-Access the car of the list.
-@end defcv
-
-
-@defcv {Immutable Virtual Field} @aclass{list} cdr
-Access the cdr of the list.
-@end defcv
-
 
 @defcv {Immutable Virtual Field} @aclass{list} length
 Access the length of the list.
@@ -2328,6 +2318,24 @@ Access the length of the list.
 
 @defcv {Immutable Virtual Field} @aclass{list} null?
 Return true if the list is empty.
+@end defcv
+
+
+@defcv {Immutable Virtual Field} @aclass{list} caar
+@defcvx {Immutable Virtual Field} @aclass{list} cadr
+@defcvx {Immutable Virtual Field} @aclass{list} cdar
+@defcvx {Immutable Virtual Field} @aclass{list} cddr
+@defcvx {Immutable Virtual Field} @aclass{list} caaar
+@defcvx {Immutable Virtual Field} @aclass{list} caadr
+@defcvx {Immutable Virtual Field} @aclass{list} cadar
+@defcvx {Immutable Virtual Field} @aclass{list} caddr
+@defcvx {Immutable Virtual Field} @aclass{list} cdaar
+@defcvx {Immutable Virtual Field} @aclass{list} cdadr
+@defcvx {Immutable Virtual Field} @aclass{list} cddar
+@defcvx {Immutable Virtual Field} @aclass{list} cdddr
+Apply the corresponding function to the list.  Notice that (as a special
+exception to goot style) referencing these virtual fields may raise an
+error if the list structure is not suitable.
 @end defcv
 
 
