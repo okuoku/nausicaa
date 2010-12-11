@@ -2326,8 +2326,18 @@ Access the length of the list.
 @end defcv
 
 
+@defcv {Immutable Virtual Field} @aclass{list} null?
+Return true if the list is empty.
+@end defcv
+
+
 @defmethod @aclass{list} find @var{proc}
 Apply @func{find} to the list.
+@end defmethod
+
+
+@defmethod @aclass{list} reverse @var{proc}
+Apply @func{reverse} to the list.
 @end defmethod
 
 

@@ -1912,12 +1912,18 @@
   (nongenerative nausicaa:builtin:<list>)
   (inherit <pair>)
   (predicate list?)
-  (virtual-fields (immutable length length))
+  (virtual-fields (immutable length length)
+		  (immutable null?  null?))
 
   (method-syntax find
     (syntax-rules ()
       ((_ o proc)
        (find proc o))))
+
+  (method-syntax reverse
+    (syntax-rules ()
+      ((_ o)
+       (reverse o))))
 
   (method-syntax for-all
     (syntax-rules ()
