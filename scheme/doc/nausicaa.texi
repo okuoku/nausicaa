@@ -456,6 +456,10 @@ Revised^6 Report on the algorithmic language Scheme
 @var{\THING\n}
 @end macro
 
+@macro varni{THING}
+@var{\THING\n+1}
+@end macro
+
 @macro vark{THING}
 @var{\THING\k}
 @end macro

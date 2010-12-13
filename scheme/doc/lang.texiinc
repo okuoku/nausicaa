@@ -162,100 +162,107 @@ Examples:
 @section Binding constructs
 
 
-@deffn Syntax and-let* @ameta{formals} . @ameta{body}
+@deffn Syntax and-let* @var{formals} . @var{body}
 Like an ordinary @func{and}, an @func{and-let*} special form evaluates
-the expressions in @meta{formals} in order until the first one that
+the expressions in @var{formals} in order until the first one that
 yields @false{}.  Unlike @func{and}, however, a non--@false{} result of
 one expression can be bound to a fresh variable and used in the
 subsequent expressions.  @func{and-let*} is a cross--breed between
 @func{let*} and @func{and}.
 
-@meta{formals} can be the empty list, or a list of the following
+@var{formals} can be the empty list, or a list of the following
 elements:
 
 @table @code
-@item (@cmeta{varname} @cmeta{expression})
-evaluate @meta{expression}; if the result is @false{}: return @false{}
-immediately, else bind the result to @meta{varname}; @meta{varname} is
-available to the rest of the @meta{expressions}, and the @code{BODY};
+@item (@var{varname} @var{expression})
+evaluate @var{expression}; if the result is @false{}: return @false{}
+immediately, else bind the result to @var{varname}; @var{varname} is
+available to the rest of the @var{expressions}, and the @code{BODY};
 
-@item @cmeta{expression}
-evaluate @meta{expression}; if the result is @false{}: return @false{}
+@item @var{expression}
+evaluate @var{expression}; if the result is @false{}: return @false{}
 immediately;
 
-@item @cmeta{bound-variable}
-look up @meta{bound-variable}; if the value is @false{}; return @false{}
-immediately; @meta{bound-varname} is available to the rest of the
-@meta{expressions}, and the @meta{body}.
+@item @var{bound-variable}
+look up @var{bound-variable}; if the value is @false{}; return @false{}
+immediately; @var{bound-varname} is available to the rest of the
+@var{expressions}, and the @var{body}.
 @end table
 
-If all the @meta{expression}s and @meta{bound-variable}s in @meta{formals}
-evaluate to true, the forms in @meta{body} are evaluated and the result
+If all the @var{expression}s and @var{bound-variable}s in @var{formals}
+evaluate to true, the forms in @var{body} are evaluated and the result
 of the last one returned.
 @end deffn
 
 @c ------------------------------------------------------------
 
-@deffn Syntax begin0-let ((@ametao{var} @ametao{expr}) (@ameta{var} @ameta{expr}) ...) @ametao{form} @ameta{form} ...
-@deffnx Syntax begin0-let (((@ametao{var} ...) @ametao{expr}) ((@ameta{var} ...) @ameta{expr}) ...) @ametao{form} @ameta{form} ...
-Bind the result of @meta{expr} to @meta{var} as in @func{let} or
+@deffn Syntax begin0-let ((@varo{var} @varo{expr}) (@var{var} @var{expr}) ...) @varo{form} @var{form} ...
+@deffnx Syntax begin0-let (((@varo{var} ...) @varo{expr}) ((@var{var} ...) @var{expr}) ...) @varo{form} @var{form} ...
+Bind the result of @var{expr} to @var{var} as in @func{let} or
 @func{let-values}, evaluate the forms in the resulting environment, then
-return @metao{var} possibly as multiple values.
+return @varo{var} possibly as multiple values.
 @end deffn
 
 
-@deffn Syntax begin0-let* ((@ametao{var} @ametao{expr}) (@ameta{var} @ameta{expr}) ...) @ametao{form} @ameta{form} ...
-@deffnx Syntax begin0-letrec ((@ametao{var} @ametao{expr}) (@ameta{var} @ameta{expr}) ...) @ametao{form} @ameta{form} ...
+@deffn Syntax begin0-let* ((@varo{var} @varo{expr}) (@var{var} @var{expr}) ...) @varo{form} @var{form} ...
+@deffnx Syntax begin0-letrec ((@varo{var} @varo{expr}) (@var{var} @var{expr}) ...) @varo{form} @var{form} ...
 Like @func{begin0-let}, but bind the identifiers using @func{let*} and
 @func{letrec}.
 @end deffn
 
 @c ------------------------------------------------------------
 
-@deffn Syntax receive @ameta{formals} @ameta{expression} . @ameta{body}
+@deffn Syntax receive @var{formals} @var{expression} . @var{body}
 The mechanism provided for binding identifiers to the values of a
 multiple--valued expression are @func{call-with-values},
 @func{let-values}, @func{let*-values}.  @func{receive} is another
 concise and readable syntax for creating such bindings.
 
-@meta{formals} can have any of 3 forms:
+@var{formals} can have any of 3 forms:
 
 @table @code
-@item (@cmetai{variable} ... @cmetan{variable})
+@item (@vari{variable} ... @varn{variable})
 The environment in which the @func{receive}--expression is evaluated is
-extended by binding @metai{variable}, ..., @metan{variable} to fresh
-locations.  The @meta{expression} is evaluated, and its values are
-stored into those locations (it is an error if @meta{expression} does
+extended by binding @vari{variable}, ..., @varn{variable} to fresh
+locations.  The @var{expression} is evaluated, and its values are
+stored into those locations (it is an error if @var{expression} does
 not have exactly @math{N} values).
 
-@item @cmeta{variable}
+@item @var{variable}
 The environment in which the @func{receive}--expression is evaluated is
-extended by binding @meta{variable} to a fresh location.  The
-@meta{expression} is evaluated, its values are converted into a newly
+extended by binding @var{variable} to a fresh location.  The
+@var{expression} is evaluated, its values are converted into a newly
 allocated list, and the list is stored in the location bound to
-@meta{variable}.
+@var{variable}.
 
-@item (@cmetai{variable} ... @cmetan{variable} . @cmetani{variable})
+@item (@vari{variable} ... @varn{variable} . @varni{variable})
 The environment in which the @func{receive}--expression is evaluated is
-extended by binding @metai{variable}, ..., @metani{variable} to fresh
-locations.  The @meta{expression} is evaluated.  Its first @math{N}
-values are stored into the locations bound to @metai{variable}, ...,
-@metan{variable}.  Any remaining values are converted into a newly
+extended by binding @vari{variable}, ..., @varni{variable} to fresh
+locations.  The @var{expression} is evaluated.  Its first @math{N}
+values are stored into the locations bound to @vari{variable}, ...,
+@varn{variable}.  Any remaining values are converted into a newly
 allocated list, which is stored into the location bound to
-@metani{variable} (it is an error if @meta{expression} does not have at
+@varni{variable} (it is an error if @var{expression} does not have at
 least @math{N} values.
 @end table
 
-In any case, the expressions in @meta{body} are evaluated sequentially in
+In any case, the expressions in @var{body} are evaluated sequentially in
 the extended environment.  The results of the last expression in the
-body are the values of the @meta{receive}--expression.
+body are the values of the @var{receive}--expression.
 @end deffn
 
 @c ------------------------------------------------------------
 
-@deffn Syntax define-values (@ameta{var0} @ameta{var} ...) @ameta{form0} @ameta{form} ...
+@deffn Syntax define-values (@var{var0} @var{var} ...) @var{form0} @var{form} ...
 Evaluate the given forms and bind the, possibly multiple, result of the
-last one to the given @meta{var} identifiers.
+last one to the given @var{var} identifiers.
+@end deffn
+
+
+@deffn Syntax define-constant-values (@var{var0} @var{var} ...) @var{form0} @var{form} ...
+Evaluate the given forms and bind the, possibly multiple, result of the
+last one to the given @var{var} identifiers.  Make the @var{var}
+identifiers immutable like @func{define-constant} does.
 @end deffn
 
 @c page

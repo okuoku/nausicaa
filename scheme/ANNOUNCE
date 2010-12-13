@@ -46,7 +46,8 @@ Notes for --- tag 0.2a0
 * Starting with this revision Larceny and Ikarus are no more
   supported.
 
-* Added WITH-ACCESSOR-AND-MUTATOR to (language-extensions).
+* Added WITH-ACCESSOR-AND-MUTATOR and DEFINE-CONSTANT-VALUES
+  to (language-extensions).
 
 * Removed the (records) library.  Replaced it with (classes)
   and (generics).

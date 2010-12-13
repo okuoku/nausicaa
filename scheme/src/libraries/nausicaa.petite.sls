@@ -785,7 +785,8 @@
 
     ;; simple syntaxes
     dotimes dolist loop-upon-list ensure
-    define-values define-constant define-syntax*
+    define-values define-constant define-constant-values
+    define-syntax*
 
     ;; miscellaneous
     symbol*->string symbol->string/maybe

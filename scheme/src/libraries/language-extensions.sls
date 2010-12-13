@@ -186,7 +186,8 @@
     set-cons! incr! decr!
     define-identifier-accessor-mutator identifier-syntax-accessor-mutator
     with-accessor-and-mutator
-    define-inline define-values define-constant define-syntax*
+    define-inline define-values define-constant define-constant-values
+    define-syntax*
     syntax-rules* syntax-case* partial-macro-expand partial-macro-expand-and-print)
   (import (rnrs)
     (pretty-print))
@@ -239,6 +240,30 @@
 		 (set! ?var  VAR)
 		 ...
 		 VAR0))))))))
+
+(define-syntax define-constant-values
+  (lambda (stx)
+    (syntax-case stx ()
+      ((_ (?var ... ?var0) ?form0 ?form ...)
+       (let ((stx #'(?var ... ?var0)))
+	 (with-syntax (((VAR ... VAR0) (generate-temporaries stx))
+		       ((ID  ... ID0)  (generate-temporaries stx)))
+	   #'(begin
+	       (define (dummy)
+		 ?form0 ?form ...)
+	       (define ID  #f)
+	       ...
+	       (define ID0
+		 (let-values (((VAR ... VAR0) (dummy)))
+		   (set! ID  VAR)
+		   ...
+		   VAR0))
+	       (define-syntax ?var
+		 (identifier-syntax ID))
+	       ...
+	       (define-syntax ?var0
+		 (identifier-syntax ID0))
+	       )))))))
 
 
 (define-syntax recursion
