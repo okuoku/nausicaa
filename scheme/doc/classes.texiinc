@@ -992,11 +992,11 @@ introduced by @func{with-class}.
 
 A label allows us to take an identifier (bound to whatever value) and
 define new identifiers representing virtual fields, methods, a setter
-and a getter, a parent label.  Labels cannot be used in the inheritance
-hierarchy of classes, and vice versa.  Labels can be used by
-@func{with-class} and all its derived syntaxes; labels @strong{cannot}
-be used to dispatch generic functions defined by the @library{generics}
-library (foreign classes can).
+and a getter, a parent label or class.  Labels can inherit from a class,
+but not vice versa.  Labels can be used by @func{with-class} and all its
+derived syntaxes; labels @strong{cannot} be used to dispatch generic
+functions defined by the @library{generics} library (foreign classes
+can).
 
 
 @defmac define-label @var{name} @var{clause} ...
@@ -1009,8 +1009,12 @@ The following clauses are available in the body of a label definition:
 
 @table @func
 @item inherit
-Select a parent label; it has the same syntax and semantics of the
-corresponding clause for classes.
+Select a parent label or class; it has the same syntax and semantics of
+the corresponding clause for classes.  The default is to inherit
+everything from the parent but concrete fields; this is fine when the
+parent is another label, but when the parent is a class we should use
+the @code{concrete-fields} option to enable bindings for the parent's
+concrete fields.
 
 @item predicate
 Select a predicate function to be used to identify values with the

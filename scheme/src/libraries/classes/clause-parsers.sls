@@ -509,7 +509,7 @@
   ;;INHERIT clause and  parse it; there must be  only one INHERIT clause
   ;;in CLAUSES.
   ;;
-  ;;Return  four values:  an identifier  representing the  superlabel, 3
+  ;;Return  five values:  an identifier  representing the  superlabel, 4
   ;;booleans representing the inherit  options.  If no INHERIT clause is
   ;;found: return "<top>-superlabel" and all true.
   ;;
@@ -523,19 +523,23 @@
       superlabel-name))
   (let ((clauses (filter-clauses #'inherit clauses)))
     (if (null? clauses)
-	(values #'<top>-superlabel #t #t #t)
+	(values #'<top>-superlabel #f #t #t #t)
       (syntax-case (car clauses) (inherit)
 
 	((inherit ?superlabel-name)
 	 (identifier? #'?superlabel-name)
-	 (values (select-superlabel #'?superlabel-name) #t #t #t))
+	 (values (select-superlabel #'?superlabel-name) #f #t #t #t))
 
 	((inherit ?superlabel-name (?inherit-option ...))
 	 (all-identifiers? #'(?superlabel-name ?inherit-option ...))
-	 (let-values (((inherit-virtual-fields? inherit-methods? inherit-setter-and-getter?)
+	 (let-values (((inherit-concrete-fields?
+			inherit-virtual-fields?
+			inherit-methods?
+			inherit-setter-and-getter?)
 		       (%parse-label-inherit-options #'(?inherit-option ...) synner)))
 	   (values (select-superlabel #'?superlabel-name)
-		   inherit-virtual-fields? inherit-methods? inherit-setter-and-getter?)))
+		   inherit-concrete-fields? inherit-virtual-fields?
+		   inherit-methods? inherit-setter-and-getter?)))
 
 	(_
 	 (synner "invalid inherit clause" (car clauses)))
@@ -567,39 +571,45 @@
 (define (%parse-label-inherit-options inherit-options/stx synner)
   ;;Here we already know that INHERIT-OPTIONS is a list of identifiers.
   ;;
-  (let next-option ((virtual-fields	#t)
+  (let next-option ((concrete-fields	#f)
+		    (virtual-fields	#t)
 		    (methods		#t)
 		    (setter-and-getter	#t)
 		    (options		(syntax->datum inherit-options/stx)))
     (if (null? options)
-	(values virtual-fields methods setter-and-getter)
+	(values concrete-fields virtual-fields methods setter-and-getter)
       (case (car options)
 
 	((all everything)
-	 (next-option #t #t #t (cdr options)))
+	 (next-option #t #t #t #t (cdr options)))
 
 	((dry nothing)
-	 (next-option #f #f #f (cdr options)))
+	 (next-option #f #f #f #f (cdr options)))
+
+	((concrete-fields)
+	 (next-option #t virtual-fields methods setter-and-getter (cdr options)))
+	((no-concrete-fields)
+	 (next-option #f virtual-fields methods setter-and-getter (cdr options)))
 
 	((virtual-fields)
-	 (next-option #t methods setter-and-getter (cdr options)))
+	 (next-option concrete-fields #t methods setter-and-getter (cdr options)))
 	((no-virtual-fields)
-	 (next-option #f methods setter-and-getter (cdr options)))
+	 (next-option concrete-fields #f methods setter-and-getter (cdr options)))
 
 	((fields)
-	 (next-option #t methods setter-and-getter (cdr options)))
+	 (next-option #t #t methods setter-and-getter (cdr options)))
 	((no-fields)
-	 (next-option #f methods setter-and-getter (cdr options)))
+	 (next-option #t #f methods setter-and-getter (cdr options)))
 
 	((methods)
-	 (next-option virtual-fields #t setter-and-getter (cdr options)))
+	 (next-option concrete-fields virtual-fields #t setter-and-getter (cdr options)))
 	((no-methods)
-	 (next-option virtual-fields #f setter-and-getter (cdr options)))
+	 (next-option concrete-fields virtual-fields #f setter-and-getter (cdr options)))
 
 	((setter-and-getter)
-	 (next-option virtual-fields methods #t (cdr options)))
+	 (next-option concrete-fields virtual-fields methods #t (cdr options)))
 	((no-setter-and-getter)
-	 (next-option virtual-fields methods #f (cdr options)))
+	 (next-option concrete-fields virtual-fields methods #f (cdr options)))
 
 	(else
 	 (synner "invalid inheritance option" (car options)))))))

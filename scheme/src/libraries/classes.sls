@@ -1148,7 +1148,8 @@
   (let-values
       ;;The superlabel  identifier or false;  the inherit options:
       ;;all boolean values.
-      (((superlabel-identifier inherit-virtual-fields? inherit-methods? inherit-setter-and-getter?)
+      (((superlabel-identifier
+	 inherit-concrete-fields? inherit-virtual-fields? inherit-methods? inherit-setter-and-getter?)
 	(%collect-clause/label/inherit clauses %synner))
 
        ;;False or an  identifier representing the custom predicate
@@ -1236,6 +1237,7 @@
 	 (THE-PREDICATE			predicate-identifier)
 	 (CUSTOM-PREDICATE		custom-predicate)
 	 ((METHOD-DEFINITION ...)	(append method-definitions syntax-definitions))
+	 (INHERIT-CONCRETE-FIELDS?	inherit-concrete-fields?)
 	 (INHERIT-VIRTUAL-FIELDS?	inherit-virtual-fields?)
 	 (INHERIT-METHODS?		inherit-methods?)
 	 (INHERIT-SETTER-AND-GETTER?	inherit-setter-and-getter?)
@@ -1272,6 +1274,7 @@
 						     ?inherit-setter-and-getter)))
 		 #'(with-label-bindings
 		    (?use-dot-notation
+		     ?inherit-concrete-fields
 		     ?inherit-virtual-fields
 		     ?inherit-methods
 		     ?inherit-setter-and-getter)
@@ -1292,7 +1295,8 @@
 	      (if (syntax->datum bool) form '()))
 	    (syntax-case stx ()
 	      ((_ (?use-dot-notation
-		   ?inherit-virtual-fields ?inherit-methods ?inherit-setter-and-getter)
+		   ?inherit-concrete-fields ?inherit-virtual-fields
+		   ?inherit-methods ?inherit-setter-and-getter)
 		  ?variable-name ?body0 ?body (... ...))
 	       (let ((use-dot-notation? (syntax->datum #'?use-dot-notation)))
 		 (with-syntax
@@ -1309,7 +1313,7 @@
 				(make-setter-getter-bindings #'?variable-name #'SETTER #'GETTER))))
 		   #'(THE-SUPERLABEL
 		      :with-class-bindings-of (?use-dot-notation
-					       #f
+					       INHERIT-CONCRETE-FIELDS?
 					       INHERIT-VIRTUAL-FIELDS?
 					       INHERIT-METHODS?
 					       INHERIT-SETTER-AND-GETTER?)

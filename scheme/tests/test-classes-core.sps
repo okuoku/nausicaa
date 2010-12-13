@@ -3493,6 +3493,35 @@
 
     #f)
 
+
+  (let ()		;parent is a class
+
+    (define-class <alpha>
+      (fields a b z))
+
+    (define-label <beta>
+      (inherit <alpha>
+	(concrete-fields))
+      (virtual-fields c d z))
+
+    (define (<beta>-c o) 3)
+    (define (<beta>-d o) 4)
+    (define (<beta>-z o) 99)
+
+    (check
+	(let/with-class (((o <alpha>) (make <alpha>
+					1 2 3)))
+	  (list o.a o.b o.z))
+      => '(1 2 3))
+
+    (check
+	(let*/with-class (((p <alpha>)	(make <alpha> 1 2 -3))
+			  ((o <beta>)	p))
+	  (list o.a o.b o.c o.d o.z))
+      => '(1 2 3 4 99))
+
+    #f)
+
   #t)
 
 
