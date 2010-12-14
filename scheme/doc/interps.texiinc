@@ -11,7 +11,7 @@ Evaluation of code is handled by ``interpreter'' objects; examples:
 (import (nausicaa) (interps))
 
 (let (((o <interp>) (make* <interp>
-                      (:imports '((rnrs))))))
+                      (imports: '((rnrs))))))
   (o.eval '(let ()
              (define a 1)
              (define b 2)
@@ -19,10 +19,10 @@ Evaluation of code is handled by ``interpreter'' objects; examples:
 @result{} 3
 
 (let (((o <interp>) (make* <interp>
-                      (:imports '((rnrs))))))
+                      (imports: '((rnrs))))))
   (o.eval '(let ()
              (define-global a 1)
-             #f))
+             (values)))
   (o.eval '(+ a 2)))
 @result{} 3
 @end example
@@ -93,26 +93,27 @@ interpreter.
 @end defcv
 
 
-@deffn Syntax {make @aclass{interp}} @ameta{import specs}
+@deffn Syntax {make @aclass{interp}} @var{import-specs}
 Expand to an expression which evaluates to a new @class{interp} object.
 
-@meta{import specs} must be an expression evaluating to a list of
-library import specifications; the list is used to build the environment
-in which code will be evaluated.  The environment cannot be modified.
+@var{import-specs} must be an expression evaluating to a list of library
+import specifications; the list is used to build the environment in
+which code will be evaluated.  The environment cannot be modified.
 @end deffn
 
 
-@deffn Syntax {make* @aclass{interp}} @ameta{clause}
+@deffn Syntax {make* @aclass{interp}} @var{clause} ...
+@deffnx {Auxiliary Syntax} imports: @var{import-specs}
 This syntax is a maker, @nauref{makers, Makers}.  Expand to an
 expression which evaluates to a new @class{interp} object.  The
 following clauses are recognised:
 
 @table @code
-@item :imports @cmeta{import specs}
-@meta{import specs} must be an expression evaluating to a list of
-library import specifications; the list is used to build the environment
-in which code will be evaluated.  The environment cannot be modified.
-The default value causes the @library{rnrs} library to be imported.
+@item imports: @var{import-specs}
+@var{import-specs} must be an expression evaluating to a list of library
+import specifications; the list is used to build the environment in
+which code will be evaluated.  The environment cannot be modified.  The
+default value causes the @library{rnrs} library to be imported.
 @end table
 @end deffn
 
@@ -140,14 +141,15 @@ If such a variable does not exist: it is created.
 
 
 The following bindings are available to the code evaluated in an
-interpreter.
+interpreter, in additions to the ones selected by the import
+specifications.
 
 
-@deffn Syntax define-global @ameta{varname}
-@deffnx Syntax define-global @ameta{varname} @ameta{expression}
-@deffnx Syntax define-global (@ameta{varname} . @ameta{formals}) @ameta{expression}
+@deffn Syntax define-global @var{varname}
+@deffnx Syntax define-global @var{varname} @var{expression}
+@deffnx Syntax define-global (@var{varname} . @var{formals}) @var{expression}
 Define a global variable which will persist between successive code
-evaluations.  The first form binds @meta{varname} to the sentinel value,
+evaluations.  The first form binds @var{varname} to the sentinel value,
 @nauref{sentinel, The sentinel value} for details.
 
 What @func{define-global} does is to create an identifier macro which
@@ -201,7 +203,7 @@ set a variable in one @func{eval}, retrieve its value in a subsequent
 (let (((o <interp>) (make <interp> '((rnrs)))))
   (o.eval '(let ()
              (define-global woppa 123)
-             #f))
+             (values)))
   (o.eval 'woppa))
 @result{} 123
 @end example

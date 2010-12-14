@@ -27,9 +27,11 @@
 
 (library (interps variables)
   (export define-variable)
-  (import (rnrs)
+  (import (nausicaa)
+    (makers)
     (sentinel)
-    (syntax-utilities))
+    (syntax-utilities)
+    (interps variable-events))
 
 
 (define-syntax define-variable
@@ -48,11 +50,17 @@
 	     (identifier-syntax
 	      (_
 	       (call/cc (lambda (identifier-accessor-kont)
-			  (?eval-kont #f (list identifier-accessor-kont '?variable #f #f) #f))))
+			  (?eval-kont (make* <variable-reference>
+				       (kont:	identifier-accessor-kont)
+				       (name:	'?variable))))))
 	      ((set! _ ?e)
 	       (call/cc (lambda (identifier-mutator-kont)
-			  (?eval-kont #f (list identifier-mutator-kont  '?variable #t ?e) #f))))))
-	   (define dummy
+			  (?eval-kont (make* <variable-mutation>
+				       (kont:	identifier-mutator-kont)
+				       (name:	'?variable)
+				       (value:	?e))))))
+	      ))
+	   (define dummy ;we want the output form to keep the definition context
 	     (begin
 	       (set! ?variable ?expression)
 	       #f))))

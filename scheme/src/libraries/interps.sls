@@ -36,12 +36,20 @@
     <interp>			<interp>?
     <interp>-eval
     <interp>-variable-set!	<interp>-variable-ref
-    )
+
+    ;; auxiliary syntaxes
+    imports:)
   (import (nausicaa)
-    (conditions)
     (interps variables)
+    (interps variable-events)
     (rnrs eval)
     (sentinel))
+
+
+;;;; helpers
+
+(define undefined-sentinel
+  (make-sentinel))
 
 
 (define-condition &interp-error
@@ -51,6 +59,9 @@
 
 (define-constant $default-import-specs
   '((only (interps variables) define-variable)))
+
+(define-auxiliary-syntaxes
+  imports:)
 
 (define-class <interp>
   (nongenerative nausicaa:interps:<interp>)
@@ -64,12 +75,27 @@
 		 (apply environment (append $default-import-specs list-of-import-specs))))))
 
   (maker ()
-	 (:imports '((rnrs))))
+	 (imports: '((rnrs))))
 
   (methods eval variable-ref variable-set!))
 
 
 (define (<interp>-eval (o <interp>) body)
+
+  (define-class <results>
+    (nongenerative interps:<results>)
+    (fields (immutable values)))
+
+  (define (end-of-eval vals)
+    (make <results>
+      vals))
+
+  (define-inline (raise-undefined-variable variable-name)
+    (raise (condition
+	    (make-who-condition 'interp-eval)
+	    (make-message-condition "attempt to access undefined variable in interpreter")
+	    (make-interp-error-condition o)
+	    (make-irritants-condition (list variable-name)))))
 
   (define vars-body
     (receive (keys vals)
@@ -80,48 +106,45 @@
 	      (reverse defs)
 	    (loop (+ 1 i) (cons `(define-global ,(vector-ref keys i) (quote ,(vector-ref vals i)))
 				defs)))))))
+  (define expression
+    `(call/cc (lambda (eval-kont)
+		(define-syntax define-global
+		  (syntax-rules ()
+		    ((_ . ?args)
+		     (define-variable eval-kont . ?args))))
+		(let ()
+		  (define define-variable) ;shadows the binding
+		  (define eval-kont)	   ;shadows the binding
+		  (call-with-values
+		      (lambda ()
+			,@vars-body ,body)
+		    (lambda vals
+		      ((quote ,end-of-eval) vals)))))))
 
-  (let* ((the-sentinel	(make-sentinel))
-	 (expression	`(call/cc (lambda (eval-kont)
-				    (define-syntax define-global
-				      (syntax-rules ()
-					((_ . ?args)
-					 (define-variable eval-kont . ?args))))
-				    (let ()
-				      (define define-variable) ;shadows the binding
-				      (define eval-kont) ;shadows the binding
-				      (let () ;allows redefinition of bindings
-					,@vars-body
-					(values (quote ,the-sentinel) #f ,body)))))))
-    (receive (keyword meta return-value)
-	(with-exception-handler
-	    (lambda (E)
-	      (if (interp-error-condition? E)
-		  E
-		(raise (condition E (make-interp-error-condition o)))))
-	  (lambda ()
-	    (eval expression o.eval-environment)))
-      (if (eq? keyword the-sentinel)
-	  return-value
-	(let ((variable-kont	(car    meta))
-	      (variable-name	(cadr   meta))
-	      (variable-mutate?	(caddr  meta))
-	      (variable-value	(cadddr meta)))
-	  (if variable-mutate?
-	      (begin
-		(hashtable-set! o.table-of-variables variable-name variable-value)
-		(variable-kont))
-	    (variable-kont
-	     (let* ((default (make-sentinel))
-		    (value   (hashtable-ref o.table-of-variables variable-name default)))
-	       (if (eq? value default)
-		   (raise
-		    (condition
-		     (make-who-condition 'interp-eval)
-		     (make-message-condition "attempt to access unset variable in interpreter")
-		     (make-interp-error-condition o)
-		     (make-irritants-condition (list variable-name))))
-		 value)))))))))
+  (let ((R (with-exception-handler
+	       (lambda (E)
+		 (if (interp-error-condition? E)
+		     E
+		   (raise (condition E (make-interp-error-condition o)))))
+	     (lambda ()
+	       (eval expression o.eval-environment)))))
+    (cond ((is-a? R <results>)
+	   (with-class ((R <results>))
+	     (apply values R.values)))
+	  ((is-a? R <variable-mutation>)
+	   (with-class ((R <variable-mutation>))
+	     (hashtable-set! o.table-of-variables R.name R.value)
+	     (R.kont)))
+	  ((is-a? R <variable-reference>)
+	   (with-class ((R <variable-reference>))
+	     (R.kont
+	      (let ((value (hashtable-ref o.table-of-variables R.name undefined-sentinel)))
+		(if (eq? value undefined-sentinel)
+		    (raise-undefined-variable R.name)
+		  value)))))
+	  (else
+	   (assertion-violation '<interp>-eval
+	     "invalid return value from interp evaluation" R)))))
 
 
 (define (<interp>-variable-set! (o <interp>) variable-name variable-value)

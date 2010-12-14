@@ -56,22 +56,40 @@
 
   (check
       (let (((o <interp>) (make* <interp>
-			    (:imports '((rnrs))))))
+			    (imports: '((rnrs))))))
 	(o.eval '(+ 1 2)))
     => 3)
 
   (check
       (let (((o <interp>) (make* <interp>
-			    (:imports '((rnrs))))))
+			    (imports: '((rnrs))))))
 	(o.eval '(begin (+ 1 2))))
     => 3)
 
   (check
       (let (((o <interp>) (make* <interp>
-			    (:imports '((rnrs))))))
+			    (imports: '((rnrs))))))
 	(o.eval '(+ 1 2))
 	(o.eval '(+ 1 4)))
     => 5)
+
+;;; --------------------------------------------------------------------
+;;; returning multiple values
+
+  (check
+      (receive (a b c)
+	  (let (((o <interp>) (make* <interp>
+				(imports: '((rnrs))))))
+	    (o.eval '(values 1 2 3)))
+	(list a b c))
+    => '(1 2 3))
+
+  (check
+      (let (((o <interp>) (make* <interp>
+			    (imports: '((rnrs))))))
+	(o.eval '(values))
+	#t)
+    => #t)
 
   #t)
 
@@ -99,7 +117,7 @@
       (let (((o <interp>) (make <interp> '((rnrs)))))
 	(o.eval '(let ()
 		   (define-global woppa 123)
-		   #f))
+		   (values)))
 	(o.eval '(begin woppa)))
     => 123)
 
