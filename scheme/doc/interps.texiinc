@@ -120,7 +120,8 @@ default value causes the @library{rnrs} library to be imported.
 
 @defmethod @aclass{interp} eval @var{sexp}
 Evaluate @var{sexp} in the environment of the interpreter.  Return the
-return value of the expression; @var{sexp} must return a single value.
+return value of the expression; @var{sexp} can return any number of
+values.
 @end defmethod
 
 
@@ -133,6 +134,61 @@ return @var{default} if the variable is not defined.
 @defmethod @aclass{interp} variable-set! @var{varname} @var{obj}
 Set @var{obj} as new value for variable @var{varname}, a Scheme symbol.
 If such a variable does not exist: it is created.
+@end defmethod
+
+
+@defmethod @aclass{interp} clone
+@defmethodx @aclass{interp} clone @var{filter}
+Build and return a clone of the interp; the clone's table of variables
+is populated with elements from the interp's table of variables
+according to @var{filter}.
+
+If @var{filter} is not used: all the variables are duplicated into the
+new interp; keys and values from the source table are stored in the new
+table as is (there is no deep copy of the values).
+
+When it is used, @var{filter} must accept @math{3} arguments: a symbol
+representing a variable name; a value representing the current
+variable's value; an object, unique according to @func{eq?}.
+
+@itemize
+@item
+If the variable must be stored in the new table: @var{filter} must
+return the variable's value, which can be the argument's value itself.
+@item
+If the variable must be discarded: @var{filter} must return the unique
+object.
+@end itemize
+
+The following example of @var{filter} causes the table to be
+transparently duplicated:
+
+@example
+(lambda (key val avoid)
+  val)
+@end example
+
+@noindent
+the following example of @var{filter} discards all the variables having
+a list as value and accepts all the others:
+
+@example
+(lambda (key val avoid)
+  (if (list? val)
+      avoid
+    val))
+@end example
+
+@noindent
+the following example of @var{filter} duplicates the spine of all the
+list values:
+
+@example
+(lambda (key val avoid)
+  (if (list? val)
+      (list-copy val)
+    val))
+@end example
 @end defmethod
 
 @c page

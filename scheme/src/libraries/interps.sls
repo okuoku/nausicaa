@@ -67,17 +67,19 @@
   (nongenerative nausicaa:interps:<interp>)
 
   (fields (immutable table-of-variables)
-	  (immutable eval-environment))
+	  (immutable eval-environment)
+	  (immutable import-specs))
 
   (protocol (lambda (make-top)
 	      (lambda (list-of-import-specs)
 		((make-top) (make-eq-hashtable)
-		 (apply environment (append $default-import-specs list-of-import-specs))))))
+		 (apply environment (append $default-import-specs list-of-import-specs))
+		 list-of-import-specs))))
 
   (maker ()
 	 (imports: '((rnrs))))
 
-  (methods eval variable-ref variable-set!))
+  (methods eval variable-ref variable-set! clone))
 
 
 (define (<interp>-eval (o <interp>) body)
@@ -151,6 +153,22 @@
 
 (define (<interp>-variable-ref  (o <interp>) variable-name default)
   (hashtable-ref o.table-of-variables variable-name default))
+
+(define <interp>-clone
+  (case-lambda
+   ((o)
+    (<interp>-clone o (lambda (k v x) v)))
+   (((o <interp>) filter)
+    (let (((c <interp>) (make <interp> o.import-specs)))
+      (receive (keys vals)
+	  (hashtable-entries o.table-of-variables)
+	(do ((i 0 (+ 1 i)))
+	    ((= i (vector-length keys)))
+	  (let* ((k (vector-ref keys i))
+		 (v (filter k (vector-ref vals i) undefined-variable)))
+	    (unless (eq? v undefined-variable)
+	      (c.variable-set! k v)))))
+      c))))
 
 
 ;;;; done

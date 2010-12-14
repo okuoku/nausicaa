@@ -179,6 +179,44 @@
   #t)
 
 
+(parametrise ((check-test-name	'clones))
+
+  (let (((p <interp>) (make <interp> '((rnrs)))))
+    (p.eval `(let ()
+	       (define-global a 1)
+	       (values)))
+    (p.variable-set! 'b (vector 2 3))
+    (let (((q <interp>) (p.clone)))
+
+      (check
+	  (q.eval '(begin a))
+	=> 1)
+
+      (check
+	  (q.eval 'b)
+	=> '#(2 3))
+
+      ;; (check
+      ;; 	  (eq? (p.eval 'b) (q.eval 'b))
+      ;; 	=> #t)
+
+      (check
+	  (begin
+	    (p.eval '(set! a 11))
+	    (q.eval 'a))
+	=> 1)
+
+      ;; (check
+      ;; 	  (begin
+      ;; 	    (p.eval '(vector-set! b 0 22))
+      ;; 	    (q.eval 'b))
+      ;; 	=> '#(22 3))
+
+      #f)
+    #f)
+  #t)
+
+
 ;;;; done
 
 (check-report)
