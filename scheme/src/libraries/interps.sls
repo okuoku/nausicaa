@@ -48,13 +48,32 @@
 
 ;;;; helpers
 
-(define undefined-sentinel
+(define undefined-variable
   (make-sentinel))
 
 
 (define-condition &interp-error
   (parent &error)
   (fields interp))
+
+(define-syntax* (class-case stx)
+  (syntax-case stx (else)
+    ((_ ?thing ((?class) . ?body) ... (else . ?else-body))
+     (identifier? #'?thing)
+     #'(cond ((is-a? ?thing ?class)
+	      (with-class ((?thing ?class))
+		. ?body))
+	     ...
+	     (else . ?else-body)))
+    ((_ ?thing ((?class) . ?body) ...)
+     (identifier? #'?thing)
+     #'(cond ((is-a? ?thing ?class)
+	      (with-class ((?thing ?class))
+		. ?body))
+	     ...))
+    (_
+     (synner "invalid syntax"))
+    ))
 
 
 (define-constant $default-import-specs
@@ -92,7 +111,7 @@
 
   (define-inline (raise-undefined-variable variable-name)
     (raise (condition
-	    (make-who-condition 'interp-eval)
+	    (make-who-condition '<interp>-eval)
 	    (make-message-condition "attempt to access undefined variable in interpreter")
 	    (make-interp-error-condition o)
 	    (make-irritants-condition (list variable-name)))))
@@ -128,23 +147,22 @@
 		   (raise (condition E (make-interp-error-condition o)))))
 	     (lambda ()
 	       (eval expression o.eval-environment)))))
-    (cond ((is-a? R <results>)
-	   (with-class ((R <results>))
-	     (apply values R.values)))
-	  ((is-a? R <variable-mutation>)
-	   (with-class ((R <variable-mutation>))
-	     (hashtable-set! o.table-of-variables R.name R.value)
-	     (R.kont)))
-	  ((is-a? R <variable-reference>)
-	   (with-class ((R <variable-reference>))
-	     (R.kont
-	      (let ((value (hashtable-ref o.table-of-variables R.name undefined-sentinel)))
-		(if (eq? value undefined-sentinel)
-		    (raise-undefined-variable R.name)
-		  value)))))
-	  (else
-	   (assertion-violation '<interp>-eval
-	     "invalid return value from interp evaluation" R)))))
+    (class-case R
+		((<results>)
+		 (apply values R.values))
+		((<variable-mutation>)
+		 (hashtable-set! o.table-of-variables R.name R.value)
+		 (R.kont))
+		((<variable-reference>)
+		 (R.kont
+		  (let ((value (hashtable-ref o.table-of-variables R.name undefined-variable)))
+		    (if (eq? value undefined-variable)
+			(raise-undefined-variable R.name)
+		      value))))
+		(else
+		 (assertion-violation '<interp>-eval
+		   "invalid return value from interp evaluation" R)))
+    ))
 
 
 (define (<interp>-variable-set! (o <interp>) variable-name variable-value)
