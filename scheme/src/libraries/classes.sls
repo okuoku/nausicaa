@@ -74,7 +74,7 @@
     class-uid-list-of
 
     ;; dot notation syntaxes
-    with-class
+    with-class				class-case
     setf				getf
     define/with-class			lambda/with-class
     case-lambda/with-class		receive/with-class
@@ -1449,6 +1449,27 @@
 
     (_
      (synner "invalid clause in with-class form"))))
+
+(define-syntax* (class-case stx)
+  (syntax-case stx (else)
+
+    ((_ ?thing ((?class) . ?body) ... (else . ?else-body))
+     (all-identifiers? #'(?thing ?class ...))
+     #'(cond ((is-a? ?thing ?class)
+	      (with-class ((?thing ?class))
+		. ?body))
+	     ...
+	     (else . ?else-body)))
+
+    ((_ ?thing ((?class) . ?body) ...)
+     (all-identifiers? #'(?thing ?class ...))
+     #'(cond ((is-a? ?thing ?class)
+	      (with-class ((?thing ?class))
+		. ?body))
+	     ...))
+
+    (_
+     (synner "invalid syntax"))))
 
 (define-syntax* (setf stx)
   (syntax-case stx (setter setter-multi-key set!)

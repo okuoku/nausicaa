@@ -851,7 +851,7 @@
     class-uid-list-of
 
     ;; dot notation syntaxes
-    with-class
+    with-class				class-case
     setf				getf
     define/with-class			lambda/with-class
     case-lambda/with-class		receive/with-class

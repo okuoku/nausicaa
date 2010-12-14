@@ -56,25 +56,6 @@
   (parent &error)
   (fields interp))
 
-(define-syntax* (class-case stx)
-  (syntax-case stx (else)
-    ((_ ?thing ((?class) . ?body) ... (else . ?else-body))
-     (identifier? #'?thing)
-     #'(cond ((is-a? ?thing ?class)
-	      (with-class ((?thing ?class))
-		. ?body))
-	     ...
-	     (else . ?else-body)))
-    ((_ ?thing ((?class) . ?body) ...)
-     (identifier? #'?thing)
-     #'(cond ((is-a? ?thing ?class)
-	      (with-class ((?thing ?class))
-		. ?body))
-	     ...))
-    (_
-     (synner "invalid syntax"))
-    ))
-
 
 (define-constant $default-import-specs
   '((only (interps variables) define-variable)))
@@ -148,20 +129,20 @@
 	     (lambda ()
 	       (eval expression o.eval-environment)))))
     (class-case R
-		((<results>)
-		 (apply values R.values))
-		((<variable-mutation>)
-		 (hashtable-set! o.table-of-variables R.name R.value)
-		 (R.kont))
-		((<variable-reference>)
-		 (R.kont
-		  (let ((value (hashtable-ref o.table-of-variables R.name undefined-variable)))
-		    (if (eq? value undefined-variable)
-			(raise-undefined-variable R.name)
-		      value))))
-		(else
-		 (assertion-violation '<interp>-eval
-		   "invalid return value from interp evaluation" R)))
+      ((<results>)
+       (apply values R.values))
+      ((<variable-mutation>)
+       (hashtable-set! o.table-of-variables R.name R.value)
+       (R.kont))
+      ((<variable-reference>)
+       (R.kont
+	(let ((value (hashtable-ref o.table-of-variables R.name undefined-variable)))
+	  (if (eq? value undefined-variable)
+	      (raise-undefined-variable R.name)
+	    value))))
+      (else
+       (assertion-violation '<interp>-eval
+	 "invalid return value from interp evaluation" R)))
     ))
 
 

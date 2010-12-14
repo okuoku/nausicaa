@@ -1354,6 +1354,7 @@ at runtime.
 * classes dot let::             Local bindings.
 * classes dot lambda::          Function bindings.
 * classes dot setter::          Setters and getters.
+* classes dot misc::            Miscellaneous syntaxes.
 @end menu
 
 @c page
@@ -2184,6 +2185,52 @@ The number of keys to be used by the getter is unspecified: it is
 enforced by the function or macro selected in the @func{getter} clause
 of @func{define-class}.
 @end defmac
+
+@c page
+@node classes dot misc
+@subsection Miscellaneous syntaxes.
+
+
+@deffn Syntax class-case @var{id} @var{case-clause} ...
+Similar to @func{case} from @rsixlibrary{base}, allows the selection of
+a clause based on the class of @var{id}, which must be an identifier.
+@var{case-clause} must be one among:
+
+@example
+((@var{class}) @vari{expression} @var{expression} ...)
+(else @vari{expression} @var{expression} ...)
+@end example
+
+@noindent
+and the @func{else} clause can appear only as last clause.
+
+Example:
+
+@example
+(case thing
+  ((<alpha>)    (alpha-body))
+  ((<beta>)     (beta-body))
+  (else         (else-body)))
+@end example
+
+@noindent
+expands to:
+
+@example
+(cond ((is-a? thing <alpha>)
+       (with-class ((thing <alpha>))
+         (alpha-body)))
+      ((is-a? thing <beta>)
+       (with-class ((thing <beta>))
+         (alpha-body)))
+      (else
+       (else-body)))
+@end example
+
+@noindent
+notice that only a single class identifier can be present in the ``datum
+list'' of the @var{case-clause}.
+@end deffn
 
 @c page
 @node classes builtin
