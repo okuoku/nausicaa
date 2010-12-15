@@ -336,7 +336,7 @@
 	   (list? obj)
 	   (= 3 (length obj))))
 
-    (define-label <tuple>
+    (define-label (<tuple> tuple?)
       (predicate tuple-predicate)
       (virtual-fields (immutable a car)
 		      (immutable b cadr)
@@ -350,6 +350,10 @@
 
       (check
 	  (is-a? o <tuple>)
+	=> #t)
+
+      (check
+	  (tuple? o)
 	=> #t)
 
       (check
