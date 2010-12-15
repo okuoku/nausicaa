@@ -26,11 +26,10 @@
 ;;; 	any of the  chars in [+-*\/^%,] or it  will result in tokenising
 ;;; 	errors when splitting "1*2", "1/2", "a-b" and such.
 ;;;
-;;;Copyright (C) 2007, 2009 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (C) 2007, 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;Copyright (C) 2000 The Free Software Foundation
 ;;;
 ;;;Originally from Guile-Arith was written by Ian Grant <iang@pobox.com>
-;;;This file was modified by Marco Maggi <marcomaggi@gna.org>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by

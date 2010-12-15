@@ -77,7 +77,7 @@
 ;;;}
 ;;;
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;Copyright (c) 1990-2005 Michael Brundage
 ;;;<http://www.qbrundage.com/michaelb/pubs/essays/random_number_generation>
 ;;;

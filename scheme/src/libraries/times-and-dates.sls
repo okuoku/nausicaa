@@ -242,7 +242,7 @@
   (methods deep-clone shallow-clone))
 
 (define (<seconds-and-nanoseconds>-deep-clone (S <seconds-and-nanoseconds>))
-  (make <seconds-and-nanoseconds> S.seconds S.nanoseconds))
+  (make* <seconds-and-nanoseconds> S.seconds S.nanoseconds))
 
 (define <seconds-and-nanoseconds>-shallow-clone
   <seconds-and-nanoseconds>-deep-clone)
@@ -301,10 +301,10 @@
 ;;; --------------------------------------------------------------------
 
 (define (<duration>-deep-clone (D <duration>))
-  (make <duration> D.seconds D.nanoseconds))
+  (make* <duration> D.seconds D.nanoseconds))
 
 (define (<duration>-shallow-clone (D <duration>))
-  (make <duration> D.seconds D.nanoseconds))
+  (make* <duration> D.seconds D.nanoseconds))
 
 ;;; --------------------------------------------------------------------
 
@@ -402,19 +402,19 @@
   (receive (secs nanosecs)
       (sn-add A.seconds A.nanoseconds
 	      B.seconds B.nanoseconds)
-    (make <duration> secs nanosecs)))
+    (make* <duration> secs nanosecs)))
 
 (define (<duration>-- (A <duration>) (B <duration>))
   (receive (secs nanosecs)
       (sn-sub A.seconds A.nanoseconds
 	      B.seconds B.nanoseconds)
-    (make <duration> secs nanosecs)))
+    (make* <duration> secs nanosecs)))
 
 (define (<duration>-* (S <duration>) (lambda <real>))
-  (make <duration> (* lambda S.seconds) (* lambda S.nanoseconds)))
+  (make* <duration> (* lambda S.seconds) (* lambda S.nanoseconds)))
 
 (define (<duration>-/ (S <duration>) (lambda <real>))
-  (make <duration>
+  (make* <duration>
     (exact (/ S.seconds     lambda))
     (exact (/ S.nanoseconds lambda))))
 
@@ -422,7 +422,7 @@
 
 (define duration+
   (case-lambda
-   (()  (make <duration> 0 0))
+   (()  (make* <duration> 0 0))
    (((D <duration>))
     D)
    (((a <duration>) (b <duration>))
@@ -432,7 +432,7 @@
 
 (define duration-
   (case-lambda
-   (()  (make <duration> 0 0))
+   (()  (make* <duration> 0 0))
    (((D <duration>))
     D)
    (((a <duration>) (b <duration>))
@@ -497,10 +497,10 @@
 ;;; --------------------------------------------------------------------
 
 (define (<time>-deep-clone (T <time>))
-  (make <time> T.seconds T.nanoseconds))
+  (make* <time> T.seconds T.nanoseconds))
 
 (define (<time>-shallow-clone (T <time>))
-  (make <time> T.seconds T.nanoseconds))
+  (make* <time> T.seconds T.nanoseconds))
 
 ;;; --------------------------------------------------------------------
 
@@ -582,7 +582,7 @@
   (receive (secs nanosecs)
       (sn-add A.seconds A.nanoseconds
 	      B.seconds B.nanoseconds)
-    (make <time> secs nanosecs)))
+    (make* <time> secs nanosecs)))
 
 (define-generic <time>--)
 
@@ -590,13 +590,13 @@
   (receive (secs nanosecs)
       (sn-sub A.seconds A.nanoseconds
 	      B.seconds B.nanoseconds)
-    (make <time> secs nanosecs)))
+    (make* <time> secs nanosecs)))
 
 (define-method (<time>-- (A <time>) (B <time>))
   (receive (secs nanosecs)
       (sn-sub A.seconds A.nanoseconds
 	      B.seconds B.nanoseconds)
-    (make <duration> secs nanosecs)))
+    (make* <duration> secs nanosecs)))
 
 ;;; --------------------------------------------------------------------
 
@@ -607,7 +607,7 @@
    (((T <time>) tz-offset)
     (receive (nanoseconds seconds minutes hours day month year)
 	(tai-seconds-and-nanoseconds->utc-date-fields T.seconds T.nanoseconds tz-offset)
-      (make <date>
+      (make* <date>
 	nanoseconds seconds minutes hours day month year tz-offset)))))
 
 ;;; --------------------------------------------------------------------
@@ -735,7 +735,7 @@
 	((jdn)
 	 (%make-date-from-julian-day (%local-tz-offset)))
 	((jdn tz-offset)
-	 (let (((T <time>) (make* <time>
+	 (let (((T <time>) (make <time>
 			     (julian-day jdn))))
 	   (T.date tz-offset)))))
      (define %make-date-from-modified-julian-day
@@ -753,7 +753,7 @@
 	     (mjdn
 	      (%make-date-from-modified-julian-day mjdn))
 	     (else
-	      (make <date>
+	      (make* <date>
 		nanosecond second minute hour day month year zone-offset)))))
    ))
 
@@ -775,7 +775,7 @@
 
   (receive (seconds nanoseconds)
       (date->seconds-and-nanoseconds D)
-    (make <time>
+    (make* <time>
       (if (= 60 seconds)
 	  (- seconds 1)
 	seconds)
@@ -798,7 +798,7 @@
   ;;
   (receive (easter-month easter-day)
       (gregorian-year-western-easter-month-and-day D.year)
-    (make <date>
+    (make* <date>
       0 0 0 0 ;nanosecond second minute hour
       easter-day easter-month D.year D.zone-offset)))
 
@@ -1412,57 +1412,57 @@
 		 (do-nothing (lambda (val object) (values))))
       (for-each (lambda ((o <format-directive>))
 		  (vector-set! table (char->integer o.char) o))
-	`(,(make <format-directive>
+	`(,(make* <format-directive>
 	     #\~ char-fail (%make-char-id-reader #\~) do-nothing)
 
-	  ,(make <format-directive>
+	  ,(make* <format-directive>
 	     #\a char-alphabetic?	locale-reader-abbr-weekday do-nothing)
 
-	  ,(make <format-directive>
+	  ,(make* <format-directive>
 	     #\A char-alphabetic?	locale-reader-long-weekday do-nothing)
 
-	  ,(make <format-directive>
+	  ,(make* <format-directive>
 	     #\b char-alphabetic?	locale-reader-abbr-month
 	     (lambda (val (D <date>)) (set! D.month val)))
 
-	  ,(make <format-directive>
+	  ,(make* <format-directive>
 	     #\B char-alphabetic?	locale-reader-long-month
 	     (lambda (val (D <date>)) (set! D.month val)))
 
-	  ,(make <format-directive> #\d char-numeric? ireader2
+	  ,(make* <format-directive> #\d char-numeric? ireader2
 		 (lambda (val (D <date>)) (set! D.day val)))
 
-	  ,(make <format-directive> #\e char-fail eireader2
+	  ,(make* <format-directive> #\e char-fail eireader2
 		 (lambda (val (D <date>)) (set! D.day val)))
 
-	  ,(make <format-directive> #\h char-alphabetic? locale-reader-abbr-month
+	  ,(make* <format-directive> #\h char-alphabetic? locale-reader-abbr-month
 		 (lambda (val (D <date>)) (set! D.month val)))
 
-	  ,(make <format-directive> #\H char-numeric? ireader2
+	  ,(make* <format-directive> #\H char-numeric? ireader2
 		 (lambda (val (D <date>)) (set! D.hour val)))
 
-	  ,(make <format-directive> #\k char-fail eireader2
+	  ,(make* <format-directive> #\k char-fail eireader2
 		 (lambda (val (D <date>)) (set! D.hour val)))
 
-	  ,(make <format-directive> #\m char-numeric? ireader2
+	  ,(make* <format-directive> #\m char-numeric? ireader2
 		 (lambda (val (D <date>)) (set! D.month val)))
 
-	  ,(make <format-directive> #\M char-numeric? ireader2
+	  ,(make* <format-directive> #\M char-numeric? ireader2
 		 (lambda (val (D <date>)) (set! D.minute val)))
 
-	  ,(make <format-directive> #\N char-numeric? fireader9
+	  ,(make* <format-directive> #\N char-numeric? fireader9
 		 (lambda (val (D <date>)) (set! D.nanosecond val)))
 
-	  ,(make <format-directive> #\S char-numeric? ireader2
+	  ,(make* <format-directive> #\S char-numeric? ireader2
 		 (lambda (val (D <date>)) (set! D.second val)))
 
-	  ,(make <format-directive> #\y char-fail eireader2
+	  ,(make* <format-directive> #\y char-fail eireader2
 		 (lambda (val (D <date>)) (set! D.year (gregorian-natural-year val D.year))))
 
-	  ,(make <format-directive> #\Y char-numeric? ireader4
+	  ,(make* <format-directive> #\Y char-numeric? ireader4
 		 (lambda (val (D <date>)) (set! D.year val)))
 
-	  ,(make <format-directive> #\z
+	  ,(make* <format-directive> #\z
 		 (lambda (c) (memv c '(#\Z #\z #\+ #\-)))
 		 %zone-reader
 		 (lambda (val (D <date>)) (set! D.zone-offset val)))
@@ -1483,7 +1483,7 @@
       (%get-time-of-day)
     (receive (seconds nanoseconds)
 	(sn-normalise seconds nanoseconds)
-      (make <time>
+      (make* <time>
 	(utc-seconds->tai-seconds seconds)
 	nanoseconds))))
 

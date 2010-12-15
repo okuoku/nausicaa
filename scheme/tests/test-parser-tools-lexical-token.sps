@@ -37,7 +37,7 @@
 (parametrise ((check-test-name	'makers))
 
   (check
-      (let (((T <lexical-token>) (make <lexical-token>
+      (let (((T <lexical-token>) (make* <lexical-token>
 				   'category 'location 'value 5)))
 	(list T.category T.location T.value T.length))
     => '(category location value 5))
@@ -45,13 +45,13 @@
 ;;; --------------------------------------------------------------------
 
   (check
-      (let (((T <lexical-token>) (make* <lexical-token>
+      (let (((T <lexical-token>) (make <lexical-token>
 				   (category: 'woppa))))
 	(list T.category T.location T.value T.length))
     => '(woppa #f #f 0))
 
   (check
-      (let (((T <lexical-token>) (make* <lexical-token>
+      (let (((T <lexical-token>) (make <lexical-token>
 				   (category:	'category)
 				   (location:	'location)
 				   (value:	'value)
@@ -65,13 +65,13 @@
 (parametrise ((check-test-name	'predicates))
 
   (check
-      (let (((T <lexical-token>) (make* <lexical-token>
+      (let (((T <lexical-token>) (make <lexical-token>
 				   (category: '*eoi*))))
 	T.end-of-input?)
     => #t)
 
   (check
-      (let (((T <lexical-token>) (make* <lexical-token>
+      (let (((T <lexical-token>) (make <lexical-token>
 				   (category: 'woppa))))
 	T.end-of-input?)
     => #f)
@@ -79,13 +79,13 @@
 ;;; --------------------------------------------------------------------
 
   (check
-      (let (((T <lexical-token>) (make* <lexical-token>
+      (let (((T <lexical-token>) (make <lexical-token>
 				   (category: '*lexer-error*))))
 	T.lexer-error?)
     => #t)
 
   (check
-      (let (((T <lexical-token>) (make* <lexical-token>
+      (let (((T <lexical-token>) (make <lexical-token>
 				   (category: 'woppa))))
 	T.lexer-error?)
     => #f)
@@ -93,23 +93,22 @@
 ;;; --------------------------------------------------------------------
 
   (check
-      (let (((T <lexical-token>) (make* <lexical-token>
+      (let (((T <lexical-token>) (make <lexical-token>
 				   (category: '*eoi*))))
 	T.special?)
     => #t)
 
   (check
-      (let (((T <lexical-token>) (make* <lexical-token>
+      (let (((T <lexical-token>) (make <lexical-token>
 				   (category: '*lexer-error*))))
 	T.special?)
     => #t)
 
   (check
-      (let (((T <lexical-token>) (make* <lexical-token>
+      (let (((T <lexical-token>) (make <lexical-token>
 				   (category: 'woppa))))
 	T.special?)
     => #f)
-
 
   #t)
 

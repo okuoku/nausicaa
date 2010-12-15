@@ -43,7 +43,7 @@
 ;;;	The Scheme code  was converted by Marco Maggi  from a C language
 ;;;	version from the GNU Scientific Library release 1.12.
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;Copyright (C) 1996, 1997, 1998, 1999, 2000, 2007 James Theiler, Brian
 ;;;Gough
 ;;;

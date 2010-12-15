@@ -7,7 +7,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;Copyright (c) 2002 Sebastian Egner
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify

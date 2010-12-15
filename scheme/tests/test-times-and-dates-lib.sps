@@ -67,51 +67,51 @@
 (parametrise ((check-test-name	'sn))
 
   (check
-      (is-a? (make <seconds-and-nanoseconds> 1 2) <seconds-and-nanoseconds>)
+      (is-a? (make* <seconds-and-nanoseconds> 1 2) <seconds-and-nanoseconds>)
     => #t)
 
   (check
-      (let (((S <seconds-and-nanoseconds>) (make <seconds-and-nanoseconds> 1 2)))
+      (let (((S <seconds-and-nanoseconds>) (make* <seconds-and-nanoseconds> 1 2)))
 	(list S.seconds S.nanoseconds))
     => '(1 2))
 
   (check
-      (let (((S <seconds-and-nanoseconds>) (make <seconds-and-nanoseconds> -10 #e-1.001e9)))
+      (let (((S <seconds-and-nanoseconds>) (make* <seconds-and-nanoseconds> -10 #e-1.001e9)))
 	(list S.seconds S.nanoseconds))
     => '(-11 #e-1e6))
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (is-a? (make* <seconds-and-nanoseconds>
+      (is-a? (make <seconds-and-nanoseconds>
 	       (seconds 1)
 	       (nanoseconds 2))
 	     <seconds-and-nanoseconds>)
     => #t)
 
   (check
-      (let (((S <seconds-and-nanoseconds>) (make* <seconds-and-nanoseconds>
+      (let (((S <seconds-and-nanoseconds>) (make <seconds-and-nanoseconds>
 					     (seconds 1)
 					     (nanoseconds 2))))
 	(list S.seconds S.nanoseconds))
     => '(1 2))
 
   (check
-      (let (((S <seconds-and-nanoseconds>) (make* <seconds-and-nanoseconds>
+      (let (((S <seconds-and-nanoseconds>) (make <seconds-and-nanoseconds>
 					     (seconds -10)
 					     (nanoseconds #e-1.001e9))))
 	(list S.seconds S.nanoseconds))
     => '(-11 #e-1e6))
 
   (check
-      (let (((S <seconds-and-nanoseconds>) (make* <seconds-and-nanoseconds>
+      (let (((S <seconds-and-nanoseconds>) (make <seconds-and-nanoseconds>
 					     (seconds 1)
 					     (milliseconds 123))))
 	(list S.seconds S.nanoseconds))
     => '(1 #e123e6))
 
   (check
-      (let (((S <seconds-and-nanoseconds>) (make* <seconds-and-nanoseconds>
+      (let (((S <seconds-and-nanoseconds>) (make <seconds-and-nanoseconds>
 					     (seconds 1)
 					     (microseconds 123))))
 	(list S.seconds S.nanoseconds))
@@ -121,13 +121,13 @@
 ;;; clone
 
   (check
-      (let* (((S <seconds-and-nanoseconds>) (make <seconds-and-nanoseconds> 1 2))
+      (let* (((S <seconds-and-nanoseconds>) (make* <seconds-and-nanoseconds> 1 2))
 	     ((R <seconds-and-nanoseconds>) (S.deep-clone)))
 	(list S.seconds S.nanoseconds))
     => '(1 2))
 
   (check
-      (let* (((S <seconds-and-nanoseconds>) (make <seconds-and-nanoseconds> 1 2))
+      (let* (((S <seconds-and-nanoseconds>) (make* <seconds-and-nanoseconds> 1 2))
 	     ((R <seconds-and-nanoseconds>) (S.shallow-clone)))
 	(list S.seconds S.nanoseconds))
     => '(1 2))
@@ -136,21 +136,21 @@
 ;;; to seconds
 
   (check
-      (let (((S <seconds-and-nanoseconds>) (make* <seconds-and-nanoseconds>
+      (let (((S <seconds-and-nanoseconds>) (make <seconds-and-nanoseconds>
 					     (seconds 1)
 					     (nanoseconds 1))))
 	S.full-seconds)
     => #e1.000000001)
 
   (check
-      (let (((S <seconds-and-nanoseconds>) (make* <seconds-and-nanoseconds>
+      (let (((S <seconds-and-nanoseconds>) (make <seconds-and-nanoseconds>
 					     (seconds 1)
 					     (microseconds 1))))
 	S.full-seconds)
     => #e1.000001)
 
   (check
-      (let (((S <seconds-and-nanoseconds>) (make* <seconds-and-nanoseconds>
+      (let (((S <seconds-and-nanoseconds>) (make <seconds-and-nanoseconds>
 					     (seconds 1)
 					     (milliseconds 1))))
 	S.full-seconds)
@@ -160,21 +160,21 @@
 ;;; to milliseconds
 
   (check
-      (let (((S <seconds-and-nanoseconds>) (make* <seconds-and-nanoseconds>
+      (let (((S <seconds-and-nanoseconds>) (make <seconds-and-nanoseconds>
 					     (seconds 1)
 					     (nanoseconds 1))))
 	S.full-milliseconds)
     => #e1000.000001)
 
   (check
-      (let (((S <seconds-and-nanoseconds>) (make* <seconds-and-nanoseconds>
+      (let (((S <seconds-and-nanoseconds>) (make <seconds-and-nanoseconds>
 					     (seconds 1)
 					     (microseconds 1))))
 	S.full-milliseconds)
     => #e1000.001)
 
   (check
-      (let (((S <seconds-and-nanoseconds>) (make* <seconds-and-nanoseconds>
+      (let (((S <seconds-and-nanoseconds>) (make <seconds-and-nanoseconds>
 					     (seconds 1)
 					     (milliseconds 1))))
 	S.full-milliseconds)
@@ -184,21 +184,21 @@
 ;;; to microseconds
 
   (check
-      (let (((S <seconds-and-nanoseconds>) (make* <seconds-and-nanoseconds>
+      (let (((S <seconds-and-nanoseconds>) (make <seconds-and-nanoseconds>
 					     (seconds 1)
 					     (nanoseconds 1))))
 	S.full-microseconds)
     => #e1000000.001)
 
   (check
-      (let (((S <seconds-and-nanoseconds>) (make* <seconds-and-nanoseconds>
+      (let (((S <seconds-and-nanoseconds>) (make <seconds-and-nanoseconds>
 					     (seconds 1)
 					     (microseconds 1))))
 	S.full-microseconds)
     => #e1000001)
 
   (check
-      (let (((S <seconds-and-nanoseconds>) (make* <seconds-and-nanoseconds>
+      (let (((S <seconds-and-nanoseconds>) (make <seconds-and-nanoseconds>
 					     (seconds 1)
 					     (milliseconds 1))))
 	S.full-microseconds)
@@ -208,21 +208,21 @@
 ;;; to nanoseconds
 
   (check
-      (let (((S <seconds-and-nanoseconds>) (make* <seconds-and-nanoseconds>
+      (let (((S <seconds-and-nanoseconds>) (make <seconds-and-nanoseconds>
 					     (seconds 1)
 					     (nanoseconds 1))))
 	S.full-nanoseconds)
     => #e1000000001)
 
   (check
-      (let (((S <seconds-and-nanoseconds>) (make* <seconds-and-nanoseconds>
+      (let (((S <seconds-and-nanoseconds>) (make <seconds-and-nanoseconds>
 					     (seconds 1)
 					     (microseconds 1))))
 	S.full-nanoseconds)
     => #e1000001000)
 
   (check
-      (let (((S <seconds-and-nanoseconds>) (make* <seconds-and-nanoseconds>
+      (let (((S <seconds-and-nanoseconds>) (make <seconds-and-nanoseconds>
 					     (seconds 1)
 					     (milliseconds 1))))
 	S.full-nanoseconds)
@@ -234,51 +234,51 @@
 (parametrise ((check-test-name	'duration-base))
 
   (check
-      (is-a? (make <duration> 1 2) <duration>)
+      (is-a? (make* <duration> 1 2) <duration>)
     => #t)
 
   (check
-      (let (((D <duration>) (make <duration> 1 2)))
+      (let (((D <duration>) (make* <duration> 1 2)))
 	(list D.seconds D.nanoseconds))
     => '(1 2))
 
   (check
-      (let (((D <duration>) (make <duration> -10 #e-1.001e9)))
+      (let (((D <duration>) (make* <duration> -10 #e-1.001e9)))
 	(list D.seconds D.nanoseconds))
     => '(-11 #e-1e6))
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (is-a? (make* <duration>
+      (is-a? (make <duration>
 	       (seconds 1)
 	       (nanoseconds 2))
 	     <duration>)
     => #t)
 
   (check
-      (let (((D <duration>) (make* <duration>
+      (let (((D <duration>) (make <duration>
 			      (seconds 1)
 			      (nanoseconds 2))))
 	(list D.seconds D.nanoseconds))
     => '(1 2))
 
   (check
-      (let (((D <duration>) (make* <duration>
+      (let (((D <duration>) (make <duration>
 			      (seconds -10)
 			      (nanoseconds #e-1.001e9))))
 	(list D.seconds D.nanoseconds))
     => '(-11 #e-1e6))
 
   (check
-      (let (((D <duration>) (make* <duration>
+      (let (((D <duration>) (make <duration>
 			      (seconds 1)
 			      (milliseconds 123))))
 	(list D.seconds D.nanoseconds))
     => '(1 #e123e6))
 
   (check
-      (let (((D <duration>) (make* <duration>
+      (let (((D <duration>) (make <duration>
 			      (seconds 1)
 			      (microseconds 123))))
 	(list D.seconds D.nanoseconds))
@@ -288,13 +288,13 @@
 ;;; clone
 
   (check
-      (let* (((D <duration>) (make <duration> 1 2))
+      (let* (((D <duration>) (make* <duration> 1 2))
 	     ((F <duration>) (D.deep-clone)))
 	(list (is-a? F <duration>) D.seconds D.nanoseconds))
     => '(#t 1 2))
 
   (check
-      (let* (((D <duration>) (make <duration> 1 2))
+      (let* (((D <duration>) (make* <duration> 1 2))
 	     ((F <duration>) (D.shallow-clone)))
 	(list (is-a? F <duration>) D.seconds D.nanoseconds))
     => '(#t 1 2))
@@ -303,21 +303,21 @@
 ;;; to seconds
 
   (check
-      (let (((D <duration>) (make* <duration>
+      (let (((D <duration>) (make <duration>
 			      (seconds 1)
 			      (nanoseconds 1))))
 	D.full-seconds)
     => #e1.000000001)
 
   (check
-      (let (((D <duration>) (make* <duration>
+      (let (((D <duration>) (make <duration>
 			      (seconds 1)
 			      (microseconds 1))))
 	D.full-seconds)
     => #e1.000001)
 
   (check
-      (let (((D <duration>) (make* <duration>
+      (let (((D <duration>) (make <duration>
 			      (seconds 1)
 			      (milliseconds 1))))
 	D.full-seconds)
@@ -327,21 +327,21 @@
 ;;; to milliseconds
 
   (check
-      (let (((D <duration>) (make* <duration>
+      (let (((D <duration>) (make <duration>
 			      (seconds 1)
 			      (nanoseconds 1))))
 	D.full-milliseconds)
     => #e1000.000001)
 
   (check
-      (let (((D <duration>) (make* <duration>
+      (let (((D <duration>) (make <duration>
 			      (seconds 1)
 			      (microseconds 1))))
 	D.full-milliseconds)
     => #e1000.001)
 
   (check
-      (let (((D <duration>) (make* <duration>
+      (let (((D <duration>) (make <duration>
 			      (seconds 1)
 			      (milliseconds 1))))
 	D.full-milliseconds)
@@ -351,21 +351,21 @@
 ;;; to microseconds
 
   (check
-      (let (((D <duration>) (make* <duration>
+      (let (((D <duration>) (make <duration>
 			      (seconds 1)
 			      (nanoseconds 1))))
 	D.full-microseconds)
     => #e1000000.001)
 
   (check
-      (let (((D <duration>) (make* <duration>
+      (let (((D <duration>) (make <duration>
 			      (seconds 1)
 			      (microseconds 1))))
 	D.full-microseconds)
     => #e1000001)
 
   (check
-      (let (((D <duration>) (make* <duration>
+      (let (((D <duration>) (make <duration>
 			      (seconds 1)
 			      (milliseconds 1))))
 	D.full-microseconds)
@@ -375,21 +375,21 @@
 ;;; to nanoseconds
 
   (check
-      (let (((D <duration>) (make* <duration>
+      (let (((D <duration>) (make <duration>
 			      (seconds 1)
 			      (nanoseconds 1))))
 	D.full-nanoseconds)
     => #e1000000001)
 
   (check
-      (let (((D <duration>) (make* <duration>
+      (let (((D <duration>) (make <duration>
 			      (seconds 1)
 			      (microseconds 1))))
 	D.full-nanoseconds)
     => #e1000001000)
 
   (check
-      (let (((D <duration>) (make* <duration>
+      (let (((D <duration>) (make <duration>
 			      (seconds 1)
 			      (milliseconds 1))))
 	D.full-nanoseconds)
@@ -401,208 +401,208 @@
 (parametrise ((check-test-name	'duration-comparison))
 
   (check
-      (let (((D <duration>) (make <duration> 1 2))
-	    ((E <duration>) (make <duration> 1 2)))
+      (let (((D <duration>) (make* <duration> 1 2))
+	    ((E <duration>) (make* <duration> 1 2)))
 	(D.= E))
     => #t)
 
   (check
-      (let (((D <duration>) (make <duration> 1 2))
-	    ((E <duration>) (make <duration> -1 -2)))
+      (let (((D <duration>) (make* <duration> 1 2))
+	    ((E <duration>) (make* <duration> -1 -2)))
 	(D.= E))
     => #t)
 
   (check
-      (let (((D <duration>) (make <duration> 1 -2))
-	    ((E <duration>) (make <duration> -1 2)))
+      (let (((D <duration>) (make* <duration> 1 -2))
+	    ((E <duration>) (make* <duration> -1 2)))
 	(D.= E))
     => #t)
 
   (check
-      (let (((D <duration>) (make <duration> 1 3))
-	    ((E <duration>) (make <duration> 1 2)))
+      (let (((D <duration>) (make* <duration> 1 3))
+	    ((E <duration>) (make* <duration> 1 2)))
 	(D.= E))
     => #f)
 
   (check
-      (let (((D <duration>) (make <duration> 1 2))
-	    ((E <duration>) (make <duration> 9 2)))
+      (let (((D <duration>) (make* <duration> 1 2))
+	    ((E <duration>) (make* <duration> 9 2)))
 	(D.= E))
     => #f)
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (let (((D <duration>) (make <duration> 1 2))
-	    ((E <duration>) (make <duration> 1 2)))
+      (let (((D <duration>) (make* <duration> 1 2))
+	    ((E <duration>) (make* <duration> 1 2)))
 	(D.< E))
     => #f)
 
   (check
-      (let (((D <duration>) (make <duration> 1 2))
-	    ((E <duration>) (make <duration> -1 -2)))
+      (let (((D <duration>) (make* <duration> 1 2))
+	    ((E <duration>) (make* <duration> -1 -2)))
 	(D.< E))
     => #f)
 
   (check
-      (let (((D <duration>) (make <duration> 1 -2))
-	    ((E <duration>) (make <duration> -1 2)))
+      (let (((D <duration>) (make* <duration> 1 -2))
+	    ((E <duration>) (make* <duration> -1 2)))
 	(D.< E))
     => #f)
 
   (check
-      (let (((D <duration>) (make <duration> 1 4))
-	    ((E <duration>) (make <duration> 2 4)))
+      (let (((D <duration>) (make* <duration> 1 4))
+	    ((E <duration>) (make* <duration> 2 4)))
 	(D.< E))
     => #t)
 
   (check
-      (let (((D <duration>) (make <duration> 2 4))
-	    ((E <duration>) (make <duration> 1 4)))
+      (let (((D <duration>) (make* <duration> 2 4))
+	    ((E <duration>) (make* <duration> 1 4)))
 	(D.< E))
     => #f)
 
   (check
-      (let (((D <duration>) (make <duration> 1 4))
-	    ((E <duration>) (make <duration> 1 5)))
+      (let (((D <duration>) (make* <duration> 1 4))
+	    ((E <duration>) (make* <duration> 1 5)))
 	(D.< E))
     => #t)
 
   (check
-      (let (((D <duration>) (make <duration> 1 5))
-	    ((E <duration>) (make <duration> 1 4)))
+      (let (((D <duration>) (make* <duration> 1 5))
+	    ((E <duration>) (make* <duration> 1 4)))
 	(D.< E))
     => #f)
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (let (((D <duration>) (make <duration> 1 2))
-	    ((E <duration>) (make <duration> 1 2)))
+      (let (((D <duration>) (make* <duration> 1 2))
+	    ((E <duration>) (make* <duration> 1 2)))
 	(D.<= E))
     => #t)
 
   (check
-      (let (((D <duration>) (make <duration> 1 2))
-	    ((E <duration>) (make <duration> -1 -2)))
+      (let (((D <duration>) (make* <duration> 1 2))
+	    ((E <duration>) (make* <duration> -1 -2)))
 	(D.<= E))
     => #t)
 
   (check
-      (let (((D <duration>) (make <duration> 1 -2))
-	    ((E <duration>) (make <duration> -1 2)))
+      (let (((D <duration>) (make* <duration> 1 -2))
+	    ((E <duration>) (make* <duration> -1 2)))
 	(D.<= E))
     => #t)
 
   (check
-      (let (((D <duration>) (make <duration> 1 4))
-	    ((E <duration>) (make <duration> 2 4)))
+      (let (((D <duration>) (make* <duration> 1 4))
+	    ((E <duration>) (make* <duration> 2 4)))
 	(D.<= E))
     => #t)
 
   (check
-      (let (((D <duration>) (make <duration> 2 4))
-	    ((E <duration>) (make <duration> 1 4)))
+      (let (((D <duration>) (make* <duration> 2 4))
+	    ((E <duration>) (make* <duration> 1 4)))
 	(D.<= E))
     => #f)
 
   (check
-      (let (((D <duration>) (make <duration> 1 4))
-	    ((E <duration>) (make <duration> 1 5)))
+      (let (((D <duration>) (make* <duration> 1 4))
+	    ((E <duration>) (make* <duration> 1 5)))
 	(D.<= E))
     => #t)
 
   (check
-      (let (((D <duration>) (make <duration> 1 5))
-	    ((E <duration>) (make <duration> 1 4)))
+      (let (((D <duration>) (make* <duration> 1 5))
+	    ((E <duration>) (make* <duration> 1 4)))
 	(D.<= E))
     => #f)
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (let (((D <duration>) (make <duration> 1 2))
-	    ((E <duration>) (make <duration> 1 2)))
+      (let (((D <duration>) (make* <duration> 1 2))
+	    ((E <duration>) (make* <duration> 1 2)))
 	(D.> E))
     => #f)
 
   (check
-      (let (((D <duration>) (make <duration> 1 2))
-	    ((E <duration>) (make <duration> -1 -2)))
+      (let (((D <duration>) (make* <duration> 1 2))
+	    ((E <duration>) (make* <duration> -1 -2)))
 	(D.> E))
     => #f)
 
   (check
-      (let (((D <duration>) (make <duration> 1 -2))
-	    ((E <duration>) (make <duration> -1 2)))
+      (let (((D <duration>) (make* <duration> 1 -2))
+	    ((E <duration>) (make* <duration> -1 2)))
 	(D.> E))
     => #f)
 
   (check
-      (let (((D <duration>) (make <duration> 1 4))
-	    ((E <duration>) (make <duration> 2 4)))
+      (let (((D <duration>) (make* <duration> 1 4))
+	    ((E <duration>) (make* <duration> 2 4)))
 	(D.> E))
     => #f)
 
   (check
-      (let (((D <duration>) (make <duration> 2 4))
-	    ((E <duration>) (make <duration> 1 4)))
+      (let (((D <duration>) (make* <duration> 2 4))
+	    ((E <duration>) (make* <duration> 1 4)))
 	(D.> E))
     => #t)
 
   (check
-      (let (((D <duration>) (make <duration> 1 4))
-	    ((E <duration>) (make <duration> 1 5)))
+      (let (((D <duration>) (make* <duration> 1 4))
+	    ((E <duration>) (make* <duration> 1 5)))
 	(D.> E))
     => #f)
 
   (check
-      (let (((D <duration>) (make <duration> 1 5))
-	    ((E <duration>) (make <duration> 1 4)))
+      (let (((D <duration>) (make* <duration> 1 5))
+	    ((E <duration>) (make* <duration> 1 4)))
 	(D.> E))
     => #t)
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (let (((D <duration>) (make <duration> 1 2))
-	    ((E <duration>) (make <duration> 1 2)))
+      (let (((D <duration>) (make* <duration> 1 2))
+	    ((E <duration>) (make* <duration> 1 2)))
 	(D.>= E))
     => #t)
 
   (check
-      (let (((D <duration>) (make <duration> 1 2))
-	    ((E <duration>) (make <duration> -1 -2)))
+      (let (((D <duration>) (make* <duration> 1 2))
+	    ((E <duration>) (make* <duration> -1 -2)))
 	(D.>= E))
     => #t)
 
   (check
-      (let (((D <duration>) (make <duration> 1 -2))
-	    ((E <duration>) (make <duration> -1 2)))
+      (let (((D <duration>) (make* <duration> 1 -2))
+	    ((E <duration>) (make* <duration> -1 2)))
 	(D.>= E))
     => #t)
 
   (check
-      (let (((D <duration>) (make <duration> 1 4))
-	    ((E <duration>) (make <duration> 2 4)))
+      (let (((D <duration>) (make* <duration> 1 4))
+	    ((E <duration>) (make* <duration> 2 4)))
 	(D.>= E))
     => #f)
 
   (check
-      (let (((D <duration>) (make <duration> 2 4))
-	    ((E <duration>) (make <duration> 1 4)))
+      (let (((D <duration>) (make* <duration> 2 4))
+	    ((E <duration>) (make* <duration> 1 4)))
 	(D.>= E))
     => #t)
 
   (check
-      (let (((D <duration>) (make <duration> 1 4))
-	    ((E <duration>) (make <duration> 1 5)))
+      (let (((D <duration>) (make* <duration> 1 4))
+	    ((E <duration>) (make* <duration> 1 5)))
 	(D.>= E))
     => #f)
 
   (check
-      (let (((D <duration>) (make <duration> 1 5))
-	    ((E <duration>) (make <duration> 1 4)))
+      (let (((D <duration>) (make* <duration> 1 5))
+	    ((E <duration>) (make* <duration> 1 4)))
 	(D.>= E))
     => #t)
 
@@ -612,208 +612,208 @@
 (parametrise ((check-test-name	'duration-comparison-funcs))
 
   (check
-      (let (((D <duration>) (make <duration> 1 2))
-	    ((E <duration>) (make <duration> 1 2)))
+      (let (((D <duration>) (make* <duration> 1 2))
+	    ((E <duration>) (make* <duration> 1 2)))
 	(duration= D E))
     => #t)
 
   (check
-      (let (((D <duration>) (make <duration> 1 2))
-	    ((E <duration>) (make <duration> -1 -2)))
+      (let (((D <duration>) (make* <duration> 1 2))
+	    ((E <duration>) (make* <duration> -1 -2)))
 	(duration= D E))
     => #t)
 
   (check
-      (let (((D <duration>) (make <duration> 1 -2))
-	    ((E <duration>) (make <duration> -1 2)))
+      (let (((D <duration>) (make* <duration> 1 -2))
+	    ((E <duration>) (make* <duration> -1 2)))
 	(duration= D E))
     => #t)
 
   (check
-      (let (((D <duration>) (make <duration> 1 3))
-	    ((E <duration>) (make <duration> 1 2)))
+      (let (((D <duration>) (make* <duration> 1 3))
+	    ((E <duration>) (make* <duration> 1 2)))
 	(duration= D E))
     => #f)
 
   (check
-      (let (((D <duration>) (make <duration> 1 2))
-	    ((E <duration>) (make <duration> 9 2)))
+      (let (((D <duration>) (make* <duration> 1 2))
+	    ((E <duration>) (make* <duration> 9 2)))
 	(duration= D E))
     => #f)
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (let (((D <duration>) (make <duration> 1 2))
-	    ((E <duration>) (make <duration> 1 2)))
+      (let (((D <duration>) (make* <duration> 1 2))
+	    ((E <duration>) (make* <duration> 1 2)))
 	(duration< D  E))
     => #f)
 
   (check
-      (let (((D <duration>) (make <duration> 1 2))
-	    ((E <duration>) (make <duration> -1 -2)))
+      (let (((D <duration>) (make* <duration> 1 2))
+	    ((E <duration>) (make* <duration> -1 -2)))
 	(duration< D  E))
     => #f)
 
   (check
-      (let (((D <duration>) (make <duration> 1 -2))
-	    ((E <duration>) (make <duration> -1 2)))
+      (let (((D <duration>) (make* <duration> 1 -2))
+	    ((E <duration>) (make* <duration> -1 2)))
 	(duration< D  E))
     => #f)
 
   (check
-      (let (((D <duration>) (make <duration> 1 4))
-	    ((E <duration>) (make <duration> 2 4)))
+      (let (((D <duration>) (make* <duration> 1 4))
+	    ((E <duration>) (make* <duration> 2 4)))
 	(duration< D  E))
     => #t)
 
   (check
-      (let (((D <duration>) (make <duration> 2 4))
-	    ((E <duration>) (make <duration> 1 4)))
+      (let (((D <duration>) (make* <duration> 2 4))
+	    ((E <duration>) (make* <duration> 1 4)))
 	(duration< D  E))
     => #f)
 
   (check
-      (let (((D <duration>) (make <duration> 1 4))
-	    ((E <duration>) (make <duration> 1 5)))
+      (let (((D <duration>) (make* <duration> 1 4))
+	    ((E <duration>) (make* <duration> 1 5)))
 	(duration< D  E))
     => #t)
 
   (check
-      (let (((D <duration>) (make <duration> 1 5))
-	    ((E <duration>) (make <duration> 1 4)))
+      (let (((D <duration>) (make* <duration> 1 5))
+	    ((E <duration>) (make* <duration> 1 4)))
 	(duration< D  E))
     => #f)
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (let (((D <duration>) (make <duration> 1 2))
-	    ((E <duration>) (make <duration> 1 2)))
+      (let (((D <duration>) (make* <duration> 1 2))
+	    ((E <duration>) (make* <duration> 1 2)))
 	(duration<= D E))
     => #t)
 
   (check
-      (let (((D <duration>) (make <duration> 1 2))
-	    ((E <duration>) (make <duration> -1 -2)))
+      (let (((D <duration>) (make* <duration> 1 2))
+	    ((E <duration>) (make* <duration> -1 -2)))
 	(duration<= D E))
     => #t)
 
   (check
-      (let (((D <duration>) (make <duration> 1 -2))
-	    ((E <duration>) (make <duration> -1 2)))
+      (let (((D <duration>) (make* <duration> 1 -2))
+	    ((E <duration>) (make* <duration> -1 2)))
 	(duration<= D E))
     => #t)
 
   (check
-      (let (((D <duration>) (make <duration> 1 4))
-	    ((E <duration>) (make <duration> 2 4)))
+      (let (((D <duration>) (make* <duration> 1 4))
+	    ((E <duration>) (make* <duration> 2 4)))
 	(duration<= D E))
     => #t)
 
   (check
-      (let (((D <duration>) (make <duration> 2 4))
-	    ((E <duration>) (make <duration> 1 4)))
+      (let (((D <duration>) (make* <duration> 2 4))
+	    ((E <duration>) (make* <duration> 1 4)))
 	(duration<= D E))
     => #f)
 
   (check
-      (let (((D <duration>) (make <duration> 1 4))
-	    ((E <duration>) (make <duration> 1 5)))
+      (let (((D <duration>) (make* <duration> 1 4))
+	    ((E <duration>) (make* <duration> 1 5)))
 	(duration<= D E))
     => #t)
 
   (check
-      (let (((D <duration>) (make <duration> 1 5))
-	    ((E <duration>) (make <duration> 1 4)))
+      (let (((D <duration>) (make* <duration> 1 5))
+	    ((E <duration>) (make* <duration> 1 4)))
 	(duration<= D E))
     => #f)
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (let (((D <duration>) (make <duration> 1 2))
-	    ((E <duration>) (make <duration> 1 2)))
+      (let (((D <duration>) (make* <duration> 1 2))
+	    ((E <duration>) (make* <duration> 1 2)))
 	(duration> D E))
     => #f)
 
   (check
-      (let (((D <duration>) (make <duration> 1 2))
-	    ((E <duration>) (make <duration> -1 -2)))
+      (let (((D <duration>) (make* <duration> 1 2))
+	    ((E <duration>) (make* <duration> -1 -2)))
 	(duration> D E))
     => #f)
 
   (check
-      (let (((D <duration>) (make <duration> 1 -2))
-	    ((E <duration>) (make <duration> -1 2)))
+      (let (((D <duration>) (make* <duration> 1 -2))
+	    ((E <duration>) (make* <duration> -1 2)))
 	(duration> D E))
     => #f)
 
   (check
-      (let (((D <duration>) (make <duration> 1 4))
-	    ((E <duration>) (make <duration> 2 4)))
+      (let (((D <duration>) (make* <duration> 1 4))
+	    ((E <duration>) (make* <duration> 2 4)))
 	(duration> D E))
     => #f)
 
   (check
-      (let (((D <duration>) (make <duration> 2 4))
-	    ((E <duration>) (make <duration> 1 4)))
+      (let (((D <duration>) (make* <duration> 2 4))
+	    ((E <duration>) (make* <duration> 1 4)))
 	(duration> D E))
     => #t)
 
   (check
-      (let (((D <duration>) (make <duration> 1 4))
-	    ((E <duration>) (make <duration> 1 5)))
+      (let (((D <duration>) (make* <duration> 1 4))
+	    ((E <duration>) (make* <duration> 1 5)))
 	(duration> D E))
     => #f)
 
   (check
-      (let (((D <duration>) (make <duration> 1 5))
-	    ((E <duration>) (make <duration> 1 4)))
+      (let (((D <duration>) (make* <duration> 1 5))
+	    ((E <duration>) (make* <duration> 1 4)))
 	(duration> D E))
     => #t)
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (let (((D <duration>) (make <duration> 1 2))
-	    ((E <duration>) (make <duration> 1 2)))
+      (let (((D <duration>) (make* <duration> 1 2))
+	    ((E <duration>) (make* <duration> 1 2)))
 	(duration>= D E))
     => #t)
 
   (check
-      (let (((D <duration>) (make <duration> 1 2))
-	    ((E <duration>) (make <duration> -1 -2)))
+      (let (((D <duration>) (make* <duration> 1 2))
+	    ((E <duration>) (make* <duration> -1 -2)))
 	(duration>= D E))
     => #t)
 
   (check
-      (let (((D <duration>) (make <duration> 1 -2))
-	    ((E <duration>) (make <duration> -1 2)))
+      (let (((D <duration>) (make* <duration> 1 -2))
+	    ((E <duration>) (make* <duration> -1 2)))
 	(duration>= D E))
     => #t)
 
   (check
-      (let (((D <duration>) (make <duration> 1 4))
-	    ((E <duration>) (make <duration> 2 4)))
+      (let (((D <duration>) (make* <duration> 1 4))
+	    ((E <duration>) (make* <duration> 2 4)))
 	(duration>= D E))
     => #f)
 
   (check
-      (let (((D <duration>) (make <duration> 2 4))
-	    ((E <duration>) (make <duration> 1 4)))
+      (let (((D <duration>) (make* <duration> 2 4))
+	    ((E <duration>) (make* <duration> 1 4)))
 	(duration>= D E))
     => #t)
 
   (check
-      (let (((D <duration>) (make <duration> 1 4))
-	    ((E <duration>) (make <duration> 1 5)))
+      (let (((D <duration>) (make* <duration> 1 4))
+	    ((E <duration>) (make* <duration> 1 5)))
 	(duration>= D E))
     => #f)
 
   (check
-      (let (((D <duration>) (make <duration> 1 5))
-	    ((E <duration>) (make <duration> 1 4)))
+      (let (((D <duration>) (make* <duration> 1 5))
+	    ((E <duration>) (make* <duration> 1 4)))
 	(duration>= D E))
     => #t)
 
@@ -823,15 +823,15 @@
 (parametrise ((check-test-name	'duration-arithmetics))
 
   (check
-      (let* (((D <duration>) (make <duration> 1 2))
-	     ((E <duration>) (make <duration> 3 4))
+      (let* (((D <duration>) (make* <duration> 1 2))
+	     ((E <duration>) (make* <duration> 3 4))
 	     ((F <duration>) (D.+ E)))
 	(list (is-a? F <duration>) F.seconds F.nanoseconds))
     => '(#t 4 6))
 
   (check
-      (let* (((D <duration>) (make <duration> 1 2))
-	     ((E <duration>) (make <duration> 3 4))
+      (let* (((D <duration>) (make* <duration> 1 2))
+	     ((E <duration>) (make* <duration> 3 4))
 	     ((F <duration>) (duration+ D E)))
 	(list (is-a? F <duration>) F.seconds F.nanoseconds))
     => '(#t 4 6))
@@ -839,15 +839,15 @@
 ;;; --------------------------------------------------------------------
 
   (check
-      (let* (((D <duration>) (make <duration> 1 2))
-	     ((E <duration>) (make <duration> 3 5))
+      (let* (((D <duration>) (make* <duration> 1 2))
+	     ((E <duration>) (make* <duration> 3 5))
 	     ((F <duration>) (D.- E)))
 	(list (is-a? F <duration>) F.seconds F.nanoseconds))
     => '(#t -2 -3))
 
   (check
-      (let* (((D <duration>) (make <duration> 1 2))
-	     ((E <duration>) (make <duration> 3 5))
+      (let* (((D <duration>) (make* <duration> 1 2))
+	     ((E <duration>) (make* <duration> 3 5))
 	     ((F <duration>) (duration- D E)))
 	(list (is-a? F <duration>) F.seconds F.nanoseconds))
     => '(#t -2 -3))
@@ -855,7 +855,7 @@
 ;;; --------------------------------------------------------------------
 
   (check
-      (let* (((D <duration>) (make <duration> 1 2))
+      (let* (((D <duration>) (make* <duration> 1 2))
 	     ((F <duration>) (D.* 5)))
 	(list (is-a? F <duration>) F.seconds F.nanoseconds))
     => '(#t 5 10))
@@ -863,7 +863,7 @@
 ;;; --------------------------------------------------------------------
 
   (check
-      (let* (((D <duration>) (make <duration> 10 20))
+      (let* (((D <duration>) (make* <duration> 10 20))
 	     ((F <duration>) (D./ 5)))
 	(list (is-a? F <duration>) F.seconds F.nanoseconds))
     => '(#t 2 4))
@@ -874,51 +874,51 @@
 (parametrise ((check-test-name	'time-base))
 
   (check
-      (is-a? (make <time> 1 2) <time>)
+      (is-a? (make* <time> 1 2) <time>)
     => #t)
 
   (check
-      (let (((T <time>) (make <time> 1 2)))
+      (let (((T <time>) (make* <time> 1 2)))
 	(list T.seconds T.nanoseconds))
     => '(1 2))
 
   (check
-      (let (((T <time>) (make <time> -10 #e-1.001e9)))
+      (let (((T <time>) (make* <time> -10 #e-1.001e9)))
 	(list T.seconds T.nanoseconds))
     => '(-11 #e-1e6))
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (is-a? (make* <time>
+      (is-a? (make <time>
 	       (seconds 1)
 	       (nanoseconds 2))
 	     <time>)
     => #t)
 
   (check
-      (let (((T <time>) (make* <time>
+      (let (((T <time>) (make <time>
 			  (seconds 1)
 			  (nanoseconds 2))))
 	(list T.seconds T.nanoseconds))
     => '(1 2))
 
   (check
-      (let (((T <time>) (make* <time>
+      (let (((T <time>) (make <time>
 			  (seconds -10)
 			  (nanoseconds #e-1.001e9))))
 	(list T.seconds T.nanoseconds))
     => '(-11 #e-1e6))
 
   (check
-      (let (((T <time>) (make* <time>
+      (let (((T <time>) (make <time>
 			  (seconds 1)
 			  (milliseconds 123))))
 	(list T.seconds T.nanoseconds))
     => '(1 #e123e6))
 
   (check
-      (let (((T <time>) (make* <time>
+      (let (((T <time>) (make <time>
 			  (seconds 1)
 			  (microseconds 123))))
 	(list T.seconds T.nanoseconds))
@@ -928,13 +928,13 @@
 ;;; clone
 
   (check
-      (let* (((T <time>) (make <time> 1 2))
+      (let* (((T <time>) (make* <time> 1 2))
 	     ((F <time>) (T.deep-clone)))
 	(list (is-a? F <time>) T.seconds T.nanoseconds))
     => '(#t 1 2))
 
   (check
-      (let* (((T <time>) (make <time> 1 2))
+      (let* (((T <time>) (make* <time> 1 2))
 	     ((F <time>) (T.shallow-clone)))
 	(list (is-a? F <time>) T.seconds T.nanoseconds))
     => '(#t 1 2))
@@ -943,21 +943,21 @@
 ;;; to seconds
 
   (check
-      (let (((T <time>) (make* <time>
+      (let (((T <time>) (make <time>
 			  (seconds 1)
 			  (nanoseconds 1))))
 	T.full-seconds)
     => #e1.000000001)
 
   (check
-      (let (((T <time>) (make* <time>
+      (let (((T <time>) (make <time>
 			  (seconds 1)
 			  (microseconds 1))))
 	T.full-seconds)
     => #e1.000001)
 
   (check
-      (let (((T <time>) (make* <time>
+      (let (((T <time>) (make <time>
 			  (seconds 1)
 			  (milliseconds 1))))
 	T.full-seconds)
@@ -967,21 +967,21 @@
 ;;; to milliseconds
 
   (check
-      (let (((T <time>) (make* <time>
+      (let (((T <time>) (make <time>
 			  (seconds 1)
 			  (nanoseconds 1))))
 	T.full-milliseconds)
     => #e1000.000001)
 
   (check
-      (let (((T <time>) (make* <time>
+      (let (((T <time>) (make <time>
 			  (seconds 1)
 			  (microseconds 1))))
 	T.full-milliseconds)
     => #e1000.001)
 
   (check
-      (let (((T <time>) (make* <time>
+      (let (((T <time>) (make <time>
 			  (seconds 1)
 			  (milliseconds 1))))
 	T.full-milliseconds)
@@ -991,21 +991,21 @@
 ;;; to microseconds
 
   (check
-      (let (((T <time>) (make* <time>
+      (let (((T <time>) (make <time>
 			  (seconds 1)
 			  (nanoseconds 1))))
 	T.full-microseconds)
     => #e1000000.001)
 
   (check
-      (let (((T <time>) (make* <time>
+      (let (((T <time>) (make <time>
 			  (seconds 1)
 			  (microseconds 1))))
 	T.full-microseconds)
     => #e1000001)
 
   (check
-      (let (((T <time>) (make* <time>
+      (let (((T <time>) (make <time>
 			  (seconds 1)
 			  (milliseconds 1))))
 	T.full-microseconds)
@@ -1015,21 +1015,21 @@
 ;;; to nanoseconds
 
   (check
-      (let (((T <time>) (make* <time>
+      (let (((T <time>) (make <time>
 			  (seconds 1)
 			  (nanoseconds 1))))
 	T.full-nanoseconds)
     => #e1000000001)
 
   (check
-      (let (((T <time>) (make* <time>
+      (let (((T <time>) (make <time>
 			  (seconds 1)
 			  (microseconds 1))))
 	T.full-nanoseconds)
     => #e1000001000)
 
   (check
-      (let (((T <time>) (make* <time>
+      (let (((T <time>) (make <time>
 			  (seconds 1)
 			  (milliseconds 1))))
 	T.full-nanoseconds)
@@ -1041,208 +1041,208 @@
 (parametrise ((check-test-name	'time-comparison))
 
   (check
-      (let (((T <time>) (make <time> 1 2))
-	    ((E <time>) (make <time> 1 2)))
+      (let (((T <time>) (make* <time> 1 2))
+	    ((E <time>) (make* <time> 1 2)))
 	(T.= E))
     => #t)
 
   (check
-      (let (((T <time>) (make <time> 1 2))
-	    ((E <time>) (make <time> -1 -2)))
+      (let (((T <time>) (make* <time> 1 2))
+	    ((E <time>) (make* <time> -1 -2)))
 	(T.= E))
     => #f)
 
   (check
-      (let (((T <time>) (make <time> 1 -2))
-	    ((E <time>) (make <time> -1 2)))
+      (let (((T <time>) (make* <time> 1 -2))
+	    ((E <time>) (make* <time> -1 2)))
 	(T.= E))
     => #f)
 
   (check
-      (let (((T <time>) (make <time> 1 3))
-	    ((E <time>) (make <time> 1 2)))
+      (let (((T <time>) (make* <time> 1 3))
+	    ((E <time>) (make* <time> 1 2)))
 	(T.= E))
     => #f)
 
   (check
-      (let (((T <time>) (make <time> 1 2))
-	    ((E <time>) (make <time> 9 2)))
+      (let (((T <time>) (make* <time> 1 2))
+	    ((E <time>) (make* <time> 9 2)))
 	(T.= E))
     => #f)
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (let (((T <time>) (make <time> 1 2))
-	    ((E <time>) (make <time> 1 2)))
+      (let (((T <time>) (make* <time> 1 2))
+	    ((E <time>) (make* <time> 1 2)))
 	(T.< E))
     => #f)
 
   (check
-      (let (((T <time>) (make <time> 1 2))
-	    ((E <time>) (make <time> -1 -2)))
+      (let (((T <time>) (make* <time> 1 2))
+	    ((E <time>) (make* <time> -1 -2)))
 	(T.< E))
     => #f)
 
   (check
-      (let (((T <time>) (make <time> 1 -2))
-	    ((E <time>) (make <time> -1 2)))
+      (let (((T <time>) (make* <time> 1 -2))
+	    ((E <time>) (make* <time> -1 2)))
 	(T.< E))
     => #f)
 
   (check
-      (let (((T <time>) (make <time> 1 4))
-	    ((E <time>) (make <time> 2 4)))
+      (let (((T <time>) (make* <time> 1 4))
+	    ((E <time>) (make* <time> 2 4)))
 	(T.< E))
     => #t)
 
   (check
-      (let (((T <time>) (make <time> 2 4))
-	    ((E <time>) (make <time> 1 4)))
+      (let (((T <time>) (make* <time> 2 4))
+	    ((E <time>) (make* <time> 1 4)))
 	(T.< E))
     => #f)
 
   (check
-      (let (((T <time>) (make <time> 1 4))
-	    ((E <time>) (make <time> 1 5)))
+      (let (((T <time>) (make* <time> 1 4))
+	    ((E <time>) (make* <time> 1 5)))
 	(T.< E))
     => #t)
 
   (check
-      (let (((T <time>) (make <time> 1 5))
-	    ((E <time>) (make <time> 1 4)))
+      (let (((T <time>) (make* <time> 1 5))
+	    ((E <time>) (make* <time> 1 4)))
 	(T.< E))
     => #f)
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (let (((T <time>) (make <time> 1 2))
-	    ((E <time>) (make <time> 1 2)))
+      (let (((T <time>) (make* <time> 1 2))
+	    ((E <time>) (make* <time> 1 2)))
 	(T.<= E))
     => #t)
 
   (check
-      (let (((T <time>) (make <time> 1 2))
-	    ((E <time>) (make <time> -1 -2)))
+      (let (((T <time>) (make* <time> 1 2))
+	    ((E <time>) (make* <time> -1 -2)))
 	(T.<= E))
     => #f)
 
   (check
-      (let (((T <time>) (make <time> 1 -2))
-	    ((E <time>) (make <time> -1 2)))
+      (let (((T <time>) (make* <time> 1 -2))
+	    ((E <time>) (make* <time> -1 2)))
 	(T.<= E))
     => #f)
 
   (check
-      (let (((T <time>) (make <time> 1 4))
-	    ((E <time>) (make <time> 2 4)))
+      (let (((T <time>) (make* <time> 1 4))
+	    ((E <time>) (make* <time> 2 4)))
 	(T.<= E))
     => #t)
 
   (check
-      (let (((T <time>) (make <time> 2 4))
-	    ((E <time>) (make <time> 1 4)))
+      (let (((T <time>) (make* <time> 2 4))
+	    ((E <time>) (make* <time> 1 4)))
 	(T.<= E))
     => #f)
 
   (check
-      (let (((T <time>) (make <time> 1 4))
-	    ((E <time>) (make <time> 1 5)))
+      (let (((T <time>) (make* <time> 1 4))
+	    ((E <time>) (make* <time> 1 5)))
 	(T.<= E))
     => #t)
 
   (check
-      (let (((T <time>) (make <time> 1 5))
-	    ((E <time>) (make <time> 1 4)))
+      (let (((T <time>) (make* <time> 1 5))
+	    ((E <time>) (make* <time> 1 4)))
 	(T.<= E))
     => #f)
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (let (((T <time>) (make <time> 1 2))
-	    ((E <time>) (make <time> 1 2)))
+      (let (((T <time>) (make* <time> 1 2))
+	    ((E <time>) (make* <time> 1 2)))
 	(T.> E))
     => #f)
 
   (check
-      (let (((T <time>) (make <time> 1 2))
-	    ((E <time>) (make <time> -1 -2)))
+      (let (((T <time>) (make* <time> 1 2))
+	    ((E <time>) (make* <time> -1 -2)))
 	(T.> E))
     => #t)
 
   (check
-      (let (((T <time>) (make <time> 1 -2))
-	    ((E <time>) (make <time> -1 2)))
+      (let (((T <time>) (make* <time> 1 -2))
+	    ((E <time>) (make* <time> -1 2)))
 	(T.> E))
     => #t)
 
   (check
-      (let (((T <time>) (make <time> 1 4))
-	    ((E <time>) (make <time> 2 4)))
+      (let (((T <time>) (make* <time> 1 4))
+	    ((E <time>) (make* <time> 2 4)))
 	(T.> E))
     => #f)
 
   (check
-      (let (((T <time>) (make <time> 2 4))
-	    ((E <time>) (make <time> 1 4)))
+      (let (((T <time>) (make* <time> 2 4))
+	    ((E <time>) (make* <time> 1 4)))
 	(T.> E))
     => #t)
 
   (check
-      (let (((T <time>) (make <time> 1 4))
-	    ((E <time>) (make <time> 1 5)))
+      (let (((T <time>) (make* <time> 1 4))
+	    ((E <time>) (make* <time> 1 5)))
 	(T.> E))
     => #f)
 
   (check
-      (let (((T <time>) (make <time> 1 5))
-	    ((E <time>) (make <time> 1 4)))
+      (let (((T <time>) (make* <time> 1 5))
+	    ((E <time>) (make* <time> 1 4)))
 	(T.> E))
     => #t)
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (let (((T <time>) (make <time> 1 2))
-	    ((E <time>) (make <time> 1 2)))
+      (let (((T <time>) (make* <time> 1 2))
+	    ((E <time>) (make* <time> 1 2)))
 	(T.>= E))
     => #t)
 
   (check
-      (let (((T <time>) (make <time> 1 2))
-	    ((E <time>) (make <time> -1 -2)))
+      (let (((T <time>) (make* <time> 1 2))
+	    ((E <time>) (make* <time> -1 -2)))
 	(T.>= E))
     => #t)
 
   (check
-      (let (((T <time>) (make <time> 1 -2))
-	    ((E <time>) (make <time> -1 2)))
+      (let (((T <time>) (make* <time> 1 -2))
+	    ((E <time>) (make* <time> -1 2)))
 	(T.>= E))
     => #t)
 
   (check
-      (let (((T <time>) (make <time> 1 4))
-	    ((E <time>) (make <time> 2 4)))
+      (let (((T <time>) (make* <time> 1 4))
+	    ((E <time>) (make* <time> 2 4)))
 	(T.>= E))
     => #f)
 
   (check
-      (let (((T <time>) (make <time> 2 4))
-	    ((E <time>) (make <time> 1 4)))
+      (let (((T <time>) (make* <time> 2 4))
+	    ((E <time>) (make* <time> 1 4)))
 	(T.>= E))
     => #t)
 
   (check
-      (let (((T <time>) (make <time> 1 4))
-	    ((E <time>) (make <time> 1 5)))
+      (let (((T <time>) (make* <time> 1 4))
+	    ((E <time>) (make* <time> 1 5)))
 	(T.>= E))
     => #f)
 
   (check
-      (let (((T <time>) (make <time> 1 5))
-	    ((E <time>) (make <time> 1 4)))
+      (let (((T <time>) (make* <time> 1 5))
+	    ((E <time>) (make* <time> 1 4)))
 	(T.>= E))
     => #t)
 
@@ -1252,208 +1252,208 @@
 (parametrise ((check-test-name	'time-comparison-funcs))
 
   (check
-      (let (((T <time>) (make <time> 1 2))
-	    ((E <time>) (make <time> 1 2)))
+      (let (((T <time>) (make* <time> 1 2))
+	    ((E <time>) (make* <time> 1 2)))
 	(time= T E))
     => #t)
 
   (check
-      (let (((T <time>) (make <time> 1 2))
-	    ((E <time>) (make <time> -1 -2)))
+      (let (((T <time>) (make* <time> 1 2))
+	    ((E <time>) (make* <time> -1 -2)))
 	(time= T E))
     => #f)
 
   (check
-      (let (((T <time>) (make <time> 1 -2))
-	    ((E <time>) (make <time> -1 2)))
+      (let (((T <time>) (make* <time> 1 -2))
+	    ((E <time>) (make* <time> -1 2)))
 	(time= T E))
     => #f)
 
   (check
-      (let (((T <time>) (make <time> 1 3))
-	    ((E <time>) (make <time> 1 2)))
+      (let (((T <time>) (make* <time> 1 3))
+	    ((E <time>) (make* <time> 1 2)))
 	(time= T E))
     => #f)
 
   (check
-      (let (((T <time>) (make <time> 1 2))
-	    ((E <time>) (make <time> 9 2)))
+      (let (((T <time>) (make* <time> 1 2))
+	    ((E <time>) (make* <time> 9 2)))
 	(time= T E))
     => #f)
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (let (((T <time>) (make <time> 1 2))
-	    ((E <time>) (make <time> 1 2)))
+      (let (((T <time>) (make* <time> 1 2))
+	    ((E <time>) (make* <time> 1 2)))
 	(time< T E))
     => #f)
 
   (check
-      (let (((T <time>) (make <time> 1 2))
-	    ((E <time>) (make <time> -1 -2)))
+      (let (((T <time>) (make* <time> 1 2))
+	    ((E <time>) (make* <time> -1 -2)))
 	(time< T E))
     => #f)
 
   (check
-      (let (((T <time>) (make <time> 1 -2))
-	    ((E <time>) (make <time> -1 2)))
+      (let (((T <time>) (make* <time> 1 -2))
+	    ((E <time>) (make* <time> -1 2)))
 	(time< T E))
     => #f)
 
   (check
-      (let (((T <time>) (make <time> 1 4))
-	    ((E <time>) (make <time> 2 4)))
+      (let (((T <time>) (make* <time> 1 4))
+	    ((E <time>) (make* <time> 2 4)))
 	(time< T E))
     => #t)
 
   (check
-      (let (((T <time>) (make <time> 2 4))
-	    ((E <time>) (make <time> 1 4)))
+      (let (((T <time>) (make* <time> 2 4))
+	    ((E <time>) (make* <time> 1 4)))
 	(time< T E))
     => #f)
 
   (check
-      (let (((T <time>) (make <time> 1 4))
-	    ((E <time>) (make <time> 1 5)))
+      (let (((T <time>) (make* <time> 1 4))
+	    ((E <time>) (make* <time> 1 5)))
 	(time< T E))
     => #t)
 
   (check
-      (let (((T <time>) (make <time> 1 5))
-	    ((E <time>) (make <time> 1 4)))
+      (let (((T <time>) (make* <time> 1 5))
+	    ((E <time>) (make* <time> 1 4)))
 	(time< T E))
     => #f)
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (let (((T <time>) (make <time> 1 2))
-	    ((E <time>) (make <time> 1 2)))
+      (let (((T <time>) (make* <time> 1 2))
+	    ((E <time>) (make* <time> 1 2)))
 	(time<= T E))
     => #t)
 
   (check
-      (let (((T <time>) (make <time> 1 2))
-	    ((E <time>) (make <time> -1 -2)))
+      (let (((T <time>) (make* <time> 1 2))
+	    ((E <time>) (make* <time> -1 -2)))
 	(time<= T E))
     => #f)
 
   (check
-      (let (((T <time>) (make <time> 1 -2))
-	    ((E <time>) (make <time> -1 2)))
+      (let (((T <time>) (make* <time> 1 -2))
+	    ((E <time>) (make* <time> -1 2)))
 	(time<= T E))
     => #f)
 
   (check
-      (let (((T <time>) (make <time> 1 4))
-	    ((E <time>) (make <time> 2 4)))
+      (let (((T <time>) (make* <time> 1 4))
+	    ((E <time>) (make* <time> 2 4)))
 	(time<= T E))
     => #t)
 
   (check
-      (let (((T <time>) (make <time> 2 4))
-	    ((E <time>) (make <time> 1 4)))
+      (let (((T <time>) (make* <time> 2 4))
+	    ((E <time>) (make* <time> 1 4)))
 	(time<= T E))
     => #f)
 
   (check
-      (let (((T <time>) (make <time> 1 4))
-	    ((E <time>) (make <time> 1 5)))
+      (let (((T <time>) (make* <time> 1 4))
+	    ((E <time>) (make* <time> 1 5)))
 	(time<= T E))
     => #t)
 
   (check
-      (let (((T <time>) (make <time> 1 5))
-	    ((E <time>) (make <time> 1 4)))
+      (let (((T <time>) (make* <time> 1 5))
+	    ((E <time>) (make* <time> 1 4)))
 	(time<= T E))
     => #f)
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (let (((T <time>) (make <time> 1 2))
-	    ((E <time>) (make <time> 1 2)))
+      (let (((T <time>) (make* <time> 1 2))
+	    ((E <time>) (make* <time> 1 2)))
 	(time> T E))
     => #f)
 
   (check
-      (let (((T <time>) (make <time> 1 2))
-	    ((E <time>) (make <time> -1 -2)))
+      (let (((T <time>) (make* <time> 1 2))
+	    ((E <time>) (make* <time> -1 -2)))
 	(time> T E))
     => #t)
 
   (check
-      (let (((T <time>) (make <time> 1 -2))
-	    ((E <time>) (make <time> -1 2)))
+      (let (((T <time>) (make* <time> 1 -2))
+	    ((E <time>) (make* <time> -1 2)))
 	(time> T E))
     => #t)
 
   (check
-      (let (((T <time>) (make <time> 1 4))
-	    ((E <time>) (make <time> 2 4)))
+      (let (((T <time>) (make* <time> 1 4))
+	    ((E <time>) (make* <time> 2 4)))
 	(time> T E))
     => #f)
 
   (check
-      (let (((T <time>) (make <time> 2 4))
-	    ((E <time>) (make <time> 1 4)))
+      (let (((T <time>) (make* <time> 2 4))
+	    ((E <time>) (make* <time> 1 4)))
 	(time> T E))
     => #t)
 
   (check
-      (let (((T <time>) (make <time> 1 4))
-	    ((E <time>) (make <time> 1 5)))
+      (let (((T <time>) (make* <time> 1 4))
+	    ((E <time>) (make* <time> 1 5)))
 	(time> T E))
     => #f)
 
   (check
-      (let (((T <time>) (make <time> 1 5))
-	    ((E <time>) (make <time> 1 4)))
+      (let (((T <time>) (make* <time> 1 5))
+	    ((E <time>) (make* <time> 1 4)))
 	(time> T E))
     => #t)
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (let (((T <time>) (make <time> 1 2))
-	    ((E <time>) (make <time> 1 2)))
+      (let (((T <time>) (make* <time> 1 2))
+	    ((E <time>) (make* <time> 1 2)))
 	(time>= T E))
     => #t)
 
   (check
-      (let (((T <time>) (make <time> 1 2))
-	    ((E <time>) (make <time> -1 -2)))
+      (let (((T <time>) (make* <time> 1 2))
+	    ((E <time>) (make* <time> -1 -2)))
 	(time>= T E))
     => #t)
 
   (check
-      (let (((T <time>) (make <time> 1 -2))
-	    ((E <time>) (make <time> -1 2)))
+      (let (((T <time>) (make* <time> 1 -2))
+	    ((E <time>) (make* <time> -1 2)))
 	(time>= T E))
     => #t)
 
   (check
-      (let (((T <time>) (make <time> 1 4))
-	    ((E <time>) (make <time> 2 4)))
+      (let (((T <time>) (make* <time> 1 4))
+	    ((E <time>) (make* <time> 2 4)))
 	(time>= T E))
     => #f)
 
   (check
-      (let (((T <time>) (make <time> 2 4))
-	    ((E <time>) (make <time> 1 4)))
+      (let (((T <time>) (make* <time> 2 4))
+	    ((E <time>) (make* <time> 1 4)))
 	(time>= T E))
     => #t)
 
   (check
-      (let (((T <time>) (make <time> 1 4))
-	    ((E <time>) (make <time> 1 5)))
+      (let (((T <time>) (make* <time> 1 4))
+	    ((E <time>) (make* <time> 1 5)))
 	(time>= T E))
     => #f)
 
   (check
-      (let (((T <time>) (make <time> 1 5))
-	    ((E <time>) (make <time> 1 4)))
+      (let (((T <time>) (make* <time> 1 5))
+	    ((E <time>) (make* <time> 1 4)))
 	(time>= T E))
     => #t)
 
@@ -1463,8 +1463,8 @@
 (parametrise ((check-test-name	'time-arithmetics))
 
   (check
-      (let* (((D <time>)	(make <time> 1 2))
-	     ((E <duration>)	(make <duration> 3 4))
+      (let* (((D <time>)	(make* <time> 1 2))
+	     ((E <duration>)	(make* <duration> 3 4))
 	     ((F <time>)	(D.+ E)))
 	(list (is-a? F <time>) F.seconds F.nanoseconds))
     => '(#t 4 6))
@@ -1472,15 +1472,15 @@
 ;;; --------------------------------------------------------------------
 
   (check
-      (let* (((D <time>)	(make <time> 1 2))
-	     ((E <duration>)	(make <duration> 3 5))
+      (let* (((D <time>)	(make* <time> 1 2))
+	     ((E <duration>)	(make* <duration> 3 5))
 	     ((F <time>)	(D.- E)))
 	(list (is-a? F <time>) F.seconds F.nanoseconds))
     => '(#t -2 -3))
 
   (check
-      (let* (((D <time>)	(make <time> 1 2))
-	     ((E <time>)	(make <time> 3 5))
+      (let* (((D <time>)	(make* <time> 1 2))
+	     ((E <time>)	(make* <time> 3 5))
 	     ((F <duration>)	(D.- E)))
 	(list (is-a? F <duration>) F.seconds F.nanoseconds))
     => '(#t -2 -3))
@@ -1567,7 +1567,7 @@
 ;; ;;; --------------------------------------------------------------------
 
 ;;   (check
-;;       (let* ((D (make <date>
+;;       (let* ((D (make* <date>
 ;; 		  0 0 0 0
 ;; 		  1 1 1992 0))
 ;; 	     ((E <date>) (date-easter-day D)))

@@ -7,7 +7,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2008, 2009, 2010 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2008, 2009 Marco Maggi <marco.maggi-ipsu@poste.itn>
 ;;;Copyright (c) 2005-2009 Alex Shinn.  All rights reserved.
 ;;;Sometests adapted from SCSH SRE tests by Christoph Hetz.
 ;;;

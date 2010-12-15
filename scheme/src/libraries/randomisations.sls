@@ -3,7 +3,7 @@
 ;;;Contents: record interface to randomness sources
 ;;;Date: Sat Jul  4, 2009
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;Copyright (c) 2008 Derick Eddington
 ;;;Copyright (c) 2002 Sebastian Egner
 ;;;

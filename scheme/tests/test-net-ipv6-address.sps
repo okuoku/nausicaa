@@ -533,24 +533,24 @@
 (parametrise ((check-test-name	'class))
 
   (check
-      (let (((o <ipv6-address>) (make <ipv6-address> (ipv6-address-parse "1:2:3:4:5:6:7:8"))))
+      (let (((o <ipv6-address>) (make* <ipv6-address> (ipv6-address-parse "1:2:3:4:5:6:7:8"))))
 	(list o.seventh o.sixth o.fifth o.fourth
 	      o.third o.second o.first o.zeroth))
     => '(1 2 3 4 5 6 7 8))
 
   (check
-      (let (((o <ipv6-address>) (make <ipv6-address> (ipv6-address-parse "1:2:3::7:8"))))
+      (let (((o <ipv6-address>) (make* <ipv6-address> (ipv6-address-parse "1:2:3::7:8"))))
 	(list o.seventh o.sixth o.fifth o.fourth
 	      o.third o.second o.first o.zeroth))
     => '(1 2 3 0 0 0 7 8))
 
   (check
-      (let (((o <ipv6-address>) (make <ipv6-address> (ipv6-address-parse "1:2:3:4:5:6:7:8"))))
+      (let (((o <ipv6-address>) (make* <ipv6-address> (ipv6-address-parse "1:2:3:4:5:6:7:8"))))
 	o.bignum)
     => #x00010002000300040005000600070008)
 
   (check
-      (let (((o <ipv6-address>) (make <ipv6-address> (ipv6-address-parse "1:2:3:4:5:6:7:8"))))
+      (let (((o <ipv6-address>) (make* <ipv6-address> (ipv6-address-parse "1:2:3:4:5:6:7:8"))))
 	o.string)
     => "1:2:3:4:5:6:7:8")
 
@@ -558,61 +558,61 @@
 
   (check
       (let (((o <ipv6-address>)
-	     (make <ipv6-address> (ipv6-address-parse "::0"))))
+	     (make* <ipv6-address> (ipv6-address-parse "::0"))))
 	o.unspecified?)
     => #t)
 
   (check
       (let (((o <ipv6-address>)
-	     (make <ipv6-address> (ipv6-address-parse "::1"))))
+	     (make* <ipv6-address> (ipv6-address-parse "::1"))))
 	o.unspecified?)
     => #f)
 
   (check
       (let (((o <ipv6-address>)
-	     (make <ipv6-address> (ipv6-address-parse "::0"))))
+	     (make* <ipv6-address> (ipv6-address-parse "::0"))))
 	o.loopback?)
     => #f)
 
   (check
       (let (((o <ipv6-address>)
-	     (make <ipv6-address> (ipv6-address-parse "::1"))))
+	     (make* <ipv6-address> (ipv6-address-parse "::1"))))
 	o.loopback?)
     => #t)
 
   (check
       (let (((o <ipv6-address>)
-	     (make <ipv6-address> (ipv6-address-parse "FF00::"))))
+	     (make* <ipv6-address> (ipv6-address-parse "FF00::"))))
 	o.multicast?)
     => #t)
 
   (check
       (let (((o <ipv6-address>)
-	     (make <ipv6-address> (ipv6-address-parse "::1"))))
+	     (make* <ipv6-address> (ipv6-address-parse "::1"))))
 	o.multicast?)
     => #f)
 
   (check
       (let (((o <ipv6-address>)
-	     (make <ipv6-address> (ipv6-address-parse "FE80::"))))
+	     (make* <ipv6-address> (ipv6-address-parse "FE80::"))))
 	o.link-local-unicast?)
     => #t)
 
   (check
       (let (((o <ipv6-address>)
-	     (make <ipv6-address> (ipv6-address-parse "::1"))))
+	     (make* <ipv6-address> (ipv6-address-parse "::1"))))
 	o.link-local-unicast?)
     => #f)
 
   (check
       (let (((o <ipv6-address>)
-	     (make <ipv6-address> (ipv6-address-parse "FF80::"))))
+	     (make* <ipv6-address> (ipv6-address-parse "FF80::"))))
 	o.global-unicast?)
     => #f)
 
   (check
       (let (((o <ipv6-address>)
-	     (make <ipv6-address> (ipv6-address-parse "1:2::"))))
+	     (make* <ipv6-address> (ipv6-address-parse "1:2::"))))
 	o.global-unicast?)
     => #t)
 
@@ -622,7 +622,7 @@
       (let (((o <ipv6-address-prefix>)
 	     (receive (addr len)
 		 (ipv6-address-prefix-parse "1:2:3:4::/55")
-	       (make <ipv6-address-prefix> addr len))))
+	       (make* <ipv6-address-prefix> addr len))))
 	(list o.seventh o.sixth o.fifth o.fourth
 	      o.third o.second o.first o.zeroth
 	      o.prefix-length))
@@ -632,7 +632,7 @@
       (let (((o <ipv6-address-prefix>)
 	     (receive (addr len)
 		 (ipv6-address-prefix-parse "1:2:3:4::/50")
-	       (make <ipv6-address-prefix> addr len))))
+	       (make* <ipv6-address-prefix> addr len))))
 	o.string)
     => "1:2:3:4:0:0:0:0/50")
 

@@ -14,7 +14,7 @@
 ;;;	converted by Marco Maggi from  a C language version from the GNU
 ;;;	Scientific Library release 1.12.
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;Copyright (c) 2003 Heiko Bauke.
 ;;;Copyright (c) 2001 Carlo Perassi
 ;;;

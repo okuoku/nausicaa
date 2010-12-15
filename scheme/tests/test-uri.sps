@@ -191,7 +191,7 @@
       ((_ ?var ?expected . ?body)
        (check
 	   (let (((?var <uri>)
-		  (make* <uri>
+		  (make <uri>
 		    (:decoded-scheme	scheme)
 		    (:decoded-authority	authority)
 		    (:decoded-path	path)

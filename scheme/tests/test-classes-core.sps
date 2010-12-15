@@ -1890,7 +1890,7 @@
       (maker (a b)))
 
     (check
-	(let ((o (make* <alpha> 1 2)))
+	(let ((o (make <alpha> 1 2)))
 	  (with-class ((o <alpha>))
 	    (list o.a o.b)))
       => '(1 2))
@@ -1904,25 +1904,25 @@
       (maker () (a 1) (b 2)))
 
     (check
-	(let ((o (make* <alpha>)))
+	(let ((o (make <alpha>)))
 	  (with-class ((o <alpha>))
 	    (list o.a o.b)))
       => '(1 2))
 
     (check
-	(let ((o (make* <alpha> (a 10))))
+	(let ((o (make <alpha> (a 10))))
 	  (with-class ((o <alpha>))
 	    (list o.a o.b)))
       => '(10 2))
 
     (check
-	(let ((o (make* <alpha> (b 20))))
+	(let ((o (make <alpha> (b 20))))
 	  (with-class ((o <alpha>))
 	    (list o.a o.b)))
       => '(1 20))
 
     (check
-	(let ((o (make* <alpha> (b 20) (a 10))))
+	(let ((o (make <alpha> (b 20) (a 10))))
 	  (with-class ((o <alpha>))
 	    (list o.a o.b)))
       => '(10 20))
@@ -1936,13 +1936,13 @@
       (maker (a) (b 2)))
 
     (check
-	(let ((o (make* <alpha> 1)))
+	(let ((o (make <alpha> 1)))
 	  (with-class ((o <alpha>))
 	    (list o.a o.b)))
       => '(1 2))
 
     (check
-	(let ((o (make* <alpha> 1 (b 20))))
+	(let ((o (make <alpha> 1 (b 20))))
 	  (with-class ((o <alpha>))
 	    (list o.a o.b)))
       => '(1 20))
@@ -1959,19 +1959,19 @@
 			  ((make-top) a b 456)))))
 
     (check
-	(let ((o (make* <alpha> 1)))
+	(let ((o (make <alpha> 1)))
 	  (with-class ((o <alpha>))
 	    (list o.a o.b o.c)))
       => '(1 2 456))
 
     (check
-	(let ((o (make* <alpha> 1 (b 20))))
+	(let ((o (make <alpha> 1 (b 20))))
 	  (with-class ((o <alpha>))
 	    (list o.a o.b o.c)))
       => '(1 20 456))
 
     (check
-	(let ((o (make <alpha> 1 2 3)))
+	(let ((o (make* <alpha> 1 2 3)))
 	  (with-class ((o <alpha>))
 	    (list o.a o.b o.c)))
       => '(1 2 3))
@@ -1986,7 +1986,7 @@
       (fields a b))
 
     (check	;when no MAKER is defined default to public constructor
-	(is-a? (make* <alpha> 1 2) <alpha>)
+	(is-a? (make <alpha> 1 2) <alpha>)
       => #t)
 
     #f)
@@ -2008,19 +2008,19 @@
 	 (?constructor (+ 1 ?a) (+ 2 ?b)))))
 
     (check
-	(let ((o (make <alpha> 1 2)))
+	(let ((o (make* <alpha> 1 2)))
 	  (with-class ((o <alpha>))
 	    (list o.a o.b)))
       => '(1 2))
 
     (check
-	(let ((o (make* <alpha> 1)))
+	(let ((o (make <alpha> 1)))
 	  (with-class ((o <alpha>))
 	    (list o.a o.b)))
       => '(2 4))
 
     (check
-	(let ((o (make* <alpha> 1 (b 20))))
+	(let ((o (make <alpha> 1 (b 20))))
 	  (with-class ((o <alpha>))
 	    (list o.a o.b)))
       => '(2 22))
@@ -2040,19 +2040,19 @@
 	    #'(?constructor (+ 1 ?a) (+ 2 ?b)))))))
 
     (check
-	(let ((o (make <alpha> 1 2)))
+	(let ((o (make* <alpha> 1 2)))
 	  (with-class ((o <alpha>))
 	    (list o.a o.b)))
       => '(1 2))
 
     (check
-	(let ((o (make* <alpha> 1)))
+	(let ((o (make <alpha> 1)))
 	  (with-class ((o <alpha>))
 	    (list o.a o.b)))
       => '(2 4))
 
     (check
-	(let ((o (make* <alpha> 1 (b 20))))
+	(let ((o (make <alpha> 1 (b 20))))
 	  (with-class ((o <alpha>))
 	    (list o.a o.b)))
       => '(2 22))
@@ -2071,13 +2071,13 @@
 	 (?constructor (+ 1 ?a) (+ 2 ?b)))))
 
     (check
-	(let ((o (make <alpha> 1 2)))
+	(let ((o (make* <alpha> 1 2)))
 	  (with-class ((o <alpha>))
 	    (list o.a o.b)))
       => '(1 2))
 
     (check
-	(let ((o (make* <alpha> 1 2)))
+	(let ((o (make <alpha> 1 2)))
 	  (with-class ((o <alpha>))
 	    (list o.a o.b)))
       => '(1 2))
@@ -2120,7 +2120,7 @@
   (let ()	;only positional arguments
 
     (define-maker (make-alpha a b)
-      (make <alpha>)
+      (make* <alpha>)
       ())
 
     (define-class <alpha>
@@ -2128,7 +2128,7 @@
       (custom-maker make-alpha))
 
     (check
-	(let ((o (make* <alpha> 1 2)))
+	(let ((o (make <alpha> 1 2)))
 	  (with-class ((o <alpha>))
 	    (list o.a o.b)))
       => '(1 2))
@@ -2141,7 +2141,7 @@
       a: b:)
 
     (define-maker make-alpha
-      (make <alpha>)
+      (make* <alpha>)
       ((a: 1)
        (b: 2)))
 
@@ -2150,25 +2150,25 @@
       (custom-maker make-alpha))
 
     (check
-  	(let ((o (make* <alpha>)))
+  	(let ((o (make <alpha>)))
   	  (with-class ((o <alpha>))
   	    (list o.a o.b)))
       => '(1 2))
 
     (check
-  	(let ((o (make* <alpha> (a: 10))))
+  	(let ((o (make <alpha> (a: 10))))
   	  (with-class ((o <alpha>))
   	    (list o.a o.b)))
       => '(10 2))
 
     (check
-  	(let ((o (make* <alpha> (b: 20))))
+  	(let ((o (make <alpha> (b: 20))))
   	  (with-class ((o <alpha>))
   	    (list o.a o.b)))
       => '(1 20))
 
     (check
-  	(let ((o (make* <alpha> (b: 20) (a: 10))))
+  	(let ((o (make <alpha> (b: 20) (a: 10))))
   	  (with-class ((o <alpha>))
   	    (list o.a o.b)))
       => '(10 20))
@@ -2181,7 +2181,7 @@
       b)
 
     (define-maker (make-alpha a)
-      (make <alpha>)
+      (make* <alpha>)
       ((b 2)))
 
     (define-class <alpha>
@@ -2189,13 +2189,13 @@
       (custom-maker make-alpha))
 
     (check
-  	(let ((o (make* <alpha> 1)))
+  	(let ((o (make <alpha> 1)))
   	  (with-class ((o <alpha>))
   	    (list o.a o.b)))
       => '(1 2))
 
     (check
-  	(let ((o (make* <alpha> 1 (b 20))))
+  	(let ((o (make <alpha> 1 (b 20))))
   	  (with-class ((o <alpha>))
   	    (list o.a o.b)))
       => '(1 20))

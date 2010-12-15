@@ -21,7 +21,7 @@
 ;;;  <http://en.wikipedia.org/wiki/Knuth-Morris-Pratt_algorithm>
 ;;;
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;Derived from the SRFI 13 reference implementation.
 ;;;

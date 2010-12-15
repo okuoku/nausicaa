@@ -42,8 +42,6 @@
 		      :class-uid-list
 		      :from-fields-constructor-descriptor
 		      :is-a?
-		      :make
-		      :make-from-fields
 		      :parent-rtd-list
 		      :public-constructor-descriptor
 		      :superclass-constructor-descriptor

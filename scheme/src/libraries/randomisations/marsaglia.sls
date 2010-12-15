@@ -11,7 +11,7 @@
 ;;;	thread on  sci.stat.math and  sci.crypt starting on  January, 12
 ;;;	1999.
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;Copyright (c) 1999 George Marsaglia
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify

@@ -52,17 +52,17 @@
 ;;; --------------------------------------------------------------------
 
   (check
-      (let ((q (make <stack>)))
+      (let ((q (make-<stack>)))
 	(is-a? q <stack>))
     => #t)
 
   (check
-      (let ((q (make <stack> 1)))
+      (let ((q (make-<stack> 1)))
 	(is-a? q <stack>))
     => #t)
 
   (check
-      (let ((q (make <stack> 1 2 3)))
+      (let ((q (make-<stack> 1 2 3)))
 	(is-a? q <stack>))
     => #t)
 

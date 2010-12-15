@@ -268,183 +268,183 @@
 
   (check
       (let (((o <ipv4-address>)
-	     (make <ipv4-address> (ipv4-address-parse "1.2.3.4"))))
+	     (make* <ipv4-address> (ipv4-address-parse "1.2.3.4"))))
 	(list o.third o.second o.first o.zeroth))
     => '(1 2 3 4))
 
   ;; (check
   ;;     (let (((o <ipv4-address>)
-  ;; 	     (make <ipv4-address> (ipv4-address-parse "0x1.0x2.0x3.0x4"))))
+  ;; 	     (make* <ipv4-address> (ipv4-address-parse "0x1.0x2.0x3.0x4"))))
   ;; 	o.bignum)
   ;;   => #x01020304)
 
   (check
       (let (((o <ipv4-address>)
-	     (make <ipv4-address> (ipv4-address-parse "1.2.3.4"))))
+	     (make* <ipv4-address> (ipv4-address-parse "1.2.3.4"))))
 	o.string)
     => "1.2.3.4")
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (let (((o <ipv4-address>) (make <ipv4-address> (ipv4-address-parse "10.0.0.1"))))
+      (let (((o <ipv4-address>) (make* <ipv4-address> (ipv4-address-parse "10.0.0.1"))))
   	o.private?)
     => #t)
 
   (check
-      (let (((o <ipv4-address>) (make <ipv4-address> (ipv4-address-parse "172.16.0.1"))))
+      (let (((o <ipv4-address>) (make* <ipv4-address> (ipv4-address-parse "172.16.0.1"))))
   	o.private?)
     => #t)
 
   (check
-      (let (((o <ipv4-address>) (make <ipv4-address> (ipv4-address-parse "172.20.0.1"))))
+      (let (((o <ipv4-address>) (make* <ipv4-address> (ipv4-address-parse "172.20.0.1"))))
   	o.private?)
     => #t)
 
   (check
-      (let (((o <ipv4-address>) (make <ipv4-address> (ipv4-address-parse "192.168.0.1"))))
+      (let (((o <ipv4-address>) (make* <ipv4-address> (ipv4-address-parse "192.168.0.1"))))
   	o.private?)
     => #t)
 
   (check
-      (let (((o <ipv4-address>) (make <ipv4-address> (ipv4-address-parse "123.0.0.1"))))
+      (let (((o <ipv4-address>) (make* <ipv4-address> (ipv4-address-parse "123.0.0.1"))))
   	o.private?)
     => #f)
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (let (((o <ipv4-address>) (make <ipv4-address> (ipv4-address-parse "127.0.0.1"))))
+      (let (((o <ipv4-address>) (make* <ipv4-address> (ipv4-address-parse "127.0.0.1"))))
   	o.loopback?)
     => #t)
 
   (check
-      (let (((o <ipv4-address>) (make <ipv4-address> (ipv4-address-parse "100.0.0.1"))))
+      (let (((o <ipv4-address>) (make* <ipv4-address> (ipv4-address-parse "100.0.0.1"))))
   	o.loopback?)
     => #f)
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (let (((o <ipv4-address>) (make <ipv4-address> (ipv4-address-parse "127.0.0.1"))))
+      (let (((o <ipv4-address>) (make* <ipv4-address> (ipv4-address-parse "127.0.0.1"))))
   	o.localhost?)
     => #t)
 
   (check
-      (let (((o <ipv4-address>) (make <ipv4-address> (ipv4-address-parse "100.0.0.1"))))
+      (let (((o <ipv4-address>) (make* <ipv4-address> (ipv4-address-parse "100.0.0.1"))))
   	o.localhost?)
     => #f)
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (let (((o <ipv4-address>) (make <ipv4-address> (ipv4-address-parse "169.254.0.1"))))
+      (let (((o <ipv4-address>) (make* <ipv4-address> (ipv4-address-parse "169.254.0.1"))))
   	o.link-local?)
     => #t)
 
   (check
-      (let (((o <ipv4-address>) (make <ipv4-address> (ipv4-address-parse "100.0.0.1"))))
+      (let (((o <ipv4-address>) (make* <ipv4-address> (ipv4-address-parse "100.0.0.1"))))
   	o.link-local?)
     => #f)
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (let (((o <ipv4-address>) (make <ipv4-address> (ipv4-address-parse "192.0.0.1"))))
+      (let (((o <ipv4-address>) (make* <ipv4-address> (ipv4-address-parse "192.0.0.1"))))
   	o.reserved?)
     => #t)
 
   (check
-      (let (((o <ipv4-address>) (make <ipv4-address> (ipv4-address-parse "240.0.0.1"))))
+      (let (((o <ipv4-address>) (make* <ipv4-address> (ipv4-address-parse "240.0.0.1"))))
   	o.reserved?)
     => #t)
 
   (check
-      (let (((o <ipv4-address>) (make <ipv4-address> (ipv4-address-parse "100.0.0.1"))))
+      (let (((o <ipv4-address>) (make* <ipv4-address> (ipv4-address-parse "100.0.0.1"))))
   	o.reserved?)
     => #f)
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (let (((o <ipv4-address>) (make <ipv4-address> (ipv4-address-parse "192.0.2.1"))))
+      (let (((o <ipv4-address>) (make* <ipv4-address> (ipv4-address-parse "192.0.2.1"))))
   	o.test-net-1?)
     => #t)
 
   (check
-      (let (((o <ipv4-address>) (make <ipv4-address> (ipv4-address-parse "100.0.0.1"))))
+      (let (((o <ipv4-address>) (make* <ipv4-address> (ipv4-address-parse "100.0.0.1"))))
   	o.test-net-1?)
     => #f)
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (let (((o <ipv4-address>) (make <ipv4-address> (ipv4-address-parse "192.88.99.1"))))
+      (let (((o <ipv4-address>) (make* <ipv4-address> (ipv4-address-parse "192.88.99.1"))))
   	o.six-to-four-relay-anycast?)
     => #t)
 
   (check
-      (let (((o <ipv4-address>) (make <ipv4-address> (ipv4-address-parse "100.0.0.1"))))
+      (let (((o <ipv4-address>) (make* <ipv4-address> (ipv4-address-parse "100.0.0.1"))))
   	o.six-to-four-relay-anycast?)
     => #f)
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (let (((o <ipv4-address>) (make <ipv4-address> (ipv4-address-parse "198.18.0.1"))))
+      (let (((o <ipv4-address>) (make* <ipv4-address> (ipv4-address-parse "198.18.0.1"))))
   	o.benchmark-tests?)
     => #t)
 
   (check
-      (let (((o <ipv4-address>) (make <ipv4-address> (ipv4-address-parse "100.0.0.1"))))
+      (let (((o <ipv4-address>) (make* <ipv4-address> (ipv4-address-parse "100.0.0.1"))))
   	o.benchmark-tests?)
     => #f)
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (let (((o <ipv4-address>) (make <ipv4-address> (ipv4-address-parse "198.51.100.1"))))
+      (let (((o <ipv4-address>) (make* <ipv4-address> (ipv4-address-parse "198.51.100.1"))))
   	o.test-net-2?)
     => #t)
 
   (check
-      (let (((o <ipv4-address>) (make <ipv4-address> (ipv4-address-parse "100.0.0.1"))))
+      (let (((o <ipv4-address>) (make* <ipv4-address> (ipv4-address-parse "100.0.0.1"))))
   	o.test-net-2?)
     => #f)
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (let (((o <ipv4-address>) (make <ipv4-address> (ipv4-address-parse "203.0.113.1"))))
+      (let (((o <ipv4-address>) (make* <ipv4-address> (ipv4-address-parse "203.0.113.1"))))
   	o.test-net-3?)
     => #t)
 
   (check
-      (let (((o <ipv4-address>) (make <ipv4-address> (ipv4-address-parse "100.0.0.1"))))
+      (let (((o <ipv4-address>) (make* <ipv4-address> (ipv4-address-parse "100.0.0.1"))))
   	o.test-net-3?)
     => #f)
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (let (((o <ipv4-address>) (make <ipv4-address> (ipv4-address-parse "224.0.113.1"))))
+      (let (((o <ipv4-address>) (make* <ipv4-address> (ipv4-address-parse "224.0.113.1"))))
   	o.multicast?)
     => #t)
 
   (check
-      (let (((o <ipv4-address>) (make <ipv4-address> (ipv4-address-parse "100.0.0.1"))))
+      (let (((o <ipv4-address>) (make* <ipv4-address> (ipv4-address-parse "100.0.0.1"))))
   	o.multicast?)
     => #f)
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (let (((o <ipv4-address>) (make <ipv4-address> (ipv4-address-parse "255.255.255.255"))))
+      (let (((o <ipv4-address>) (make* <ipv4-address> (ipv4-address-parse "255.255.255.255"))))
   	o.limited-broadcast?)
     => #t)
 
   (check
-      (let (((o <ipv4-address>) (make <ipv4-address> (ipv4-address-parse "100.0.0.1"))))
+      (let (((o <ipv4-address>) (make* <ipv4-address> (ipv4-address-parse "100.0.0.1"))))
   	o.limited-broadcast?)
     => #f)
 
@@ -457,7 +457,7 @@
       (let (((o <ipv4-address-prefix>)
 	     (receive (addr len)
 		 (ipv4-address-prefix-parse "1.2.3.4/10")
-	       (make <ipv4-address-prefix> addr len))))
+	       (make* <ipv4-address-prefix> addr len))))
 	(list o.third o.second o.first o.zeroth o.prefix-length))
     => '(1 2 3 4 10))
 
@@ -465,7 +465,7 @@
       (let (((o <ipv4-address-prefix>)
 	     (receive (addr len)
 		 (ipv4-address-prefix-parse "1.2.3.4/8")
-	       (make <ipv4-address-prefix> addr len))))
+	       (make* <ipv4-address-prefix> addr len))))
 	o.string)
     => "1.2.3.4/8")
 

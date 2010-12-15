@@ -13,7 +13,7 @@
 ;;;	(last checked Thu  Nov 13, 2008).  The original  code has been a
 ;;;	little overhauled to make it work with R6RS libraries.
 ;;;
-;;;Copyright (c) 2008, 2009 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2008, 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;Copyright (c) 1996 Dorai Sitaram
 ;;;
 ;;;This is free software; you can redistribute it and/or modify it under

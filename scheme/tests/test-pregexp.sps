@@ -7,7 +7,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;Copyright (c) 1999-2005 Dorai Sitaram. All rights reserved.
 ;;;
 ;;;Permission  to copy,  modify,  distribute,  and use  this  work or  a

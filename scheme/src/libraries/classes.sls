@@ -794,13 +794,13 @@
 	      ;;not defined.
 	      (define THE-COMMON-PROTOCOL	COMMON-PROTOCOL-FORM)
 
-	      ;;The protocol to use with the MAKE macro.
+	      ;;The protocol to use with the MAKE* macro.
 	      (define the-public-protocol	PUBLIC-PROTOCOL-FORM)
 	      (define THE-PUBLIC-CD		(make-record-constructor-descriptor
 						 THE-RTD THE-PARENT-CD the-public-protocol))
 	      (define THE-PUBLIC-CONSTRUCTOR	(record-constructor THE-PUBLIC-CD))
 
-	      ;;The protocol to use with the MAKE* macro.
+	      ;;The protocol to use with the MAKE macro.
 	      (define THE-MAKER-PROTOCOL	MAKER-PROTOCOL)
 	      (define the-maker-cd		MAKER-CD-FORM)
 	      (define THE-MAKER-CONSTRUCTOR	(record-constructor the-maker-cd))
@@ -901,12 +901,12 @@
 		    ;; --------------------------------------------------
 
 		    ((_ :make ?arg (... ...))
-		     #'(THE-PUBLIC-CONSTRUCTOR ?arg (... ...)))
-
-		    ((_ :make* ?arg (... ...))
 		     (if (syntax->datum #'THE-CUSTOM-MAKER)
 			 #'(THE-CUSTOM-MAKER ?arg (... ...))
 		       #'(THE-MAKER ?arg (... ...))))
+
+		    ((_ :make* ?arg (... ...))
+		     #'(THE-PUBLIC-CONSTRUCTOR ?arg (... ...)))
 
 		    ((_ :make-from-fields ?arg (... ...))
 		     #'(from-fields-constructor ?arg (... ...)))
@@ -1040,7 +1040,7 @@
 				  maker-transformer the-public-constructor)
     ;;Build and return a syntax object holding the maker definitions for
     ;;this  class.  If  no maker  is  specified: we  want the  following
-    ;;output forms with which MAKE* expansions equal MAKE expansions:
+    ;;output forms with which MAKE expansions equal MAKE* expansions:
     ;;
     ;;	(define-syntax THE-MAKER
     ;;	  (syntax-rules ()
@@ -1048,7 +1048,7 @@
     ;;	     (THE-PUBLIC-CONSTRUCTOR . ?args)))
     ;;
     ;;if a maker is specified, but no maker transformer is specified: we
-    ;;want the following  output forms, with which MAKE*  expands to the
+    ;;want the  following output forms,  with which MAKE expands  to the
     ;;maker constructor:
     ;;
     ;;  (define-maker (THE-MAKER . MAKER-POSITIONAL-ARGS)

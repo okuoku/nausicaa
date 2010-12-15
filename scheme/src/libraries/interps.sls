@@ -159,7 +159,8 @@
    ((o)
     (<interp>-clone o (lambda (k v x) v)))
    (((o <interp>) filter)
-    (let (((c <interp>) (make <interp> o.import-specs)))
+    (let (((c <interp>) (make <interp>
+			  (imports: o.import-specs))))
       (receive (keys vals)
 	  (hashtable-entries o.table-of-variables)
 	(do ((i 0 (+ 1 i)))

@@ -50,15 +50,15 @@
 	     (identifier-syntax
 	      (_
 	       (call/cc (lambda (identifier-accessor-kont)
-			  (?eval-kont (make* <variable-reference>
-				       (kont:	identifier-accessor-kont)
-				       (name:	'?variable))))))
+			  (?eval-kont (make <variable-reference>
+					(kont:	identifier-accessor-kont)
+					(name:	'?variable))))))
 	      ((set! _ ?e)
 	       (call/cc (lambda (identifier-mutator-kont)
-			  (?eval-kont (make* <variable-mutation>
-				       (kont:	identifier-mutator-kont)
-				       (name:	'?variable)
-				       (value:	?e))))))
+			  (?eval-kont (make <variable-mutation>
+					(kont:	identifier-mutator-kont)
+					(name:	'?variable)
+					(value:	?e))))))
 	      ))
 	   (define dummy ;we want the output form to keep the definition context
 	     (begin

@@ -124,7 +124,7 @@
 (parametrise ((check-test-name	'parsing-import-sets))
 
   (check	;plain library
-      (let (((o <import-set>) (make <import-set>
+      (let (((o <import-set>) (make* <import-set>
 				'(alpha beta (1)))))
 	(list (is-a? o.library-reference <library-reference>)
 	      (with-class ((o.library-reference <library-reference>))
@@ -134,7 +134,7 @@
 ;;; --------------------------------------------------------------------
 
   (check	;plain library in LIBRARY
-      (let (((o <import-set>) (make <import-set>
+      (let (((o <import-set>) (make* <import-set>
 				'(library (alpha beta (1))))))
 	(list (is-a? o.library-reference <library-reference>)
 	      (with-class ((o.library-reference <library-reference>))
@@ -142,7 +142,7 @@
     => '(#t (alpha beta (1))))
 
   (check	;plain library in LIBRARY
-      (let (((o <import-set>) (make <import-set>
+      (let (((o <import-set>) (make* <import-set>
 				'(library (for beta (1))))))
 	(list (is-a? o.library-reference <library-reference>)
 	      (with-class ((o.library-reference <library-reference>))
@@ -150,7 +150,7 @@
     => '(#t (for beta (1))))
 
   (check	;plain library in LIBRARY
-      (let (((o <import-set>) (make <import-set>
+      (let (((o <import-set>) (make* <import-set>
 				'(library (rename beta (1))))))
 	(list (is-a? o.library-reference <library-reference>)
 	      (with-class ((o.library-reference <library-reference>))
@@ -160,7 +160,7 @@
 ;;; --------------------------------------------------------------------
 
   (check 	;empty RENAME
-      (let (((o <import-set>) (make <import-set>
+      (let (((o <import-set>) (make* <import-set>
 				'(rename (alpha beta (1))))))
 	(list (is-a? o.library-reference <library-reference>)
 	      (with-class ((o.library-reference <library-reference>))
@@ -168,7 +168,7 @@
     => '(#t (alpha beta (1))))
 
   (check	;RENAME with renamings
-      (let (((o <import-set>) (make <import-set>
+      (let (((o <import-set>) (make* <import-set>
 				'(rename (alpha beta (1))
 					 (a ae)
 					 (b be)))))
@@ -180,7 +180,7 @@
 ;;; --------------------------------------------------------------------
 
   (check 	;empty ONLY
-      (let (((o <import-set>) (make <import-set>
+      (let (((o <import-set>) (make* <import-set>
 				'(only (alpha beta (1))))))
 	(list (is-a? o.library-reference <library-reference>)
 	      (with-class ((o.library-reference <library-reference>))
@@ -188,7 +188,7 @@
     => '(#t (alpha beta (1))))
 
   (check	;ONLY with identifiers
-      (let (((o <import-set>) (make <import-set>
+      (let (((o <import-set>) (make* <import-set>
 				'(only (alpha beta (1))
 				       a b c))))
 	(list (is-a? o.library-reference <library-reference>)
@@ -200,7 +200,7 @@
 ;;; --------------------------------------------------------------------
 
   (check 	;empty EXCEPT
-      (let (((o <import-set>) (make <import-set>
+      (let (((o <import-set>) (make* <import-set>
 				'(except (alpha beta (1))))))
 	(list (is-a? o.library-reference <library-reference>)
 	      (with-class ((o.library-reference <library-reference>))
@@ -208,7 +208,7 @@
     => '(#t (alpha beta (1))))
 
   (check	;EXCEPT with identifiers
-      (let (((o <import-set>) (make <import-set>
+      (let (((o <import-set>) (make* <import-set>
 				'(except (alpha beta (1))
 					 a b c))))
 	(list (is-a? o.library-reference <library-reference>)
@@ -219,7 +219,7 @@
 ;;; --------------------------------------------------------------------
 
   (check 	;PREFIX
-      (let (((o <import-set>) (make <import-set>
+      (let (((o <import-set>) (make* <import-set>
 				'(prefix (alpha beta (1)) px:))))
 	(list (is-a? o.library-reference <library-reference>)
 	      (with-class ((o.library-reference <library-reference>))
@@ -232,7 +232,7 @@
 (parametrise ((check-test-name	'parsing-import-specs))
 
   (check	;plain library
-      (let (((o <import-spec>) (make <import-spec>
+      (let (((o <import-spec>) (make* <import-spec>
 				 '(alpha beta (1)))))
 	(list (is-a? o.library-reference <library-reference>)
 	      (with-class ((o.library-reference <library-reference>))
@@ -242,7 +242,7 @@
 ;;; --------------------------------------------------------------------
 
   (check	;plain library in LIBRARY
-      (let (((o <import-spec>) (make <import-spec>
+      (let (((o <import-spec>) (make* <import-spec>
 				 '(library (alpha beta (1))))))
 	(list (is-a? o.library-reference <library-reference>)
 	      (with-class ((o.library-reference <library-reference>))
@@ -250,7 +250,7 @@
     => '(#t (alpha beta (1))))
 
   (check	;plain library in LIBRARY
-      (let (((o <import-spec>) (make <import-spec>
+      (let (((o <import-spec>) (make* <import-spec>
 				 '(library (for beta (1))))))
 	(list (is-a? o.library-reference <library-reference>)
 	      (with-class ((o.library-reference <library-reference>))
@@ -258,7 +258,7 @@
     => '(#t (for beta (1))))
 
   (check	;plain library in LIBRARY
-      (let (((o <import-spec>) (make <import-spec>
+      (let (((o <import-spec>) (make* <import-spec>
 				 '(library (rename beta (1))))))
 	(list (is-a? o.library-reference <library-reference>)
 	      (with-class ((o.library-reference <library-reference>))
@@ -268,7 +268,7 @@
 ;;; --------------------------------------------------------------------
 
   (check 	;empty RENAME
-      (let (((o <import-spec>) (make <import-spec>
+      (let (((o <import-spec>) (make* <import-spec>
 				 '(rename (alpha beta (1))))))
 	(list (is-a? o.library-reference <library-reference>)
 	      (with-class ((o.library-reference <library-reference>))
@@ -276,7 +276,7 @@
     => '(#t (alpha beta (1))))
 
   (check	;RENAME with renamings
-      (let (((o <import-spec>) (make <import-spec>
+      (let (((o <import-spec>) (make* <import-spec>
 				 '(rename (alpha beta (1))
 					  (a ae)
 					  (b be)))))
@@ -288,7 +288,7 @@
 ;;; --------------------------------------------------------------------
 
   (check 	;empty ONLY
-      (let (((o <import-spec>) (make <import-spec>
+      (let (((o <import-spec>) (make* <import-spec>
 				 '(only (alpha beta (1))))))
 	(list (is-a? o.library-reference <library-reference>)
 	      (with-class ((o.library-reference <library-reference>))
@@ -296,7 +296,7 @@
     => '(#t (alpha beta (1))))
 
   (check	;ONLY with identifiers
-      (let (((o <import-spec>) (make <import-spec>
+      (let (((o <import-spec>) (make* <import-spec>
 				 '(only (alpha beta (1))
 					a b c))))
 	(list (is-a? o.library-reference <library-reference>)
@@ -308,7 +308,7 @@
 ;;; --------------------------------------------------------------------
 
   (check 	;empty EXCEPT
-      (let (((o <import-spec>) (make <import-spec>
+      (let (((o <import-spec>) (make* <import-spec>
 				 '(except (alpha beta (1))))))
 	(list (is-a? o.library-reference <library-reference>)
 	      (with-class ((o.library-reference <library-reference>))
@@ -316,7 +316,7 @@
     => '(#t (alpha beta (1))))
 
   (check	;EXCEPT with identifiers
-      (let (((o <import-spec>) (make <import-spec>
+      (let (((o <import-spec>) (make* <import-spec>
 				 '(except (alpha beta (1))
 					  a b c))))
 	(list (is-a? o.library-reference <library-reference>)
@@ -327,7 +327,7 @@
 ;;; --------------------------------------------------------------------
 
   (check 	;PREFIX
-      (let (((o <import-spec>) (make <import-spec>
+      (let (((o <import-spec>) (make* <import-spec>
 				 '(prefix (alpha beta (1)) px:))))
 	(list (is-a? o.library-reference <library-reference>)
 	      (with-class ((o.library-reference <library-reference>))
@@ -337,7 +337,7 @@
 ;;; --------------------------------------------------------------------
 
   (check	;FOR on plain library
-      (let (((o <import-spec>) (make <import-spec>
+      (let (((o <import-spec>) (make* <import-spec>
 				 '(for (alpha beta (1)) run))))
 	(list (is-a? o.library-reference <library-reference>)
 	      o.import-levels
@@ -346,7 +346,7 @@
     => '(#t (0) (alpha beta (1))))
 
   (check	;FOR on plain library
-      (let (((o <import-spec>) (make <import-spec>
+      (let (((o <import-spec>) (make* <import-spec>
 				 '(for (alpha beta (1)) run expand))))
 	(list (is-a? o.library-reference <library-reference>)
 	      o.import-levels
@@ -355,7 +355,7 @@
     => '(#t (0 1) (alpha beta (1))))
 
   (check	;FOR on plain library
-      (let (((o <import-spec>) (make <import-spec>
+      (let (((o <import-spec>) (make* <import-spec>
 				 '(for (alpha beta (1)) (meta -2)))))
 	(list (is-a? o.library-reference <library-reference>)
 	      o.import-levels
@@ -366,7 +366,7 @@
 ;;; --------------------------------------------------------------------
 
   (check	;FOR on library in LIBRARY
-      (let (((o <import-spec>) (make <import-spec>
+      (let (((o <import-spec>) (make* <import-spec>
 				 '(for (library (alpha beta (1))) run))))
 	(list o.import-levels
 	      (with-class ((o.library-reference <library-reference>))
@@ -374,7 +374,7 @@
     => '((0) (alpha beta (1))))
 
   (check	;FOR on library in LIBRARY
-      (let (((o <import-spec>) (make <import-spec>
+      (let (((o <import-spec>) (make* <import-spec>
 				 '(for (library (for beta (1))) expand))))
 	(list o.import-levels
 	      (with-class ((o.library-reference <library-reference>))
@@ -382,7 +382,7 @@
     => '((1) (for beta (1))))
 
   (check	;FOR on library in LIBRARY
-      (let (((o <import-spec>) (make <import-spec>
+      (let (((o <import-spec>) (make* <import-spec>
 				 '(for (library (rename beta (1))) (meta 3)))))
 	(list o.import-levels
 	      (with-class ((o.library-reference <library-reference>))
@@ -392,7 +392,7 @@
 ;;; --------------------------------------------------------------------
 
   (check
-      (let (((o <import-spec>) (make <import-spec>
+      (let (((o <import-spec>) (make* <import-spec>
 				 '(prefix (except (only (rename (alpha beta (1))
 								(a ae)
 								(b be)
@@ -411,7 +411,7 @@
 (parametrise ((check-test-name	'application-import-specs))
 
   (define (doit spec renamings)
-    (let (((o <import-spec>) (make <import-spec> spec)))
+    (let (((o <import-spec>) (make* <import-spec> spec)))
       (o.apply renamings)))
 
 ;;; plain library
