@@ -1031,8 +1031,63 @@ defaults to a function which always returns @true{}.
 @itemx bindings
 They have the same syntax and semantics of the corresponding clauses for
 classes.
+
+@item custom-maker
+Define a maker which can be used to build whatever value the label
+provides an @api{} to.  The maker definition must be external to the
+@func{define-label} body.
 @end table
 @end defmac
+
+
+The following is an example of library in which a label is used to
+handle lists as tuples of values:
+
+@example
+#!r6rs
+(library (the-tuple)
+  (export <tuple> a: b: c:)
+  (import (nausicaa))
+
+  (define-auxiliary-syntaxes
+    a: b: c:)
+
+  (define (tuple-predicate obj)
+    (and (not (null? obj))
+         (list? obj)
+         (= 3 (length obj))))
+
+  (define-maker make-tuple
+    list
+    ((a: #f)
+     (b: #f)
+     (c: #f)))
+
+  (define-label <tuple>
+    (predicate tuple-predicate)
+    (virtual-fields (immutable a car)
+                    (immutable b cadr)
+                    (immutable c caddr))
+    (custom-maker make-tuple))
+  )
+@end example
+
+@noindent
+it can be used as follows:
+
+@example
+#!r6rs
+(import (nausicaa) (the-tuple))
+
+(let (((o <tuple>) (make <tuple>
+                     (a: 1)
+                     (b: 2)
+                     (c: 3))))
+
+  (is-a? o <tuple>)     @result{} #t
+  (list o.a o.b o.c)    @result{} (1 2 3)
+  )
+@end example
 
 @c page
 @node classes make

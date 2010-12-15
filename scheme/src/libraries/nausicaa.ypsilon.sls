@@ -861,7 +861,7 @@
     ;; auxiliary syntaxes
     inherit predicate maker maker-transformer setter getter bindings
     public-protocol maker-protocol superclass-protocol virtual-fields
-    methods method method-syntax
+    methods method method-syntax custom-maker
 
     ;; builtin classes
     <top> <builtin> <pair> <list>

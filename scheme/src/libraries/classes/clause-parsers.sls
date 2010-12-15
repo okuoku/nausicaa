@@ -45,6 +45,7 @@
     %collect-clause/superclass-protocol
     %collect-clause/maker
     %collect-clause/maker-transformer
+    %collect-clause/custom-maker
     %collect-clause/predicate
     %output-forms/concrete-fields
 
@@ -855,8 +856,33 @@
 	 (synner "invalid bindings clause" (car clauses)))
 	))))
 
+(define (%collect-clause/custom-maker clauses synner)
+  ;;Given  a  list  of   definition  clauses  in  CLAUSES,  extract  the
+  ;;CUSTOM-MAKER  clause   and  parse  it;   there  must  be   only  one
+  ;;CUSTOM-MAKER clause in CLAUSES.
+  ;;
+  ;;Return  an  identifier representing  the  identifier  of the  custom
+  ;;maker.
+  ;;
+  ;;SYNNER must  be the closure  used to raise  a syntax violation  if a
+  ;;parse  error  occurs; it  must  accept  two  arguments: the  message
+  ;;string, the subform.
+  ;;
+  (let ((clauses (filter-clauses #'custom-maker clauses)))
+    (if (null? clauses)
+	#f
+      (syntax-case (car clauses) (custom-maker)
+
+	((custom-maker ?id)
+	 (identifier? #'?id)
+	 #'?id)
+
+	(_
+	 (synner "invalid custom-maker clause" (car clauses)))
+	))))
+
 
-;;;; definition claues parsers
+;;;; definition clauses parsers
 
 (define (%parse-clause/fields thing-name field-clauses synner collected-fields)
   ;;This   is   a    recursive   function   accumulating   elements   in

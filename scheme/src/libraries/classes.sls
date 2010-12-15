@@ -85,7 +85,8 @@
     ;; auxiliary syntaxes
     parent sealed opaque parent-rtd nongenerative
     protocol fields mutable immutable
-    inherit predicate maker maker-transformer setter getter bindings
+    inherit predicate maker maker-transformer custom-maker
+    setter getter bindings
     public-protocol maker-protocol superclass-protocol
     virtual-fields methods method method-syntax
 
@@ -1138,52 +1139,57 @@
    '()
    ;; optional keywords
    (list #'inherit #'predicate #'setter #'getter #'bindings
-	 #'virtual-fields #'methods #'method #'method-syntax)
+	 #'virtual-fields #'methods #'method #'method-syntax
+	 #'custom-maker)
    ;; at most once keywords
-   (list #'inherit #'predicate #'setter #'getter #'bindings)
+   (list #'inherit #'predicate #'setter #'getter #'bindings
+	 #'custom-maker)
    ;; mutually exclusive keywords sets
    '()
    clauses %synner)
 
   (let-values
-      ;;The superlabel  identifier or false;  the inherit options:
-      ;;all boolean values.
+      ;;The  superlabel identifier  or false;  the inherit  options: all
+      ;;boolean values.
       (((superlabel-identifier
 	 inherit-concrete-fields? inherit-virtual-fields? inherit-methods? inherit-setter-and-getter?)
 	(%collect-clause/label/inherit clauses %synner))
 
-       ;;False or an  identifier representing the custom predicate
-       ;;for the label.
+       ;;False or  an identifier representing  the custom maker  for the
+       ;;label.
+       ((custom-maker)
+	(%collect-clause/custom-maker clauses %synner))
+
+       ;;False or  an identifier  representing the custom  predicate for
+       ;;the label.
        ((custom-predicate)
 	(%collect-clause/label/predicate clauses %synner))
 
-       ;;False or  an identifier  representing the setter  for the
-       ;;label.
+       ;;False or an identifier representing the setter for the label.
        ((setter)
 	(%collect-clause/setter clauses %synner))
 
-       ;;False or  an identifier  representing the getter  for the
-       ;;label.
+       ;;False or an identifier representing the getter for the label.
        ((getter)
 	(%collect-clause/getter clauses %synner))
 
-       ;;An identifier representing  the custom bindings macro for
-       ;;the label.
+       ;;An identifier  representing the  custom bindings macro  for the
+       ;;label.
        ((bindings-macro)
 	(%collect-clause/bindings clauses %synner))
 
-       ;;Null  or  a  validated  list  of  virtual  fields  having
-       ;;elements with format:
+       ;;Null or a validated list of virtual fields having elements with
+       ;;format:
        ;;
        ;;    (immutable <field name> <field accessor>)
        ;;    (mutable   <field name> <field accessor> <field mutator>)
        ;;
-       ;;where  IMMUTABLE and  MUTABLE are  symbols and  the other
-       ;;elements are identifiers.
+       ;;where IMMUTABLE and MUTABLE  are symbols and the other elements
+       ;;are identifiers.
        ((virtual-fields)
 	(%collect-clause/virtual-fields label-identifier clauses %synner))
 
-       ;;Null or a validated  list of method specifications having
+       ;;Null  or  a  validated  list of  method  specifications  having
        ;;elements with format:
        ;;
        ;;	(<field identifier> <method identifier>)
@@ -1191,8 +1197,8 @@
        ((methods-from-methods)
 	(%collect-clause/methods label-identifier clauses %synner))
 
-       ;;Null/null  or a validated  list of  method specifications
-       ;;having elements with format:
+       ;;Null/null or  a validated list of  method specifications having
+       ;;elements with format:
        ;;
        ;;    (<method name> <function name>)
        ;;
@@ -1208,8 +1214,8 @@
        ((methods method-definitions)
 	(%collect-clause/method label-identifier clauses %synner #'define/with-class))
 
-       ;;Null/null   or  a   validated  list   of   method  syntax
-       ;;specifications having elements with format:
+       ;;Null/null or  a validated list of  method syntax specifications
+       ;;having elements with format:
        ;;
        ;;    (<method name> <macro identifier>)
        ;;
@@ -1236,6 +1242,7 @@
 	 (THE-SUPERLABEL		superlabel-identifier)
 	 (THE-PREDICATE			predicate-identifier)
 	 (CUSTOM-PREDICATE		custom-predicate)
+	 (CUSTOM-MAKER			custom-maker)
 	 ((METHOD-DEFINITION ...)	(append method-definitions syntax-definitions))
 	 (INHERIT-CONCRETE-FIELDS?	inherit-concrete-fields?)
 	 (INHERIT-VIRTUAL-FIELDS?	inherit-virtual-fields?)
@@ -1255,10 +1262,16 @@
 
 	  (define-syntax THE-LABEL
 	    (lambda (stx)
-	      (syntax-case stx (:is-a? :with-class-bindings-of)
+	      (syntax-case stx (:is-a? :with-class-bindings-of :make)
 
 		((_ :is-a? ?arg)
 		 #'(THE-PREDICATE ?arg))
+
+		((_ :make . ?args)
+		 (if (syntax->datum #'CUSTOM-MAKER)
+		     #'(CUSTOM-MAKER . ?args)
+		   (syntax-violation 'THE-LABEL
+		     "label has no custom maker" stx)))
 
 		((_ :with-class-bindings-of
 		    (?use-dot-notation ;this comes from WITH-CLASS

@@ -38,7 +38,7 @@
     ;; custom bindings for (classes)
     inherit predicate maker maker-transformer setter getter bindings
     public-protocol maker-protocol superclass-protocol virtual-fields
-    methods method method-syntax
+    methods method method-syntax custom-maker
 
     ;; bindings for string and vector views
     view start past
@@ -50,6 +50,7 @@
     predicate
     maker
     maker-transformer
+    custom-maker
     setter
     getter
     bindings
