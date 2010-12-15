@@ -467,15 +467,18 @@
      '()
      ;; optional keywords
      (list #'parent #'sealed #'opaque #'parent-rtd #'nongenerative #'fields #'protocol
-	   #'inherit #'predicate #'maker #'maker-transformer #'setter #'getter #'bindings
+	   #'inherit #'predicate #'maker #'maker-transformer #'custom-maker
+	   #'setter #'getter #'bindings
 	   #'public-protocol #'maker-protocol #'superclass-protocol
 	   #'virtual-fields #'methods #'method #'method-syntax)
      ;; at most once keywords
      (list #'parent #'sealed #'opaque #'parent-rtd #'nongenerative
-	   #'inherit #'predicate #'maker #'maker-transformer #'setter #'getter #'bindings
+	   #'inherit #'predicate #'maker #'maker-transformer #'custom-maker
+	   #'setter #'getter #'bindings
 	   #'protocol #'public-protocol #'maker-protocol #'superclass-protocol)
      ;; mutually exclusive keywords sets
-     (list (list #'inherit #'parent #'parent-rtd))
+     (list (list #'inherit #'parent #'parent-rtd)
+	   (list #'maker #'custom-maker))
      clauses %synner)
 
     (let-values
@@ -536,6 +539,11 @@
 	 ;;so we must test the values first.
 	 ((maker-positional-args maker-optional-args)
 	  (%collect-clause/maker clauses %synner))
+
+	 ;;False or an identifier  representing the custom maker for the
+	 ;;class.
+	 ((custom-maker)
+	  (%collect-clause/custom-maker clauses %synner))
 
 	 ;;False or  the identifier of  the parent *record*  type (not
 	 ;;class type).
@@ -733,6 +741,7 @@
 	   (MAKER-PROTOCOL		maker-protocol)
 	   (SUPERCLASS-PROTOCOL		superclass-protocol)
 	   (CUSTOM-PREDICATE		custom-predicate)
+	   (THE-CUSTOM-MAKER		custom-maker)
 	   ((METHOD-DEFINITION ...)	(append method-definitions syntax-definitions))
 	   (INHERIT-CONCRETE-FIELDS?	inherit-concrete-fields?)
 	   (INHERIT-VIRTUAL-FIELDS?	inherit-virtual-fields?)
@@ -895,7 +904,9 @@
 		     #'(THE-PUBLIC-CONSTRUCTOR ?arg (... ...)))
 
 		    ((_ :make* ?arg (... ...))
-		     #'(THE-MAKER ?arg (... ...)))
+		     (if (syntax->datum #'THE-CUSTOM-MAKER)
+			 #'(THE-CUSTOM-MAKER ?arg (... ...))
+		       #'(THE-MAKER ?arg (... ...))))
 
 		    ((_ :make-from-fields ?arg (... ...))
 		     #'(from-fields-constructor ?arg (... ...)))

@@ -54,6 +54,7 @@ it is @strong{not} associated to a record type as defined by
 * classes define inherit::      Defining hierarchies of classes.
 * classes define protocol::     Defining constructor protocols.
 * classes define maker::        Defining class makers.
+* classes define custom-maker:: Defining custom class makers.
 * classes define predicate::    Defining class predicates.
 * classes define virtual::      Defining classes having virtual
                                 fields.
@@ -410,6 +411,46 @@ Here is a meaningless usage example:
 (let (((o <alpha>) (make <alpha> 1 2 3)))
   (list o.a o.b o.c))
 @result{} (1 2 3)
+@end example
+@end deffn
+
+@c page
+@node classes define custom-maker
+@subsection Defining custom class makers
+
+
+@deffn {Auxiliary Syntax} custom-maker @var{identifier}
+Select a maker to be used by @func{make*}; this clause is alternative to
+@func{maker}, it is an error to include both @func{maker} and
+@func{custom-maker} in a class definition.
+
+When @func{custom-maker} is used: @func{make*} expands to a macro use of
+@var{identifier} which must use any available method to build a new
+class instance:
+
+@example
+(make* @var{class} @var{arg} ...)
+@expansion{} (@var{identifier} @var{arg} ...)
+@end example
+
+Custom makers @strong{do not} make use of the transformer defined by
+@func{maker-transformer} and @strong{do not} make use of the protocol
+function defined by @func{maker-protocol}.
+
+The following example shows a usage of @func{custom-maker}:
+
+@example
+(define-auxiliary-syntaxes
+  a: b:)
+
+(define-maker make-alpha
+  (make-from-fields <alpha>)
+  ((a: 1)
+   (b: 2)))
+
+(define-class <alpha>
+  (fields a b)
+  (custom-maker make-alpha))
 @end example
 @end deffn
 
@@ -1063,7 +1104,7 @@ handle lists as tuples of values:
      (b: #f)
      (c: #f)))
 
-  (define-label <tuple>
+  (define-label (<tuple> tuple?)
     (predicate tuple-predicate)
     (virtual-fields (immutable a car)
                     (immutable b cadr)
@@ -1085,6 +1126,7 @@ it can be used as follows:
                      (c: 3))))
 
   (is-a? o <tuple>)     @result{} #t
+  (tuple? o)            @result{} #t
   (list o.a o.b o.c)    @result{} (1 2 3)
   )
 @end example
@@ -1162,8 +1204,9 @@ if one was specified, else it will default to the public constructor.
 
 @defmac make-from-fields @var{class-name} @var{expression} ...
 Like @func{make} but the expression arguments must evaluate to the raw
-field values; it uses the default constructor functions.  This macro is
-useful especially for debugging purposes.
+field values; it uses the default constructor function.  This macro is
+useful especially for debugging purposes and for use with the custom
+maker; @ref{classes define custom-maker} for details.
 @end defmac
 
 @c page
