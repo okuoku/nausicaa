@@ -60,6 +60,26 @@
   #t)
 
 
+(parametrise ((check-test-name	'bindings))
+
+  (check
+      (let (((e <environment>) (make <environment>)))
+        (receive (binds)
+	    (e.eval '(begin
+		       (define a 1)
+		       (values))
+		    '(a))
+	  (let (((q <environment>) (make <environment>
+				     (bindings: binds))))
+	    (receive (binds result)
+		(q.eval '(begin a))
+	      result))))
+    => 1)
+
+
+  #t)
+
+
 ;;;; done
 
 (check-report)

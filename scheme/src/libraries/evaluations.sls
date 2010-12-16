@@ -89,27 +89,28 @@
 	 (bindings:		'())
 	 (internal-prefix:	'internals.)))
 
-(define-maker (<environment>-eval o expr)
-  evaluation
-  ((bindings:	'())))
-
-(define (evaluation (o <environment>) expr result-identifiers)
-  (assert-result-identifiers '<evaluation>-eval result-identifiers)
-  (let* ((defs (map (lambda ((b <pair>))
-		      `(,o.define ,b.car (quote ,b.cdr)))
-		 o.bindings))
-	 (expr `(,o.let ()
-			,@defs
-			(,o.call-with-values
-			 (,o.lambda () ,expr)
-			 (,o.lambda results (,o.values results (,o.list ,@result-identifiers)))))))
-    (receive (results binding-values)
-	(eval expr o.environ)
-      (apply values
-	     (map cons
-	       result-identifiers
-	       binding-values)
-	     results))))
+(define <environment>-eval
+  (case-lambda
+   ((o expr)
+    (<environment>-eval o expr '()))
+   (((o <environment>) expr result-identifiers)
+    (assert-result-identifiers '<evaluation>-eval result-identifiers)
+    (let* ((defs (map (lambda ((b <pair>))
+			`(,o.define ,b.car (quote ,b.cdr)))
+		   o.bindings))
+	   (expr `(,o.let ()
+			  ,@defs
+			  (,o.call-with-values
+			   (,o.lambda () ,expr)
+			   (,o.lambda results (,o.values results (,o.list ,@result-identifiers)))))))
+      (pretty-print expr)
+      (receive (results binding-values)
+	  (eval expr o.environ)
+	(apply values
+	       (map cons
+		 result-identifiers
+		 binding-values)
+	       results))))))
 
 
 ;;;; done
