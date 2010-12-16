@@ -135,6 +135,7 @@
   (only (libraries))
   (only (submodules))
   (only (interps))
+  (only (evaluations))
 
   (only (armor conditions))
   (only (armor base16))
