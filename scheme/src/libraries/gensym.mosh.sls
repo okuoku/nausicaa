@@ -24,14 +24,11 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
+#!r6rs
 (library (gensym)
   (export gensym)
   (import (rnrs))
-  (define counter 0)
   (define (gensym)
-    (let ((i counter))
-      (set! counter (+ 1 counter))
-      (string->symbol (string-append "nausicaa         gensym"
-				     (number->string i 16))))))
+    (car (syntax->datum (generate-temporaries #'(dummy))))))
 
 ;;; end of file
