@@ -97,7 +97,9 @@ before the evaluation of expressions.
 @end defcv
 
 
-@defmethod @aclass{environment} {make @aclass{environment}} @var{clause} ...
+@deffn Syntax {make @aclass{environment}} @var{clause} ...
+@deffnx {Auxiliary Syntax} bindings: @var{binds}
+@deffnx {Auxiliary Syntax} imports: @var{specs}
 Build and return a new @class{environment} instance; @var{clause} must
 be an auxiliary syntax among @code{bindings:} and @code{imports:}.
 @end defmethod
