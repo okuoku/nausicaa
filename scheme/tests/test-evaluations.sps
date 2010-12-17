@@ -28,6 +28,7 @@
 #!r6rs
 (import (nausicaa)
   (evaluations)
+  (rnrs eval)
   (checks))
 
 (check-set-mode! 'report-failed)
@@ -64,7 +65,16 @@
       (let (((e <environment>) (make <environment>
 				 (imports: '((only (rnrs) + - * /))))))
 	(e.eval '(+ 1 (- 2 (* 3 (/ 4 5))))))
-    => (+ 1 (- 2 (* 3 (/ 4 5)))))
+    => 3/5)
+;;;(pretty-print (+ 1 (- 2 (* 3 (/ 4 5)))))
+
+  (check	;null environment
+      (let* ((f (lambda (x) (+ 1 x)))
+	     ((e <environment>)	(make <environment>
+				  (bindings: `((f . ,f)))
+				  (imports:  '()))))
+	(e.eval '(f 2)))
+    => 3)
 
   #t)
 
@@ -102,6 +112,46 @@
 					     (d . 4)))))
 	(q.eval '(list a b c d)))
     => '(1 2 3 4))
+
+  (check	;self augmenting bindings
+      (let (((e <environment>)	(make <environment>
+				  (bindings: '((a . 1)
+					       (b . 2))))))
+	(e.eval-to-augment! '(begin
+			       (define c 3)
+			       (define d 4))
+			    '(c d))
+	(e.eval '(list a b c d)))
+    => '(1 2 3 4))
+
+;;; --------------------------------------------------------------------
+;;; errors
+
+  (check	;augmenting environment causes duplication
+      (guard (E ((assertion-violation? E)
+		 #t)
+		(else E))
+	(eval '(let (((p <environment>)	(make <environment>
+					  (bindings: '((a . 1)
+						       (b . 2))))))
+		 (p.augment '((c . 3)
+			      (b . 4)))
+		 #f)
+	      (environment '(nausicaa) '(evaluations))))
+    => #t)
+
+  (check	;self augmenting environment causes duplication
+      (guard (E ((assertion-violation? E)
+		 #t)
+		(else E))
+	(let (((e <environment>) (make <environment>
+				   (bindings: '((a . 1)
+						(b . 2))))))
+	  (e.eval-to-augment! '(begin
+				 (define c 3)
+				 (define b 4))
+			      '(c b))))
+    => #t)
 
   #t)
 

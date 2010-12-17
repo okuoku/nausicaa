@@ -32,22 +32,21 @@
 
     ;; auxiliary syntaxes
     bindings:
-    imports:
-    internal-prefix:)
+    imports:)
   (import (nausicaa)
     (makers)
     (sentinel)
     (gensym)
     (prefix (type-utilities) type.)
-    (rnrs eval))
+    (rnrs eval)
+    (rnrs mutable-pairs))
 
 
 ;;;; helpers
 
 (define-auxiliary-syntaxes
   bindings:
-  imports:
-  internal-prefix:)
+  imports:)
 
 (type.define-type-assertion result-identifiers
   (type.predicate %result-identifiers?)
@@ -58,6 +57,40 @@
   (or (null? ell)
       (and (list? ell)
 	   (for-all symbol? ell))))
+
+(define-syntax last-pair/stx
+  (syntax-rules ()
+    ((_ ?x)
+     (let loop ((x ?x))
+       (let ((d (cdr x)))
+	 (if (pair? d)
+	     (loop d)
+	   x))))))
+
+(define-syntax tail-set!/stx
+  (syntax-rules ()
+    ((_ ?ell ?tail)
+     (let* ((ell ?ell)
+	    (lp  (last-pair/stx ell)))
+       (set-cdr! lp ?tail)))))
+
+(define (%duplicates-alist-alist? a b)
+  (let loop (((a <list>) a))
+    (cond (a.null?
+	   #f)
+	  ((assq a.caar b)
+	   #t)
+	  (else
+	   (loop a.cdr)))))
+
+(define (%duplicates-symbols-alist? a b)
+  (let loop (((a <list>) a))
+    (cond (a.null?
+	   #f)
+	  ((assq a.car b)
+	   #t)
+	  (else
+	   (loop a.cdr)))))
 
 
 (define-class <environment>
@@ -75,7 +108,7 @@
   (maker ()
 	 (imports:	'((rnrs)))
 	 (bindings:	'()))
-  (methods eval eval-for-bindings augment))
+  (methods eval eval-for-bindings augment eval-to-augment!))
 
 (define (<environment>-eval (o <environment>) expr)
 ;;;(pretty-print `(,o.elet ,o.bindings ,expr))
@@ -87,9 +120,14 @@
   (let ((result-datums (eval `(,o.elet ,result-identifiers ,o.bindings ,expr) o.environ)))
     (map cons result-identifiers result-datums)))
 
+(define (<environment>-eval-to-augment! (o <environment>) expr new-identifiers)
+  (assert (not (%duplicates-symbols-alist? new-identifiers o.bindings)))
+  (tail-set!/stx o.bindings (o.eval-for-bindings expr new-identifiers)))
+
 (define (<environment>-augment (o <environment>) new-bindings)
+  (assert (not (%duplicates-alist-alist? new-bindings o.bindings)))
   (make-from-fields <environment>
-    o.imports (append new-bindings o.bindings) o.environ o.elet))
+    o.imports (append o.bindings new-bindings) o.environ o.elet))
 
 
 ;;;; done

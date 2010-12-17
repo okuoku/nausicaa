@@ -6,19 +6,167 @@ The @library{evaluations} library exports an interface to
 @rsixlibrary{eval} which allows evaluation of code in chunks with
 retention of bindings.  @library{evaluations} uses the facilities of
 @library{classes}.  Evaluation of code happens in a user customisable
-environment:
-
-@example
-
-@end example
+environment.
 
 @menu
+* evaluations examples::        Usage examples.
 * evaluations types::           Type definitions for code evaluation.
 @end menu
+
+@c page
+@node evaluations examples
+@section Usage examples
+
+
+Below are examples showing basic usage of the facilities:
+
+@example
+#!r6rs
+(import (nausicaa) (evaluations))
+
+;; evaluating an expression
+(let (((e <environment>)
+       (make <environment>
+         (imports: '((only (rnrs) + - * /))))))
+  (e.eval '(+ 1 (- 2 (* 3 (/ 4 5))))))
+@result{} 3/5
+
+;; generating a binding
+(let (((e <environment>) (make <environment>)))
+  (e.eval-for-bindings '(begin (define a 1))
+                       '(a)))
+@result{} ((a . 1))
+
+;; generating a binding and using it
+(let* (((p <environment>) (make <environment>))
+       (binds             (p.eval-for-bindings
+                            '(begin (define a 2))
+                            '(a)))
+       ((q <environment>) (make <environment>
+                            (bindings: binds))))
+  (q.eval '(begin a)))
+@result{} 2
+
+;; using an external binding
+(let* ((f                 (lambda (x) (+ 1 x)))
+       ((e <environment>) (make <environment>
+                            (bindings: `((f . ,f))))))
+  (e.eval '(f 2)))
+@result{} 3
+
+;; augmented environment
+(let* (((p <environment>) (make <environment>
+                            (bindings: '((a . 1)
+                                         (b . 2)))))
+       ((q <environment>) (p.augment '((c . 3)
+                                       (d . 4)))))
+  (q.eval '(list a b c d)))
+@result{} (1 2 3 4)
+
+;; self augmenting the environment
+(let (((e <environment>)  (make <environment>
+                            (bindings: '((a . 1)
+                                         (b . 2))))))
+  (e.eval-to-augment! '(begin
+                         (define c 3)
+                         (define d 4))
+                      '(c d))
+  (e.eval '(list a b c d)))
+@result{} (1 2 3 4)
+@end example
 
 @c page
 @node evaluations types
 @section Type definitions for code evaluation
 
+
+@deftp Class @aclass{environment}
+Hold the context required to evaluate expressions.
+@end deftp
+
+
+@defcv {Immutable Field} @aclass{environment} imports
+The list of import specifications, in the same format accepted by
+@code{import} in the @code{library} form.
+@end defcv
+
+
+@defcv {Immutable Field} @aclass{environment} bindings
+An alist of symbols and constants, represents the bindings to create
+before the evaluation of expressions.
+@end defcv
+
+
+@defmethod @aclass{environment} {make @aclass{environment}} @var{clause} ...
+Build and return a new @class{environment} instance; @var{clause} must
+be an auxiliary syntax among @code{bindings:} and @code{imports:}.
+@end defmethod
+
+
+@deffn {Auxiliary Syntax} bindings: @var{binds}
+Auxiliary syntax for @func{make}.  Select an initial set of bindings to
+define before evaluating an expression, in addition to the bindings from
+imported libraries.  When not used defaults to null, which means no
+additional bindings.
+
+@var{binds} must be an alist of symbols and constants: the symbols will
+become binding identifiers, the constants will become the bindng values.
+Notice that a closure is a constant.
+@end deffn
+
+
+@deffn {Auxiliary Syntax} imports: @var{specs}
+Auxiliary syntax for @func{make}.  Select the library to import to build
+the environment for expression evaluation.  @var{specs} must be null or
+a list of library import specifications as accepted by @code{import} in
+the @code{library} form.  When @func{imports:} is not used, the import
+specifications default to @code{((rnrs))}.
+@end deffn
+
+
+@defmethod @aclass{environment} {make* @aclass{environment}} @var{imports} @var{bindings}
+Build and return a new @class{environment} instance; @var{imports} must
+be as described for the @func{imports:} auxiliary syntax, @var{bindings}
+must be as described for the @func{bindings:} auxiliary syntax.
+@end defmethod
+
+
+@defmethod @aclass{environment} eval @var{expression}
+Evaluate @var{expression} in the augmented environment of the instance.
+Return the return values of @var{expression}.
+@end defmethod
+
+
+@defmethod @aclass{environment} eval-for-bindings @var{expression} @var{result-identifiers}
+Evaluate @var{expression} in the augmented environment of the instance;
+this method is used to acquired the list of values bound to the
+identifiers selected by the list of symbols @var{result-identifiers}.
+The return value is an alist having symbols from
+@var{result-identifiers} as keys and the associated constants as values;
+the order of pairs in the alist is the same as the order of symbols in
+@var{result-identifiers}.
+@end defmethod
+
+
+@defmethod @aclass{environment} augment @var{new-bindings}
+Build and return a new @class{environment} instance having: the same
+import specifications of the caller instance; the same list of bindings
+with the given bindings prepended.
+
+If the addition of new binding would cause a duplication an assertion
+violation is raised.
+@end defmethod
+
+
+@defmethod @aclass{environment} eval-to-augment! @var{expression} @var{new-identifiers}
+Evaluate @var{expression} in the augmented environment of the instance;
+this method is used to acquired the list of values bound to the
+identifiers selected by the list of symbols @var{result-identifiers} and
+add them to the bindings of the instance.
+
+This method mutates the internal list of bindings; if augmenting the
+bindings would lead to duplication: an assertion violation is raised
+before evaluating the expression.
+@end defmethod
 
 @c end of file
