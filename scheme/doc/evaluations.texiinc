@@ -176,7 +176,9 @@ a @func{let} form, so it can contain definitions.
 
 This method mutates the internal list of bindings; if augmenting the
 bindings would lead to duplication: an assertion violation is raised
-before evaluating the expression.
+before evaluating the expression.  All the @class{environment} records
+derived from this one with the @func{augment} method will see their list
+of bindings mutated.
 @end defmethod
 
 @c end of file
