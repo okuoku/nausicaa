@@ -36,6 +36,8 @@
 
 (parametrise ((check-test-name	'basic))
 
+;;; expressions
+
   (check
       (let (((o <interp>) (make* <interp> '((rnrs)))))
 	(o.eval '(+ 1 2)))
@@ -53,6 +55,7 @@
     => 5)
 
 ;;; --------------------------------------------------------------------
+;;; imports
 
   (check
       (let (((o <interp>) (make <interp>
@@ -76,7 +79,14 @@
 ;;; --------------------------------------------------------------------
 ;;; returning multiple values
 
-  (check
+  (check	;no values
+      (let (((o <interp>) (make <interp>
+			    (imports: '((rnrs))))))
+	(o.eval '(values))
+	#t)
+    => #t)
+
+  (check	;multiple values
       (receive (a b c)
 	  (let (((o <interp>) (make <interp>
 				(imports: '((rnrs))))))
@@ -84,23 +94,16 @@
 	(list a b c))
     => '(1 2 3))
 
-  (check
-      (let (((o <interp>) (make <interp>
-			    (imports: '((rnrs))))))
-	(o.eval '(values))
-	#t)
-    => #t)
-
   #t)
 
 
 (parametrise ((check-test-name	'variables))
 
-  (check
+  (check 'this
       ;;Set variables and query their values.
       ;;
       (let* (((o <interp>) (make* <interp> '((rnrs))))
-	     (return-value (o.eval '(let ()
+	     (return-value (o.eval '(begin
 				      (define-global woppa)
 				      (define-global wippa 456)
 				      (set! woppa 123)
@@ -115,7 +118,7 @@
       ;;EVAL.
       ;;
       (let (((o <interp>) (make* <interp> '((rnrs)))))
-	(o.eval '(let ()
+	(o.eval '(begin
 		   (define-global woppa 123)
 		   (values)))
 	(o.eval '(begin woppa)))
@@ -143,7 +146,7 @@
       ;;Access defined but non-initialised variable.
       ;;
       (let (((o <interp>) (make* <interp> '((rnrs)))))
-	(o.eval '(let () (define-global ciao) #f))
+	(o.eval '(begin (define-global ciao) #f))
 	(sentinel? (o.eval 'ciao)))
     => #t)
 
@@ -155,7 +158,7 @@
       ;;EVAL.
       ;;
       (let (((o <interp>) (make* <interp> '((rnrs)))))
-	(o.eval '(let ()
+	(o.eval '(begin
 		   (define-global (woppa a)
 		     (cons 123 a))
 		   #f))
@@ -182,7 +185,7 @@
 (parametrise ((check-test-name	'clones))
 
   (let (((p <interp>) (make* <interp> '((rnrs)))))
-    (p.eval `(let ()
+    (p.eval '(begin
 	       (define-global a 1)
 	       (values)))
     (p.variable-set! 'b (vector 2 3))

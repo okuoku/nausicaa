@@ -43,7 +43,8 @@
     (interps variables)
     (interps variable-events)
     (rnrs eval)
-    (sentinel))
+    (sentinel)
+    (gensym))
 
 
 ;;;; helpers
@@ -56,25 +57,27 @@
   (parent &error)
   (fields interp))
 
-
-(define-constant $default-import-specs
-  '((only (interps variables) define-variable)))
-
 (define-auxiliary-syntaxes
   imports:)
 
+
 (define-class <interp>
   (nongenerative nausicaa:interps:<interp>)
 
   (fields (immutable table-of-variables)
 	  (immutable eval-environment)
-	  (immutable import-specs))
+	  (immutable import-specs)
+	  (immutable elet))
 
   (protocol (lambda (make-top)
 	      (lambda (list-of-import-specs)
-		((make-top) (make-eq-hashtable)
-		 (apply environment (append $default-import-specs list-of-import-specs))
-		 list-of-import-specs))))
+		(let (($elet (gensym)))
+		  ((make-top) (make-eq-hashtable)
+		   (apply environment
+			  `(rename (interps wrapper) (elet ,$elet))
+			  list-of-import-specs)
+		   list-of-import-specs
+		   $elet)))))
 
   (maker ()
 	 (imports: '((rnrs))))
@@ -82,15 +85,14 @@
   (methods eval variable-ref variable-set! clone))
 
 
-(define (<interp>-eval (o <interp>) body)
+(define (<interp>-eval (o <interp>) expr)
 
   (define-class <results>
     (nongenerative interps:<results>)
     (fields (immutable values)))
 
   (define (end-of-eval vals)
-    (make <results>
-      vals))
+    (make <results> vals))
 
   (define-inline (raise-undefined-variable variable-name)
     (raise (condition
@@ -99,37 +101,14 @@
 	    (make-interp-error-condition o)
 	    (make-irritants-condition (list variable-name)))))
 
-  (define vars-body
-    (receive (keys vals)
-	(hashtable-entries o.table-of-variables)
-      (let ((number-of-variables (vector-length keys)))
-	(let loop ((i 0) (defs '()))
-	  (if (= i number-of-variables)
-	      (reverse defs)
-	    (loop (+ 1 i) (cons `(define-global ,(vector-ref keys i) (quote ,(vector-ref vals i)))
-				defs)))))))
-  (define expression
-    `(call/cc (lambda (eval-kont)
-		(define-syntax define-global
-		  (syntax-rules ()
-		    ((_ . ?args)
-		     (define-variable eval-kont . ?args))))
-		(let ()
-		  (define define-variable) ;shadows the binding
-		  (define eval-kont)	   ;shadows the binding
-		  (call-with-values
-		      (lambda ()
-			,@vars-body ,body)
-		    (lambda vals
-		      ((quote ,end-of-eval) vals)))))))
-
   (let ((R (with-exception-handler
 	       (lambda (E)
 		 (if (interp-error-condition? E)
 		     E
 		   (raise (condition E (make-interp-error-condition o)))))
 	     (lambda ()
-	       (eval expression o.eval-environment)))))
+	       (let-values (((keys vals) (hashtable-entries o.table-of-variables)))
+		 (eval `(,o.elet ,end-of-eval ,keys ,vals ,expr) o.eval-environment))))))
     (class-case R
       ((<results>)
        (apply values R.values))

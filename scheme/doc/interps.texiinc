@@ -12,7 +12,7 @@ Evaluation of code is handled by ``interpreter'' objects; examples:
 
 (let (((o <interp>) (make* <interp>
                       (imports: '((rnrs))))))
-  (o.eval '(let ()
+  (o.eval '(begin
              (define a 1)
              (define b 2)
              (+ a b))))
@@ -20,7 +20,7 @@ Evaluation of code is handled by ``interpreter'' objects; examples:
 
 (let (((o <interp>) (make* <interp>
                       (imports: '((rnrs))))))
-  (o.eval '(let ()
+  (o.eval '(begin
              (define-global a 1)
              (values)))
   (o.eval '(+ a 2)))
@@ -93,16 +93,7 @@ interpreter.
 @end defcv
 
 
-@deffn Syntax {make @aclass{interp}} @var{import-specs}
-Expand to an expression which evaluates to a new @class{interp} object.
-
-@var{import-specs} must be an expression evaluating to a list of library
-import specifications; the list is used to build the environment in
-which code will be evaluated.  The environment cannot be modified.
-@end deffn
-
-
-@deffn Syntax {make* @aclass{interp}} @var{clause} ...
+@deffn Syntax {make @aclass{interp}} @var{clause} ...
 @deffnx {Auxiliary Syntax} imports: @var{import-specs}
 This syntax is a maker, @nauref{makers, Makers}.  Expand to an
 expression which evaluates to a new @class{interp} object.  The
@@ -118,10 +109,20 @@ default value causes the @library{rnrs} library to be imported.
 @end deffn
 
 
+@deffn Syntax {make* @aclass{interp}} @var{import-specs}
+Expand to an expression which evaluates to a new @class{interp} object.
+
+@var{import-specs} must be an expression evaluating to a list of library
+import specifications; the list is used to build the environment in
+which code will be evaluated.  The environment cannot be modified.
+@end deffn
+
+
 @defmethod @aclass{interp} eval @var{sexp}
 Evaluate @var{sexp} in the environment of the interpreter.  Return the
 return value of the expression; @var{sexp} can return any number of
-values.
+values.  @var{sexp} is evaluated as if it is the first form in the body
+of a @func{let} form, so it can contain definitions.
 @end defmethod
 
 
