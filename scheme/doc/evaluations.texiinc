@@ -1,0 +1,24 @@
+@node evaluations
+@chapter Evaluating code in a limited  environment
+
+
+The @library{evaluations} library exports an interface to
+@rsixlibrary{eval} which allows evaluation of code in chunks with
+retention of bindings.  @library{evaluations} uses the facilities of
+@library{classes}.  Evaluation of code happens in a user customisable
+environment:
+
+@example
+
+@end example
+
+@menu
+* evaluations types::           Type definitions for code evaluation.
+@end menu
+
+@c page
+@node evaluations types
+@section Type definitions for code evaluation
+
+
+@c end of file

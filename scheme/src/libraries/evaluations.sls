@@ -37,6 +37,7 @@
   (import (nausicaa)
     (makers)
     (sentinel)
+    (gensym)
     (prefix (type-utilities) type.)
     (rnrs eval))
 
@@ -64,53 +65,31 @@
   (fields (immutable imports)
 	  (immutable bindings)
 	  (immutable environ)
-	  (immutable lambda)
-	  (immutable let)
-	  (immutable define)
-	  (immutable call-with-values)
-	  (immutable values)
-	  (immutable list))
+	  (immutable elet))
   (protocol (lambda (make-top)
-	      (lambda (imports bindings internal-prefix)
-		(let* ((internal-bindings '(lambda let define call-with-values values list))
-		       (imports		  `((prefix (only (rnrs) ,@internal-bindings) ,internal-prefix)
-					    ,@imports)))
-		  (apply (make-top)
-			 imports
-			 bindings
-			 (apply environment imports)
-			 (map (lambda (sym)
-				(string->symbol (string-append (symbol->string internal-prefix)
-							       (symbol->string sym))))
-			   internal-bindings))))))
-  (methods eval)
+	      (lambda (imports bindings)
+		(let* (($elet	(gensym))
+		       (imports `((rename (evaluations wrapper) (elet ,$elet))
+				  ,@imports)))
+		  ((make-top) imports bindings (apply environment imports) $elet)))))
   (maker ()
-	 (imports:		'((rnrs)))
-	 (bindings:		'())
-	 (internal-prefix:	'internals.)))
+	 (imports:	'((rnrs)))
+	 (bindings:	'()))
+  (methods eval eval-for-bindings augment))
 
-(define <environment>-eval
-  (case-lambda
-   ((o expr)
-    (<environment>-eval o expr '()))
-   (((o <environment>) expr result-identifiers)
-    (assert-result-identifiers '<evaluation>-eval result-identifiers)
-    (let* ((defs (map (lambda ((b <pair>))
-			`(,o.define ,b.car (quote ,b.cdr)))
-		   o.bindings))
-	   (expr `(,o.let ()
-			  ,@defs
-			  (,o.call-with-values
-			   (,o.lambda () ,expr)
-			   (,o.lambda results (,o.values results (,o.list ,@result-identifiers)))))))
-      (pretty-print expr)
-      (receive (results binding-values)
-	  (eval expr o.environ)
-	(apply values
-	       (map cons
-		 result-identifiers
-		 binding-values)
-	       results))))))
+(define (<environment>-eval (o <environment>) expr)
+;;;(pretty-print `(,o.elet ,o.bindings ,expr))
+  (eval `(,o.elet () ,o.bindings ,expr) o.environ))
+
+(define (<environment>-eval-for-bindings (o <environment>) expr result-identifiers)
+  (assert-result-identifiers '<evaluation>-eval result-identifiers)
+;;;(pretty-print `(,o.elet ,o.bindings ,expr))
+  (let ((result-datums (eval `(,o.elet ,result-identifiers ,o.bindings ,expr) o.environ)))
+    (map cons result-identifiers result-datums)))
+
+(define (<environment>-augment (o <environment>) new-bindings)
+  (make-from-fields <environment>
+    o.imports (append new-bindings o.bindings) o.environ o.elet))
 
 
 ;;;; done

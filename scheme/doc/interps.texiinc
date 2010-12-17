@@ -1,5 +1,5 @@
 @node interps
-@chapter Evaluating code in a limited environment
+@chapter Evaluating code as in an interpreter
 
 
 The @library{interps} library exports an interface to @rsixlibrary{eval}
