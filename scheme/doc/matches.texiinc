@@ -149,7 +149,7 @@ Return @true{} if @var{obj} is a condition of type
 @end defun
 
 
-@defun condition-match-mismatch-expression @var{obj}
+@defun condition-match-mismatch/expression @var{obj}
 Accessor for the @samp{expression} field of a @condition{match-mismatch}
 condition object.
 @end defun

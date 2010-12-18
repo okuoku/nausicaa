@@ -41,14 +41,18 @@
     &match-mismatch
     make-match-mismatch-condition
     match-mismatch-condition?
-    condition-match-mismatch-expression
+    condition-match-mismatch/expression
     match-mismatch-error)
   (import (rnrs)
     (rnrs mutable-pairs)
     (conditions))
 
 
-(define-condition-type &match-mismatch
+(define-condition &match-mismatch
+  (parent &mismatch)
+  (fields expression))
+
+#;(define-condition-type &match-mismatch
   &mismatch
   make-match-mismatch-condition
   match-mismatch-condition?

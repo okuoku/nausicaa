@@ -57,7 +57,7 @@
   (syntax-rules ()
     ((_ ?body)
      (guard (E (else `((message   . ,(condition-message E))
-		       (expr      . ,(condition-match-mismatch-expression E)))))
+		       (expr      . ,(condition-match-mismatch/expression E)))))
        ?body))))
 
 
