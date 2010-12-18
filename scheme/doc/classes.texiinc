@@ -1214,7 +1214,9 @@ maker; @ref{classes define custom-maker} for details.
 @section Record type predicates
 
 
-@defmac is-a? @var{expression} @var{class-name}
+@deffn Syntax is-a? @var{expression} @var{class-name}
+@deffnx Syntax is-a? <> @var{class-name}
+@deffnx {Auxiliary Syntax} <>
 Expand to the application of the class predicate of @var{class-name} to
 the result of evaluating @var{expression}, which can be any expression
 and is evaluated only once.
@@ -1283,7 +1285,26 @@ Example:
              1 2 3)))
     (is-a? x <alpha>)))
 @end example
-@end defmac
+
+When the @code{<>} auxiliary syntax is used in place of
+@var{expression}: the form expands to the class predicate function,
+which can be used as argument; the following forms are equivalent:
+
+@example
+(is-a? x <list>)
+((is-a? <> <list>) x)
+@end example
+
+@noindent
+this is especially useful when using @func{map} or @func{for-all}:
+
+@example
+(for-all (is-a? <> <list>) obj)
+@end example
+
+The @code{<>} auxiliary syntax is exported by the library
+@library{auxiliary-syntaxes} and reexported by @library{classes}.
+@end deffn
 
 @c page
 @node classes inspect

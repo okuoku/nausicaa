@@ -3635,6 +3635,38 @@
     #f)
 
 ;;; --------------------------------------------------------------------
+;;; Special syntax.
+
+  (let ()
+
+    (define-class <alpha>
+      (fields a))
+
+    (define-class <beta>
+      (fields b))
+
+    (define a (make <alpha> 1))
+    (define b (make <beta>  2))
+
+    (check	;special syntax
+    	((is-a? <> <beta>) b)
+      => #t)
+
+    (check	;special syntax
+    	((is-a? <> <beta>) a)
+      => #f)
+
+    (check	;special syntax
+    	(for-all (is-a? <> <alpha>) (list a a a))
+      => #t)
+
+    (check	;special syntax
+    	(for-all (is-a? <> <alpha>) (list a b a))
+      => #f)
+
+    #f)
+
+;;; --------------------------------------------------------------------
 ;;; These tests make use of the record types exported by (records).
 
   (check-for-true	(is-a? 123 <fixnum>))

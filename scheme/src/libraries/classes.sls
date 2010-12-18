@@ -89,6 +89,7 @@
     setter getter bindings
     public-protocol maker-protocol superclass-protocol
     virtual-fields methods method method-syntax
+    <>
 
     ;; builtin classes
     <top> <builtin> <pair> <list>
@@ -379,10 +380,13 @@
   ;;Test  if  a  given object  matches  a  class  type using  the  class
   ;;predicate selected in the DEFINE-CLASS form.
   ;;
-  (syntax-case stx (<top>)
+  (syntax-case stx (<top> <>)
 
     ((_ ?obj <top>)
      (syntax #t))
+
+    ((_ <> ?class-name)
+     #'(?class-name :predicate))
 
     ((_ ?obj ?class-name)
      (identifier? #'?class-name)
@@ -849,6 +853,7 @@
 				    :class-uid-list
 				    :from-fields-constructor-descriptor
 				    :is-a?
+				    :predicate
 				    :list-of-concrete-fields
 				    :list-of-methods
 				    :list-of-virtual-fields
@@ -913,6 +918,9 @@
 
 		    ((_ :is-a? ?arg)
 		     #'(CUSTOM-PREDICATE ?arg))
+
+		    ((_ :predicate)
+		     #'CUSTOM-PREDICATE)
 
 		    ((_ :with-class-bindings-of
 			(?use-dot-notation
@@ -1273,10 +1281,13 @@
 
 	  (define-syntax THE-LABEL
 	    (lambda (stx)
-	      (syntax-case stx (:is-a? :with-class-bindings-of :make)
+	      (syntax-case stx (:is-a? :predicate :with-class-bindings-of :make)
 
 		((_ :is-a? ?arg)
 		 #'(THE-PREDICATE ?arg))
+
+		((_ :predicate)
+		 #'THE-PREDICATE)
 
 		((_ :make . ?args)
 		 (if (syntax->datum #'CUSTOM-MAKER)
