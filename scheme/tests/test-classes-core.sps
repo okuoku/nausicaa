@@ -30,7 +30,8 @@
   (checks)
   (debugging)
   (records-lib)
-  (rnrs eval))
+  (rnrs eval)
+  (rnrs mutable-pairs))
 
 (check-set-mode! 'report-failed)
 (display "*** testing classes basics\n")
@@ -3790,6 +3791,42 @@
 	  (list (slot-ref o a <alpha>)
 		(slot-ref o b <alpha>)))
       => '(1 2))
+
+    #f)
+
+;;; --------------------------------------------------------------------
+;;; labels
+
+  (let ()	;mutable fields
+
+    (define make-p cons)
+
+    (define-label <p>
+      (custom-maker make-p)
+      (virtual-fields (mutable a car set-car!)
+		      (mutable b cdr set-cdr!)))
+
+    (check
+	(let ((o (make <p> 1 2)))
+	  (list (slot-ref o a <p>)
+		(slot-ref o b <p>)))
+      => '(1 2))
+
+    (check
+	(let ((o (make <p> 1 2)))
+	  (slot-set! o a <p> 11)
+	  (slot-set! o b <p> 22)
+	  (list (slot-ref o a <p>)
+		(slot-ref o b <p>)))
+      => '(11 22))
+
+    (check	;special syntax
+	(let ((o (make <p> 1 2)))
+	  ((slot-set! <> a <p> <>) o 11)
+	  ((slot-set! <> b <p> <>) o 22)
+	  (list ((slot-ref <> a <p>) o)
+		((slot-ref <> b <p>) o)))
+      => '(11 22))
 
     #f)
 

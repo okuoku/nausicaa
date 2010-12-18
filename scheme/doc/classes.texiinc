@@ -20,6 +20,7 @@ auxiliary syntaxes in the class definition clauses.
 * classes make::                Record makers.
 * classes pred::                Record type predicates.
 * classes inspect::             Class and instance inspection.
+* classes slots::               Accessors and mutators.
 * classes dot::                 Using dot notation.
 * classes builtin::             Conventional type descriptors.
 @end menu
@@ -1418,6 +1419,72 @@ Return the list of record type descriptors which are ancestors of
 by its parent, then the parent of the parent and so on.  This function
 supports both regular and conventional record type descriptors.
 @end defun
+
+@c page
+@node classes slots
+@section Accessors and mutators
+
+
+The following syntaxes provide a way to access concrete and virtual
+fields of class instances; they also allow the extraction of accessor
+and mutator functions.  We want to remember that the @func{cut} and
+@func{cute} macros from @library{language-extensions} provide us with
+alternative ways to create closures for field access and mutation
+through @func{slot-ref} and @func{slot-set!}; @ref{lang lang} for
+details.
+
+
+@deffn Syntax slot-ref @var{expr} @var{field-name} @var{class}
+@deffnx {Auxiliary Syntax} <>
+Expand to the slot accessor of @var{field-name} applied to @var{expr},
+which can be any expression evaluating to an instance of @var{class}.
+@var{field-name} can be either the name of a concrete field or the name
+of a virtual field.
+
+This syntax works with both classes and labels.
+
+When the auxiliary syntax @code{<>} is used in place of @var{expr}: the
+macro expands to the accessor function itself; the following forms are
+equivalent:
+
+@example
+(slot-ref o car <pair>)
+((slot-ref <> car <pair>) o)
+@end example
+
+@noindent
+this is useful whenever the accessor has to be used as function
+argument, for example for @func{map} or @func{for-all}.  The @code{<>}
+auxiliary syntax is exported by the library @library{auxiliary-syntaxes}
+and reexported by @library{classes}.
+@end deffn
+
+
+@deffn Syntax slot-ref @var{obj-expr} @var{field-name} @var{class} @var{val-expr}
+@deffnx {Auxiliary Syntax} <>
+Expand to the slot mutator of @var{field-name} applied to @var{obj-expr}
+and @var{val-expr}.  @var{obj-expr} can be any expression evaluating to
+an instance of @var{class}; @var{val-expr} can be any expression
+evaluating to the new field value.  @var{field-name} can be either the
+name of a concrete field or the name of a virtual field.
+
+This syntax works with both classes and labels.
+
+When the auxiliary syntax @code{<>} is used in place of @strong{both}
+@var{obj-expr} and @var{val-expr}: the macro expands to the mutator
+function itself; the following forms are equivalent:
+
+@example
+(slot-set! o car <pair> 1)
+((slot-set! <> car <pair> <>) o 1)
+@end example
+
+@noindent
+this is useful whenever the mutator has to be used as function argument,
+for example for @func{map} or @func{for-all}.  The @code{<>} auxiliary
+syntax is exported by the library @library{auxiliary-syntaxes} and
+reexported by @library{classes}.
+@end deffn
 
 @c page
 @node classes dot

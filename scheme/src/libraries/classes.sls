@@ -1330,7 +1330,12 @@
 	 (GETTER			getter)
 	 (BINDINGS-MACRO		bindings-macro)
 	 (VIRTUAL-FIELD-SPECS		virtual-fields)
-	 (METHOD-SPECS			methods))
+	 (METHOD-SPECS			methods)
+
+	 (SLOT-ACCESSOR-OF-TRANSFORMER
+	  (%make-fields-accessor-of-transformer label-identifier '() virtual-fields %synner))
+	 (SLOT-MUTATOR-OF-TRANSFORMER
+	  (%make-fields-mutator-of-transformer label-identifier '() virtual-fields %synner)))
       #'(begin
 	  (define THE-PREDICATE
 	    (let ((p CUSTOM-PREDICATE))
@@ -1340,7 +1345,12 @@
 
 	  (define-syntax THE-LABEL
 	    (lambda (stx)
-	      (syntax-case stx (:is-a? :predicate :with-class-bindings-of :make)
+	      (syntax-case stx (:is-a?
+				:predicate
+				:with-class-bindings-of
+				:make
+				:slot-accessor
+				:slot-mutator)
 
 		((_ :is-a? ?arg)
 		 #'(THE-PREDICATE ?arg))
@@ -1373,6 +1383,14 @@
 		     ?inherit-methods
 		     ?inherit-setter-and-getter)
 		    ?variable-name ?arg (... ...)))
+
+		((_ :slot-accessor ?slot-name)
+		 (identifier? #'?slot-name)
+		 #'(slot-accessor-of ?slot-name))
+
+		((_ :slot-mutator ?slot-name)
+		 (identifier? #'?slot-name)
+		 #'(slot-mutator-of ?slot-name))
 
 		((_ ?keyword . ?rest)
 		 (syntax-violation 'THE-LABEL
@@ -1417,6 +1435,10 @@
 				   (SVAR SVAL) (... ...))
 			(BINDINGS-MACRO THE-LABEL ?variable-name ?body0 ?body (... ...))))
 		   )))))
+
+	  (define-syntax slot-accessor-of	SLOT-ACCESSOR-OF-TRANSFORMER)
+	  (define-syntax slot-mutator-of	SLOT-MUTATOR-OF-TRANSFORMER)
+
 	  ))))
 
 
