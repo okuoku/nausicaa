@@ -58,6 +58,7 @@
     make*
     define-virtual-method
     defmethod				defmethod-virtual
+    slot-ref				slot-set!
 
     ;; inspection macros
     class-record-type-descriptor
@@ -395,6 +396,44 @@
 
     (_
      (synner "invalid syntax use"))))
+
+(define-syntax* (slot-ref stx)
+  (syntax-case stx (<>)
+    ((_ ?object-expr ?slot-name ?class)
+     (not (identifier? #'?slot-name))
+     (synner "expected identifier as slot name" #'?slot-name))
+
+    ((_ ?object-expr ?slot-name ?class)
+     (not (identifier? #'?class))
+     (synner "expected identifier as class name" #'?class))
+
+    ((_ <> ?slot-name ?class)
+     #'(?class :slot-accessor ?slot-name))
+
+    ((_ ?object-expr ?slot-name ?class)
+     #'((?class :slot-accessor ?slot-name) ?object-expr))
+
+    (_
+     (synner "invalid syntax in slot-ref form"))))
+
+(define-syntax* (slot-set! stx)
+  (syntax-case stx (<>)
+    ((_ ?object-expr ?slot-name ?class ?value-expr)
+     (not (identifier? #'?slot-name))
+     (synner "expected identifier as slot name" #'?slot-name))
+
+    ((_ ?object-expr ?slot-name ?class ?value-expr)
+     (not (identifier? #'?class))
+     (synner "expected identifier as class name" #'?class))
+
+    ((_ <> ?slot-name ?class <>)
+     #'(?class :slot-mutator ?slot-name))
+
+    ((_ ?object-expr ?slot-name ?class ?value-expr)
+     #'((?class :slot-mutator ?slot-name) ?object-expr ?value-expr))
+
+    (_
+     (synner "invalid syntax in slot-set! form"))))
 
 
 (define-syntax define-foreign-class
@@ -779,7 +818,12 @@
 	     (MAKER-CD-FORM		(if maker-protocol
 					    #'(make-record-constructor-descriptor
 					       THE-RTD THE-PARENT-CD THE-MAKER-PROTOCOL)
-					  #'THE-PUBLIC-CD)))
+					  #'THE-PUBLIC-CD))
+	     (SLOT-ACCESSOR-OF-TRANSFORMER
+	      (%make-fields-accessor-of-transformer class-identifier fields virtual-fields %synner))
+	     (SLOT-MUTATOR-OF-TRANSFORMER
+	      (%make-fields-mutator-of-transformer class-identifier fields virtual-fields %synner))
+	     )
 	  #'(begin
 	      (define the-parent-rtd	PARENT-RTD-FORM)
 	      (define THE-PARENT-CD	PARENT-CD-FORM)
@@ -865,7 +909,9 @@
 				    :public-constructor-descriptor
 				    :superclass-constructor-descriptor
 				    :superclass-protocol
-				    :with-class-bindings-of)
+				    :with-class-bindings-of
+				    :slot-accessor
+				    :slot-mutator)
 
 		    ((_ :class-record-type-descriptor)
 		     #'THE-RTD)
@@ -943,6 +989,14 @@
 			 ?inherit-setter-and-getter)
 			?variable-name ?arg (... ...)))
 
+		    ((_ :slot-accessor ?slot-name)
+		     (identifier? #'?slot-name)
+		    #'(slot-accessor-of ?slot-name))
+
+		    ((_ :slot-mutator ?slot-name)
+		     (identifier? #'?slot-name)
+		    #'(slot-mutator-of ?slot-name))
+
 		    ((_ ?keyword . ?rest)
 		     (syntax-violation 'THE-CLASS
 		       "invalid class internal keyword"
@@ -991,6 +1045,10 @@
 				       (SVAR SVAL) (... ...))
 			    (BINDINGS-MACRO THE-CLASS ?variable-name ?body0 ?body (... ...))))
 		       )))))
+
+	      (define-syntax slot-accessor-of	SLOT-ACCESSOR-OF-TRANSFORMER)
+	      (define-syntax slot-mutator-of	SLOT-MUTATOR-OF-TRANSFORMER)
+
 	      )))))
 
   (define (%make-fields-accessors-and-mutators rtd-name fields)

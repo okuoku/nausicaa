@@ -3747,6 +3747,104 @@
   #t)
 
 
+(parametrise ((check-test-name 'slot-set-ref))
+
+  (let ()	;mutable fields
+
+    (define-class <alpha>
+      (fields (mutable a)
+	      (mutable b)))
+
+    (check
+	(let ((o (make <alpha> 1 2)))
+	  (list (slot-ref o a <alpha>)
+		(slot-ref o b <alpha>)))
+      => '(1 2))
+
+    (check
+	(let ((o (make <alpha> 1 2)))
+	  (slot-set! o a <alpha> 11)
+	  (slot-set! o b <alpha> 22)
+	  (list (slot-ref o a <alpha>)
+		(slot-ref o b <alpha>)))
+      => '(11 22))
+
+    (check	;special syntax
+	(let ((o (make <alpha> 1 2)))
+	  ((slot-set! <> a <alpha> <>) o 11)
+	  ((slot-set! <> b <alpha> <>) o 22)
+	  (list ((slot-ref <> a <alpha>) o)
+		((slot-ref <> b <alpha>) o)))
+      => '(11 22))
+
+    #f)
+
+  (let ()	;immutable fields
+
+    (define-class <alpha>
+      (fields (immutable a)
+	      (immutable b)))
+
+    (check
+	(let ((o (make <alpha> 1 2)))
+	  (list (slot-ref o a <alpha>)
+		(slot-ref o b <alpha>)))
+      => '(1 2))
+
+    #f)
+
+;;; --------------------------------------------------------------------
+;;; errors
+
+  (check	;no mutable fields
+      (guard (E ((syntax-violation? E)
+;;;		   (debug-print-condition "SLOT-SET! with immutable field:" E)
+		 (syntax-violation-subform E))
+		(else E))
+	(eval '(let ()
+		 (define-class <alpha>
+		   (fields (immutable a)
+			   (immutable b)))
+		 (define o
+		   (make <alpha> 1 2))
+		 (slot-set! o a <alpha> 11))
+	      (environment '(rnrs) '(classes))))
+    => #f)
+
+  (check	;unknown field for slot-ref
+      (guard (E ((syntax-violation? E)
+;;;		 (debug-print-condition "SLOT-REF with invalid field name:" E)
+		 (syntax-violation-subform E))
+		(else #f))
+	(eval '(let ()
+		 (define-class <alpha>
+		   (fields (mutable a)
+			   (mutable b)))
+		 (define o
+		   (make <alpha> 1 2))
+		 (slot-ref o c <alpha>))
+	      (environment '(rnrs) '(classes))))
+    => 'c)
+
+  (check	;unknown field for slot-set!
+      (guard (E ((syntax-violation? E)
+;;;		 (debug-print-condition "SLOT-SET! with invalid field name:" E)
+		 (syntax-violation-subform E))
+		(else #f))
+	(eval '(let ()
+		 (define-class <alpha>
+		   (fields (mutable a)
+			   (mutable b)))
+		 (define o
+		   (make <alpha> 1 2))
+		 (slot-set! o c <alpha> 11))
+	      (environment '(rnrs) '(classes))))
+    => 'c)
+
+
+  #t)
+
+
 (parametrise ((check-test-name 'inspection))
 
   (check

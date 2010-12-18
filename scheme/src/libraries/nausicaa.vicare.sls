@@ -836,6 +836,7 @@
     make*
     define-virtual-method
     defmethod				defmethod-virtual
+    slot-ref				slot-set!
 
     ;; inspection macros
     class-record-type-descriptor

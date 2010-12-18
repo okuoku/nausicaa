@@ -44,7 +44,9 @@
     :public-constructor-descriptor
     :superclass-constructor-descriptor
     :superclass-protocol
-    :with-class-bindings-of)
+    :with-class-bindings-of
+    :slot-accessor
+    :slot-mutator)
   (import (rnrs)
     (only (syntax-utilities) define-auxiliary-syntaxes))
   (define-auxiliary-syntaxes
@@ -65,6 +67,8 @@
     :superclass-constructor-descriptor
     :superclass-protocol
     :with-class-bindings-of
+    :slot-accessor
+    :slot-mutator
     ))
 
 ;;; end of file
