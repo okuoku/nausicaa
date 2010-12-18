@@ -843,7 +843,7 @@ or negative and it is normalised to the range @math{[-999999999,
 @end defcv
 
 
-@deffn Syntax {make @aclass{seconds-and-nanoseconds}} @ameta{seconds} @ameta{nanoseconds}
+@deffn Syntax {make* @aclass{seconds-and-nanoseconds}} @ameta{seconds} @ameta{nanoseconds}
 Expand to an expression evaluating to a new
 @class{seconds-and-nanoseconds} instance.  @meta{seconds} and
 @meta{nanoseconds} must expand into expressions evaluating to exact
@@ -851,7 +851,7 @@ integers representing the counts of seconds and nanoseconds.
 @end deffn
 
 
-@deffn Syntax {make* @aclass{seconds-and-nanoseconds}} @ameta{clause} ...
+@deffn Syntax {make @aclass{seconds-and-nanoseconds}} @ameta{clause} ...
 Expand to an expression evaluating to a new
 @class{seconds-and-nanoseconds} instance.  The seconds and nanoseconds
 counts are computed from the values given in the following maker
@@ -943,7 +943,7 @@ Exact integer representing nanoseconds count.
 @end defcv
 
 
-@deffn Syntax {make @aclass{duration}} @var{seconds} @var{nanoseconds}
+@deffn Syntax {make* @aclass{duration}} @var{seconds} @var{nanoseconds}
 Expand to an expression evaluating to a new @class{duration} instance.
 @var{seconds} and @var{nanoseconds} must expand into expressions
 evaluating to exact integers representing the counts of seconds on the
@@ -954,7 +954,11 @@ non--positive.
 @end deffn
 
 
-@deffn Syntax {make* @aclass{duration}} @var{clause} ...
+@deffn Syntax {make @aclass{duration}} @var{clause} ...
+@deffnx {Auxiliary Syntax} seconds @var{seconds}
+@deffnx {Auxiliary Syntax} milliseconds @var{milliseconds}
+@deffnx {Auxiliary Syntax} microseconds @var{microseconds}
+@deffnx {Auxiliary Syntax} nanoseconds @var{nanoseconds}
 Expand to an expression evaluating to a new @class{duration} instance.
 The seconds and nanoseconds counts are computed from the values given in
 the following maker clauses and normalised to be both non--negative or
@@ -1115,7 +1119,7 @@ Day Number corresponding to the instance's seconds on the @tai{} scale.
 @end defcv
 
 
-@deffn Syntax {make @aclass{time}} @var{seconds} @var{nanoseconds}
+@deffn Syntax {make* @aclass{time}} @var{seconds} @var{nanoseconds}
 Expand to an expression evaluating to a new @class{time} instance.
 @var{seconds} and @var{nanoseconds} must expand into expressions
 evaluating to exact integers representing the counts of seconds on the
@@ -1126,7 +1130,11 @@ non--positive.
 @end deffn
 
 
-@deffn Syntax {make* @aclass{time}} @var{clause} ...
+@deffn Syntax {make @aclass{time}} @var{clause} ...
+@deffnx {Auxiliary Syntax} seconds @var{seconds}
+@deffnx {Auxiliary Syntax} milliseconds @var{milliseconds}
+@deffnx {Auxiliary Syntax} microseconds @var{microseconds}
+@deffnx {Auxiliary Syntax} nanoseconds @var{nanoseconds}
 Expand to an expression evaluating to a new @class{time} instance.  The
 seconds and nanoseconds counts are computed from the values given in the
 following maker clauses and normalised to be both non--negative or both
@@ -1193,8 +1201,8 @@ Subtract the @class{duration} object @var{duration} from the instance
 and return a new @class{time} object representing the result.
 
 @example
-(let* (((D <time>)      (make <time> 1 2))
-       ((E <duration>)  (make <duration> 3 5))
+(let* (((D <time>)      (make* <time> 1 2))
+       ((E <duration>)  (make* <duration> 3 5))
        ((F <time>)      (D.- E)))
   (list (is-a? F <time>) F.seconds F.nanoseconds))
 @result{} (#t -2 -3)
@@ -1207,8 +1215,8 @@ Subtract the @class{time} object @var{time} from the instance and return
 a new @class{duration} object representing the result.
 
 @example
-(let* (((D <time>)      (make <time> 1 2))
-       ((E <time>)      (make <time> 3 5))
+(let* (((D <time>)      (make* <time> 1 2))
+       ((E <time>)      (make* <time> 3 5))
        ((F <duration>)  (D.- E)))
   (list (is-a? F <duration>) F.seconds F.nanoseconds))
 @result{} (#t -2 -3)

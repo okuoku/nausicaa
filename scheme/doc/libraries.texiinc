@@ -453,7 +453,7 @@ applies recursively the specifications of the nested import sets.
 
 @example
 (let-fields (((o <import-spec>)
-              (make <import-spec>
+              (make* <import-spec>
                 '(prefix
                      (except
                        (only

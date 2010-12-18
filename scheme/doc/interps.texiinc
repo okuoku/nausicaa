@@ -10,7 +10,7 @@ Evaluation of code is handled by ``interpreter'' objects; examples:
 @example
 (import (nausicaa) (interps))
 
-(let (((o <interp>) (make* <interp>
+(let (((o <interp>) (make <interp>
                       (imports: '((rnrs))))))
   (o.eval '(begin
              (define a 1)
@@ -18,7 +18,7 @@ Evaluation of code is handled by ``interpreter'' objects; examples:
              (+ a b))))
 @result{} 3
 
-(let (((o <interp>) (make* <interp>
+(let (((o <interp>) (make <interp>
                       (imports: '((rnrs))))))
   (o.eval '(begin
              (define-global a 1)
@@ -227,7 +227,7 @@ Plain expression evaluation:
 @example
 (import (nausicaa) (interps))
 
-(let (((o <interp>) (make <interp> '((rnrs)))))
+(let (((o <interp>) (make* <interp> '((rnrs)))))
   (o.eval '(+ 1 2)))
 @result{} 3
 @end example
@@ -238,7 +238,7 @@ variables definitions:
 @example
 (import (nausicaa) (interps))
 
-(let* (((o <interp>) (make <interp> '((rnrs))))
+(let* (((o <interp>) (make* <interp> '((rnrs))))
        (return-value (o.eval '(let ()
                                 (define-global woppa)
                                 (define-global wippa 456)
@@ -257,7 +257,7 @@ set a variable in one @func{eval}, retrieve its value in a subsequent
 @example
 (import (nausicaa) (interps))
 
-(let (((o <interp>) (make <interp> '((rnrs)))))
+(let (((o <interp>) (make* <interp> '((rnrs)))))
   (o.eval '(let ()
              (define-global woppa 123)
              (values)))
@@ -271,7 +271,7 @@ predefine a variable and retrieve its value in a subsequent @func{eval}:
 @example
 (import (nausicaa) (interps))
 
-(let (((o <interp>) (make <interp> '((rnrs)))))
+(let (((o <interp>) (make* <interp> '((rnrs)))))
   (o.variable-set! 'woppa 123)
   (o.eval '(begin woppa)))
 @result{} 123
@@ -281,7 +281,7 @@ predefine a variable and retrieve its value in a subsequent @func{eval}:
 function evaluation:
 
 @example
-(let (((o <interp>) (make <interp> '((rnrs)))))
+(let (((o <interp>) (make* <interp> '((rnrs)))))
   (o.eval '(let ()
              (define-global (woppa a)
                (cons 123 a))

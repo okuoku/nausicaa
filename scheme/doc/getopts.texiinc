@@ -159,7 +159,7 @@ We have to remember that @class{option} records can be compared with
 @end defcv
 
 
-@deffn Syntax {make @aclass{option}} @var{brief} @var{long} @var{requires-argument?} @var{description} @var{action}
+@deffn Syntax {make* @aclass{option}} @var{brief} @var{long} @var{requires-argument?} @var{description} @var{action}
 Build and return a new @class{option} record.
 @end deffn
 

@@ -309,7 +309,7 @@ from the string @samp{123}, it can build a record with:
 
 @example
 (let ((position ---))
-  (make <lexical-token> 'NUMBER position 123 3))
+  (make* <lexical-token> 'NUMBER position 123 3))
 @end example
 
 @noindent
@@ -317,7 +317,7 @@ while when tokenising a string it can do:
 
 @example
 (let ((position ---))
-  (make <lexical-token> 'STRING position "some text" 9))
+  (make* <lexical-token> 'STRING position "some text" 9))
 @end example
 
 When the lexer has to signal the end--of--input, it must return a token
@@ -326,7 +326,7 @@ again and again; it can do:
 
 @example
 (let ((position ---))
-  (make <lexical-token> '*eoi* position (eof-object)))
+  (make* <lexical-token> '*eoi* position (eof-object)))
 @end example
 
 When the lexer closure has to signal a lexer error (an invalid character
@@ -384,12 +384,12 @@ True if the token has category @samp{*eoi*} or @samp{*lexer-error*}.
 @end defcv
 
 
-@deffn Syntax {make @aclass{lexical-token}} @var{category} @var{location} @var{value} @var{length}
+@deffn Syntax {make* @aclass{lexical-token}} @var{category} @var{location} @var{value} @var{length}
 Build and return a new record of type @class{lexical-token}.
 @end deffn
 
 
-@deffn Syntax {make* @aclass{lexical-token}} @var{clause} ...
+@deffn Syntax {make @aclass{lexical-token}} @var{clause} ...
 @deffnx {Auxiliary Syntax} category: @var{category}
 @deffnx {Auxiliary Syntax} location: @var{location}
 @deffnx {Auxiliary Syntax} value: @var{value}
