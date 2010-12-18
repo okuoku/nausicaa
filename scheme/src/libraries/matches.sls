@@ -38,6 +38,16 @@
     match match-lambda match-lambda* match-define match-define*
     match-let match-letrec match-named-let match-let*
 
+    ;; auxiliary syntaxes
+    :predicate
+    :accessor
+    :and
+    :or
+    :not
+    :setter
+    :getter
+
+    ;; conditions
     &match-mismatch
     make-match-mismatch-condition
     match-mismatch-condition?
@@ -45,6 +55,7 @@
     match-mismatch-error)
   (import (rnrs)
     (rnrs mutable-pairs)
+    (only (syntax-utilities) define-auxiliary-syntaxes)
     (conditions))
 
 
@@ -52,18 +63,21 @@
   (parent &mismatch)
   (fields expression))
 
-#;(define-condition-type &match-mismatch
-  &mismatch
-  make-match-mismatch-condition
-  match-mismatch-condition?
-  (expr condition-match-mismatch-expression))
-
 (define-syntax match-mismatch-error
   (syntax-rules ()
     ((_ ?who ?expr)
      (raise (condition (make-match-mismatch-condition ?expr)
 		       (make-who-condition ?who)
 		       (make-message-condition "no matching pattern"))))))
+
+(define-auxiliary-syntaxes
+  :predicate
+  :accessor
+  :and
+  :or
+  :not
+  :setter
+  :getter)
 
 
 (define-syntax match
