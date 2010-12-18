@@ -1067,6 +1067,27 @@
     ;;the  order of  the field  specifications must  match the  order of
     ;;fields in the RTD definition.
     ;;
+    ;;Example, given the class definition:
+    ;;
+    ;;    (define-class <alpha>
+    ;;      (fields (mutable a)
+    ;;              (mutable b)
+    ;;              (immutable c)))
+    ;;
+    ;;this function is called with FIELDS being the syntax object:
+    ;;
+    ;;	  ((mutable   a <alpha>-a <alpha>-a-set!)
+    ;;	   (mutable   b <alpha>-b <alpha>-b-set!)
+    ;;	   (immutable c <alpha>-c))
+    ;;
+    ;;we want to return a syntax object holding:
+    ;;
+    ;;	  ((define <alpha>-a		(record-accessor rtd 0))
+    ;;	   (define <alpha>-a-set!	(record-mutator  rtd 0))
+    ;;	   (define <alpha>-b		(record-accessor rtd 1))
+    ;;	   (define <alpha>-b-set!	(record-mutator  rtd 1))
+    ;;	   (define <alpha>-c		(record-accessor rtd 2)))
+    ;;
     (let loop ((definitions	'())
 	       (field-index	0)
 	       (fields		fields))
@@ -1096,10 +1117,12 @@
     ;;select the appropriate clause  to make the construction efficient:
     ;;the constructor for non-class record types is slow compared to the
     ;;one of class types.
+    ;;
     (if the-parent-is-a-class?
 	#`(make-record-constructor-descriptor #,the-rtd
 					      (#,the-superclass :from-fields-constructor-descriptor)
 					      #,the-from-fields-protocol)
+      ;; the parent is a record
       #`(%make-from-fields-cd #,the-rtd #,the-from-fields-protocol)))
 
   (define (%make-maker-definition the-maker the-maker-constructor
