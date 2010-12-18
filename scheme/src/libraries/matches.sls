@@ -46,6 +46,8 @@
     :not
     :setter
     :getter
+    :free-identifier
+    :bound-identifier
 
     ;; conditions
     &match-mismatch
@@ -77,7 +79,9 @@
   :or
   :not
   :setter
-  :getter)
+  :getter
+  :free-identifier
+  :bound-identifier)
 
 
 (define-syntax match
@@ -239,7 +243,10 @@
   ;;macro.
   ;;
   (lambda (stx)
-    (syntax-case stx (:predicate :accessor :and :or :not :setter :getter quasiquote quote)
+    (syntax-case stx (:predicate
+		      :accessor :and :or :not :setter :getter
+		      :free-identifier :bound-identifier
+		      quasiquote quote)
 
       ;;the pattern is #t
       ((_ ?expr #t ?Getter ?Setter (?success-kont ...) ?failure-kont ?bound-pattern-variables)
@@ -395,6 +402,22 @@
 	   (match-pattern expr1 ?pattern
 			  ?Getter ?Setter
 			  ?success-kont ?failure-kont ?bound-pattern-variables)))
+
+;;; --------------------------------------------------------------------
+
+      ;;the pattern is a free identifier
+      ((_ ?expr (:free-identifier ?syntax-object) ?Getter ?Setter
+	  (?success-kont ...) ?failure-kont ?bound-pattern-variables)
+       #'(if (free-identifier=? ?syntax-object ?expr)
+	     (?success-kont ... ?bound-pattern-variables)
+	   ?failure-kont))
+
+      ;;the pattern is a bound identifier
+      ((_ ?expr (:bound-identifier ?syntax-object) ?Getter ?Setter
+	  (?success-kont ...) ?failure-kont ?bound-pattern-variables)
+       #'(if (bound-identifier=? ?syntax-object ?expr)
+	     (?success-kont ... ?bound-pattern-variables)
+	   ?failure-kont))
 
 ;;; --------------------------------------------------------------------
 
@@ -1030,7 +1053,10 @@
   ;;null for a macro use.
   ;;
   (lambda (stx)
-    (syntax-case stx (:predicate :accessor :and :or :not :getter :setter quasiquote quote)
+    (syntax-case stx (:predicate
+		      :accessor :and :or :not :getter :setter
+		      :free-identifier :bound-identifier
+		      quasiquote quote)
 
       ;;The pattern is the literal #t.
       ((_ #t (?kont ...) ?bound-pattern-variables ?extracted-variables)
@@ -1063,6 +1089,14 @@
       ((_ (:not ?not-pattern) ?kont ?bound-pattern-variables ?extracted-variables)
        #'(extract-new-pattern-variables ?not-pattern ?kont
 					?bound-pattern-variables ?extracted-variables))
+
+      ;;The pattern is the :FREE-IDENTIFIER special keyword.
+      ((_ (:free-identifier ?syntax-object) (?kont ...) ?bound-pattern-variables ?extracted-variables)
+       #'(?kont ... ?extracted-variables))
+
+      ;;The pattern is the :BOUND-IDENTIFIER special keyword.
+      ((_ (:bound-identifier ?syntax-object) (?kont ...) ?bound-pattern-variables ?extracted-variables)
+       #'(?kont ... ?extracted-variables))
 
       ;;The pattern is a quoted S-expression.
       ((_ (quote x) (?kont ...) ?bound-pattern-variables ?extracted-variables)

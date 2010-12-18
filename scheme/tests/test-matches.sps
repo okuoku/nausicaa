@@ -1075,6 +1075,46 @@
     #t)
 
 
+(parametrise ((check-test-name 'identifiers))
+
+  (define-auxiliary-syntaxes
+    alpha beta)
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (match #'alpha
+	((:free-identifier #'alpha)
+	 #t)
+	(_ #f))
+    => #t)
+
+  (check
+      (match #'beta
+	((:free-identifier #'alpha)
+	 #t)
+	(_ #f))
+    => #f)
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (match #'alpha
+	((:bound-identifier #'alpha)
+	 #t)
+	(_ #f))
+    => #t)
+
+  (check
+      (match #'beta
+	((:bound-identifier #'alpha)
+	 #t)
+	(_ #f))
+    => #f)
+
+  #t)
+
+
 ;;;; done
 
 (check-report)

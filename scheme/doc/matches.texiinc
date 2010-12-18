@@ -116,6 +116,14 @@ returns the matched element itself.
 Match anything and bind to @meta{symbol} a function which, when applied
 to a value, replaces the expression with that value.  This involves the
 use of @func{set-car!}, @func{set-cdr!} and other mutators.
+
+@item (:free-identifier @var{syntax-object})
+Match an identifier (a syntax object) which is equal to
+@var{syntax-object} according to @func{free-identifier=?}.
+
+@item (:bound-identifier @var{syntax-object})
+Match an identifier (a syntax object) which is equal to
+@var{syntax-object} according to @func{bound-identifier=?}.
 @end table
 @end deffn
 
@@ -192,6 +200,7 @@ identifiers in the body of a clause.  They are indicated here with
 * matches syntax quasiquote::   Matching quasiquotation.
 * matches syntax getter::       Getting values out of the expression.
 * matches syntax setter::       Mutating the expression's value.
+* matches syntax identifier::   Matching identifiers.
 * matches syntax continuation:: Continuing after mismatch.
 * matches syntax ellipsis::     Matching an arbitrary number of
                                 subexpressions.
@@ -1141,6 +1150,45 @@ composite object like a list or vector, the following will fail:
    (doit 3)
    x))
 @error{} invalid expression (:setter 1 3)
+@end example
+
+@c page
+@node matches syntax identifier
+@subsection Matching identifiers
+
+
+A free or bound identifier expression matcher looks like this:
+
+@example
+(define-auxiliary-syntaxes
+  alpha beta)
+
+(match #'alpha
+  ((:free-identifier #'alpha)
+   #t)
+  (_ #f))
+@result{} #t
+
+(match #'beta
+  ((:free-identifier #'alpha)
+   #t)
+  (_ #f))
+@result{} #f
+@end example
+
+We can think of a @code{:free-identifier} or @code{:bound-identifier}
+pattern as expanding to:
+
+@example
+(let ((expr #'alpha))
+  (if (free-identifier=? #'alpha expr)
+      #t
+    #f))
+
+(let ((expr #'alpha))
+  (if (free-bound=? #'alpha expr)
+      #t
+    #f))
 @end example
 
 @c page
