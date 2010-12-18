@@ -356,14 +356,15 @@
 ;;;; usage macros
 
 (define-syntax make
-  ;;Build a new class instance using the public constructor.
+  ;;Build  a new  class instance  using the  maker constructor,  if any;
+  ;;defaults to the public constructor.
   ;;
   (syntax-rules ()
     ((_ ?class-name ?arg ...)
      (?class-name :make ?arg ...))))
 
 (define-syntax make*
-  ;;Build a new class instance using the maker constructor.
+  ;;Build a new class instance using the public constructor.
   ;;
   (syntax-rules ()
     ((_ ?class-name ?arg ...)

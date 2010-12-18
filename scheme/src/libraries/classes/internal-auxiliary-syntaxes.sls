@@ -33,6 +33,7 @@
     :class-uid-list
     :from-fields-constructor-descriptor
     :is-a?
+    :predicate
     :list-of-concrete-fields
     :list-of-methods
     :list-of-virtual-fields
@@ -52,6 +53,7 @@
     :class-uid-list
     :from-fields-constructor-descriptor
     :is-a?
+    :predicate
     :list-of-concrete-fields
     :list-of-methods
     :list-of-virtual-fields
