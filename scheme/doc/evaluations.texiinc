@@ -102,7 +102,7 @@ before the evaluation of expressions.
 @deffnx {Auxiliary Syntax} imports: @var{specs}
 Build and return a new @class{environment} instance; @var{clause} must
 be an auxiliary syntax among @code{bindings:} and @code{imports:}.
-@end defmethod
+@end deffn
 
 
 @deffn {Auxiliary Syntax} bindings: @var{binds}
