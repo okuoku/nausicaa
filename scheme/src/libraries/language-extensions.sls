@@ -180,7 +180,7 @@
 (library (language-extensions)
   (export
     and-let* begin0 begin0-let begin0-let* begin0-letrec
-    receive recursion cut cute
+    receive recursion cut cute <> <...>
     do* while while* do-while do-while*
     dotimes dolist loop-upon-list ensure
     set-cons! incr! decr!
@@ -190,6 +190,8 @@
     define-syntax*
     syntax-rules* syntax-case* partial-macro-expand partial-macro-expand-and-print)
   (import (rnrs)
+    (only (syntax-utilities) define-auxiliary-syntaxes)
+    (only (auxiliary-syntaxes) <> <...>)
     (pretty-print))
 
 

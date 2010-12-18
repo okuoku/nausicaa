@@ -40,6 +40,8 @@ This syntax is called @func{prog1} in Common Lisp and Emacs Lisp.
 
 @deffn Syntax cut @var{slot-or-expr} ...
 @deffnx Syntax cute @var{slot-or-expr} ...
+@deffnx {Auxiliary Syntax} <>
+@deffnx {Auxiliary Syntax} <...>
 When programming in functional style, it is frequently necessary to
 specialize some of the parameters of a multi--parameter procedure.  For
 example, from the binary operation @func{cons} one might want to obtain
@@ -51,18 +53,18 @@ The @func{cut} and @func{cute} syntaxes allow to write this sort of
 specialization in a simple and compact way.  Examples:
 
 @example
-(cut cons (+ a 1) <>)   = (lambda (x2)
-                            (cons (+ a 1) x2))
+(cut cons (+ a 1) <>)   @expansion{} (lambda (x2)
+                              (cons (+ a 1) x2))
 
-(cut list 1 <> 3 <> 5)  = (lambda (x2 x4)
-                            (list 1 x2 3 x4 5))
+(cut list 1 <> 3 <> 5)  @expansion{} (lambda (x2 x4)
+                              (list 1 x2 3 x4 5))
 
-(cut list)              = (lambda () (list))
+(cut list)              @expansion{} (lambda () (list))
 
-(cut list 1 <> 3 <...>) = (lambda (x2 . xs)
-                            (apply list 1 x2 3 xs))
+(cut list 1 <> 3 <...>) @expansion{} (lambda (x2 . xs)
+                              (apply list 1 x2 3 xs))
 
-(cut <> a b)            = (lambda (f) (f a b))
+(cut <> a b)            @expansion{} (lambda (f) (f a b))
 @end example
 
 @func{cut} specializes some of the parameters of its first argument.
@@ -77,9 +79,9 @@ procedure is specialized, not at the time the specialized procedure is
 called.  For example:
 
 @example
-(cute cons (+ a 1) <>) = (let ((a1 (+ a 1)))
-                           (lambda (x2)
-                             (cons a1 x2)))
+(cute cons (+ a 1) <>) @expansion{} (let ((a1 (+ a 1)))
+                             (lambda (x2)
+                               (cons a1 x2)))
 @end example
 
 @noindent
@@ -97,6 +99,9 @@ The formal syntax of a specialized expression is:
 <slot-or-expr>   -> <>              ; a "slot"
                  |  <expression>    ; a "non-slot expression"
 @end example
+
+The @code{<>} and @code{<...>} auxiliary syntaxes are exported by the
+library @library{auxiliary-syntaxes} and reexported by this library.
 @end deffn
 
 

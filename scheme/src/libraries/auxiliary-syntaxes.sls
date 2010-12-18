@@ -42,7 +42,9 @@
 
     ;; bindings for string and vector views
     view start past
-    )
+
+    ;; miscellaneous
+    <> <...>)
   (import (rnrs records syntactic)
     (only (syntax-utilities) define-auxiliary-syntaxes))
   (define-auxiliary-syntaxes
@@ -61,6 +63,9 @@
     methods
     method
     method-syntax
+
+    <>
+    <...>
 
     view
     start
