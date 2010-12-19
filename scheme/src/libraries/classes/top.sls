@@ -71,7 +71,7 @@
       ((_ :is-a? ?arg)
        #'(<top>? ?arg))
 
-      ((_ :with-class-bindings-of ?inherit-options ?variable-name ?body0 ?body ...)
+      ((_ :with-class-bindings-of ?root-classes ?inherit-options ?variable-name ?body0 ?body ...)
        #'(begin ?body0 ?body ...))
 
       ((_ ?keyword . ?rest)
@@ -86,7 +86,7 @@
     ((_ :is-a? ?arg)
      #t)
 
-    ((_ :with-class-bindings-of ?inherit-options ?variable-name . ?body)
+    ((_ :with-class-bindings-of ?root-classes ?inherit-options ?variable-name . ?body)
      (begin . ?body))
 
     ((_ ?keyword . ?rest)
