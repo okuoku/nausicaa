@@ -541,56 +541,51 @@ identifier <ALPHA> in the list (<BETA> <GAMMA>).
 |#
 
 
-(define-syntax define-foreign-class
+(define-syntax* (define-foreign-class stx)
   ;;A foreign class  is just a tag  we slap on any value  to use virtual
   ;;fields  and methods  with dot  notation,  but nevertheless  it is  a
   ;;proper record type.
   ;;
-  (syntax-rules ()
+  ;;Raise  an error  if  a PUBLIC-PROTOCOL,  MAKER-PROTOCOL or  FIELDS
+  ;;clause is present  in the body of the  definition; else define the
+  ;;class with DEFINE-CLASS specifying  a public protocol which raises
+  ;;an error when invoked.
+  ;;
+  (syntax-case stx ()
     ((_ ?name ?clause ...)
-     (%define-foreign-class (define-class ?name ?clause ...) ?name () ?clause ...))))
+     (let loop ((clauses	#'(?clause ...))
+		(collected	'()))
+       (syntax-case clauses (public-protocol maker-protocol maker-transformer maker fields)
+	 (()
+	  #`(define-class ?name
+	      (public-protocol (lambda (make-parent)
+				 (lambda args
+				   (syntax-violation #f
+				     "attempt to instantiate foreign class" '?name))))
+	      #,@collected))
 
-(define-syntax %define-foreign-class
-  (lambda (stx)
-    ;;Raise  an error  if  a PUBLIC-PROTOCOL,  MAKER-PROTOCOL or  FIELDS
-    ;;clause is present  in the body of the  definition; else define the
-    ;;class with DEFINE-CLASS specifying  a public protocol which raises
-    ;;an error when invoked.
-    ;;
-    (define (%synner message form subform)
-      (syntax-violation 'define-foreign-class message (syntax->datum form) (syntax->datum subform)))
-    (syntax-case stx (public-protocol maker-protocol fields)
+	 (((public-protocol ?x ...) ?clause ...)
+	  (synner "public-protocol clause used in definition of foreign class"
+		  #'(public-protocol ?x ...)))
 
-      ;;no more clauses to collect
-      ((_ ?input-form ?name (?collected-clause ...))
-       #'(define-class ?name
-	   (public-protocol (lambda (make-parent)
-			      (lambda args
-				(syntax-violation #f
-				  "attempt to instantiate foreign class" (quote ?name)))))
-	   ?collected-clause ...))
+	 (((maker-protocol ?x ...) ?clause ...)
+	  (synner "maker-protocol clause used in definition of foreign class"
+		  #'(maker-protocol ?x ...)))
 
-      ;;found PUBLIC-PROTOCOL clause
-      ((_ ?input-form ?name (?collected-clause ...) (public-protocol ?pro ...) ?clause ...)
-       (%synner "public-protocol clause used in definition of foreign class"
-	       #'?input-form #'(public-protocol ?pro ...)))
+	 (((maker-transformer ?x ...) ?clause ...)
+	  (synner "maker-transformer clause used in definition of foreign class"
+		  #'(maker-transformer ?x ...)))
 
-      ;;found MAKER-PROTOCOL clause
-      ((_ ?input-form ?name (?collected-clause ...) (maker-protocol ?pro ...) ?clause ...)
-       (%synner "maker-protocol clause used in definition of foreign class"
-	       #'?input-form #'(public-protocol ?pro ...)))
+	 (((maker ?x ...) ?clause ...)
+	  (synner "maker clause used in definition of foreign class" #'(maker ?x ...)))
 
-      ;;found FIELDS clause
-      ((_ ?input-form ?name (?collected-clause ...) (fields ?fie ...) ?clause ...)
-       (%synner "fields clause used in definition of foreign class"
-		#'?input-form
-		#'(fields ?fie ...)))
+	 (((fields ?x ...) ?clause ...)
+	  (synner "fields clause used in definition of foreign class" #'(fields ?x ...)))
 
-      ;;other clauses
-      ((_ ?input-form ?name (?collected-clause ...) ?clause0 ?clause ...)
-       #'(%define-foreign-class ?input-form ?name (?collected-clause ... ?clause0) ?clause ...))
+	 ((?clause0 ?clause ...)
+	  (loop #'(?clause ...) (cons #'?clause0 collected)))
 
-      )))
+	 )))))
 
 
 (define-syntax* (define-class stx)
@@ -730,8 +725,8 @@ identifier <ALPHA> in the list (<BETA> <GAMMA>).
 	 ;;Null or a validated list of concrete fields having elements
 	 ;;with format:
 	 ;;
-	 ;;    (immutable <field name> <field accessor>)
-	 ;;    (mutable   <field name> <field accessor> <field mutator>)
+	 ;;    (immutable <field name> <field accessor> <field class> ...)
+	 ;;    (mutable   <field name> <field accessor> <field mutator> <field class> ...)
 	 ;;
 	 ;;where  IMMUTABLE and  MUTABLE are  symbols and  the other
 	 ;;elements are identifiers.
@@ -741,8 +736,8 @@ identifier <ALPHA> in the list (<BETA> <GAMMA>).
 	 ;;Null  or  a  validated  list  of  virtual  fields  having
 	 ;;elements with format:
 	 ;;
-	 ;;    (immutable <field name> <field accessor>)
-	 ;;    (mutable   <field name> <field accessor> <field mutator>)
+	 ;;    (immutable <field name> <field accessor> <field class> ...)
+	 ;;    (mutable   <field name> <field accessor> <field mutator> <field class> ...)
 	 ;;
 	 ;;where  IMMUTABLE and  MUTABLE are  symbols and  the other
 	 ;;elements are identifiers.
@@ -928,7 +923,8 @@ identifier <ALPHA> in the list (<BETA> <GAMMA>).
 	      (%make-fields-accessor-of-transformer class-identifier fields virtual-fields %synner))
 	     (SLOT-MUTATOR-OF-TRANSFORMER
 	      (%make-fields-mutator-of-transformer class-identifier fields virtual-fields %synner))
-	     )
+	     (WITH-FIELD-CLASS-BINDINGS
+	      (%make-with-field-class-bindings fields virtual-fields %synner)))
 	  #'(begin
 	      (define the-parent-rtd	PARENT-RTD-FORM)
 	      (define THE-PARENT-CD	PARENT-CD-FORM)
@@ -1128,6 +1124,7 @@ identifier <ALPHA> in the list (<BETA> <GAMMA>).
 		       (synner "detected recursive type while expanding class bindings"
 		   	       #'(?root-class (... ...)))
 		     (let ((use-dot-notation? (syntax->datum #'?use-dot-notation)))
+(write (syntax->datum #'(THE-CLASS ?root-class (... ...))))(newline)
 		       (with-syntax
 			   ((((CVAR CVAL) (... ...))
 			     (or-null #'?inherit-concrete-fields
@@ -1157,7 +1154,10 @@ identifier <ALPHA> in the list (<BETA> <GAMMA>).
 					 (VVAR VVAL) (... ...)
 					 (MVAR MVAL) (... ...)
 					 (SVAR SVAL) (... ...))
-			      (BINDINGS-MACRO THE-CLASS ?variable-name ?body0 ?body (... ...))))
+			      (BINDINGS-MACRO THE-CLASS ?variable-name
+					      (with-field-class ?variable-name
+								WITH-FIELD-CLASS-BINDINGS
+								?body0 ?body (... ...)))))
 			 ))))))
 
 	      (define-syntax slot-accessor-of	SLOT-ACCESSOR-OF-TRANSFORMER)
@@ -1175,8 +1175,8 @@ identifier <ALPHA> in the list (<BETA> <GAMMA>).
     ;;FIELDS  must  be   a  syntax  object  holding  a   list  of  field
     ;;specifications in the following format:
     ;;
-    ;;    (mutable   ?field ?accessor ?mutator)
-    ;;    (immutable ?field ?accessor)
+    ;;    (mutable   ?field ?accessor ?mutator ?field-class ...)
+    ;;    (immutable ?field ?accessor ?field-class ...)
     ;;
     ;;the  order of  the field  specifications must  match the  order of
     ;;fields in the RTD definition.
@@ -1209,14 +1209,14 @@ identifier <ALPHA> in the list (<BETA> <GAMMA>).
 	(()
 	 definitions)
 
-	(((mutable ?field ?accessor ?mutator) . ?clauses)
+	(((mutable ?field ?accessor ?mutator ?field-class ...) . ?clauses)
 	 (loop (cons* #`(define ?accessor  (record-accessor #,rtd-name #,field-index))
 		      #`(define ?mutator   (record-mutator  #,rtd-name #,field-index))
 		      definitions)
 	       (+ 1 field-index)
 	       #'?clauses))
 
-	(((immutable ?field ?accessor) . ?clauses)
+	(((immutable ?field ?accessor ?field-class ...) . ?clauses)
 	 (loop (cons* #`(define ?accessor  (record-accessor #,rtd-name #,field-index))
 		      definitions)
 	       (+ 1 field-index)
@@ -1472,7 +1472,9 @@ identifier <ALPHA> in the list (<BETA> <GAMMA>).
 	 (SLOT-ACCESSOR-OF-TRANSFORMER
 	  (%make-fields-accessor-of-transformer label-identifier '() virtual-fields %synner))
 	 (SLOT-MUTATOR-OF-TRANSFORMER
-	  (%make-fields-mutator-of-transformer label-identifier '() virtual-fields %synner)))
+	  (%make-fields-mutator-of-transformer label-identifier '() virtual-fields %synner))
+	 (WITH-FIELD-CLASS-BINDINGS
+	  (%make-with-field-class-bindings '() virtual-fields %synner)))
       #'(begin
 	  (define THE-PREDICATE
 	    (let ((p CUSTOM-PREDICATE))
@@ -1579,7 +1581,10 @@ identifier <ALPHA> in the list (<BETA> <GAMMA>).
 			(let-syntax ((VVAR VVAL) (... ...)
 				     (MVAR MVAL) (... ...)
 				     (SVAR SVAL) (... ...))
-			  (BINDINGS-MACRO THE-LABEL ?variable-name ?body0 ?body (... ...))))
+			  (BINDINGS-MACRO THE-LABEL ?variable-name
+					  (with-field-class ?variable-name
+							    WITH-FIELD-CLASS-BINDINGS
+							    ?body0 ?body (... ...)))))
 		     ))))))
 
 	  (define-syntax slot-accessor-of	SLOT-ACCESSOR-OF-TRANSFORMER)
@@ -1672,22 +1677,19 @@ identifier <ALPHA> in the list (<BETA> <GAMMA>).
   ;;
   ;;into:
   ;;
-  ;;  (<class> with-class-bindings-of (#t #t #t #t #t) <var> . <body>)
+  ;;  (<class> :with-class-bindings-of () (#t #t #t #t #t) <var> . <body>)
   ;;
   ;;which is the syntax having  knowledge of the context of <class>; the
-  ;;list of true  values enable all the dot  notation syntaxes.  We want
+  ;;list of  #t values enables all  the dot notation  syntaxes.  We want
   ;;the full expansion of:
   ;;
   ;;  (with-class ((<var> <class0> <class1>)) . <body>)
   ;;
   ;;to be:
   ;;
-  ;;  (<class0> with-class-bindings-of (#t #t #t #t #t) <var>
-  ;;    (<class1> with-class-bindings-of (#t #t #t #t #t) <var>
+  ;;  (<class0> :with-class-bindings-of () (#t #t #t #t #t) <var>
+  ;;    (<class1> :with-class-bindings-of () (#t #t #t #t #t) <var>
   ;;      . <body>))
-  ;;
-  ;;that is:  a single  contract function for  each clause and  then one
-  ;;nested with-class-bindings-of for each given class.
   ;;
   ;;We  allow  an  empty list  of  clauses  because  it is  useful  when
   ;;expanding other macros into WITH-CLASS uses.
@@ -1713,6 +1715,49 @@ identifier <ALPHA> in the list (<BETA> <GAMMA>).
 
     (_
      (synner "invalid clause in with-class form"))))
+
+(define-syntax* (with-field-class stx)
+  ;;This is the public entry point  for typed fields.  The gist of it is
+  ;;to expand:
+  ;;
+  ;;  (with-field-class <var> ((<field> <class>) . <body>))
+  ;;
+  ;;into:
+  ;;
+  ;;  (<class> :with-class-bindings-of (#t #t #t #t #t) () <var>.<field> . <body>)
+  ;;
+  ;;which is the syntax having  knowledge of the context of <class>; the
+  ;;list of  #t values enables all  the dot notation  syntaxes.  We want
+  ;;the full expansion of:
+  ;;
+  ;;  (with-field-class <var> ((<field> <class0> <class1>)) . <body>)
+  ;;
+  ;;to be:
+  ;;
+  ;;  (<class0> :with-class-bindings-of (#t #t #t #t #t) () <var>.<field>
+  ;;    (<class1> :with-class-bindings-of (#t #t #t #t #t) () <var>.<field>
+  ;;      . <body>))
+  ;;
+  ;;We  allow  an  empty list  of  clauses  because  it is  useful  when
+  ;;expanding other macros into WITH-CLASS uses.
+  ;;
+  (syntax-case stx (<top>)
+    ((_ ?var () ?body0 ?body ...)
+     #'(begin ?body0 ?body ...))
+
+    ;;detect fully untyped fields
+    ((_ ?var ((?field) ...) ?body0 ?body ...)
+     (all-identifiers? #'(?field ...))
+     #'(begin ?body0 ?body ...))
+
+    ((_ ?var ((?field ?class ...) ...) ?body0 ?body ...)
+     (with-syntax (((VAR ...) (map (lambda (field)
+				     (syntax-dot-notation-identifier #'?var field))
+				(unwrap-syntax-object #'(?field ...)))))
+       #'(with-class ((VAR ?class ...) ...) ?body0 ?body ...)))
+
+    (_
+     (synner "invalid clause in with-field-class form"))))
 
 (define-syntax* (setf stx)
   (syntax-case stx (setter setter-multi-key set!)

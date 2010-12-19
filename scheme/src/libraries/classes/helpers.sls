@@ -34,7 +34,8 @@
     %variable-name->Setter-name
     %variable-name->Getter-name
     %make-fields-accessor-of-transformer
-    %make-fields-mutator-of-transformer)
+    %make-fields-mutator-of-transformer
+    %make-with-field-class-bindings)
   (import (rnrs))
 
 
@@ -61,11 +62,15 @@
   ;;FIELDS and VIRTUAL-FIELDS must be syntax objects holding a list of
   ;;field specifications in the following format:
   ;;
-  ;;    (mutable   ?field ?accessor ?mutator)
-  ;;    (immutable ?field ?accessor)
+  ;;    (mutable   ?field ?accessor ?mutator ?field-class ...)
+  ;;    (immutable ?field ?accessor ?field-class ...)
   ;;
   ;;the  order of  the field  specifications must  match the  order of
   ;;fields in the RTD definition.
+  ;;
+  ;;SYNNER must  be the closure  used to raise  a syntax violation  if a
+  ;;parse  error happens;  it  must accept  two  arguments: the  message
+  ;;string, the subform.
   ;;
   ;;Example, for a class like:
   ;;
@@ -91,12 +96,12 @@
       (()
        (%make-field-accessor-or-mutator-transformer-function class-identifier case-branches))
 
-      (((mutable ?field ?accessor ?mutator) . ?clauses)
+      (((mutable ?field ?accessor ?mutator ?field-class ...) . ?clauses)
        (loop (cons #'((?field) #'?accessor) case-branches)
 	     (+ 1 field-index)
 	     #'?clauses))
 
-      (((immutable ?field ?accessor) . ?clauses)
+      (((immutable ?field ?accessor ?field-class ...) . ?clauses)
        (loop (cons #'((?field) #'?accessor) case-branches)
 	     (+ 1 field-index)
 	     #'?clauses))
@@ -113,8 +118,8 @@
   ;;FIELDS and VIRTUAL-FIELDS must be syntax objects holding a list of
   ;;field specifications in the following format:
   ;;
-  ;;    (mutable   ?field ?accessor ?mutator)
-  ;;    (immutable ?field ?accessor)
+  ;;    (mutable   ?field ?accessor ?mutator ?field-class ...)
+  ;;    (immutable ?field ?accessor ?field-class ...)
   ;;
   ;;the  order of  the field  specifications must  match the  order of
   ;;fields in the RTD definition.
@@ -143,12 +148,12 @@
       (()
        (%make-field-accessor-or-mutator-transformer-function class-identifier case-branches))
 
-      (((mutable ?field ?accessor ?mutator) . ?clauses)
+      (((mutable ?field ?accessor ?mutator ?field-class ...) . ?clauses)
        (loop (cons #'((?field) #'?mutator) case-branches)
 	     (+ 1 field-index)
 	     #'?clauses))
 
-      (((immutable ?field ?accessor) . ?clauses)
+      (((immutable ?field ?accessor ?field-class ...) . ?clauses)
        (loop case-branches
 	     (+ 1 field-index)
 	     #'?clauses))
@@ -175,6 +180,39 @@
 		"unknown class field"
 		(syntax->datum stx)
 		(syntax->datum #'?slot-name)))))))))
+
+
+;;;; field class macros
+
+(define (%make-with-field-class-bindings fields virtual-fields synner)
+  ;;Build and  return the list of  bindings for a  WITH-CLASS use, which
+  ;;define the bindings of typed fields.
+  ;;
+  ;;FIELDS and VIRTUAL-FIELDS must be syntax objects holding a list of
+  ;;field specifications in the following format:
+  ;;
+  ;;    (mutable   ?field ?accessor ?mutator ?field-class ...)
+  ;;    (immutable ?field ?accessor ?field-class ...)
+  ;;
+  ;;SYNNER must  be the closure  used to raise  a syntax violation  if a
+  ;;parse  error happens;  it  must accept  two  arguments: the  message
+  ;;string, the subform.
+  ;;
+  (let loop ((fields	#`(#,@fields #,@virtual-fields))
+	     (bindings	'()))
+    (syntax-case fields (mutable immutable)
+      (()
+       bindings)
+
+      (((mutable ?field ?accessor ?mutator ?field-class ...) . ?fields)
+       (loop #'?fields (cons #'(?field ?field-class ...) bindings)))
+
+      (((immutable ?field ?accessor ?field-class ...) . ?fields)
+       (loop #'?fields (cons #'(?field ?field-class ...) bindings)))
+
+      ((?spec . ?fields)
+       (synner "invalid field specification while building typed fields bindings"
+		#'?spec)))))
 
 
 ;;;; done

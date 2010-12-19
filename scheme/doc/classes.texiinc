@@ -1571,11 +1571,19 @@ Each @var{clause} must have the form:
 where @var{class} must be an identifier representing a class name;
 @var{identifier} must be an identifier bound to the object or record to
 be used as ``subject''.  When multiple class names are present in a
-single clause, the clause is equivalent to the sequence of clauses:
+single clause:
 
 @example
+(@var{identifier} @varo{class} @var{class} ...)
+@end example
+
+@noindent
+the clause is equivalent to the sequence of clauses:
+
+@example
+(@var{identifier} @varo{class})
 (@var{identifier} @var{class})
-(@var{identifier} ...)
+...
 @end example
 
 @noindent

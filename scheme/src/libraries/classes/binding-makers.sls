@@ -54,8 +54,8 @@
   ;;CLAUSES-STX must  be the list  of clauses defining the  fields; each
   ;;clause must be in one of the forms:
   ;;
-  ;;   (mutable   ?field ?accessor ?mutator)
-  ;;   (immutable ?field ?accessor)
+  ;;   (mutable   ?field ?accessor ?mutator ?field-class ...)
+  ;;   (immutable ?field ?accessor ?field-class ...)
   ;;
   ;;SYNNER must be a function used to raise syntax violation errors with
   ;;the context of the caller.
@@ -80,12 +80,12 @@
 	;;VARIABLE-STX.
 	(datum->syntax variable-stx (syntax->datum field-stx))))
     (syntax-case clause-stx (mutable immutable)
-      ((mutable ?field ?accessor ?mutator)
+      ((mutable ?field ?accessor ?mutator ?field-class ...)
        #`(#,(make-keyword #'?field)
 	  (identifier-syntax
 	   (_              (?accessor #,variable-stx))
 	   ((set! _ ?expr) (?mutator  #,variable-stx ?expr)))))
-      ((immutable ?field ?accessor)
+      ((immutable ?field ?accessor ?field-class ...)
        #`(#,(make-keyword #'?field)
 	  (identifier-syntax
 	   (?accessor #,variable-stx))))
