@@ -439,71 +439,6 @@
      (synner "invalid syntax in slot-set! form"))))
 
 
-;;;; typed fields notes
-
-#| We take this space  to discuss infinite recursion caused by recursive
-types.
-
-In the context of the (classes)  library, a "recursive type" is: a class
-type <x> whose field  has the same type <x>, or a  class type <x> having
-typed fields  being classes and down  the tree structure  there is again
-the <x> type.
-
-Normally to use dot notation we do:
-
-  (define-class <alpha>
-    (fields a b))
-
-  (let ((o (make <alpha> 1 2)))
-    (with-class ((o <alpha>))
-      (list o.a o.b)))
-
-With typed fields we should do:
-
-  (define-class <alpha>
-    (fields a b))
-
-  (define-class <beta>
-    (fields (c <alpha>)))
-
-  (let ((o (make <beta> (make <alpha> 1 2))))
-    (with-class ((o <beta>))
-      (list o.c o.c.a o.c.b)))
-
-the use of WITH-CLASS is equivalent to:
-
-  (with-class ((o <beta>))
-    (with-class ((o.c <alpha>))
-      (list o.c o.c.a o.c.b)))
-
-A recursive class type is like this:
-
-  (define-class <alpha>
-    (fields (a <alpha>)))
-
-we can  understand that it would  generate an infinite  number of nested
-WITH-CLASS uses:
-
-  (with-class ((o <alpha>))
-    (with-class ((o.a <alpha>))
-      (with-class ((o.a.a <alpha>))
-        (with-class ((o.a.a.a <alpha>))
-          ...))))
-
-To  avoid this  infinite recursion  we use  identifier  properties: each
-class or label identifier  has a property with key :SUPERCLASS-PROPERTY,
-its  value   being  the   identifier  representing  the   superclass  or
-superlabel.   This allows us  to request,  at expand  time, the  list of
-parent classes and labels of a given class or label.
-
-When DEFINE-CLASS and DEFINE-LABEL detect a typed field: they search the
-list  of parent  classes or  labels for  the field  type, this  way they
-detect  at class  or label  definition time  the existence  of recursive
-types.
-
-|#
-
-
 (define-syntax* (define-foreign-class stx)
   ;;A foreign class  is just a tag  we slap on any value  to use virtual
   ;;fields  and methods  with dot  notation,  but nevertheless  it is  a
