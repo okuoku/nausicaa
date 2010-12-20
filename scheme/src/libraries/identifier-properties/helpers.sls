@@ -27,15 +27,13 @@
 
 #!r6rs
 (library (identifier-properties helpers)
-  (export lookup-identifier-property id-hash $property-tables)
-  (import (rnrs))
+  (export lookup-identifier-property identifier-property-set!)
+  (import (rnrs)
+    (identifier-properties identifier-alists))
 
-  (define (id-hash id)
-    (assert (identifier? id))
-    (symbol-hash (syntax->datum id)))
-
-  (define $property-tables
-    (make-hashtable id-hash free-identifier=?))
+  ;;An alist  of alists  sucks in performance,  but with  identifiers as
+  ;;keys we have no other choice.
+  (define $table-of-property-tables '())
 
   (define lookup-identifier-property
     (case-lambda
@@ -44,10 +42,21 @@
      ((subject key default)
       (assert (identifier? subject))
       (assert (identifier? key))
-      (let ((table (hashtable-ref $property-tables key #f)))
-	(if table
-	    (hashtable-ref table subject default)
+      (let ((property-table (identifier-alist-ref $table-of-property-tables key #f)))
+	(if property-table
+	    (identifier-alist-ref property-table subject default)
 	  default)))))
+
+  (define (identifier-property-set! subject key value)
+    (assert (identifier? subject))
+    (assert (identifier? key))
+    (let ((property-table (identifier-alist-ref $table-of-property-tables key #f)))
+      (set! $table-of-property-tables
+	    (if property-table
+		(identifier-alist-replace key (identifier-alist-replace subject value property-table)
+					  $table-of-property-tables)
+	      (identifier-alist-cons key `((,subject . ,value))
+				     $table-of-property-tables)))))
   )
 
 ;;; end of file

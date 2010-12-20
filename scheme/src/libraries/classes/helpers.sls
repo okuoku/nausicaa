@@ -35,21 +35,20 @@
     %variable-name->Getter-name
     %make-fields-accessor-of-transformer
     %make-fields-mutator-of-transformer
-    %make-with-field-class-bindings)
-  (import (rnrs))
+    %make-with-field-class-bindings
+    %list-of-unique-field-types
+    %detect-recursive-type-in-fields)
+  (import (rnrs)
+    (classes internal-auxiliary-syntaxes)
+    (identifier-properties)
+    (syntax-utilities))
 
 
 (define (%variable-name->Setter-name variable-name-stx)
-  (datum->syntax variable-name-stx
-		 (string->symbol
-		  (string-append (symbol->string (syntax->datum variable-name-stx))
-				 ".__nausicaa_private_Setter_identifier_syntax"))))
+  (identifier-suffix variable-name-stx ".__nausicaa_private_Setter_identifier_syntax"))
 
 (define (%variable-name->Getter-name variable-name-stx)
-  (datum->syntax variable-name-stx
-		 (string->symbol
-		  (string-append (symbol->string (syntax->datum variable-name-stx))
-				 ".__nausicaa_private_Getter_identifier_syntax"))))
+  (identifier-suffix variable-name-stx ".__nausicaa_private_Getter_identifier_syntax"))
 
 
 ;;;; accessor-of and mutator-of macro transformers generation
@@ -182,7 +181,7 @@
 		(syntax->datum #'?slot-name)))))))))
 
 
-;;;; field class macros
+;;;; field class helpers
 
 (define (%make-with-field-class-bindings fields virtual-fields synner)
   ;;Build and  return the list of  bindings for a  WITH-CLASS use, which
@@ -213,6 +212,75 @@
       ((?spec . ?fields)
        (synner "invalid field specification while building typed fields bindings"
 		#'?spec)))))
+
+(define (%list-of-unique-field-types fields virtual-fields tail synner)
+  ;;Build and return a list of identifiers representing all the types of
+  ;;fields and virtual  fields in a class or  label defintion; this list
+  ;;is used to detect recursive  types.  The returned list is guaranteed
+  ;;not to have duplicates, and it enforces no particular order.
+  ;;
+  ;;FIELDS and VIRTUAL-FIELDS must be syntax objects holding a list of
+  ;;field specifications in the following format:
+  ;;
+  ;;    (mutable   ?field ?accessor ?mutator ?field-class ...)
+  ;;    (immutable ?field ?accessor ?field-class ...)
+  ;;
+  ;;TAIL must be  null or a proper list  of identifiers representing the
+  ;;field types of the superclass or superlabel; it will become the tail
+  ;;of the returned list.
+  ;;
+  ;;SYNNER must  be the closure  used to raise  a syntax violation  if a
+  ;;parse  error happens;  it  must accept  two  arguments: the  message
+  ;;string, the subform.
+  ;;
+  (let loop ((fields	#`(#,@fields #,@virtual-fields))
+	     (types	tail))
+    (syntax-case fields (mutable immutable)
+      (()
+       (begin
+	 (delete-duplicated-identifiers types)))
+
+      (((mutable ?field ?accessor ?mutator . ?field-classes) . ?fields)
+       (loop #'?fields (syntax->list #'?field-classes types)))
+
+      (((immutable ?field ?accessor . ?field-classes) . ?fields)
+       (loop #'?fields (syntax->list #'?field-classes types)))
+
+      ((?spec . ?fields)
+       (synner "invalid field specification while verifying recursive types" #'?spec))
+      )))
+
+(define (%detect-recursive-type-in-fields thing field-classes synner)
+  ;;Look  for   the  identifier  THING   in  the  list   of  identifiers
+  ;;FIELD-CLASSES; if it is there raise a syntax violation.
+  ;;
+  ;;SYNNER must  be the closure  used to raise  a syntax violation  if a
+  ;;parse  error happens;  it  must accept  two  arguments: the  message
+  ;;string, the subform.
+  ;;
+  (let ((c (exists (lambda (c)
+		     (and (free-identifier=? c thing) c))
+	     field-classes)))
+    (when c
+      (synner "detected recursive type" c))))
+
+
+;;;; miscellaneous helpers
+
+(define (%reverse-inheritance-hierarchy-identifiers thing)
+  ;;Given  the identifier  THING  representing a  class  or label  name,
+  ;;return  the   list  of  identifiers   representing  its  inheritance
+  ;;hierarchy;  the list  does include  the <TOP>  class/label  which is
+  ;;always the root of classes and labels.
+  ;;
+  ;;The returned list is from the topmost superclass to the lowest class
+  ;;and ends with THING itself.
+  ;;
+  (let loop ((parents `(,thing)))
+    (let ((p (lookup-identifier-property (car parents) #':superclass-property)))
+      (if p
+	  (loop (cons p parents))
+	parents))))
 
 
 ;;;; done

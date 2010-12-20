@@ -31,15 +31,15 @@
 
     ;; wrapping
     unwrap-syntax-object		unwrap-options
-    syntax->vector
+    syntax->vector			syntax->list
 
     ;; inspection
     quoted-syntax-object?		syntax=?
 
     ;; identifiers handling
     all-identifiers?			duplicated-identifiers?
-    identifier-memq			symbol-identifier=?
-    identifier-subst
+    delete-duplicated-identifiers	identifier-memq
+    symbol-identifier=?			identifier-subst
 
     ;; common identifier names constructor
     identifier->string			string->identifier
@@ -102,17 +102,24 @@
        (syntax->datum (syntax ?atom)))))))
 
 (define (syntax->vector stx)
-  (define (syntax->list stx ell)
-    (syntax-case stx ()
-      ((?car . ?cdr)
-       (syntax->list #'?cdr (cons #'?car ell)))
-      (()
-       (reverse ell))))
   (syntax-case stx ()
     (#(?v ...)
      (list->vector (syntax->list #'(?v ...) '())))
     (_
      (syntax-violation 'syntax->vector "expected vector input form" (syntax->datum stx)))))
+
+(define (syntax->list stx tail)
+  ;;Given  a syntax  object STX  holding a  list, return  a  proper list
+  ;;holding the component syntax objects.  TAIL must be null or a proper
+  ;;list which will become the tail of the returned list.
+  ;;
+  (syntax-case stx ()
+    ((?car . ?cdr)
+     ;;Yes, it  is not tail recursive;  "they" say it  is efficient this
+     ;;way.
+     (cons #'?car (syntax->list #'?cdr tail)))
+    (()
+     tail)))
 
 
 (define (quoted-syntax-object? stx)
@@ -176,6 +183,18 @@
 	(if (bound-identifier=? x (car ls))
 	    x
 	  (loop x (cdr ls)))))))
+
+(define (delete-duplicated-identifiers ids)
+  ;;Given the list of  identifiers IDS remove the duplicated identifiers
+  ;;and return a proper list of unique identifiers.
+  ;;
+  (let clean-tail ((ids ids))
+    (if (null? ids)
+	'()
+      (let ((head (car ids)))
+	(cons head (clean-tail (remp (lambda (id)
+				       (free-identifier=? id head))
+				 (cdr ids))))))))
 
 (define (identifier-memq identifier list-of-syntax-objects)
   ;;Given  a   list  of   syntax  objects  search   for  one   which  is

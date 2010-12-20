@@ -59,6 +59,7 @@ it is @strong{not} associated to a record type as defined by
 * classes define predicate::    Defining class predicates.
 * classes define virtual::      Defining classes having virtual
                                 fields.
+* classes define typed::        Tagged fields.
 * classes define method::       Defining classes having methods.
 * classes define setter::       Defining classes having custom
                                 setters and getters.
@@ -554,6 +555,156 @@ mutator; then select the public names of accessors and mutators.  With
 accessor and mutator functions or syntaxes must be explicitly defined in
 some other way.
 @end deffn
+
+@c page
+@node classes define typed
+@subsection Tagged fields
+
+
+There is a special syntax to specify a class or label for fields and
+virtual fields of a class or label.  The plain forms to specify a field
+in a @code{field} or @code{virtual-field} auxiliary syntax are the same
+supported by @func{define-record-type}:
+
+@example
+@var{field}
+(mutable @var{field})
+(mutable @var{field} @var{accessor} @var{mutator})
+(immutable @var{field})
+(immutable @var{field} @var{accessor})
+@end example
+
+@noindent
+where @var{field}, @var{accessor} and @var{mutator} are identifiers,
+@code{mutable} and @code{immutable} are the auxiliary syntaxes exported
+by @rsixlibrary{records syntactic}.  @func{define-class} and
+@func{define-label} additionally support the following forms:
+
+@example
+(@var{field} @var{class} ...)
+(mutable (@var{field} @var{class} ...))
+(mutable (@var{field} @var{class} ...) @var{accessor} @var{mutator})
+(immutable (@var{field} @var{class} ...))
+(immutable (@var{field} @var{class} ...) @var{accessor})
+@end example
+
+@noindent
+where each @var{class} is a class or label identifier.
+
+Normally to use dot notation we do:
+
+@example
+(define-class <alpha>
+  (fields a b))
+
+(let ((o (make <alpha> 1 2)))
+  (with-class ((o <alpha>))
+    (list o.a o.b)))
+@end example
+
+@noindent
+with typed fields we can do:
+
+@example
+(define-class <alpha>
+  (fields a b))
+
+(define-class <beta>
+  (fields (c <alpha>)))
+
+(let ((o (make <beta> (make <alpha> 1 2))))
+  (with-class ((o <beta>))
+    (list o.c o.c.a o.c.b)))
+@end example
+
+@noindent
+in which the use of @func{with-class} is equivalent to:
+
+@example
+(with-class ((o <beta>))
+  (with-class ((o.c <alpha>))
+    (list o.c o.c.a o.c.b)))
+@end example
+
+@c ------------------------------------------------------------
+
+@subsubheading Recursive types
+
+In the context of the @library{classes} library, a @dfn{recursive type}
+is: a class or label type @class{x} whose field has the same type
+@class{x}; a class or label type @class{x} having typed fields being
+classes or labels and down the tree structure there is again the
+@class{x} type.
+
+Recursive types are detected at expand time by @func{define-class} and
+@func{define-label} and a syntax violation is raised.
+
+A recursive class type is like this:
+
+@example
+(define-class <alpha>
+  (fields (a <alpha>)))
+@end example
+
+@noindent
+we can understand that it would generate an infinite number of nested
+@func{with-class} uses:
+
+@example
+(with-class ((o <alpha>))
+  (with-class ((o.a <alpha>))
+    (with-class ((o.a.a <alpha>))
+      (with-class ((o.a.a.a <alpha>))
+        ...))))
+@end example
+
+The following example defines a recursive type:
+
+@example
+(define-class <alpha>
+  (fields (a <beta>)))
+
+(define-class <beta>
+  (inherit <alpha>))
+
+(define o
+  (make <beta>
+    (make <beta> 1))) ;wrong initialisation
+
+(with-class ((o <beta>))
+  #f)
+@end example
+
+@noindent
+because the use of @func{with-class} expands to the following
+infinitely nested forms:
+
+@example
+(with-class ((o <beta>))
+  (with-class ((o.a <beta>))
+    (with-class ((o.a.a <beta>))
+      (with-class ((o.a.a.a <beta>))
+        ...))))
+@end example
+
+The following example is @strong{not} a definition of recursive type:
+
+@example
+(define-class <alpha>
+  (fields (mutable a)))
+
+(define-class <beta>
+  (inherit <alpha>)
+  (fields (b <alpha>)))
+
+(define o
+  (make <beta>
+    1 (make <alpha> 2)))
+
+(with-class ((o <beta>))
+  (list o.a o.b.a))
+@result{} (1 2)
+@end example
 
 @c page
 @node classes define method

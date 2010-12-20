@@ -58,6 +58,13 @@ given symbol arguments.
 @end defmac
 
 
+@defun syntax->list @var{stx} @var{tail}
+Given a syntax object @var{stx} holding a list, return a new proper list
+holding the component syntax objects.  @var{tail} must be null or a
+proper list which will become the tail of the returned list.
+@end defun
+
+
 @defun syntax->vector @var{stx}
 Unwrap the syntax object @var{stx} holding a Scheme vector; return the
 unwrapped vector.  If @var{stx} does not hold a vector: raise a syntax
@@ -92,6 +99,12 @@ identifiers; return false otherwise.
 Search the list of identifiers @var{unwrapped-stx} for duplicated
 identifiers; at the first duplicate found, return it; return false if no
 duplications are found.
+@end defun
+
+
+@defun delete-duplicated-identifiers @var{unwrapped-ids}
+Given a list of identifiers: remove the duplicated identifiers and
+return a proper list of unique identifiers.
 @end defun
 
 

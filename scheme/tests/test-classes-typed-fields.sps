@@ -165,32 +165,77 @@
   #t)
 
 
-(parametrise ((check-test-name	'recursive-types))
+(parametrise ((check-test-name	'recursive-types)
+	      (debugging	#t))
 
-  #;(check	;detect recursive in definition
+  (let ()	;not a recursive type definition
+    (define-class <alpha>
+      (fields (mutable a)))
+
+    (define-class <beta>
+      (inherit <alpha>)
+      (fields (b <alpha>)))
+
+    (let ((o (make <beta> 1 (make <alpha> 2))))
+      (check
+	  (with-class ((o <beta>))
+	    (list o.a o.b.a))
+	=> '(1 2)))
+    #f)
+
+;;; --------------------------------------------------------------------
+
+  (check	;recursive type in class definition
       (guard (E ((syntax-violation? E)
-		 (debug-print-condition "direct recursive type:" E)
+;;;		 (debug-print-condition "direct recursive type:" E)
 		 (syntax-violation-subform E))
 		(else E))
-	(eval '(define-class <alpha>
-		 (fields (mutable (a <alpha>))))
+	(eval '(define-class <bad>
+		 (fields (mutable (a <bad>))))
+	      (environment '(nausicaa))))
+    => '<bad>)
+
+  (check	;recursive type in label definition
+      (guard (E ((syntax-violation? E)
+;;;		 (debug-print-condition "direct recursive type:" E)
+		 (syntax-violation-subform E))
+		(else E))
+	(eval '(define-label <alpha>
+		 (virtual-fields (immutable (a <alpha>) car)))
 	      (environment '(nausicaa))))
     => '<alpha>)
 
-  (check	;detect recursive type by WITH-CLASS
+;;; --------------------------------------------------------------------
+
+  (check	;type recursion in parent class definition
       (guard (E ((syntax-violation? E)
-		 (debug-print-condition "direct recursive type:" E)
+;;;		 (debug-print-condition "weird recursive type:" E)
 		 (syntax-violation-subform E))
 		(else E))
 	(eval '(let ()
 		 (define-class <alpha>
-		   (fields (mutable (a <alpha>))))
-		 (define o (make <alpha> 1))
-		 (with-class ((o <alpha>))
-		   #t))
+		   (fields (a <beta>)))
+		 (define-class <beta>
+		   (inherit <alpha>))
+		 #f)
 	      (environment '(nausicaa))))
-    => '<alpha>)
+    => '<beta>)
 
+  (check	;type recursion in parent label definition
+      (guard (E ((syntax-violation? E)
+;;;		 (debug-print-condition "weird recursive type:" E)
+		 (syntax-violation-subform E))
+		(else E))
+	(eval '(let ()
+		 (define-label <alpha>
+		   (virtual-fields (a <beta>)))
+		 (define-label <beta>
+		   (inherit <alpha>))
+		 #f)
+	      (environment '(nausicaa))))
+    => '<beta>)
+
+;;; --------------------------------------------------------------------
 
   #t)
 

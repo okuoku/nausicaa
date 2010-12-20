@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -43,18 +43,21 @@
 	(write thing port))
       (newline port))))
 
-(define (debug-print-condition message exc)
-  (debug "~a\nwho: ~s\nmessage: ~s\nirritants: ~s"
+(define (debug-print-condition message E)
+  (debug "~a\n\twho: ~s\n\tmessage: ~s\n\tirritants: ~s"
 	 message
-	 (if (who-condition? exc)
-	     (condition-who exc)
+	 (if (who-condition? E)
+	     (condition-who E)
 	   'no-who)
-	 (if (message-condition? exc)
-	     (condition-message exc)
+	 (if (message-condition? E)
+	     (condition-message E)
 	   #f)
-	 (if (irritants-condition? exc)
-	     (condition-irritants exc)
-	   #f)))
+	 (if (irritants-condition? E)
+	     (condition-irritants E)
+	   #f))
+  (when (syntax-violation? E)
+    (debug "\tsyntax violation form: ~s\n\tsyntax violation subform: ~s"
+	   (syntax-violation-form E) (syntax-violation-subform E))))
 
 
 ;;;; done

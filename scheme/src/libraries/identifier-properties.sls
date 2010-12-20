@@ -34,24 +34,15 @@
   (import (rnrs)
     (for (identifier-properties helpers) expand))
 
-
-(define-syntax define-identifier-property
-  (lambda (stx)
-    (syntax-case stx ()
-      ((_ ?subject ?key ?value)
-       (begin
-	 (assert (identifier? #'?subject))
-	 (assert (identifier? #'?key))
-	 (let ((table (hashtable-ref $property-tables #'?key #f)))
-	   (unless table
-	     (set! table (make-hashtable id-hash free-identifier=?))
-	     (hashtable-set! $property-tables #'?key table))
-	   (hashtable-set! table #'?subject #'?value))
-	 #'(define dummy))))))
-
-
-;;;; done
-
-)
+  (define-syntax define-identifier-property
+    (lambda (stx)
+      (syntax-case stx ()
+	((_ ?subject ?key ?value)
+	 (begin
+	   (assert (identifier? #'?subject))
+	   (assert (identifier? #'?key))
+	   (identifier-property-set! #'?subject #'?key #'?value)
+	   #'(define dummy))))))
+  )
 
 ;;; end of file

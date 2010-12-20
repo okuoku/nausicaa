@@ -109,6 +109,7 @@
     (contracts)
     (auxiliary-syntaxes)
     (language-extensions)
+    (identifier-properties)
     (classes internal-auxiliary-syntaxes)
     (classes top))
 
@@ -440,10 +441,10 @@
 
 ;;;; typed fields notes
 
-#| We  take this space to  discuss how to avoid  infinite recursion with
-recursive types.
+#| We take this space  to discuss infinite recursion caused by recursive
+types.
 
-In the  context of the classes  library, a "recursive type"  is: a class
+In the context of the (classes)  library, a "recursive type" is: a class
 type <x> whose field  has the same type <x>, or a  class type <x> having
 typed fields  being classes and down  the tree structure  there is again
 the <x> type.
@@ -472,7 +473,7 @@ With typed fields we should do:
 the use of WITH-CLASS is equivalent to:
 
   (with-class ((o <beta>))
-    (with-class ((o.c <beta>))
+    (with-class ((o.c <alpha>))
       (list o.c o.c.a o.c.b)))
 
 A recursive class type is like this:
@@ -489,54 +490,16 @@ WITH-CLASS uses:
         (with-class ((o.a.a.a <alpha>))
           ...))))
 
-To  avoid   this  infinite  recursion  we  consider   the  expansion  of
-WITH-CLASS:
+To  avoid this  infinite recursion  we use  identifier  properties: each
+class or label identifier  has a property with key :SUPERCLASS-PROPERTY,
+its  value   being  the   identifier  representing  the   superclass  or
+superlabel.   This allows us  to request,  at expand  time, the  list of
+parent classes and labels of a given class or label.
 
-  (with-class ((o <alpha>)) (body))
-  ==> (<alpha> :with-class-bindings-of (#t #t #t #t #t) o (body))
-
-let's ignore  the list  of booleans which  is not important  here.  When
-using a typed field:
-
-  (define-class <alpha>
-    (fields a))
-
-  (define-class <beta>
-    (fields (b <alpha>)))
-
-  (define-class <gamma>
-    (fields (g <beta>)))
-
-the expansion is:
-
-  (with-class ((o <gamma>)) (body))
-  ==> (<gamma> :with-class-bindings-of
-               (#t #t #t #t #t) o
-        (<beta> :with-class-bindings-of
-                (#t #t #t #t #t) o.g
-          (<alpha> :with-class-bindings-of
-                   (#t #t #t #t #t) o.b
-            (body))))
-
-the macro transformers of <GAMMA>,  <BETA> and <ALPHA> will expand their
-input  forms into  appropriate uses  of  LET-SYNTAX.
-
-How do we detect recursive types?   We just add an argument to the input
-form,  collecting  class  identifiers  that  originated  the  WITH-CLASS
-expansion:
-
-  (with-class ((o <gamma>)) (body))
-  ==> (<gamma> :with-class-bindings-of ()
-               (#t #t #t #t #t) o
-        (<beta> :with-class-bindings-of (<gamma>)
-                (#t #t #t #t #t) o.g
-          (<alpha> :with-class-bindings-of (<beta> <gamma>)
-                   (#t #t #t #t #t) o.b
-            (body))))
-
-now the  transformer of <BETA> can  look for the  identifier <BETA> into
-the  list (<GAMMA>)  and the  transformer of  <ALPHA> can  look  for the
-identifier <ALPHA> in the list (<BETA> <GAMMA>).
+When DEFINE-CLASS and DEFINE-LABEL detect a typed field: they search the
+list  of parent  classes or  labels for  the field  type, this  way they
+detect  at class  or label  definition time  the existence  of recursive
+types.
 
 |#
 
@@ -787,6 +750,19 @@ identifier <ALPHA> in the list (<BETA> <GAMMA>).
 	  (%collect-clause/method-syntax class-identifier clauses %synner)))
 
       (define the-parent-is-a-class? (identifier? superclass-identifier))
+      (define list-of-field-types
+	;;Build a  list of identifiers  representing the field  types in
+	;;both this class and all its superclasses, if any.
+	;;
+	(%list-of-unique-field-types
+	 fields virtual-fields
+	 (if the-parent-is-a-class?
+	     (syntax->list ;identifier properties come in syntax objects
+	      (lookup-identifier-property superclass-identifier #':field-types-property '()) '())
+	   '())
+	 %synner))
+      (%detect-recursive-type-in-fields class-identifier list-of-field-types %synner)
+
       (set! methods (append methods methods-from-methods syntax-methods))
 
       (let ((id (duplicated-identifiers? (append (map cadr fields)
@@ -795,23 +771,24 @@ identifier <ALPHA> in the list (<BETA> <GAMMA>).
 	(when id
 	  (%synner "duplicated field names" id)))
 
-      ;;Normalise the  inheritance for this  class.  We must  end with
-      ;;sound  values bound  to SUPERCLASS-IDENTIFIER,  PARENT-RTD and
-      ;;PARENT-CD.  The  parse procedure above  have left us  with the
+      ;;Normalise  the inheritance  for this  class.  We  must  end with
+      ;;sound  values  bound  to SUPERCLASS-IDENTIFIER,  PARENT-RTD  and
+      ;;PARENT-CD.   The parse  procedure  above has  left  us with  the
       ;;following situation:
       ;;
-      ;;* If  the INHERIT clause is  present: SUPERCLASS-IDENTIFIER is
-      ;;set to  the identifier of  a superclass macro;  PARENT-RTD and
+      ;;* If the INHERIT clause is present: SUPERCLASS-IDENTIFIER is set
+      ;;to  the  identifier  of   a  superclass  macro;  PARENT-RTD  and
       ;;PARENT-CD set to false.
       ;;
-      ;;* If the  PARENT clause is present: PARENT-NAME  is set to the
-      ;;identifier of  the parent record  type; SUPERCLASS-IDENTIFIER,
+      ;;* If  the PARENT  clause is present:  PARENT-NAME is set  to the
+      ;;identifier  of the  parent  record type;  SUPERCLASS-IDENTIFIER,
       ;;PARENT and PARENT-CD are set to false.
       ;;
-      ;;* If the PARENT-RTD clause  is present: PARENT-RTD is set to a
-      ;;syntax object  evaluating to the parent RTD;  PARENT-CD is set
-      ;;to  a  syntax  object  evaluating to  the  parent  constructor
-      ;;descriptor; SUPERCLASS-IDENTIFIER is set to false.
+      ;;* If  the PARENT-RTD clause is  present: PARENT-RTD is  set to a
+      ;;syntax object evaluating to the  parent RTD; PARENT-CD is set to
+      ;;a syntax object evaluating to the parent constructor descriptor;
+      ;;SUPERCLASS-IDENTIFIER is set to false.
+      ;;
       (cond
 
        ;;The INHERIT clause is present with "<top>" as superclass.
@@ -897,7 +874,8 @@ identifier <ALPHA> in the list (<BETA> <GAMMA>).
 	   (FIELD-SPECS			fields)
 	   (VIRTUAL-FIELD-SPECS		virtual-fields)
 	   (METHOD-SPECS		methods)
-	   (((MUTABILITY FIELD ACCESSOR/MUTATOR ...) ...) fields))
+	   (((MUTABILITY FIELD ACCESSOR/MUTATOR ...) ...) fields)
+	   (LIST-OF-FIELD-TYPES		list-of-field-types))
 	(with-syntax
 	    ;;Here we  try to  build and select  at expand time  what is
 	    ;;possible.
@@ -926,6 +904,9 @@ identifier <ALPHA> in the list (<BETA> <GAMMA>).
 	     (WITH-FIELD-CLASS-BINDINGS
 	      (%make-with-field-class-bindings fields virtual-fields %synner)))
 	  #'(begin
+	      (define-identifier-property THE-CLASS :superclass-property THE-SUPERCLASS)
+	      (define-identifier-property THE-CLASS :field-types-property LIST-OF-FIELD-TYPES)
+
 	      (define the-parent-rtd	PARENT-RTD-FORM)
 	      (define THE-PARENT-CD	PARENT-CD-FORM)
 	      (define THE-RTD
@@ -1071,21 +1052,18 @@ identifier <ALPHA> in the list (<BETA> <GAMMA>).
 		     #'CUSTOM-PREDICATE)
 
 		    ((_ :with-class-bindings-of
-			(?root-class (... ...)) ;class identifiers to detect recursive types
 			(?use-dot-notation
 			 ?inherit-concrete-fields
 			 ?inherit-virtual-fields
 			 ?inherit-methods
 			 ?inherit-setter-and-getter)
 			?variable-name ?arg (... ...))
-		     (and (all-identifiers? #'(?root-class (... ...)))
-			  (for-all boolean? (syntax->datum #'(?use-dot-notation
-							      ?inherit-concrete-fields
-							      ?inherit-virtual-fields
-							      ?inherit-methods
-							      ?inherit-setter-and-getter))))
+		     (for-all boolean? (syntax->datum #'(?use-dot-notation
+							 ?inherit-concrete-fields
+							 ?inherit-virtual-fields
+							 ?inherit-methods
+							 ?inherit-setter-and-getter)))
 		     #'(with-class-bindings
-			(?root-class (... ...)) ;class identifiers to detect recursive types
 			(?use-dot-notation
 			 ?inherit-concrete-fields
 			 ?inherit-virtual-fields
@@ -1115,50 +1093,44 @@ identifier <ALPHA> in the list (<BETA> <GAMMA>).
 		(define-inline (or-null bool form)
 		  (if (syntax->datum bool) form '()))
 		(syntax-case stx ()
-		  ((_ (?root-class (... ...)) ;class identifiers to detect recursive types
-		      (?use-dot-notation
+		  ((_ (?use-dot-notation
 		       ?inherit-concrete-fields ?inherit-virtual-fields
 		       ?inherit-methods ?inherit-setter-and-getter)
 		      ?variable-name ?body0 ?body (... ...))
-		   (if (identifier-memq #'THE-CLASS #'(?root-class (... ...)))
-		       (synner "detected recursive type while expanding class bindings"
-		   	       #'(?root-class (... ...)))
-		     (let ((use-dot-notation? (syntax->datum #'?use-dot-notation)))
-(write (syntax->datum #'(THE-CLASS ?root-class (... ...))))(newline)
-		       (with-syntax
-			   ((((CVAR CVAL) (... ...))
-			     (or-null #'?inherit-concrete-fields
-				      (make-field-bindings use-dot-notation? #'?variable-name
-							   #'FIELD-SPECS synner)))
-			    (((VVAR VVAL) (... ...))
-			     (or-null #'?inherit-virtual-fields
-				      (make-field-bindings use-dot-notation? #'?variable-name
-							   #'VIRTUAL-FIELD-SPECS synner)))
-			    (((MVAR MVAL) (... ...))
-			     (or-null #'?inherit-methods
-				      (make-method-bindings use-dot-notation? #'?variable-name
-							    #'METHOD-SPECS synner)))
-			    (((SVAR SVAL) (... ...))
-			     (or-null #'?inherit-setter-and-getter
-				      (make-setter-getter-bindings #'?variable-name #'SETTER #'GETTER))))
-			 #'(THE-SUPERCLASS
-			    :with-class-bindings-of
-			    (THE-CLASS ?root-class (... ...)) ;class identifiers to detect recursive types
-			    (?use-dot-notation
-			     INHERIT-CONCRETE-FIELDS?
-			     INHERIT-VIRTUAL-FIELDS?
-			     INHERIT-METHODS?
-			     INHERIT-SETTER-AND-GETTER?)
-			    ?variable-name
-			    (let-syntax ((CVAR CVAL) (... ...)
-					 (VVAR VVAL) (... ...)
-					 (MVAR MVAL) (... ...)
-					 (SVAR SVAL) (... ...))
-			      (BINDINGS-MACRO THE-CLASS ?variable-name
-					      (with-field-class ?variable-name
-								WITH-FIELD-CLASS-BINDINGS
-								?body0 ?body (... ...)))))
-			 ))))))
+		   (let ((use-dot-notation? (syntax->datum #'?use-dot-notation)))
+		     (with-syntax
+			 ((((CVAR CVAL) (... ...))
+			   (or-null #'?inherit-concrete-fields
+				    (make-field-bindings use-dot-notation? #'?variable-name
+							 #'FIELD-SPECS synner)))
+			  (((VVAR VVAL) (... ...))
+			   (or-null #'?inherit-virtual-fields
+				    (make-field-bindings use-dot-notation? #'?variable-name
+							 #'VIRTUAL-FIELD-SPECS synner)))
+			  (((MVAR MVAL) (... ...))
+			   (or-null #'?inherit-methods
+				    (make-method-bindings use-dot-notation? #'?variable-name
+							  #'METHOD-SPECS synner)))
+			  (((SVAR SVAL) (... ...))
+			   (or-null #'?inherit-setter-and-getter
+				    (make-setter-getter-bindings #'?variable-name #'SETTER #'GETTER))))
+		       #'(THE-SUPERCLASS
+			  :with-class-bindings-of
+			  (?use-dot-notation
+			   INHERIT-CONCRETE-FIELDS?
+			   INHERIT-VIRTUAL-FIELDS?
+			   INHERIT-METHODS?
+			   INHERIT-SETTER-AND-GETTER?)
+			  ?variable-name
+			  (let-syntax ((CVAR CVAL) (... ...)
+				       (VVAR VVAL) (... ...)
+				       (MVAR MVAL) (... ...)
+				       (SVAR SVAL) (... ...))
+			    (BINDINGS-MACRO THE-CLASS ?variable-name
+					    (with-field-class ?variable-name
+							      WITH-FIELD-CLASS-BINDINGS
+							      ?body0 ?body (... ...)))))
+		       )))))
 
 	      (define-syntax slot-accessor-of	SLOT-ACCESSOR-OF-TRANSFORMER)
 	      (define-syntax slot-mutator-of	SLOT-MUTATOR-OF-TRANSFORMER)
@@ -1316,11 +1288,14 @@ identifier <ALPHA> in the list (<BETA> <GAMMA>).
 	       (define-syntax the-maker-transformer #,maker-transformer))
 	   )))
 
-  (define (%synner msg subform)
-    (syntax-violation 'define-class
-      (string-append msg " in class definition")
-      (syntax->datum stx)
-      (syntax->datum subform)))
+  (define %synner
+    (case-lambda
+     ((msg)
+      (%synner msg #f))
+     ((msg subform)
+      (syntax-violation 'define-class
+	(string-append msg " in class definition")
+	(syntax->datum stx) (syntax->datum subform)))))
 
   (main))
 
@@ -1445,6 +1420,19 @@ identifier <ALPHA> in the list (<BETA> <GAMMA>).
        ((syntax-methods syntax-definitions)
 	(%collect-clause/method-syntax label-identifier clauses %synner)))
 
+    (define list-of-field-types
+      ;;Build a list of identifiers representing the field types in both
+      ;;this label and all its superlabels, if any.
+      ;;
+      (%list-of-unique-field-types
+       '() virtual-fields
+       (if (identifier? superlabel-identifier)
+	   (syntax->list ;identifier properties come in syntax objects
+	    (lookup-identifier-property superlabel-identifier #':field-types-property '()) '())
+	 '())
+       %synner))
+    (%detect-recursive-type-in-fields label-identifier list-of-field-types %synner)
+
     (set! methods (append methods methods-from-methods syntax-methods))
 
     (let ((id (duplicated-identifiers? (append (map cadr virtual-fields)
@@ -1468,6 +1456,7 @@ identifier <ALPHA> in the list (<BETA> <GAMMA>).
 	 (BINDINGS-MACRO		bindings-macro)
 	 (VIRTUAL-FIELD-SPECS		virtual-fields)
 	 (METHOD-SPECS			methods)
+	 (LIST-OF-FIELD-TYPES		list-of-field-types)
 
 	 (SLOT-ACCESSOR-OF-TRANSFORMER
 	  (%make-fields-accessor-of-transformer label-identifier '() virtual-fields %synner))
@@ -1476,6 +1465,9 @@ identifier <ALPHA> in the list (<BETA> <GAMMA>).
 	 (WITH-FIELD-CLASS-BINDINGS
 	  (%make-with-field-class-bindings '() virtual-fields %synner)))
       #'(begin
+	  (define-identifier-property THE-LABEL :superclass-property  THE-SUPERLABEL)
+	  (define-identifier-property THE-LABEL :field-types-property LIST-OF-FIELD-TYPES)
+
 	  (define THE-PREDICATE
 	    (let ((p CUSTOM-PREDICATE))
 	      (or p (lambda (x) #t))))
@@ -1504,21 +1496,18 @@ identifier <ALPHA> in the list (<BETA> <GAMMA>).
 		     "label has no custom maker" stx)))
 
 		((_ :with-class-bindings-of
-		    (?root-label (... ...)) ;label identifiers to detect recursive types
 		    (?use-dot-notation ;this comes from WITH-CLASS
 		     ?inherit-concrete-fields
 		     ?inherit-virtual-fields
 		     ?inherit-methods
 		     ?inherit-setter-and-getter)
 		    ?variable-name ?arg (... ...))
-		 (and (all-identifiers? #'(?root-label (... ...)))
-		      (for-all boolean? (syntax->datum #'(?use-dot-notation
-							  ?inherit-concrete-fields
-							  ?inherit-virtual-fields
-							  ?inherit-methods
-							  ?inherit-setter-and-getter))))
+		 (for-all boolean? (syntax->datum #'(?use-dot-notation
+						     ?inherit-concrete-fields
+						     ?inherit-virtual-fields
+						     ?inherit-methods
+						     ?inherit-setter-and-getter)))
 		 #'(with-label-bindings
-		    (?root-label (... ...));label identifiers to detect recursive types
 		    (?use-dot-notation
 		     ?inherit-concrete-fields
 		     ?inherit-virtual-fields
@@ -1548,44 +1537,39 @@ identifier <ALPHA> in the list (<BETA> <GAMMA>).
 	    (define-inline (or-null bool form)
 	      (if (syntax->datum bool) form '()))
 	    (syntax-case stx ()
-	      ((_ (?root-label (... ...)) ;label identifiers to detect recursive types
-		  (?use-dot-notation
+	      ((_ (?use-dot-notation
 		   ?inherit-concrete-fields ?inherit-virtual-fields
 		   ?inherit-methods ?inherit-setter-and-getter)
 		  ?variable-name ?body0 ?body (... ...))
-	       (if (identifier-memq #'THE-LABEL #'(?root-label (... ...)))
-		   (synner "detected recursive type while expanding class bindings"
-			   #'(?root-label (... ...)))
-		 (let ((use-dot-notation? (syntax->datum #'?use-dot-notation)))
-		   (with-syntax
-		       ((((VVAR VVAL) (... ...))
-			 (or-null #'?inherit-virtual-fields
-				  (make-field-bindings use-dot-notation? #'?variable-name
-						       #'VIRTUAL-FIELD-SPECS synner)))
-			(((MVAR MVAL) (... ...))
-			 (or-null #'?inherit-methods
-				  (make-method-bindings use-dot-notation? #'?variable-name
-							#'METHOD-SPECS synner)))
-			(((SVAR SVAL) (... ...))
-			 (or-null #'?inherit-setter-and-getter
-				  (make-setter-getter-bindings #'?variable-name #'SETTER #'GETTER))))
-		     #'(THE-SUPERLABEL
-			:with-class-bindings-of
-			(THE-LABEL ?root-label (... ...)) ;label identifiers to detect recursive types
-			(?use-dot-notation
-			 INHERIT-CONCRETE-FIELDS?
-			 INHERIT-VIRTUAL-FIELDS?
-			 INHERIT-METHODS?
-			 INHERIT-SETTER-AND-GETTER?)
-			?variable-name
-			(let-syntax ((VVAR VVAL) (... ...)
-				     (MVAR MVAL) (... ...)
-				     (SVAR SVAL) (... ...))
-			  (BINDINGS-MACRO THE-LABEL ?variable-name
-					  (with-field-class ?variable-name
-							    WITH-FIELD-CLASS-BINDINGS
-							    ?body0 ?body (... ...)))))
-		     ))))))
+	       (let ((use-dot-notation? (syntax->datum #'?use-dot-notation)))
+		 (with-syntax
+		     ((((VVAR VVAL) (... ...))
+		       (or-null #'?inherit-virtual-fields
+				(make-field-bindings use-dot-notation? #'?variable-name
+						     #'VIRTUAL-FIELD-SPECS synner)))
+		      (((MVAR MVAL) (... ...))
+		       (or-null #'?inherit-methods
+				(make-method-bindings use-dot-notation? #'?variable-name
+						      #'METHOD-SPECS synner)))
+		      (((SVAR SVAL) (... ...))
+		       (or-null #'?inherit-setter-and-getter
+				(make-setter-getter-bindings #'?variable-name #'SETTER #'GETTER))))
+		   #'(THE-SUPERLABEL
+		      :with-class-bindings-of
+		      (?use-dot-notation
+		       INHERIT-CONCRETE-FIELDS?
+		       INHERIT-VIRTUAL-FIELDS?
+		       INHERIT-METHODS?
+		       INHERIT-SETTER-AND-GETTER?)
+		      ?variable-name
+		      (let-syntax ((VVAR VVAL) (... ...)
+				   (MVAR MVAL) (... ...)
+				   (SVAR SVAL) (... ...))
+			(BINDINGS-MACRO THE-LABEL ?variable-name
+					(with-field-class ?variable-name
+							  WITH-FIELD-CLASS-BINDINGS
+							  ?body0 ?body (... ...)))))
+		   )))))
 
 	  (define-syntax slot-accessor-of	SLOT-ACCESSOR-OF-TRANSFORMER)
 	  (define-syntax slot-mutator-of	SLOT-MUTATOR-OF-TRANSFORMER)
@@ -1677,7 +1661,7 @@ identifier <ALPHA> in the list (<BETA> <GAMMA>).
   ;;
   ;;into:
   ;;
-  ;;  (<class> :with-class-bindings-of () (#t #t #t #t #t) <var> . <body>)
+  ;;  (<class> :with-class-bindings-of (#t #t #t #t #t) <var> . <body>)
   ;;
   ;;which is the syntax having  knowledge of the context of <class>; the
   ;;list of  #t values enables all  the dot notation  syntaxes.  We want
@@ -1687,8 +1671,8 @@ identifier <ALPHA> in the list (<BETA> <GAMMA>).
   ;;
   ;;to be:
   ;;
-  ;;  (<class0> :with-class-bindings-of () (#t #t #t #t #t) <var>
-  ;;    (<class1> :with-class-bindings-of () (#t #t #t #t #t) <var>
+  ;;  (<class0> :with-class-bindings-of (#t #t #t #t #t) <var>
+  ;;    (<class1> :with-class-bindings-of (#t #t #t #t #t) <var>
   ;;      . <body>))
   ;;
   ;;We  allow  an  empty list  of  clauses  because  it is  useful  when
@@ -1696,22 +1680,24 @@ identifier <ALPHA> in the list (<BETA> <GAMMA>).
   ;;
   (syntax-case stx (<top>)
     ((_ () ?body0 ?body ...)
-     #'(begin ?body0 ?body ...))
+     #'(begin  ?body0 ?body ...))
 
-    ((_ ((?var) ?clause ...) ?body0 ?body ...)
+    ;;no body, no syntaxes
+    ((_ ?field-clauses)
+     #'(values))
+
+    ((_ ((?var) ?clause ...) . ?body)
      (identifier? #'?var)
-     #'(with-class (?clause ...) ?body0 ?body ...))
+     #'(with-class (?clause ...) . ?body))
 
-    ((_ ((?var <top> ?class ...) ?clause ...) ?body0 ?body ...)
+    ((_ ((?var <top> ?class ...) ?clause ...) . ?body)
      (identifier? #'?var)
-     #'(with-class ((?var ?class ...) ?clause ...) ?body0 ?body ...))
+     #'(with-class ((?var ?class ...) ?clause ...) . ?body))
 
-    ((_ ((?var ?class0 ?class ...) ?clause ...) ?body0 ?body ...)
+    ((_ ((?var ?class0 ?class ...) ?clause ...) . ?body)
      (and (identifier? #'?var) (identifier? #'?class0))
-     #'(?class0 :with-class-bindings-of
-		() ;list of class identifiers to detect recursive types
-		(#t #t #t #t #t) ?var
-		(with-class ((?var ?class ...) ?clause ...) ?body0 ?body ...)))
+     #'(?class0 :with-class-bindings-of (#t #t #t #t #t) ?var
+		(with-class ((?var ?class ...) ?clause ...) . ?body)))
 
     (_
      (synner "invalid clause in with-class form"))))
@@ -1720,44 +1706,39 @@ identifier <ALPHA> in the list (<BETA> <GAMMA>).
   ;;This is the public entry point  for typed fields.  The gist of it is
   ;;to expand:
   ;;
-  ;;  (with-field-class <var> ((<field> <class>) . <body>))
+  ;;  (with-field-class <var> ((<field> <class>)) . <body>)
   ;;
   ;;into:
   ;;
-  ;;  (<class> :with-class-bindings-of (#t #t #t #t #t) () <var>.<field> . <body>)
-  ;;
-  ;;which is the syntax having  knowledge of the context of <class>; the
-  ;;list of  #t values enables all  the dot notation  syntaxes.  We want
-  ;;the full expansion of:
-  ;;
-  ;;  (with-field-class <var> ((<field> <class0> <class1>)) . <body>)
-  ;;
-  ;;to be:
-  ;;
-  ;;  (<class0> :with-class-bindings-of (#t #t #t #t #t) () <var>.<field>
-  ;;    (<class1> :with-class-bindings-of (#t #t #t #t #t) () <var>.<field>
-  ;;      . <body>))
+  ;;  (with-class ((<var>.<field> <class>) . <body>)
   ;;
   ;;We  allow  an  empty list  of  clauses  because  it is  useful  when
   ;;expanding other macros into WITH-CLASS uses.
   ;;
   (syntax-case stx (<top>)
     ((_ ?var () ?body0 ?body ...)
-     #'(begin ?body0 ?body ...))
+     #'(begin  ?body0 ?body ...))
+
+    ;;no body, no syntaxes
+    ((_ ?var ?field-clauses)
+     #'(values))
 
     ;;detect fully untyped fields
-    ((_ ?var ((?field) ...) ?body0 ?body ...)
+    ((_ ?var ((?field) ...) . ?body)
      (all-identifiers? #'(?field ...))
-     #'(begin ?body0 ?body ...))
+     #'(begin . ?body))
 
-    ((_ ?var ((?field ?class ...) ...) ?body0 ?body ...)
+    ((_ ?var ((?field ?class ...) ...) . ?body)
      (with-syntax (((VAR ...) (map (lambda (field)
 				     (syntax-dot-notation-identifier #'?var field))
 				(unwrap-syntax-object #'(?field ...)))))
-       #'(with-class ((VAR ?class ...) ...) ?body0 ?body ...)))
+       #'(with-class ((VAR ?class ...) ...) . ?body)))
+
+    ((_ ?var (?field-clause . ?field-clauses) . ?body)
+     (synner "invalid field clause" #'?field-clause))
 
     (_
-     (synner "invalid clause in with-field-class form"))))
+     (synner "invalid syntax in with-field-class form"))))
 
 (define-syntax* (setf stx)
   (syntax-case stx (setter setter-multi-key set!)
@@ -2046,7 +2027,6 @@ identifier <ALPHA> in the list (<BETA> <GAMMA>).
 	 ;;DEFMETHOD-VIRTUAL below.
 	 #'(define/with-class (FUNCNAME THIS . ?args)
 	     (?class :with-class-bindings-of
-		     () ;list of class identifiers to detect recursive types
 		     (#f #t #t #t #t) ;enable everything, but dot notation
 	 	     THIS ?body0 ?body ...)))))))
 
@@ -2090,7 +2070,6 @@ identifier <ALPHA> in the list (<BETA> <GAMMA>).
 	 #'(begin
 	     (define/with-class (the-method THIS . ?args)
 	       (?class :with-class-bindings-of
-		       () ;list of class identifiers to detect recursive types
 		       (#f #t #t #t #t) ;enable everything, but dot notation
 		       THIS ?body0 ?body ...))
 	     (define-virtual-method ?class ?method-name the-method))

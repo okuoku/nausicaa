@@ -620,6 +620,7 @@ Basic libraries
 * assertions::                  Organising assertions.
 * contracts::                   Function call contracts.
 * makers::                      Maker syntaxes.
+* identifier properties::       Expand--time identifier properties.
 * classes::                     Record utilities.
 * compensations::               Compensation stacks.
 * deferred exceptions::         Deferred exceptions.
@@ -628,7 +629,6 @@ More libraries
 
 * ffi::                         Foreign functions interface.
 * generics::                    Multimethods dispatching.
-* identifier properties::       Expand--time identifier properties.
 * type utils::                  Type utilities.
 * enumerations::                Enumeration sets utilities.
 * lists::                       Lists library.
@@ -727,6 +727,7 @@ Indexes
 @include assertions.texiinc
 @include contracts.texiinc
 @include makers.texiinc
+@include identifier-properties.texiinc
 @include classes.texiinc
 @include compensations.texiinc
 @include deferred-exceptions.texiinc
@@ -735,7 +736,6 @@ Indexes
 
 @include ffi.texiinc
 @include generics.texiinc
-@include identifier-properties.texiinc
 @include type-utilities.texiinc
 @include enumerations.texiinc
 @include lists.texiinc

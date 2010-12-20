@@ -31,8 +31,8 @@ keywords.  Useless examples:
 
 
 @deffn Syntax define-identifier-property @var{subject} @var{key} @var{value}
-Expand to a dummy definition; associate @var{value} to the identifier
-@var{subject} using the identifier @var{key} as key.
+Expand to a dummy definition; associate @var{value} (the syntax object)
+to the identifier @var{subject} using the identifier @var{key} as key.
 @end deffn
 
 
@@ -40,11 +40,10 @@ Expand to a dummy definition; associate @var{value} to the identifier
 @defunx lookup-identifier-property @var{subject} @var{key} @var{default}
 Function to be invoked at expand--time (typically in the body of a macro
 transformer); retrieve the value associated to the identifier
-@var{subject} using the identifeir @var{key} as key.  If no property is
+@var{subject} using the identifier @var{key} as key.  If no property is
 found, return @var{default} which defaults to false.
 
-This function is exported for expand by the library
-@library{identifier-properties}.
+This function is exported for expand by @library{identifier-properties}.
 @end defun
 
 @c end of file
