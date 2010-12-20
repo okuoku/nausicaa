@@ -39,9 +39,10 @@ auxiliary syntaxes in the class definition clauses.
 A @dfn{class type}, as defined by the @library{classes} library, is a
 regular record type as defined by @rsixlibrary{records procedural}, with
 the constraint of being nongenerative; new class types are defined by
-@func{define-class} and @func{define-foreign-class}, which generate
-auxiliary syntaxes to allow for virtual fields, methods, dot notation
-and multiple construction protocols.
+@c @func{define-class} and @func{define-foreign-class}, which generate
+@func{define-class} which generates auxiliary syntaxes to allow for
+virtual fields, methods, dot notation and multiple construction
+protocols.
 
 A @dfn{label type}, as defined by the @library{classes} library, is a
 special interface to the syntaxes which define dot notation for virtual
@@ -74,9 +75,9 @@ it is @strong{not} associated to a record type as defined by
 
 
 @cindex Class types definition
-@cindex Foreign class types definition
 @cindex Definition, class types
-@cindex Definition, Foreign class types
+@c @cindex Foreign class types definition
+@c @cindex Definition, Foreign class types
 
 
 @defmac define-class @var{name-spec} @var{class-clause} ...
@@ -105,27 +106,27 @@ unique identifier.
 @end defmac
 
 
-@defmac define-foreign-class @var{name-spec} @var{class-clause} ...
-Like @func{define-class}, but inserts a @func{public-protocol} clause
-and a @func{maker-protocol} clause whose constructors raise an assertion
-violation if called.  Foreign classes are not meant to be instantiated,
-their purpose is only to provide virtual fields and methods to instances
-of other types; for example: all the classes for builtin types are
-foreign.
+@c @defmac define-foreign-class @var{name-spec} @var{class-clause} ...
+@c Like @func{define-class}, but inserts a @func{public-protocol} clause
+@c and a @func{maker-protocol} clause whose constructors raise an assertion
+@c violation if called.  Foreign classes are not meant to be instantiated,
+@c their purpose is only to provide virtual fields and methods to instances
+@c of other types; for example: all the classes for builtin types are
+@c foreign.
 
-Foreign classes can be used in the hierarchy of concrete classes:
-foreign classes can have a proper superclass constructor protocol.
-foreign classes can be used to dispatch generic functions defined by the
-@library{generics} library.
+@c Foreign classes can be used in the hierarchy of concrete classes:
+@c foreign classes can have a proper superclass constructor protocol.
+@c foreign classes can be used to dispatch generic functions defined by the
+@c @library{generics} library.
 
-It is meaningful, but not mandatory, to define a foreign class only if
-we use the @func{predicate} clause described below; else there is no way
-to establish if an object matches the type of a foreign class.
+@c It is meaningful, but not mandatory, to define a foreign class only if
+@c we use the @func{predicate} clause described below; else there is no way
+@c to establish if an object matches the type of a foreign class.
 
-Foreign classes can have virtual fields and methods; it is a syntax
-violation to declare concrete fields in the body of a foreign class
-definition.
-@end defmac
+@c Foreign classes can have virtual fields and methods; it is a syntax
+@c violation to declare concrete fields in the body of a foreign class
+@c definition.
+@c @end defmac
 
 @c page
 @node classes define inherit
@@ -233,9 +234,8 @@ Additionally another constructor can be optionally defined: the
 @code{maker} clause and the high--level macro @func{make}; @ref{classes
 define maker} for details on the maker constructor.
 
-
-The @func{define-foreign-class} macro defines only the superclass and
-the from--fields constructors.
+@c The @func{define-foreign-class} macro defines only the superclass and
+@c the from--fields constructors.
 
 The superclass and public constructors are built using the parent's
 superclass constructor descriptor:
@@ -469,10 +469,10 @@ especially to select custom predicates for the builtin class types;
 example:
 
 @example
-(define-foreign-class <complex>
-  (inherit <number>)
-  (predicate complex?)
-  (nongenerative nausicaa:builtin:<complex>))
+(define-label <pair>
+  (predicate pair?)
+  (virtual-fields (immutable car car)
+                  (immutable cdr cdr)))
 @end example
 @end deffn
 
@@ -1113,13 +1113,11 @@ value.  Example:
 another example:
 
 @example
-(define-foreign-class <vector>
-  (inherit <builtin>)
+(define-label <vector>
   (predicate vector?)
   (virtual-fields (immutable length vector-length))
   (setter vector-set!)
-  (getter vector-ref)
-  (nongenerative nausicaa:builtin:<vector>))
+  (getter vector-ref))
 
 (let/with-class (((o <vector>) (vector 0 1 2 3 4)))
   (setf (o 2) #\c)
@@ -1188,8 +1186,7 @@ define new identifiers representing virtual fields, methods, a setter
 and a getter, a parent label or class.  Labels can inherit from a class,
 but not vice versa.  Labels can be used by @func{with-class} and all its
 derived syntaxes; labels @strong{cannot} be used to dispatch generic
-functions defined by the @library{generics} library (foreign classes
-can).
+functions defined by the @library{generics} library.
 
 
 @defmac define-label @var{name} @var{clause} ...

@@ -38,7 +38,7 @@
 
 (parametrise ((check-test-name	'class-definitions))
 
-  (define-foreign-class <mutable-pair>
+  (define-label <mutable-pair>
     (predicate pair?)
     (virtual-fields (mutable car car set-car!)
 		    (mutable cdr cdr set-cdr!)))

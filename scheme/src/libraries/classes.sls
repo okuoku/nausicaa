@@ -52,7 +52,7 @@
   (export
 
     ;; usage macros
-    define-class			define-foreign-class
+    define-class			;;define-foreign-class
     define-label			is-a?
     make				make-from-fields
     make*
