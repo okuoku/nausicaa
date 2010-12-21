@@ -36,7 +36,7 @@
 (display "*** testing class typed fields\n")
 
 
-(parametrise ((check-test-name	'class-definitions))
+#;(parametrise ((check-test-name	'class-definitions))
 
   (define-label <mutable-pair>
     (predicate pair?)
@@ -97,7 +97,7 @@
   #t)
 
 
-(parametrise ((check-test-name	'label-definitions))
+#;(parametrise ((check-test-name	'label-definitions))
 
   (define-label <mutable-pair>
     (custom-maker cons)
@@ -165,10 +165,16 @@
   #t)
 
 
-(parametrise ((check-test-name	'recursive-types)
-	      (debugging	#t))
+#;(parametrise ((check-test-name	'non-recursive-types))
 
   (let ()	;not a recursive type definition
+#|
+<alpha> <-----
+  ^           |
+  |inherit    |field type
+  |           |
+<beta> -------
+|#
     (define-class <alpha>
       (fields (mutable a)))
 
@@ -183,15 +189,85 @@
 	=> '(1 2)))
     #f)
 
-;;; --------------------------------------------------------------------
+  (let ()	;not a recursive type definition
+#|
+<alpha> <-------------
+  ^                   |
+  |inherit            | inherit
+  |                   |
+<beta> ----------> <gamma>
+       field type
+|#
+    (define-class <alpha>
+      (fields (mutable a)))
 
-  (check	;recursive type in class definition
+    (define-class <beta>
+      (inherit <alpha>)
+      (fields (b <gamma>)))
+
+    (define-class <gamma>
+      (inherit <alpha>))
+
+    (let (((o <beta>)
+	   (make <beta> 'beta-alpha-a (make <gamma> 'gamma-alpha-a))))
+      (check
+	  (list o.a o.b.a)
+	=> '(beta-alpha-a gamma-alpha-a))
+      #f)
+    #f)
+
+  (let ()	;not a recursive type definition
+#|
+<alpha> <-------------
+  ^                   |
+  |inherit            | field type
+  |                   |
+<beta> ----------> <gamma>
+       field type
+|#
+    (define-class <alpha>
+      (fields (mutable a)))
+
+    (define-class <beta>
+      (inherit <alpha>)
+      (fields (b <gamma>)))
+
+    (define-class <gamma>
+      (fields (g <alpha>)))
+
+    (let ((o (make <beta>
+	       'beta-alpha-a
+	       (make <gamma>
+		 (make <alpha>
+		   'alpha-a)))))
+      (check
+	  (with-class ((o <beta>))
+	    (list o.a o.b.g.a))
+	=> '(beta-alpha-a alpha-a)))
+    #f)
+
+  #t)
+
+
+(parametrise ((check-test-name	'recursive-types)
+	      (debugging	#t))
+
+
+  (check 	;recursive type in class definition
       (guard (E ((syntax-violation? E)
 ;;;		 (debug-print-condition "direct recursive type:" E)
 		 (syntax-violation-subform E))
 		(else E))
-	(eval '(define-class <bad>
-		 (fields (mutable (a <bad>))))
+#|
+   ----
+  |    |
+  v    |field type
+<bad>--
+|#
+	(eval '(let ()
+		 (define-class <bad>
+		   (fields (mutable (a <bad>))))
+		 #f)
 	      (environment '(nausicaa))))
     => '<bad>)
 
@@ -200,18 +276,33 @@
 ;;;		 (debug-print-condition "direct recursive type:" E)
 		 (syntax-violation-subform E))
 		(else E))
-	(eval '(define-label <alpha>
-		 (virtual-fields (immutable (a <alpha>) car)))
+#|
+   ----
+  |    |
+  v    |field type
+<bad>--
+|#
+	(eval '(let ()
+		 (define-label <alpha>
+		   (virtual-fields (immutable (a <alpha>) car)))
+		 #f)
 	      (environment '(nausicaa))))
     => '<alpha>)
 
 ;;; --------------------------------------------------------------------
 
-  (check	;type recursion in parent class definition
+  (check 'this	;type recursion in parent class definition
       (guard (E ((syntax-violation? E)
 ;;;		 (debug-print-condition "weird recursive type:" E)
 		 (syntax-violation-subform E))
 		(else E))
+#|
+<alpha> ------
+  ^           |
+  | inherit   | field type
+  |           |
+<beta> <------
+|#
 	(eval '(let ()
 		 (define-class <alpha>
 		   (fields (a <beta>)))
@@ -226,6 +317,13 @@
 ;;;		 (debug-print-condition "weird recursive type:" E)
 		 (syntax-violation-subform E))
 		(else E))
+#|
+<alpha> ------
+  ^           |
+  | inherit   | field type
+  |           |
+<beta> <------
+|#
 	(eval '(let ()
 		 (define-label <alpha>
 		   (virtual-fields (a <beta>)))
@@ -236,6 +334,33 @@
     => '<beta>)
 
 ;;; --------------------------------------------------------------------
+
+#|
+  Recursive type:
+
+      --------<alpha>
+     |          ^
+     v          |
+  <gamma> --> <beta>
+|#
+  #;(check	;recursive type in class definition
+      (guard (E ((syntax-violation? E)
+;;;		 (debug-print-condition "direct recursive type:" E)
+		 (syntax-violation-subform E))
+		(else E))
+	(eval '(let ()
+		 (define-class <alpha>
+		   (fields (a <gamma>)))
+
+		 (define-class <beta>
+		   (inherit <alpha>)
+		   (fields b))
+
+		 (define-class <gamma>
+		   (fields (g <beta>)))
+		 #f)
+	      (environment '(nausicaa))))
+    => '<bad>)
 
   #t)
 

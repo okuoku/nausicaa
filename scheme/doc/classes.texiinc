@@ -697,6 +697,13 @@ structure of tags, use the @class{x} class or label:
 @end example
 @end enumerate
 
+@noindent
+circular tagging is not supported by @library{classes} because it
+results in infinite recursion in the expansion of the @func{with-class}
+macro; unfortunately, it is impossible to avoid this infinite recursion
+with the technology of @library{classes} (a custom macro expander would
+be needed).
+
 An attempt to detect circular tagging at expand time is performed by
 @func{define-class} and @func{define-label} and a syntax violation is
 raised when it succeeds.

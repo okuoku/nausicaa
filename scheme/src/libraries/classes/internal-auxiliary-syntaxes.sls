@@ -47,8 +47,8 @@
     :with-class-bindings-of
     :slot-accessor
     :slot-mutator
-    :superclass-property
-    :field-types-property)
+    :list-of-superclasses
+    :list-of-field-tags)
   (import (rnrs)
     (only (syntax-utilities) define-auxiliary-syntaxes))
   (define-auxiliary-syntaxes
@@ -71,7 +71,7 @@
     :with-class-bindings-of
     :slot-accessor
     :slot-mutator
-    :superclass-property
-    :field-types-property))
+    :list-of-superclasses
+    :list-of-field-tags))
 
 ;;; end of file

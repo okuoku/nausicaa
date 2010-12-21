@@ -37,7 +37,8 @@
     %make-fields-mutator-of-transformer
     %make-with-field-class-bindings
     %list-of-unique-field-types
-    %detect-recursive-type-in-fields)
+    %detect-recursive-type-in-fields
+    %reverse-inheritance-hierarchy-identifiers)
   (import (rnrs)
     (classes internal-auxiliary-syntaxes)
     (identifier-properties)

@@ -520,7 +520,8 @@
 	   #'protocol #'public-protocol #'maker-protocol #'superclass-protocol)
      ;; mutually exclusive keywords sets
      (list (list #'inherit #'parent #'parent-rtd)
-	   (list #'maker #'custom-maker))
+	   (list #'maker #'custom-maker)
+	   (list #'maker-transformer #'custom-maker))
      clauses %synner)
 
     (let-values
@@ -685,7 +686,11 @@
 	  (%collect-clause/method-syntax class-identifier clauses %synner)))
 
       (define the-parent-is-a-class? (identifier? superclass-identifier))
-      (define list-of-field-types
+
+      (define all-methods
+	(append methods methods-from-methods syntax-methods))
+
+      (define list-of-field-tags
 	;;Build a  list of identifiers  representing the field  types in
 	;;both this class and all its superclasses, if any.
 	;;
@@ -693,16 +698,20 @@
 	 fields virtual-fields
 	 (if the-parent-is-a-class?
 	     (syntax->list ;identifier properties come in syntax objects
-	      (lookup-identifier-property superclass-identifier #':field-types-property '()) '())
+	      (lookup-identifier-property superclass-identifier #':list-of-field-tags '()) '())
 	   '())
 	 %synner))
-      (%detect-recursive-type-in-fields class-identifier list-of-field-types %synner)
 
-      (set! methods (append methods methods-from-methods syntax-methods))
+      (define list-of-superclasses
+	(if the-parent-is-a-class?
+	    (cons superclass-identifier
+		  (syntax->list
+		   (lookup-identifier-property superclass-identifier #':list-of-superclasses '()) '()))
+	  '()))
 
       (let ((id (duplicated-identifiers? (append (map cadr fields)
 						 (map cadr virtual-fields)
-						 (map car  methods)))))
+						 (map car  all-methods)))))
 	(when id
 	  (%synner "duplicated field names" id)))
 
@@ -808,9 +817,12 @@
 	   (BINDINGS-MACRO		bindings-macro)
 	   (FIELD-SPECS			fields)
 	   (VIRTUAL-FIELD-SPECS		virtual-fields)
-	   (METHOD-SPECS		methods)
-	   (((MUTABILITY FIELD ACCESSOR/MUTATOR ...) ...) fields)
-	   (LIST-OF-FIELD-TYPES		list-of-field-types))
+	   (METHOD-SPECS		all-methods)
+	   ;;We need MUTABILITY and FIELD to build the RTD.
+	   (((MUTABILITY FIELD X ...) ...) fields)
+	   (LIST-OF-FIELD-TAGS		list-of-field-tags)
+	   (LIST-OF-SUPERCLASSES	list-of-superclasses)
+	   (INPUT-FORM			stx))
 	(with-syntax
 	    ;;Here we  try to  build and select  at expand time  what is
 	    ;;possible.
@@ -839,8 +851,9 @@
 	     (WITH-FIELD-CLASS-BINDINGS
 	      (%make-with-field-class-bindings fields virtual-fields %synner)))
 	  #'(begin
-	      (define-identifier-property THE-CLASS :superclass-property THE-SUPERCLASS)
-	      (define-identifier-property THE-CLASS :field-types-property LIST-OF-FIELD-TYPES)
+	      (define-identifier-property THE-CLASS :list-of-superclasses LIST-OF-SUPERCLASSES)
+	      (define-identifier-property THE-CLASS :list-of-field-tags LIST-OF-FIELD-TAGS)
+	      (define-dummy-and-detect-circular-tagging THE-CLASS INPUT-FORM)
 
 	      (define the-parent-rtd	PARENT-RTD-FORM)
 	      (define THE-PARENT-CD	PARENT-CD-FORM)
@@ -959,7 +972,7 @@
 		    ;; --------------------------------------------------
 
 		    ((_ :list-of-concrete-fields)
-		     #'(quote ((MUTABILITY FIELD ACCESSOR/MUTATOR ...) ...)))
+		     #'(quote FIELD-SPECS))
 
 		    ((_ :list-of-virtual-fields)
 		     #'(quote VIRTUAL-FIELD-SPECS))
@@ -1355,23 +1368,33 @@
        ((syntax-methods syntax-definitions)
 	(%collect-clause/method-syntax label-identifier clauses %synner)))
 
-    (define list-of-field-types
+    (define the-parent-is-a-label?
+      (identifier? superlabel-identifier))
+
+    (define all-methods
+      (append methods methods-from-methods syntax-methods))
+
+    (define list-of-field-tags
       ;;Build a list of identifiers representing the field types in both
       ;;this label and all its superlabels, if any.
       ;;
       (%list-of-unique-field-types
        '() virtual-fields
-       (if (identifier? superlabel-identifier)
+       (if the-parent-is-a-label?
 	   (syntax->list ;identifier properties come in syntax objects
-	    (lookup-identifier-property superlabel-identifier #':field-types-property '()) '())
+	    (lookup-identifier-property superlabel-identifier #':list-of-field-tags '()) '())
 	 '())
        %synner))
-    (%detect-recursive-type-in-fields label-identifier list-of-field-types %synner)
 
-    (set! methods (append methods methods-from-methods syntax-methods))
+    (define list-of-superclasses
+      (if the-parent-is-a-label?
+	  (cons superlabel-identifier
+		(syntax->list
+		 (lookup-identifier-property superlabel-identifier #':list-of-superclasses '()) '()))
+	'()))
 
     (let ((id (duplicated-identifiers? (append (map cadr virtual-fields)
-					       (map car  methods)))))
+					       (map car  all-methods)))))
       (when id
 	(%synner "duplicated field names" id)))
 
@@ -1390,18 +1413,22 @@
 	 (GETTER			getter)
 	 (BINDINGS-MACRO		bindings-macro)
 	 (VIRTUAL-FIELD-SPECS		virtual-fields)
-	 (METHOD-SPECS			methods)
-	 (LIST-OF-FIELD-TYPES		list-of-field-types)
+	 (METHOD-SPECS			all-methods)
+	 (LIST-OF-FIELD-TAGS		list-of-field-tags)
+	 (LIST-OF-SUPERCLASSES		list-of-superclasses)
 
 	 (SLOT-ACCESSOR-OF-TRANSFORMER
 	  (%make-fields-accessor-of-transformer label-identifier '() virtual-fields %synner))
 	 (SLOT-MUTATOR-OF-TRANSFORMER
 	  (%make-fields-mutator-of-transformer label-identifier '() virtual-fields %synner))
 	 (WITH-FIELD-CLASS-BINDINGS
-	  (%make-with-field-class-bindings '() virtual-fields %synner)))
+	  (%make-with-field-class-bindings '() virtual-fields %synner))
+
+	 (INPUT-FORM			stx))
       #'(begin
-	  (define-identifier-property THE-LABEL :superclass-property  THE-SUPERLABEL)
-	  (define-identifier-property THE-LABEL :field-types-property LIST-OF-FIELD-TYPES)
+	  (define-identifier-property THE-LABEL :list-of-superclasses LIST-OF-SUPERCLASSES)
+	  (define-identifier-property THE-LABEL :list-of-field-tags   LIST-OF-FIELD-TAGS)
+	  (define-dummy-and-detect-circular-tagging THE-LABEL INPUT-FORM)
 
 	  (define THE-PREDICATE
 	    (let ((p CUSTOM-PREDICATE))
@@ -1510,6 +1537,39 @@
 	  (define-syntax slot-mutator-of	SLOT-MUTATOR-OF-TRANSFORMER)
 
 	  ))))
+
+
+(define-syntax define-dummy-and-detect-circular-tagging
+  (lambda (stx)
+    (syntax-case stx ()
+      ((_ ?thing ?input-form)
+       ;;Inspect  the properties  of ?THING,  which must  be a  class or
+       ;;label identifier, and detect circular tagging of fields.
+       ;;
+       ;;We  consider THING  as a  node in  a graph  in which  the superclass
+       ;;identifiers  and the field  tag identifiers  are outgoing  nodes; we
+       ;;look for  a cycle in the  graph by doing depth  first search looking
+       ;;for THING itself.
+       ;;
+       ;;INPUT-FORM must  be the original input form  to DEFINE-CLASS or
+       ;;DEFINE-LABEL; it is used for syntax error reporting.
+       ;;
+       (let ((synner (lambda ()
+		       (syntax-violation #f
+			 "detected circular tagging"
+			 (syntax->datum #'?input-form) (syntax->datum #'?thing)))))
+	 (let search ((current	#'?thing)
+		      (thing	#'?thing))
+	   (define field-tags	;includes the ones of the superclasses
+	     (syntax->list (lookup-identifier-property current #':list-of-field-tags '()) '()))
+;; (write (list current thing field-tags))(newline)
+;; 	   (when (identifier-memq thing field-tags)
+;; 	     (synner))
+;; 	   (for-each (lambda (tag)
+;; 	   	       (search tag thing))
+;; 	     field-tags)
+	   #'(define dummy))))
+      )))
 
 
 ;;;; virtual methods
