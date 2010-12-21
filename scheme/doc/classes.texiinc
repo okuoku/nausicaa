@@ -60,7 +60,7 @@ it is @strong{not} associated to a record type as defined by
 * classes define predicate::    Defining class predicates.
 * classes define virtual::      Defining classes having virtual
                                 fields.
-* classes define typed::        Tagged fields.
+* classes define tagged::       Fields tagged for dot notation.
 * classes define method::       Defining classes having methods.
 * classes define setter::       Defining classes having custom
                                 setters and getters.
@@ -557,14 +557,19 @@ some other way.
 @end deffn
 
 @c page
-@node classes define typed
-@subsection Tagged fields
+@node classes define tagged
+@subsection Fields tagged for dot notation
 
 
-There is a special syntax to specify a class or label for fields and
-virtual fields of a class or label.  The plain forms to specify a field
-in a @code{field} or @code{virtual-field} auxiliary syntax are the same
-supported by @func{define-record-type}:
+There is a special syntax to specify a class or label as tag for fields
+and virtual fields of a class or label; this syntax is used to enable
+dot notation to access fields and methods of those fields.  At present
+no validation of tagged field values is performed by field accessors and
+mutators nor by constructor functions of classes and labels.
+
+The plain forms to specify a field in a @code{field} or
+@code{virtual-field} auxiliary syntax are the same supported by
+@func{define-record-type} from @rsixlibrary{records syntactic}:
 
 @example
 @var{field}
@@ -591,7 +596,7 @@ by @rsixlibrary{records syntactic}.  @func{define-class} and
 @noindent
 where each @var{class} is a class or label identifier.
 
-Normally to use dot notation we do:
+To use dot notation with non--tagged fields we do:
 
 @example
 (define-class <alpha>
@@ -600,19 +605,26 @@ Normally to use dot notation we do:
 (let ((o (make <alpha> 1 2)))
   (with-class ((o <alpha>))
     (list o.a o.b)))
+@result{} (1 2)
 @end example
 
 @noindent
-with typed fields we can do:
+with tagged fields we can do:
 
 @example
+#|
+   <beta> -----------> <alpha>
+           field tag
+|#
 (define-class <alpha>
   (fields a b))
 
 (define-class <beta>
   (fields (c <alpha>)))
 
-(let ((o (make <beta> (make <alpha> 1 2))))
+(let ((o (make <beta>
+           (make <alpha>
+             1 2))))
   (with-class ((o <beta>))
     (list o.c o.c.a o.c.b)))
 @end example
@@ -626,22 +638,79 @@ in which the use of @func{with-class} is equivalent to:
     (list o.c o.c.a o.c.b)))
 @end example
 
-@c ------------------------------------------------------------
-
-@subsubheading Recursive types
-
-In the context of the @library{classes} library, a @dfn{recursive type}
-is: a class or label type @class{x} whose field has the same type
-@class{x}; a class or label type @class{x} having typed fields being
-classes or labels and down the tree structure there is again the
-@class{x} type.
-
-Recursive types are detected at expand time by @func{define-class} and
-@func{define-label} and a syntax violation is raised.
-
-A recursive class type is like this:
+@noindent
+and to:
 
 @example
+(with-class ((o    <beta>)
+             (o.c  <alpha>))
+  (list o.c o.c.a o.c.b))
+@end example
+
+@c ------------------------------------------------------------
+
+@subsubheading Circular tagging
+
+In the context of the @library{classes} library, a @dfn{circular
+tagging} happens when:
+
+@enumerate
+@item
+A class or label @class{x} has a field with tag @class{x}:
+
+@example
+  -----
+ |     | field tag
+ v     |
+<x> ---
+@end example
+
+@noindent
+or, more generally, when class or label @class{x} has tagged fields
+being classes or labels having tagged fields and so on, and somewhere
+down the graph structure of tags there is again the @class{x} class or
+label:
+
+@example
+  ---------------------
+ |                     | tag
+ v                     |
+<x> -----> <y> -----> <z>
+     tag        tag
+@end example
+
+@item
+A class or label @class{x} has @class{y} as ancestor in the inheritance
+hierarchy, and @class{y} has tagged fields which, down the graph
+structure of tags, use the @class{x} class or label:
+
+@example
+<y> --------
+ ^          |
+ |inherit   | field tag
+ |          v
+<a>        <b>
+ ^          |
+ |inherit   | field tag
+ |          |
+<x> <-------
+@end example
+@end enumerate
+
+An attempt to detect circular tagging at expand time is performed by
+@func{define-class} and @func{define-label} and a syntax violation is
+raised when it succeeds.
+
+A class definition with the simplest circular tagging is like this:
+
+@example
+#|
+    ------
+   |      |field tag
+   v      |
+<alpha>---
+|#
+
 (define-class <alpha>
   (fields (a <alpha>)))
 @end example
@@ -658,9 +727,30 @@ we can understand that it would generate an infinite number of nested
         ...))))
 @end example
 
-The following example defines a recursive type:
+@noindent
+or equivalently a @func{with-class} use with an infinite number of
+clauses:
 
 @example
+(with-class ((o <alpha>)
+             (o.a <alpha>)
+             (o.a.a <alpha>)
+             (o.a.a.a <alpha>)
+             ...)
+  ---)
+@end example
+
+The following example is also a definition with circular tagging:
+
+@example
+#|
+   <alpha> ------
+     ^           |
+     | inherit   | field tag
+     |           |
+   <beta> <------
+|#
+
 (define-class <alpha>
   (fields (a <beta>)))
 
@@ -676,20 +766,34 @@ The following example defines a recursive type:
 @end example
 
 @noindent
-because the use of @func{with-class} expands to the following
-infinitely nested forms:
+because the use of @func{with-class} expands to the following infinite
+clauses:
 
 @example
-(with-class ((o <beta>))
-  (with-class ((o.a <beta>))
-    (with-class ((o.a.a <beta>))
-      (with-class ((o.a.a.a <beta>))
-        ...))))
+(with-class ((o <beta>)
+             (o.a <beta>)
+             (o.a.a <beta>)
+             (o.a.a.a <beta>)
+             ...)
+  #f)
 @end example
 
-The following example is @strong{not} a definition of recursive type:
+@c ------------------------------------------------------------
+
+@subsubheading Non--circular tagging
+
+The following is a collection of definition examples with
+@strong{non}--circular tagging, they are perfectly fine:
 
 @example
+#|
+<alpha> <-----
+  ^           |
+  |inherit    |field tag
+  |           |
+<beta> -------
+|#
+
 (define-class <alpha>
   (fields (mutable a)))
 
@@ -704,6 +808,35 @@ The following example is @strong{not} a definition of recursive type:
 (with-class ((o <beta>))
   (list o.a o.b.a))
 @result{} (1 2)
+@end example
+
+@example
+#|
+<alpha> <-------------
+  ^                   |
+  |inherit            | inherit
+  |                   |
+<beta> ----------> <gamma>
+       field tag
+|#
+
+(define-class <alpha>
+  (fields (mutable a)))
+
+(define-class <beta>
+  (inherit <alpha>)
+  (fields (b <gamma>)))
+
+(define-class <gamma>
+  (inherit <alpha>))
+
+(let (((o <beta>)
+       (make <beta>
+         'beta-alpha-a
+         (make <gamma>
+           'gamma-alpha-a))))
+  (list o.a o.b.a))
+@result{} (beta-alpha-a gamma-alpha-a)
 @end example
 
 @c page
