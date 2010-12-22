@@ -83,6 +83,11 @@
     letrec/with-class			letrec*/with-class
     do/with-class			do*/with-class
 
+    let-make				let*-make
+    let-make*				let*-make*
+    letrec-make				letrec*-make
+    letrec-make*			letrec*-make*
+
     ;; auxiliary syntaxes
     parent sealed opaque parent-rtd nongenerative
     protocol fields mutable immutable
@@ -2024,6 +2029,56 @@
 				 ?form ...
 				 (loop (the-step ID ?step ...) ...))))))
        ))))
+
+;;; --------------------------------------------------------------------
+
+(define-syntax let-make
+  (syntax-rules ()
+    ((_ ((?var ?class ?arg ...) ...) ?body0 ?body ...)
+     (let/with-class (((?var ?class) (make ?class ?arg ...)) ...)
+       ?body0 ?body ...))))
+
+(define-syntax let*-make
+  (syntax-rules ()
+    ((_ ((?var ?class ?arg ...) ...) ?body0 ?body ...)
+     (let*/with-class (((?var ?class) (make ?class ?arg ...)) ...)
+       ?body0 ?body ...))))
+
+(define-syntax letrec-make
+  (syntax-rules ()
+    ((_ ((?var ?class ?arg ...) ...) ?body0 ?body ...)
+     (letrec/with-class (((?var ?class) (make ?class ?arg ...)) ...)
+       ?body0 ?body ...))))
+
+(define-syntax letrec*-make
+  (syntax-rules ()
+    ((_ ((?var ?class ?arg ...) ...) ?body0 ?body ...)
+     (letrec*/with-class (((?var ?class) (make ?class ?arg ...)) ...)
+       ?body0 ?body ...))))
+
+(define-syntax let-make*
+  (syntax-rules ()
+    ((_ ((?var ?class ?arg ...) ...) ?body0 ?body ...)
+     (let/with-class (((?var ?class) (make* ?class ?arg ...)) ...)
+       ?body0 ?body ...))))
+
+(define-syntax let*-make*
+  (syntax-rules ()
+    ((_ ((?var ?class ?arg ...) ...) ?body0 ?body ...)
+     (let*/with-class (((?var ?class) (make* ?class ?arg ...)) ...)
+       ?body0 ?body ...))))
+
+(define-syntax letrec-make*
+  (syntax-rules ()
+    ((_ ((?var ?class ?arg ...) ...) ?body0 ?body ...)
+     (letrec/with-class (((?var ?class) (make* ?class ?arg ...)) ...)
+       ?body0 ?body ...))))
+
+(define-syntax letrec*-make*
+  (syntax-rules ()
+    ((_ ((?var ?class ?arg ...) ...) ?body0 ?body ...)
+     (letrec*/with-class (((?var ?class) (make* ?class ?arg ...)) ...)
+       ?body0 ?body ...))))
 
 
 ;;;; DEFINE and LAMBDA wrappers

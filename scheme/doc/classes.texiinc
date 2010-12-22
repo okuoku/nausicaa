@@ -2489,6 +2489,39 @@ notation with @var{id}.  When multiple variables are defined, each
 @var{init} expression can use dot notation with the previous bindings.
 @end defmac
 
+
+@deffn Syntax let-make ((@var{var} @var{class} @var{arg} ...) ...) @varo{body} @var{body} ...
+@deffnx Syntax let*-make ((@var{var} @var{class} @var{arg} ...) ...) @varo{body} @var{body} ...
+@deffnx Syntax let-make* ((@var{var} @var{class} @var{arg} ...) ...) @varo{body} @var{body} ...
+@deffnx Syntax let*-make* ((@var{var} @var{class} @var{arg} ...) ...) @varo{body} @var{body} ...
+@deffnx Syntax letrec-make ((@var{var} @var{class} @var{arg} ...) ...) @varo{body} @var{body} ...
+@deffnx Syntax letrec*-make ((@var{var} @var{class} @var{arg} ...) ...) @varo{body} @var{body} ...
+@deffnx Syntax letrec-make* ((@var{var} @var{class} @var{arg} ...) ...) @varo{body} @var{body} ...
+@deffnx Syntax letrec*-make* ((@var{var} @var{class} @var{arg} ...) ...) @varo{body} @var{body} ...
+@func{let} like syntaxes to make it short to build a new class instance
+and bind with a class tag; for example, in the following:
+
+@example
+(define-class <alpha>
+  (fields a b))
+
+(let-make ((o <alpha> 1 2))
+  (list o.a o.b))
+@end example
+
+@noindent
+the use of @func{let-make} expands to:
+
+@example
+(let-make (((o <alpha>) (make <alpha> 1 2)))
+  (list o.a o.b))
+@end example
+
+All the syntaxes with @code{-make} as suffix expand to uses of
+@func{make}; all the syntaxes with @code{-make*} as suffix expand to
+uses of @func{make*}.
+@end deffn
+
 @c page
 @node classes dot lambda
 @subsection Function bindings

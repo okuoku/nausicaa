@@ -860,6 +860,11 @@
     letrec/with-class			letrec*/with-class
     do/with-class			do*/with-class
 
+    let-make				let*-make
+    let-make*				let*-make*
+    letrec-make				letrec*-make
+    letrec-make*			letrec*-make*
+
     ;; auxiliary syntaxes
     inherit predicate maker maker-transformer setter getter bindings
     public-protocol maker-protocol superclass-protocol virtual-fields

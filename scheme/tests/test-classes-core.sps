@@ -2788,6 +2788,32 @@
   #t)
 
 
+(parametrise ((check-test-name	'let-make))
+
+  (let ()
+
+    (define-class <alpha>
+      (fields a b))
+
+    (define-class <beta>
+      (fields c d))
+
+    (check
+	(let-make ((o <alpha> 1 2))
+	  (list o.a o.b))
+      => '(1 2))
+
+    (check
+	(let-make ((p <alpha> 1 2)
+		   (q <beta>  3 4))
+	  (list p.a p.b q.c q.d))
+      => '(1 2 3 4))
+
+    #f)
+
+  #t)
+
+
 (parametrise ((check-test-name	'lambda-with))
 
 ;;; untyped
