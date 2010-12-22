@@ -2499,7 +2499,7 @@ notation with @var{id}.  When multiple variables are defined, each
 @deffnx Syntax letrec-make* ((@var{var} @var{class} @var{arg} ...) ...) @varo{body} @var{body} ...
 @deffnx Syntax letrec*-make* ((@var{var} @var{class} @var{arg} ...) ...) @varo{body} @var{body} ...
 @func{let} like syntaxes to make it short to build a new class instance
-and bind with a class tag; for example, in the following:
+and bind it with a class tag; for example, in the following:
 
 @example
 (define-class <alpha>
