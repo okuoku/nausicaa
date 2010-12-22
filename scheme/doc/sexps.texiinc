@@ -2,9 +2,9 @@
 @chapter Handling symbolic expressions
 
 
-The @library{sexps} and @library{sexps syntax} libraries implement
-matching procedures and macros for symbolic expressions (S--expressions
-or @dfn{sexp}).  The libraries are built on top of @library{classes}.
+The @library{sexps} library implements matching procedures for symbolic
+expressions (S--expressions or @dfn{sexp}).  The libraries are built on
+top of @library{classes}.
 
 @menu
 * sexps match::                 Plain matching.
