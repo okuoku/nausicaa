@@ -1036,6 +1036,7 @@
 	      ;;FREE-IDENTIFIER=? will  get confused and not  do what we
 	      ;;want.   (Especially  when  evaluating class  definitions
 	      ;;with an EVAL as we do in the test suite.)
+	      ;;
 	      (define-identifier-property THE-CLASS :list-of-superclasses LIST-OF-SUPERCLASSES)
 	      (define-identifier-property THE-CLASS :list-of-field-tags LIST-OF-FIELD-TAGS)
 	      (define-dummy-and-detect-circular-tagging THE-CLASS INPUT-FORM)
@@ -1432,10 +1433,6 @@
 
 	 (INPUT-FORM			stx))
       #'(begin
-	  (define-identifier-property THE-LABEL :list-of-superclasses LIST-OF-SUPERCLASSES)
-	  (define-identifier-property THE-LABEL :list-of-field-tags   LIST-OF-FIELD-TAGS)
-	  (define-dummy-and-detect-circular-tagging THE-LABEL INPUT-FORM)
-
 	  (define THE-PREDICATE
 	    (let ((p CUSTOM-PREDICATE))
 	      (or p (lambda (x) #t))))
@@ -1497,6 +1494,17 @@
 		   (syntax->datum #'(THE-LABEL ?keyword . ?rest))
 		   (syntax->datum #'?keyword)))
 		)))
+
+	  ;;We  must set  the identifier  properties of  THE-LABEL after
+	  ;;THE-LABEL itself  has been bound to something,  else it will
+	  ;;be seen as an  unbound identifier and FREE-IDENTIFIER=? will
+	  ;;get  confused and  not do  what we  want.   (Especially when
+	  ;;evaluating label  definitions with an  EVAL as we do  in the
+	  ;;test suite.)
+	  ;;
+	  (define-identifier-property THE-LABEL :list-of-superclasses LIST-OF-SUPERCLASSES)
+	  (define-identifier-property THE-LABEL :list-of-field-tags   LIST-OF-FIELD-TAGS)
+	  (define-dummy-and-detect-circular-tagging THE-LABEL INPUT-FORM)
 
 	  (define-syntax* (with-label-bindings stx)
 	    ;;This  macro  defines all  the  syntaxes  to  be used  by
