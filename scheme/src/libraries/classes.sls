@@ -851,10 +851,6 @@
 	     (WITH-FIELD-CLASS-BINDINGS
 	      (%make-with-field-class-bindings fields virtual-fields %synner)))
 	  #'(begin
-	      (define-identifier-property THE-CLASS :list-of-superclasses LIST-OF-SUPERCLASSES)
-	      (define-identifier-property THE-CLASS :list-of-field-tags LIST-OF-FIELD-TAGS)
-	      (define-dummy-and-detect-circular-tagging THE-CLASS INPUT-FORM)
-
 	      (define the-parent-rtd	PARENT-RTD-FORM)
 	      (define THE-PARENT-CD	PARENT-CD-FORM)
 	      (define THE-RTD
@@ -1033,6 +1029,16 @@
 		       (syntax->datum stx)
 		       (syntax->datum #'?keyword)))
 		    )))
+
+	      ;;We must set the identifier properties of THE-CLASS after
+	      ;;THE-CLASS itself  has been  bound to something,  else it
+	      ;;will   be   seen    as   an   unbound   identifier   and
+	      ;;FREE-IDENTIFIER=? will  get confused and not  do what we
+	      ;;want.   (Especially  when  evaluating class  definitions
+	      ;;with an EVAL as we do in the test suite.)
+	      (define-identifier-property THE-CLASS :list-of-superclasses LIST-OF-SUPERCLASSES)
+	      (define-identifier-property THE-CLASS :list-of-field-tags LIST-OF-FIELD-TAGS)
+	      (define-dummy-and-detect-circular-tagging THE-CLASS INPUT-FORM)
 
 	      (define-syntax* (with-class-bindings stx)
 		;;This  macro defines  all the  syntaxes to  be  used by
@@ -1546,10 +1552,10 @@
        ;;Inspect  the properties  of ?THING,  which must  be a  class or
        ;;label identifier, and detect circular tagging of fields.
        ;;
-       ;;We  consider THING  as a  node in  a graph  in which  the superclass
-       ;;identifiers  and the field  tag identifiers  are outgoing  nodes; we
-       ;;look for  a cycle in the  graph by doing depth  first search looking
-       ;;for THING itself.
+       ;;We consider THING as a node  in a graph in which the superclass
+       ;;identifiers and  the field tag identifiers  are outgoing nodes;
+       ;;we look  for a cycle in  the graph by doing  depth first search
+       ;;looking for THING itself.
        ;;
        ;;INPUT-FORM must  be the original input form  to DEFINE-CLASS or
        ;;DEFINE-LABEL; it is used for syntax error reporting.
@@ -1558,17 +1564,22 @@
 		       (syntax-violation #f
 			 "detected circular tagging"
 			 (syntax->datum #'?input-form) (syntax->datum #'?thing)))))
+;;;(newline)(newline)(newline)
+;;;(display "enter detect for ")(display (syntax->datum #'?thing))(newline)
 	 (let search ((current	#'?thing)
 		      (thing	#'?thing))
 	   (define field-tags	;includes the ones of the superclasses
 	     (syntax->list (lookup-identifier-property current #':list-of-field-tags '()) '()))
-;; (write (list current thing field-tags))(newline)
-;; 	   (when (identifier-memq thing field-tags)
-;; 	     (synner))
-;; 	   (for-each (lambda (tag)
-;; 	   	       (search tag thing))
-;; 	     field-tags)
-	   #'(define dummy))))
+;;;(newline)
+;;;(display "searching for ")(display current)(newline)
+;;;(display "field tags of ")(display current)(display field-tags)(newline)
+;;;(display "memq ")(display (identifier-memq thing field-tags))(newline)
+	   (when (identifier-memq thing field-tags)
+	     (synner))
+	   (for-each (lambda (tag)
+	   	       (search tag thing))
+	     field-tags))
+          #'(define dummy)))
       )))
 
 

@@ -1,7 +1,7 @@
 ;;; -*- coding: utf-8 -*-
 ;;;
 ;;;Part of: Nausicaa/Scheme
-;;;Contents: tests for class typed fields
+;;;Contents: tests for class tagged fields
 ;;;Date: Sun Dec 19, 2010
 ;;;
 ;;;Abstract
@@ -33,17 +33,17 @@
   (rnrs mutable-pairs))
 
 (check-set-mode! 'report-failed)
-(display "*** testing class typed fields\n")
+(display "*** testing class tagged fields\n")
 
 
-#;(parametrise ((check-test-name	'class-definitions))
+(parametrise ((check-test-name	'class-definitions))
 
   (define-label <mutable-pair>
     (predicate pair?)
     (virtual-fields (mutable car car set-car!)
 		    (mutable cdr cdr set-cdr!)))
 
-  (let ()	;typed field
+  (let ()	;tagged field
 
     (define-class <alpha>
       (fields (mutable (a <mutable-pair>))))
@@ -67,7 +67,7 @@
 
     #f)
 
-  (let ()	;typed field with typed field
+  (let ()	;tagged field with tagged field
 
     (define-class <alpha>
       (fields (mutable (a <mutable-pair>))))
@@ -97,7 +97,7 @@
   #t)
 
 
-#;(parametrise ((check-test-name	'label-definitions))
+(parametrise ((check-test-name	'label-definitions))
 
   (define-label <mutable-pair>
     (custom-maker cons)
@@ -108,7 +108,7 @@
   (define-class <box>
     (fields (mutable box)))
 
-  (let ()	;typed field
+  (let ()	;tagged field
 
     (define-label <alpha>
       (custom-maker make-<box>)
@@ -133,7 +133,7 @@
 
     #f)
 
-  (let ()	;typed field with typed field
+  (let ()	;tagged field with tagged field
 
     (define-label <alpha>
       (custom-maker make-<box>)
@@ -165,7 +165,7 @@
   #t)
 
 
-#;(parametrise ((check-test-name	'non-recursive-types))
+(parametrise ((check-test-name	'non-recursive-types))
 
   (let ()	;not a recursive type definition
 #|
@@ -253,7 +253,7 @@
 	      (debugging	#t))
 
 
-  (check 	;recursive type in class definition
+  (check  	;recursive type in class definition
       (guard (E ((syntax-violation? E)
 ;;;		 (debug-print-condition "direct recursive type:" E)
 		 (syntax-violation-subform E))
@@ -262,14 +262,14 @@
    ----
   |    |
   v    |field type
-<bad>--
+<bad1>-
 |#
 	(eval '(let ()
-		 (define-class <bad>
-		   (fields (mutable (a <bad>))))
+		 (define-class <bad1>
+		   (fields (mutable (a <bad1>))))
 		 #f)
 	      (environment '(nausicaa))))
-    => '<bad>)
+    => '<bad1>)
 
   (check	;recursive type in label definition
       (guard (E ((syntax-violation? E)
@@ -280,29 +280,110 @@
    ----
   |    |
   v    |field type
-<bad>--
+<bad2>--
 |#
 	(eval '(let ()
-		 (define-label <alpha>
-		   (virtual-fields (immutable (a <alpha>) car)))
+		 (define-label <bad2>
+		   (virtual-fields (immutable (a <bad2>) car)))
 		 #f)
 	      (environment '(nausicaa))))
-    => '<alpha>)
+    => '<bad2>)
 
 ;;; --------------------------------------------------------------------
 
-  (check 'this	;type recursion in parent class definition
+#|
+<alpha1> -----
+  ^           |
+  | inherit   | field type
+  |           |
+<beta1> <-----
+|#
+  (check	;type recursion in parent class definition
       (guard (E ((syntax-violation? E)
 ;;;		 (debug-print-condition "weird recursive type:" E)
 		 (syntax-violation-subform E))
 		(else E))
+	(eval '(let ()
+		 (define-class <alpha1>
+		   (fields (a <beta1>)))
+		 (define-class <beta1>
+		   (inherit <alpha1>))
+		 #f)
+	      (environment '(nausicaa))))
+    => '<beta1>)
+
 #|
-<alpha> ------
+<alpha2> -----
   ^           |
   | inherit   | field type
   |           |
-<beta> <------
+<beta2> <-----
 |#
+  (check	;type recursion in parent label definition
+      (guard (E ((syntax-violation? E)
+;;;		 (debug-print-condition "weird recursive type:" E)
+		 (syntax-violation-subform E))
+		(else E))
+	(eval '(let ()
+		 (define-label <alpha2>
+		   (virtual-fields (a <beta2>)))
+		 (define-label <beta2>
+		   (inherit <alpha2>))
+		 #f)
+	      (environment '(nausicaa))))
+    => '<beta2>)
+
+;;; --------------------------------------------------------------------
+
+#|
+  Recursive type:
+
+      -------- <alpha3>
+     |            ^
+     v            |
+  <gamma3> --> <beta3>
+|#
+  (check	;recursive type in class definition
+      (guard (E ((syntax-violation? E)
+;;;		 (debug-print-condition "direct recursive type:" E)
+		 (syntax-violation-subform E))
+		(else E))
+	(eval '(let ()
+		 (define-class <alpha3>
+		   (fields (a <gamma3>)))
+
+		 (define-class <beta3>
+		   (inherit <alpha3>)
+		   (fields b))
+
+		 (define-class <gamma3>
+		   (fields (g <beta3>)))
+		 #f)
+	      (environment '(nausicaa))))
+    => '<gamma3>)
+
+  #t)
+
+
+(parametrise ((check-test-name	'unbound))
+
+;;;The following tests for circular tagging are the same as before; here
+;;;we use the same identifiers  for the classes in different invocations
+;;;of EVAL.
+;;;
+;;;If the  identifier properties for  <ALPHA> and <BETA> are  set before
+;;;the  identifiers   <ALPHA>  and   <BETA>  are  bound   to  something,
+;;;FREE-IDENTIFIER=? will  not be able to distinguish  between <BETA> in
+;;;the  first  test  and <BETA>  in  the  second  test and  an  infinite
+;;;recursion will happen (last tested Wed Dec 22, 2010).
+;;;
+;;;To  avoid this we  MUST bind  the class  and label  identifier BEFORE
+;;;setting their identifier properties.
+
+  (check	;type recursion in parent class definition
+      (guard (E ((syntax-violation? E)
+		 (syntax-violation-subform E))
+		(else E))
 	(eval '(let ()
 		 (define-class <alpha>
 		   (fields (a <beta>)))
@@ -314,16 +395,8 @@
 
   (check	;type recursion in parent label definition
       (guard (E ((syntax-violation? E)
-;;;		 (debug-print-condition "weird recursive type:" E)
 		 (syntax-violation-subform E))
 		(else E))
-#|
-<alpha> ------
-  ^           |
-  | inherit   | field type
-  |           |
-<beta> <------
-|#
 	(eval '(let ()
 		 (define-label <alpha>
 		   (virtual-fields (a <beta>)))
@@ -332,35 +405,6 @@
 		 #f)
 	      (environment '(nausicaa))))
     => '<beta>)
-
-;;; --------------------------------------------------------------------
-
-#|
-  Recursive type:
-
-      --------<alpha>
-     |          ^
-     v          |
-  <gamma> --> <beta>
-|#
-  #;(check	;recursive type in class definition
-      (guard (E ((syntax-violation? E)
-;;;		 (debug-print-condition "direct recursive type:" E)
-		 (syntax-violation-subform E))
-		(else E))
-	(eval '(let ()
-		 (define-class <alpha>
-		   (fields (a <gamma>)))
-
-		 (define-class <beta>
-		   (inherit <alpha>)
-		   (fields b))
-
-		 (define-class <gamma>
-		   (fields (g <beta>)))
-		 #f)
-	      (environment '(nausicaa))))
-    => '<bad>)
 
   #t)
 
