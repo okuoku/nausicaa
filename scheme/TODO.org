@@ -141,4 +141,7 @@
   Finish the libraries inspector.
 
 * DONE contracts
+* TODO uri
+
+  Finish the parser.
 
