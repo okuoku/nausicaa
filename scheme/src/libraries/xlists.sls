@@ -31,9 +31,9 @@
     (lists))
 
 
-(define-foreign-class <xlist>
-  (inherit <list>)
-  (nongenerative nausicaa:xlists:<xlist>)
+(define-label <xlist>
+  (inherit <list>
+    (concrete-fields))
 
   ;; constructors
   (method-syntax list-copy

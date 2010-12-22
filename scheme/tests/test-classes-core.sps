@@ -169,18 +169,12 @@
 
 (parametrise ((check-test-name	'definition-foreign-class))
 
+;;;Foreign classes are no more part of the public interface (Wed Dec 22,
+;;;2010).
 
-;;; --------------------------------------------------------------------
-;;; errors
-
-  (check	;attempt to instantiate foreign class
-      (guard (E ((syntax-violation? E)
-;;;		   (write (condition-message E))(newline)
-;;;		   (write E)(newline)
-		 #t)
-		(else
-;;;		   (write E)(newline)
-		 #f))
+  #;(check	;attempt to instantiate foreign class
+      (guard (E ((syntax-violation? E) #t)
+		(else #f))
 	(eval '(let ()
 		 (define-foreign-class <alpha>
 		   (predicate integer?))
@@ -188,17 +182,11 @@
 	      (environment '(nausicaa))))
     => #t)
 
-  (check	;attempt to instantiate foreign class
-      (guard (E ((syntax-violation? E)
-;;;		   (write (condition-message E))(newline)
-;;;		   (write E)(newline)
-		 #t)
-		(else
-;;;		   (write E)(newline)
-		 #f))
+  #;(check	;attempt to instantiate foreign class
+      (guard (E ((syntax-violation? E) #t)
+		(else #f))
 	(eval '(make <vector>) (environment '(nausicaa))))
     => #t)
-
 
   #t)
 
