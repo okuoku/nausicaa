@@ -466,15 +466,15 @@
 
 ;;; --------------------------------------------------------------------
 
-  (check	;PUBLIC-PROTOCOL in foreign class definition is bad
-      (guard (E ((syntax-violation? E) #t)
-		(else #f))
-	(eval '(let ()
-		 (define-foreign-class <alpha>
-		   (public-protocol (lambda (n) (lambda () (n)))))
-		 #f)
-	      (environment '(nausicaa))))
-    => #t)
+  ;; (check	;PUBLIC-PROTOCOL in foreign class definition is bad
+  ;;     (guard (E ((syntax-violation? E) #t)
+  ;; 		(else #f))
+  ;; 	(eval '(let ()
+  ;; 		 (define-foreign-class <alpha>
+  ;; 		   (public-protocol (lambda (n) (lambda () (n)))))
+  ;; 		 #f)
+  ;; 	      (environment '(nausicaa))))
+  ;;   => #t)
 
   (check	;multiple PUBLIC-ROTOCOL is bad
       (guard (E ((syntax-violation? E)
