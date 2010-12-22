@@ -24,7 +24,7 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
-;;;; copyright notice for some SRFI implementations
+;;;; copyright notice for some SRFI implementations and the XOR macro
 ;;;
 ;;;Copyright (c) 2008 Derick Eddington
 ;;;
@@ -180,7 +180,7 @@
 (library (language-extensions)
   (export
     and-let* begin0 begin0-let begin0-let* begin0-letrec
-    receive recursion cut cute <> <...>
+    receive recursion cut cute <> <...> xor
     do* while while* do-while do-while*
     dotimes dolist loop-upon-list ensure
     set-cons! incr! decr!
@@ -266,6 +266,26 @@
 	       (define-syntax ?var0
 		 (identifier-syntax ID0))
 	       )))))))
+
+(define-syntax xor
+  (syntax-rules ()
+    ((_ expr ...)
+     (xor-aux #F expr ...))))
+
+(define-syntax xor-aux
+  (syntax-rules ()
+    ((_ r)
+     r)
+    ((_ r expr)
+     (let ((x expr))
+       (if r
+           (and (not x) r)
+	 x)))
+    ((_ r expr0 expr ...)
+     (let ((x expr0))
+       (and (or (not r) (not x))
+	    (let ((n (or r x)))
+	      (xor-aux n expr ...)))))))
 
 
 (define-syntax recursion

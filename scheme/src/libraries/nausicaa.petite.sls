@@ -765,7 +765,7 @@
     non-negative? non-positive?
 
     ;; stuff from the SRFIs
-    cond-expand and-let* recursion cut cute <> <...>
+    cond-expand and-let* recursion cut cute <> <...> xor
     begin0 begin0-let
     set-cons! incr! decr! while while* do-while do-while*
 

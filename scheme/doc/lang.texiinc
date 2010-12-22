@@ -162,6 +162,11 @@ Examples:
 @end example
 @end deffn
 
+
+@deffn Syntax xor @var{expr} ...
+Exclusive @func{or}.
+@end deffn
+
 @c page
 @node lang let
 @section Binding constructs
