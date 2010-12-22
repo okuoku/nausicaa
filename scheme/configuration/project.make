@@ -72,6 +72,7 @@ $(eval $(call nau-libraries,net_helpers,net/helpers))
 $(eval $(call nau-libraries,parser-tools,parser-tools))
 $(eval $(call nau-libraries,profiling,profiling))
 $(eval $(call nau-libraries,randomisations,randomisations))
+$(eval $(call nau-libraries,r6rs,r6rs))
 $(eval $(call nau-libraries,scmobj,scmobj))
 $(eval $(call nau-libraries,silex,silex))
 $(eval $(call nau-libraries,strings,strings))
@@ -516,6 +517,33 @@ endif
 
 net:
 	cd $(srcdir)/src/libraries/net/helpers && $(NET_RUNNER) $(NET_PROGRAM)
+
+#page
+## --------------------------------------------------------------------
+## Special rules: R6RS lexer and parser building.
+## --------------------------------------------------------------------
+
+R6RS_LEXER_PROGRAM	= make-tables.sps
+R6RS_LEXER_LIBPATH	= $(abspath $(nau_sls_BUILDDIR))
+
+ifeq (yes,$(nausicaa_ENABLE_VICARE))
+R6RS_LEXER_ENV		= VICARE_LIBRARY_PATH=$(R6RS_LEXER_LIBPATH):$(VICARE_LIBRARY_PATH)
+R6RS_LEXER_RUNNER	= $(R6RS_LEXER_ENV) $(VICARE) --debug --r6rs-script
+else ifeq (yes,$(nausicaa_ENABLE_MOSH))
+R6RS_LEXER_ENV		= MOSH_LOADPATH=$(R6RS_LEXER_LIBPATH):$(MOSH_LOADPATH)
+R6RS_LEXER_RUNNER	= $(R6RS_LEXER_ENV) $(MOSH)
+else ifeq (yes,$(nausicaa_ENABLE_PETITE))
+R6RS_LEXER_ENV		= PETITE_LIBPATH=$(R6RS_LEXER_LIBPATH):$(PETITE_LIBPATH)
+R6RS_LEXER_RUNNER	= $(R6RS_LEXER_ENV) $(PETITE) --libdirs $${PETITE_LIBPATH} --program
+else ifeq (yes,$(nausicaa_ENABLE_YPSILON))
+R6RS_LEXER_ENV		= YPSILON_SITELIB=$(R6RS_LEXER_LIBPATH):$(YPSILON_SITELIB)
+R6RS_LEXER_RUNNER	= $(R6RS_LEXER_ENV) $(YPSILON)
+endif
+
+.PHONY: R6RS_LEXER
+
+r6rs-lexer:
+	cd $(srcdir)/src/libraries/r6rs && $(R6RS_LEXER_RUNNER) $(R6RS_LEXER_PROGRAM)
 
 
 

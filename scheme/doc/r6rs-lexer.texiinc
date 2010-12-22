@@ -1,0 +1,8 @@
+@node lexer
+@chapter @rnrs{6} lexer
+
+
+The @library{r6rs lexer} library implements a SILex lexer for @rnrs{6}
+source code; @ref{silex} for details on the lexer generator library.
+
+@c end of file

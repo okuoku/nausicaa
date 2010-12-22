@@ -671,6 +671,7 @@ More libraries
 * json::                        Parsing and generating @json{} text.
 * net::                         Network--related libraries.
 * uri::                         Uniform resource identifiers.
+* lexer::                       @rnrs{6} lexer.
 * libraries::                   Libraries inspection.
 * submodules::                  Nested modules.
 * interps::                     Evaluating code as in an interpreter.
@@ -778,6 +779,7 @@ Indexes
 @include json.texiinc
 @include net.texiinc
 @include uri.texiinc
+@include r6rs-lexer.texiinc
 @include libraries.texiinc
 @include submodules.texiinc
 @include interps.texiinc
