@@ -785,16 +785,24 @@
       (with-syntax
 	  ((THE-CLASS			class-identifier)
 	   (THE-SUPERCLASS		superclass-identifier)
-	   (THE-RTD			(identifier-prefix "rtd-of-" class-identifier))
-	   (THE-PARENT-CD		(identifier-prefix "parent-cd-of-" class-identifier))
-	   (THE-PUBLIC-CD		(identifier-prefix "public-cd-of-" class-identifier))
+	   (THE-RTD			#'the-rtd
+					#;(identifier-prefix "rtd-of-" class-identifier))
+	   (THE-PARENT-CD		#'the-parent-cd
+					#;(identifier-prefix "parent-cd-of-" class-identifier))
+	   (THE-PUBLIC-CD		#'the-public-cd
+					#;(identifier-prefix "public-cd-of-" class-identifier))
 	   (THE-PUBLIC-CONSTRUCTOR	constructor-identifier)
-	   (THE-MAKER-CONSTRUCTOR	(identifier-prefix "maker-constructor-of-" class-identifier))
-	   (THE-FROM-FIELDS-PROTOCOL	(identifier-prefix "from-fields-protocol-of-" class-identifier))
-	   (THE-COMMON-PROTOCOL		(identifier-prefix "common-protocol-of-" class-identifier))
-	   (THE-MAKER-PROTOCOL		(identifier-prefix "maker-protocol-of-" class-identifier))
+	   (THE-MAKER-CONSTRUCTOR	#'the-maker-constructor
+					#;(identifier-prefix "maker-constructor-of-" class-identifier))
+	   (THE-FROM-FIELDS-PROTOCOL	#'the-from-fields-protocol
+					#;(identifier-prefix "from-fields-protocol-of-" class-identifier))
+	   (THE-COMMON-PROTOCOL		#'the-common-protocol
+					#;(identifier-prefix "common-protocol-of-" class-identifier))
+	   (THE-MAKER-PROTOCOL		#'the-maker-protocol
+					#;(identifier-prefix "maker-protocol-of-" class-identifier))
 	   (THE-PREDICATE		predicate-identifier)
-	   (THE-MAKER			(identifier-prefix "maker-of-" class-identifier))
+	   (THE-MAKER			#'the-maker
+					#;(identifier-prefix "maker-of-" class-identifier))
 
 	   (PARENT-RTD-FORM		parent-rtd)
 	   (PARENT-CD-FORM		parent-cd)
