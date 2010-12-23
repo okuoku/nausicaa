@@ -2459,7 +2459,24 @@
 		  (immutable downcase	string-downcase)
 		  (immutable titlecase	string-titlecase)
 		  (immutable foldcase	string-foldcase))
-  (getter string-ref))
+  (getter string-ref)
+  (method-syntax append
+    (syntax-rules ()
+      ((_ ?o . ?strings)
+       (string-append ?o . ?strings))))
+  (method-syntax list
+    (syntax-rules ()
+      ((_ ?o)
+       (string->list ?o))))
+  (method-syntax for-each
+    (syntax-rules ()
+      ((_ ?o ?proc)
+       (string-for-each ?proc ?o))))
+  (method-syntax copy
+    (syntax-rules ()
+      ((_ ?o)
+       (string-copy ?o))))
+  )
 
 (define-builtin-class <vector>
   (predicate vector?)

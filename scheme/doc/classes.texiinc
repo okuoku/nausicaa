@@ -3497,10 +3497,31 @@ string.
 @end defcv
 
 
-@defmethod @aclass{string} getf (@var{o} @var{index})
+@defmethod @aclass{string} append @var{string} ...
+Build and return a new string whose characters form the concatenation of
+the subject and given strings.
+@end defmethod
+
+
+@defmethod @aclass{string} list
+Return a list holding all the characters in the string.
+@end defmethod
+
+
+@defmethod @aclass{string} for-each @var{proc}
+Apply @var{proc} to the characters of the string.
+@end defmethod
+
+
+@defmethod @aclass{string} copy
+Build and return a new string holding the same characters.
+@end defmethod
+
+
+@deffn Syntax getf (@var{o} @var{index})
 Return the char at @var{index} of the string @var{o}.  @var{index} is an
 expression.
-@end defmethod
+@end deffn
 
 @c ------------------------------------------------------------
 
