@@ -67,6 +67,16 @@
 
   (check
       (let (((o <string>) (string-copy "ciao")))
+        (o.substring 2))
+    => "ao")
+
+  (check
+      (let (((o <string>) (string-copy "ciao")))
+        (o.substring 2 3))
+    => "a")
+
+  (check
+      (let (((o <string>) (string-copy "ciao")))
         (o.append " mamma"))
     => "ciao mamma")
 

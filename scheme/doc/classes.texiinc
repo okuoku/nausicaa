@@ -3497,6 +3497,14 @@ string.
 @end defcv
 
 
+@defmethod @aclass{string} substring @var{begin}
+@defmethodx @aclass{string} substring @var{begin} @var{end}
+Build and return a new string holding the selected substring of the
+subject.  When @var{end} is not used: it defaults to the length of the
+string.
+@end defmethod
+
+
 @defmethod @aclass{string} append @var{string} ...
 Build and return a new string whose characters form the concatenation of
 the subject and given strings.

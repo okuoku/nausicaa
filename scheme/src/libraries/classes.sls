@@ -2460,6 +2460,13 @@
 		  (immutable titlecase	string-titlecase)
 		  (immutable foldcase	string-foldcase))
   (getter string-ref)
+  (method-syntax substring
+    (syntax-rules ()
+      ((_ ?o ?begin)
+       (substring ?o ?begin (string-length ?o)))
+      ((_ ?o ?begin ?end)
+       (substring ?o ?begin ?end))
+      ))
   (method-syntax append
     (syntax-rules ()
       ((_ ?o . ?strings)
