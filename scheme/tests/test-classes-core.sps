@@ -4038,30 +4038,6 @@
   #t)
 
 
-(parametrise ((check-test-name 'builtin))
-
-;;; <list>
-
-  (check
-      (let (((o <list>) '(1 2 3 4 5)))
-	(o.find (lambda (n) (= 3 n))))
-    => 3)
-
-  (check
-      (let (((o <list>) '(1 2 3 4 5)))
-	(o.for-all (lambda (n) (< 0 n))))
-    => #t)
-
-  (check
-      (let (((o <list>) '(1 2 3 4 5)))
-	(o.exists (lambda (n) (if (= 3 n) n #f))))
-    => 3)
-
-;;; --------------------------------------------------------------------
-
-  #t)
-
-
 ;;;; done
 
 (check-report)
