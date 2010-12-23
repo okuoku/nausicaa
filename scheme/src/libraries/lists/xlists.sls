@@ -32,8 +32,7 @@
 
 
 (define-label <xlist>
-  (inherit <list>
-    (concrete-fields))
+  (inherit <list>)
 
   ;; constructors
   (method-syntax list-copy
