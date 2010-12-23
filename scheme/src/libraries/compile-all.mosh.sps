@@ -45,6 +45,7 @@
   (only (compensations))
   (only (nausicaa))
   (only (nausicaa mutable-pairs))
+  (only (nausicaa mutable-strings))
 
   ;; Basic libraries
   (only (old-generics))

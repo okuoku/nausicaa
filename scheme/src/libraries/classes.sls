@@ -109,7 +109,6 @@
     (for (classes binding-makers)	expand)
     (for (classes clause-parsers)	expand)
     (for (prefix (sentinel) sentinel.)	expand)
-    (rnrs mutable-strings)
     (makers)
     (contracts)
     (auxiliary-syntaxes)
@@ -2460,7 +2459,6 @@
 		  (immutable downcase	string-downcase)
 		  (immutable titlecase	string-titlecase)
 		  (immutable foldcase	string-foldcase))
-  (setter string-set!)
   (getter string-ref))
 
 (define-builtin-class <vector>

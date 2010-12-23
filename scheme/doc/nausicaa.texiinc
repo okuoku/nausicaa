@@ -17,6 +17,7 @@ import specification:
 * nausicaa syntax::             Extended syntaxes.
 * nausicaa environment::        Accessing environment variables.
 * nausicaa mutable-pairs::      Mutable pairs.
+* nausicaa mutable-strings::    Mutable strings.
 @end menu
 
 @c page
@@ -252,8 +253,7 @@ Access and mutate the cdr of a pair.
 
 
 @deffn Syntax {make @aclass{mutable-pair}} @var{car} @var{cdr}
-@deffnx Syntax {make* @aclass{mutable-pair}} @var{car} @var{cdr}
-Build and return a new pair.
+Build and return a new pair using @func{cons}.
 @end deffn
 
 
@@ -286,5 +286,47 @@ Examples:
   p)
 @result{} (1 . 3)
 @end example
+
+@c page
+@node nausicaa mutable-strings
+@section Mutable strings
+
+
+The library @library{nausicaa mutable-strings} defines a label interface
+for mutable strings and also reexports all the bindings from
+@rsixlibrary{mutable-strings}.
+
+
+@deftp Label @aclass{mutable-string}
+Label for handling mutable strings through the facilities of the
+@library{classes} library.  Derived from @class{string}, inherits all
+its methods and fields.
+@end deftp
+
+
+@deffn Syntax {make @aclass{mutable-string}} @var{char} ...
+Build and return a new string using @func{string}.
+@end deffn
+
+
+@deffn Syntax {is-a? @var{obj} @aclass{mutable-string}}
+Evaluate to true if @var{obj} is a string.
+@end deffn
+
+
+@defmethod @aclass{mutable-string} set! @var{position} @var{char}
+Store @var{char} at @var{position} in the string.
+@end defmethod
+
+
+@defmethod @aclass{mutable-string} fill! @var{char}
+Store @var{char} in every element of the string.
+@end defmethod
+
+
+@deffn Syntax setf (@var{o} @var{index}) @var{char}
+Store @var{char} at @var{index} of the string @var{o}.  @var{index} is
+an expression.
+@end deffn
 
 @c end of file

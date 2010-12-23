@@ -3019,16 +3019,16 @@ Access the length of the vector.
 @end defcv
 
 
-@defmethod @aclass{vector} setf (@var{o} @var{index}) @var{value}
+@deffn Syntax setf (@var{o} @var{index}) @var{value}
 Store @var{value} at @var{index} of the vector @var{o}.  @var{index} is
 an expression.
-@end defmethod
+@end deffn
 
 
-@defmethod @aclass{vector} getf (@var{o} @var{index})
+@deffn Syntax getf (@var{o} @var{index})
 Return the value at @var{index} of the vector @var{o}.  @var{index} is
 an expression.
-@end defmethod
+@end deffn
 
 @c ------------------------------------------------------------
 
@@ -3044,9 +3044,9 @@ Access the length of the bytevector.
 @end defcv
 
 
-@defmethod @aclass{bytevector} setf (@var{o} @var{index}) @var{value}
-@defmethodx @aclass{bytevector} setf (@var{o} @var{index} @var{type}) @var{value}
-@defmethodx @aclass{bytevector} setf (@var{o} @var{index} @var{type} @var{endian}) @var{value}
+@deffn Syntax setf (@var{o} @var{index}) @var{value}
+@deffnx Syntax setf (@var{o} @var{index} @var{type}) @var{value}
+@deffnx Syntax setf (@var{o} @var{index} @var{type} @var{endian}) @var{value}
 Implemented as a macro: store @var{value} at index @var{index} of the
 bytevector @var{o}.  The mutator is selected according to the following
 rules:
@@ -3080,12 +3080,12 @@ u32n s32n   u64n s64n
 singlen doublen
 @end example
 @end itemize
-@end defmethod
+@end deffn
 
 
-@defmethod @aclass{bytevector} getf (@var{o} @var{index})
-@defmethodx @aclass{bytevector} getf (@var{o} @var{index} @var{type})
-@defmethodx @aclass{bytevector} getf (@var{o} @var{index} @var{type} @var{endian})
+@deffn Syntax getf (@var{o} @var{index})
+@deffnx Syntax getf (@var{o} @var{index} @var{type})
+@deffnx Syntax getf (@var{o} @var{index} @var{type} @var{endian})
 Implemented as a macro: return the value at index @var{index} of the
 bytevector @var{o}.  The accessor is selected according to the following
 rules:
@@ -3119,7 +3119,7 @@ u32n s32n   u64n s64n
 singlen doublen
 @end example
 @end itemize
-@end defmethod
+@end deffn
 
 @c ------------------------------------------------------------
 
@@ -3147,18 +3147,18 @@ Access the keys and values.  Retrieving this field is like applying
 @end defcv
 
 
-@defmethod @aclass{hashtable} setf (@var{o} @var{key}) @var{value}
+@deffn Syntax setf (@var{o} @var{key}) @var{value}
 Associate @var{value} to @var{key} in the hashtable @var{o}.  The
 @var{key} is an expression.
-@end defmethod
+@end deffn
 
 
-@defmethod @aclass{hashtable} getf (@var{o} @var{key})
-@defmethodx @aclass{hashtable} getf (@var{o} @var{key} @var{default})
+@deffn Syntax getf (@var{o} @var{key})
+@deffnx Syntax getf (@var{o} @var{key} @var{default})
 Return the value associated to @var{key} in the hashtable @var{o}.  When
 not found: return @var{default} or @false{} if @var{default} was not
 given.  @var{key} and @var{default} are expressions.
-@end defmethod
+@end deffn
 
 @c page
 @node classes builtin number
@@ -3463,7 +3463,7 @@ Conventional type for objects satisfying @func{binary-port?}.
 
 
 @deftp {Foreign Class} @aclass{string}
-Conventional type for objects satisfying @func{string?}.
+Conventional type for immutable objects satisfying @func{string?}.
 @end deftp
 
 
@@ -3495,12 +3495,6 @@ string.
 Accessing this field is like applying @func{string-foldcase} to the
 string.
 @end defcv
-
-
-@defmethod @aclass{string} setf (@var{o} @var{index}) @var{char}
-Store @var{char} at @var{index} of the string @var{o}.  @var{index} is
-an expression.
-@end defmethod
 
 
 @defmethod @aclass{string} getf (@var{o} @var{index})
