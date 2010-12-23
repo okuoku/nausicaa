@@ -3389,12 +3389,6 @@
   	      (getf (o 'hello 'salut))))
     => '(10 #f salut))
 
-  (check	;string
-      (let/with-class (((o <string>) (string-copy "ciao")))
-  	(setf (o 2) #\c)
-  	(getf (o 2)))
-    => #\c)
-
   #t)
 
 
