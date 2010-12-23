@@ -65,6 +65,7 @@
   (only (strings xstrings))
   (only (streams))
   (only (vectors))
+  (only (vectors xvectors))
   (only (debugging))
   (only (checks))
   (only (loops))

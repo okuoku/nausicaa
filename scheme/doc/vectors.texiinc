@@ -24,6 +24,7 @@ low level interface with the same functionalities.
 * vectors replicate::           Replicate and rotate.
 * vectors mutate::              Mutators.
 * vectors misc::                Miscellaneous functions.
+* vectors class::               Class interface to vector functions.
 @end menu
 
 @c page
@@ -1491,5 +1492,225 @@ Reverse the vector.  @func{%vector-reverse} returns the result vector
 and does not alter its @var{vec} parameter.  @func{%vector-reverse!} is
 the in--place side--effecting variant.
 @end deffn
+
+@c page
+@node vectors class
+@section Class interface to vector functions
+
+
+The @library{vectors xvectors} library exports the single binding
+@class{xvector}, which provides an interface to the @library{vectors}
+functions through the facilities of the @library{classes} library.
+
+
+@deftp Label @aclass{xvector}
+Label interface to the vector functions.  It is derived from the foreign
+class @class{vector}, inheriting all its fields and methods.
+@end deftp
+
+
+All the following methods are implemented as syntaxes; in all the
+following descriptions: @var{self} is an identifier bound to the subject
+vector.
+
+@c ------------------------------------------------------------
+
+@macro xvectormethod{NAME}
+@defmethod @aclass{xvector} \NAME\ . @var{args}
+Implement the expansion:
+
+@example
+(@var{self}.\NAME\ . @var{args})
+@expansion{} (vector-\NAME\ @var{self} . @var{args})
+@end example
+@end defmethod
+@end macro
+
+@macro xvectormethodSubvector{NAME}
+@defmethod @aclass{xvector} \NAME\ . @var{args}
+Implement the expansion:
+
+@example
+(@var{self}.\NAME\ . @var{args})
+@expansion{} (\NAME\ @var{self} . @var{args})
+@end example
+@end defmethod
+@end macro
+
+@macro xvectormethodNoDash{NAME}
+@defmethod @aclass{xvector} \NAME\ . @var{args}
+Implement the expansion:
+
+@example
+(@var{self}.\NAME\ . @var{args})
+@expansion{} (vector\NAME\ @var{self} . @var{args})
+@c                  ^
+@end example
+@end defmethod
+@end macro
+
+@macro xvectormethodMap{NAME}
+@defmethod @aclass{xvector} \NAME\ . @var{args}
+Implement the expansion:
+
+@example
+(@var{self}.\NAME\ @var{proc} . @var{args})
+@expansion{} (vector-\NAME\ @var{proc} @var{self} . @var{args})
+@end example
+@end defmethod
+@end macro
+
+@c ------------------------------------------------------------
+
+@subsubheading Constructors
+
+@defmethod @aclass{xvector} concatenate @var{list-of-vectors}
+Implement the expansion:
+
+@example
+(@var{self}.concatenate @var{list-of-vectors})
+@expansion{} (vector-concatenate (cons @var{self} @var{list-of-vectors}))
+@end example
+@end defmethod
+
+
+@xvectormethod{concatenate}
+@xvectormethod{concatenate-reverse}
+@xvectormethod{append}
+
+@subsubheading Predicates
+
+@xvectormethod{null?}
+@xvectormethod{subvector-every}
+@xvectormethod{every}
+@xvectormethod{subvector-any}
+@xvectormethod{any}
+
+@subsubheading Comparison
+
+@xvectormethod{compare}
+@xvectormethodNoDash{=}
+@xvectormethodNoDash{<>}
+@xvectormethodNoDash{<}
+@xvectormethodNoDash{<=}
+@xvectormethodNoDash{>}
+@xvectormethodNoDash{>=}
+
+@subsubheading Mapping
+
+@xvectormethod{map/with-index}
+@xvectormethod{map!}
+@xvectormethod{map!/with-index}
+@xvectormethod{map*}
+@xvectormethod{map*/with-index}
+@xvectormethod{map*!}
+@xvectormethod{map*!/with-index}
+@xvectormethod{for-each*}
+@xvectormethod{for-each*/with-index}
+@xvectormethod{subvector-map}
+@xvectormethod{subvector-map/with-index}
+@xvectormethod{subvector-map!}
+@xvectormethod{subvector-map!/with-index}
+@xvectormethod{subvector-for-each}
+@xvectormethod{subvector-for-each/with-index}
+@xvectormethod{subvector-for-each-index}
+@xvectormethod{map/stx}
+@xvectormethod{map*/stx}
+@xvectormethod{map!/stx}
+@xvectormethod{map*!/stx}
+@xvectormethod{for-each/stx}
+@xvectormethod{for-each*/stx}
+
+@subsubheading Folding
+
+@xvectormethod{fold-left}
+@xvectormethod{fold-right}
+@xvectormethod{fold-left*}
+@xvectormethod{fold-right*}
+@xvectormethod{fold-left/stx}
+@xvectormethod{fold-right/stx}
+@xvectormethod{fold-left*/stx}
+@xvectormethod{fold-right*/stx}
+@xvectormethod{fold-left/with-index}
+@xvectormethod{fold-right/with-index}
+@xvectormethod{fold-left*/with-index}
+@xvectormethod{fold-right*/with-index}
+@xvectormethod{subvector-fold-left}
+@xvectormethod{subvector-fold-right}
+@xvectormethod{unfold}
+@xvectormethod{unfold-right}
+@xvectormethod{and-fold-left}
+@xvectormethod{and-fold-right}
+@xvectormethod{and-fold-left*}
+@xvectormethod{and-fold-right*}
+@xvectormethod{and-fold-left/stx}
+@xvectormethod{and-fold-right/stx}
+@xvectormethod{and-fold-left*/stx}
+@xvectormethod{and-fold-right*/stx}
+@xvectormethod{fold-left/pred}
+
+@subsubheading Selecting
+
+@xvectormethod{subvector}
+@xvectormethod{subvector*}
+@xvectormethod{copy}
+@xvectormethod{reverse-copy}
+@xvectormethod{copy!}
+@xvectormethod{reverse-copy!}
+@xvectormethod{take}
+@xvectormethod{take-right}
+@xvectormethod{drop}
+@xvectormethod{drop-right}
+
+@subsubheading Padding and trimming
+
+@xvectormethod{trim}
+@xvectormethod{trim-right}
+@xvectormethod{trim-both}
+@xvectormethod{pad}
+@xvectormethod{pad-right}
+
+@subsubheading Prefix and suffix
+
+@xvectormethod{prefix-length}
+@xvectormethod{suffix-length}
+@xvectormethod{prefix?}
+@xvectormethod{suffix?}
+
+@subsubheading Searching
+
+@xvectormethod{index}
+@xvectormethod{index-right}
+@xvectormethod{skip}
+@xvectormethod{skip-right}
+@xvectormethod{count}
+@xvectormethod{contains}
+@xvectormethod{binary-search}
+
+@subsubheading Filtering
+
+@xvectormethod{filter}
+@xvectormethod{delete}
+
+@subsubheading Lists
+
+@xvectormethod{list*}
+@xvectormethod{reverse-vector->list}
+
+@subsubheading Replicating
+
+@xvectormethod{xsubvector}
+@xvectormethod{xcopy!}
+
+@subsubheading Mutating
+
+@xvectormethod{fill*!}
+@xvectormethod{swap!}
+
+@subsubheading Reverse and replace
+
+@xvectormethod{reverse}
+@xvectormethod{reverse!}
+@xvectormethod{replace}
 
 @c end of file
