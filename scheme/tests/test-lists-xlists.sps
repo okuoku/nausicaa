@@ -26,7 +26,7 @@
 
 
 (import (nausicaa)
-  (xlists)
+  (lists xlists)
   (prefix (lists) lists:)
   (checks))
 

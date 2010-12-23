@@ -25,7 +25,7 @@
 ;;;
 
 
-(library (xlists)
+(library (lists xlists)
   (export <xlist>)
   (import (nausicaa)
     (lists))

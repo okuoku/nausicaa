@@ -2990,28 +2990,28 @@ which is the same of doing:
 @section Class interface
 
 
-The @library{xlists} library exports the single binding @class{xlist},
-which provides an interface to the @library{lists} functions through the
-facilities of the @library{classes} library.
+The @library{lists xlists} library exports the single binding
+@class{xlist}, which provides an interface to the @library{lists}
+functions through the facilities of the @library{classes} library.
 
 
-@deftp {Foreign Class} @aclass{xlist}
-Foreign class interface to the list functions.  It is derived from
-@class{list}.
+@deftp Label @aclass{xlist}
+Label interface to the list functions.  It is derived from the foreign
+class @class{list}, inheriting all its fields and methods.
 @end deftp
 
 
 All the following methods are implemented as syntaxes; in all the
-following descriptions: @meta{self} is an identifier bound to the
-subject list.
+following descriptions: @var{self} is an identifier bound to the subject
+list.
 
 
 @defmethod @aclass{xlist} list-copy
 Implement the expansion:
 
 @example
-(@cmeta{self}.list-copy)
-@expansion{} (list-copy @cmeta{self})
+(@var{self}.list-copy)
+@expansion{} (list-copy @var{self})
 @end example
 @end defmethod
 
@@ -3020,8 +3020,8 @@ Implement the expansion:
 Implement the expansion:
 
 @example
-(@cmeta{self}.tree-copy)
-@expansion{} (tree-copy @cmeta{self})
+(@var{self}.tree-copy)
+@expansion{} (tree-copy @var{self})
 @end example
 @end defmethod
 
@@ -3030,8 +3030,8 @@ Implement the expansion:
 Implement the expansion:
 
 @example
-(@cmeta{self}.circular-list!)
-@expansion{} (set! @cmeta{self} (list->circular-list! @cmeta{self}))
+(@var{self}.circular-list!)
+@expansion{} (set! @var{self} (list->circular-list! @var{self}))
 @end example
 @end defmethod
 
@@ -3040,8 +3040,8 @@ Implement the expansion:
 Implement the expansion:
 
 @example
-(@cmeta{self}.break-circular-list!)
-@expansion{} (set! @cmeta{self} (circular-list->list! @cmeta{self}))
+(@var{self}.break-circular-list!)
+@expansion{} (set! @var{self} (circular-list->list! @var{self}))
 @end example
 @end defmethod
 
@@ -3050,8 +3050,8 @@ Implement the expansion:
 Implement the expansion:
 
 @example
-(@cmeta{self}.circular-list-copy)
-@expansion{} (circular-list-copy @cmeta{self})
+(@var{self}.circular-list-copy)
+@expansion{} (circular-list-copy @var{self})
 @end example
 @end defmethod
 
@@ -3060,8 +3060,8 @@ Implement the expansion:
 Implement the expansion:
 
 @example
-(@cmeta{self}.circular-list-length)
-@expansion{} (circular-list-length @cmeta{self})
+(@var{self}.circular-list-length)
+@expansion{} (circular-list-length @var{self})
 @end example
 @end defmethod
 
@@ -3070,8 +3070,8 @@ Implement the expansion:
 Implement the expansion:
 
 @example
-(@cmeta{self}.circular-list?)
-@expansion{} (circular-list? @cmeta{self})
+(@var{self}.circular-list?)
+@expansion{} (circular-list? @var{self})
 @end example
 @end defmethod
 
@@ -3080,8 +3080,8 @@ Implement the expansion:
 Implement the expansion:
 
 @example
-(@cmeta{self}.circular-list?/or-null)
-@expansion{} (circular-list?/or-null @cmeta{self})
+(@var{self}.circular-list?/or-null)
+@expansion{} (circular-list?/or-null @var{self})
 @end example
 @end defmethod
 
@@ -3090,8 +3090,8 @@ Implement the expansion:
 Implement the expansion:
 
 @example
-(@cmeta{self}.dotted-list?)
-@expansion{} (dotted-list? @cmeta{self})
+(@var{self}.dotted-list?)
+@expansion{} (dotted-list? @var{self})
 @end example
 @end defmethod
 
@@ -3100,8 +3100,8 @@ Implement the expansion:
 Implement the expansion:
 
 @example
-(@cmeta{self}.dotted-list?/or-null)
-@expansion{} (dotted-list?/or-null @cmeta{self})
+(@var{self}.dotted-list?/or-null)
+@expansion{} (dotted-list?/or-null @var{self})
 @end example
 @end defmethod
 
@@ -3110,8 +3110,8 @@ Implement the expansion:
 Implement the expansion:
 
 @example
-(@cmeta{self}.car+cdr)
-@expansion{} (car+cdr @cmeta{self})
+(@var{self}.car+cdr)
+@expansion{} (car+cdr @var{self})
 @end example
 @end defmethod
 
@@ -3120,8 +3120,8 @@ Implement the expansion:
 Implement the expansion:
 
 @example
-(@cmeta{self}.first)
-@expansion{} (first @cmeta{self})
+(@var{self}.first)
+@expansion{} (first @var{self})
 @end example
 @end defmethod
 
@@ -3130,8 +3130,8 @@ Implement the expansion:
 Implement the expansion:
 
 @example
-(@cmeta{self}.second)
-@expansion{} (second @cmeta{self})
+(@var{self}.second)
+@expansion{} (second @var{self})
 @end example
 @end defmethod
 
@@ -3140,8 +3140,8 @@ Implement the expansion:
 Implement the expansion:
 
 @example
-(@cmeta{self}.third)
-@expansion{} (third @cmeta{self})
+(@var{self}.third)
+@expansion{} (third @var{self})
 @end example
 @end defmethod
 
@@ -3150,8 +3150,8 @@ Implement the expansion:
 Implement the expansion:
 
 @example
-(@cmeta{self}.fourth)
-@expansion{} (fourth @cmeta{self})
+(@var{self}.fourth)
+@expansion{} (fourth @var{self})
 @end example
 @end defmethod
 
@@ -3160,8 +3160,8 @@ Implement the expansion:
 Implement the expansion:
 
 @example
-(@cmeta{self}.fifth)
-@expansion{} (fifth @cmeta{self})
+(@var{self}.fifth)
+@expansion{} (fifth @var{self})
 @end example
 @end defmethod
 
@@ -3170,8 +3170,8 @@ Implement the expansion:
 Implement the expansion:
 
 @example
-(@cmeta{self}.sixth)
-@expansion{} (sixth @cmeta{self})
+(@var{self}.sixth)
+@expansion{} (sixth @var{self})
 @end example
 @end defmethod
 
@@ -3180,8 +3180,8 @@ Implement the expansion:
 Implement the expansion:
 
 @example
-(@cmeta{self}.seventh)
-@expansion{} (seventh @cmeta{self})
+(@var{self}.seventh)
+@expansion{} (seventh @var{self})
 @end example
 @end defmethod
 
@@ -3190,8 +3190,8 @@ Implement the expansion:
 Implement the expansion:
 
 @example
-(@cmeta{self}.eighth)
-@expansion{} (eighth @cmeta{self})
+(@var{self}.eighth)
+@expansion{} (eighth @var{self})
 @end example
 @end defmethod
 
@@ -3200,8 +3200,8 @@ Implement the expansion:
 Implement the expansion:
 
 @example
-(@cmeta{self}.ninth)
-@expansion{} (ninth @cmeta{self})
+(@var{self}.ninth)
+@expansion{} (ninth @var{self})
 @end example
 @end defmethod
 
@@ -3210,8 +3210,8 @@ Implement the expansion:
 Implement the expansion:
 
 @example
-(@cmeta{self}.tenth)
-@expansion{} (tenth @cmeta{self})
+(@var{self}.tenth)
+@expansion{} (tenth @var{self})
 @end example
 @end defmethod
 
@@ -3220,8 +3220,8 @@ Implement the expansion:
 Implement the expansion:
 
 @example
-(@cmeta{self}.take-left @cmeta{count})
-@expansion{} (take-left @cmeta{self} @cmeta{count})
+(@var{self}.take-left @cmeta{count})
+@expansion{} (take-left @var{self} @cmeta{count})
 @end example
 @end defmethod
 
@@ -3230,8 +3230,8 @@ Implement the expansion:
 Implement the expansion:
 
 @example
-(@cmeta{self}.take-right @cmeta{count})
-@expansion{} (take-right @cmeta{self} @cmeta{count})
+(@var{self}.take-right @cmeta{count})
+@expansion{} (take-right @var{self} @cmeta{count})
 @end example
 @end defmethod
 
@@ -3240,8 +3240,8 @@ Implement the expansion:
 Implement the expansion:
 
 @example
-(@cmeta{self}.take-left! @cmeta{count})
-@expansion{} (set! @cmeta{self} (take-left! @cmeta{self} @cmeta{count}))
+(@var{self}.take-left! @cmeta{count})
+@expansion{} (set! @var{self} (take-left! @var{self} @cmeta{count}))
 @end example
 @end defmethod
 
@@ -3250,8 +3250,8 @@ Implement the expansion:
 Implement the expansion:
 
 @example
-(@cmeta{self}.drop-left @cmeta{count})
-@expansion{} (drop-left @cmeta{self} @cmeta{count})
+(@var{self}.drop-left @cmeta{count})
+@expansion{} (drop-left @var{self} @cmeta{count})
 @end example
 @end defmethod
 
@@ -3260,8 +3260,8 @@ Implement the expansion:
 Implement the expansion:
 
 @example
-(@cmeta{self}.drop-right @cmeta{count})
-@expansion{} (drop-right @cmeta{self} @cmeta{count})
+(@var{self}.drop-right @cmeta{count})
+@expansion{} (drop-right @var{self} @cmeta{count})
 @end example
 @end defmethod
 
@@ -3270,8 +3270,8 @@ Implement the expansion:
 Implement the expansion:
 
 @example
-(@cmeta{self}.drop-right! @cmeta{count})
-@expansion{} (set! @cmeta{self} (drop-right! @cmeta{self} @cmeta{count}))
+(@var{self}.drop-right! @cmeta{count})
+@expansion{} (set! @var{self} (drop-right! @var{self} @cmeta{count}))
 @end example
 @end defmethod
 
@@ -3280,8 +3280,8 @@ Implement the expansion:
 Implement the expansion:
 
 @example
-(@cmeta{self}.split-at @cmeta{count})
-@expansion{} (split-at @cmeta{self} @cmeta{count})
+(@var{self}.split-at @cmeta{count})
+@expansion{} (split-at @var{self} @cmeta{count})
 @end example
 @end defmethod
 
@@ -3290,8 +3290,8 @@ Implement the expansion:
 Implement the expansion:
 
 @example
-(@cmeta{self}.split-at! @cmeta{count})
-@expansion{} (split-at! @cmeta{self} @cmeta{count})
+(@var{self}.split-at! @cmeta{count})
+@expansion{} (split-at! @var{self} @cmeta{count})
 @end example
 @end defmethod
 
@@ -3300,8 +3300,8 @@ Implement the expansion:
 Implement the expansion:
 
 @example
-(@cmeta{self}.last)
-@expansion{} (last @cmeta{self})
+(@var{self}.last)
+@expansion{} (last @var{self})
 @end example
 @end defmethod
 
@@ -3310,8 +3310,8 @@ Implement the expansion:
 Implement the expansion:
 
 @example
-(@cmeta{self}.last-pair)
-@expansion{} (last-pair @cmeta{self})
+(@var{self}.last-pair)
+@expansion{} (last-pair @var{self})
 @end example
 @end defmethod
 
@@ -3320,8 +3320,8 @@ Implement the expansion:
 Implement the expansion:
 
 @example
-(@cmeta{self}.length+)
-@expansion{} (length+ @cmeta{self})
+(@var{self}.length+)
+@expansion{} (length+ @var{self})
 @end example
 @end defmethod
 
@@ -3330,8 +3330,8 @@ Implement the expansion:
 Implement the expansion:
 
 @example
-(@cmeta{self}.append! @ameta{obj} ...)
-@expansion{} (set! @cmeta{self} (append! @cmeta{self} @cmeta{obj} ...))
+(@var{self}.append! @ameta{obj} ...)
+@expansion{} (set! @var{self} (append! @var{self} @cmeta{obj} ...))
 @end example
 @end defmethod
 
@@ -3340,8 +3340,8 @@ Implement the expansion:
 Implement the expansion:
 
 @example
-(@cmeta{self}.reverse!)
-@expansion{} (set! @cmeta{self} (reverse! @cmeta{self}))
+(@var{self}.reverse!)
+@expansion{} (set! @var{self} (reverse! @var{self}))
 @end example
 @end defmethod
 
@@ -3350,8 +3350,8 @@ Implement the expansion:
 Implement the expansion:
 
 @example
-(@cmeta{self}.append-reverse)
-@expansion{} (append-reverse @cmeta{self})
+(@var{self}.append-reverse)
+@expansion{} (append-reverse @var{self})
 @end example
 @end defmethod
 
@@ -3360,8 +3360,8 @@ Implement the expansion:
 Implement the expansion:
 
 @example
-(@cmeta{self}.append-reverse!)
-@expansion{} (set! @cmeta{self} (append-reverse! @cmeta{self}))
+(@var{self}.append-reverse!)
+@expansion{} (set! @var{self} (append-reverse! @var{self}))
 @end example
 @end defmethod
 
@@ -3370,8 +3370,8 @@ Implement the expansion:
 Implement the expansion:
 
 @example
-(@cmeta{self}.zip @cmeta{ell} ...)
-@expansion{} (zip @cmeta{self} @cmeta{ell} ...)
+(@var{self}.zip @cmeta{ell} ...)
+@expansion{} (zip @var{self} @cmeta{ell} ...)
 @end example
 @end defmethod
 
@@ -3380,8 +3380,8 @@ Implement the expansion:
 Implement the expansion:
 
 @example
-(@cmeta{self}.zip* @ameta{ell} ...)
-@expansion{} (zip* @cmeta{self} @cmeta{ell} ...)
+(@var{self}.zip* @ameta{ell} ...)
+@expansion{} (zip* @var{self} @cmeta{ell} ...)
 @end example
 @end defmethod
 
@@ -3390,8 +3390,8 @@ Implement the expansion:
 Implement the expansion:
 
 @example
-(@cmeta{self}.unzip1)
-@expansion{} (unzip1 @cmeta{self})
+(@var{self}.unzip1)
+@expansion{} (unzip1 @var{self})
 @end example
 @end defmethod
 
@@ -3400,8 +3400,8 @@ Implement the expansion:
 Implement the expansion:
 
 @example
-(@cmeta{self}.unzip2)
-@expansion{} (unzip2 @cmeta{self})
+(@var{self}.unzip2)
+@expansion{} (unzip2 @var{self})
 @end example
 @end defmethod
 
@@ -3410,8 +3410,8 @@ Implement the expansion:
 Implement the expansion:
 
 @example
-(@cmeta{self}.unzip3)
-@expansion{} (unzip3 @cmeta{self})
+(@var{self}.unzip3)
+@expansion{} (unzip3 @var{self})
 @end example
 @end defmethod
 
@@ -3420,8 +3420,8 @@ Implement the expansion:
 Implement the expansion:
 
 @example
-(@cmeta{self}.unzip4)
-@expansion{} (unzip4 @cmeta{self})
+(@var{self}.unzip4)
+@expansion{} (unzip4 @var{self})
 @end example
 @end defmethod
 
@@ -3430,8 +3430,8 @@ Implement the expansion:
 Implement the expansion:
 
 @example
-(@cmeta{self}.unzip5)
-@expansion{} (unzip5 @cmeta{self})
+(@var{self}.unzip5)
+@expansion{} (unzip5 @var{self})
 @end example
 @end defmethod
 
@@ -3440,8 +3440,8 @@ Implement the expansion:
 Implement the expansion:
 
 @example
-(@cmeta{self}.count @cmeta{proc})
-@expansion{} (count @cmeta{proc} @cmeta{self})
+(@var{self}.count @cmeta{proc})
+@expansion{} (count @cmeta{proc} @var{self})
 @end example
 @end defmethod
 
@@ -3450,8 +3450,8 @@ Implement the expansion:
 Implement the expansion:
 
 @example
-(@cmeta{self}.and-fold-left* @cmeta{knil} @cmeta{kombine})
-@expansion{} (and-fold-left* @ameta{kombine} @ameta{knil} @cmeta{self})
+(@var{self}.and-fold-left* @cmeta{knil} @cmeta{kombine})
+@expansion{} (and-fold-left* @ameta{kombine} @ameta{knil} @var{self})
 @end example
 @end defmethod
 
@@ -3460,8 +3460,8 @@ Implement the expansion:
 Implement the expansion:
 
 @example
-(@cmeta{self}.and-fold-right* @cmeta{knil} @cmeta{kombine})
-@expansion{} (and-fold-right* @ameta{kombine} @ameta{knil} @cmeta{self})
+(@var{self}.and-fold-right* @cmeta{knil} @cmeta{kombine})
+@expansion{} (and-fold-right* @ameta{kombine} @ameta{knil} @var{self})
 @end example
 @end defmethod
 
@@ -3470,8 +3470,8 @@ Implement the expansion:
 Implement the expansion:
 
 @example
-(@cmeta{self}.fold-left/pred @ameta{knil} @ameta{predicate})
-@expansion{} (fold-left/pred @ameta{predicate} @ameta{knil} @cmeta{self})
+(@var{self}.fold-left/pred @ameta{knil} @ameta{predicate})
+@expansion{} (fold-left/pred @ameta{predicate} @ameta{knil} @var{self})
 @end example
 @end defmethod
 
@@ -3480,8 +3480,8 @@ Implement the expansion:
 Implement the expansion:
 
 @example
-(@cmeta{self}.pair-fold @ameta{knil} @ameta{kombine})
-@expansion{} (pair-fold @ameta{kombine} @ameta{knil} @cmeta{self})
+(@var{self}.pair-fold @ameta{knil} @ameta{kombine})
+@expansion{} (pair-fold @ameta{kombine} @ameta{knil} @var{self})
 @end example
 @end defmethod
 
@@ -3490,8 +3490,8 @@ Implement the expansion:
 Implement the expansion:
 
 @example
-(@cmeta{self}.pair-fold* @cmeta{knil} @cmeta{kombine})
-@expansion{} (pair-fold* @cmeta{kombine} @cmeta{knil} @cmeta{self})
+(@var{self}.pair-fold* @cmeta{knil} @cmeta{kombine})
+@expansion{} (pair-fold* @cmeta{kombine} @cmeta{knil} @var{self})
 @end example
 @end defmethod
 
@@ -3500,8 +3500,8 @@ Implement the expansion:
 Implement the expansion:
 
 @example
-(@cmeta{self}.reduce @cmeta{knil} @cmeta{kombine})
-@expansion{} (reduce @cmeta{kombine} @cmeta{knil} @cmeta{self})
+(@var{self}.reduce @cmeta{knil} @cmeta{kombine})
+@expansion{} (reduce @cmeta{kombine} @cmeta{knil} @var{self})
 @end example
 @end defmethod
 
@@ -3510,8 +3510,8 @@ Implement the expansion:
 Implement the expansion:
 
 @example
-(@cmeta{self}.reduce* @cmeta{knil} @cmeta{kombine})
-@expansion{} (reduce* @cmeta{kombine} @cmeta{knil} @cmeta{self})
+(@var{self}.reduce* @cmeta{knil} @cmeta{kombine})
+@expansion{} (reduce* @cmeta{kombine} @cmeta{knil} @var{self})
 @end example
 @end defmethod
 
@@ -3520,8 +3520,8 @@ Implement the expansion:
 Implement the expansion:
 
 @example
-(@cmeta{self}.map-in-order* @ameta{proc})
-@expansion{} (map-in-order* @cmeta{proc} @cmeta{self})
+(@var{self}.map-in-order* @ameta{proc})
+@expansion{} (map-in-order* @cmeta{proc} @var{self})
 @end example
 @end defmethod
 
@@ -3530,8 +3530,8 @@ Implement the expansion:
 Implement the expansion:
 
 @example
-(@cmeta{self}.map! @cmeta{proc})
-@expansion{} (set! @cmeta{self} (map! @cmeta{proc} @cmeta{self}))
+(@var{self}.map! @cmeta{proc})
+@expansion{} (set! @var{self} (map! @cmeta{proc} @var{self}))
 @end example
 @end defmethod
 
@@ -3540,8 +3540,8 @@ Implement the expansion:
 Implement the expansion:
 
 @example
-(@cmeta{self}.pair-for-each @cmeta{proc})
-@expansion{} (pair-for-each @cmeta{proc} @cmeta{self})
+(@var{self}.pair-for-each @cmeta{proc})
+@expansion{} (pair-for-each @cmeta{proc} @var{self})
 @end example
 @end defmethod
 
@@ -3550,8 +3550,8 @@ Implement the expansion:
 Implement the expansion:
 
 @example
-(@cmeta{self}.filter-map @cmeta{proc})
-@expansion{} (filter-map @cmeta{proc} @cmeta{self})
+(@var{self}.filter-map @cmeta{proc})
+@expansion{} (filter-map @cmeta{proc} @var{self})
 @end example
 @end defmethod
 
@@ -3560,8 +3560,8 @@ Implement the expansion:
 Implement the expansion:
 
 @example
-(@cmeta{self}.filter! @cmeta{predicate})
-@expansion{} (set! @cmeta{self} (filter! @cmeta{predicate} @cmeta{self}))
+(@var{self}.filter! @cmeta{predicate})
+@expansion{} (set! @var{self} (filter! @cmeta{predicate} @var{self}))
 @end example
 @end defmethod
 
@@ -3570,8 +3570,8 @@ Implement the expansion:
 Implement the expansion:
 
 @example
-(@cmeta{self}.remove* @cmeta{predicate})
-@expansion{} (remove* @cmeta{predicate} @cmeta{self})
+(@var{self}.remove* @cmeta{predicate})
+@expansion{} (remove* @cmeta{predicate} @var{self})
 @end example
 @end defmethod
 
@@ -3580,8 +3580,8 @@ Implement the expansion:
 Implement the expansion:
 
 @example
-(@cmeta{self}.remove*! @cmeta{predicate})
-@expansion{} (set! @cmeta{self} (remove*! @cmeta{predicate} @cmeta{self}))
+(@var{self}.remove*! @cmeta{predicate})
+@expansion{} (set! @var{self} (remove*! @cmeta{predicate} @var{self}))
 @end example
 @end defmethod
 
@@ -3590,8 +3590,8 @@ Implement the expansion:
 Implement the expansion:
 
 @example
-(@cmeta{self}.find-tail @cmeta{predicate})
-@expansion{} (find-tail @cmeta{predicate} @cmeta{self})
+(@var{self}.find-tail @cmeta{predicate})
+@expansion{} (find-tail @cmeta{predicate} @var{self})
 @end example
 @end defmethod
 
@@ -3600,8 +3600,8 @@ Implement the expansion:
 Implement the expansion:
 
 @example
-(@cmeta{self}.take-while @cmeta{predicate})
-@expansion{} (take-while @cmeta{predicate} @cmeta{self})
+(@var{self}.take-while @cmeta{predicate})
+@expansion{} (take-while @cmeta{predicate} @var{self})
 @end example
 @end defmethod
 
@@ -3610,8 +3610,8 @@ Implement the expansion:
 Implement the expansion:
 
 @example
-(@cmeta{self}.take-while! @cmeta{predicate})
-@expansion{} (set! @cmeta{self} (take-while! @cmeta{predicate} @cmeta{self}))
+(@var{self}.take-while! @cmeta{predicate})
+@expansion{} (set! @var{self} (take-while! @cmeta{predicate} @var{self}))
 @end example
 @end defmethod
 
@@ -3620,8 +3620,8 @@ Implement the expansion:
 Implement the expansion:
 
 @example
-(@cmeta{self}.drop-while @cmeta{predicate})
-@expansion{} (drop-while @cmeta{predicate} @cmeta{self})
+(@var{self}.drop-while @cmeta{predicate})
+@expansion{} (drop-while @cmeta{predicate} @var{self})
 @end example
 @end defmethod
 
@@ -3630,8 +3630,8 @@ Implement the expansion:
 Implement the expansion:
 
 @example
-(@cmeta{self}.drop-while! @cmeta{predicate})
-@expansion{} (set! @cmeta{self} (drop-while @cmeta{predicate} @cmeta{self}))
+(@var{self}.drop-while! @cmeta{predicate})
+@expansion{} (set! @var{self} (drop-while @cmeta{predicate} @var{self}))
 @end example
 @end defmethod
 
@@ -3640,8 +3640,8 @@ Implement the expansion:
 Implement the expansion:
 
 @example
-(@cmeta{self}.span @cmeta{predicate})
-@expansion{} (span @cmeta{predicate} @cmeta{self})
+(@var{self}.span @cmeta{predicate})
+@expansion{} (span @cmeta{predicate} @var{self})
 @end example
 @end defmethod
 
@@ -3650,8 +3650,8 @@ Implement the expansion:
 Implement the expansion:
 
 @example
-(@cmeta{self}.break @cmeta{predicate})
-@expansion{} (break @cmeta{predicate} @cmeta{self})
+(@var{self}.break @cmeta{predicate})
+@expansion{} (break @cmeta{predicate} @var{self})
 @end example
 @end defmethod
 
@@ -3660,8 +3660,8 @@ Implement the expansion:
 Implement the expansion:
 
 @example
-(@cmeta{self}.any @cmeta{predicate})
-@expansion{} (any @cmeta{predicate} @cmeta{self})
+(@var{self}.any @cmeta{predicate})
+@expansion{} (any @cmeta{predicate} @var{self})
 @end example
 @end defmethod
 
@@ -3670,8 +3670,8 @@ Implement the expansion:
 Implement the expansion:
 
 @example
-(@cmeta{self}.every @cmeta{predicate})
-@expansion{} (every @cmeta{predicate} @cmeta{self})
+(@var{self}.every @cmeta{predicate})
+@expansion{} (every @cmeta{predicate} @var{self})
 @end example
 @end defmethod
 
@@ -3680,8 +3680,8 @@ Implement the expansion:
 Implement the expansion:
 
 @example
-(@cmeta{self}.list-index @cmeta{predicate})
-@expansion{} (list-index @cmeta{predicate} @cmeta{self})
+(@var{self}.list-index @cmeta{predicate})
+@expansion{} (list-index @cmeta{predicate} @var{self})
 @end example
 @end defmethod
 
@@ -3691,11 +3691,11 @@ Implement the expansion:
 Implement the expansions:
 
 @example
-(@cmeta{self}.member* @cmeta{obj})
-@expansion{} (member* @cmeta{obj} @cmeta{self})
+(@var{self}.member* @cmeta{obj})
+@expansion{} (member* @cmeta{obj} @var{self})
 
-(@cmeta{self}.member* @cmeta{obj} @cmeta{item=})
-@expansion{} (member* @cmeta{obj} @cmeta{self} @cmeta{item=})
+(@var{self}.member* @cmeta{obj} @cmeta{item=})
+@expansion{} (member* @cmeta{obj} @var{self} @cmeta{item=})
 @end example
 @end defmethod
 
@@ -3704,8 +3704,8 @@ Implement the expansions:
 Implement the expansion:
 
 @example
-(@cmeta{self}.position @cmeta{obj})
-@expansion{} (position @cmeta{obj} @cmeta{self})
+(@var{self}.position @cmeta{obj})
+@expansion{} (position @cmeta{obj} @var{self})
 @end example
 @end defmethod
 
@@ -3715,11 +3715,11 @@ Implement the expansion:
 Implement the expansions:
 
 @example
-(@cmeta{self}.delete @cmeta{obj})
-@expansion{} (delete @cmeta{obj} @cmeta{self})
+(@var{self}.delete @cmeta{obj})
+@expansion{} (delete @cmeta{obj} @var{self})
 
-(@cmeta{self}.delete @cmeta{obj} @cmeta{item=})
-@expansion{} (delete @cmeta{obj} @cmeta{self} @cmeta{item=})
+(@var{self}.delete @cmeta{obj} @cmeta{item=})
+@expansion{} (delete @cmeta{obj} @var{self} @cmeta{item=})
 @end example
 @end defmethod
 
@@ -3729,11 +3729,11 @@ Implement the expansions:
 Implement the expansions:
 
 @example
-(@cmeta{self}.delete! @cmeta{obj})
-@expansion{} (set! @cmeta{self} (delete! @cmeta{obj} @cmeta{self}))
+(@var{self}.delete! @cmeta{obj})
+@expansion{} (set! @var{self} (delete! @cmeta{obj} @var{self}))
 
-(@cmeta{self}.delete! @cmeta{obj} @cmeta{item=})
-@expansion{} (set! @cmeta{self} (delete! @cmeta{obj} @cmeta{self} @cmeta{item=}))
+(@var{self}.delete! @cmeta{obj} @cmeta{item=})
+@expansion{} (set! @var{self} (delete! @cmeta{obj} @var{self} @cmeta{item=}))
 @end example
 @end defmethod
 
@@ -3743,11 +3743,11 @@ Implement the expansions:
 Implement the expansions:
 
 @example
-(@cmeta{self}.delete-duplicates)
-@expansion{} (delete-duplicates @cmeta{self})
+(@var{self}.delete-duplicates)
+@expansion{} (delete-duplicates @var{self})
 
-(@cmeta{self}.delete-duplicates @cmeta{item=})
-@expansion{} (delete-duplicates @cmeta{self} @cmeta{item=})
+(@var{self}.delete-duplicates @cmeta{item=})
+@expansion{} (delete-duplicates @var{self} @cmeta{item=})
 @end example
 @end defmethod
 
@@ -3757,11 +3757,11 @@ Implement the expansions:
 Implement the expansions:
 
 @example
-(@cmeta{self}.delete-duplicates!)
-@expansion{} (set! @cmeta{self} (delete-duplicates! @cmeta{self}))
+(@var{self}.delete-duplicates!)
+@expansion{} (set! @var{self} (delete-duplicates! @var{self}))
 
-(@cmeta{self}.delete-duplicates! @cmeta{item=})
-@expansion{} (set! @cmeta{self} (delete-duplicates! @cmeta{self} @cmeta{item=}))
+(@var{self}.delete-duplicates! @cmeta{item=})
+@expansion{} (set! @var{self} (delete-duplicates! @var{self} @cmeta{item=}))
 @end example
 @end defmethod
 
@@ -3770,8 +3770,8 @@ Implement the expansions:
 Implement the expansion:
 
 @example
-(@cmeta{self}.sorted-list-insert @cmeta{obj} @cmeta{item>})
-@expansion{} (sorted-list-insert @cmeta{obj} @cmeta{self} @cmeta{item>})
+(@var{self}.sorted-list-insert @cmeta{obj} @cmeta{item>})
+@expansion{} (sorted-list-insert @cmeta{obj} @var{self} @cmeta{item>})
 @end example
 @end defmethod
 
@@ -3780,8 +3780,8 @@ Implement the expansion:
 Implement the expansion:
 
 @example
-(@cmeta{self}.sorted-list-insert! @cmeta{obj} @cmeta{item>})
-@expansion{} (set! @cmeta{self} (sorted-list-insert @cmeta{obj} @cmeta{self} @cmeta{item>}))
+(@var{self}.sorted-list-insert! @cmeta{obj} @cmeta{item>})
+@expansion{} (set! @var{self} (sorted-list-insert @cmeta{obj} @var{self} @cmeta{item>}))
 @end example
 @end defmethod
 
@@ -3790,8 +3790,8 @@ Implement the expansion:
 Implement the expansion:
 
 @example
-(@cmeta{self}.sorted-list-insert/uniq @cmeta{obj} @cmeta{item<} @cmeta{item>})
-@expansion{} (sorted-list-insert/uniq @cmeta{obj} @cmeta{self} @cmeta{item<} @cmeta{item>})
+(@var{self}.sorted-list-insert/uniq @cmeta{obj} @cmeta{item<} @cmeta{item>})
+@expansion{} (sorted-list-insert/uniq @cmeta{obj} @var{self} @cmeta{item<} @cmeta{item>})
 @end example
 @end defmethod
 
@@ -3800,8 +3800,8 @@ Implement the expansion:
 Implement the expansion:
 
 @example
-(@cmeta{self}.sorted-list-insert/uniq! @cmeta{obj} @cmeta{item<} @cmeta{item>})
-@expansion{} (set! @cmeta{self} (sorted-list-insert/uniq @cmeta{obj} @cmeta{self} @cmeta{item<} @cmeta{item>}))
+(@var{self}.sorted-list-insert/uniq! @cmeta{obj} @cmeta{item<} @cmeta{item>})
+@expansion{} (set! @var{self} (sorted-list-insert/uniq @cmeta{obj} @var{self} @cmeta{item<} @cmeta{item>}))
 @end example
 @end defmethod
 
