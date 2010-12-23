@@ -26,6 +26,7 @@ low level interface with the same functionalities.
 * strings replicate::           Replicate and rotate.
 * strings mutate::              Mutators.
 * strings misc::                Miscellaneous functions.
+* strings class::               Label string interface.
 @end menu
 
 @c page
@@ -1870,5 +1871,36 @@ Reverse the string.  @func{%string-reverse} returns the result string
 and does not alter its @var{str} parameter.  @func{%string-reverse!} is
 the in--place side--effecting variant.
 @end deffn
+
+@c page
+@node strings class
+@section Label string interface
+
+
+The @library{strings xstrings} library exports the single binding
+@class{xstring}, which provides an interface to the @library{strings}
+functions through the facilities of the @library{classes} library.
+
+
+@deftp Label @aclass{xstring}
+Label interface to the string functions.  It is derived from the foreign
+class @class{string}, inheriting all its fields and methods.
+@end deftp
+
+
+All the following methods are implemented as syntaxes; in all the
+following descriptions: @var{self} is an identifier bound to the subject
+string.
+
+
+@defmethod @aclass{xstring} string-copy
+Implement the expansion:
+
+@example
+(@var{self}.string-copy)
+@expansion{} (string-copy @var{self})
+@end example
+@end defmethod
+
 
 @c end of file

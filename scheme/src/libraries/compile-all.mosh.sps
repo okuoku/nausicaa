@@ -61,6 +61,7 @@
   (only (asciis))
   (only (bytevectors u8))
   (only (strings))
+  (only (strings xstrings))
   (only (streams))
   (only (vectors))
   (only (debugging))
