@@ -364,8 +364,8 @@ Return @true{} if @var{obj} is the empty vector, otherwise return
 
 @deffn Function %vector-every @var{pred} @var{vec} @var{start} @var{past}
 @deffnx Function %vector-any @var{pred} @var{vec} @var{start} @var{past}
-@deffnx Macro vector-every @var{pred} @var{V}
-@deffnx Macro vector-any @var{pred} @var{V}
+@deffnx Macro subvector-every @var{pred} @var{V}
+@deffnx Macro subvector-any @var{pred} @var{V}
 Check to see if the given predicate is true on every/any item in
 @var{vec}, proceeding from left (index @var{start}) to right (index
 @var{past}).  If the selected subvector is empty, the return value is
@@ -375,12 +375,12 @@ The predicate is ``witness--generating'':
 
 @itemize
 @item
-If @func{vector-any} returns true: The returned true value is the one
+If @func{subvector-any} returns true: the returned true value is the one
 produced by the application of the predicate.
 
 @item
-If @func{vector-every} returns true: The returned true value is the one
-produced by the application of the predicate to the last item in the
+If @func{subvector-every} returns true: the returned true value is the
+one produced by the application of the predicate to the last item in the
 subvector.
 @end itemize
 
@@ -391,6 +391,14 @@ The names of these procedures do not end with a question mark; this is
 to indicate that they do not return a simple boolean (@true{} or
 @false{}), but a general value.
 @end deffn
+
+
+@defun vector-every @var{pred} @varo{vec} @var{vec} ...
+@defunx vector-any @var{pred} @varo{vec} @var{vec} ...
+Like @func{subvector-every} and @func{subvector-any}, but apply the
+predicate to the elements of all the vectors used as arguments.  All the
+arguments must have the same number of elements.
+@end defun
 
 @c page
 @node vectors compar
