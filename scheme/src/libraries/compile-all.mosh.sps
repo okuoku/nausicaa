@@ -44,6 +44,7 @@
   (only (deferred-exceptions))
   (only (compensations))
   (only (nausicaa))
+  (only (nausicaa mutable-pairs))
 
   ;; Basic libraries
   (only (old-generics))
