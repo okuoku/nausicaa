@@ -54,17 +54,17 @@
        (string-tabulate o . ?args))))
 
   ;; predicates
-  (method-syntax string-null?
+  (method-syntax null?
     (syntax-rules ()
       ((_ o . ?args)
        (string-null? o . ?args))))
 
-  (method-syntax string-every
+  (method-syntax every
     (syntax-rules ()
       ((_ o . ?args)
        (string-every o . ?args))))
 
-  (method-syntax string-any
+  (method-syntax any
     (syntax-rules ()
       ((_ o . ?args)
        (string-any o . ?args))))
@@ -628,15 +628,10 @@
        (string-delete o . ?args))))
 
   ;; lists
-  (method-syntax >list*
+  (method-syntax list*
     (syntax-rules ()
       ((_ o . ?args)
        (string->list* o . ?args))))
-
-  (method-syntax reverse-list->string
-    (syntax-rules ()
-      ((_ o . ?args)
-       (reverse-list->string o . ?args))))
 
   (method-syntax join
     (syntax-rules ()
