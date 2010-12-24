@@ -242,12 +242,12 @@ Label for handling mutable pairs through the facilities of the
 @end deftp
 
 
-@defcv {Mutable Virtual Field} car
+@defcv {Mutable Virtual Field} @aclass{mutable-pair} car
 Access and mutate the car of a pair.
 @end defcv
 
 
-@defcv {Mutable Virtual Field} cdr
+@defcv {Mutable Virtual Field} @aclass{mutable-pair} cdr
 Access and mutate the cdr of a pair.
 @end defcv
 
