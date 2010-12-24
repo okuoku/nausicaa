@@ -328,7 +328,7 @@ accumulated data into a single vector when done.
 @end deffn
 
 
-@defun Function vector-append @var{vec} ...
+@defun vector-append @var{vec} ...
 Return a newly allocated vector that contains all elements in order from
 the subsequent locations in the vector arguments.
 
@@ -1518,8 +1518,7 @@ class @class{vector}, inheriting all its fields and methods.
 
 
 All the following methods are implemented as syntaxes; in all the
-following descriptions: @var{self} is an identifier bound to the subject
-vector.
+descriptions: @var{self} is an identifier bound to the subject vector.
 
 @c ------------------------------------------------------------
 
@@ -1545,20 +1544,20 @@ Implement the expansion:
 @end defmethod
 @end macro
 
-@macro XvectorMethodNoDash{NAME}
-@defmethod @aclass{xvector} \NAME\ . @var{args}
+@macro XvectorMethodCompare{NAME}
+@defmethod @aclass{xvector} \NAME\ @var{item=} . @var{args}
 Implement the expansion:
 
 @example
-(@var{self}.\NAME\ . @var{args})
-@expansion{} (vector\NAME\ @var{self} . @var{args})
-@c                  ^
+(@var{self}.\NAME\ @var{item=} . @var{args})
+@expansion{} (vector\NAME\ @var{item=} @var{self} . @var{args})
+@c                 *^*
 @end example
 @end defmethod
 @end macro
 
 @macro XvectorMethodMap{NAME}
-@defmethod @aclass{xvector} \NAME\ . @var{args}
+@defmethod @aclass{xvector} \NAME\ @var{proc} . @var{args}
 Implement the expansion:
 
 @example
@@ -1568,12 +1567,23 @@ Implement the expansion:
 @end defmethod
 @end macro
 
+@macro XvectorMethodFold{NAME}
+@defmethod @aclass{xvector} \NAME\ @var{proc} @var{knil} . @var{args}
+Implement the expansion:
+
+@example
+(@var{self}.\NAME\ @var{proc} @var{knil} . @var{args})
+@expansion{} (vector-\NAME\ @var{proc} @var{knil} @var{self} . @var{args})
+@end example
+@end defmethod
+@end macro
+
 @c ------------------------------------------------------------
 
 @subsubheading Constructors
 
 @defmethod @aclass{xvector} concatenate @var{list-of-vectors}
-Implement the expansion:
+Implement the expansions:
 
 @example
 (@var{self}.concatenate @var{list-of-vectors})
@@ -1581,78 +1591,98 @@ Implement the expansion:
 @end example
 @end defmethod
 
-@XvectorMethod{concatenate-reverse}
+
+@defmethod @aclass{xvector} concatenate-reverse @var{list-of-vectors}
+@defmethodx @aclass{xvector} concatenate-reverse @var{list-of-vectors} @var{final-vector}
+@defmethodx @aclass{xvector} concatenate-reverse @var{list-of-vectors} @var{final-vector} @var{nvalues}
+Implement the expansions:
+
+@example
+(@var{self}.concatenate-reverse @var{list-of-vectors})
+@expansion{} (vector-concatenate-reverse
+     (cons @var{self} @var{list-of-vectors}))
+
+(@var{self}.concatenate-reverse @var{list-of-vectors}
+                          @var{final-vector})
+@expansion{} (vector-concatenate-reverse
+     (cons @var{self} @var{list-of-vectors})
+     @var{final-vector})
+
+(@var{self}.concatenate-reverse @var{list-of-vectors}
+                          @var{final-vector} @var{nvalues})
+@expansion{} (vector-concatenate-reverse
+     (cons @var{self} @var{list-of-vectors})
+     @var{final-vector} @var{nvalues})
+@end example
+@end defmethod
+
 @XvectorMethod{append}
 
 @subsubheading Predicates
 
 @XvectorMethod{null?}
-@XvectorMethod{subvector-every}
-@XvectorMethod{every}
-@XvectorMethod{subvector-any}
-@XvectorMethod{any}
+@XvectorMethodMap{every}
+@XvectorMethodMap{any}
 
 @subsubheading Comparison
 
-@XvectorMethodNoDash{=}
-@XvectorMethodNoDash{<>}
-@XvectorMethodNoDash{<}
-@XvectorMethodNoDash{<=}
-@XvectorMethodNoDash{>}
-@XvectorMethodNoDash{>=}
+@XvectorMethodCompare{=}
+@XvectorMethodCompare{<>}
+@XvectorMethodCompare{<}
+@XvectorMethodCompare{<=}
+@XvectorMethodCompare{>}
+@XvectorMethodCompare{>=}
 
 @subsubheading Mapping
 
-@XvectorMethod{map/with-index}
-@XvectorMethod{map!}
-@XvectorMethod{map!/with-index}
-@XvectorMethod{map*}
-@XvectorMethod{map*/with-index}
-@XvectorMethod{map*!}
-@XvectorMethod{map*!/with-index}
-@XvectorMethod{for-each*}
-@XvectorMethod{for-each*/with-index}
-@XvectorMethod{subvector-map}
-@XvectorMethod{subvector-map/with-index}
-@XvectorMethod{subvector-map!}
-@XvectorMethod{subvector-map!/with-index}
-@XvectorMethod{subvector-for-each}
-@XvectorMethod{subvector-for-each/with-index}
-@XvectorMethod{subvector-for-each-index}
-@XvectorMethod{map/stx}
-@XvectorMethod{map*/stx}
-@XvectorMethod{map!/stx}
-@XvectorMethod{map*!/stx}
-@XvectorMethod{for-each/stx}
-@XvectorMethod{for-each*/stx}
+@XvectorMethodMap{map/with-index}
+@XvectorMethodMap{map!}
+@XvectorMethodMap{map!/with-index}
+@XvectorMethodMap{map*}
+@XvectorMethodMap{map*/with-index}
+@XvectorMethodMap{map*!}
+@XvectorMethodMap{map*!/with-index}
+@XvectorMethodMap{for-each*}
+@XvectorMethodMap{for-each*/with-index}
+@XvectorMethodMap{subvector-map}
+@XvectorMethodMap{subvector-map/with-index}
+@XvectorMethodMap{subvector-map!}
+@XvectorMethodMap{subvector-map!/with-index}
+@XvectorMethodMap{subvector-for-each}
+@XvectorMethodMap{subvector-for-each/with-index}
+@XvectorMethodMap{subvector-for-each-index}
+@XvectorMethodMap{map/stx}
+@XvectorMethodMap{map*/stx}
+@XvectorMethodMap{map!/stx}
+@XvectorMethodMap{map*!/stx}
+@XvectorMethodMap{for-each/stx}
+@XvectorMethodMap{for-each*/stx}
 
 @subsubheading Folding
 
-@XvectorMethod{fold-left}
-@XvectorMethod{fold-right}
-@XvectorMethod{fold-left*}
-@XvectorMethod{fold-right*}
-@XvectorMethod{fold-left/stx}
-@XvectorMethod{fold-right/stx}
-@XvectorMethod{fold-left*/stx}
-@XvectorMethod{fold-right*/stx}
-@XvectorMethod{fold-left/with-index}
-@XvectorMethod{fold-right/with-index}
-@XvectorMethod{fold-left*/with-index}
-@XvectorMethod{fold-right*/with-index}
-@XvectorMethod{subvector-fold-left}
-@XvectorMethod{subvector-fold-right}
-@XvectorMethod{unfold}
-@XvectorMethod{unfold-right}
-@XvectorMethod{and-fold-left}
-@XvectorMethod{and-fold-right}
-@XvectorMethod{and-fold-left*}
-@XvectorMethod{and-fold-right*}
-@XvectorMethod{and-fold-left/stx}
-@XvectorMethod{and-fold-right/stx}
-@XvectorMethod{and-fold-left*/stx}
-@XvectorMethod{and-fold-right*/stx}
-@XvectorMethod{fold-left/pred}
+@XvectorMethodFold{fold-left}
+@XvectorMethodFold{fold-right}
+@XvectorMethodFold{fold-left*}
+@XvectorMethodFold{fold-right*}
+@XvectorMethodFold{fold-left/stx}
+@XvectorMethodFold{fold-right/stx}
+@XvectorMethodFold{fold-left*/stx}
+@XvectorMethodFold{fold-right*/stx}
+@XvectorMethodFold{fold-left/with-index}
+@XvectorMethodFold{fold-right/with-index}
+@XvectorMethodFold{fold-left*/with-index}
+@XvectorMethodFold{fold-right*/with-index}
+@XvectorMethodFold{subvector-fold-left}
+@XvectorMethodFold{subvector-fold-right}
+@XvectorMethodFold{and-fold-left}
+@XvectorMethodFold{and-fold-right}
+@XvectorMethodFold{and-fold-left*}
+@XvectorMethodFold{and-fold-right*}
+@XvectorMethodFold{and-fold-left/stx}
+@XvectorMethodFold{and-fold-right/stx}
+@XvectorMethodFold{and-fold-left*/stx}
+@XvectorMethodFold{and-fold-right*/stx}
+@XvectorMethodFold{fold-left/pred}
 
 @subsubheading Selecting
 
