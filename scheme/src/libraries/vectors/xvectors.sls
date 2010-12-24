@@ -58,308 +58,280 @@
       ((_ o . ?args)
        (vector-append o . ?args))))
 
-
   ;; predicates
   (method-syntax null?
     (syntax-rules ()
       ((_ o . ?args)
        (vector-null? o . ?args))))
 
-  (method-syntax subvector-every
-    (syntax-rules ()
-      ((_ o . ?args)
-       (subvector-every o . ?args))))
-
   (method-syntax every
     (syntax-rules ()
-      ((_ o . ?args)
-       (vector-every o . ?args))))
-
-  (method-syntax subvector-any
-    (syntax-rules ()
-      ((_ o . ?args)
-       (subvector-any o . ?args))))
+      ((_ o ?proc . ?args)
+       (vector-every ?proc  o . ?args))))
 
   (method-syntax any
     (syntax-rules ()
-      ((_ o . ?args)
-       (vector-any o . ?args))))
+      ((_ o ?proc . ?args)
+       (vector-any ?proc o . ?args))))
 
   ;; comparison
-  (method-syntax compare
-    (syntax-rules ()
-      ((_ o . ?args)
-       (vector-compare o . ?args))))
-
   (method-syntax =
     (syntax-rules ()
-      ((_ o . ?args)
-       (vector= o . ?args))))
+      ((_ o ?item= . ?args)
+       (vector= ?item= o . ?args))))
 
   (method-syntax <>
     (syntax-rules ()
-      ((_ o . ?args)
-       (vector<> o . ?args))))
+      ((_ o ?item= . ?args)
+       (vector<> ?item= o . ?args))))
 
   (method-syntax <
     (syntax-rules ()
-      ((_ o . ?args)
-       (vector< o . ?args))))
+      ((_ o ?item= ?item< . ?args)
+       (vector< ?item= ?item< o . ?args))))
 
   (method-syntax <=
     (syntax-rules ()
-      ((_ o . ?args)
-       (vector<= o . ?args))))
+      ((_ o ?item= ?item< . ?args)
+       (vector<= ?item= ?item< o . ?args))))
 
   (method-syntax >
     (syntax-rules ()
-      ((_ o . ?args)
-       (vector> o . ?args))))
+      ((_ o ?item= ?item< . ?args)
+       (vector> ?item= ?item< o . ?args))))
 
   (method-syntax >=
     (syntax-rules ()
-      ((_ o . ?args)
-       (vector>= o . ?args))))
-
+      ((_ o ?item= ?item< . ?args)
+       (vector>= ?item= ?item< o . ?args))))
 
   ;; mapping
   (method-syntax map/with-index
     (syntax-rules ()
-      ((_ o . ?args)
-       (vector-map/with-index o . ?args))))
+      ((_ o ?proc . ?args)
+       (vector-map/with-index ?proc o . ?args))))
 
   (method-syntax map!
     (syntax-rules ()
-      ((_ o . ?args)
-       (vector-map! o . ?args))))
+      ((_ o ?proc . ?args)
+       (vector-map! ?proc o . ?args))))
 
   (method-syntax map!/with-index
     (syntax-rules ()
-      ((_ o . ?args)
-       (vector-map!/with-index o . ?args))))
+      ((_ o ?proc . ?args)
+       (vector-map!/with-index ?proc o . ?args))))
 
   (method-syntax map*
     (syntax-rules ()
-      ((_ o . ?args)
-       (vector-map* o . ?args))))
+      ((_ o ?proc . ?args)
+       (vector-map* ?proc o . ?args))))
 
   (method-syntax map*/with-index
     (syntax-rules ()
-      ((_ o . ?args)
-       (vector-map*/with-index o . ?args))))
+      ((_ o ?proc . ?args)
+       (vector-map*/with-index ?proc o . ?args))))
 
   (method-syntax map*!
     (syntax-rules ()
-      ((_ o . ?args)
-       (vector-map*! o . ?args))))
+      ((_ o ?proc . ?args)
+       (vector-map*! ?proc o . ?args))))
 
   (method-syntax map*!/with-index
     (syntax-rules ()
-      ((_ o . ?args)
-       (vector-map*!/with-index o . ?args))))
+      ((_ o ?proc . ?args)
+       (vector-map*!/with-index ?proc o . ?args))))
 
   (method-syntax for-each*
     (syntax-rules ()
-      ((_ o . ?args)
-       (vector-for-each* o . ?args))))
+      ((_ o ?proc . ?args)
+       (vector-for-each* ?proc o . ?args))))
 
   (method-syntax for-each*/with-index
     (syntax-rules ()
-      ((_ o . ?args)
-       (vector-for-each*/with-index o . ?args))))
+      ((_ o ?proc . ?args)
+       (vector-for-each*/with-index ?proc o . ?args))))
 
   (method-syntax subvector-map
     (syntax-rules ()
-      ((_ o . ?args)
-       (subvector-map o . ?args))))
+      ((_ o ?proc . ?args)
+       (subvector-map ?proc o . ?args))))
 
   (method-syntax subvector-map/with-index
     (syntax-rules ()
-      ((_ o . ?args)
-       (subvector-map/with-index o . ?args))))
+      ((_ o ?proc . ?args)
+       (subvector-map/with-index ?proc o . ?args))))
 
   (method-syntax subvector-map!
     (syntax-rules ()
-      ((_ o . ?args)
-       (subvector-map! o . ?args))))
+      ((_ o ?proc . ?args)
+       (subvector-map! ?proc o . ?args))))
 
   (method-syntax subvector-map!/with-index
     (syntax-rules ()
-      ((_ o . ?args)
-       (subvector-map!/with-index o . ?args))))
+      ((_ o ?proc . ?args)
+       (subvector-map!/with-index ?proc o . ?args))))
 
   (method-syntax subvector-for-each
     (syntax-rules ()
-      ((_ o . ?args)
-       (subvector-for-each o . ?args))))
+      ((_ o ?proc . ?args)
+       (subvector-for-each ?proc o . ?args))))
 
   (method-syntax subvector-for-each/with-index
     (syntax-rules ()
-      ((_ o . ?args)
-       (subvector-for-each/with-index o . ?args))))
+      ((_ o ?proc . ?args)
+       (subvector-for-each/with-index ?proc o . ?args))))
 
   (method-syntax subvector-for-each-index
     (syntax-rules ()
-      ((_ o . ?args)
-       (subvector-for-each-index o . ?args))))
+      ((_ o ?proc . ?args)
+       (subvector-for-each-index ?proc o . ?args))))
 
 
   (method-syntax map/stx
     (syntax-rules ()
-      ((_ o . ?args)
-       (vector-map/stx o . ?args))))
+      ((_ o ?proc . ?args)
+       (vector-map/stx ?proc o . ?args))))
 
   (method-syntax map*/stx
     (syntax-rules ()
-      ((_ o . ?args)
-       (vector-map*/stx o . ?args))))
+      ((_ o ?proc . ?args)
+       (vector-map*/stx ?proc o . ?args))))
 
   (method-syntax map!/stx
     (syntax-rules ()
-      ((_ o . ?args)
-       (vector-map!/stx o . ?args))))
+      ((_ o ?proc . ?args)
+       (vector-map!/stx ?proc o . ?args))))
 
   (method-syntax map*!/stx
     (syntax-rules ()
-      ((_ o . ?args)
-       (vector-map*!/stx o . ?args))))
+      ((_ o ?proc . ?args)
+       (vector-map*!/stx ?proc o . ?args))))
 
   (method-syntax for-each/stx
     (syntax-rules ()
-      ((_ o . ?args)
-       (vector-for-each/stx o . ?args))))
+      ((_ o ?proc . ?args)
+       (vector-for-each/stx ?proc o . ?args))))
 
   (method-syntax for-each*/stx
     (syntax-rules ()
-      ((_ o . ?args)
-       (vector-for-each*/stx o . ?args))))
-
+      ((_ o ?proc . ?args)
+       (vector-for-each*/stx ?proc o . ?args))))
 
   ;; folding
   (method-syntax fold-left
     (syntax-rules ()
-      ((_ o . ?args)
-       (vector-fold-left o . ?args))))
+      ((_ o ?proc ?knil . ?args)
+       (vector-fold-left ?proc ?knil o . ?args))))
 
   (method-syntax fold-right
     (syntax-rules ()
-      ((_ o . ?args)
-       (vector-fold-right o . ?args))))
+      ((_ o ?proc ?knil . ?args)
+       (vector-fold-right ?proc ?knil o . ?args))))
 
   (method-syntax fold-left*
     (syntax-rules ()
-      ((_ o . ?args)
-       (vector-fold-left* o . ?args))))
+      ((_ o ?proc ?knil . ?args)
+       (vector-fold-left* ?proc ?knil o . ?args))))
 
   (method-syntax fold-right*
     (syntax-rules ()
-      ((_ o . ?args)
-       (vector-fold-right* o . ?args))))
+      ((_ o ?proc ?knil . ?args)
+       (vector-fold-right* ?proc ?knil o . ?args))))
 
   (method-syntax fold-left/stx
     (syntax-rules ()
-      ((_ o . ?args)
-       (vector-fold-left/stx o . ?args))))
+      ((_ o ?proc ?knil . ?args)
+       (vector-fold-left/stx ?proc ?knil o . ?args))))
 
   (method-syntax fold-right/stx
     (syntax-rules ()
-      ((_ o . ?args)
-       (vector-fold-right/stx o . ?args))))
+      ((_ o ?proc ?knil . ?args)
+       (vector-fold-right/stx ?proc ?knil o . ?args))))
 
   (method-syntax fold-left*/stx
     (syntax-rules ()
-      ((_ o . ?args)
-       (vector-fold-left*/stx o . ?args))))
+      ((_ o ?proc ?knil . ?args)
+       (vector-fold-left*/stx ?proc ?knil o . ?args))))
 
   (method-syntax fold-right*/stx
     (syntax-rules ()
-      ((_ o . ?args)
-       (vector-fold-right*/stx o . ?args))))
+      ((_ o ?proc ?knil . ?args)
+       (vector-fold-right*/stx ?proc ?knil o . ?args))))
 
   (method-syntax fold-left/with-index
     (syntax-rules ()
-      ((_ o . ?args)
-       (vector-fold-left/with-index o . ?args))))
+      ((_ o ?proc ?knil . ?args)
+       (vector-fold-left/with-index ?proc ?knil o . ?args))))
 
   (method-syntax fold-right/with-index
     (syntax-rules ()
-      ((_ o . ?args)
-       (vector-fold-right/with-index o . ?args))))
+      ((_ o ?proc ?knil . ?args)
+       (vector-fold-right/with-index ?proc ?knil o . ?args))))
 
   (method-syntax fold-left*/with-index
     (syntax-rules ()
-      ((_ o . ?args)
-       (vector-fold-left*/with-index o . ?args))))
+      ((_ o ?proc ?knil . ?args)
+       (vector-fold-left*/with-index ?proc ?knil o . ?args))))
 
   (method-syntax fold-right*/with-index
     (syntax-rules ()
-      ((_ o . ?args)
-       (vector-fold-right*/with-index o . ?args))))
+      ((_ o ?proc ?knil . ?args)
+       (vector-fold-right*/with-index ?proc ?knil o . ?args))))
 
   (method-syntax subvector-fold-left
     (syntax-rules ()
-      ((_ o . ?args)
-       (subvector-fold-left o . ?args))))
+      ((_ o ?proc ?knil . ?args)
+       (subvector-fold-left ?proc ?knil o . ?args))))
 
   (method-syntax subvector-fold-right
     (syntax-rules ()
-      ((_ o . ?args)
-       (subvector-fold-right o . ?args))))
-
-  (method-syntax unfold
-    (syntax-rules ()
-      ((_ o . ?args)
-       (vector-unfold o . ?args))))
-
-  (method-syntax unfold-right
-    (syntax-rules ()
-      ((_ o . ?args)
-       (vector-unfold-right o . ?args))))
+      ((_ o ?proc ?knil . ?args)
+       (subvector-fold-right ?proc ?knil o . ?args))))
 
   (method-syntax and-fold-left
     (syntax-rules ()
-      ((_ o . ?args)
-       (vector-and-fold-left o . ?args))))
+      ((_ o ?proc ?knil . ?args)
+       (vector-and-fold-left ?proc ?knil o . ?args))))
 
   (method-syntax and-fold-right
     (syntax-rules ()
-      ((_ o . ?args)
-       (vector-and-fold-right o . ?args))))
+      ((_ o ?proc ?knil . ?args)
+       (vector-and-fold-right ?proc ?knil o . ?args))))
 
   (method-syntax and-fold-left*
     (syntax-rules ()
-      ((_ o . ?args)
-       (vector-and-fold-left* o . ?args))))
+      ((_ o ?proc ?knil . ?args)
+       (vector-and-fold-left* ?proc ?knil o . ?args))))
 
   (method-syntax and-fold-right*
     (syntax-rules ()
-      ((_ o . ?args)
-       (vector-and-fold-right* o . ?args))))
+      ((_ o ?proc ?knil . ?args)
+       (vector-and-fold-right* ?proc ?knil o . ?args))))
 
   (method-syntax and-fold-left/stx
     (syntax-rules ()
-      ((_ o . ?args)
-       (vector-and-fold-left/stx o . ?args))))
+      ((_ o ?proc ?knil . ?args)
+       (vector-and-fold-left/stx ?proc ?knil o . ?args))))
 
   (method-syntax and-fold-right/stx
     (syntax-rules ()
-      ((_ o . ?args)
-       (vector-and-fold-right/stx o . ?args))))
+      ((_ o ?proc ?knil . ?args)
+       (vector-and-fold-right/stx ?proc ?knil o . ?args))))
 
   (method-syntax and-fold-left*/stx
     (syntax-rules ()
-      ((_ o . ?args)
-       (vector-and-fold-left*/stx o . ?args))))
+      ((_ o ?proc ?knil . ?args)
+       (vector-and-fold-left*/stx ?proc ?knil o . ?args))))
 
   (method-syntax and-fold-right*/stx
     (syntax-rules ()
-      ((_ o . ?args)
-       (vector-and-fold-right*/stx o . ?args))))
+      ((_ o ?proc ?knil . ?args)
+       (vector-and-fold-right*/stx ?proc ?knil o . ?args))))
 
   (method-syntax fold-left/pred
     (syntax-rules ()
-      ((_ o . ?args)
-       (vector-fold-left/pred o . ?args))))
+      ((_ o ?proc ?knil . ?args)
+       (vector-fold-left/pred ?proc ?knil o . ?args))))
 
   ;; selecting
   (method-syntax subvector
@@ -512,7 +484,7 @@
 
 
   ;; lists
-  (method-syntax >list*
+  (method-syntax list*
     (syntax-rules ()
       ((_ o . ?args)
        (vector->list* o . ?args))))

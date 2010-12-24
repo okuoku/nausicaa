@@ -1523,7 +1523,7 @@ vector.
 
 @c ------------------------------------------------------------
 
-@macro xvectormethod{NAME}
+@macro XvectorMethod{NAME}
 @defmethod @aclass{xvector} \NAME\ . @var{args}
 Implement the expansion:
 
@@ -1534,7 +1534,7 @@ Implement the expansion:
 @end defmethod
 @end macro
 
-@macro xvectormethodSubvector{NAME}
+@macro XvectorMethodSubvector{NAME}
 @defmethod @aclass{xvector} \NAME\ . @var{args}
 Implement the expansion:
 
@@ -1545,7 +1545,7 @@ Implement the expansion:
 @end defmethod
 @end macro
 
-@macro xvectormethodNoDash{NAME}
+@macro XvectorMethodNoDash{NAME}
 @defmethod @aclass{xvector} \NAME\ . @var{args}
 Implement the expansion:
 
@@ -1557,7 +1557,7 @@ Implement the expansion:
 @end defmethod
 @end macro
 
-@macro xvectormethodMap{NAME}
+@macro XvectorMethodMap{NAME}
 @defmethod @aclass{xvector} \NAME\ . @var{args}
 Implement the expansion:
 
@@ -1581,144 +1581,141 @@ Implement the expansion:
 @end example
 @end defmethod
 
-
-@xvectormethod{concatenate}
-@xvectormethod{concatenate-reverse}
-@xvectormethod{append}
+@XvectorMethod{concatenate-reverse}
+@XvectorMethod{append}
 
 @subsubheading Predicates
 
-@xvectormethod{null?}
-@xvectormethod{subvector-every}
-@xvectormethod{every}
-@xvectormethod{subvector-any}
-@xvectormethod{any}
+@XvectorMethod{null?}
+@XvectorMethod{subvector-every}
+@XvectorMethod{every}
+@XvectorMethod{subvector-any}
+@XvectorMethod{any}
 
 @subsubheading Comparison
 
-@xvectormethod{compare}
-@xvectormethodNoDash{=}
-@xvectormethodNoDash{<>}
-@xvectormethodNoDash{<}
-@xvectormethodNoDash{<=}
-@xvectormethodNoDash{>}
-@xvectormethodNoDash{>=}
+@XvectorMethodNoDash{=}
+@XvectorMethodNoDash{<>}
+@XvectorMethodNoDash{<}
+@XvectorMethodNoDash{<=}
+@XvectorMethodNoDash{>}
+@XvectorMethodNoDash{>=}
 
 @subsubheading Mapping
 
-@xvectormethod{map/with-index}
-@xvectormethod{map!}
-@xvectormethod{map!/with-index}
-@xvectormethod{map*}
-@xvectormethod{map*/with-index}
-@xvectormethod{map*!}
-@xvectormethod{map*!/with-index}
-@xvectormethod{for-each*}
-@xvectormethod{for-each*/with-index}
-@xvectormethod{subvector-map}
-@xvectormethod{subvector-map/with-index}
-@xvectormethod{subvector-map!}
-@xvectormethod{subvector-map!/with-index}
-@xvectormethod{subvector-for-each}
-@xvectormethod{subvector-for-each/with-index}
-@xvectormethod{subvector-for-each-index}
-@xvectormethod{map/stx}
-@xvectormethod{map*/stx}
-@xvectormethod{map!/stx}
-@xvectormethod{map*!/stx}
-@xvectormethod{for-each/stx}
-@xvectormethod{for-each*/stx}
+@XvectorMethod{map/with-index}
+@XvectorMethod{map!}
+@XvectorMethod{map!/with-index}
+@XvectorMethod{map*}
+@XvectorMethod{map*/with-index}
+@XvectorMethod{map*!}
+@XvectorMethod{map*!/with-index}
+@XvectorMethod{for-each*}
+@XvectorMethod{for-each*/with-index}
+@XvectorMethod{subvector-map}
+@XvectorMethod{subvector-map/with-index}
+@XvectorMethod{subvector-map!}
+@XvectorMethod{subvector-map!/with-index}
+@XvectorMethod{subvector-for-each}
+@XvectorMethod{subvector-for-each/with-index}
+@XvectorMethod{subvector-for-each-index}
+@XvectorMethod{map/stx}
+@XvectorMethod{map*/stx}
+@XvectorMethod{map!/stx}
+@XvectorMethod{map*!/stx}
+@XvectorMethod{for-each/stx}
+@XvectorMethod{for-each*/stx}
 
 @subsubheading Folding
 
-@xvectormethod{fold-left}
-@xvectormethod{fold-right}
-@xvectormethod{fold-left*}
-@xvectormethod{fold-right*}
-@xvectormethod{fold-left/stx}
-@xvectormethod{fold-right/stx}
-@xvectormethod{fold-left*/stx}
-@xvectormethod{fold-right*/stx}
-@xvectormethod{fold-left/with-index}
-@xvectormethod{fold-right/with-index}
-@xvectormethod{fold-left*/with-index}
-@xvectormethod{fold-right*/with-index}
-@xvectormethod{subvector-fold-left}
-@xvectormethod{subvector-fold-right}
-@xvectormethod{unfold}
-@xvectormethod{unfold-right}
-@xvectormethod{and-fold-left}
-@xvectormethod{and-fold-right}
-@xvectormethod{and-fold-left*}
-@xvectormethod{and-fold-right*}
-@xvectormethod{and-fold-left/stx}
-@xvectormethod{and-fold-right/stx}
-@xvectormethod{and-fold-left*/stx}
-@xvectormethod{and-fold-right*/stx}
-@xvectormethod{fold-left/pred}
+@XvectorMethod{fold-left}
+@XvectorMethod{fold-right}
+@XvectorMethod{fold-left*}
+@XvectorMethod{fold-right*}
+@XvectorMethod{fold-left/stx}
+@XvectorMethod{fold-right/stx}
+@XvectorMethod{fold-left*/stx}
+@XvectorMethod{fold-right*/stx}
+@XvectorMethod{fold-left/with-index}
+@XvectorMethod{fold-right/with-index}
+@XvectorMethod{fold-left*/with-index}
+@XvectorMethod{fold-right*/with-index}
+@XvectorMethod{subvector-fold-left}
+@XvectorMethod{subvector-fold-right}
+@XvectorMethod{unfold}
+@XvectorMethod{unfold-right}
+@XvectorMethod{and-fold-left}
+@XvectorMethod{and-fold-right}
+@XvectorMethod{and-fold-left*}
+@XvectorMethod{and-fold-right*}
+@XvectorMethod{and-fold-left/stx}
+@XvectorMethod{and-fold-right/stx}
+@XvectorMethod{and-fold-left*/stx}
+@XvectorMethod{and-fold-right*/stx}
+@XvectorMethod{fold-left/pred}
 
 @subsubheading Selecting
 
-@xvectormethod{subvector}
-@xvectormethod{subvector*}
-@xvectormethod{copy}
-@xvectormethod{reverse-copy}
-@xvectormethod{copy!}
-@xvectormethod{reverse-copy!}
-@xvectormethod{take}
-@xvectormethod{take-right}
-@xvectormethod{drop}
-@xvectormethod{drop-right}
+@XvectorMethod{subvector}
+@XvectorMethod{subvector*}
+@XvectorMethod{copy}
+@XvectorMethod{reverse-copy}
+@XvectorMethod{copy!}
+@XvectorMethod{reverse-copy!}
+@XvectorMethod{take}
+@XvectorMethod{take-right}
+@XvectorMethod{drop}
+@XvectorMethod{drop-right}
 
 @subsubheading Padding and trimming
 
-@xvectormethod{trim}
-@xvectormethod{trim-right}
-@xvectormethod{trim-both}
-@xvectormethod{pad}
-@xvectormethod{pad-right}
+@XvectorMethod{trim}
+@XvectorMethod{trim-right}
+@XvectorMethod{trim-both}
+@XvectorMethod{pad}
+@XvectorMethod{pad-right}
 
 @subsubheading Prefix and suffix
 
-@xvectormethod{prefix-length}
-@xvectormethod{suffix-length}
-@xvectormethod{prefix?}
-@xvectormethod{suffix?}
+@XvectorMethod{prefix-length}
+@XvectorMethod{suffix-length}
+@XvectorMethod{prefix?}
+@XvectorMethod{suffix?}
 
 @subsubheading Searching
 
-@xvectormethod{index}
-@xvectormethod{index-right}
-@xvectormethod{skip}
-@xvectormethod{skip-right}
-@xvectormethod{count}
-@xvectormethod{contains}
-@xvectormethod{binary-search}
+@XvectorMethod{index}
+@XvectorMethod{index-right}
+@XvectorMethod{skip}
+@XvectorMethod{skip-right}
+@XvectorMethod{count}
+@XvectorMethod{contains}
+@XvectorMethod{binary-search}
 
 @subsubheading Filtering
 
-@xvectormethod{filter}
-@xvectormethod{delete}
+@XvectorMethod{filter}
+@XvectorMethod{delete}
 
 @subsubheading Lists
 
-@xvectormethod{list*}
-@xvectormethod{reverse-vector->list}
+@XvectorMethod{list*}
+@XvectorMethod{reverse-vector->list}
 
 @subsubheading Replicating
 
-@xvectormethod{xsubvector}
-@xvectormethod{xcopy!}
+@XvectorMethod{xsubvector}
+@XvectorMethod{xcopy!}
 
 @subsubheading Mutating
 
-@xvectormethod{fill*!}
-@xvectormethod{swap!}
+@XvectorMethod{fill*!}
+@XvectorMethod{swap!}
 
 @subsubheading Reverse and replace
 
-@xvectormethod{reverse}
-@xvectormethod{reverse!}
-@xvectormethod{replace}
+@XvectorMethod{reverse}
+@XvectorMethod{reverse!}
+@XvectorMethod{replace}
 
 @c end of file
