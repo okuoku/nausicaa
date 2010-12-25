@@ -48,7 +48,6 @@
   (only (nausicaa mutable-strings))
 
   ;; Basic libraries
-  (only (old-generics))
   (only (generics))
   (only (generics object-to-string))
   (only (profiling))
