@@ -1894,6 +1894,87 @@ string.
 
 @c ------------------------------------------------------------
 
+@macro XstringMethod{NAME}
+@defmethod @aclass{xstring} \NAME\ . @var{args}
+Implement the expansion:
+
+@example
+(@var{self}.\NAME\ . @var{args})
+@expansion{} (string-\NAME\ @var{self} . @var{args})
+@end example
+@end defmethod
+@end macro
+
+@macro XstringMethodNoPrefix{NAME}
+@defmethod @aclass{xstring} \NAME\ . @var{args}
+Implement the expansion:
+
+@example
+(@var{self}.\NAME\ . @var{args})
+@expansion{} (\NAME\ @var{self} . @var{args})
+@end example
+@end defmethod
+@end macro
+
+@macro XstringMethodCompare{NAME}
+@defmethod @aclass{xstring} \NAME\ @var{item=} . @var{args}
+Implement the expansion:
+
+@example
+(@var{self}.\NAME\ @var{item=} . @var{args})
+@expansion{} (string\NAME\ @var{item=} @var{self} . @var{args})
+@c                 *^*
+@end example
+@end defmethod
+@end macro
+
+@macro XstringMethodMap{NAME}
+@defmethod @aclass{xstring} \NAME\ @var{proc} . @var{args}
+Implement the expansion:
+
+@example
+(@var{self}.\NAME\ @var{proc} . @var{args})
+@expansion{} (string-\NAME\ @var{proc} @var{self} . @var{args})
+@end example
+@end defmethod
+@end macro
+
+@macro XstringMethodMapNoPrefix{NAME}
+@defmethod @aclass{xstring} \NAME\ @var{proc} . @var{args}
+Implement the expansion:
+
+@example
+(@var{self}.\NAME\ @var{proc} . @var{args})
+@expansion{} (\NAME\ @var{proc} @var{self} . @var{args})
+@end example
+@end defmethod
+@end macro
+
+@macro XstringMethodFold{NAME}
+@defmethod @aclass{xstring} \NAME\ @var{kons} @var{knil} . @var{args}
+Implement the expansion:
+
+@example
+(@var{self}.\NAME\ @var{kons} @var{knil} . @var{args})
+@expansion{} (string-\NAME\ @var{kons} @var{knil} @var{self} . @var{args})
+@end example
+@end defmethod
+@end macro
+
+@macro XstringMethodFoldNoPrefix{NAME}
+@defmethod @aclass{xstring} \NAME\ @var{kons} @var{knil} . @var{args}
+Implement the expansion:
+
+@example
+(@var{self}.\NAME\ @var{kons} @var{knil} . @var{args})
+@expansion{} (\NAME\ @var{kons} @var{knil} @var{self} . @var{args})
+@end example
+@end defmethod
+@end macro
+
+
+@c ------------------------------------------------------------
+
 @subsubheading Constructors
 
 @defmethod @aclass{xstring} concatenate @var{list-of-strings}
@@ -1906,22 +1987,27 @@ Implement the expansion:
 @end defmethod
 
 
-@defmethod @aclass{xstring} concatenate-reverse . @var{args}
-Implement the expansion:
+@defmethod @aclass{xstring} concatenate-reverse @var{list-of-strings}
+@defmethodx @aclass{xstring} concatenate-reverse @var{list-of-strings} @var{final-string}
+@defmethodx @aclass{xstring} concatenate-reverse @var{list-of-strings} @var{final-string} @var{nvalues}
+Implement the expansions:
 
 @example
-(@var{self}.concatenate-reverse)
-@expansion{} (string-concatenate-reverse @var{self} . @var{args}))))
-@end example
-@end defmethod
+(@var{self}.concatenate-reverse @var{list-of-strings})
+@expansion{} (string-concatenate-reverse
+     (cons @var{self} @var{list-of-strings}))
 
+(@var{self}.concatenate-reverse @var{list-of-strings}
+                          @var{final-string})
+@expansion{} (string-concatenate-reverse
+     (cons @var{self} @var{list-of-strings})
+     @var{final-string})
 
-@defmethod @aclass{xstring} tabulate . @var{args}
-Implement the expansion:
-
-@example
-(@var{self}.tabulate . @var{args})
-@expansion{} (string-tabulate @var{self} . @var{args}))))
+(@var{self}.concatenate-reverse @var{list-of-strings}
+                          @var{final-string} @var{nvalues})
+@expansion{} (string-concatenate-reverse
+     (cons @var{self} @var{list-of-strings})
+     @var{final-string} @var{nvalues})
 @end example
 @end defmethod
 
@@ -1929,1160 +2015,176 @@ Implement the expansion:
 
 @subsubheading Predicates
 
-@defmethod @aclass{xstring} null? . @var{args}
-Implement the expansion:
-
-@example
-(@var{self}.null? . @var{args})
-@expansion{} (string-null? @var{self} . @var{args}))))
-@end example
-@end defmethod
-
-
-@defmethod @aclass{xstring} every . @var{args}
-Implement the expansion:
-
-@example
-(@var{self}.every . @var{args})
-@expansion{} (string-every @var{self} . @var{args}))))
-@end example
-@end defmethod
-
-
-@defmethod @aclass{xstring} any . @var{args}
-Implement the expansion:
-
-@example
-(@var{self}.any . @var{args})
-@expansion{} (string-any @var{self} . @var{args}))))
-@end example
-@end defmethod
+@XstringMethod{null?}
+@XstringMethodMap{every}
+@XstringMethodMap{any}
 
 @c ------------------------------------------------------------
 
 @subsubheading Comparison
 
-@defmethod @aclass{xstring} compare . @var{args}
-Implement the expansion:
-
-@example
-(@var{self}.compare . @var{args})
-@expansion{} (string-compare @var{self} . @var{args}))))
-@end example
-@end defmethod
-
-
-@defmethod @aclass{xstring} compare-ci . @var{args}
-Implement the expansion:
-
-@example
-(@var{self}.compare-ci . @var{args})
-@expansion{} (string-compare-ci @var{self} . @var{args}))))
-@end example
-@end defmethod
-
-
-@defmethod @aclass{xstring} = . @var{args}
-Implement the expansion:
-
-@example
-(@var{self}.= . @var{args})
-@expansion{} (string= @var{self} . @var{args}))))
-@end example
-@end defmethod
-
-
-@defmethod @aclass{xstring} <> . @var{args}
-Implement the expansion:
-
-@example
-(@var{self}.<> . @var{args})
-@expansion{} (string<> @var{self} . @var{args}))))
-@end example
-@end defmethod
-
-
-@defmethod @aclass{xstring} ci= . @var{args}
-Implement the expansion:
-
-@example
-(@var{self}.ci= . @var{args})
-@expansion{} (string-ci= @var{self} . @var{args}))))
-@end example
-@end defmethod
-
-
-@defmethod @aclass{xstring} ci<> . @var{args}
-Implement the expansion:
-
-@example
-(@var{self}.ci<> . @var{args})
-@expansion{} (string-ci<> @var{self} . @var{args}))))
-@end example
-@end defmethod
-
-
-@defmethod @aclass{xstring} < . @var{args}
-Implement the expansion:
-
-@example
-(@var{self}.< . @var{args})
-@expansion{} (string< @var{self} . @var{args}))))
-@end example
-@end defmethod
-
-
-@defmethod @aclass{xstring} <= . @var{args}
-Implement the expansion:
-
-@example
-(@var{self}.<= . @var{args})
-@expansion{} (string<= @var{self} . @var{args}))))
-@end example
-@end defmethod
-
-
-@defmethod @aclass{xstring} ci< . @var{args}
-Implement the expansion:
-
-@example
-(@var{self}.ci< . @var{args})
-@expansion{} (string-ci< @var{self} . @var{args}))))
-@end example
-@end defmethod
-
-
-@defmethod @aclass{xstring} ci<= . @var{args}
-Implement the expansion:
-
-@example
-(@var{self}.ci<= . @var{args})
-@expansion{} (string-ci<= @var{self} . @var{args}))))
-@end example
-@end defmethod
-
-
-@defmethod @aclass{xstring} > . @var{args}
-Implement the expansion:
-
-@example
-(@var{self}.> . @var{args})
-@expansion{} (string> @var{self} . @var{args}))))
-@end example
-@end defmethod
-
-
-@defmethod @aclass{xstring} >= . @var{args}
-Implement the expansion:
-
-@example
-(@var{self}.>= . @var{args})
-@expansion{} (string>= @var{self} . @var{args}))))
-@end example
-@end defmethod
-
-
-@defmethod @aclass{xstring} ci> . @var{args}
-Implement the expansion:
-
-@example
-(@var{self}.ci> . @var{args})
-@expansion{} (string-ci> @var{self} . @var{args}))))
-@end example
-@end defmethod
-
-
-@defmethod @aclass{xstring} ci>= . @var{args}
-Implement the expansion:
-
-@example
-(@var{self}.ci>= . @var{args})
-@expansion{} (string-ci>= @var{self} . @var{args}))))
-@end example
-@end defmethod
+@XstringMethod{compare}
+@XstringMethodCompare{=}
+@XstringMethodCompare{<>}
+@XstringMethodCompare{<}
+@XstringMethodCompare{<=}
+@XstringMethodCompare{>}
+@XstringMethodCompare{>=}
+@XstringMethod{compare-ci}
+@XstringMethod{ci=}
+@XstringMethod{ci<>}
+@XstringMethod{ci<}
+@XstringMethod{ci<=}
+@XstringMethod{ci>}
+@XstringMethod{ci>=}
 
 @c ------------------------------------------------------------
 
 @subsubheading Dictionary comparison
 
-@defmethod @aclass{xstring} dictionary-compare . @var{args}
-Implement the expansion:
-
-@example
-(@var{self}.dictionary-compare . @var{args})
-@expansion{} (string-dictionary-compare @var{self} . @var{args}))))
-@end example
-@end defmethod
-
-
-@defmethod @aclass{xstring} dictionary=? . @var{args}
-Implement the expansion:
-
-@example
-(@var{self}.dictionary=? . @var{args})
-@expansion{} (string-dictionary=? @var{self} . @var{args}))))
-@end example
-@end defmethod
-
-
-@defmethod @aclass{xstring} dictionary<>? . @var{args}
-Implement the expansion:
-
-@example
-(@var{self}.dictionary<>? . @var{args})
-@expansion{} (string-dictionary<>? @var{self} . @var{args}))))
-@end example
-@end defmethod
-
-
-@defmethod @aclass{xstring} dictionary<? . @var{args}
-Implement the expansion:
-
-@example
-(@var{self}.dictionary<? . @var{args})
-@expansion{} (string-dictionary<? @var{self} . @var{args}))))
-@end example
-@end defmethod
-
-
-@defmethod @aclass{xstring} dictionary<=? . @var{args}
-Implement the expansion:
-
-@example
-(@var{self}.dictionary<=? . @var{args})
-@expansion{} (string-dictionary<=? @var{self} . @var{args}))))
-@end example
-@end defmethod
-
-
-@defmethod @aclass{xstring} dictionary>? . @var{args}
-Implement the expansion:
-
-@example
-(@var{self}.dictionary>? . @var{args})
-@expansion{} (string-dictionary>? @var{self} . @var{args}))))
-@end example
-@end defmethod
-
-
-@defmethod @aclass{xstring} dictionary>=? . @var{args}
-Implement the expansion:
-
-@example
-(@var{self}.dictionary>=? . @var{args})
-@expansion{} (string-dictionary>=? @var{self} . @var{args}))))
-@end example
-@end defmethod
-
-
-@defmethod @aclass{xstring} dictionary-compare-ci . @var{args}
-Implement the expansion:
-
-@example
-(@var{self}.dictionary-compare-ci . @var{args})
-@expansion{} (string-dictionary-compare-ci @var{self} . @var{args}))))
-@end example
-@end defmethod
-
-
-@defmethod @aclass{xstring} dictionary-ci=? . @var{args}
-Implement the expansion:
-
-@example
-(@var{self}.dictionary-ci=? . @var{args})
-@expansion{} (string-dictionary-ci=? @var{self} . @var{args}))))
-@end example
-@end defmethod
-
-
-@defmethod @aclass{xstring} dictionary-ci<>? . @var{args}
-Implement the expansion:
-
-@example
-(@var{self}.dictionary-ci<>? . @var{args})
-@expansion{} (string-dictionary-ci<>? @var{self} . @var{args}))))
-@end example
-@end defmethod
-
-
-@defmethod @aclass{xstring} dictionary-ci<? . @var{args}
-Implement the expansion:
-
-@example
-(@var{self}.dictionary-ci<? . @var{args})
-@expansion{} (string-dictionary-ci<? @var{self} . @var{args}))))
-@end example
-@end defmethod
-
-
-@defmethod @aclass{xstring} dictionary-ci<=? . @var{args}
-Implement the expansion:
-
-@example
-(@var{self}.dictionary-ci<=? . @var{args})
-@expansion{} (string-dictionary-ci<=? @var{self} . @var{args}))))
-@end example
-@end defmethod
-
-
-@defmethod @aclass{xstring} dictionary-ci>? . @var{args}
-Implement the expansion:
-
-@example
-(@var{self}.dictionary-ci>? . @var{args})
-@expansion{} (string-dictionary-ci>? @var{self} . @var{args}))))
-@end example
-@end defmethod
-
-
-@defmethod @aclass{xstring} dictionary-ci>=? . @var{args}
-Implement the expansion:
-
-@example
-(@var{self}.dictionary-ci>=? . @var{args})
-@expansion{} (string-dictionary-ci>=? @var{self} . @var{args}))))
-@end example
-@end defmethod
+@XstringMethod{dictionary-compare}
+@XstringMethod{dictionary=?}
+@XstringMethod{dictionary<>?}
+@XstringMethod{dictionary<?}
+@XstringMethod{dictionary<=?}
+@XstringMethod{dictionary>?}
+@XstringMethod{dictionary>=?}
+@XstringMethod{dictionary-compare-ci}
+@XstringMethod{dictionary-ci=?}
+@XstringMethod{dictionary-ci<>?}
+@XstringMethod{dictionary-ci<?}
+@XstringMethod{dictionary-ci<=?}
+@XstringMethod{dictionary-ci>?}
+@XstringMethod{dictionary-ci>=?}
 
 @c ------------------------------------------------------------
 
 @subsubheading String/numbers lexicographic comparison
 
-@defmethod @aclass{xstring} string/numbers-compare . @var{args}
-Implement the expansion:
-
-@example
-(@var{self}.string/numbers-compare . @var{args})
-@expansion{} (string/numbers-compare @var{self} . @var{args}))))
-@end example
-@end defmethod
-
-
-@defmethod @aclass{xstring} string/numbers=? . @var{args}
-Implement the expansion:
-
-@example
-(@var{self}.string/numbers=? . @var{args})
-@expansion{} (string/numbers=? @var{self} . @var{args}))))
-@end example
-@end defmethod
-
-
-@defmethod @aclass{xstring} string/numbers<>? . @var{args}
-Implement the expansion:
-
-@example
-(@var{self}.string/numbers<>? . @var{args})
-@expansion{} (string/numbers<>? @var{self} . @var{args}))))
-@end example
-@end defmethod
-
-
-@defmethod @aclass{xstring} string/numbers<? . @var{args}
-Implement the expansion:
-
-@example
-(@var{self}.string/numbers<? . @var{args})
-@expansion{} (string/numbers<? @var{self} . @var{args}))))
-@end example
-@end defmethod
-
-
-@defmethod @aclass{xstring} string/numbers<=? . @var{args}
-Implement the expansion:
-
-@example
-(@var{self}.string/numbers<=? . @var{args})
-@expansion{} (string/numbers<=? @var{self} . @var{args}))))
-@end example
-@end defmethod
-
-
-@defmethod @aclass{xstring} string/numbers>? . @var{args}
-Implement the expansion:
-
-@example
-(@var{self}.string/numbers>? . @var{args})
-@expansion{} (string/numbers>? @var{self} . @var{args}))))
-@end example
-@end defmethod
-
-
-@defmethod @aclass{xstring} string/numbers>=? . @var{args}
-Implement the expansion:
-
-@example
-(@var{self}.string/numbers>=? . @var{args})
-@expansion{} (string/numbers>=? @var{self} . @var{args}))))
-@end example
-@end defmethod
-
-
-@defmethod @aclass{xstring} string/numbers-compare-ci . @var{args}
-Implement the expansion:
-
-@example
-(@var{self}.string/numbers-compare-ci . @var{args})
-@expansion{} (string/numbers-compare-ci @var{self} . @var{args}))))
-@end example
-@end defmethod
-
-
-@defmethod @aclass{xstring} string/numbers-ci=? . @var{args}
-Implement the expansion:
-
-@example
-(@var{self}.string/numbers-ci=? . @var{args})
-@expansion{} (string/numbers-ci=? @var{self} . @var{args}))))
-@end example
-@end defmethod
-
-
-@defmethod @aclass{xstring} string/numbers-ci<>? . @var{args}
-Implement the expansion:
-
-@example
-(@var{self}.string/numbers-ci<>? . @var{args})
-@expansion{} (string/numbers-ci<>? @var{self} . @var{args}))))
-@end example
-@end defmethod
-
-
-@defmethod @aclass{xstring} string/numbers-ci<? . @var{args}
-Implement the expansion:
-
-@example
-(@var{self}.string/numbers-ci<? . @var{args})
-@expansion{} (string/numbers-ci<? @var{self} . @var{args}))))
-@end example
-@end defmethod
-
-
-@defmethod @aclass{xstring} string/numbers-ci>? . @var{args}
-Implement the expansion:
-
-@example
-(@var{self}.string/numbers-ci>? . @var{args})
-@expansion{} (string/numbers-ci>? @var{self} . @var{args}))))
-@end example
-@end defmethod
-
-
-@defmethod @aclass{xstring} string/numbers-ci<=? . @var{args}
-Implement the expansion:
-
-@example
-(@var{self}.string/numbers-ci<=? . @var{args})
-@expansion{} (string/numbers-ci<=? @var{self} . @var{args}))))
-@end example
-@end defmethod
-
-
-@defmethod @aclass{xstring} string/numbers-ci>=? . @var{args}
-Implement the expansion:
-
-@example
-(@var{self}.string/numbers-ci>=? . @var{args})
-@expansion{} (string/numbers-ci>=? @var{self} . @var{args}))))
-@end example
-@end defmethod
+@XstringMethodNoPrefix{string/numbers-compare}
+@XstringMethodNoPrefix{string/numbers=?}
+@XstringMethodNoPrefix{string/numbers<>?}
+@XstringMethodNoPrefix{string/numbers<?}
+@XstringMethodNoPrefix{string/numbers<=?}
+@XstringMethodNoPrefix{string/numbers>?}
+@XstringMethodNoPrefix{string/numbers>=?}
+@XstringMethodNoPrefix{string/numbers-compare-ci}
+@XstringMethodNoPrefix{string/numbers-ci=?}
+@XstringMethodNoPrefix{string/numbers-ci<>?}
+@XstringMethodNoPrefix{string/numbers-ci<?}
+@XstringMethodNoPrefix{string/numbers-ci>?}
+@XstringMethodNoPrefix{string/numbers-ci<=?}
+@XstringMethodNoPrefix{string/numbers-ci>=?}
 
 @c ------------------------------------------------------------
 
 @subsubheading String/numbers dictionary comparison
 
-@defmethod @aclass{xstring} string/numbers-dictionary-compare . @var{args}
-Implement the expansion:
-
-@example
-(@var{self}.string/numbers-dictionary-compare . @var{args})
-@expansion{} (string/numbers-dictionary-compare @var{self} . @var{args}))))
-@end example
-@end defmethod
-
-
-@defmethod @aclass{xstring} string/numbers-dictionary=? . @var{args}
-Implement the expansion:
-
-@example
-(@var{self}.string/numbers-dictionary=? . @var{args})
-@expansion{} (string/numbers-dictionary=? @var{self} . @var{args}))))
-@end example
-@end defmethod
-
-
-@defmethod @aclass{xstring} string/numbers-dictionary<>? . @var{args}
-Implement the expansion:
-
-@example
-(@var{self}.string/numbers-dictionary<>? . @var{args})
-@expansion{} (string/numbers-dictionary<>? @var{self} . @var{args}))))
-@end example
-@end defmethod
-
-
-@defmethod @aclass{xstring} string/numbers-dictionary<? . @var{args}
-Implement the expansion:
-
-@example
-(@var{self}.string/numbers-dictionary<? . @var{args})
-@expansion{} (string/numbers-dictionary<? @var{self} . @var{args}))))
-@end example
-@end defmethod
-
-
-@defmethod @aclass{xstring} string/numbers-dictionary<=? . @var{args}
-Implement the expansion:
-
-@example
-(@var{self}.string/numbers-dictionary<=? . @var{args})
-@expansion{} (string/numbers-dictionary<=? @var{self} . @var{args}))))
-@end example
-@end defmethod
-
-
-@defmethod @aclass{xstring} string/numbers-dictionary>? . @var{args}
-Implement the expansion:
-
-@example
-(@var{self}.string/numbers-dictionary>? . @var{args})
-@expansion{} (string/numbers-dictionary>? @var{self} . @var{args}))))
-@end example
-@end defmethod
-
-
-@defmethod @aclass{xstring} string/numbers-dictionary>=? . @var{args}
-Implement the expansion:
-
-@example
-(@var{self}.string/numbers-dictionary>=? . @var{args})
-@expansion{} (string/numbers-dictionary>=? @var{self} . @var{args}))))
-@end example
-@end defmethod
-
-
-@defmethod @aclass{xstring} string/numbers-dictionary-compare-ci . @var{args}
-Implement the expansion:
-
-@example
-(@var{self}.string/numbers-dictionary-compare-ci . @var{args})
-@expansion{} (string/numbers-dictionary-compare-ci @var{self} . @var{args}))))
-@end example
-@end defmethod
-
-
-@defmethod @aclass{xstring} string/numbers-dictionary-ci=? . @var{args}
-Implement the expansion:
-
-@example
-(@var{self}.string/numbers-dictionary-ci=? . @var{args})
-@expansion{} (string/numbers-dictionary-ci=? @var{self} . @var{args}))))
-@end example
-@end defmethod
-
-
-@defmethod @aclass{xstring} string/numbers-dictionary-ci<>? . @var{args}
-Implement the expansion:
-
-@example
-(@var{self}.string/numbers-dictionary-ci<>? . @var{args})
-@expansion{} (string/numbers-dictionary-ci<>? @var{self} . @var{args}))))
-@end example
-@end defmethod
-
-
-@defmethod @aclass{xstring} string/numbers-dictionary-ci<? . @var{args}
-Implement the expansion:
-
-@example
-(@var{self}.string/numbers-dictionary-ci<? . @var{args})
-@expansion{} (string/numbers-dictionary-ci<? @var{self} . @var{args}))))
-@end example
-@end defmethod
-
-
-@defmethod @aclass{xstring} string/numbers-dictionary-ci>? . @var{args}
-Implement the expansion:
-
-@example
-(@var{self}.string/numbers-dictionary-ci>? . @var{args})
-@expansion{} (string/numbers-dictionary-ci>? @var{self} . @var{args}))))
-@end example
-@end defmethod
-
-
-@defmethod @aclass{xstring} string/numbers-dictionary-ci<=? . @var{args}
-Implement the expansion:
-
-@example
-(@var{self}.string/numbers-dictionary-ci<=? . @var{args})
-@expansion{} (string/numbers-dictionary-ci<=? @var{self} . @var{args}))))
-@end example
-@end defmethod
-
-
-@defmethod @aclass{xstring} string/numbers-dictionary-ci>=? . @var{args}
-Implement the expansion:
-
-@example
-(@var{self}.string/numbers-dictionary-ci>=? . @var{args})
-@expansion{} (string/numbers-dictionary-ci>=? @var{self} . @var{args}))))
-@end example
-@end defmethod
+@XstringMethodNoPrefix{string/numbers-dictionary-compare}
+@XstringMethodNoPrefix{string/numbers-dictionary=?}
+@XstringMethodNoPrefix{string/numbers-dictionary<>?}
+@XstringMethodNoPrefix{string/numbers-dictionary<?}
+@XstringMethodNoPrefix{string/numbers-dictionary<=?}
+@XstringMethodNoPrefix{string/numbers-dictionary>?}
+@XstringMethodNoPrefix{string/numbers-dictionary>=?}
+@XstringMethodNoPrefix{string/numbers-dictionary-compare-ci}
+@XstringMethodNoPrefix{string/numbers-dictionary-ci=?}
+@XstringMethodNoPrefix{string/numbers-dictionary-ci<>?}
+@XstringMethodNoPrefix{string/numbers-dictionary-ci<?}
+@XstringMethodNoPrefix{string/numbers-dictionary-ci>?}
+@XstringMethodNoPrefix{string/numbers-dictionary-ci<=?}
+@XstringMethodNoPrefix{string/numbers-dictionary-ci>=?}
 
 @c ------------------------------------------------------------
 
 @subsubheading Mapping
 
-@defmethod @aclass{xstring} map . @var{args}
-Implement the expansion:
-
-@example
-(@var{self}.map . @var{args})
-@expansion{} (string-map @var{self} . @var{args}))))
-@end example
-@end defmethod
-
-
-@defmethod @aclass{xstring} map! . @var{args}
-Implement the expansion:
-
-@example
-(@var{self}.map! . @var{args})
-@expansion{} (string-map! @var{self} . @var{args}))))
-@end example
-@end defmethod
-
-
-@defmethod @aclass{xstring} map* . @var{args}
-Implement the expansion:
-
-@example
-(@var{self}.map* . @var{args})
-@expansion{} (string-map* @var{self} . @var{args}))))
-@end example
-@end defmethod
-
-
-@defmethod @aclass{xstring} map*! . @var{args}
-Implement the expansion:
-
-@example
-(@var{self}.map*! . @var{args})
-@expansion{} (string-map*! @var{self} . @var{args}))))
-@end example
-@end defmethod
-
-
-@defmethod @aclass{xstring} for-each* . @var{args}
-Implement the expansion:
-
-@example
-(@var{self}.for-each* . @var{args})
-@expansion{} (string-for-each* @var{self} . @var{args}))))
-@end example
-@end defmethod
-
-
-@defmethod @aclass{xstring} substring-map . @var{args}
-Implement the expansion:
-
-@example
-(@var{self}.substring-map . @var{args})
-@expansion{} (substring-map @var{self} . @var{args}))))
-@end example
-@end defmethod
-
-
-@defmethod @aclass{xstring} substring-map! . @var{args}
-Implement the expansion:
-
-@example
-(@var{self}.substring-map! . @var{args})
-@expansion{} (substring-map! @var{self} . @var{args}))))
-@end example
-@end defmethod
-
-
-@defmethod @aclass{xstring} substring-for-each . @var{args}
-Implement the expansion:
-
-@example
-(@var{self}.substring-for-each . @var{args})
-@expansion{} (substring-for-each @var{self} . @var{args}))))
-@end example
-@end defmethod
-
-
-@defmethod @aclass{xstring} substring-for-each-index . @var{args}
-Implement the expansion:
-
-@example
-(@var{self}.substring-for-each-index . @var{args})
-@expansion{} (substring-for-each-index @var{self} . @var{args}))))
-@end example
-@end defmethod
+@XstringMethodMap{map}
+@XstringMethodMap{map!}
+@XstringMethodMap{map*}
+@XstringMethodMap{map*!}
+@XstringMethodMap{for-each*}
+@XstringMethodMapNoPrefix{substring-map}
+@XstringMethodMapNoPrefix{substring-map!}
+@XstringMethodMapNoPrefix{substring-for-each}
+@XstringMethodMapNoPrefix{substring-for-each-index}
 
 @c ------------------------------------------------------------
 
 @subsubheading Case
 
-@defmethod @aclass{xstring} downcase* . @var{args}
-Implement the expansion:
-
-@example
-(@var{self}.downcase* . @var{args})
-@expansion{} (string-downcase* @var{self} . @var{args}))))
-@end example
-@end defmethod
-
-
-@defmethod @aclass{xstring} upcase* . @var{args}
-Implement the expansion:
-
-@example
-(@var{self}.upcase* . @var{args})
-@expansion{} (string-upcase* @var{self} . @var{args}))))
-@end example
-@end defmethod
-
-
-@defmethod @aclass{xstring} titlecase* . @var{args}
-Implement the expansion:
-
-@example
-(@var{self}.titlecase* . @var{args})
-@expansion{} (string-titlecase* @var{self} . @var{args}))))
-@end example
-@end defmethod
-
-
-@defmethod @aclass{xstring} downcase*! . @var{args}
-Implement the expansion:
-
-@example
-(@var{self}.downcase*! . @var{args})
-@expansion{} (string-downcase*! @var{self} . @var{args}))))
-@end example
-@end defmethod
-
-
-@defmethod @aclass{xstring} upcase*! . @var{args}
-Implement the expansion:
-
-@example
-(@var{self}.upcase*! . @var{args})
-@expansion{} (string-upcase*! @var{self} . @var{args}))))
-@end example
-@end defmethod
-
-
-@defmethod @aclass{xstring} titlecase*! . @var{args}
-Implement the expansion:
-
-@example
-(@var{self}.titlecase*! . @var{args})
-@expansion{} (string-titlecase*! @var{self} . @var{args}))))
-@end example
-@end defmethod
+@XstringMethod{downcase*}
+@XstringMethod{upcase*}
+@XstringMethod{titlecase*}
+@XstringMethod{downcase*!}
+@XstringMethod{upcase*!}
+@XstringMethod{titlecase*!}
 
 @c ------------------------------------------------------------
 
 @subsubheading Folding
 
-@defmethod @aclass{xstring} fold-left . @var{args}
-Implement the expansion:
-
-@example
-(@var{self}.fold-left . @var{args})
-@expansion{} (string-fold-left @var{self} . @var{args}))))
-@end example
-@end defmethod
-
-
-@defmethod @aclass{xstring} fold-right . @var{args}
-Implement the expansion:
-
-@example
-(@var{self}.fold-right . @var{args})
-@expansion{} (string-fold-right @var{self} . @var{args}))))
-@end example
-@end defmethod
-
-
-@defmethod @aclass{xstring} fold-left* . @var{args}
-Implement the expansion:
-
-@example
-(@var{self}.fold-left* . @var{args})
-@expansion{} (string-fold-left* @var{self} . @var{args}))))
-@end example
-@end defmethod
-
-
-@defmethod @aclass{xstring} fold-right* . @var{args}
-Implement the expansion:
-
-@example
-(@var{self}.fold-right* . @var{args})
-@expansion{} (string-fold-right* @var{self} . @var{args}))))
-@end example
-@end defmethod
-
-
-@defmethod @aclass{xstring} substring-fold-left . @var{args}
-Implement the expansion:
-
-@example
-(@var{self}.substring-fold-left . @var{args})
-@expansion{} (substring-fold-left @var{self} . @var{args}))))
-@end example
-@end defmethod
-
-
-@defmethod @aclass{xstring} substring-fold-right . @var{args}
-Implement the expansion:
-
-@example
-(@var{self}.substring-fold-right . @var{args})
-@expansion{} (substring-fold-right @var{self} . @var{args}))))
-@end example
-@end defmethod
-
-
-@defmethod @aclass{xstring} unfold . @var{args}
-Implement the expansion:
-
-@example
-(@var{self}.unfold . @var{args})
-@expansion{} (string-unfold @var{self} . @var{args}))))
-@end example
-@end defmethod
-
-
-@defmethod @aclass{xstring} unfold-right . @var{args}
-Implement the expansion:
-
-@example
-(@var{self}.unfold-right . @var{args})
-@expansion{} (string-unfold-right @var{self} . @var{args}))))
-@end example
-@end defmethod
+@XstringMethodFold{fold-left}
+@XstringMethodFold{fold-right}
+@XstringMethodFold{fold-left*}
+@XstringMethodFold{fold-right*}
+@XstringMethodFoldNoPrefix{substring-fold-left}
+@XstringMethodFoldNoPrefix{substring-fold-right}
 
 @c ------------------------------------------------------------
 
 @subsubheading Selecting
 
-@defmethod @aclass{xstring} substring* . @var{args}
-Implement the expansion:
-
-@example
-(@var{self}.substring* . @var{args})
-@expansion{} (substring* @var{self} . @var{args}))))
-@end example
-@end defmethod
-
-
-@defmethod @aclass{xstring} reverse-copy* . @var{args}
-Implement the expansion:
-
-@example
-(@var{self}.reverse-copy* . @var{args})
-@expansion{} (string-reverse-copy* @var{self} . @var{args}))))
-@end example
-@end defmethod
-
-
-@defmethod @aclass{xstring} copy*! . @var{args}
-Implement the expansion:
-
-@example
-(@var{self}.copy*! . @var{args})
-@expansion{} (string-copy*! @var{self} . @var{args}))))
-@end example
-@end defmethod
-
-
-@defmethod @aclass{xstring} reverse-copy*! . @var{args}
-Implement the expansion:
-
-@example
-(@var{self}.reverse-copy*! . @var{args})
-@expansion{} (string-reverse-copy*! @var{self} . @var{args}))))
-@end example
-@end defmethod
-
-
-@defmethod @aclass{xstring} take . @var{args}
-Implement the expansion:
-
-@example
-(@var{self}.take . @var{args})
-@expansion{} (string-take @var{self} . @var{args}))))
-@end example
-@end defmethod
-
-
-@defmethod @aclass{xstring} take-right . @var{args}
-Implement the expansion:
-
-@example
-(@var{self}.take-right . @var{args})
-@expansion{} (string-take-right @var{self} . @var{args}))))
-@end example
-@end defmethod
-
-
-@defmethod @aclass{xstring} drop . @var{args}
-Implement the expansion:
-
-@example
-(@var{self}.drop . @var{args})
-@expansion{} (string-drop @var{self} . @var{args}))))
-@end example
-@end defmethod
-
-
-@defmethod @aclass{xstring} drop-right . @var{args}
-Implement the expansion:
-
-@example
-(@var{self}.drop-right . @var{args})
-@expansion{} (string-drop-right @var{self} . @var{args}))))
-@end example
-@end defmethod
+@XstringMethodNoPrefix{substring*}
+@XstringMethod{reverse-copy*}
+@XstringMethod{copy*!}
+@XstringMethod{reverse-copy*!}
+@XstringMethod{take}
+@XstringMethod{take-right}
+@XstringMethod{drop}
+@XstringMethod{drop-right}
 
 @c ------------------------------------------------------------
 
 @subsubheading Padding and trimming
 
-@defmethod @aclass{xstring} trim . @var{args}
-Implement the expansion:
-
-@example
-(@var{self}.trim . @var{args})
-@expansion{} (string-trim @var{self} . @var{args}))))
-@end example
-@end defmethod
-
-
-@defmethod @aclass{xstring} trim-right . @var{args}
-Implement the expansion:
-
-@example
-(@var{self}.trim-right . @var{args})
-@expansion{} (string-trim-right @var{self} . @var{args}))))
-@end example
-@end defmethod
-
-
-@defmethod @aclass{xstring} trim-both . @var{args}
-Implement the expansion:
-
-@example
-(@var{self}.trim-both . @var{args})
-@expansion{} (string-trim-both @var{self} . @var{args}))))
-@end example
-@end defmethod
-
-
-@defmethod @aclass{xstring} pad . @var{args}
-Implement the expansion:
-
-@example
-(@var{self}.pad . @var{args})
-@expansion{} (string-pad @var{self} . @var{args}))))
-@end example
-@end defmethod
-
-
-@defmethod @aclass{xstring} pad-right . @var{args}
-Implement the expansion:
-
-@example
-(@var{self}.pad-right . @var{args})
-@expansion{} (string-pad-right @var{self} . @var{args}))))
-@end example
-@end defmethod
+@XstringMethod{trim}
+@XstringMethod{trim-right}
+@XstringMethod{trim-both}
+@XstringMethod{pad}
+@XstringMethod{pad-right}
 
 @c ------------------------------------------------------------
 
 @subsubheading Prefix and suffix
 
-@defmethod @aclass{xstring} prefix-length . @var{args}
-Implement the expansion:
-
-@example
-(@var{self}.prefix-length . @var{args})
-@expansion{} (string-prefix-length @var{self} . @var{args}))))
-@end example
-@end defmethod
-
-
-@defmethod @aclass{xstring} prefix-length-ci . @var{args}
-Implement the expansion:
-
-@example
-(@var{self}.prefix-length-ci . @var{args})
-@expansion{} (string-prefix-length-ci @var{self} . @var{args}))))
-@end example
-@end defmethod
-
-
-@defmethod @aclass{xstring} suffix-length . @var{args}
-Implement the expansion:
-
-@example
-(@var{self}.suffix-length . @var{args})
-@expansion{} (string-suffix-length @var{self} . @var{args}))))
-@end example
-@end defmethod
-
-
-@defmethod @aclass{xstring} suffix-length-ci . @var{args}
-Implement the expansion:
-
-@example
-(@var{self}.suffix-length-ci . @var{args})
-@expansion{} (string-suffix-length-ci @var{self} . @var{args}))))
-@end example
-@end defmethod
-
-
-@defmethod @aclass{xstring} prefix? . @var{args}
-Implement the expansion:
-
-@example
-(@var{self}.prefix? . @var{args})
-@expansion{} (string-prefix? @var{self} . @var{args}))))
-@end example
-@end defmethod
-
-
-@defmethod @aclass{xstring} prefix-ci? . @var{args}
-Implement the expansion:
-
-@example
-(@var{self}.prefix-ci? . @var{args})
-@expansion{} (string-prefix-ci? @var{self} . @var{args}))))
-@end example
-@end defmethod
-
-
-@defmethod @aclass{xstring} suffix? . @var{args}
-Implement the expansion:
-
-@example
-(@var{self}.suffix? . @var{args})
-@expansion{} (string-suffix? @var{self} . @var{args}))))
-@end example
-@end defmethod
-
-
-@defmethod @aclass{xstring} suffix-ci? . @var{args}
-Implement the expansion:
-
-@example
-(@var{self}.suffix-ci? . @var{args})
-@expansion{} (string-suffix-ci? @var{self} . @var{args}))))
-@end example
-@end defmethod
+@XstringMethod{prefix-length}
+@XstringMethod{prefix-length-ci}
+@XstringMethod{suffix-length}
+@XstringMethod{suffix-length-ci}
+@XstringMethod{prefix?}
+@XstringMethod{prefix-ci?}
+@XstringMethod{suffix?}
+@XstringMethod{suffix-ci?}
 
 @c ------------------------------------------------------------
 
 @subsubheading Searching
 
-@defmethod @aclass{xstring} index . @var{args}
-Implement the expansion:
-
-@example
-(@var{self}.defmethod @aclass{xstring} index . @var{args})
-@expansion{} (string-index @var{self} . @var{args}))))
-@end example
-@end defmethod
-
-
-@defmethod @aclass{xstring} index-right . @var{args}
-Implement the expansion:
-
-@example
-(@var{self}.index-right . @var{args})
-@expansion{} (string-index-right @var{self} . @var{args}))))
-@end example
-@end defmethod
-
-
-@defmethod @aclass{xstring} skip . @var{args}
-Implement the expansion:
-
-@example
-(@var{self}.skip . @var{args})
-@expansion{} (string-skip @var{self} . @var{args}))))
-@end example
-@end defmethod
-
-
-@defmethod @aclass{xstring} skip-right . @var{args}
-Implement the expansion:
-
-@example
-(@var{self}.skip-right . @var{args})
-@expansion{} (string-skip-right @var{self} . @var{args}))))
-@end example
-@end defmethod
-
-
-@defmethod @aclass{xstring} contains . @var{args}
-Implement the expansion:
-
-@example
-(@var{self}.contains . @var{args})
-@expansion{} (string-contains @var{self} . @var{args}))))
-@end example
-@end defmethod
-
-
-@defmethod @aclass{xstring} contains-ci . @var{args}
-Implement the expansion:
-
-@example
-(@var{self}.contains-ci . @var{args})
-@expansion{} (string-contains-ci @var{self} . @var{args}))))
-@end example
-@end defmethod
-
-
-@defmethod @aclass{xstring} count . @var{args}
-Implement the expansion:
-
-@example
-(@var{self}.count . @var{args})
-@expansion{} (string-count @var{self} . @var{args}))))
-@end example
-@end defmethod
+@XstringMethod{index}
+@XstringMethod{index-right}
+@XstringMethod{skip}
+@XstringMethod{skip-right}
+@XstringMethod{contains}
+@XstringMethod{contains-ci}
+@XstringMethod{count}
 
 @c ------------------------------------------------------------
 
 @subsubheading Filtering
 
-@defmethod @aclass{xstring} filter . @var{args}
-Implement the expansion:
-
-@example
-(@var{self}.filter . @var{args})
-@expansion{} (string-filter @var{self} . @var{args}))))
-@end example
-@end defmethod
-
-
-@defmethod @aclass{xstring} delete . @var{args}
-Implement the expansion:
-
-@example
-(@var{self}.delete . @var{args})
-@expansion{} (string-delete @var{self} . @var{args}))))
-@end example
-@end defmethod
+@XstringMethod{filter}
+@XstringMethod{delete}
 
 @c ------------------------------------------------------------
 
@@ -3093,117 +2195,44 @@ Implement the expansion:
 
 @example
 (@var{self}.list* . @var{args})
-@expansion{} (string->list* @var{self} . @var{args}))))
+@expansion{} (string->list* @var{self} . @var{args})
 @end example
 @end defmethod
 
 
-@defmethod @aclass{xstring} join . @var{args}
+@defmethod @aclass{xstring} join @var{list-of-strings} . @var{args}
 Implement the expansion:
 
 @example
-(@var{self}.join . @var{args})
-@expansion{} (string-join @var{self} . @var{args}))))
+(@var{self}.join @var{list-of-strings} . @var{args})
+@expansion{} (string-join (cons @var{self} @var{list-of-strings}) . @var{args})
 @end example
 @end defmethod
 
 
-@defmethod @aclass{xstring} tokenize . @var{args}
-Implement the expansion:
-
-@example
-(@var{self}.tokenize . @var{args})
-@expansion{} (string-tokenize @var{self} . @var{args}))))
-@end example
-@end defmethod
-
-
-@defmethod @aclass{xstring} tokenise . @var{args}
-Implement the expansion:
-
-@example
-(@var{self}.tokenise . @var{args})
-@expansion{} (string-tokenise @var{self} . @var{args}))))
-@end example
-@end defmethod
+@XstringMethod{tokenize}
+@XstringMethod{tokenise}
 
 @c ------------------------------------------------------------
 
 @subsubheading Replicating
 
-@defmethod @aclass{xstring} xsubstring . @var{args}
-Implement the expansion:
-
-@example
-(@var{self}.xsubstring . @var{args})
-@expansion{} (xsubstring @var{self} . @var{args}))))
-@end example
-@end defmethod
-
-
-@defmethod @aclass{xstring} xcopy! . @var{args}
-Implement the expansion:
-
-@example
-(@var{self}.xcopy! . @var{args})
-@expansion{} (string-xcopy! @var{self} . @var{args}))))
-@end example
-@end defmethod
+@XstringMethodNoPrefix{xsubstring}
+@XstringMethod{xcopy!}
 
 @c ------------------------------------------------------------
 
 @subsubheading Mutating
 
-@defmethod @aclass{xstring} fill*! . @var{args}
-Implement the expansion:
-
-@example
-(@var{self}.fill*! . @var{args})
-@expansion{} (string-fill*! @var{self} . @var{args}))))
-@end example
-@end defmethod
-
-
-@defmethod @aclass{xstring} swap! . @var{args}
-Implement the expansion:
-
-@example
-(@var{self}.swap! . @var{args})
-@expansion{} (string-swap! @var{self} . @var{args}))))
-@end example
-@end defmethod
+@XstringMethod{fill*!}
+@XstringMethod{swap!}
 
 @c ------------------------------------------------------------
 
 @subsubheading Reverse and replace
 
-@defmethod @aclass{xstring} reverse . @var{args}
-Implement the expansion:
-
-@example
-(@var{self}.reverse . @var{args})
-@expansion{} (string-reverse @var{self} . @var{args}))))
-@end example
-@end defmethod
-
-
-@defmethod @aclass{xstring} reverse! . @var{args}
-Implement the expansion:
-
-@example
-(@var{self}.reverse! . @var{args})
-@expansion{} (string-reverse! @var{self} . @var{args}))))
-@end example
-@end defmethod
-
-
-@defmethod @aclass{xstring} replace . @var{args}
-Implement the expansion:
-
-@example
-(@var{self}.replace . @var{args})
-@expansion{} (string-replace @var{self} . @var{args}))))
-@end example
-@end defmethod
+@XstringMethod{reverse}
+@XstringMethod{reverse!}
+@XstringMethod{replace}
 
 @c end of file

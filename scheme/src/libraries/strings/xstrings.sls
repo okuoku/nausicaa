@@ -27,7 +27,7 @@
 
 #!r6rs
 (library (strings xstrings)
-  (export <xstring> view start past)
+  (export <xstring>)
   (import (nausicaa)
     (strings))
 
@@ -45,13 +45,13 @@
 
   (method-syntax concatenate-reverse
     (syntax-rules ()
-      ((_ o . ?args)
-       (string-concatenate-reverse o . ?args))))
-
-  (method-syntax tabulate
-    (syntax-rules ()
-      ((_ o . ?args)
-       (string-tabulate o . ?args))))
+      ((_ o ?list-of-strings)
+       (string-concatenate-reverse (cons o ?list-of-strings)))
+      ((_ o ?list-of-strings ?final-string)
+       (string-concatenate-reverse (cons o ?list-of-strings) ?final-string))
+      ((_ o ?list-of-strings ?final-string ?nvalues)
+       (string-concatenate-reverse (cons o ?list-of-strings) ?final-string ?nvalues))
+      ))
 
   ;; predicates
   (method-syntax null?
@@ -61,13 +61,13 @@
 
   (method-syntax every
     (syntax-rules ()
-      ((_ o . ?args)
-       (string-every o . ?args))))
+      ((_ o ?proc . ?args)
+       (string-every ?proc o . ?args))))
 
   (method-syntax any
     (syntax-rules ()
-      ((_ o . ?args)
-       (string-any o . ?args))))
+      ((_ o ?proc . ?args)
+       (string-any ?proc o . ?args))))
 
   ;; comparison
   (method-syntax compare
@@ -357,48 +357,48 @@
   ;; mapping
   (method-syntax map
     (syntax-rules ()
-      ((_ o . ?args)
-       (string-map o . ?args))))
+      ((_ o ?proc . ?args)
+       (string-map ?proc o . ?args))))
 
   (method-syntax map!
     (syntax-rules ()
-      ((_ o . ?args)
-       (string-map! o . ?args))))
+      ((_ o ?proc . ?args)
+       (string-map! ?proc o . ?args))))
 
   (method-syntax map*
     (syntax-rules ()
-      ((_ o . ?args)
-       (string-map* o . ?args))))
+      ((_ o ?proc . ?args)
+       (string-map* ?proc o . ?args))))
 
   (method-syntax map*!
     (syntax-rules ()
-      ((_ o . ?args)
-       (string-map*! o . ?args))))
+      ((_ o ?proc . ?args)
+       (string-map*! ?proc o . ?args))))
 
   (method-syntax for-each*
     (syntax-rules ()
-      ((_ o . ?args)
-       (string-for-each* o . ?args))))
+      ((_ o ?proc . ?args)
+       (string-for-each* ?proc o . ?args))))
 
   (method-syntax substring-map
     (syntax-rules ()
-      ((_ o . ?args)
-       (substring-map o . ?args))))
+      ((_ o ?proc . ?args)
+       (substring-map ?proc o . ?args))))
 
   (method-syntax substring-map!
     (syntax-rules ()
-      ((_ o . ?args)
-       (substring-map! o . ?args))))
+      ((_ o ?proc . ?args)
+       (substring-map! ?proc o . ?args))))
 
   (method-syntax substring-for-each
     (syntax-rules ()
-      ((_ o . ?args)
-       (substring-for-each o . ?args))))
+      ((_ o ?proc . ?args)
+       (substring-for-each ?proc o . ?args))))
 
   (method-syntax substring-for-each-index
     (syntax-rules ()
-      ((_ o . ?args)
-       (substring-for-each-index o . ?args))))
+      ((_ o ?proc . ?args)
+       (substring-for-each-index ?proc o . ?args))))
 
   ;; case
   (method-syntax downcase*
@@ -434,43 +434,33 @@
   ;; folding
   (method-syntax fold-left
     (syntax-rules ()
-      ((_ o . ?args)
-       (string-fold-left o . ?args))))
+      ((_ o ?kons ?knil . ?args)
+       (string-fold-left ?kons ?knil o . ?args))))
 
   (method-syntax fold-right
     (syntax-rules ()
-      ((_ o . ?args)
-       (string-fold-right o . ?args))))
+      ((_ o ?kons ?knil . ?args)
+       (string-fold-right ?kons ?knil o . ?args))))
 
   (method-syntax fold-left*
     (syntax-rules ()
-      ((_ o . ?args)
-       (string-fold-left* o . ?args))))
+      ((_ o ?kons ?knil . ?args)
+       (string-fold-left* ?kons ?knil o . ?args))))
 
   (method-syntax fold-right*
     (syntax-rules ()
-      ((_ o . ?args)
-       (string-fold-right* o . ?args))))
+      ((_ o ?kons ?knil . ?args)
+       (string-fold-right* ?kons ?knil o . ?args))))
 
   (method-syntax substring-fold-left
     (syntax-rules ()
-      ((_ o . ?args)
-       (substring-fold-left o . ?args))))
+      ((_ o ?kons ?knil . ?args)
+       (substring-fold-left ?kons ?knil o . ?args))))
 
   (method-syntax substring-fold-right
     (syntax-rules ()
-      ((_ o . ?args)
-       (substring-fold-right o . ?args))))
-
-  (method-syntax unfold
-    (syntax-rules ()
-      ((_ o . ?args)
-       (string-unfold o . ?args))))
-
-  (method-syntax unfold-right
-    (syntax-rules ()
-      ((_ o . ?args)
-       (string-unfold-right o . ?args))))
+      ((_ o ?kons ?knil . ?args)
+       (substring-fold-right ?kons ?knil o . ?args))))
 
   ;; selecting
   (method-syntax substring*
@@ -635,8 +625,8 @@
 
   (method-syntax join
     (syntax-rules ()
-      ((_ o . ?args)
-       (string-join o . ?args))))
+      ((_ o ?list-of-strings . ?args)
+       (string-join (cons o ?list-of-strings) . ?args))))
 
   (method-syntax tokenize
     (syntax-rules ()
