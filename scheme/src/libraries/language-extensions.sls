@@ -187,8 +187,7 @@
     define-identifier-accessor-mutator identifier-syntax-accessor-mutator
     with-accessor-and-mutator
     define-inline define-values define-constant define-constant-values
-    define-syntax*
-    syntax-rules* syntax-case* partial-macro-expand partial-macro-expand-and-print)
+    define-syntax*)
   (import (rnrs)
     (only (syntax-utilities) define-auxiliary-syntaxes)
     (only (auxiliary-syntaxes) <> <...>)
@@ -588,47 +587,6 @@
 		  ((message subform)
 		   (syntax-violation '?name message (syntax->datum ?stx) (syntax->datum subform)))))
 	       ?body0 ?body ...)))))))
-
-
-;;;; expandable macro transformers
-
-(define partial-macro-expand-sentinel #f)
-
-(define-syntax syntax-rules*
-  (syntax-rules ()
-    ((_ (?literal ...) ((?k ?pattern ...) ?out) ...)
-     (lambda (stx)
-       (syntax-case stx (?literal ...)
-	 ((?k ?expand ?pattern ...)
-	  (free-identifier=? #'?expand #'partial-macro-expand-sentinel)
-	  #'(quote ?out))
-	 ...
-	 ((?k ?pattern ...)
-	  (syntax ?out))
-	 ...)))))
-
-(define-syntax syntax-case*
-  (syntax-rules ()
-    ((_ ?stx (?literal ...) ((?k ?pattern ...) ?out) ...)
-     (syntax-case ?stx (?literal ...)
-       ((?k ?expand ?pattern ...)
-	(free-identifier=? #'?expand #'partial-macro-expand-sentinel)
-	#'(quote ?out))
-       ...
-       ((?k ?pattern ...)
-	?out)
-       ...))))
-
-(define-syntax partial-macro-expand
-  (syntax-rules ()
-    ((_ (?keyword ?arg ...))
-     (?keyword partial-macro-expand-sentinel ?arg ...))))
-
-
-(define-syntax partial-macro-expand-and-print
-  (syntax-rules ()
-    ((_ (?keyword ?arg ...))
-     (pretty-print (partial-macro-expand (?keyword ?arg ...)) (current-error-port)))))
 
 
 ;;;; done
