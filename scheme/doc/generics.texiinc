@@ -283,6 +283,35 @@ the method's closure.
 @section Invoking the next method
 
 
+The ``traditional'' way to make the bindings @func{call-next-method} and
+@func{next-method?} available in the body of methods is to add two
+arguments to the function at expand time; the following method function:
+
+@example
+(lambda (arg1 arg2)
+  ---)
+@end example
+
+@noindent
+is changed to:
+
+@example
+(lambda (call-next-method next-method? arg1 arg2)
+  ---)
+@end example
+
+@noindent
+this way the bindings are available only to the methods.  This
+implementation requires the source syntax object of the method to be
+available at expansion time, and to hold a @func{lambda} form.
+
+@library{generics} instead makes use of parameters; this allows
+functions from foreign libraries to be used directly as methods and also
+macros to be used as methods (through @func{add-method}, which requires
+only the method's identifier).  The bindings are available also to code
+outside the method implementations, but this is not a big problem.
+
+
 @defun call-next-method
 Call the next most specific method.
 @end defun
