@@ -43,6 +43,9 @@ the documentation is available on line:
 Notes for --- tag 0.2a0
 -------------------------------
 
+* Changed  the   package  name  to   "nausicaa-scheme"  from
+  "nausicaa"; this affects the name of the release tarballs.
+
 * Starting with this revision Larceny and Ikarus are no more
   supported.
 
