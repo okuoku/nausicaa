@@ -128,7 +128,6 @@
   (import (nausicaa)
     (rnrs mutable-strings)
     (generics)
-    (infix syntax)
     (formations)
     (only (syntax-utilities) define-auxiliary-syntax)
     (times-and-dates seconds-and-subseconds)

@@ -77,7 +77,7 @@
     gregorian-index-of-day-in-week	gregorian-number-of-days-before-first-week)
   (import (rnrs)
     (only (language-extensions) define-constant receive)
-    (infix)
+    (nausicaa language infix)
     (times-and-dates seconds-and-subseconds)
     (times-and-dates julian-calendar))
 

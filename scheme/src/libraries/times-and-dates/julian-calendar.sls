@@ -106,7 +106,7 @@
     modified-julian-day-number->julian-day-number
     )
   (import (rnrs)
-    (infix)
+    (nausicaa language infix)
     (times-and-dates seconds-and-subseconds)
     (only (language-extensions) define-constant receive))
 

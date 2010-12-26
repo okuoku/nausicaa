@@ -51,12 +51,11 @@
  (output-file:		"string-parser.sls")
  (parser-name:		'make-infix-string-parser)
  (library-spec:		'(infix string-parser))
-;;; (library-imports:	'((rnrs eval)))
 
  (terminals:	'(ID QUESTION-ID COLON-ID NUM LPAREN RPAREN COMMA
 		     (left: ADD SUB)
-		     (left: MUL DIV DIV0)
-		     (left: MOD)
+		     (left: MUL DIV)	; DIV stands for all of: / // div div0
+		     (left: MOD)	; MOD stands for all of: mod mod0 %
 		     (left: EXPT)
 		     (left: LT GT LE GE EQ)
 		     (nonassoc: UADD)
@@ -66,8 +65,6 @@
 				(expr SUB expr)		: (list $2 $1 $3)
 				(expr DIV expr)		: (list $2 $1 $3)
 				(expr MUL expr)		: (list $2 $1 $3)
-
-				(expr DIV0 expr)	: (list $2 $1 $3)
 				(expr MOD expr)		: (list $2 $1 $3)
 				(expr EXPT expr)	: (list $2 $1 $3)
 				(expr LT expr)		: (list $2 $1 $3)
@@ -99,8 +96,8 @@
 
  (terminals:	'(ID QUESTION-ID COLON-ID NUM LPAREN RPAREN
 		     (left: ADD SUB)
-		     (left: MUL DIV DIV0)
-		     (left: MOD)
+		     (left: MUL DIV)	; DIV stands for all of: / // div div0
+		     (left: MOD)	; MOD stands for all of: mod mod0 %
 		     (left: EXPT)
 		     (left: LT GT LE GE EQ)
 		     (nonassoc: UADD)
@@ -110,10 +107,8 @@
 			(expr SUB expr)		: (list $2 $1 $3)
 			(expr DIV expr)		: (list $2 $1 $3)
 			(expr MUL expr)		: (list $2 $1 $3)
-
-			(expr DIV0 expr)		: (list $2 $1 $3)
 			(expr MOD expr)		: (list $2 $1 $3)
-			(expr EXPT expr)		: (list $2 $1 $3)
+			(expr EXPT expr)	: (list $2 $1 $3)
 			(expr LT expr)		: (list $2 $1 $3)
 			(expr GT expr)		: (list $2 $1 $3)
 			(expr LE expr)		: (list $2 $1 $3)

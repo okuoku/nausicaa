@@ -53,9 +53,6 @@
 
 (import (nausicaa)
   (rnrs eval (6))
-  (only (language-extensions)
-	syntax-rules* syntax-case*
-	partial-macro-expand partial-macro-expand-and-print)
   (checks))
 
 (check-set-mode! 'report-failed)
@@ -869,65 +866,6 @@
   				    (beta  b (lambda (x) x)))
   				   (list alpha beta)))
     => '(1 2))
-
-  #t)
-
-
-(parametrise ((check-test-name	'macro-expansion))
-
-  (let ()
-
-    (define-syntax doit
-      (syntax-rules* ()
-	((_ a b c)
-	 (list a b c))))
-
-    (define-syntax do-on-it
-      (syntax-rules* ()
-	((_ a b c)
-	 (doit a b c))))
-
-    (check
-	(doit 1 2 3)
-      => '(1 2 3))
-
-    (check
-	(do-on-it 1 2 3)
-      => '(1 2 3))
-
-    (check
-    	(partial-macro-expand (doit 1 2 3))
-      => '(list 1 2 3))
-
-    (check
-    	(partial-macro-expand (do-on-it 1 2 3))
-      => '(doit 1 2 3))
-
-;;;    (partial-macro-expand-and-print (doit 1 2 3))
-
-    #f)
-
-;;; --------------------------------------------------------------------
-
-  (let ()
-
-    (define-syntax doit
-      (lambda (stx)
-	(syntax-case* stx ()
-	  ((_ a b c)
-	   #'(list a b c)))))
-
-    (check
-	(doit 1 2 3)
-      => '(1 2 3))
-
-    (check
-	(partial-macro-expand (doit 1 2 3))
-      => '(syntax (list 1 2 3)))
-
-;;;    (partial-macro-expand-and-print (doit 1 2 3))
-
-    #f)
 
   #t)
 

@@ -111,7 +111,7 @@
   (import (rnrs)
     (only (language-extensions)
 	  define-inline define-constant receive)
-    (infix syntax)
+    (nausicaa language infix)
     (times-and-dates leap-second-table))
 
 

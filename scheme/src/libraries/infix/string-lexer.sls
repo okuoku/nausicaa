@@ -87,7 +87,7 @@
 		    ((/)	(make-<lexical-token> 'DIV	position '/ len))
 		    ((%)	(make-<lexical-token> 'MOD	position 'mod len))
 		    ((^)	(make-<lexical-token> 'EXPT	position 'expt len))
-		    ((//)	(make-<lexical-token> 'DIV0	position 'div len))
+		    ((//)	(make-<lexical-token> 'DIV	position 'div len))
 		    ((<)	(make-<lexical-token> 'LT	position '< len))
 		    ((>)	(make-<lexical-token> 'GT	position '> len))
 		    ((<=)	(make-<lexical-token> 'LE	position '<= len))
