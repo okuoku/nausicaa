@@ -109,11 +109,11 @@ resources).
 
 * The  library  source files  (.sls)  are  installed in  the
   directory selected  by the "pkglibdir"  Makefile variable;
-  by default  this variable is  set to "$(libdir)/nausicaa",
+  by  default this  variable is  set  to "$(libdir)/scheme",
   which  means that without  touching the  configuration the
   files will end up in:
 
-     /usr/local/lib/nausicaa
+     /usr/local/lib/scheme
 
   be sure to update accordingly the libraries search path of
   the Scheme implementation you are using.
