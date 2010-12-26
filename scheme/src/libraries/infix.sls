@@ -26,9 +26,8 @@
 
 
 (library (infix)
-  (export infix-string->sexp infix->prefix infix)
+  (export infix-string->sexp infix->prefix)
   (import (rnrs)
-    (infix syntax)
     (silex lexer)
     (parser-tools source-location)
     (parser-tools lexical-token)

@@ -5,11 +5,13 @@
 The @library{infix} library provides utilities to convert infix notation
 expressions to prefix notation expressions; the library is built upon
 @library{nausicaa}, @library{silex lexer} and @library{lalr lr-driver}.
+The same functionality is packed in the standalone library
+@library{nausicaa language infix} and available as macro which can
+convert infix to prefix notation at expand time.
 
 @menu
 * infix strings::               Converting strings.
 * infix sexps::                 Converting S--expressions.
-* infix syntax::                Infix notation expressions.
 @end menu
 
 @c page
@@ -174,115 +176,5 @@ Procedures are treated like non--operator symbols.
 Numbers and all ``the other'' values are just put there.
 @end itemize
 @end defun
-
-@c page
-@node infix syntax
-@section Infix notation expressions
-
-
-The following bindings are exported by the @library{infix syntax}
-library and reexported by the @library{infix} library.
-
-
-@deffn Syntax infix @ameta{atom} ...
-Expand to a prefix expression to be evaluated at runtime, in the lexical
-context of the macro use; as a special case @code{(infix)} is equivalent
-to @code{(values)}.  The syntax allows us to evaluate forms like:
-
-@example
-(let ((a 1) (b 2) (c 3))
-
-  (infix cos (a) * tan (b) / c)
-  @expansion{} (/ (* (cos a) (tan b)) c)
-
-  (infix (cos (a) * tan (b) / c))
-  @expansion{} (/ (* (cos a) (tan b)) c)
-
-  (infix a ? b : c)
-  @expansion{} (if a b c)
-
-  #f)
-@end example
-
-Some interpretation rules:
-
-@itemize
-@item
-The following infix operators are supported, in order of increasing
-precedence from left to right:
-
-@example
-+ - * / div // div0 mod mod0 % expt ^ < > <= >= =
-@end example
-
-@noindent
-remember that the Scheme comparison operators are meant to return a
-boolean value, rather than a number object.  @samp{//} is an alias for
-@func{div}, @samp{%} is an alias for @func{mod}, @samp{^} is an alias
-for @func{expt}.  The recognised operators are bindings from both the
-@library{rnrs} and @library{nausicaa} libraries; @samp{//}, @samp{%} and
-@samp{^} should be free identifiers.
-
-@item
-The if--then--else statement involves the special symbols @code{?} and
-@code{:} which should be free identifiers.  This statement has the least
-precedence of all.
-
-@item
-Any Scheme value can be element of the S--expression.
-
-@item
-Symbols which are not operators are interpreted as variable references;
-if a symbol is followed by a list, it is a function call.
-
-@item
-Function calls with one or more arguments require the arguments to be
-grouped in a list; there is no special separator in the list of
-arguments.
-
-@example
-(define (fun a b c)
-  (+ a b c))
-
-(infix fun (1 2 3)) @expansion{} (fun 1 2 3)
-
-(infix fun(1 2 3))  @expansion{} (fun 1 2 3)
-@end example
-
-Notice that grouping the function arguments in a list is a requirement
-of the infix expressions grammar.
-
-@item
-Numbers and all ``the other'' values are just put there as operands.
-
-@item
-As a special exception: the binding @func{begin} from @library{rnrs} is
-recognised in the input form and allows us to nest prefix--notation
-expressions.
-
-@example
-(infix (begin (+ 1 2)))
-@result{} 3
-
-(infix (begin
-         (let ((a 3))
-           (/ a 4))))
-@result{} 3/4
-
-(let ((a 3))
-  (infix (begin (/ a 4))))
-@result{} 3/4
-
-(let ((a 1) (b 2) (c 3))
-  (infix (1 + a ? (begin
-                    (+ 2 b))
-                : 3 + c - 4))
-  @expansion{} (if (+ 1 a)
-          (begin (+ 2 b))
-        (- (+ 3 c) 4))
-  #f)
-@end example
-@end itemize
-@end deffn
 
 @c end of file

@@ -778,8 +778,7 @@
     read-with-shared-structure  read/ss
 
     ;; environment variables
-    (rename (getenv get-environment-variable))
-    get-environment-variables
+    get-environment-variable get-environment-variables
 
     ;; parameters
     parameterize parameterise parametrise make-parameter
@@ -813,6 +812,10 @@
     ;; unimplemented
     &unimplemented make-unimplemented-condition unimplemented-condition?
     raise-unimplemented-error
+
+;;;; other bindings
+
+    infix
 
 
 ;;;; bindings from (classes)
@@ -891,44 +894,28 @@
   )
 
 
-  (import (for (except (rnrs) finite? infinite? nan? = max assert) expand run)
-    (for (only (ikarus) getenv) expand run)
-    (for (cond-expand) expand run)
-    (for (conditions) expand run)
-    (for (only (assertions) assert) expand run)
-    (for (language-extensions) expand run)
-    (for (parameters) expand run)
-    (for (pretty-print) expand run)
-    (for (shared-structures) expand run)
-    (for (classes) expand run)
-    (for (compensations) expand run)
-    (for (deferred-exceptions) expand run)
-    (for (makers) expand run)
-    (for (nausicaa common) expand run))
-
-
-;;;; Vicare specific stuff
-
-(define (get-environment-variables)
-  (raise-unimplemented-error 'get-environment-variables))
-
-(define max
-  (case-lambda
-   ((n)
-    n)
-   ((n m)
-    (cond ((nan? n)
-	   +nan.0)
-	  ((nan? m)
-	   +nan.0)
-	  (else
-	   (if (< n m) m n))))
-   ((n m . args)
-    (max n (apply max m args)))))
-
-
-;;;; done
-
-)
+  (import (for (except (rnrs)
+		       ;; implemented in (nausicaa language common)
+		       finite? infinite? nan? =
+		       ;; implemented in (nausicaa language compat)
+		       * rational-valued? max
+		       ;; implemented in (assertions)
+		       assert)
+	       expand run)
+    (for (nausicaa language compat)		expand run)
+    (for (nausicaa language common)		expand run)
+    (for (nausicaa language infix)		expand run)
+    (for (cond-expand)				expand run)
+    (for (only (assertions) assert)		expand run)
+    (for (conditions)				expand run)
+    (for (language-extensions)			expand run)
+    (for (parameters)				expand run)
+    (for (pretty-print)				expand run)
+    (for (shared-structures)			expand run)
+    (for (classes)				expand run)
+    (for (compensations)			expand run)
+    (for (deferred-exceptions)			expand run)
+    (for (makers)				expand run)
+    ))
 
 ;;; end of file

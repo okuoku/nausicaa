@@ -813,6 +813,10 @@
     &unimplemented make-unimplemented-condition unimplemented-condition?
     raise-unimplemented-error
 
+;;;; other bindings
+
+    infix
+
 
 ;;;; bindings from (classes)
 
@@ -890,24 +894,28 @@
     )
 
 
-  (import (for (except (rnrs) finite? infinite? nan? = assert) expand run)
-    (for (only (system) get-environment-variable get-environment-variables) expand run)
-    (for (cond-expand) expand run)
-    (for (only (assertions) assert) expand run)
-    (for (conditions) expand run)
-    (for (language-extensions) expand run)
-    (for (parameters) expand run)
-    (for (pretty-print) expand run)
-    (for (shared-structures) expand run)
-    (for (classes) expand run)
-    (for (compensations) expand run)
-    (for (deferred-exceptions) expand run)
-    (for (makers) expand run)
-    (for (nausicaa common) expand run))
-
-
-;;;; done
-
-)
+  (import (for (except (rnrs)
+		       ;; implemented in (nausicaa language common)
+		       finite? infinite? nan? =
+		       ;; implemented in (nausicaa language compat)
+		       * rational-valued? max
+		       ;; implemented in (assertions)
+		       assert)
+	       expand run)
+    (for (nausicaa language compat)		expand run)
+    (for (nausicaa language common)		expand run)
+    (for (nausicaa language infix)		expand run)
+    (for (cond-expand)				expand run)
+    (for (only (assertions) assert)		expand run)
+    (for (conditions)				expand run)
+    (for (language-extensions)			expand run)
+    (for (parameters)				expand run)
+    (for (pretty-print)				expand run)
+    (for (shared-structures)			expand run)
+    (for (classes)				expand run)
+    (for (compensations)			expand run)
+    (for (deferred-exceptions)			expand run)
+    (for (makers)				expand run)
+    ))
 
 ;;; end of file

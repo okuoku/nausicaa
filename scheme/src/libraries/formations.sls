@@ -38,7 +38,6 @@
   (export
     format format-output-column)
   (import (nausicaa)
-    (infix syntax)
     (only (rnrs r5rs) remainder quotient)
     (only (rnrs mutable-strings) string-set!))
 
