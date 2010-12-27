@@ -64,7 +64,7 @@
   (import (rnrs)
     (rnrs mutable-pairs)
     (rnrs mutable-strings)
-    (rnrs eval))
+    (rnrs eval)
     (only (nausicaa language extensions) begin0)
     (nausicaa language parameters)
     (nausicaa language makers)
