@@ -40,6 +40,8 @@
     (only (language-extensions)
 	  begin0 begin0-let define-constant)
     (parameters)
+    (syntax-utilities)
+    (nausicaa symbols-tree)
     (rnrs mutable-pairs (6)))
 
 ;;;We need to define or import four bindings:
@@ -120,9 +122,8 @@
 ;;		;third argument
 ;;
 
-(define-syntax :method-add		(syntax-rules ()))
-(define-syntax :methods-alist		(syntax-rules ()))
-(define-syntax :number-of-arguments	(syntax-rules ()))
+(define-auxiliary-syntaxes
+  :method-add :methods-alist :number-of-arguments)
 
 (define-syntax define-generic
   (lambda (stx)
@@ -145,7 +146,17 @@
 		 #f
 	       (length (caar methods-alist))))
 	   (define cache
-	     (make-hashtable signature-hash eq?))
+	     #;(make-hashtable signature-hash eq?)
+	     '()) ;symbols tree
+	   (define (cache-clear)
+	     #;(hashtable-clear! cache)
+	     (set! cache '()))
+	   (define (cache-store signature methods)
+	     #;(hashtable-set! cache signature methods)
+	     (set! cache (tree-cons signature methods cache)))
+	   (define (cache-ref signature)
+	     #;(hashtable-ref cache signature #f)
+	     (treeq cache signature #f))
 	   (define (method-add signature closure)
 	     (let ((len (length signature)))
 	       (if number-of-arguments
@@ -154,10 +165,11 @@
 		       "attempt to define method with wrong number of arguments"
 		       signature))
 		 (set! number-of-arguments len)))
-	     (hashtable-clear! cache)
+	     (cache-clear)
 	     (set! methods-alist (%add-method-to-methods-alist methods-alist signature closure)))
 	   (define (implementation . arguments)
-	     (generic-function-implementation '?name methods-alist cache number-of-arguments arguments))
+	     (generic-function-implementation '?name methods-alist cache-ref cache-store
+					      number-of-arguments arguments))
 	   (define-syntax ?name
 	     (lambda (stx)
 	       (syntax-case stx (:method-add :methods-alist :number-of-arguments)
@@ -179,15 +191,16 @@
 
       )))
 
-(define (generic-function-implementation who methods-alist cache number-of-arguments arguments)
+(define (generic-function-implementation who methods-alist cache-ref cache-store
+					 number-of-arguments arguments)
 
   (define signature
     (map type-uid-list-of arguments))
 
   (define applicable-methods
-    (or (hashtable-ref cache signature #f)
+    (or (cache-ref signature)
 	(begin0-let ((methods (%compute-applicable-methods signature methods-alist)))
-	  (hashtable-set! cache signature methods))))
+	  (cache-store signature methods))))
 
   (define method-called? #f)
 
