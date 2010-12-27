@@ -654,7 +654,6 @@ More libraries
 * combinators::                 Combinators.
 * keywords::                    Keyword values.
 * variables::                   Defining storage locations.
-* scmobj::                      A simple object system.
 * matches::                     Pattern matching.
 * irregex::                     IrRegular expressions.
 * pregexp::                     Portable regular expressions for Scheme.
@@ -761,7 +760,6 @@ Indexes
 @include combinators.texiinc
 @include keywords.texiinc
 @include variables.texiinc
-@include scmobj.texiinc
 @include matches.texiinc
 @include irregex.texiinc
 @include pregexp.texiinc
