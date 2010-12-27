@@ -95,7 +95,6 @@
   (only (irregex))
   (only (pregexp))
 
-  (only (sexps))
   (only (matches))
 
   (only (parser-tools source-location))

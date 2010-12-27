@@ -65,8 +65,6 @@ Notes for --- tag 0.2a0
 
 * Reorganised FFI libraries, removed "foreign" prefix.
 
-* Removed (sexps syntax) library.
-
 * Further cleanup of (matches) internals.
 
 * Started  use  of  labels  from (classes)  as  wrappers  of
