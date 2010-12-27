@@ -1,7 +1,7 @@
 (library (calc-parser-lexer)
   (export
     calc-parser-lexer-table)
-  (import (rnrs) (nausicaa silex lexer)(parser-tools lexical-token)(parser-tools source-location))
+  (import (rnrs) (nausicaa silex lexer)(nausicaa parser-tools lexical-token)(nausicaa parser-tools source-location))
 
 ;
 ; Table generated from the file #f by SILex 1.0

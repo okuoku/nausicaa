@@ -8,8 +8,8 @@
     (nausicaa language sentinel)
     (calc-parser-helper)
     (rnrs eval)
-    (parser-tools lexical-token)
-    (parser-tools source-location))
+    (nausicaa parser-tools lexical-token)
+    (nausicaa parser-tools source-location))
   (define (make-calc-parser)
     (lr-driver
       '#(((*default* . *error*) (error . 6) (ID . 5)
