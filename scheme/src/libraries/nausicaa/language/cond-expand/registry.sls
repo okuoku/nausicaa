@@ -27,7 +27,7 @@
 ;;;SOFTWARE.
 
 #!r6rs
-(library (cond-expand registry)
+(library (nausicaa language cond-expand registry)
   (export registry-features)
   (import (rnrs))
   (define registry-features
