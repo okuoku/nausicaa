@@ -30,7 +30,7 @@
 
 
 #!r6rs
-(library (randomisations marsaglia)
+(library (nausicaa randomisations marsaglia)
   (export
     make-random-source/marsaglia/cong
     make-random-source/marsaglia/fib
@@ -40,8 +40,8 @@
     make-random-source/marsaglia/shr3
     make-random-source/marsaglia/swb)
   (import (rnrs)
-    (randomisations)
-    (randomisations low))
+    (nausicaa randomisations)
+    (nausicaa randomisations low))
 
 
 ;;;; helpers

@@ -24,12 +24,13 @@
 ;;;
 
 
-(library (variables)
+#!r6rs
+(library (nausicaa variables)
   (export make-variable variable?
 	  variable-ref variable-set!
 	  define-variable)
   (import (rnrs)
-    (sentinel))
+    (nausicaa language sentinel))
 
   (define-record-type (:variable :variable-make variable?)
     (sealed #t)

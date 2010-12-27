@@ -27,7 +27,7 @@
 
 
 #!r6rs
-(library (contracts helpers)
+(library (nausicaa contracts helpers)
   (export
     ->
     build-variable-identifier-syntax
@@ -39,10 +39,9 @@
     (rename (contract-violation-condition? contract-violation?))
     condition-contract-violation/subject)
   (import (rnrs)
-(pretty-print)
-    (conditions)
-    (prefix (configuration) config.)
-    (only (syntax-utilities) define-auxiliary-syntax))
+    (nausicaa language conditions)
+    (prefix (nausicaa configuration) config.)
+    (only (nausicaa language syntax-utilities) define-auxiliary-syntax))
 
 (define-auxiliary-syntax ->)
 

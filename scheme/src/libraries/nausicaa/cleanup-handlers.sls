@@ -25,7 +25,8 @@
 
 
 
-(library (cleanup-handlers)
+#!r6rs
+(library (nausicaa cleanup-handlers)
   (export
     cleanup
     register-cleanup-function

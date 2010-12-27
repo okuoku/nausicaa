@@ -24,7 +24,8 @@
 ;;;
 
 
-(library (ffi peekers-and-pokers compat)
+#!r6rs
+(library (nausicaa ffi peekers-and-pokers compat)
   (export
     ;;peekers
     pointer-ref-c-int8			pointer-ref-c-uint8
@@ -77,7 +78,7 @@
 	  pointer-set-c-float!
 	  pointer-set-c-double!
 	  pointer-set-c-pointer!)
-    (only (ffi sizeof) c-inspect))
+    (only (nausicaa ffi sizeof) c-inspect))
 
 
 ;;;; peekers

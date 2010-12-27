@@ -29,7 +29,8 @@
 
 
 
-(library (char-sets blocks)
+#!r6rs
+(library (nausicaa char-sets blocks)
   (export
     char-set:block/basic-latin
     char-set:block/latin-1-supplement
@@ -200,7 +201,7 @@
     char-set:block/supplementary-private-use-area-a
     char-set:block/supplementary-private-use-area-b)
   (import (rnrs)
-    (char-sets))
+    (nausicaa char-sets))
 
 
 

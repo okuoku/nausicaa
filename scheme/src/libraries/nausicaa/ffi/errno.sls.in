@@ -26,7 +26,8 @@
 ;;;
 
 
-(library (ffi errno)
+#!r6rs
+(library (nausicaa ffi errno)
   (export
 
     strerror
@@ -93,12 +94,12 @@
     EUNATCH		EUSERS		EWOULDBLOCK
     EXDEV		EXFULL)
   (import (rnrs)
-    (only (ffi)
+    (only (nausicaa ffi)
 	  define-c-functions
 	  libc-shared-object)
-    (only (ffi clang-data-types)
+    (only (nausicaa ffi clang-data-types)
 	  clang-maybe-foreign-type->clang-external-type)
-    (only (ffi cstrings)
+    (only (nausicaa ffi cstrings)
 	  cstring->string))
 
 

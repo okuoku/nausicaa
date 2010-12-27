@@ -24,15 +24,16 @@
 ;;;
 
 
-(library (ffi compat)
+#!r6rs
+(library (nausicaa ffi compat)
   (export
     open-shared-object		lookup-shared-object
     make-c-callout		make-c-callout/with-errno
     make-c-callback		(rename (mosh:free-c-callback free-c-callback)))
   (import (rnrs)
-    (unimplemented)
-    (ffi conditions)
-    (only (ffi sizeof) LIBC_SHARED_OBJECT_SPEC)
+    (nausicaa language unimplemented)
+    (nausicaa ffi conditions)
+    (only (nausicaa ffi sizeof) LIBC_SHARED_OBJECT_SPEC)
     (prefix (only (mosh ffi)
 		  open-shared-library	lookup-shared-library
 		  make-c-function	pointer->c-function

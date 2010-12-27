@@ -25,10 +25,11 @@
 ;;;
 
 
-(library (generics object-to-string)
+#!r6rs
+(library (nausicaa generics object-to-string)
   (export object->string)
   (import (rnrs)
-    (generics))
+    (nausicaa generics))
 
   (define-generic object->string)
 

@@ -126,7 +126,7 @@
 
 
 #!r6rs
-(library (bytevectors u8low)
+(library (nausicaa bytevectors u8low)
   (export
 
     ;; constructors
@@ -235,8 +235,8 @@
     %bytevector-u8-reverse  %bytevector-u8-reverse!
     %bytevector-u8-replace)
   (import (rnrs)
-    (char-sets)
-    (knuth-morris-pratt))
+    (nausicaa char-sets)
+    (nausicaa knuth-morris-pratt))
 
 
 ;;;; helpers

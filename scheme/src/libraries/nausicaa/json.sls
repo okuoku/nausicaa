@@ -26,7 +26,7 @@
 
 
 #!r6rs
-(library (json)
+(library (nausicaa json)
   (export
     make-json-rfc-lexer		make-json-extended-lexer
     json->tokens
@@ -47,16 +47,16 @@
     make-json-parser-error-condition
     json-parser-error-condition?)
   (import (nausicaa)
-    (makers)
-    (conditions)
-    (for (syntax-utilities) run expand)
-    (silex lexer)
-    (json string-lexer)
-    (json rfc-lexer)
-    (json extended-lexer)
-    (json sexp-parser)
-    (parser-tools lexical-token)
-    (parser-tools source-location))
+    (nausicaa language makers)
+    (nausicaa language conditions)
+    (for (nausicaa language syntax-utilities) run expand)
+    (nausicaa silex lexer)
+    (nausicaa json string-lexer)
+    (nausicaa json rfc-lexer)
+    (nausicaa json extended-lexer)
+    (nausicaa json sexp-parser)
+    (nausicaa parser-tools lexical-token)
+    (nausicaa parser-tools source-location))
 
 
 (define-condition &json-parser-error

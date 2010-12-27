@@ -26,7 +26,7 @@
 
 
 #!r6rs
-(library (contracts)
+(library (nausicaa contracts)
   (export define-contract let-contract ->
 	  define/contract with-outer-contracts
 	  enforce-contracts
@@ -36,10 +36,10 @@
 	  contract-violation?
 	  condition-contract-violation/subject)
   (import (rnrs)
-    (prefix (configuration) config.)
-    (syntax-utilities)
-    (only (language-extensions) define-syntax*)
-    (for (contracts helpers) run expand))
+    (prefix (nausicaa configuration) config.)
+    (nausicaa language syntax-utilities)
+    (only (nausicaa language extensions) define-syntax*)
+    (for (nausicaa contracts helpers) run expand))
 
 
 (define-syntax* (enforce-contracts stx)

@@ -25,7 +25,8 @@
 ;;;
 
 
-(library (armor base16)
+#!r6rs
+(library (nausicaa armor base16)
   (export
     <base16-encode-ctx>				<base16-decode-ctx>
     make-<base16-encode-ctx>			make-<base16-decode-ctx>
@@ -46,9 +47,9 @@
     armored-byte-of-base16/mixed-case?
     armored-byte-of-base16/lower-case?)
   (import (rnrs)
-    (language-extensions)
-    (classes)
-    (armor conditions))
+    (nausicaa language extensions)
+    (nausicaa language classes)
+    (nausicaa armor conditions))
 
 
 (define-class <base16-encode-ctx>

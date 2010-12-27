@@ -26,7 +26,7 @@
 
 
 #!r6rs
-(library (evaluations)
+(library (nausicaa evaluations)
   (export
     <environment>
 
@@ -34,10 +34,10 @@
     bindings:
     imports:)
   (import (nausicaa)
-    (makers)
-    (sentinel)
-    (gensym)
-    (prefix (type-utilities) type.)
+    (nausicaa language makers)
+    (nausicaa language sentinel)
+    (nausicaa gensym)
+    (prefix (nausicaa type-utilities) type.)
     (rnrs eval)
     (rnrs mutable-pairs))
 

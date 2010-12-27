@@ -26,7 +26,7 @@
 
 
 #!r6rs
-(library (libraries conditions)
+(library (nausicaa libraries conditions)
   (export
     &libraries-error
     make-libraries-error-condition

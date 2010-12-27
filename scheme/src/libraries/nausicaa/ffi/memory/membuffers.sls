@@ -25,7 +25,8 @@
 ;;;
 
 
-(library (ffi memory membuffers)
+#!r6rs
+(library (nausicaa ffi memory membuffers)
   (export
     <membuffer>
     make-<membuffer>		<membuffer>?
@@ -39,11 +40,11 @@
     membuffer-incomplete-push/source-start-offset
     membuffer-incomplete-push/source-past-offset)
   (import (nausicaa)
-    (queues)
-    (only (ffi pointers) pointer=? pointer-diff)
-    (ffi memory)
-    (ffi memory caches)
-    (ffi memory memblocks))
+    (nausicaa queues)
+    (only (nausicaa ffi pointers) pointer=? pointer-diff)
+    (nausicaa ffi memory)
+    (nausicaa ffi memory caches)
+    (nausicaa ffi memory memblocks))
 
 
 (define-class <membuffer>

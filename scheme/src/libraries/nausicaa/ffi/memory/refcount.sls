@@ -25,16 +25,17 @@
 ;;;
 
 
-(library (ffi memory refcount)
+#!r6rs
+(library (nausicaa ffi memory refcount)
   (export
     malloc/refcount		(rename (malloc/refcount malloc/rc))
     pointer-acquire		pointer-release
     pointer-dismiss)
   (import (rnrs)
-    (ffi pointers)
-    (only (ffi memory alloc) malloc primitive-free)
-    (ffi peekers-and-pokers)
-    (only (ffi sizeof) c-strideof))
+    (nausicaa ffi pointers)
+    (only (nausicaa ffi memory alloc) malloc primitive-free)
+    (nausicaa ffi peekers-and-pokers)
+    (only (nausicaa ffi sizeof) c-strideof))
 
 
 (define malloc/refcount

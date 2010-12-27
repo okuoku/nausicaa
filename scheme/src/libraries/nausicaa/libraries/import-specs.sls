@@ -54,7 +54,8 @@
 ;;;
 
 
-(library (libraries import-specs)
+#!r6rs
+(library (nausicaa libraries import-specs)
   (export
 
     <import-spec>
@@ -77,9 +78,9 @@
     apply-import-spec/rename
     )
   (import (nausicaa)
-    (matches)
-    (libraries helpers)
-    (libraries references))
+    (nausicaa matches)
+    (nausicaa libraries helpers)
+    (nausicaa libraries references))
 
 
 (define-class <import-spec>

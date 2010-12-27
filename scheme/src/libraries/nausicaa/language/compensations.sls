@@ -25,14 +25,15 @@
 ;;;
 
 
-(library (compensations)
+#!r6rs
+(library (nausicaa compensations)
   (export
     with-compensations with-compensations/on-error
     compensate run-compensations push-compensation)
   (import (rnrs)
-    (only (language-extensions) begin0)
-    (parameters)
-    (deferred-exceptions))
+    (only (nausicaa language extensions) begin0)
+    (nausicaa language parameters)
+    (nausicaa language deferred-exceptions))
 
 
 (define compensations

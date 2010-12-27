@@ -23,9 +23,8 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
-
 #!r6rs
-(library (parameters)
+(library (nausicaa language parameters)
   (export make-parameter parameterize
 	  (rename (parameterize parameterise)
 		  (parameterize parametrise)))

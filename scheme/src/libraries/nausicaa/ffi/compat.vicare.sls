@@ -24,14 +24,15 @@
 ;;;
 
 
-(library (ffi compat)
+#!r6rs
+(library (nausicaa ffi compat)
   (export
     open-shared-object		lookup-shared-object
     make-c-callout		make-c-callout/with-errno
     make-c-callback		free-c-callback)
   (import (rnrs)
-    (only (ffi sizeof) LIBC_SHARED_OBJECT_SPEC)
-    (ffi conditions)
+    (only (nausicaa ffi sizeof) LIBC_SHARED_OBJECT_SPEC)
+    (nausicaa ffi conditions)
     (prefix (only (vicare foreign)
 		  dlopen dlsym dlerror
 		  make-c-callout make-c-callback

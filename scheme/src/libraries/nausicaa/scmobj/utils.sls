@@ -25,13 +25,13 @@
 ;;;
 
 
-(library (scmobj utils)
+(library (nausicaa scmobj utils)
   (export
     prepend-to-slot append-to-slot
     with-slots-set! with-slots-ref
     with-slots)
   (import (rnrs)
-    (scmobj))
+    (nausicaa scmobj))
 
 
 

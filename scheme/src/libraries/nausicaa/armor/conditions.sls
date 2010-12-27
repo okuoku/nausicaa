@@ -25,7 +25,8 @@
 ;;;
 
 
-(library (armor conditions)
+#!r6rs
+(library (nausicaa armor conditions)
   (export
 
     &armor-error

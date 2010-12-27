@@ -26,7 +26,7 @@
 
 
 #!r6rs
-(library (ffi peekers-and-pokers compat)
+(library (nausicaa ffi peekers-and-pokers compat)
   (export
     ;;peekers
     pointer-ref-c-int8			pointer-ref-c-uint8
@@ -58,7 +58,7 @@
     pointer-set-c-signed-long-long!	pointer-set-c-unsigned-long-long!
     pointer-set-c-pointer!)
   (import (chezscheme)
-    (only (ffi pointers) integer->pointer pointer->integer))
+    (only (nausicaa ffi pointers) integer->pointer pointer->integer))
 
 
 ;;;; peekers

@@ -25,7 +25,7 @@
 
 
 #!r6rs
-(library (ffi pointers compat)
+(library (nausicaa ffi pointers compat)
   (export
     pointer?
     integer->pointer			pointer->integer

@@ -25,7 +25,8 @@
 
 
 
-(library (object-properties)
+#!r6rs
+(library (nausicaa object-properties)
   (export
     object-property-initial-capacity
     object-property-default-value

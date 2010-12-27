@@ -55,7 +55,7 @@
 ;;;PARTICULAR PURPOSE.
 
 
-(library (times-and-dates seconds-and-subseconds)
+(library (nausicaa times-and-dates seconds-and-subseconds)
   (export
 
     ;; constants
@@ -109,10 +109,10 @@
     utc-seconds->tai-seconds		tai-seconds->utc-seconds
     )
   (import (rnrs)
-    (only (language-extensions)
+    (only (nausicaa language extensions)
 	  define-inline define-constant receive)
     (nausicaa language infix)
-    (times-and-dates leap-second-table))
+    (nausicaa times-and-dates leap-second-table))
 
 
 ;;;; constants

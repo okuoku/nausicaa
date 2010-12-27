@@ -34,11 +34,11 @@
 
 
 #!r6rs
-(library (randomisations borosh)
+(library (nausicaa randomisations borosh)
   (export make-random-source/borosh)
   (import (rnrs)
-    (randomisations)
-    (randomisations low))
+    (nausicaa randomisations)
+    (nausicaa randomisations low))
 
 
 (define (make-random-source/borosh)

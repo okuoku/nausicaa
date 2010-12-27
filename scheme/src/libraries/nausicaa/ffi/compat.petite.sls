@@ -25,16 +25,17 @@
 ;;;
 
 
-(library (ffi compat)
+#!r6rs
+(library (nausicaa ffi compat)
   (export
     open-shared-object		lookup-shared-object
     make-c-callout		make-c-callout/with-errno
     make-c-callback		free-c-callback)
   (import (rnrs)
-    (unimplemented)
-    (only (ffi sizeof) LIBC_SHARED_OBJECT_SPEC)
-    (ffi conditions)
-    (ffi peekers-and-pokers)
+    (nausicaa language unimplemented)
+    (only (nausicaa ffi sizeof) LIBC_SHARED_OBJECT_SPEC)
+    (nausicaa ffi conditions)
+    (nausicaa ffi peekers-and-pokers)
     (prefix (only (chezscheme)
 ;;;	  foreign-procedure
 		  load-shared-object)

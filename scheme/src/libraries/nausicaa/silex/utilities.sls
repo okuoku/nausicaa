@@ -25,9 +25,8 @@
 ;;;
 
 
-(library (silex utilities)
-  (export
-    make-max-count-lexer)
+(library (nausicaa silex utilities)
+  (export make-max-count-lexer)
   (import (rnrs))
 
 

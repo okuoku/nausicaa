@@ -25,7 +25,7 @@
 ;;;
 
 #!r6rs
-(library (gensym)
+(library (nausicaa language gensym)
   (export gensym)
   (import (rnrs))
   (define (gensym)

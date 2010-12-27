@@ -41,7 +41,7 @@
 ;;;   0.1: 2005/08/18 - simple NFA interpreter over abstract chunked strings
 
 
-(library (irregex)
+(library (nausicaa irregex)
   (export
 
     (rename (irregex* irregex))
@@ -59,9 +59,9 @@
     (rnrs r5rs (6))
     (rnrs mutable-pairs (6))
     (rnrs mutable-strings (6))
-    (strings)
-    (lists)
-    (lists stx))
+    (nausicaa strings)
+    (nausicaa lists)
+    (nausicaa lists stx))
 
 
 ;;;; helpers

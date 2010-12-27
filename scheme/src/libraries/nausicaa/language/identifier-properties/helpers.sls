@@ -26,10 +26,10 @@
 
 
 #!r6rs
-(library (identifier-properties helpers)
+(library (nausicaa language identifier-properties helpers)
   (export lookup-identifier-property identifier-property-set!)
   (import (rnrs)
-    (identifier-properties identifier-alists))
+    (nausicaa language identifier-alists))
 
   ;;An alist  of alists  sucks in performance,  but with  identifiers as
   ;;keys we have no other choice.

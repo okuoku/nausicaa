@@ -25,7 +25,8 @@
 ;;;
 
 
-(library (ffi memory alloc)
+#!r6rs
+(library (nausicaa ffi memory alloc)
   (export
     system-free		platform-free		primitive-free
     system-malloc	system-calloc		system-realloc
@@ -37,10 +38,10 @@
     primitive-malloc-function	primitive-calloc-function
     primitive-realloc-function	primitive-free-function)
   (import (rnrs)
-    (parameters)
-    (ffi pointers)
-    (ffi memory conditions)
-    (ffi memory alloc compat))
+    (nausicaa language parameters)
+    (nausicaa ffi pointers)
+    (nausicaa ffi memory conditions)
+    (nausicaa ffi memory alloc compat))
 
 
 (define (platform-malloc* number-of-bytes)

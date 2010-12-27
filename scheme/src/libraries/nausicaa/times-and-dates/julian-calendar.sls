@@ -80,7 +80,8 @@
 ;;;PARTICULAR PURPOSE.
 
 
-(library (times-and-dates julian-calendar)
+#!r6rs
+(library (nausicaa times-and-dates julian-calendar)
   (export
 
     ;; constants
@@ -107,8 +108,8 @@
     )
   (import (rnrs)
     (nausicaa language infix)
-    (times-and-dates seconds-and-subseconds)
-    (only (language-extensions) define-constant receive))
+    (nausicaa times-and-dates seconds-and-subseconds)
+    (only (nausicaa language extensions) define-constant receive))
 
 
 ;;;; constants

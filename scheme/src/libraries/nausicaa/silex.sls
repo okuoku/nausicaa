@@ -46,7 +46,7 @@
 
 
 #!r6rs
-(library (silex)
+(library (nausicaa silex)
   (export
     lex
     input-file:
@@ -62,13 +62,13 @@
     output-file:
     output-port:)
   (import (rnrs)
-    (only (language-extensions) begin0)
-    (parameters)
-    (makers)
-    (silex lexer)
     (rnrs mutable-pairs)
     (rnrs mutable-strings)
     (rnrs eval))
+    (only (nausicaa language extensions) begin0)
+    (nausicaa language parameters)
+    (nausicaa language makers)
+    (nausicaa silex lexer))
 
 
 ;;;; helpers

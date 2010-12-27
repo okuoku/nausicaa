@@ -26,10 +26,10 @@
 
 
 #!r6rs
-(library (classes top)
+(library (nausicaa language classes top)
   (export <top> <top>-superclass <top>-superlabel <top>-bindings)
   (import (rnrs)
-    (classes internal-auxiliary-syntaxes))
+    (nausicaa language classes internal-auxiliary-syntaxes))
 
 
 (define-record-type <top>

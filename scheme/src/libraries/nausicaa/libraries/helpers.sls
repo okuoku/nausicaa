@@ -25,7 +25,8 @@
 ;;;
 
 
-(library (libraries helpers)
+#!r6rs
+(library (nausicaa libraries helpers)
   (export
     %list-of-symbols?
     %list-of-renamings?

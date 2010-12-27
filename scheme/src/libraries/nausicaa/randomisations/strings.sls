@@ -25,7 +25,7 @@
 
 
 #!r6rs
-(library (randomisations strings)
+(library (nausicaa randomisations strings)
   (export
     random-string-unfold-chars
     %random-string-shuffle		random-string-shuffle
@@ -34,9 +34,9 @@
     %random-string-sample		random-string-sample
     %random-string-sample-population	random-string-sample-population)
   (import (rnrs)
-    (randomisations)
-    (strings low)
-    (rename (only (strings) %string-unpack)
+    (nausicaa randomisations)
+    (nausicaa strings low)
+    (rename (only (nausicaa strings) %string-unpack)
 	    (%string-unpack unpack))
     (rnrs mutable-strings))
 

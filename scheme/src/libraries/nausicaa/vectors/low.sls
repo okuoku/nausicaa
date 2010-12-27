@@ -106,7 +106,8 @@
 ;;;IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-(library (vectors low)
+#!r6rs
+(library (nausicaa vectors low)
   (export
 
     ;; constructors
@@ -195,7 +196,7 @@
     %vector-reverse			%vector-reverse!
     %vector-replace)
   (import (rnrs)
-    (knuth-morris-pratt))
+    (nausicaa knuth-morris-pratt))
 
 
 ;;;; helpers

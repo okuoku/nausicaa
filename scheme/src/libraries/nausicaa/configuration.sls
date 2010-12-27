@@ -25,13 +25,14 @@
 ;;;
 
 
-(library (configuration)
+#!r6rs
+(library (nausicaa configuration)
   (export enable-function-arguments-validation?
 	  enable-assertions?
 	  enable-contracts?)
   (import (rnrs)
-    (parameters)
-    (getenv))
+    (nausicaa language parameters)
+    (nausicaa language getenv))
 
 
 (define (%bool-from-env-var name default)

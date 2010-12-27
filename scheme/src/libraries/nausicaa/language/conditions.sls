@@ -26,7 +26,7 @@
 
 
 #!r6rs
-(library (conditions)
+(library (nausicaa language conditions)
   (export
 
     define-condition
@@ -46,12 +46,12 @@
     &unimplemented make-unimplemented-condition unimplemented-condition?
     raise-unimplemented-error)
   (import (rnrs)
-    (sentinel)
-    (unimplemented)
-    (makers)
-    (only (auxiliary-syntaxes) parent fields)
-    (for (only (syntax-utilities) all-identifiers?) expand)
-    (for (only (syntax-utilities) define-auxiliary-syntax) run))
+    (nausicaa language sentinel)
+    (nausicaa language unimplemented)
+    (nausicaa language makers)
+    (only (nausicaa language auxiliary-syntaxes) parent fields)
+    (for (only (nausicaa language syntax-utilities) all-identifiers?) expand)
+    (for (only (nausicaa language syntax-utilities) define-auxiliary-syntax) run))
 
 
 (define-maker (define-condition name)

@@ -30,7 +30,7 @@
 
 
 #!r6rs
-(library (comparisons)
+(library (nausicaa comparisons)
   (export
     </<=? </<? <=/<=? <=/<? <=? <? =?
     >/>=? >/>? >=/>=? >=/>? >=? >?
@@ -47,7 +47,7 @@
     refine-compare select-compare string-compare string-compare-ci
     symbol-compare vector-compare vector-compare-as-list)
   (import (rnrs)
-    (randomisations)) ; for random-integer
+    (nausicaa randomisations)) ; for random-integer
 
 
 ;;;; helpers

@@ -25,10 +25,10 @@
 ;;;
 
 
-(library (lists xlists)
+(library (nausicaa lists xlists)
   (export <xlist>)
   (import (nausicaa)
-    (lists))
+    (nausicaa lists))
 
 
 (define-label <xlist>

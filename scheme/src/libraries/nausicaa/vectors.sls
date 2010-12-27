@@ -98,7 +98,7 @@
 
 
 #!r6rs
-(library (vectors)
+(library (nausicaa vectors)
   (export
 
     ;; auxiliary syntaxes
@@ -194,8 +194,8 @@
 
     (rename (unpack %vector-unpack)))
   (import (rnrs)
-    (vectors low)
-    (auxiliary-syntaxes))
+    (nausicaa vectors low)
+    (nausicaa language auxiliary-syntaxes))
 
 
 (define-syntax unpack

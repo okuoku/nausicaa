@@ -25,15 +25,16 @@
 ;;;
 
 
-(library (ffi memory bytevectors)
+#!r6rs
+(library (nausicaa ffi memory bytevectors)
   (export
     bytevector->pointer		pointer->bytevector
     bytevector->memblock	memblock->bytevector)
   (import (rnrs)
-    (ffi pointers)
-    (ffi peekers-and-pokers)
-    (ffi memory alloc)
-    (ffi memory memblocks))
+    (nausicaa ffi pointers)
+    (nausicaa ffi peekers-and-pokers)
+    (nausicaa ffi memory alloc)
+    (nausicaa ffi memory memblocks))
 
 
 (define bytevector->pointer

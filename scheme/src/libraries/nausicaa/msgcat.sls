@@ -25,15 +25,15 @@
 ;;;
 
 
-(library (msgcat)
+(library (nausicaa msgcat)
   (export
     mc mcmax
     load-catalog load-catalog-from-file
     current-catalog en_GB)
   (import (nausicaa)
-    (matches)
-    (only (strings) string-tokenize)
-    (only (char-sets)
+    (nausicaa matches)
+    (only (nausicaa strings) string-tokenize)
+    (only (nausicaa char-sets)
 	  char-set-complement char-set char-set:full))
 
 

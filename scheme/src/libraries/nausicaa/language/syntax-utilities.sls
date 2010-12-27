@@ -26,7 +26,7 @@
 
 
 #!r6rs
-(library (syntax-utilities)
+(library (nausicaa language syntax-utilities)
   (export
 
     ;; wrapping

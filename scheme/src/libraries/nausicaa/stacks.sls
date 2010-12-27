@@ -24,7 +24,8 @@
 ;;;
 
 
-(library (stacks)
+#!r6rs
+(library (nausicaa stacks)
   (export
     <stack>		<stack>?
     make-<stack>

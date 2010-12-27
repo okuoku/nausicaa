@@ -27,18 +27,18 @@
 
 
 #!r6rs
-(library (ffi memory alloc compat)
+(library (nausicaa ffi memory alloc compat)
   (export
     system-free				system-malloc
     system-calloc			system-realloc
     platform-free			platform-malloc
     platform-calloc			platform-realloc)
   (import (except (chezscheme) foreign-procedure)
-    (unimplemented)
-    (only (ffi pointers)
+    (nausicaa language unimplemented)
+    (only (nausicaa ffi pointers)
 	  integer->pointer
 	  pointer->integer)
-    (only (ffi sizeof) LIBC_SHARED_OBJECT_SPEC))
+    (only (nausicaa ffi sizeof) LIBC_SHARED_OBJECT_SPEC))
 
 
 ;;;; helpers

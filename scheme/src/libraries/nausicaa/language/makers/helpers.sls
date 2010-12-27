@@ -26,11 +26,11 @@
 
 
 #!r6rs
-(library (makers helpers)
+(library (nausicaa language makers helpers)
   (export parse-maker-input-form)
   (import (rnrs)
     (for (prefix (only (rnrs) list) rnrs.) (meta -1))
-    (only (syntax-utilities) unwrap-syntax-object identifier->string))
+    (only (nausicaa language syntax-utilities) unwrap-syntax-object identifier->string))
 
 
 (define (parse-maker-input-form who input-form-stx arguments-stx keywords-defaults-options)

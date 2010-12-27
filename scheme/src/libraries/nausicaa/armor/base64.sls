@@ -25,7 +25,8 @@
 ;;;
 
 
-(library (armor base64)
+#!r6rs
+(library (nausicaa armor base64)
   (export
 
     <base64-encode-ctx>				<base64-decode-ctx>
@@ -47,9 +48,9 @@
 
     armored-byte-of-base64?			armored-byte-of-base64/url?)
   (import (rnrs)
-    (language-extensions)
-    (classes)
-    (armor conditions))
+    (nausicaa language extensions)
+    (nausicaa language classes)
+    (nausicaa armor conditions))
 
 
 (define-class <base64-encode-ctx>

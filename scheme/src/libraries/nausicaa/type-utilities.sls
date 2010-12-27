@@ -25,7 +25,8 @@
 ;;;
 
 
-(library (type-utilities)
+#!r6rs
+(library (nausicaa type-utilities)
   (export
 
     ;; type assertion definition
@@ -36,9 +37,9 @@
     make-function
     )
   (import (rnrs)
-    (makers)
-    (for (prefix (syntax-utilities) synux.) expand run)
-    (only (language-extensions) define-inline))
+    (nausicaa language makers)
+    (for (prefix (nausicaa language syntax-utilities) synux.) expand run)
+    (only (nausicaa language extensions) define-inline))
 
 
 ;;;; type assertion definition

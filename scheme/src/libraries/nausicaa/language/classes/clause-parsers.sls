@@ -34,7 +34,7 @@
 
 
 #!r6rs
-(library (classes clause-parsers)
+(library (nausicaa classes clause-parsers)
   (export
     ;; label-specific clause collectors
     %collect-clause/label/inherit
@@ -69,11 +69,11 @@
     )
   (import (rnrs)
     (for (only (rnrs base) define-syntax) (meta -1))
-    (gensym)
-    (syntax-utilities)
-    (classes helpers)
-    (for (classes top) (meta -1))
-    (for (auxiliary-syntaxes) (meta -1)))
+    (nausicaa language gensym)
+    (nausicaa language syntax-utilities)
+    (nausicaa language classes helpers)
+    (for (nausicaa language classes top) (meta -1))
+    (for (nausicaa language auxiliary-syntaxes) (meta -1)))
 
 
 ;;;; class-specific definition clauses collectors

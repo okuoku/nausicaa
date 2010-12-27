@@ -25,7 +25,7 @@
 
 
 #!r6rs
-(library (char-sets)
+(library (nausicaa char-sets)
   (export
 
     ;; bounds
@@ -77,7 +77,7 @@
     char-set:ascii/vowels/upper-case	char-set:ascii/consonants/upper-case
     )
   (import (rnrs)
-    (lists))
+    (nausicaa lists))
 
 
 (define-record-type char-set

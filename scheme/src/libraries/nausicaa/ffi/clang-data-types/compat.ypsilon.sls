@@ -64,7 +64,8 @@
 ;;;
 
 
-(library (ffi clang-data-types compat)
+#1r6rs
+(library (nausicaa ffi clang-data-types compat)
   (export enum-clang-types clang-types clang-internal-type->clang-type)
   (import (rnrs))
 

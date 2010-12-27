@@ -25,7 +25,8 @@
 ;;;CONNECTION  WITH THE SOFTWARE  OR THE  USE OR  OTHER DEALINGS  IN THE
 ;;;SOFTWARE.
 
-(library (times-and-dates compat)
+#!r6rs
+(library (nausicaa times-and-dates compat)
   (export host:time-resolution
 	  host:current-time
 	  host:time-nanosecond

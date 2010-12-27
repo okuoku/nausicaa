@@ -24,13 +24,14 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
-(library (ffi memory operations)
+#!r6rs
+(library (nausicaa ffi memory operations)
   (export memset memmove memcpy memcmp)
   (import (rnrs)
-    (only (ffi)
+    (only (nausicaa ffi)
 	  libc-shared-object
 	  define-c-functions)
-    (only (ffi clang-data-types)
+    (only (nausicaa ffi clang-data-types)
 	  clang-maybe-foreign-type->clang-external-type))
   (define-c-functions libc-shared-object
     (memset	(void* memset  (void* int   size_t)))

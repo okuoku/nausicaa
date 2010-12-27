@@ -30,7 +30,7 @@
 
 
 #!r6rs
-(library (loops)
+(library (nausicaa loops)
   (export
     do-ec list-ec append-ec string-ec string-append-ec vector-ec
     vector-of-length-ec sum-ec product-ec min-ec max-ec any?-ec
@@ -40,7 +40,7 @@
     :-dispatch-ref :-dispatch-set! make-initial-:-dispatch
     dispatch-union :generator-proc)
   (import (rnrs)
-    (parameters))
+    (nausicaa language parameters))
 
 ; (do-ec q ... cmd)
 ;   handles nested, if/not/and/or, begin, :let, and calls generator

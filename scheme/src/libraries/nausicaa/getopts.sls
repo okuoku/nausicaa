@@ -26,7 +26,7 @@
 
 
 #!r6rs
-(library (getopts)
+(library (nausicaa getopts)
   (export
 
     <option>
@@ -75,9 +75,9 @@
     raise-option-requires-no-value
     raise-invalid-option)
   (import (rnrs)
-    (makers)
-    (classes)
-    (only (language-extensions) set-cons!))
+    (nausicaa language makers)
+    (nausicaa language classes)
+    (only (nausicaa language extensions) set-cons!))
 
 
 ;;;; helpers

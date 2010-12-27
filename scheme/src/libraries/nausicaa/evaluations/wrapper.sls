@@ -48,10 +48,10 @@
 
 
 #!r6rs
-(library (evaluations wrapper)
+(library (nausicaa evaluations wrapper)
   (export elet)
   (import (rnrs)
-    (only (syntax-utilities) all-identifiers?))
+    (only (nausicaa language syntax-utilities) all-identifiers?))
   (define-syntax elet
     (lambda (stx)
       (syntax-case stx ()

@@ -35,7 +35,7 @@
 
 
 #!r6rs
-(library (times-and-dates leap-second-table)
+(library (nausicaa times-and-dates leap-second-table)
   (export $leap-second-table)
   (import (rnrs))
   (define $leap-second-table

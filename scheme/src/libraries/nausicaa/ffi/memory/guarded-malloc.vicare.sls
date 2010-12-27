@@ -24,11 +24,12 @@
 ;;;
 
 
-(library (ffi memory guarded-malloc)
+#!r6rs
+(library (nausicaa ffi memory guarded-malloc)
   (export malloc/guarded calloc/guarded)
   (import (rnrs)
-    (only (ffi memory alloc) malloc calloc primitive-free)
-    (only (cleanup-handlers) register-cleanup-function)
+    (only (nausicaa ffi memory alloc) malloc calloc primitive-free)
+    (only (nausicaa cleanup-handlers) register-cleanup-function)
     (only (ikarus) make-guardian))
 
   (define block-guardian (make-guardian))

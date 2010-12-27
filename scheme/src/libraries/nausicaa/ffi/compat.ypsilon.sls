@@ -37,21 +37,22 @@
 ;;;OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-(library (ffi compat)
+#!r6rs
+(library (nausicaa ffi compat)
   (export
     open-shared-object		lookup-shared-object
     make-c-callout		make-c-callout/with-errno
     make-c-callback		free-c-callback)
   (import (rnrs)
-    (conditions)
-    (only (ffi sizeof) LIBC_SHARED_OBJECT_SPEC)
-    (ffi conditions)
+    (nausicaa language conditions)
+    (only (nausicaa ffi sizeof) LIBC_SHARED_OBJECT_SPEC)
+    (nausicaa ffi conditions)
     (prefix (only (ypsilon ffi)
 		  load-shared-object lookup-shared-object
 		  make-cdecl-callout make-cdecl-callback
 		  shared-object-errno)
 	    ypsilon:)
-    (only (ffi pointers) pointer? integer->pointer pointer->integer))
+    (only (nausicaa ffi pointers) pointer? integer->pointer pointer->integer))
 
 
 ;;;; helpers

@@ -26,43 +26,43 @@
 
 #!r6rs
 (import (rnrs)
-  (silex)
-  (prefix (lalr) lalr.))
+  (nausicaa silex)
+  (prefix (nausicaa lalr) lalr.))
 
 
 (lex (input-file:	"quoted-text.l")
      (output-file:	"quoted-text-lexer.sls")
-     (library-spec:	'(email addresses quoted-text-lexer))
-     (library-imports:	'((email addresses common)
-			  (parser-tools lexical-token)
-			  (parser-tools source-location)))
+     (library-spec:	'(nausicaa email addresses quoted-text-lexer))
+     (library-imports:	'((nausicaa email addresses common)
+			  (nausicaa parser-tools lexical-token)
+			  (nausicaa parser-tools source-location)))
      (table-name:	'quoted-text-table)
      (counters:		'all))
 
 (lex (input-file:	"comments.l")
      (output-file:	"comments-lexer.sls")
-     (library-spec:	'(email addresses comments-lexer))
-     (library-imports:	'((email addresses common)
-			  (parser-tools lexical-token)
-			  (parser-tools source-location)))
+     (library-spec:	'(nausicaa email addresses comments-lexer))
+     (library-imports:	'((nausicaa email addresses common)
+			  (nausicaa parser-tools lexical-token)
+			  (nausicaa parser-tools source-location)))
      (table-name:	'comments-table)
      (counters:		'all))
 
 (lex (input-file:	"domain-literals.l")
      (output-file:	"domain-literals-lexer.sls")
-     (library-spec:	'(email addresses domain-literals-lexer))
-     (library-imports:	'((email addresses common)
-			  (parser-tools lexical-token)
-			  (parser-tools source-location)))
+     (library-spec:	'(nausicaa email addresses domain-literals-lexer))
+     (library-imports:	'((nausicaa email addresses common)
+			  (nausicaa parser-tools lexical-token)
+			  (nausicaa parser-tools source-location)))
      (table-name:	'domain-literals-table)
      (counters:		'all))
 
 (lex (input-file:	"lexer.l")
      (output-file:	"lexer.sls")
-     (library-spec:	'(email addresses lexer))
-     (library-imports:	'((email addresses common)
-			  (parser-tools lexical-token)
-			  (parser-tools source-location)))
+     (library-spec:	'(nausicaa email addresses lexer))
+     (library-imports:	'((nausicaa email addresses common)
+			  (nausicaa parser-tools lexical-token)
+			  (nausicaa parser-tools source-location)))
      (table-name:	'address-table)
      (counters:		'all))
 
@@ -71,8 +71,9 @@
 
  (lalr.output-file:	"parser.sls")
  (lalr.parser-name:	'make-address-parser)
- (lalr.library-spec:	'(email addresses parser))
- (lalr.library-imports:	'((email addresses common) (strings)))
+ (lalr.library-spec:	'(nausicaa email addresses parser))
+ (lalr.library-imports:	'((nausicaa email addresses common)
+			  (nausicaa strings)))
 
  (lalr.terminals:	'(DOT COMMA COLON SEMICOLON ATOM AT
 			      ANGLE-OPEN ANGLE-CLOSE

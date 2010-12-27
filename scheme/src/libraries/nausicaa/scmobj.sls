@@ -33,7 +33,7 @@
 ;;;
 
 
-(library (scmobj)
+(library (nausicaa scmobj)
   (export
     ;;Built in classes.
     <class> <builtin-class>
@@ -63,10 +63,10 @@
     ;;Next method interface.
     call-next-method next-method?)
   (import (rnrs)
-    (language-extensions)
-    (parameters)
     (rnrs mutable-pairs (6))
-    (lists))
+    (nausicaa language extensions)
+    (nausicaa language parameters)
+    (nausicaa lists))
 
 
 ;;;; helpers

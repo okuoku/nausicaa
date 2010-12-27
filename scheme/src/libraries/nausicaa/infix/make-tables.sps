@@ -27,15 +27,15 @@
 
 #!r6rs
 (import (nausicaa)
-  (prefix (silex) lex.)
-  (lalr))
+  (prefix (nausicaa silex) lex.)
+  (nausicaa lalr))
 
 (lex.lex (lex.input-file:	"string-lexer.l")
 	 (lex.output-file:	"string-lexer.sls")
 	 (lex.library-spec:	"(infix string-lexer)")
-	 (lex.library-imports:	'((lalr lr-driver)
-				  (parser-tools lexical-token)
-				  (parser-tools source-location)))
+	 (lex.library-imports:	'((nausicaa lalr lr-driver)
+				  (nausicaa parser-tools lexical-token)
+				  (nausicaa parser-tools source-location)))
 	 (lex.table-name:	'infix-string-lexer-table)
 	 (lex.lexer-format:	'code)
 	 (lex.counters:		'all))
@@ -50,7 +50,7 @@
 
  (output-file:		"string-parser.sls")
  (parser-name:		'make-infix-string-parser)
- (library-spec:		'(infix string-parser))
+ (library-spec:		'(nausicaa infix string-parser))
 
  (terminals:	'(ID QUESTION-ID COLON-ID NUM LPAREN RPAREN COMMA
 		     (left: ADD SUB)
@@ -92,7 +92,7 @@
 
  (output-file:		"sexp-parser.sls")
  (parser-name:		'make-infix-sexp-parser)
- (library-spec:		'(infix sexp-parser))
+ (library-spec:		'(nausicaa infix sexp-parser))
 
  (terminals:	'(ID QUESTION-ID COLON-ID NUM LPAREN RPAREN
 		     (left: ADD SUB)

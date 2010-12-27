@@ -25,11 +25,12 @@
 ;;;
 
 
+#!r6rs
 (library (debugging)
   (export
     debug debugging debug-print-condition)
   (import (nausicaa)
-    (formations))
+    (nausicaa formations))
 
 
 (define debugging

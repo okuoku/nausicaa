@@ -124,7 +124,7 @@
 
 
 #!r6rs
-(library (bytevectors u8)
+(library (nausicaa bytevectors u8)
   (export
 
     ;; auxiliary syntaxes
@@ -201,9 +201,9 @@
 
     (rename (unpack %bytevector-u8-unpack)))
   (import (rnrs)
-    (asciis)
-    (bytevectors u8low)
-    (auxiliary-syntaxes))
+    (nausicaa asciis)
+    (nausicaa bytevectors u8low)
+    (nausicaa language auxiliary-syntaxes))
 
 
 (define-syntax unpack

@@ -24,6 +24,7 @@
 ;;;
 
 
+#!r6rs
 (library (one-dimension-co)
   (export
 
@@ -75,7 +76,7 @@
     %domain-for-each %domain-every %domain-any
     %domain-fold %domain->list)
   (import (rnrs)
-    (lists))
+    (nausicaa lists))
 
 
 ;;;; type descriptor

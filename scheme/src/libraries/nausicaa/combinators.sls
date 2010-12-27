@@ -25,7 +25,7 @@
 
 
 #!r6rs
-(library (combinators)
+(library (nausicaa combinators)
   (export K Y S compose compose-and compose-or compose-xor)
   (import (rnrs))
 

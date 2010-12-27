@@ -48,11 +48,11 @@
 
 
 #!r6rs
-(library (interps wrapper)
+(library (nausicaa interps wrapper)
   (export elet)
   (import (rnrs)
-    (only (interps variables) define-variable)
-    (only (syntax-utilities) all-identifiers?))
+    (only (nausicaa interps variables) define-variable)
+    (only (nausicaa language syntax-utilities) all-identifiers?))
   (define-syntax elet
     (lambda (stx)
       (syntax-case stx ()

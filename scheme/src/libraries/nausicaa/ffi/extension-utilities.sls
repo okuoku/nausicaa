@@ -27,9 +27,9 @@
 ;;;
 
 
-(library (ffi extension-utilities)
-  (export
-    define-sizeof-macros)
+#!r6rs
+(library (nausicaa ffi extension-utilities)
+  (export define-sizeof-macros)
   (import (rnrs))
 
 

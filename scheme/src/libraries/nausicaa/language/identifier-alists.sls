@@ -26,7 +26,7 @@
 
 
 #!r6rs
-(library (identifier-properties identifier-alists)
+(library (nausicaa language identifier-alists)
   (export
     identifier-alist-cons
     identifier-alist-replace

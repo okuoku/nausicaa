@@ -25,7 +25,7 @@
 
 
 #!r6rs
-(library (randomisations vectors)
+(library (nausicaa randomisations vectors)
   (export
     %random-vector-shuffle		random-vector-shuffle
     %random-vector-shuffle!		random-vector-shuffle!
@@ -36,9 +36,9 @@
     random-integers-with-sum		random-reals-with-sum
     random-vector-unfold-numbers)
   (import (rnrs)
-    (randomisations)
-    (vectors low)
-    (rename (only (vectors) %vector-unpack)
+    (nausicaa randomisations)
+    (nausicaa vectors low)
+    (rename (only (nausicaa vectors) %vector-unpack)
 	    (%vector-unpack unpack)))
 
 

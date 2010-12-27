@@ -30,7 +30,8 @@
 ;;;
 
 
-(library (assertions)
+#!r6rs
+(library (nausicaa language assertions)
   (export
 
     assert
@@ -55,10 +56,10 @@
     )
   (import (except (rnrs) assert)
     (prefix (only (rnrs) assert) rnrs.)
-    (sentinel)
-    (makers)
-    (language-extensions)
-    (for (prefix (configuration) config.) expand))
+    (nausicaa language sentinel)
+    (nausicaa language makers)
+    (nausicaa language extensions)
+    (for (prefix (nausicaa configuration) config.) expand))
 
 
 (define-syntax assert

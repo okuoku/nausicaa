@@ -28,7 +28,8 @@
 ;;;
 
 
-(library (armor ascii85)
+#!r6rs
+(library (nausicaa armor ascii85)
   (export
 
     <ascii85-encode-ctx>		<ascii85-decode-ctx>
@@ -48,9 +49,9 @@
     ascii85-encode-closing!
     armored-byte-of-ascii85?)
   (import (rnrs)
-    (language-extensions)
-    (classes)
-    (armor conditions))
+    (nausicaa language extensions)
+    (nausicaa language classes)
+    (nausicaa armor conditions))
 
 
 (define-class <ascii85-encode-ctx>

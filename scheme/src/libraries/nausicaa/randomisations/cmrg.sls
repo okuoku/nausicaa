@@ -63,11 +63,11 @@
 
 
 #!r6rs
-(library (randomisations cmrg)
+(library (nausicaa randomisations cmrg)
   (export make-random-source/cmrg)
   (import (rnrs)
-    (randomisations)
-    (randomisations low))
+    (nausicaa randomisations)
+    (nausicaa randomisations low))
 
 
 (define (make-random-source/cmrg)

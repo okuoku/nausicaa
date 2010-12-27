@@ -42,7 +42,7 @@
 
 
 #!r6rs
-(library (lalr)
+(library (nausicaa lalr)
   (export
     lalr-parser (rename (lalr-parser make-lalr-parser))
     library-spec:
@@ -58,13 +58,13 @@
     terminals:)
   (import (rename (rnrs)
 		  (error rnrs:error))
-;;;    (debugging)
+;;;    (nausicaa debugging)
     (rnrs mutable-pairs)
     (rnrs eval)
-    (parser-tools source-location)
-    (parser-tools lexical-token)
-    (makers)
-    (pretty-print))
+    (nausicaa parser-tools source-location)
+    (nausicaa parser-tools lexical-token)
+    (nausicaa language makers)
+    (nausicaa language pretty-print))
 
 
 ;;;; helpers

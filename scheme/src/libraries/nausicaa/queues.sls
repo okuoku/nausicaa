@@ -24,7 +24,8 @@
 ;;;
 
 
-(library (queues)
+#!r6rs
+(library (nausicaa queues)
   (export
     <queue>		<queue>?
     make-<queue>

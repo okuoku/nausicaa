@@ -24,7 +24,7 @@
 
 
 #!r6rs
-(library (lists)
+(library (nausicaa lists)
   (export
 
     ;; constructors
@@ -128,8 +128,8 @@
     lset-xor			lset-xor!
     lset-diff+intersection	lset-diff+intersection!)
   (import (nausicaa)
-    (lists stx)
-    (lists low)
+    (nausicaa lists stx)
+    (nausicaa lists low)
     (rnrs mutable-pairs (6)))
 
 

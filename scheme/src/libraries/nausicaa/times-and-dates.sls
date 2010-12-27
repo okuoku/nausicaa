@@ -56,7 +56,7 @@
 
 
 #!r6rs
-(library (times-and-dates)
+(library (nausicaa times-and-dates)
   (export
 
     ;; classes
@@ -127,14 +127,14 @@
     )
   (import (nausicaa)
     (rnrs mutable-strings)
-    (generics)
-    (formations)
-    (only (syntax-utilities) define-auxiliary-syntax)
-    (times-and-dates seconds-and-subseconds)
-    (times-and-dates gregorian)
-    (times-and-dates julian-calendar)
-    (times-and-dates types)
-    (times-and-dates compat))
+    (nausicaa generics)
+    (nausicaa formations)
+    (only (nausicaa language syntax-utilities) define-auxiliary-syntax)
+    (nausicaa times-and-dates seconds-and-subseconds)
+    (nausicaa times-and-dates gregorian)
+    (nausicaa times-and-dates julian-calendar)
+    (nausicaa times-and-dates types)
+    (nausicaa times-and-dates compat))
 
 
 ;;;; helpers

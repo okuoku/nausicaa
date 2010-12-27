@@ -22,6 +22,7 @@
 ;;;
 
 
+#!r6rs
 (library (nausicaa language common)
   (export finite? infinite? nan? non-negative? non-positive? =
 	  symbol*->string symbol->string/maybe)

@@ -26,7 +26,7 @@
 
 
 #!r6rs
-(library (times-and-dates types)
+(library (nausicaa times-and-dates types)
   (export
 
     ;; type predicates
@@ -78,8 +78,8 @@
     assert-date-nanoseconds-range
     )
   (import (rnrs)
-    (only (language-extensions) define-inline)
-    (type-utilities))
+    (only (nausicaa language extensions) define-inline)
+    (nausicaa type-utilities))
 
 
 ;;;; type predicates

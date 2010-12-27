@@ -24,7 +24,7 @@
 ;;;
 
 
-(library (ffi cstrings)
+(library (nausicaa ffi cstrings)
   (export
 
     empty-string
@@ -48,14 +48,14 @@
     strings->argv		argv->strings
     argv-length)
   (import (nausicaa)
-    (only (ffi)
+    (only (nausicaa ffi)
 	  libc-shared-object
 	  define-c-functions)
-    (ffi sizeof)
-    (ffi memory)
-    (only (ffi clang-data-types)
+    (nausicaa ffi sizeof)
+    (nausicaa ffi memory)
+    (only (nausicaa ffi clang-data-types)
 	  clang-maybe-foreign-type->clang-external-type)
-    (compensations))
+    (nausicaa language compensations))
 
 
 ;;;; inspection and operations

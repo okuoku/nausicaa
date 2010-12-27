@@ -39,7 +39,7 @@
 
 
 #!r6rs
-(library (randomisations low)
+(library (nausicaa randomisations low)
   (export
 
     const:2^32 const:2^32-1

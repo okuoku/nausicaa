@@ -25,12 +25,12 @@
 ;;;
 
 
-(library (deferred-exceptions)
+(library (nausicaa language deferred-exceptions)
   (export
     with-deferred-exceptions-handler
     defer-exceptions run-deferred-exceptions-handler)
   (import (rnrs)
-    (parameters))
+    (nausicaa language parameters))
 
 
 (define deferred-exceptions

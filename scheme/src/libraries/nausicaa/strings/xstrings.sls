@@ -26,10 +26,10 @@
 
 
 #!r6rs
-(library (strings xstrings)
+(library (nausicaa strings xstrings)
   (export <xstring>)
   (import (nausicaa)
-    (strings))
+    (nausicaa strings))
 
 
 (define-label <xstring>

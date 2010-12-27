@@ -25,14 +25,14 @@
 
 
 #!r6rs
-(library (randomisations lists)
+(library (nausicaa randomisations lists)
   (export
     random-list-unfold-numbers
     random-list-shuffle
     random-list-sample
     random-list-sample-population)
   (import (rnrs)
-    (randomisations))
+    (nausicaa randomisations))
 
 
 

@@ -42,11 +42,11 @@
 
 
 #!r6rs
-(library (lalr glr-driver)
+(library (nausicaa lalr glr-driver)
   (export glr-driver)
   (import (rnrs)
-;;;    (debugging)
-    (parser-tools lexical-token))
+;;;    (nausicaa debugging)
+    (nausicaa parser-tools lexical-token))
 
 
 ;;;; helpers

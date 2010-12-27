@@ -25,7 +25,8 @@
 ;;;
 
 
-(library (ffi memory mempool)
+#!r6rs
+(library (nausicaa ffi memory mempool)
   (export
     <mempool>
     make-<mempool>		<mempool>?
@@ -35,9 +36,9 @@
     memory-pool
     primitive-malloc/mempool	malloc/mempool)
   (import (nausicaa)
-    (ffi memory memblocks)
-    (ffi memory conditions)
-    (ffi pointers))
+    (nausicaa ffi memory memblocks)
+    (nausicaa ffi memory conditions)
+    (nausicaa ffi pointers))
 
 
 (define-class <mempool>

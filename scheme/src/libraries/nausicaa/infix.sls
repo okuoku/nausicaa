@@ -25,16 +25,17 @@
 ;;;
 
 
-(library (infix)
+#!r6rs
+(library (nausicaa infix)
   (export infix-string->sexp infix->prefix)
   (import (rnrs)
-    (silex lexer)
-    (parser-tools source-location)
-    (parser-tools lexical-token)
-    (infix string-lexer)
-    (infix string-parser)
-    (infix sexp-parser)
-    (infix helpers))
+    (nausicaa silex lexer)
+    (nausicaa parser-tools source-location)
+    (nausicaa parser-tools lexical-token)
+    (nausicaa infix string-lexer)
+    (nausicaa infix string-parser)
+    (nausicaa infix sexp-parser)
+    (nausicaa infix helpers))
 
 
 (define (infix-string->sexp string)

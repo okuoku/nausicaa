@@ -26,10 +26,10 @@
 
 
 #!r6rs
-(library (vectors xvectors)
+(library (nausicaa vectors xvectors)
   (export <xvector>)
   (import (nausicaa)
-    (vectors))
+    (nausicaa vectors))
 
 
 (define-label <xvector>

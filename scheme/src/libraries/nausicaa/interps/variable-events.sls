@@ -28,14 +28,14 @@
 
 
 #!r6rs
-(library (interps variable-events)
+(library (nausicaa interps variable-events)
   (export
     <variable-event> <variable-reference> <variable-mutation>
     kont:
     name:
     value:)
   (import (nausicaa)
-    (makers))
+    (nausicaa language makers))
 
 
 (define-auxiliary-syntaxes

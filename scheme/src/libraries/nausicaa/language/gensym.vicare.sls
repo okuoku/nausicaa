@@ -24,8 +24,8 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
-(library (gensym)
+(library (nausicaa language gensym)
   (export gensym)
-  (import (only (chezscheme) gensym)))
+  (import (only (ikarus) gensym)))
 
 ;;; end of file

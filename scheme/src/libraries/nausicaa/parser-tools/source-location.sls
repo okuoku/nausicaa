@@ -32,7 +32,7 @@
 
 
 #!r6rs
-(library (parser-tools source-location)
+(library (nausicaa parser-tools source-location)
   (export
 
     <source-location>
@@ -61,8 +61,8 @@
 
     source-location-honor-return)
   (import (nausicaa)
-    (generics)
-    (generics object-to-string))
+    (nausicaa generics)
+    (nausicaa generics object-to-string))
 
 
 (define-class <source-location>

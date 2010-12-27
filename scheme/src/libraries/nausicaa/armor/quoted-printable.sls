@@ -25,7 +25,8 @@
 ;;;
 
 
-(library (armor quoted-printable)
+#!r6rs
+(library (nausicaa armor quoted-printable)
   (export
     <qprint-encode-ctx>			<qprint-decode-ctx>
     make-<qprint-encode-ctx>		make-<qprint-decode-ctx>
@@ -39,9 +40,9 @@
 
     armored-byte-of-qprint?		armored-byte-of-qprint?/strong)
   (import (rnrs)
-    (language-extensions)
-    (classes)
-    (armor conditions))
+    (nausicaa language extensions)
+    (nausicaa language classes)
+    (nausicaa armor conditions))
 
 
 (define-class <qprint-encode-ctx>

@@ -24,9 +24,8 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
-
 #!r6rs
-(library (getenv)
+(library (nausicaa language getenv)
   (export getenv)
   (import (only (chezscheme) getenv)))
 

@@ -25,7 +25,8 @@
 ;;;
 
 
-(library (ffi clang-data-types)
+#!r6rs
+(library (nausicaa ffi clang-data-types)
   (export
     enum-clang-external-types		clang-external-types
     enum-clang-internal-types		clang-internal-types
@@ -39,7 +40,7 @@
 
     clang-quote-type-stx-if-external)
   (import (rnrs)
-    (ffi clang-data-types compat))
+    (nausicaa ffi clang-data-types compat))
 
 
 (define-enumeration enum-clang-external-types

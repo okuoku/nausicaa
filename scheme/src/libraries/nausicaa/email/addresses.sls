@@ -25,7 +25,7 @@
 
 
 #!r6rs
-(library (email addresses)
+(library (nausicaa email addresses)
   (export
 
     ;; lexers
@@ -69,15 +69,15 @@
     <group>?
     <group>-display-name	<group>-mailboxes)
   (import (nausicaa)
-    (silex lexer)
-    (email addresses common)
-    (email addresses quoted-text-lexer)
-    (email addresses comments-lexer)
-    (email addresses domain-literals-lexer)
-    (email addresses lexer)
-    (email addresses parser)
-    (parser-tools lexical-token)
-    (parser-tools source-location))
+    (nausicaa silex lexer)
+    (nausicaa email addresses common)
+    (nausicaa email addresses quoted-text-lexer)
+    (nausicaa email addresses comments-lexer)
+    (nausicaa email addresses domain-literals-lexer)
+    (nausicaa email addresses lexer)
+    (nausicaa email addresses parser)
+    (nausicaa parser-tools lexical-token)
+    (nausicaa parser-tools source-location))
 
 
 (define (make-address-lexer IS)

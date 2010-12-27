@@ -24,8 +24,8 @@
 ;;;
 
 
-
-(library (one-dimension-cc)
+#!r6rs
+(library (nausicaa one-dimension-cc)
   (export
 
     %make-type-descriptor
@@ -76,7 +76,7 @@
     %domain-for-each %domain-every %domain-any
     %domain-fold %domain->list)
   (import (rnrs)
-    (lists))
+    (nausicaa lists))
 
 
 ;;;; type descriptor

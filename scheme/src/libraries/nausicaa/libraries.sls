@@ -27,7 +27,8 @@
 ;;;
 
 
-(library (libraries)
+#!r6rs
+(library (nausicaa libraries)
   (export
 
     <library>
@@ -54,17 +55,17 @@
     load-library
     )
   (import (nausicaa)
-    (compensations)
-    (lists)
-    (strings)
-    (char-sets)
-    (matches)
-    (libraries rnrs-bindings)
-    (libraries names)
-    (libraries references)
-    (libraries import-specs)
-    (libraries helpers)
-    (libraries conditions))
+    (nausicaa language compensations)
+    (nausicaa lists)
+    (nausicaa strings)
+    (nausicaa char-sets)
+    (nausicaa matches)
+    (nausicaa libraries rnrs-bindings)
+    (nausicaa libraries names)
+    (nausicaa libraries references)
+    (nausicaa libraries import-specs)
+    (nausicaa libraries helpers)
+    (nausicaa libraries conditions))
 
 
 (define-class <library>

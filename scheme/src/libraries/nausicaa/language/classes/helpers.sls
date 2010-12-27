@@ -29,7 +29,7 @@
 
 
 #!r6rs
-(library (classes helpers)
+(library (nausicaa language classes helpers)
   (export
     %variable-name->Setter-name
     %variable-name->Getter-name
@@ -40,9 +40,9 @@
     %detect-recursive-type-in-fields
     %reverse-inheritance-hierarchy-identifiers)
   (import (rnrs)
-    (classes internal-auxiliary-syntaxes)
-    (identifier-properties)
-    (syntax-utilities))
+    (nausicaa language classes internal-auxiliary-syntaxes)
+    (nausicaa language identifier-properties)
+    (nausicaa language syntax-utilities))
 
 
 (define (%variable-name->Setter-name variable-name-stx)

@@ -25,7 +25,8 @@
 ;;;
 
 
-(library (armor newlines)
+#!r6rs
+(library (nausicaa armor newlines)
   (export
     <newlines-encode-ctx>			<newlines-decode-ctx>
     make-<newlines-encode-ctx>			make-<newlines-decode-ctx>
@@ -37,9 +38,9 @@
     newlines-encode-update!			newlines-decode-update!
     newlines-encode-final!			newlines-decode-final!)
   (import (rnrs)
-    (language-extensions)
-    (classes)
-    (armor conditions))
+    (nausicaa language extensions)
+    (nausicaa language classes)
+    (nausicaa armor conditions))
 
 
 (define-class <newlines-encode-ctx>

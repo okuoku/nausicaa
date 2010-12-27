@@ -45,11 +45,11 @@
 
 
 #!r6rs
-(library (randomisations blum-blum-shub)
+(library (nausicaa randomisations blum-blum-shub)
   (export make-random-source/blum-blum-shub)
   (import (rnrs)
-    (randomisations)
-    (randomisations low))
+    (nausicaa randomisations)
+    (nausicaa randomisations low))
 
 
 (define (make-random-source/blum-blum-shub)

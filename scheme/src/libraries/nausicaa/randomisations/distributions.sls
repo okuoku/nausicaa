@@ -26,12 +26,12 @@
 
 
 #!r6rs
-(library (randomisations distributions)
+(library (nausicaa randomisations distributions)
   (export
     random-exponentials-maker
     random-normals-maker)
   (import (rnrs)
-    (randomisations))
+    (nausicaa randomisations))
 
 
 

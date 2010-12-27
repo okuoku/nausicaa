@@ -34,7 +34,7 @@
 
 
 #!r6rs
-(library (formations)
+(library (nausicaa formations)
   (export
     format format-output-column)
   (import (nausicaa)

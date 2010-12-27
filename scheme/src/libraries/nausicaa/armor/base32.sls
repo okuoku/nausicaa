@@ -25,7 +25,8 @@
 ;;;
 
 
-(library (armor base32)
+#!r6rs
+(library (nausicaa armor base32)
   (export
 
     <base32-encode-ctx>				<base32-decode-ctx>
@@ -50,9 +51,9 @@
     armored-byte-of-base32/lower-case?		armored-byte-of-base32/hex/lower-case?
     armored-byte-of-base32/mixed-case?		armored-byte-of-base32/hex/mixed-case?)
   (import (rnrs)
-    (language-extensions)
-    (classes)
-    (armor conditions))
+    (nausicaa language extensions)
+    (nausicaa language classes)
+    (nausicaa armor conditions))
 
 
 (define-class <base32-encode-ctx>

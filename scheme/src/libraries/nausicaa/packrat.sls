@@ -38,7 +38,7 @@
 
 
 #!r6rs
-(library (packrat)
+(library (nausicaa packrat)
   (export
 
     <state>   <state>?
@@ -60,9 +60,9 @@
     make-grammar-combinator)
   (import (rnrs)
     (rnrs mutable-pairs)
-    (language-extensions)
-    (parser-tools lexical-token)
-    (sentinel))
+    (nausicaa language sentinel)
+    (nausicaa language extensions)
+    (nausicaa parser-tools lexical-token))
 
 
 (define-record-type <result>

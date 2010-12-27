@@ -35,7 +35,7 @@
 
 
 #!r6rs
-(library (randomisations)
+(library (nausicaa randomisations)
   (export
 
     ;; random source interface
@@ -64,8 +64,8 @@
     random-source-reals-maker-from-range
     random-permutations-maker)
   (import (rnrs)
-    (parameters)
-    (randomisations low))
+    (nausicaa language parameters)
+    (nausicaa randomisations low))
 
 
 ;;;; randomness source

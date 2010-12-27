@@ -25,7 +25,8 @@
 ;;;
 
 
-(library (ffi conditions)
+#!r6rs
+(library (nausicaa ffi conditions)
   (export
     &library-name
     make-library-name-condition

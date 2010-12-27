@@ -23,7 +23,7 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
-(library (pretty-print)
+(library (nausicaa language pretty-print)
   (export pretty-print)
   (import (only (core) pretty-print)))
 

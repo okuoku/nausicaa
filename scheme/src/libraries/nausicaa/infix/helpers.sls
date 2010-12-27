@@ -26,12 +26,13 @@
 ;;;
 
 
-(library (infix helpers)
+#!r6rs
+(library (nausicaa infix helpers)
   (export eoi-token ell-lparen-token ell-rparen-token
 	  error-handler)
   (import (rnrs)
-    (parser-tools lexical-token)
-    (parser-tools source-location))
+    (nausicaa parser-tools lexical-token)
+    (nausicaa parser-tools source-location))
 
 
 (define eoi-token

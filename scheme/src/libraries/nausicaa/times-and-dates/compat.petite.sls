@@ -23,7 +23,8 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
-(library (times-and-dates compat)
+#!r6rs
+(library (nausicaa times-and-dates compat)
   (export
     (rename (time-nanosecond	host:time-nanosecond)
 	    (time-second	host:time-second)

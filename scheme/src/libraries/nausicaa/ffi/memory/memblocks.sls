@@ -1,7 +1,7 @@
 ;;; -*- coding: utf-8-unix -*-
 ;;;
 ;;;Part of: Nausicaa/Scheme
-;;;Contents: record type definitions for (ffi memory ---)
+;;;Contents: record type definitions for (nausicaa ffi memory ---)
 ;;;Date: Tue Sep 29, 2009
 ;;;
 ;;;Abstract
@@ -28,7 +28,8 @@
 ;;;
 
 
-(library (ffi memory memblocks)
+@!r6rs
+(library (nausicaa ffi memory memblocks)
   (export
     <memblock>
     make-<memblock>		<memblock>?
@@ -45,9 +46,9 @@
     )
   (import (nausicaa)
     (rnrs mutable-strings)
-    (ffi pointers)
-    (ffi peekers-and-pokers)
-    (only (ffi memory operations) memcpy))
+    (nausicaa ffi pointers)
+    (nausicaa ffi peekers-and-pokers)
+    (only (nausicaa ffi memory operations) memcpy))
 
 
 (define-class <memblock>

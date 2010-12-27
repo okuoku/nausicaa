@@ -102,7 +102,7 @@
 ;;;Copyright (c) 2008 Derick Eddington.  Ported to R6RS.
 
 
-(library (strings low)
+(library (nausicaa strings low)
   (export
 
     ;; constructors
@@ -207,8 +207,8 @@
     %string-replace)
   (import (rnrs)
     (rnrs mutable-strings)
-    (char-sets)
-    (knuth-morris-pratt))
+    (nausicaa char-sets)
+    (nausicaa knuth-morris-pratt))
 
 
 ;;;; helpers

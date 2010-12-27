@@ -177,7 +177,7 @@
 ;;;SOFTWARE.
 
 
-(library (language-extensions)
+(library (nausicaa language extensions)
   (export
     and-let* begin0 begin0-let begin0-let* begin0-letrec
     receive recursion cut cute <> <...> xor
@@ -189,9 +189,9 @@
     define-inline define-values define-constant define-constant-values
     define-syntax*)
   (import (rnrs)
-    (only (syntax-utilities) define-auxiliary-syntaxes)
-    (only (auxiliary-syntaxes) <> <...>)
-    (pretty-print))
+    (only (nausicaa language syntax-utilities) define-auxiliary-syntaxes)
+    (only (nausicaa language auxiliary-syntaxes) <> <...>)
+    (nausicaa language pretty-print))
 
 
 (define-syntax and-let*

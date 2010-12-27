@@ -23,7 +23,8 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
-(library (profiling compat)
+#!r6rs
+(library (nausicaa profiling compat)
   (export time)
   (import (only (mosh) time)))
 

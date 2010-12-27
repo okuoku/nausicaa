@@ -26,12 +26,12 @@
 
 
 #!r6rs
-(library (uri)
+(library (nausicaa uri)
   (export
     <uri>
     )
   (import (nausicaa)
-    (prefix (uri low) uri:))
+    (prefix (nausicaa uri low) uri:))
 
 
 ;;;; helpers

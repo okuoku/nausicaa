@@ -25,23 +25,23 @@
 
 #!r6rs
 (import (rnrs)
-  (silex))
+  (nausicaa silex))
 
 (lex (input-file: "unquoted-data.l")
      (output-file: "unquoted-data-lexer.sls")
-     (library-spec: '(csv unquoted-data-lexer))
+     (library-spec: '(nausicaa csv unquoted-data-lexer))
      (table-name: 'csv-unquoted-data-table)
      (counters: 'all))
 
 (lex (input-file: "unquoted-data-comma.l")
      (output-file: "unquoted-data-comma-lexer.sls")
-     (library-spec: '(csv unquoted-data-comma-lexer))
+     (library-spec: '(nausicaa csv unquoted-data-comma-lexer))
      (table-name: 'csv-unquoted-data-table/comma)
      (counters: 'all))
 
 (lex (input-file: "strings.l")
      (output-file: "strings-lexer.sls")
-     (library-spec: '(csv strings-lexer))
+     (library-spec: '(nausicaa csv strings-lexer))
      (table-name: 'csv-strings-table)
      (counters: 'all))
 

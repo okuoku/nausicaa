@@ -25,14 +25,14 @@
 
 
 #!r6rs
-(library (ffi memory alloc compat)
+(library (nausicaa ffi memory alloc compat)
   (export
     system-free				system-malloc
     system-calloc			system-realloc
     platform-free			platform-malloc
     platform-calloc			platform-realloc)
   (import (rnrs)
-    (ffi sizeof)
+    (nausicaa ffi sizeof)
     (except (vicare foreign) memcpy))
 
 

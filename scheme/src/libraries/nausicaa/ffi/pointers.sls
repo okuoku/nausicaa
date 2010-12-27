@@ -25,7 +25,8 @@
 ;;;
 
 
-(library (ffi pointers)
+#!r6rs
+(library (nausicaa ffi pointers)
   (export
     pointer?
     pointer-null		pointer-null?
@@ -36,7 +37,7 @@
     pointer<?			pointer>?
     pointer<=?			pointer>=?)
   (import (rnrs)
-    (ffi pointers compat))
+    (nausicaa ffi pointers compat))
 
   (define-syntax pointer-incr!
     (syntax-rules ()

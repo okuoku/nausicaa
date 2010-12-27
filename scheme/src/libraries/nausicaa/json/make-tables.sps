@@ -26,34 +26,34 @@
 
 #!r6rs
 (import (rnrs)
-  (silex)
-  (prefix (lalr) lalr.))
+  (nausicaa silex)
+  (prefix (nausicaa lalr) lalr.))
 
 
 (lex (input-file:	"string-lexer.l")
      (output-file:	"string-lexer.sls")
-     (library-spec:	'(json string-lexer))
-     (library-imports:	'((silex default-error-handler)
-			  (parser-tools lexical-token)
-			  (parser-tools source-location)))
+     (library-spec:	'(nausicaa json string-lexer))
+     (library-imports:	'((nausicaa silex default-error-handler)
+			  (nausicaa parser-tools lexical-token)
+			  (nausicaa parser-tools source-location)))
      (table-name:	'json-string-lexer-table)
      (counters:		'all))
 
 (lex (input-file:	"rfc-lexer.l")
      (output-file:	"rfc-lexer.sls")
-     (library-spec:	'(json rfc-lexer))
-     (library-imports:	'((silex default-error-handler)
-			  (parser-tools lexical-token)
-			  (parser-tools source-location)))
+     (library-spec:	'(nausicaa json rfc-lexer))
+     (library-imports:	'((nausicaa silex default-error-handler)
+			  (nausicaa parser-tools lexical-token)
+			  (nausicaa parser-tools source-location)))
      (table-name:	'json-rfc-lexer-table)
      (counters:		'all))
 
 (lex (input-file:	"extended-lexer.l")
      (output-file:	"extended-lexer.sls")
-     (library-spec:	'(json extended-lexer))
-     (library-imports:	'((silex default-error-handler)
-			  (parser-tools lexical-token)
-			  (parser-tools source-location)))
+     (library-spec:	'(nausicaa json extended-lexer))
+     (library-imports:	'((nausicaa silex default-error-handler)
+			  (nausicaa parser-tools lexical-token)
+			  (nausicaa parser-tools source-location)))
      (table-name:	'json-extended-lexer-table)
      (counters:		'all))
 
@@ -62,7 +62,7 @@
 
  (lalr.output-file:		"sexp-parser.sls")
  (lalr.parser-name:		'make-json-sexp-parser)
- (lalr.library-spec:		'(json sexp-parser))
+ (lalr.library-spec:		'(nausicaa json sexp-parser))
 
  (lalr.terminals:		'(BEGIN_ARRAY END_ARRAY
 					      BEGIN_OBJECT END_OBJECT

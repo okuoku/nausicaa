@@ -54,10 +54,10 @@
 ;;;SOFTWARE.
 
 
-(library (cond-expand)
+(library (nausicaa language cond-expand)
   (export cond-expand)
   (import (rnrs)
-    (for (cond-expand registry) expand))
+    (for (nausicaa language cond-expand registry) expand))
 
 
 (define-syntax cond-expand

@@ -25,7 +25,8 @@
 ;;;
 
 
-(library (pregexp)
+#!r6rs
+(library (nausicaa pregexp)
   (export
     pregexp
     pregexp-match-positions
@@ -37,8 +38,8 @@
     pregexp-quote)
   (import (rnrs)
     (rnrs mutable-pairs)
-    (lists)
-    (parameters))
+    (nausicaa lists)
+    (nausicaa language parameters))
 
 
 (define *pregexp-version* 20050502) ;last change

@@ -26,12 +26,12 @@
 
 
 #!r6rs
-(library (submodules)
+(library (nausicaa submodules)
   (export submodule export prefix)
   (import (rnrs)
-    (only (language-extensions) define-values)
-    (only (syntax-utilities) define-auxiliary-syntax)
-    (for (only (syntax-utilities)
+    (only (nausicaa language extensions) define-values)
+    (only (nausicaa language syntax-utilities) define-auxiliary-syntax)
+    (for (only (nausicaa language syntax-utilities)
 	       unwrap-syntax-object
 	       identifier-suffix
 	       all-identifiers?

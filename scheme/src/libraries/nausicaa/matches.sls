@@ -33,7 +33,7 @@
 
 
 #!r6rs
-(library (matches)
+(library (nausicaa matches)
   (export
     match match-lambda match-lambda* match-define match-define*
     match-let match-letrec match-named-let match-let*
@@ -57,8 +57,8 @@
     match-mismatch-error)
   (import (rnrs)
     (rnrs mutable-pairs)
-    (only (syntax-utilities) define-auxiliary-syntaxes)
-    (conditions))
+    (only (nausicaa language syntax-utilities) define-auxiliary-syntaxes)
+    (nausicaa language conditions))
 
 
 (define-condition &match-mismatch

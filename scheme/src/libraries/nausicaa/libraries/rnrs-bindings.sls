@@ -25,7 +25,8 @@
 ;;;
 
 
-(library (libraries rnrs-bindings)
+#!r6rs
+(library (nausicaa libraries rnrs-bindings)
   (export
     rnrs-6
     rnrs-base-6

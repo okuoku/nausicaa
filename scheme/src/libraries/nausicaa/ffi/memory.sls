@@ -24,7 +24,7 @@
 ;;;
 
 
-(library (ffi memory)
+(library (nausicaa ffi memory)
   (export
 
     ;; memory blocks
@@ -99,14 +99,14 @@
     array-c-ref			array-c-set!
     array-c-pointer-to)
   (import (nausicaa)
-    (ffi memory alloc)
-    (ffi memory bytevectors)
-    (ffi memory caches)
-    (ffi memory compensated)
-    (ffi memory conditions)
-    (ffi memory memblocks)
-    (ffi memory operations)
-    (ffi peekers-and-pokers)
-    (ffi pointers)))
+    (nausicaa ffi memory alloc)
+    (nausicaa ffi memory bytevectors)
+    (nausicaa ffi memory caches)
+    (nausicaa ffi memory compensated)
+    (nausicaa ffi memory conditions)
+    (nausicaa ffi memory memblocks)
+    (nausicaa ffi memory operations)
+    (nausicaa ffi peekers-and-pokers)
+    (nausicaa ffi pointers)))
 
 ;;; end of file

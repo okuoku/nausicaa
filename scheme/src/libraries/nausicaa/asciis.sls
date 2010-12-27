@@ -25,13 +25,13 @@
 ;;;
 
 
-(library (asciis)
+#!r6rs
+(library (nausicaa asciis)
   (export
     ascii-upper-case?	ascii-lower-case?	ascii-title-case?
     ascii-cased?
     ascii-alphabetic?	ascii-numeric?
-    ascii-upcase	ascii-downcase		ascii-titlecase
-    )
+    ascii-upcase	ascii-downcase		ascii-titlecase)
   (import (rnrs))
 
   (define $int-a (char->integer #\a))

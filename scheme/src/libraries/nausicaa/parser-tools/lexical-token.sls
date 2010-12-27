@@ -31,7 +31,7 @@
 
 
 #!r6rs
-(library (parser-tools lexical-token)
+(library (nausicaa parser-tools lexical-token)
   (export
     <lexical-token>
 
@@ -57,9 +57,9 @@
     <lexical-token>?/lexer-error
     <lexical-token>?/special)
   (import (rnrs)
-    (classes)
-    (makers)
-    (only (syntax-utilities) define-auxiliary-syntaxes))
+    (nausicaa language classes)
+    (nausicaa language makers)
+    (only (nausicaa language syntax-utilities) define-auxiliary-syntaxes))
 
 
 (define-auxiliary-syntaxes

@@ -24,7 +24,7 @@
 ;;;
 
 #!r6rs
-(library (sentinel)
+(library (nausicaa language sentinel)
   (export sentinel sentinel? make-sentinel
 	  undefined undefined?
 	  unspecified unspecified?)

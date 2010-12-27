@@ -1,4 +1,4 @@
-;;; -*- coding: utf-8-unix -*-
+;;; -*- coding: utf-8 -*-
 ;;;
 ;;;Part of: Nausicaa/Scheme
 ;;;Contents: unimplemented condition
@@ -25,7 +25,7 @@
 ;;;
 
 
-(library (unimplemented)
+(library (nausicaa language unimplemented)
   (export
     &unimplemented
     make-unimplemented-condition

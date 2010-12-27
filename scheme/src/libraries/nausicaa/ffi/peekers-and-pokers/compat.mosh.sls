@@ -25,7 +25,7 @@
 
 
 #!r6rs
-(library (ffi peekers-and-pokers compat)
+(library (nausicaa ffi peekers-and-pokers compat)
   (export
     ;;peekers
     pointer-ref-c-int8			pointer-ref-c-uint8
@@ -78,7 +78,7 @@
 	  pointer-ref-c-signed-long		pointer-ref-c-unsigned-long
 	  pointer-ref-c-signed-long-long	pointer-ref-c-unsigned-long-long
 	  pointer-ref-c-pointer)
-    (only (ffi sizeof) c-sizeof))
+    (only (nausicaa ffi sizeof) c-sizeof))
 
 
 ;;;; pokers

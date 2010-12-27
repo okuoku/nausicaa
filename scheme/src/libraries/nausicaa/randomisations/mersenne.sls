@@ -122,11 +122,11 @@
 
 
 #!r6rs
-(library (randomisations mersenne)
+(library (nausicaa randomisations mersenne)
   (export make-random-source/mersenne)
   (import (rnrs)
-    (randomisations)
-    (randomisations low))
+    (nausicaa randomisations)
+    (nausicaa randomisations low))
 
 
 (define (make-random-source/mersenne)

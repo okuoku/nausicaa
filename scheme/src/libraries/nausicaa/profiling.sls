@@ -24,10 +24,11 @@
 ;;;
 
 
-(library (profiling)
+#!r6rs
+(library (nausicaa profiling)
   (export repeat time)
   (import (rnrs)
-    (profiling compat))
+    (nausicaa profiling compat))
 
 
 

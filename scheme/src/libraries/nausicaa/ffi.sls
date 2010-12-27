@@ -24,7 +24,8 @@
 ;;;
 
 
-(library (ffi)
+#!r6rs
+(library (nausicaa ffi)
   (export
 
 ;;; bindings from (ffi conditions)
@@ -79,14 +80,14 @@
     make-c-callout*			make-c-callout/with-errno*
     make-c-callback*)
   (import (nausicaa)
-    (for (ffi clang-data-types) expand run)
-    (ffi conditions)
-;;;    (ffi peekers-and-pokers)
-    (ffi pointers)
-    (ffi sizeof)
-    (for (ffi syntax-helpers) expand)
-    (prefix (ffi compat) platform:)
-    (only (unimplemented) raise-unimplemented-error))
+    (for (nausicaa ffi clang-data-types) expand run)
+    (nausicaa ffi conditions)
+;;;    (nausicaa ffi peekers-and-pokers)
+    (nausicaa ffi pointers)
+    (nausicaa ffi sizeof)
+    (for (nausicaa ffi syntax-helpers) expand)
+    (prefix (nausicaa ffi compat) platform:)
+    (only (nausicaa language unimplemented) raise-unimplemented-error))
 
 
 ;;;; helpers

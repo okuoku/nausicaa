@@ -26,7 +26,7 @@
 
 
 #!r6rs
-(library (classes internal-auxiliary-syntaxes)
+(library (nausicaa language classes internal-auxiliary-syntaxes)
   (export
     :class-record-type-descriptor
     :class-type-uid
@@ -50,7 +50,7 @@
     :list-of-superclasses
     :list-of-field-tags)
   (import (rnrs)
-    (only (syntax-utilities) define-auxiliary-syntaxes))
+    (only (nausicaa language syntax-utilities) define-auxiliary-syntaxes))
   (define-auxiliary-syntaxes
     :class-record-type-descriptor
     :class-type-uid

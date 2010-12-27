@@ -25,7 +25,8 @@
 ;;;
 
 
-(library (ffi memory conditions)
+#!r6rs
+(library (nausicaa ffi memory conditions)
   (export
     &out-of-memory &memory-request
     make-out-of-memory-condition make-memory-request-condition

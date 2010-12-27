@@ -25,7 +25,8 @@
 ;;;
 
 
-(library (libraries references)
+#!r6rs
+(library (nausicaa libraries references)
   (export
 
     <library-reference>		<library-reference>?
@@ -45,8 +46,8 @@
     conforming-library-name-and-library-reference?
     )
   (import (nausicaa)
-    (matches)
-    (libraries names))
+    (nausicaa matches)
+    (nausicaa libraries names))
 
   (define-syntax %normalise-to-boolean
     (syntax-rules ()

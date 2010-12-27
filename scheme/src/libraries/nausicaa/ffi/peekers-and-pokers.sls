@@ -24,18 +24,19 @@
 ;;;
 
 
-(library (ffi peekers-and-pokers)
+#!r6rs
+(library (nausicaa ffi peekers-and-pokers)
   (export
     pointer-c-ref		pointer-c-set!
     pointer-c-accessor		pointer-c-mutator
     array-c-ref			array-c-set!
     array-c-pointer-to)
   (import (rnrs)
-    (ffi pointers)
-    (ffi sizeof)
+    (nausicaa ffi pointers)
+    (nausicaa ffi sizeof)
     ;;There  must  be  a  peeker  and  a poker  for  each  type  in  the
     ;;ENUM-CLANG-INTERNAL-TYPES enumeration.
-    (rename (ffi peekers-and-pokers compat)
+    (rename (nausicaa ffi peekers-and-pokers compat)
 	    (pointer-ref-c-int8		pointer-ref-c-int8_t)
 	    (pointer-ref-c-uint8	pointer-ref-c-uint8_t)
 	    (pointer-ref-c-int16	pointer-ref-c-int16_t)
@@ -52,8 +53,8 @@
 	    (pointer-set-c-uint32!	pointer-set-c-uint32_t!)
 	    (pointer-set-c-int64!	pointer-set-c-int64_t!)
 	    (pointer-set-c-uint64!	pointer-set-c-uint64_t!))
-    (for (ffi syntax-helpers) expand)
-    (for (ffi clang-data-types) expand))
+    (for (nausicaa ffi syntax-helpers) expand)
+    (for (nausicaa ffi clang-data-types) expand))
 
 
 (define-syntax pointer-c-ref

@@ -1,4 +1,4 @@
-;;; -*- coding: utf-8-unix -*-
+;;; -*- coding: utf-8 -*-
 ;;;
 ;;;Part of: Nausicaa/Scheme
 ;;;Contents: reading and writing shared structures
@@ -46,7 +46,7 @@
 ;;;implementation should supply this functionality.
 
 
-(library (shared-structures)
+(library (nausicaa language shared-structures)
   (export
     read-with-shared-structure	write-with-shared-structure
     (rename (read-with-shared-structure		read/ss)

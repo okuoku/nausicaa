@@ -24,7 +24,8 @@
 ;;;
 
 
-(library (keywords)
+#!r6rs
+(library (nausicaa keywords)
   (export define-keywords keyword %keyword
 	  keyword? keyword=?
 	  keyword->symbol keyword->string

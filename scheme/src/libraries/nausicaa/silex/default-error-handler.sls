@@ -25,11 +25,11 @@
 ;;;
 
 
-(library (silex default-error-handler)
+(library (nausicaa silex default-error-handler)
   (export silex-default-error-handler)
   (import (rnrs)
-    (parser-tools lexical-token)
-    (parser-tools source-location))
+    (nausicaa parser-tools lexical-token)
+    (nausicaa parser-tools source-location))
 
 
 (define-syntax silex-default-error-handler

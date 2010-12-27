@@ -30,7 +30,8 @@
 ;;;
 
 
-(library (arrays)
+#!r6rs
+(library (nausicaa arrays)
   (export
 
     ;; array positions
@@ -73,10 +74,10 @@
     array-write
     )
   (import (rnrs)
-    (only (language-extensions) do*)
-    (lists)
-    (vectors)
-    (strings))
+    (only (nausicaa language extensions) do*)
+    (nausicaa lists)
+    (nausicaa vectors)
+    (nausicaa strings))
 
 
 ;;;; helpers

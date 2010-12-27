@@ -32,7 +32,8 @@
 ;;;
 
 
-(library (char-sets categories)
+#!r6rs
+(library (nausicaa char-sets categories)
   (export
     char-set:category/Lu
     (rename (char-set:category/Lu char-set:category/letter-uppercase))
@@ -125,7 +126,7 @@
     (rename (char-set:empty char-set:category/surrogates)))
 
   (import (rnrs)
-    (char-sets))
+    (nausicaa char-sets))
 
   (define char-set:category/Cn char-set:empty)
   (define char-set:category/Cs char-set:empty)

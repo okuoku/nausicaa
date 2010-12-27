@@ -25,7 +25,8 @@
 ;;;
 
 
-(library (uri low)
+#!r6rs
+(library (nausicaa uri low)
   (export
 
     ;; plain string <-> bytevector conversion

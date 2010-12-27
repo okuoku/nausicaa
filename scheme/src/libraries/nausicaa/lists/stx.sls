@@ -24,7 +24,7 @@
 
 
 #!r6rs
-(library (lists stx)
+(library (nausicaa lists stx)
   (export
 
     ;; constructors
@@ -83,7 +83,7 @@
     position/stx)
   (import (rnrs)
     (rnrs mutable-pairs)
-    (lists low))
+    (nausicaa lists low))
 
 
 ;;;; helpers

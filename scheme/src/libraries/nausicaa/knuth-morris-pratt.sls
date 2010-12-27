@@ -122,7 +122,8 @@
 ;;;Copyright (c) 2008 Derick Eddington.  Ported to R6RS.
 
 
-(library (knuth-morris-pratt)
+#!r6rs
+(library (nausicaa knuth-morris-pratt)
   (export
     %kmp-search %kmp-make-restart-vector
     %kmp-step %kmp-partial-search)

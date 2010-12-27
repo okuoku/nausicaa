@@ -23,10 +23,10 @@ NAU_DS_WITH_OPTION([LIBC_SHARED_OBJECT_SPEC],[libc-shared-object],[],
   [C library shared object string],[select C library shared object string])
 
 AC_CONFIG_FILES([./meta.d/makefiles/doc.make:../configuration/doc.make])
-AC_CONFIG_FILES([../src/libraries/ffi/sizeof.sls:../src/libraries/ffi/sizeof.sls.in])
-AC_CONFIG_FILES([../src/libraries/ffi/clang-data-types.sls:../src/libraries/ffi/clang-data-types.sls.in])
-AC_CONFIG_FILES([../src/libraries/ffi/errno.sls:../src/libraries/ffi/errno.sls.in])
-AC_CONFIG_FILES([../src/libraries/cond-expand/registry.sls:../src/libraries/cond-expand/registry.sls.in])
+AC_CONFIG_FILES([../src/libraries/nausicaa/ffi/sizeof.sls:../src/libraries/nausicaa/ffi/sizeof.sls.in])
+AC_CONFIG_FILES([../src/libraries/nausicaa/ffi/clang-data-types.sls:../src/libraries/nausicaa/ffi/clang-data-types.sls.in])
+AC_CONFIG_FILES([../src/libraries/nausicaa/ffi/errno.sls:../src/libraries/nausicaa/ffi/errno.sls.in])
+AC_CONFIG_FILES([../src/libraries/nausicaa/language/cond-expand/registry.sls:../src/libraries/nausicaa/language/cond-expand/registry.sls.in])
 DS_CONFIG_FILE_SLACKWARE_BIN_DESC
 DS_CONFIG_FILE_SLACKWARE_DOC_DESC
 NAUSICAA_END

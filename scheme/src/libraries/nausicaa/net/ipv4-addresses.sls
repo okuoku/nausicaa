@@ -26,7 +26,7 @@
 
 
 #!r6rs
-(library (net ipv4-addresses)
+(library (nausicaa net ipv4-addresses)
   (export
 
     ;; conditions
@@ -63,13 +63,13 @@
     <ipv4-address-prefix>-string
     )
   (import (nausicaa)
-    (sentinel)
-    (makers)
-    (silex lexer)
-    (net helpers ipv4-address-lexer)
-    (prefix (net helpers ipv4-address-parser) parser:)
-    (parser-tools lexical-token)
-    (parser-tools source-location)
+    (nausicaa language sentinel)
+    (nausicaa language makers)
+    (nausicaa silex lexer)
+    (nausicaa net helpers ipv4-address-lexer)
+    (prefix (nausicaa net helpers ipv4-address-parser) parser:)
+    (nausicaa parser-tools lexical-token)
+    (nausicaa parser-tools source-location)
     )
 
 

@@ -25,14 +25,14 @@
 
 
 #!r6rs
-(library (csv)
+(library (nausicaa csv)
   (export
     csv->list/comma		csv->list)
   (import (nausicaa)
-    (silex lexer)
-    (csv unquoted-data-lexer)
-    (csv unquoted-data-comma-lexer)
-    (csv strings-lexer))
+    (nausicaa silex lexer)
+    (nausicaa csv unquoted-data-lexer)
+    (nausicaa csv unquoted-data-comma-lexer)
+    (nausicaa csv strings-lexer))
 
 
 (define csv->list/comma

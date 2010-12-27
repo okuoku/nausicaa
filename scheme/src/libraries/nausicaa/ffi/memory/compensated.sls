@@ -25,7 +25,8 @@
 ;;;
 
 
-(library (ffi memory compensated)
+#!r6rs
+(library (nausicaa ffi memory compensated)
   (export
     malloc/compensated		(rename (malloc/compensated malloc/c))
     calloc/compensated		(rename (calloc/compensated calloc/c))
@@ -34,10 +35,10 @@
     malloc-block/compensated	(rename (malloc-block/compensated malloc-block/c))
     malloc-memblock/compensated	(rename (malloc-memblock/compensated malloc-memblock/c)))
   (import (rnrs)
-    (compensations)
-    (ffi pointers)
-    (ffi memory alloc)
-    (ffi memory caches))
+    (nausicaa language compensations)
+    (nausicaa ffi pointers)
+    (nausicaa ffi memory alloc)
+    (nausicaa ffi memory caches))
 
 
 (define (malloc/compensated number-of-bytes)

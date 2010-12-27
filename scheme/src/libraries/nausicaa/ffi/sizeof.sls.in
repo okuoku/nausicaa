@@ -24,15 +24,16 @@
 ;;;
 
 
-(library (ffi sizeof)
+#!r6rs
+(library (nausicaa ffi sizeof)
   (export
     LIBC_SHARED_OBJECT_SPEC
     c-sizeof			c-strideof
     c-alignof			c-valueof
     c-inspect)
   (import (rnrs)
-    (for (ffi syntax-helpers) expand)
-    (for (ffi clang-data-types) expand run))
+    (for (nausicaa ffi syntax-helpers) expand)
+    (for (nausicaa ffi clang-data-types) expand run))
 
 
 (define-syntax c-sizeof

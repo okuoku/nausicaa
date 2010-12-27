@@ -26,16 +26,16 @@
 
 #!r6rs
 (import (rnrs)
-  (silex)
-  (prefix (lalr) lalr.))
+  (nausicaa silex)
+  (prefix (nausicaa lalr) lalr.))
 
 
 (lex (input-file:	"generic-lexer.l")
      (output-file:	"generic-lexer.sls")
-     (library-spec:	'(uri generic-lexer))
-     (library-imports:	'((silex default-error-handler)
-			  (parser-tools lexical-token)
-			  (parser-tools source-location)))
+     (library-spec:	'(nausicaa uri generic-lexer))
+     (library-imports:	'((nausicaa silex default-error-handler)
+			  (nausicaa parser-tools lexical-token)
+			  (nausicaa parser-tools source-location)))
      (table-name:	'uri-generic-lexer-table)
      (counters:		'all))
 
@@ -44,7 +44,7 @@
 
  (lalr.output-file:		"generic-parser.sls")
  (lalr.parser-name:		'make-uri-generic-parser)
- (lalr.library-spec:		'(uri generic-parser))
+ (lalr.library-spec:		'(nausicaa uri generic-parser))
 
  (lalr.terminals:		'(COLON SLASH QUESTION NUMBER-SIGN COMPONENT))
 
@@ -94,7 +94,7 @@
 
  (output-file:		"generic-parser.sls")
  (parser-name:		'make-uri-generic-parser)
- (library-spec:		'(uri generic-parser))
+ (library-spec:		'(nausicaa uri generic-parser))
 
  (terminals:		'(AT COLON QUESTION SHARP SLASH DOUBLE_SLASH OPEN_BRACKET CLOSE_BRACKET
 			     SCHEME_STRING USERINFO_STRING IPVFUTURE_STRING))

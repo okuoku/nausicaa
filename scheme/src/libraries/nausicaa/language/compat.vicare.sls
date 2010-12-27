@@ -34,7 +34,7 @@
   (import (except (rnrs) max)
     (prefix (only (rnrs) max) rnrs.)
     (for (only (ikarus) getenv) expand run)
-    (unimplemented))
+    (nausicaa language unimplemented))
 
   (define (get-environment-variables)
     (raise-unimplemented-error 'get-environment-variables))

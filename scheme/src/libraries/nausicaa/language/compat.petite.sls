@@ -34,7 +34,7 @@
   (import (except (rnrs) * rational-valued?)
     (prefix (only (rnrs) * rational-valued?) rnrs.)
     (only (chezscheme) getenv)
-    (unimplemented))
+    (nausicaa language unimplemented))
 
   (define (get-environment-variables)
     (raise-unimplemented-error 'get-environment-variables))

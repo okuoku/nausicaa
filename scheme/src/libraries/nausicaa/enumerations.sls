@@ -25,7 +25,8 @@
 ;;;
 
 
-(library (enumerations)
+#!r6rs
+(library (nausicaa enumerations)
   (export define-c-flags define-c-ior-flags)
   (import (rnrs))
 

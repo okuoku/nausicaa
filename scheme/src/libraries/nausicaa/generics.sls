@@ -26,21 +26,21 @@
 ;;;
 
 
-(library (generics)
+(library (nausicaa generics)
   (export
     define-generic define-method add-method define-generic/merge
     call-next-method next-method?)
   (import (rnrs)
-    (rename (only (classes)
+    (rename (only (nausicaa language classes)
 		  class-uid-list class-uid-list-of lambda/with-class <top>)
 	    (class-uid-list	type-uid-list)
 	    (class-uid-list-of	type-uid-list-of)
 	    (lambda/with-class	method-lambda)
 	    (<top>		top-type))
-    (only (language-extensions)
+    (only (nausicaa language extensions)
 	  begin0 begin0-let define-constant)
-    (parameters)
-    (syntax-utilities)
+    (nausicaa language parameters)
+    (nausicaa language syntax-utilities)
     (nausicaa symbols-tree)
     (rnrs mutable-pairs (6)))
 

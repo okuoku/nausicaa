@@ -55,7 +55,8 @@
 ;;;PARTICULAR PURPOSE.
 
 
-(library (times-and-dates gregorian)
+#!r6rs
+(library (nausicaa times-and-dates gregorian)
   (export
 
     ;; constants
@@ -76,10 +77,10 @@
     ;; week functions
     gregorian-index-of-day-in-week	gregorian-number-of-days-before-first-week)
   (import (rnrs)
-    (only (language-extensions) define-constant receive)
+    (only (nausicaa language extensions) define-constant receive)
     (nausicaa language infix)
-    (times-and-dates seconds-and-subseconds)
-    (times-and-dates julian-calendar))
+    (nausicaa times-and-dates seconds-and-subseconds)
+    (nausicaa times-and-dates julian-calendar))
 
 
 ;;;; constants

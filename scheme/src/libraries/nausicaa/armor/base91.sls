@@ -52,7 +52,7 @@
 ;;;   distribution.
 
 
-(library (armor base91)
+(library (nausicaa armor base91)
   (export
 
     <base91-encode-ctx>				<base91-decode-ctx>
@@ -69,9 +69,9 @@
 
     armored-byte-of-base91?)
   (import (rnrs)
-    (language-extensions)
-    (classes)
-    (armor conditions))
+    (nausicaa language extensions)
+    (nausicaa language classes)
+    (nausicaa armor conditions))
 
 
 (define-class <base91-encode-ctx>

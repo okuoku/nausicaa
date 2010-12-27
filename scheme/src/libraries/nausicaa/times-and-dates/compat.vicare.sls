@@ -26,15 +26,15 @@
 ;;;CONNECTION  WITH THE SOFTWARE  OR THE  USE OR  OTHER DEALINGS  IN THE
 ;;;SOFTWARE.
 
-(library (times-and-dates compat)
+#!r6rs
+(library (nausicaa times-and-dates compat)
   (export
     host:time-resolution
     host:current-time
     host:time-nanosecond
     host:time-second
     host:time-gmt-offset)
-  (import
-    (rnrs base)
+  (import (rnrs base)
     (prefix (only (ikarus)
 		  current-time time-nanosecond time-second time-gmt-offset)
             host:))

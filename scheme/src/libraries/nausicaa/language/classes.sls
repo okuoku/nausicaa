@@ -48,7 +48,7 @@
 
 
 #!r6rs
-(library (classes)
+(library (nausicaa language classes)
   (export
 
     ;; usage macros
@@ -104,18 +104,17 @@
     <fixnum> <flonum> <integer> <integer-valued> <rational> <rational-valued>
     <real> <real-valued> <complex> <number>)
   (import (rnrs)
-    (for (syntax-utilities)		expand)
-    (for (classes helpers)		expand)
-    (for (classes binding-makers)	expand)
-    (for (classes clause-parsers)	expand)
-    (for (prefix (sentinel) sentinel.)	expand)
-    (makers)
-    (contracts)
-    (auxiliary-syntaxes)
-    (language-extensions)
-    (identifier-properties)
-    (classes internal-auxiliary-syntaxes)
-    (classes top))
+    (for (nausicaa language syntax-utilities)		expand)
+    (for (nausicaa language classes helpers)		expand)
+    (for (nausicaa language classes binding-makers)	expand)
+    (for (nausicaa language classes clause-parsers)	expand)
+    (for (prefix (nausicaa language sentinel) sentinel.)	expand)
+    (nausicaa language makers)
+    (nausicaa language auxiliary-syntaxes)
+    (nausicaa language extensions)
+    (nausicaa language identifier-properties)
+    (nausicaa language classes internal-auxiliary-syntaxes)
+    (nausicaa language classes top))
 
 
 ;;;; routines for the default record protocol
@@ -1854,14 +1853,12 @@
   (syntax-case stx (no-loop)
 
     ((_ no-loop (((?var ?class ...) ?init) ...) ?body0 ?body ...)
-     (with-syntax (((CONTRACT ...) (generate-temporaries #'(?var ...))))
-       #'(let ((?var ?init) ...)
-	   (with-class ((?var ?class ...) ...) ?body0 ?body ...))))
+     #'(let ((?var ?init) ...)
+	 (with-class ((?var ?class ...) ...) ?body0 ?body ...)))
 
     ((_ ?loop (((?var ?class0 ?class ...) ?init) ...) ?body0 ?body ...)
-     (with-syntax (((CONTRACT ...) (generate-temporaries #'(?var ...))))
-       #'(let ?loop ((?var ?init) ...)
-	   (with-class ((?var ?class0 ?class ...) ...) ?body0 ?body ...))))
+     #'(let ?loop ((?var ?init) ...)
+	 (with-class ((?var ?class0 ?class ...) ...) ?body0 ?body ...)))
 
     (_
      (synner "invalid input form"))))

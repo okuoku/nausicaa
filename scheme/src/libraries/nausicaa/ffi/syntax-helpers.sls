@@ -25,7 +25,8 @@
 ;;;
 
 
-(library (ffi syntax-helpers)
+#!r6rs
+(library (nausicaa ffi syntax-helpers)
   (export %prepend %enclose map-identifier-syntax-object
 	  syntax->list)
   (import (rnrs))

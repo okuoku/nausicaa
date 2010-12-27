@@ -28,11 +28,11 @@
 
 
 #!r6rs
-(library (identifier-properties)
+(library (nausicaa language identifier-properties)
   (export define-identifier-property
 	  lookup-identifier-property)
   (import (rnrs)
-    (for (identifier-properties helpers) expand))
+    (for (nausicaa language identifier-properties helpers) expand))
 
   (define-syntax define-identifier-property
     (lambda (stx)

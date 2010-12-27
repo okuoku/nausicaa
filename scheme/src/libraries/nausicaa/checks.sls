@@ -26,7 +26,7 @@
 
 
 #!r6rs
-(library (checks)
+(library (nausicaa checks)
   (export
 
     ;; bindings from the SRFI
@@ -53,9 +53,9 @@
 		  (write	nausicaa:write)
 		  (newline	nausicaa:newline)
 		  (pretty-print	nausicaa:pretty-print))
-    (formations)
-    (debugging)
-    (loops))
+    (nausicaa formations)
+    (nausicaa debugging)
+    (nausicaa loops))
 
 
 ;;; utilities

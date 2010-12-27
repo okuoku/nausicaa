@@ -25,17 +25,18 @@
 ;;;
 
 
-(library (ffi memory caches)
+#!r6rs
+(library (nausicaa ffi memory caches)
   (export
     make-block-cache		make-caching-object-factory
     small-blocks-cache		page-blocks-cache
     small-blocks-size		page-blocks-size
     memblocks-cache)
   (import (rnrs)
-    (ffi pointers)
-    (ffi memory alloc)
-    (ffi memory operations)
-    (ffi memory memblocks))
+    (nausicaa ffi pointers)
+    (nausicaa ffi memory alloc)
+    (nausicaa ffi memory operations)
+    (nausicaa ffi memory memblocks))
 
 
 ;;;; caching allocated memory blocks

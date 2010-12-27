@@ -25,7 +25,8 @@
 ;;;
 
 
-(library (ffi inspector-maker)
+#!r6rs
+(library (nausicaa ffi inspector-maker)
   (export
 
     ;; main control
@@ -42,9 +43,9 @@
     define-c-enumeration	define-c-type-alias
     define-c-type		define-c-struct)
   (import (nausicaa)
-    (formations)
-    (times-and-dates)
-    (strings))
+    (nausicaa formations)
+    (nausicaa times-and-dates)
+    (nausicaa strings))
 
 
 ;;;; helpers

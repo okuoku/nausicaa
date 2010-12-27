@@ -24,7 +24,7 @@
 
 
 #!r6rs
-(library (lists low)
+(library (nausicaa lists low)
   (export
 
     ;; predicates

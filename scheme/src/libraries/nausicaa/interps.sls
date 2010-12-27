@@ -25,7 +25,8 @@
 ;;;
 
 
-(library (interps)
+#!r6rs
+(library (nausicaa interps)
   (export
 
     &interp-error
@@ -40,11 +41,11 @@
     ;; auxiliary syntaxes
     imports:)
   (import (nausicaa)
-    (interps variables)
-    (interps variable-events)
-    (rnrs eval)
-    (sentinel)
-    (gensym))
+    (nausicaa interps variables)
+    (nausicaa interps variable-events)
+    (nausicaa language sentinel)
+    (nausicaa gensym)
+    (rnrs eval))
 
 
 ;;;; helpers

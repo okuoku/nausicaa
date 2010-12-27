@@ -25,7 +25,8 @@
 ;;;
 
 
-(library (libraries names)
+#!r6rs
+(library (nausicaa libraries names)
   (export
     <library-name>		<library-name>?
     make-<library-name>

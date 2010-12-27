@@ -101,7 +101,7 @@
 
 
 #!r6rs
-(library (strings)
+(library (nausicaa strings)
   (export
 
     ;; auxiliary syntaxes
@@ -226,8 +226,8 @@
 
     (rename (unpack %string-unpack)))
   (import (rnrs)
-    (strings low)
-    (auxiliary-syntaxes))
+    (nausicaa strings low)
+    (nausicaa language auxiliary-syntaxes))
 
 
 (define-syntax unpack

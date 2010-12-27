@@ -24,7 +24,8 @@
 ;;;
 
 
-(library (ffi memory alloc compat)
+#!r6rs
+(library (nausicaa ffi memory alloc compat)
   (export
     system-free				system-malloc
     system-calloc			system-realloc
@@ -32,8 +33,8 @@
     platform-calloc			platform-realloc)
   (import (core)
     (ypsilon ffi)
-    (prefix (ffi sizeof) ffi:)
-    (ffi pointers))
+    (prefix (nausicaa ffi sizeof) ffi:)
+    (nausicaa ffi pointers))
 
 
 ;;;; low level allocation functions

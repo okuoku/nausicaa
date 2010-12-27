@@ -25,13 +25,14 @@
 ;;;
 
 
-(library (interps variables)
+#!r6rs
+(library (nausicaa interps variables)
   (export define-variable)
   (import (nausicaa)
-    (makers)
-    (sentinel)
-    (syntax-utilities)
-    (interps variable-events))
+    (nausicaa language makers)
+    (nausicaa language sentinel)
+    (nausicaa language syntax-utilities)
+    (nausicaa interps variable-events))
 
 
 (define-syntax define-variable

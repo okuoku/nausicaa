@@ -19,7 +19,7 @@
 
 
 #!r6rs
-(library (silex lexer)
+(library (nausicaa silex lexer)
   (export
     lexer-make-lexer		lexer-make-IS
     lexer-get-func-getc		lexer-get-func-ungetc
@@ -50,8 +50,8 @@
     :input-system-user-getc
     :input-system-user-ungetc)
   (import (rnrs)
-    (makers)
-    (rnrs mutable-strings))
+    (rnrs mutable-strings)
+    (nausicaa language makers))
 
 
 (define lexer-init-buffer-len 1024)
