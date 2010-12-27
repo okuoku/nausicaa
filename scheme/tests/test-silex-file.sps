@@ -29,7 +29,7 @@
   (nausicaa checks)
   (nausicaa language sentinel)
   (nausicaa silex lexer)
-  (nausicaa silex-test)
+  (silex-test)
   (calc-code-lexer)
   (calc-portable-lexer)
   (calc-tree-lexer))

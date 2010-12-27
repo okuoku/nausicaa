@@ -1,6 +1,6 @@
 ;;;
 ;;;Part of: Nausicaa/Scheme
-;;;Contents: tests for (matches)
+;;;Contents: tests for (nausicaa matches)
 ;;;Date: Sat Aug 29, 2009
 ;;;
 ;;;Abstract
@@ -53,7 +53,7 @@
 		  (form		. ,(syntax-violation-form E))))
 	       (else #f))
        (eval (quote ?body)
-	     (environment '(rnrs) '(matches)))))))
+	     (environment '(rnrs) '(nausicaa matches)))))))
 
 (define-syntax catch-mismatch-error
   (syntax-rules ()
@@ -477,7 +477,7 @@
 		 ((:or (:predicate integer? x)
 		       (:predicate symbol?  y))
 		  y))
-	      (environment '(rnrs) '(matches))))
+	      (environment '(rnrs) '(nausicaa matches))))
     => #t)
 
   (check
@@ -486,7 +486,7 @@
 		 ((:or (:predicate integer? x)
 		       (:predicate symbol?  y))
 		  x))
-	      (environment '(rnrs) '(matches))))
+	      (environment '(rnrs) '(nausicaa matches))))
     => #t)
 
 ;;; --------------------------------------------------------------------
@@ -513,7 +513,7 @@
 	(eval '(match 123
 		 ((:not (:predicate symbol? x))
 		  x)) ; unbound identifier
-	      (environment '(rnrs) '(matches))))
+	      (environment '(rnrs) '(nausicaa matches))))
     => #t)
 
   (check
@@ -1004,7 +1004,7 @@
 	(eval '(match 1
 		 ((:setter doit)
 		  (doit 3)))
-	      (environment '(rnrs) '(matches))))
+	      (environment '(rnrs) '(nausicaa matches))))
     => #t)
 
   (check	;setter car

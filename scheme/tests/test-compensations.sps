@@ -379,7 +379,7 @@
 	(eval '(with-compensations
 		 (letrec ((a (compensate 123)))
 		   #t))
-	      (environment '(rnrs) '(compensations))))
+	      (environment '(rnrs) '(nausicaa language compensations))))
     => #t)
 
   #t)

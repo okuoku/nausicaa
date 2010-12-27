@@ -28,7 +28,7 @@
 #!r6rs
 (import (nausicaa)
   (rnrs eval)
-  (nausicaa makers)
+  (nausicaa language makers)
   (prefix (makers-lib) lib.)	;this is in the tests directory
   (nausicaa checks)
   (nausicaa language sentinel))

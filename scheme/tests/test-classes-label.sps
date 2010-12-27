@@ -30,7 +30,7 @@
   (nausicaa checks)
   (nausicaa debugging)
   (records-lib)
-  (nausicaa rnrs eval))
+  (rnrs eval))
 
 (check-set-mode! 'report-failed)
 (display "*** testing class labels\n")

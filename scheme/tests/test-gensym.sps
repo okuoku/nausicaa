@@ -27,7 +27,7 @@
 
 #!r6rs
 (import (nausicaa)
-  (nausicaa gensym)
+  (nausicaa language gensym)
   (nausicaa checks))
 
 (check-set-mode! 'report-failed)

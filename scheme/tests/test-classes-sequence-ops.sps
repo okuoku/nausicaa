@@ -18,7 +18,8 @@
 ;;;		              .sort()
 ;;;		              .join( ", " ) )
 ;;;
-;;;	it is possible to mimic it with the facilities of (classes).
+;;;	it  is possible  to mimic  it with  the facilities  of (nausicaa
+;;;	language classes).
 ;;;
 ;;;	[1] <http://gosu-lang.org/>
 ;;;

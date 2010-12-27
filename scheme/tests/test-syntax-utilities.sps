@@ -27,7 +27,7 @@
 
 #!r6rs
 (import (for (nausicaa) run expand (meta -1))
-  (nausicaa syntax-utilities)
+  (nausicaa language syntax-utilities)
   (nausicaa checks))
 
 (check-set-mode! 'report-failed)

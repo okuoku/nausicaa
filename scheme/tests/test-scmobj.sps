@@ -26,6 +26,7 @@
 
 #!r6rs
 (import (rnrs)
+  (nausicaa language parameters)
   (nausicaa lists)
   (nausicaa checks)
   (nausicaa scmobj)

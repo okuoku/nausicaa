@@ -102,7 +102,7 @@
   (protocol (lambda (make-top)
 	      (lambda (imports bindings)
 		(let* (($elet	(gensym))
-		       (imports `((rename (evaluations wrapper) (elet ,$elet))
+		       (imports `((rename (nausicaa evaluations wrapper) (elet ,$elet))
 				  ,@imports)))
 		  ((make-top) imports bindings (apply environment imports) $elet)))))
   (maker ()

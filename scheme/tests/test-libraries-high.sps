@@ -63,7 +63,7 @@
 (parametrise ((check-test-name	'loading))
 
   (check
-      (let ((lib (load-library '(lists))))
+      (let ((lib (load-library '(nausicaa lists))))
 	(is-a? lib <library>))
     => #t)
 
@@ -73,10 +73,10 @@
     => #t)
 
   (check
-      (let* (((lib <library>)		(load-library '(lists)))
+      (let* (((lib <library>)		(load-library '(nausicaa lists)))
 	     ((name <library-name>)	lib.name))
 	name.identifiers)
-    => '(lists))
+    => '(nausicaa lists))
 
   (check
       (guard (E ((library-not-found-condition? E)
@@ -100,7 +100,7 @@
 				  (rename (a alpha)
 					  (b beta)))
 			  (import (rnrs)
-			    (lists))
+			    (nausicaa lists))
 			  (define a 1)
 			  (define (b arg)
 			    (vector arg))
@@ -123,7 +123,7 @@
 
     (check
 	lib.imported-libraries
-      => '((rnrs) (lists)))
+      => '((rnrs) (nausicaa lists)))
 
     #f)
 
@@ -140,7 +140,7 @@
 				  (rename (a alpha)
 					  (b beta)))
 			  (import (rnrs)
-			    (lists))
+			    (nausicaa lists))
 			  (define a 1)
 			  (define (b arg)
 			    (vector arg))
@@ -168,7 +168,7 @@
   (test-cache:register '(test imported-libraries one)
 		       '(library (test imported-libraries one)
 			  (export)
-			  (import (rnrs) (lists))))
+			  (import (rnrs) (nausicaa lists))))
 
   (test-cache:register '(test imported-libraries two)
 		       '(library (test imported-libraries two)
@@ -195,7 +195,7 @@
 ;;; --------------------------------------------------------------------
 
   (let-fields (((lib <library>) (load-library '(test imported-libraries one))))
-    (check lib.imported-libraries => '((rnrs) (lists)))
+    (check lib.imported-libraries => '((rnrs) (nausicaa lists)))
     #f)
 
   (let-fields (((lib <library>) (load-library '(test imported-libraries two))))

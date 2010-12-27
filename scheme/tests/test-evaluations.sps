@@ -137,7 +137,7 @@
 		 (p.augment '((c . 3)
 			      (b . 4)))
 		 #f)
-	      (environment '(nausicaa) '(evaluations))))
+	      (environment '(nausicaa) '(nausicaa evaluations))))
     => #t)
 
   (check	;self augmenting environment causes duplication

@@ -101,7 +101,7 @@
 	     (define-variable woppa 123)
 	     woppa)
 	  (environment '(rnrs)
-		       '(variables)))
+		       '(nausicaa variables)))
   => 123)
 
 (check
@@ -109,7 +109,7 @@
 	     (define-variable (woppa) 123)
 	     (woppa))
 	  (environment '(rnrs)
-		       '(variables)))
+		       '(nausicaa variables)))
   => 123)
 
 (check
@@ -117,7 +117,7 @@
 	     (define-variable (woppa a b) (list a b))
 	     (woppa 1 2))
 	  (environment '(rnrs)
-		       '(variables)))
+		       '(nausicaa variables)))
   => '(1 2))
 
 (check
@@ -127,7 +127,7 @@
 		 value))
 	     (woppa 123))
 	  (environment '(rnrs)
-		       '(variables)))
+		       '(nausicaa variables)))
   => 123)
 
 (check

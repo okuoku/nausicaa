@@ -75,7 +75,7 @@
 		(let (($elet (gensym)))
 		  ((make-top) (make-eq-hashtable)
 		   (apply environment
-			  `(rename (interps wrapper) (elet ,$elet))
+			  `(rename (nausicaa interps wrapper) (elet ,$elet))
 			  list-of-import-specs)
 		   list-of-import-specs
 		   $elet)))))

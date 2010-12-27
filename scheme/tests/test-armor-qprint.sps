@@ -27,8 +27,7 @@
 
 (import (nausicaa)
   (nausicaa armor quoted-printable)
-  (nausicaa checks)
-  (nausicaa parameters))
+  (nausicaa checks))
 
 (check-set-mode! 'report-failed)
 (display "*** testing ASCII armor quoted-printable\n")
