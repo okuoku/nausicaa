@@ -74,6 +74,21 @@
 	   (cons (car ell) (loop (cdr ell)))
 	 ell)))))
 
+;;The  following  bindings  are  needed  by  the  cache  implemented  as
+;;hashtable; currently it is implemented  as a symbols-tree, so they are
+;;commented out.
+;;
+;; (define-constant $gf
+;;   (greatest-fixnum))
+;;
+;; (define (signature-hash signature)
+;;   (let loop ((hash      0)
+;; 	     (signature signature))
+;;     (if (null? signature)
+;; 	hash
+;;       (loop (mod (+ hash (symbol-hash (caar signature))) $gf)
+;; 	    (cdr signature)))))
+
 
 ;;;; next method implementation
 
@@ -305,17 +320,6 @@
 ;;
 ;;the key is the method's signature.
 ;;
-
-(define-constant $gf
-  (greatest-fixnum))
-
-(define (signature-hash signature)
-  (let loop ((hash      0)
-	     (signature signature))
-    (if (null? signature)
-	hash
-      (loop (mod (+ hash (symbol-hash (caar signature))) $gf)
-	    (cdr signature)))))
 
 (define (%add-method-to-methods-alist methods-alist signature closure)
   ;;Add a  method's entry to the  alist of methods;  return the modified
