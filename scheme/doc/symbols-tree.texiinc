@@ -1,0 +1,64 @@
+@node symbols-tree
+@chapter Search tree for lists of symbols
+
+
+The library @library{nausicaa symbols-tree} handles search trees in
+which keys are list of Scheme symbols and values can be anything; the
+tree has the structure of nested alists.  Inserting the following keys
+and values (in this order):
+
+@example
+(a b1 c1 d1)   1
+(a b1 c1 d2)   2
+(a b1 c2 d1)   1
+(a b1 c1 d3)   3
+(a b2 c1)      4
+(a b1 c2 d2)   2
+(a b2 c2)      5
+(a b1 c2 d3)   3
+(a b2 c3)      6
+(a b2)         7
+(a b1 c2)      8
+@end example
+
+@noindent
+yields the following tree:
+
+@example
+((a . ((b2 . ((#f . 7)
+              (c3 . 6)
+              (c2 . 5)
+              (c1 . 4)))
+       (b1 . ((c2 . ((#f . 8)
+                     (d3 . 3)
+                     (d2 . 2)
+                     (d1 . 1)))
+              (c1 . ((d3 . 3)
+                     (d2 . 2)
+                     (d1 . 1))))))))
+@end example
+
+@noindent
+notice that the ``short keys'' are stored as sequences ending with a
+pair having @false{} as key, and such pairs are kept at the beginning of
+the alist.
+
+Storing a key/value pair whose key already exists causes the old value
+to be overwritten.
+
+
+@defun tree-cons @var{key} @var{value} @var{tree}
+Add the @var{key}/@var{value} pair to @var{tree} and return the new
+tree.  @var{key} must be null or a list of symbols, @var{value} can be
+anything, @var{tree} must be null or a symbols tree.
+@end defun
+
+
+@defun treeq @var{key} @var{tree} @var{default}
+Search for @var{key} in @var{tree} and return the associated value;
+return @var{default} if @var{key} was not found.  @var{key} must be null
+or a list of symbols, @var{tree} must be null or a symbols tree.
+@end defun
+
+
+@c end of file

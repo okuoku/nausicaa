@@ -679,6 +679,7 @@ Low level libraries
 
 * kmp::                         Knuth--Morris--Pratt searching.
 * one-dimension::               One dimensional extended ranges.
+* symbols-tree::                Search tree for lists of symbols.
 
 Appendices
 
@@ -785,6 +786,7 @@ Indexes
 
 @include kmp.texiinc
 @include one-dimension.texiinc
+@include symbols-tree.texiinc
 
 @c appendices
 
