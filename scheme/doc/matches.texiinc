@@ -22,6 +22,7 @@ nor exported.
 * matches condition::           Mismatch error condition.
 * matches syntax::              The pattern syntax.
 * matches macros::              Syntaxes for pattern matching.
+* matches transformers::        Writing macro transformers.
 @end menu
 
 @c page
@@ -1432,5 +1433,69 @@ Examples:
 @result{} 3
 @end example
 @end deffn
+
+@c page
+@node matches transformers
+@section Writing macro transformers
+
+
+It is possible to use @func{match} as a substitute of @func{syntax-case}
+to write macro transformers.  An example follows:
+
+@example
+(import (nausicaa) (matches) (syntax-utilities))
+
+(define-auxiliary-syntaxes
+  alpha beta delta gamma rho)
+
+(define-syntax doit
+  (lambda (stx)
+    (match (unwrap-syntax-object stx)
+      ((_ ?clause)
+       (match ?clause
+         (((:free-identifier #'alpha) ?a)
+          #`(list 'alpha #,?a))
+
+         (((:free-identifier #'beta) ?clause)
+          (match ?clause
+            (((:free-identifier #'delta) ?d)
+             #`(list 'beta 'delta #,?d))
+            (((:free-identifier #'gamma) ?g)
+             #`(list 'beta 'gamma #,?g))))
+
+         (((:free-identifier #'rho) ?r)
+          #`(list 'rho #,?r)))))))
+
+(doit (alpha 1))        @result{} (alpha 1)
+(doit (beta (delta 2))) @result{} (beta delta 2)
+(doit (beta (gamma 3))) @result{} (beta gamma 3)
+(doit (rho 4))          @result{} (rho 4)
+@end example
+
+@noindent
+the same transformer with @func{syntax-case} would have been:
+
+@example
+(define-syntax doit
+  (lambda (stx)
+    (syntax-case stx ()
+      ((_ ?clause)
+       (syntax-case #'?clause (alpha beta rho)
+         ((alpha  ?a)
+          #'(list 'alpha ?a))
+
+         ((beta ?clause)
+          (syntax-case #'?clause ()
+            ((delta ?d)
+             #'(list 'beta 'delta ?d))
+            ((gamma ?g)
+             #'(list 'beta 'gamma ?g))))
+
+         ((rho ?r)
+          #'(list 'rho ?r)))))))
+@end example
+
+@noindent
+@func{match} may be occasionally convenient, but not always.
 
 @c end of file
