@@ -28,7 +28,7 @@
 #!r6rs
 (import (nausicaa)
   (nausicaa mutable-strings)
-  (checks))
+  (nausicaa checks))
 
 (check-set-mode! 'report-failed)
 (display "*** testing mutable string label\n")

@@ -32,8 +32,8 @@
 
 #!r6rs
 (import (rnrs)
-  (lalr)
-  (prefix (silex) lex.))
+  (nausicaa lalr)
+  (prefix (nausicaa silex) lex.))
 
 
 ;;;; lexer

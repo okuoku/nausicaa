@@ -26,10 +26,10 @@
 
 #!r6rs
 (import (nausicaa)
-  (checks)
-  (sentinel)
-  (silex lexer)
-  (silex-test)
+  (nausicaa checks)
+  (nausicaa language sentinel)
+  (nausicaa silex lexer)
+  (nausicaa silex-test)
   (calc-code-lexer)
   (calc-portable-lexer)
   (calc-tree-lexer))

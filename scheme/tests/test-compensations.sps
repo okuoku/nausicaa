@@ -26,7 +26,7 @@
 
 
 (import (nausicaa)
-  (checks)
+  (nausicaa checks)
   (rnrs eval))
 
 (check-set-mode! 'report-failed)

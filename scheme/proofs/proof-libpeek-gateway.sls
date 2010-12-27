@@ -25,6 +25,7 @@
 ;;;
 
 
+#!r6rs
 (library (proof-libpeek-gateway)
   (export (rename (the-type <type>)))
   (import (rnrs)

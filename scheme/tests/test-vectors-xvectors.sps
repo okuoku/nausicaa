@@ -27,9 +27,9 @@
 
 #!r6rs
 (import (nausicaa)
-  (vectors xvectors)
-  (only (vectors) vector-copy)
-  (checks))
+  (nausicaa vectors xvectors)
+  (only (nausicaa vectors) vector-copy)
+  (nausicaa checks))
 
 (check-set-mode! 'report-failed)
 (display "*** testing xvectors\n")

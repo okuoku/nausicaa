@@ -27,9 +27,9 @@
 
 #!r6rs
 (import (nausicaa)
-  (evaluations)
+  (nausicaa evaluations)
   (rnrs eval)
-  (checks))
+  (nausicaa checks))
 
 (check-set-mode! 'report-failed)
 (display "*** testing evaluations\n")

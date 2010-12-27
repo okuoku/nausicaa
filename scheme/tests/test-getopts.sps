@@ -27,10 +27,8 @@
 
 #!r6rs
 (import (nausicaa)
-  (strings)
-  (vectors)
-  (checks)
-  (getopts))
+  (nausicaa checks)
+  (nausicaa getopts))
 
 (check-set-mode! 'report-failed)
 (display "*** testing getopts\n")

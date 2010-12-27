@@ -25,10 +25,10 @@
 
 
 (import (nausicaa)
-  (checks)
-  (ffi memory)
-  (formations)
-  (debugging))
+  (nausicaa checks)
+  (nausicaa ffi memory)
+  (nausicaa formations)
+  (nausicaa debugging))
 
 (check-set-mode! 'report-failed)
 (display "*** testing memory allocation\n")

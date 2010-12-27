@@ -27,8 +27,8 @@
 
 #!r6rs
 (import (nausicaa)
-  (checks)
-  (debugging)
+  (nausicaa checks)
+  (nausicaa debugging)
   (rnrs eval)
   (rnrs mutable-pairs))
 

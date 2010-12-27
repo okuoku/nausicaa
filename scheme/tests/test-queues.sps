@@ -24,9 +24,10 @@
 ;;;
 
 
+#!r6rs
 (import (nausicaa)
-  (checks)
-  (queues))
+  (nausicaa checks)
+  (nausicaa queues))
 
 (check-set-mode! 'report-failed)
 (display "*** testing queues\n")

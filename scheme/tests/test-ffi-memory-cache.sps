@@ -24,11 +24,12 @@
 ;;;
 
 
+#!r6rs
 (import (nausicaa)
-  (checks)
-  (ffi memory)
-  (ffi memory caches)
-  (ffi memory memblocks))
+  (nausicaa checks)
+  (nausicaa ffi memory)
+  (nausicaa ffi memory caches)
+  (nausicaa ffi memory memblocks))
 
 (check-set-mode! 'report-failed)
 (display "*** testing memory caches\n")

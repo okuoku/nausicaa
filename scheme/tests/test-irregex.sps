@@ -40,10 +40,11 @@
 ;;;IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
+#!r6rs
 (import (nausicaa)
-  (irregex)
-  (checks)
-  (only (lists) iota))
+  (nausicaa irregex)
+  (nausicaa checks)
+  (only (nausicaa lists) iota))
 
 (check-set-mode! 'report-failed)
 (display "*** testing irregex\n")

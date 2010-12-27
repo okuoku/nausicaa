@@ -25,10 +25,11 @@
 ;;;
 
 
+#!r6rs
 (import (nausicaa)
-  (uri)
-  (prefix (uri low) uri:)
-  (checks))
+  (nausicaa uri)
+  (prefix (nausicaa uri low) uri:)
+  (nausicaa checks))
 
 (check-set-mode! 'report-failed)
 (display "*** testing URI\n")

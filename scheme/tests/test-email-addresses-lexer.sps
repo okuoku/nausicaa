@@ -27,15 +27,15 @@
 
 #!r6rs
 (import (nausicaa)
-  (generics)
-  (checks)
-  (email addresses)
-  (email addresses quoted-text-lexer)
-  (email addresses comments-lexer)
-  (email addresses domain-literals-lexer)
-  (email addresses lexer)
-  (parser-tools lexical-token)
-  (silex lexer))
+  (nausicaa generics)
+  (nausicaa checks)
+  (nausicaa email addresses)
+  (nausicaa email addresses quoted-text-lexer)
+  (nausicaa email addresses comments-lexer)
+  (nausicaa email addresses domain-literals-lexer)
+  (nausicaa email addresses lexer)
+  (nausicaa parser-tools lexical-token)
+  (nausicaa silex lexer))
 
 (check-set-mode! 'report-failed)
 (display "*** testing email addresses\n")

@@ -27,11 +27,11 @@
 
 #!r6rs
 (import (nausicaa)
-  (generics object-to-string)
-  (checks)
-  (email addresses)
-  (silex lexer)
-  (strings))
+  (nausicaa generics object-to-string)
+  (nausicaa checks)
+  (nausicaa email addresses)
+  (nausicaa silex lexer)
+  (nausicaa strings))
 
 (check-set-mode! 'report-failed)
 (display "*** testing email addresses\n")

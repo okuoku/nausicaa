@@ -27,8 +27,8 @@
 
 #!r6rs
 (import (nausicaa)
-  (contracts)
-  (checks))
+  (nausicaa contracts)
+  (nausicaa checks))
 
 (check-set-mode! 'report-failed)
 (display "*** testing contracts\n")

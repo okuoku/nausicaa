@@ -27,8 +27,8 @@
 
 #!r6rs
 (import (nausicaa)
-  (getenv)
-  (checks))
+  (nausicaa language getenv)
+  (nausicaa checks))
 
 (check-set-mode! 'report-failed)
 (display "*** testing getenv\n")

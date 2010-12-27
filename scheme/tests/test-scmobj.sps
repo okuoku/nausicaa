@@ -24,12 +24,12 @@
 ;;;
 
 
+#!r6rs
 (import (rnrs)
-  (lists)
-  (parameters)
-  (checks)
-  (scmobj)
-  (scmobj utils))
+  (nausicaa lists)
+  (nausicaa checks)
+  (nausicaa scmobj)
+  (nausicaa scmobj utils))
 
 (check-set-mode! 'report-failed)
 (display "*** testing scmobj \n")

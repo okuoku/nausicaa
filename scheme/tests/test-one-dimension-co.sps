@@ -23,11 +23,10 @@
 ;;;
 
 
-;;;; setup
-
+#!r6rs
 (import (nausicaa)
-  (checks)
-  (one-dimension-co))
+  (nausicaa checks)
+  (nausicaa one-dimension-co))
 
 (check-set-mode! 'report-failed)
 (display "*** testing one-dimension-co\n")

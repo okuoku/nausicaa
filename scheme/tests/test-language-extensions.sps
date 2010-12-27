@@ -51,9 +51,10 @@
 ;;;SOFTWARE.
 
 
+#!r6rs
 (import (nausicaa)
   (rnrs eval (6))
-  (checks))
+  (nausicaa checks))
 
 (check-set-mode! 'report-failed)
 (display "*** testing simple language extensions\n")

@@ -28,7 +28,7 @@
 #!r6rs
 (import (nausicaa)
   (rnrs eval)
-  (checks))
+  (nausicaa checks))
 
 (check-set-mode! 'report-failed)
 (display "*** testing class identifier properties\n")

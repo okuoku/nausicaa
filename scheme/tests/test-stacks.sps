@@ -24,9 +24,10 @@
 ;;;
 
 
+#!r6rs
 (import (nausicaa)
-  (checks)
-  (stacks))
+  (nausicaa checks)
+  (nausicaa stacks))
 
 (check-set-mode! 'report-failed)
 (display "*** testing stacks\n")

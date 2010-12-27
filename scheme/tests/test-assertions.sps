@@ -27,8 +27,8 @@
 
 #!r6rs
 (import (nausicaa)
-  (prefix (assertions) ass.)
-  (checks))
+  (prefix (nausicaa language assertions) ass.)
+  (nausicaa checks))
 
 (check-set-mode! 'report-failed)
 (display "*** testing assertions\n")

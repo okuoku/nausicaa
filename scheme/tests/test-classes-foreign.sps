@@ -27,7 +27,7 @@
 
 #!r6rs
 (import (nausicaa)
-  (checks))
+  (nausicaa checks))
 
 (check-set-mode! 'report-failed)
 (display "*** testing foreign classes\n")

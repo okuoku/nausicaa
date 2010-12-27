@@ -27,10 +27,10 @@
 
 #!r6rs
 (import (nausicaa)
-  (checks)
-  (debugging)
+  (nausicaa checks)
+  (nausicaa debugging)
   (records-lib)
-  (rnrs eval))
+  (nausicaa rnrs eval))
 
 (check-set-mode! 'report-failed)
 (display "*** testing class labels\n")

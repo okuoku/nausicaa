@@ -24,10 +24,11 @@
 ;;;
 
 
+#!r6rs
 (import (nausicaa)
-  (variables)
-  (sentinel)
-  (checks)
+  (nausicaa variables)
+  (nausicaa language sentinel)
+  (nausicaa checks)
   (rnrs eval))
 
 (check-set-mode! 'report-failed)

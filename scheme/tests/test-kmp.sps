@@ -28,13 +28,12 @@
 
 
 
-;;;; setup
-
+#!r6rs
 (import (nausicaa)
-  (strings)
-  (vectors)
-  (checks)
-  (knuth-morris-pratt))
+  (nausicaa strings)
+  (nausicaa vectors)
+  (nausicaa checks)
+  (nausicaa knuth-morris-pratt))
 
 (check-set-mode! 'report-failed)
 (display "*** testing knuth-morris-pratt\n")

@@ -25,9 +25,10 @@
 ;;;
 
 
+#!r6rs
 (import (for (nausicaa) run expand (meta -1))
-  (syntax-utilities)
-  (checks))
+  (nausicaa syntax-utilities)
+  (nausicaa checks))
 
 (check-set-mode! 'report-failed)
 (display "*** testing syntax-utilities\n")

@@ -27,9 +27,9 @@
 
 #!r6rs
 (import (nausicaa)
-  (strings xstrings)
-  (char-sets)
-  (checks))
+  (nausicaa strings xstrings)
+  (nausicaa char-sets)
+  (nausicaa checks))
 
 (check-set-mode! 'report-failed)
 (display "*** testing xstring label\n")

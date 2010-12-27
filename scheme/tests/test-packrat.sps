@@ -33,10 +33,11 @@
 ;;;
 
 
+#!r6rs
 (import (nausicaa)
-  (checks)
-  (prefix (packrat) packrat:)
-  (parser-tools lexical-token))
+  (nausicaa checks)
+  (prefix (nausicaa packrat) packrat:)
+  (nausicaa parser-tools lexical-token))
 
 (check-set-mode! 'report-failed)
 (display "*** testing packrat\n")

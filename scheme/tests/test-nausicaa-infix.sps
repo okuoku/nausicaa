@@ -25,9 +25,10 @@
 ;;;
 
 
+#!r6rs
 (import (nausicaa)
   (prefix (only (rnrs) + - * /) rnrs.)
-  (checks))
+  (nausicaa checks))
 
 (check-set-mode! 'report-failed)
 (display "*** testing standalone infix library\n")

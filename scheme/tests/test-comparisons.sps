@@ -26,8 +26,8 @@
 
 
 (import (nausicaa)
-  (checks)
-  (comparisons))
+  (nausicaa checks)
+  (nausicaa comparisons))
 
 (check-set-mode! 'report-failed)
 (display "*** testing comparisons\n")

@@ -24,10 +24,11 @@
 ;;;
 
 
+#!r6rs
 (import (nausicaa)
-  (checks)
-  (generics)
-  (generics object-to-string))
+  (nausicaa checks)
+  (nausicaa generics)
+  (nausicaa generics object-to-string))
 
 (check-set-mode! 'report-failed)
 (display "*** testing generic functions\n")

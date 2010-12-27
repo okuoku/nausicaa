@@ -27,8 +27,8 @@
 
 #!r6rs
 (import (nausicaa)
-  (identifier-properties)
-  (checks))
+  (nausicaa language identifier-properties)
+  (nausicaa checks))
 
 (check-set-mode! 'report-failed)
 (display "*** testing expand-time identifier properties\n")

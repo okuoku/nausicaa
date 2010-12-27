@@ -28,7 +28,7 @@
 #!r6rs
 (import (nausicaa)
   (nausicaa symbols-tree)
-  (checks))
+  (nausicaa checks))
 
 (check-set-mode! 'report-failed)
 (display "*** testing symbols tree\n")

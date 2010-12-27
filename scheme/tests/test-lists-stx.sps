@@ -25,11 +25,12 @@
 
 
 
+#!r6rs
 (import (nausicaa)
-  (checks)
-  (only (lists)
+  (nausicaa checks)
+  (only (nausicaa lists)
 	circular-list xcons not-pair?)
-  (lists stx)
+  (nausicaa lists stx)
   (rnrs mutable-pairs))
 
 (check-set-mode! 'report-failed)

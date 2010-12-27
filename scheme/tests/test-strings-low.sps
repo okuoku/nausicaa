@@ -24,12 +24,11 @@
 ;;;
 
 
-;;;; setup
-
+#!r6rs
 (import (nausicaa)
-  (strings low)
-  (char-sets)
-  (checks))
+  (nausicaa strings low)
+  (nausicaa char-sets)
+  (nausicaa checks))
 
 (check-set-mode! 'report-failed)
 (display "*** testing strings - low level\n")

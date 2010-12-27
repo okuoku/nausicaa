@@ -25,10 +25,11 @@
 ;;;
 
 
+#!r6rs
 (import (nausicaa)
-  (checks)
-  (matches)
-  (syntax-utilities)
+  (nausicaa checks)
+  (nausicaa matches)
+  (nausicaa language syntax-utilities)
   (rnrs eval))
 
 (check-set-mode! 'report-failed)

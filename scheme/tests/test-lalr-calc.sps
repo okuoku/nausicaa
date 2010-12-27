@@ -31,13 +31,13 @@
 
 #!r6rs
 (import (nausicaa)
-  (silex lexer)
+  (nausicaa silex lexer)
   (calc-parser)
   (calc-parser-helper)
   (calc-parser-lexer)
-  (parser-tools lexical-token)
-  (parser-tools source-location)
-  (checks))
+  (nausicaa parser-tools lexical-token)
+  (nausicaa parser-tools source-location)
+  (nausicaa checks))
 
 (check-set-mode! 'report-failed)
 (display "*** testing lalr calculator\n")

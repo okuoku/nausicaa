@@ -23,8 +23,8 @@
 
 
 (import (nausicaa)
-  (checks)
-  (formations))
+  (nausicaa checks)
+  (nausicaa formations))
 
 (check-set-mode! 'report-failed)
 (display "*** testing format library\n")

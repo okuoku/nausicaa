@@ -25,13 +25,14 @@
 ;;;
 
 
+#!r6rs
 (import (nausicaa)
-  (libraries)
-  (libraries names)
-  (libraries references)
-  (libraries import-specs)
-  (libraries conditions)
-  (checks))
+  (nausicaa libraries)
+  (nausicaa libraries names)
+  (nausicaa libraries references)
+  (nausicaa libraries import-specs)
+  (nausicaa libraries conditions)
+  (nausicaa checks))
 
 (check-set-mode! 'report-failed)
 (display "*** testing libraries\n")

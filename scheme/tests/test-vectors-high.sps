@@ -24,9 +24,10 @@
 ;;;
 
 
+#!r6rs
 (import (nausicaa)
-  (vectors)
-  (checks))
+  (nausicaa vectors)
+  (nausicaa checks))
 
 (check-set-mode! 'report-failed)
 (display "*** testing vectors\n")

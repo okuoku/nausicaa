@@ -27,7 +27,7 @@
 
 #!r6rs
 (import (rnrs)
-  (classes))
+  (nausicaa language classes))
 
 (define check-count		0)
 (define check-success-count	0)

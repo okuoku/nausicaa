@@ -28,10 +28,10 @@
 #!r6rs
 (import (nausicaa)
   (rnrs eval)
-  (makers)
+  (nausicaa makers)
   (prefix (makers-lib) lib.)	;this is in the tests directory
-  (checks)
-  (sentinel))
+  (nausicaa checks)
+  (nausicaa language sentinel))
 
 (check-set-mode! 'report-failed)
 (display "*** testing makers\n")

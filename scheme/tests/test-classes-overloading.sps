@@ -26,8 +26,8 @@
 
 
 (import (nausicaa)
-  (generics)
-  (checks))
+  (nausicaa generics)
+  (nausicaa checks))
 
 (check-set-mode! 'report-failed)
 (display "*** testing classes method overloading\n")

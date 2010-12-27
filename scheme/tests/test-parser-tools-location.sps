@@ -27,10 +27,10 @@
 
 #!r6rs
 (import (nausicaa)
-  (generics object-to-string)
-  (checks)
-  (parser-tools lexical-token)
-  (parser-tools source-location))
+  (nausicaa generics object-to-string)
+  (nausicaa checks)
+  (nausicaa parser-tools lexical-token)
+  (nausicaa parser-tools source-location))
 
 (check-set-mode! 'report-failed)
 (display "*** testing parser-tools\n")

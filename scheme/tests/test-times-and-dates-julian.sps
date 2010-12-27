@@ -55,11 +55,12 @@
 ;;;PARTICULAR PURPOSE.
 
 
+#!r6rs
 (import (nausicaa)
-  (times-and-dates julian-calendar)
-  (only (times-and-dates seconds-and-subseconds)
+  (nausicaa times-and-dates julian-calendar)
+  (only (nausicaa times-and-dates seconds-and-subseconds)
 	$number-of-nanoseconds-in-one-second)
-  (checks))
+  (nausicaa checks))
 
 (check-set-mode! 'report-failed)
 (display "*** testing times-and-dates julian dates and numbers\n")

@@ -41,8 +41,8 @@
 
 #!r6rs
 (import (nausicaa)
-  (prefix (syntax-utilities) syn.)
-  (checks))
+  (prefix (nausicaa language syntax-utilities) syn.)
+  (nausicaa checks))
 
 (check-set-mode! 'report-failed)
 (display "*** testing class bindings with operations sequences\n")

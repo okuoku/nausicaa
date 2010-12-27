@@ -25,10 +25,11 @@
 ;;;
 
 
+#!r6rs
 (import (nausicaa)
-  (lists xlists)
-  (prefix (lists) lists:)
-  (checks))
+  (nausicaa lists xlists)
+  (prefix (nausicaa lists) lists:)
+  (nausicaa checks))
 
 (check-set-mode! 'report-failed)
 (display "*** testing xlists\n")

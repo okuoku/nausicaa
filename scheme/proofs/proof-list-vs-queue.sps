@@ -26,8 +26,9 @@
 ;;;
 
 
+#!r6rs
 (import (rnrs)
-  (profiling)
+  (nausicaa profiling)
   (rnrs mutable-pairs))
 
 (define %queue-list-ref		car)

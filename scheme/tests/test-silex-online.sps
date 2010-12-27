@@ -26,9 +26,9 @@
 
 #!r6rs
 (import (nausicaa)
-  (checks)
-  (silex)
-  (silex lexer)
+  (nausicaa checks)
+  (nausicaa silex)
+  (nausicaa silex lexer)
   (silex-test))
 
 (check-set-mode! 'report-failed)

@@ -29,7 +29,7 @@
 
 #!r6rs
 (import (rnrs)
-  (silex))
+  (nausicaa silex))
 
 
 (define l "

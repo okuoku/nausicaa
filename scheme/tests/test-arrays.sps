@@ -24,10 +24,10 @@
 ;;;
 
 
-
+#!r6rs
 (import (nausicaa)
-  (arrays)
-  (checks))
+  (nausicaa arrays)
+  (nausicaa checks))
 
 (check-set-mode! 'report-failed)
 (display "*** testing arrays\n")

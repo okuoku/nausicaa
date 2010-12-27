@@ -28,6 +28,7 @@
 ;;;
 
 
+#!r6rs
 (import (nausicaa)
   (for (proof-libpeek-gateway) run expand))
 
