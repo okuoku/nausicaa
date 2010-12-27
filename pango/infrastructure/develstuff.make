@@ -534,7 +534,7 @@ endef
 #page
 define ds-srcdir
 $(1)_SRCDIR	?= $$(if $(2),$(2),$$(srcdir)/$(1))
-# do not indenti this call
+# do not indent this call
 $$(call ds-assert-srcdir,$(1))
 endef
 
@@ -547,19 +547,14 @@ endef
 
 define ds-builddir
 $(1)_BUILDDIR	?= $$(if $(2),$(2),$$(builddir)/$(1).d)
+$$(if $$($(1)_BUILDDIR),,$$(error null build directory variable "$(1)_BUILDDIR"))
 
 .PHONY: $(1)-make-builddir
 
 $(1)-make-builddir:
-# do not indenti this call
-$$(call ds-make-builddir,$(1))
-$(1)-all: $(1)-make-builddir
-endef
+	test -d "$$($(1)_BUILDDIR)" || $$(MKDIR) "$$($(1)_BUILDDIR)"
 
-define ds-make-builddir
-$(if $($(1)_BUILDDIR),\
-	$(shell test -d "$($(1)_BUILDDIR)" || $(MKDIR) "$($(1)_BUILDDIR)"),\
-	$(error null build directory variable "$(1)_BUILDDIR"))
+$(1)-all: $(1)-make-builddir
 endef
 
 #page
@@ -954,7 +949,7 @@ $$(eval $$(call ds-default-install-variables,ds_uninstall_$(1),$$(pkglibexecdir)
 $$(eval $$(call ds-default-clean-variables,ds_uninstall_$(1)))
 $$(eval $$(call ds-module,ds_uninstall_$(1),$(1),BIN))
 
-$$(ds_uninstall_$(1)_PATHNAME):
+$$(ds_uninstall_$(1)_PATHNAME): ds_uninstall-make-builddir
 	$$(call ds-echo,'## ---------------------------------------------------------------------')
 	$$(call ds-echo,'## Building $(1) uninstall script...')
 # This is not required because the first 'echo' outputs with '>'.
