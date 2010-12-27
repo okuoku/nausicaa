@@ -26,7 +26,7 @@
 
 
 #!r6rs
-(library (nausicaa compensations)
+(library (nausicaa language compensations)
   (export
     with-compensations with-compensations/on-error
     compensate run-compensations push-compensation)

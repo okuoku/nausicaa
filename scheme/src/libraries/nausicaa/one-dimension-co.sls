@@ -25,7 +25,7 @@
 
 
 #!r6rs
-(library (one-dimension-co)
+(library (nausicaa one-dimension-co)
   (export
 
     %make-type-descriptor

@@ -1,11 +1,11 @@
-(library (json sexp-parser)
+(library (nausicaa json sexp-parser)
   (export make-json-sexp-parser)
   (import
     (rnrs)
-    (lalr lr-driver)
-    (parser-tools source-location)
-    (parser-tools lexical-token)
-    (sentinel))
+    (nausicaa lalr lr-driver)
+    (nausicaa parser-tools source-location)
+    (nausicaa parser-tools lexical-token)
+    (nausicaa language sentinel))
   (define (make-json-sexp-parser)
     (lr-driver
       '#(((*default* . *error*) (BEGIN_ARRAY . 2)

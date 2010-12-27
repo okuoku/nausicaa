@@ -1,11 +1,11 @@
-(library (net helpers ipv6-address-parser)
+(library (nausicaa net helpers ipv6-address-parser)
   (export make-ipv6-address-parser)
   (import
     (rnrs)
-    (lalr lr-driver)
-    (parser-tools source-location)
-    (parser-tools lexical-token)
-    (sentinel))
+    (nausicaa lalr lr-driver)
+    (nausicaa parser-tools source-location)
+    (nausicaa parser-tools lexical-token)
+    (nausicaa language sentinel))
   (define (make-ipv6-address-parser)
     (lr-driver
       '#(((*default* . *error*) (COLON . 2) (NUMBER . 1))

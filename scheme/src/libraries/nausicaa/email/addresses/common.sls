@@ -25,7 +25,8 @@
 ;;;
 
 
-(library (email addresses common)
+#!r6rs
+(library (nausicaa email addresses common)
   (export
 
     unquote-string
@@ -71,10 +72,10 @@
     <group>-display-name
     <group>-mailboxes)
   (import (nausicaa)
-    (generics)
-    (generics object-to-string)
-    (strings)
-    (lists))
+    (nausicaa generics)
+    (nausicaa generics object-to-string)
+    (nausicaa strings)
+    (nausicaa lists))
 
 
 ;;;; helpers

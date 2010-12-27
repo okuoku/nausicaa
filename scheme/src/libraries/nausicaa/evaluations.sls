@@ -36,7 +36,7 @@
   (import (nausicaa)
     (nausicaa language makers)
     (nausicaa language sentinel)
-    (nausicaa gensym)
+    (nausicaa language gensym)
     (prefix (nausicaa type-utilities) type.)
     (rnrs eval)
     (rnrs mutable-pairs))

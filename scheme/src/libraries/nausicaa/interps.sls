@@ -44,7 +44,7 @@
     (nausicaa interps variables)
     (nausicaa interps variable-events)
     (nausicaa language sentinel)
-    (nausicaa gensym)
+    (nausicaa language gensym)
     (rnrs eval))
 
 

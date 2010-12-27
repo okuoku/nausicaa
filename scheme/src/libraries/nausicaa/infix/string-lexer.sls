@@ -1,7 +1,7 @@
-(library (infix string-lexer)
+(library (nausicaa infix string-lexer)
   (export
     infix-string-lexer-table)
-  (import (rnrs) (silex lexer)(lalr lr-driver)(parser-tools lexical-token)(parser-tools source-location))
+  (import (rnrs) (nausicaa silex lexer)(nausicaa lalr lr-driver)(nausicaa parser-tools lexical-token)(nausicaa parser-tools source-location))
 
 ;
 ; Table generated from the file string-lexer.l by SILex 1.0

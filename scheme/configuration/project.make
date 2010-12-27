@@ -351,7 +351,7 @@ endif
 .PHONY: csv
 
 csv:
-	cd $(srcdir)/src/libraries/csv && $(CSV_RUNNER) $(CSV_PROGRAM)
+	cd $(srcdir)/src/libraries/nausicaa/csv && $(CSV_RUNNER) $(CSV_PROGRAM)
 
 #page
 ## --------------------------------------------------------------------
@@ -383,7 +383,7 @@ endif
 .PHONY: infix
 
 infix:
-	cd $(srcdir)/src/libraries/infix && $(INFIX_RUNNER) make-tables.sps
+	cd $(srcdir)/src/libraries/nausicaa/infix && $(INFIX_RUNNER) make-tables.sps
 
 #page
 ## --------------------------------------------------------------------
@@ -416,7 +416,7 @@ endif
 .PHONY: email
 
 email:
-	cd $(srcdir)/src/libraries/email/addresses && $(EMAIL_RUNNER) $(EMAIL_PROGRAM)
+	cd $(srcdir)/src/libraries/nausicaa/email/addresses && $(EMAIL_RUNNER) $(EMAIL_PROGRAM)
 
 #page
 ## --------------------------------------------------------------------
@@ -449,7 +449,7 @@ endif
 .PHONY: json
 
 json:
-	cd $(srcdir)/src/libraries/json && $(JSON_RUNNER) $(JSON_PROGRAM)
+	cd $(srcdir)/src/libraries/nausicaa/json && $(JSON_RUNNER) $(JSON_PROGRAM)
 
 
 #page
@@ -483,7 +483,7 @@ endif
 .PHONY: uri
 
 uri:
-	cd $(srcdir)/src/libraries/uri && $(URI_RUNNER) $(URI_PROGRAM)
+	cd $(srcdir)/src/libraries/nausicaa/uri && $(URI_RUNNER) $(URI_PROGRAM)
 
 #page
 ## --------------------------------------------------------------------
@@ -516,7 +516,7 @@ endif
 .PHONY: net
 
 net:
-	cd $(srcdir)/src/libraries/net/helpers && $(NET_RUNNER) $(NET_PROGRAM)
+	cd $(srcdir)/src/libraries/nausicaa/net/helpers && $(NET_RUNNER) $(NET_PROGRAM)
 
 
 

@@ -1,7 +1,7 @@
-(library (csv unquoted-data-lexer)
+(library (nausicaa csv unquoted-data-lexer)
   (export
     csv-unquoted-data-table)
-  (import (rnrs) (silex lexer))
+  (import (rnrs) (nausicaa silex lexer))
 
 ;
 ; Table generated from the file unquoted-data.l by SILex 1.0

@@ -91,7 +91,7 @@
   library-imports:
   table-name:
   pretty-print:
-;;;  counters:		;already defined in (silex lexer)
+;;;  counters:		;already defined in (nausicaa silex lexer)
   lexer-format:
   output-value:
   output-file:
@@ -4742,7 +4742,7 @@
 				      "\n"
 				      "  (export\n"
 				      "    " (table-name->export-name table-name) ")\n"
-				      "  (import (rnrs) (silex lexer)")
+				      "  (import (rnrs) (nausicaa silex lexer)")
 		       output-port)
 	      (for-each (lambda (spec)
 			  (write spec output-port))
@@ -4760,7 +4760,7 @@
 	  ;;Make the output value.
 	  (let ((ell (read (open-string-input-port (value-getter)))))
 	    (eval ell (if (eq? lexer-format 'code)
-			  (apply environment '(rnrs) '(silex lexer) library-imports)
+			  (apply environment '(rnrs) '(nausicaa silex lexer) library-imports)
 			(apply environment '(rnrs) library-imports)))))))
 
   (define (library-spec->string-spec spec)

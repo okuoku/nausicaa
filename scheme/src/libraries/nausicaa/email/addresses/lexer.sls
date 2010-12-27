@@ -1,7 +1,7 @@
-(library (email addresses lexer)
+(library (nausicaa email addresses lexer)
   (export
     address-table)
-  (import (rnrs) (silex lexer)(email addresses common)(parser-tools lexical-token)(parser-tools source-location))
+  (import (rnrs) (nausicaa silex lexer)(nausicaa email addresses common)(nausicaa parser-tools lexical-token)(nausicaa parser-tools source-location))
 
 ;
 ; Table generated from the file lexer.l by SILex 1.0

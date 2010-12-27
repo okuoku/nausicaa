@@ -34,7 +34,7 @@
 
 
 #!r6rs
-(library (nausicaa classes clause-parsers)
+(library (nausicaa language classes clause-parsers)
   (export
     ;; label-specific clause collectors
     %collect-clause/label/inherit

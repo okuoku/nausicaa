@@ -29,15 +29,14 @@
 
 
 #!r6rs
-(library (nausicaa classes binding-makers)
+(library (nausicaa language classes binding-makers)
   (export
     make-field-bindings
     make-method-bindings
-    make-setter-getter-bindings
-    )
+    make-setter-getter-bindings)
   (import (rnrs)
-    (nausicaa syntax-utilities)
-    (nausicaa classes helpers))
+    (nausicaa language syntax-utilities)
+    (nausicaa language classes helpers))
 
 
 (define (make-field-bindings use-dot-notation? variable-stx clauses-stx synner)

@@ -32,7 +32,7 @@
 
 (lex.lex (lex.input-file:	"string-lexer.l")
 	 (lex.output-file:	"string-lexer.sls")
-	 (lex.library-spec:	"(infix string-lexer)")
+	 (lex.library-spec:	"(nausicaa infix string-lexer)")
 	 (lex.library-imports:	'((nausicaa lalr lr-driver)
 				  (nausicaa parser-tools lexical-token)
 				  (nausicaa parser-tools source-location)))

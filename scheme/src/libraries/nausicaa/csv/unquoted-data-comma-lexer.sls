@@ -1,7 +1,7 @@
-(library (csv unquoted-data-comma-lexer)
+(library (nausicaa csv unquoted-data-comma-lexer)
   (export
     csv-unquoted-data-table/comma)
-  (import (rnrs) (silex lexer))
+  (import (rnrs) (nausicaa silex lexer))
 
 ;
 ; Table generated from the file unquoted-data-comma.l by SILex 1.0

@@ -26,7 +26,7 @@
 
 
 #!r6rs
-(library (debugging)
+(library (nausicaa debugging)
   (export
     debug debugging debug-print-condition)
   (import (nausicaa)

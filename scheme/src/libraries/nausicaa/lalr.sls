@@ -245,7 +245,7 @@
     (set! expected-conflicts expect)
     (set! driver-name (case parser-type
 			((glr)	'glr-driver)
-			((lr)		'lr-driver)
+			((lr)	'lr-driver)
 			(else
 			 (assertion-violation 'lalr-parser
 			   "expected \"lr\" or \"glr\" as parser type"
@@ -260,10 +260,10 @@
 	(with-output-to-new-file dump-table debug:print-states))
 
       (let* ((imports	(append `((rnrs)
-				  (lalr ,driver-name)
-				  (parser-tools source-location)
-				  (parser-tools lexical-token)
-				  (sentinel))
+				  (nausicaa lalr ,driver-name)
+				  (nausicaa parser-tools source-location)
+				  (nausicaa parser-tools lexical-token)
+				  (nausicaa language sentinel))
 				library-imports))
 	     (exports	`(,parser-name))
 	     (code	(cond (library-spec ;generate a library

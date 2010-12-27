@@ -1,11 +1,11 @@
-(library (infix string-parser)
+(library (nausicaa infix string-parser)
   (export make-infix-string-parser)
   (import
     (rnrs)
-    (lalr lr-driver)
-    (parser-tools source-location)
-    (parser-tools lexical-token)
-    (sentinel))
+    (nausicaa lalr lr-driver)
+    (nausicaa parser-tools source-location)
+    (nausicaa parser-tools lexical-token)
+    (nausicaa language sentinel))
   (define (make-infix-string-parser)
     (lr-driver
       '#(((*default* . *error*) (ID . 5) (NUM . 4)

@@ -28,7 +28,7 @@
 ;;;
 
 
-@!r6rs
+#!r6rs
 (library (nausicaa ffi memory memblocks)
   (export
     <memblock>

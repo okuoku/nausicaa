@@ -1,11 +1,11 @@
-(library (infix sexp-parser)
+(library (nausicaa infix sexp-parser)
   (export make-infix-sexp-parser)
   (import
     (rnrs)
-    (lalr lr-driver)
-    (parser-tools source-location)
-    (parser-tools lexical-token)
-    (sentinel))
+    (nausicaa lalr lr-driver)
+    (nausicaa parser-tools source-location)
+    (nausicaa parser-tools lexical-token)
+    (nausicaa language sentinel))
   (define (make-infix-sexp-parser)
     (lr-driver
       '#(((*default* . *error*) (ID . 5) (NUM . 4)

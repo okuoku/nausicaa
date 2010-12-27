@@ -1,11 +1,11 @@
-(library (uri generic-parser)
+(library (nausicaa uri generic-parser)
   (export make-uri-generic-parser)
   (import
     (rnrs)
-    (lalr lr-driver)
-    (parser-tools source-location)
-    (parser-tools lexical-token)
-    (sentinel))
+    (nausicaa lalr lr-driver)
+    (nausicaa parser-tools source-location)
+    (nausicaa parser-tools lexical-token)
+    (nausicaa language sentinel))
   (define (make-uri-generic-parser)
     (lr-driver
       '#(((*default* . *error*) (COMPONENT . 1))
