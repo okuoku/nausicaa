@@ -26,9 +26,11 @@
 
 
 #!r6rs
-(library (r6rs lexer)
-  (export a)
-  (import (nausicaa))
+(library (nausicaa r6rs lexer)
+  (export
+    r6rs-lexer-table)
+  (import (nausicaa)
+    (nausicaa r6rs lexer-table))
 
 
 ;;;; code

@@ -73,6 +73,7 @@ $(eval $(call nau-libraries,net_helpers,nausicaa/net/helpers))
 $(eval $(call nau-libraries,parser_tools,nausicaa/parser-tools))
 $(eval $(call nau-libraries,profiling,nausicaa/profiling))
 $(eval $(call nau-libraries,randomisations,nausicaa/randomisations))
+$(eval $(call nau-libraries,r6rs,nausicaa/r6rs))
 $(eval $(call nau-libraries,silex,nausicaa/silex))
 $(eval $(call nau-libraries,strings,nausicaa/strings))
 $(eval $(call nau-libraries,times_and_dates,nausicaa/times-and-dates))
@@ -542,7 +543,7 @@ endif
 .PHONY: R6RS_LEXER
 
 r6rs-lexer:
-	cd $(srcdir)/src/libraries/r6rs && $(R6RS_LEXER_RUNNER) $(R6RS_LEXER_PROGRAM)
+	cd $(srcdir)/src/libraries/nausicaa/r6rs && $(R6RS_LEXER_RUNNER) $(R6RS_LEXER_PROGRAM)
 
 
 

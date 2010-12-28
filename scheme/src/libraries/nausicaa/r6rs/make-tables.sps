@@ -27,15 +27,15 @@
 
 #!r6rs
 (import (nausicaa)
-  (prefix (silex) lex.)
-  (prefix (lalr)  lalr.))
+  (prefix (nausicaa silex) lex.)
+  (prefix (nausicaa lalr)  lalr.))
 
 (lex.lex (lex.input-file:	"lexer-table.l")
 	 (lex.output-file:	"lexer-table.sls")
-	 (lex.library-spec:	"(r6rs lexer-table)")
-	 (lex.library-imports:	'((silex default-error-handler)
-				  (parser-tools lexical-token)
-				  (parser-tools source-location)))
+	 (lex.library-spec:	"(nausicaa r6rs lexer-table)")
+	 (lex.library-imports:	'((nausicaa silex default-error-handler)
+				  (nausicaa parser-tools lexical-token)
+				  (nausicaa parser-tools source-location)))
 	 (lex.table-name:	'r6rs-lexer-table)
 	 (lex.lexer-format:	'code)
 	 (lex.counters:		'all))

@@ -27,8 +27,11 @@
 
 #!r6rs
 (import (nausicaa)
-  (r6rs lexer)
-  (checks))
+  (nausicaa silex lexer)
+  (nausicaa parser-tools lexical-token)
+  (nausicaa parser-tools source-location)
+  (nausicaa r6rs lexer)
+  (nausicaa checks))
 
 (check-set-mode! 'report-failed)
 (display "*** testing R6RS lexer\n")
@@ -41,17 +44,17 @@
   (define (tokenise string)
     (let* ((IS		(lexer-make-IS (string: string) (counters: 'all)))
 	   (lexer	(lexer-make-lexer r6rs-lexer-table IS))
-	   (out		'()))
+	   (result		'()))
       (do (((T <lexical-token>) (lexer) (lexer)))
 	  (T.special?
 	   (reverse `((,T.category . ,T.value)
-		      . ,out)))
-	(set! out (cons token out)))))
+		      . ,result)))
+	(set! result (cons T result)))))
 
 ;;; --------------------------------------------------------------------
 
   (check	;empty string
-      (tokenise-string "ciao")
+      (tokenise "ciao")
     => `(IDENTIFIER ,eoi))
 
   #t)
