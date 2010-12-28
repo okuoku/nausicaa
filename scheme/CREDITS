@@ -8,12 +8,12 @@ Additional credits for the  documentation, are in the "Credits" appendix
 of the documentation file in Texinfo format.
 
 
-(armor base16)
-(armor base32)
-(armor base64)
-(armor base91)
-(armor quoted-printable)
-------------------------
+(nausicaa armor base16)
+(nausicaa armor base32)
+(nausicaa armor base64)
+(nausicaa armor base91)
+(nausicaa armor quoted-printable)
+---------------------------------
 
 Written by Marco Maggi taking basic code organisation from Tcllib, whose
 author is probably Andreas Kupries.   The base91 library is also derived
@@ -21,130 +21,129 @@ from  the C  language  code from  the  basE91 package  by Joachim  Henke
 (<http://base91.sourceforge.net/>).
 
 
-(armor ascii85)
----------------
+(nausicaa armor ascii85)
+------------------------
 
 This  code is  a Scheme  swirling  of C  language code  from an  ASCII85
 distribution by Paul  Haahr which claims that the code  is in the public
 domain, although he did not write it (<http://www.webcom.com/~haahr/>).
 
 
-(armor newlines)
-(armor conditions)
-------------------
+(nausicaa armor newlines)
+(nausicaa armor conditions)
+---------------------------
 
 Written by Marco Maggi.
 
 
-(arrays)
---------
+(nausicaa arrays)
+-----------------
 
 Written by Marco Maggi  with inspiration from SRFI 25 "Multi-dimensional
 Array Primitives", by Jussi Piitulainen.
 
 
-(char-sets)
------------
+(nausicaa char-sets)
+--------------------
 
 Writte  by Marco  Maggi  with inspiration  from  SRFI 14  "Character-set
 Library", by Olin Shivers.
 
 
-(checks)
---------
+(nausicaa checks)
+-----------------
 
 Reference implementation of SRFI  78 "Lightweight Testing", by Sebastian
 Egner.  Modified  by Derick Eddington for R6RS  Scheme.  Integrated into
 Nausicaa by Marco Maggi.
 
 
-(classes ---)
-------------
+(nausicaa language classes ---)
+----------------------
 
 Written by Marco Maggi.
 
 
-(cleanup-handlers)
-------------------
+(nausicaa cleanup-handlers)
+---------------------------
 
 Written by Marco Maggi.
 
 
-(combinators)
--------------
+(nausicaa combinators)
+----------------------
 
 Written by Marco Maggi modifying  code from the Net.  The implementation
 of the  K combinator comes from  the R6RS original  document, Appendix A
 ``Formal semantics''.
 
 
-(comparisons)
--------------
+(nausicaa comparisons)
+----------------------
 
-This library is derived from  the reference implementation of SRFI-67 by
+This library is derived from  the reference implementation of SRFI 67 by
 Sebastian Egner and Jens Axel Soegaard.
 
 
-(compensations)
----------------
+(nausicaa language compensations)
+---------------------------------
 
 Written by Marco Maggi.
 
 
-(conditions)
-------------
+(nausicaa language conditions)
+------------------------------
 
 Written by Marco Maggi.
 
 
-(contracts)
------------
+(nausicaa contracts)
+--------------------
 
 Written by  Marco Maggi  with great inspiration  from the  Racket Scheme
 contract libraries.  No code comes from Racket.
 
 
-(csv)
-(csv *)
--------
+(nausicaa csv ---)
+------------------
 
 Written by Marco Maggi.
 
 
-(debugging)
------------
+(nausicaa debugging)
+--------------------
 
 Written by Marco Maggi.
 
 
-(deferred-exceptions)
----------------------
+(nausicaa deferred-exceptions)
+------------------------------
 
 Written by Marco Maggi.
 
 
-(email addresses ---)
----------------------
+(nausicaa email addresses ---)
+------------------------------
 
 Written by Marco Maggi.
 
 
-(enumerations)
---------------
+(nausicaa enumerations)
+-----------------------
 
 Written by Marco Maggi.
 
 
-(foreign ---)
--------------
+(nausicaa ffi ---)
+------------------
 
 Written by  Marco Maggi.  The  compatibility library was derived  by the
 (ffi) libraries  in the Ypsilon  distribution, by Yoshikatsu  Fujita and
 LittleWing Company Limited.
 
 
-(format)
---------
+(formations)
+------------
 
 Originally  "format.scm" Common  LISP  text output  formatter for  SLIB,
 Written  in  1992-1994 by  Dirk  Lutzebaeck.   Authors  of the  original
@@ -152,58 +151,57 @@ version  (<1.4) were  Ken Dickey  and Aubrey  Jaffer.   Assimilated into
 Guile in May 1999.  Ported to R6RS Scheme and Nausicaa by Marco Maggi.
 
 
-(getopts ---)
--------------
+(nausicaa getopts ---)
+----------------------
 
 Written by Marco Maggi.
 
 
-(infix ---)
------------
+(nausicaa infix ---)
+--------------------
 
 Written  by Marco Maggi.   The string  lexer table  is derived  from the
 lexer in Guile-Arith by Ian Grant <iang@pobox.com>.
 
 
-(json ---)
-----------
+(nausicaa json ---)
+-------------------
 
 Written by Marco Maggi.
 
 
-(keywords)
-----------
+(nausicaa keywords)
+-------------------
 
 Written by Marco Maggi.
 
 
-(knuth-morris-pratt)
---------------------
+(nausicaa knuth-morris-pratt)
+-----------------------------
 
 Derived  from the  SRFI 13  reference implementation,  by  Olin Shivers.
 Modification and Nausicaa integration by Marco Maggi.
 
 
-(irregex)
----------
+(nausicaa irregex)
+------------------
 
-The  (irregex) library  is  derived  from IrRegex  by  Alex Shinn.   The
-original package  is distributed  under a BSD  style license and  can be
+The (nausicaa  irregex) library is  derived from IrRegex by  Alex Shinn.
+The original package is distributed under a BSD style license and can be
 downloaded  from:  <http://synthcode.com/>.   Only  small  changes  were
 needed for integration into Nausicaa.
 
 
-(lalr)
-(lalr *)
---------
+(nausicaa lalr ---)
+-------------------
 
 A LALR(1) parser generator written  in Scheme.  The libraries are a port
 to  R6RS  of  Lalr-scm  by  Dominique Boucher.   The  original  code  is
 available  at: <http://code.google.com/p/lalr-scm/>.   Port to  R6RS and
 Nausicaa integration by Marco Maggi.
 
-(language-extensions)
----------------------
+(nausicaa language extensions)
+------------------------------
 
 Written  by  Marco Maggi  with  integration  of  several SRFI  reference
 implementations.   Port  to  R6RS  of  the SRFIs  by  Derick  Eddington.
@@ -213,9 +211,8 @@ of  shared structures  by Ray  Dillinger.  BEGIN0  syntax from  the R6RS
 original document, Appendix A ``Formal semantics''.
 
 
-(lists)
-(lists *)
----------
+(nausicaa lists ---)
+--------------------
 
 Derived from  SRFI-1 list-processing library,  reference implementation,
 by Olin Shivers.  Port to Ikarus  by Abdulaziz Ghuloum.  Port to R6RS by
@@ -223,55 +220,61 @@ Derick Eddington.  Reorganisation and integration into Nausicaa by Marco
 Maggi.
 
 
-(loops)
--------
+(nausicaa loops)
+----------------
 
 Derived   by   the   reference   implementatio   of   SRFI   42   "Eager
 Comprehensions",  by  Sebastian Egner.   Port  to  R6RS  by 2008  Derick
 Eddington.  Nausicaa integration by Marco Maggi.
 
 
-(matches)
----------
+(nausicaa matches)
+------------------
 
-The library is derived from "match.scm" by Alex Shinn, who placed it in
+The library is derived from "match.scm"  by Alex Shinn, who placed it in
 the Public Domain.
 
 
-(msgcat)
---------
+(nausicaa msgcat)
+-----------------
 
 Written by Marco Maggi, with inspiration from the "msgcat" Tcl package.
 
 
 (nausicaa)
-(nausicaa *)
-------------
-
-Written by Marco Maggi.  COND-EXPAND implementation by Derick Eddington.
-
-
-(net ---)
----------
+----------
 
 Written by Marco Maggi.
 
 
-(object-properties)
--------------------
+(nausicaa language cond-expand)
+-------------------------------
 
-Written by Marco Maggi from the similar interface in Guile.
+COND-EXPAND implementation by Derick Eddington.  Nausicaa integration by
+Marco Maggi.
 
 
-(one-dimension-cc)
-(one-dimension-co)
+(nausicaa net ---)
 ------------------
 
 Written by Marco Maggi.
 
 
-(packrat)
----------
+(nausicaa object-properties)
+----------------------------
+
+Written by Marco Maggi from the similar interface in Guile.
+
+
+(nausicaa one-dimension-cc)
+(nausicaa one-dimension-co)
+---------------------------
+
+Written by Marco Maggi.
+
+
+(nausicaa packrat)
+------------------
 
 Original code  by Tony Garnock-Jones and  LShift Ltd.  Port  to R6RS and
 Nausicaa integration by  Marco Maggi.  Distributed under the  terms of a
@@ -280,30 +283,23 @@ distrubuted  at   <http://dev.lshift.net/tonyg/json-scheme/>  (URL  last
 verified Sun Sep 6, 2009).
 
 
-(parameters)
-(parameters)
-------------
+(nausicaa language parameters)
+------------------------------
 
 Simple import/export bridge from the Scheme implementation libraries.
 
 
-(parser-tools lexical-token)
-(parser-tools source-location)
-------------------------------
+(nausicaa parser-tools lexical-token)
+(nausicaa parser-tools source-location)
+---------------------------------------
 
 The  code is  derived from  Lalr-scm  by Dominique  Boucher and  Packrat
 Parser by Tony Garnock-Jones and  LShift Ltd.  Port to R6RS and Nausicaa
 integration by Marco Maggi.
 
 
-(peekers-and-pokers)
---------------------
-
-Written by Marco Maggi.
-
-
-(pregexp)
----------
+(nausicaa pregexp)
+------------------
 
 This library is based upon  "pregexp" by Dorai Sitaram.  It was modified
 by Marco Maggi to work with  R6RS Scheme implementations and to fit into
@@ -311,36 +307,35 @@ the Nausicaa distribution.  The original  code is available at (URL last
 verified Sun Jul 12, 2009): <http://evalwhen.com/pregexp/index.html>.
 
 
-(pretty-print)
---------------
+(nausicaa language pretty-print)
+--------------------------------
 
 Simple import/export bridge from the Scheme implementation libraries.
 
 
-(profiling)
------------
+(nausicaa profiling)
+--------------------
 
 Simple import/export bridge from the Scheme implementation libraries.
 
 
-(queues)
---------
+(nausicaa queues)
+-----------------
 
 Written by Marco Maggi, with inspiration from (ice-9 q) in the Guile
 distribution.
 
 
-(random)
-(random *)
-----------
+(nausicaa randomisations)
+-------------------------
 
 Derived from the reference implementation  of SRFI 27 "Sources of Random
 Bits",  by   Sebastian  Egner.   Port  to  R6RS   by  Derick  Eddington.
 Reorganisation and Nausicaa integration by Marco Maggi.
 
 
-(random borosh)
----------------
+(nausicaa randomisations borosh)
+--------------------------------
 
 The  generator is taken  from: Donald  E. Knuth.   "The Art  of Computer
 Programming".  Volume 2.  Third Edition.  Addison-Wesley.  Page 106-108.
@@ -349,8 +344,8 @@ Perassi and Heiko  Bauke.  The Scheme code was  converted by Marco Maggi
 from a C language version from the GNU Scientific Library release 1.12.
 
 
-(random marsaglia)
-------------------
+(nausicaa randomisations marsaglia)
+-----------------------------------
 
 This  is  a Scheme  port  of  George  Marsaglia's pseudo-random  numbers
 generators for  the C language.  The  original is in  the Public Domain.
@@ -358,26 +353,26 @@ The code was posted by George Marsaglia in a thread on sci.stat.math and
 sci.crypt starting on January, 12 1999.
 
 
-(random mersenne)
------------------
+(nausicaa randomisations mersenne)
+----------------------------------
 
 Derived from an original  C language implementation by Michael Brundage.
 Ported to Scheme by Marco Maggi.
 
 
-(random cmrg)
--------------
+(nausicaa randomisations cmrg)
+------------------------------
 
 This is a conversion of the C language implementation of CMRG in the GNU
 Scientific Library  (GSL), by James Theiler and  Brian Gough.  Converted
 by Marco Maggi.
 
 
-(scmobj)
---------
+(nausicaa scmobj)
+-----------------
 
-This is a port to R6RS and LIMY Schemes of ScmObj by Dorai Sitaram.  The
-original code is available at:
+This is a port to R6RS of ScmObj by Dorai Sitaram.  The original code is
+available at:
 
    <http://www.ccs.neu.edu/home/dorai/scmobj/scmobj.html>
 
@@ -385,24 +380,22 @@ original code is available at:
 original code to make it work with R6RS libraries.
 
 
-(sentinel)
-----------
+(nausicaa language sentinel)
+----------------------------
 
 Written by Marco Maggi.
 
 
-(sexps)
-(sexps *)
----------
+(nausicaa sexps ---)
+--------------------
 
 The original code was posted on comp.lang.scheme by Pascal Bourgignon on
 Aug 29,  2009 in the thread "generic  S-expressions library".  Rewriting
 and Nausicaa integration by Marco Maggi.
 
 
-(silex)
-(silex *)
----------
+(nausicaa silex ---)
+--------------------
 
 ``SILex'' stands  for ``Scheme Implementation of Lex''.   It generates a
 Scheme  lexical  analyser  from  a Lex--like  specification  file.   The
@@ -416,44 +409,42 @@ The original version of SILex is available at:
 to R6RS and Nausicaa integration (I changed almost nothing).
 
 
-(streams)
-(streams *)
------------
+(nausicaa streams)
+------------------
 
 Derived from the reference implementation of SRFI 41 "Streams Library",
 by Philip L. Bewig of Saint Louis, Missouri, USA.
 
 
-(strings ---)
--------------
+(nausicaa strings ---)
+----------------------
 
 Derived from the reference implementation of SRFI 13 "String Libraries",
 by Olin  Shivers.  Port to  R6RS and contributions by  Derick Eddington.
 Reorganisation and Nausicaa integration by Marco Maggi.
 
 
-(syntax-utilities)
-------------------
+(nausicaa language syntax-utilities)
+------------------------------------
 
 Written by Marco Maggi.  Aaron Hsu contributed the SYNTAX->LIST function
 through a  post on comp.lang.scheme.
 
 
-(unimplemented)
----------------
+(nausicaa language unimplemented)
+---------------------------------
 
 Written by Marco Maggi.
 
 
-(variables)
------------
+(nausicaa variables)
+--------------------
 
 Written by Marco Maggi.
 
 
-(vectors)
-(vectors *)
------------
+(nausicaa vectors ---)
+----------------------
 
 Derived from the reference implementation of SRFI 13 "String Libraries",
 by Olin Shivers.  Port to  R6RS by Derick Eddington.  Reorganisation and

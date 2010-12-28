@@ -49,50 +49,52 @@ Notes for --- tag 0.2a0
 * Starting with this revision Larceny and Ikarus are no more
   supported.
 
-* Added WITH-ACCESSOR-AND-MUTATOR and DEFINE-CONSTANT-VALUES
-  to (language-extensions).
-
-* Removed the (records) library.  Replaced it with (classes)
-  and (generics).
-
-* Added DEFINE-CONDITION to (conditions).
+* Moved  all  the libraries  under  the hierarchy  (nausicaa
+  ---);  the  language library  which  is still  (nausicaa).
+  Many libraries have changed name.
 
 * Reorganised  the   (nausicaa)  library:  more  independent
-  component   libraries;   added   (classes)  stuff,   added
-  (conditions) stuff.
+  component   libraries;  more   syntaxes   reexported  from
+  language libraries.
 
-* Added use of (classes) to several libraries.
+* Added  use  of  (nausicaa  language  classes)  to  several
+  libraries.
 
 * Reorganised FFI libraries, removed "foreign" prefix.
 
-* Further cleanup of (matches) internals.
+* Added (nausicaa msgcat) library.
 
-* Started  use  of  labels  from (classes)  as  wrappers  of
-  foreign C  structures, allowing access of  fields with dot
-  notation.
+* Added (nausicaa language syntax-utilities) library.
 
-* Rewritten the infix-to-prefix notation syntax from (infix)
-  for better and cleaner hygiene support.
+* Added (nausicaa json) library.
 
-* Added (msgcat) library.
+* Added (nausicaa net ipv6-addresses) library.
 
-* Added (syntax-utilities) library.
+* Added (nausicaa net ipv4-addresses) library.
 
-* Added (json) library.
+* Added (nausicaa xlists) library.
 
-* Added (net ipv6-addresses) library.
+* Added (nausicaa interps) library.
 
-* Added (net ipv4-addresses) library.
+* Added (nausicaa submodules) library.
 
-* Added (xlists) library.
+* Added (nausicaa language makers) library.
 
-* Added (interps) library.
+* Added (nausicaa contracts) library.
 
-* Added (submodules) library.
+* Removed the (records) library.  Replaced it with (nausicaa
+  language classes) and (nausicaa generics).
 
-* Added (makers) library.
+* Further cleanup of (nausicaa matches) internals.
 
-* Added (contracts) library.
+* Started use of labels  from (nausicaa language classes) as
+  wrappers  of  foreign  C  structures, allowing  access  of
+  fields with dot notation.
+
+* Moved and  rewritten the infix-to-prefix  notation syntax,
+  for better  and cleaner hygiene  support; made it  part of
+  the basic  libraries and added INFIX bindings  to the list
+  of reexports from (nausicaa).
 
 
 Notes for 2010-03-28 tag 0.1a11
