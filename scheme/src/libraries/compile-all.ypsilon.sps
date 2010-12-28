@@ -1,6 +1,6 @@
 ;;;
 ;;;Part of: Nausicaa/Scheme
-;;;Contents: compile script for Vicare
+;;;Contents: compile script for Ypsilon
 ;;;Date: Mon May  3, 2010
 ;;;
 ;;;Abstract
@@ -88,10 +88,6 @@
 
   (only (nausicaa queues))
   (only (nausicaa stacks))
-
-  ;;High level libraries.
-  (only (nausicaa scmobj))
-  (only (nausicaa scmobj utils))
 
   (only (nausicaa combinators))
   (only (nausicaa irregex))
