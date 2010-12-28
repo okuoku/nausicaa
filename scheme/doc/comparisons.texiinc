@@ -2,8 +2,8 @@
 @chapter Comparison functions
 
 
-The @library{comparisons} library implements an infrastructure for
-comparison functions; it can be seen as an extension of the standard
+The @library{nausicaa comparisons} library implements an infrastructure
+for comparison functions; it can be seen as an extension of the standard
 procedures @func{=}, @func{<}, @func{char<?} etc.  The primary design
 aspect is the separation of representing a total order and using it.
 
@@ -32,9 +32,9 @@ the integer range @math{[0, n)} can be written as @code{(<=/<? 0 i n)}.
 @section Introduction
 
 
-The @library{comparisons} library defines a mechanism for comparing
-Scheme values with respect to a total order (aka linear order).  The
-mechanism provides operations for:
+The @library{nausicaa comparisons} library defines a mechanism for
+comparing Scheme values with respect to a total order (aka linear
+order).  The mechanism provides operations for:
 
 @enumerate
 @item
@@ -49,10 +49,10 @@ Facilitating the definition of a new total order.
 
 Traditionally, a total order is represented in Scheme by an order
 predicate, like @func{<} or @func{char<?}.  In the context of
-@library{comparisons}, however, a total order is represented by a Scheme
-procedure comparing its two arguments and returning either @math{-1},
-@math{0}, or @math{1} depending on whether the first argument is
-considered smaller, equal, or greater than the second argument
+@library{nausicaa comparisons}, however, a total order is represented by
+a Scheme procedure comparing its two arguments and returning either
+@math{-1}, @math{0}, or @math{1} depending on whether the first argument
+is considered smaller, equal, or greater than the second argument
 respectively.  Examples of such compare procedures include:
 
 @example

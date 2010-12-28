@@ -634,8 +634,8 @@ with no warranty of any kind.
 
 @subsubheading SILex
 
-The section on the @library{silex} library is derived from the original
-documentation os SILex.
+The section on the @library{nausicaa silex} library is derived from the
+original documentation os SILex.
 
 Copyright @copyright{} 2001 Danny Dube' @email{danny.dube@@ift.ulaval.ca}
 

@@ -39,8 +39,8 @@ resource, or, to be more precise, a guardian for each destructor
 (@func{primitive-free} in the example).
 
 To make it simpler to invoke all the cleanup functions, the library
-@library{cleanup-handlers} provides an interface to register them and
-invoke them in sequence.
+@library{nausicaa cleanup-handlers} provides an interface to register
+them and invoke them in sequence.
 
 
 @defun register-cleanup-function @var{thunk}

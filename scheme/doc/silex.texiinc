@@ -2,9 +2,9 @@
 @chapter A lexical analyser generator
 
 
-The @library{silex} library generates a lexical analyser table from a
-Lex--like specification file.  The @library{silex lexer} library
-generates a Scheme lexical analyser using a supplied table.
+The @library{nausicaa silex} library generates a lexical analyser table
+from a Lex--like specification file.  The @library{nausicaa silex lexer}
+library generates a Scheme lexical analyser using a supplied table.
 
 ``SILex'' stands for ``Scheme Implementation of Lex''.  The library is a
 port to @rnrs{6} Scheme of SILex version 1.0 by Danny Dube'.  The
@@ -157,7 +157,8 @@ fact that: When the input reaches the end, the lexer closure returns the
 @section Creating lexer tables
 
 
-The following bindings are exported by the @library{silex} library.
+The following bindings are exported by the @library{nausicaa silex}
+library.
 
 
 @deffn Syntax lex @var{clause} ...
@@ -172,7 +173,7 @@ input port, or acquired from a Scheme string.
 
 The output is the lexer's @dfn{table}, a Scheme vector representing the
 lexer automaton.  It can be saved to a file, or written to a port, or
-evaluated using the @library{rnrs eval} library and returned as value.
+evaluated using the @rsixlibrary{eval} library and returned as value.
 @end deffn
 
 
@@ -241,8 +242,9 @@ It is mandatory to use the option @samp{table-name:} along with
 @deffn {Auxiliary Syntax} library-imports: @var{import-list}
 Select a list of libraries which must be imported when using the
 generated lexer.  @var{import-list} must be a list of library
-specifications; for example, if we want to include the
-@library{sentinel} and @library{parameters} libraries we do:
+specifications; for example, if we want to include the @library{nausicaa
+language sentinel} and @library{nausicaa language parameters} libraries
+we do:
 
 @example
 (library-imports: '((sentinel) (parameters)))
@@ -270,13 +272,13 @@ When this option is used along with @samp{library-spec:}, the
 
 @deffn {Auxiliary Syntax} output-value: #t|#f
 When the argument is @true{}, instruct @func{lex} to evaluate the vector
-table using the @library{rnrs eval} library and to return the result,
+table using the @rsixlibrary{eval} library and to return the result,
 which is then directly usable.
 
 The list of libraries selected by @samp{library-imports:} is added to
 the environment used for the evaluation.  By default, the environment
-always includes @library{rnrs}, and also @library{silex lexer} when the
-selected lexer format is @samp{code}.
+always includes @library{rnrs}, and also @library{nausicaa silex lexer}
+when the selected lexer format is @samp{code}.
 
 It is an error to use this option along with @samp{table-name:}.  When
 used together, this option supersedes @samp{output-file:} and
@@ -311,8 +313,9 @@ can be one among the following symbols: @samp{decision-tree},
 Instruct @func{lex} to pretty--print the contents of the table.
 Normally, the table is displayed as a compact mass of characters fitting
 in about @math{75} columns.  The option is useful only for a developer
-of @library{silex}.  The Scheme code generated with the @samp{code}
-option is always pretty--printed, the others are not by default.
+of @library{nausicaa silex}.  The Scheme code generated with the
+@samp{code} option is always pretty--printed, the others are not by
+default.
 @end deffn
 
 
@@ -338,7 +341,7 @@ counters rather than to configure them at run time.
 
 An input system provides the buffering, the line counting and similar
 low level services.  The following bindings are exported by the
-@library{silex lexer} library.
+@library{nausicaa silex lexer} library.
 
 
 @deffn Syntax lexer-make-IS @var{clauses} ...

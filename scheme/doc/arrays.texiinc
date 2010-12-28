@@ -2,8 +2,8 @@
 @chapter Multidimensional arrays
 
 
-The @library{arrays} library implements mutidimensional arrays on top of
-builtin Scheme vectors.
+The @library{nausicaa arrays} library implements mutidimensional arrays
+on top of builtin Scheme vectors.
 
 
 @menu
@@ -19,7 +19,7 @@ builtin Scheme vectors.
 @section Arguments conventions
 
 
-In the documentation of @library{arrays} we call:
+In the documentation of @library{nausicaa arrays} we call:
 
 @table @dfn
 @item items
@@ -30,7 +30,7 @@ The values collected in the arrays.
 @end table
 
 The following conventions are used in the documentation of arguments to
-the functions of @library{arrays}:
+the functions of @library{nausicaa arrays}:
 
 @table @var
 @item array

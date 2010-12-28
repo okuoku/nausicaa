@@ -2,15 +2,15 @@
 @chapter Multimethods dispatching
 
 
-In the context of the @library{generics} library, @dfn{generic
+In the context of the @library{nausicaa generics} library, @dfn{generic
 functions} are interfaces to procedures that can be specialised to the
 (possibly conventional) data types of their arguments; each
 specialisation of a generic function is called @dfn{method}.  When
 applying a generic function to a set of arguments, the most specific
 method with respect to the arguments' types is chosen.
 
-The @library{generics} library is built on top of the @library{classes}
-library.
+The @library{nausicaa generics} library is built on top of the
+@library{nausicaa language classes} library.
 
 @menu
 * generics examples::           Examples of method dispatching.
@@ -28,11 +28,12 @@ library.
 
 
 Here we show with some examples what we have to expect from the
-multimethod dispatching of @library{generics}.  In the following examples
-the string @code{%apple} is written in place of the value bound to the
-symbol @class{apple}.
+multimethod dispatching of @library{nausicaa generics}.  In the
+following examples the string @code{%apple} is written in place of the
+value bound to the symbol @class{apple}.
 
-Let's examine this example which uses the @library{classes} library:
+Let's examine this example which uses the @library{nausicaa language
+classes} library:
 
 @example
 (define-class <one> (inherit <top>) (nongenerative one))
@@ -138,9 +139,9 @@ function we gain a bit of speed in function calls.
 @section How generic functions and methods are invoked
 
 
-@library{generics} is designed to work with class definitions from the
-@library{classes} library; when a generic function is applied to a tuple
-of arguments, the following happens:
+@library{nausicaa generics} is designed to work with class definitions
+from the @library{nausicaa language classes} library; when a generic
+function is applied to a tuple of arguments, the following happens:
 
 @enumerate
 @item
@@ -305,11 +306,12 @@ this way the bindings are available only to the methods.  This
 implementation requires the source syntax object of the method to be
 available at expansion time, and to hold a @func{lambda} form.
 
-@library{generics} instead makes use of parameters; this allows
-functions from foreign libraries to be used directly as methods and also
-macros to be used as methods (through @func{add-method}, which requires
-only the method's identifier).  The bindings are available also to code
-outside the method implementations, but this is not a big problem.
+@library{nausicaa language generics} instead makes use of parameters;
+this allows functions from foreign libraries to be used directly as
+methods and also macros to be used as methods (through
+@func{add-method}, which requires only the method's identifier).  The
+bindings are available also to code outside the method implementations,
+but this is not a big problem.
 
 
 @defun call-next-method
@@ -326,7 +328,7 @@ Return true if a next method is available.
 @section Predefined generic functions
 
 
-The following bindings are exported by the @library{generics
+The following bindings are exported by the @library{nausicaa generics
 object-to-string} library.
 
 

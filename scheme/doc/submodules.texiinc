@@ -2,11 +2,11 @@
 @chapter Nested modules
 
 
-The library @library{submodules} provides nested namespaces to be used
-inside of libraries and programs.  Example:
+The library @library{nausicaa submodules} provides nested namespaces to
+be used inside of libraries and programs.  Example:
 
 @example
-(import (rnrs) (submodules))
+(import (rnrs) (nausicaa submodules))
 
 (submodule this
     (export a b c)

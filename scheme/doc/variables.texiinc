@@ -2,8 +2,8 @@
 @chapter Defining storage locations
 
 
-The @library{variables} library provides a way to define simple storage
-locations similar to the variables used in many languages.  The
+The @library{nausicaa variables} library provides a way to define simple
+storage locations similar to the variables used in many languages.  The
 @dfn{variable} type of value is disjoint from the other types.
 
 
@@ -52,7 +52,7 @@ v @result{} 456
 
 @noindent
 a more sophisticated of this is the @func{define-variable} syntax
-exported by @library{variables}.
+exported by @library{nausicaa variables}.
 
 
 @deffn Syntax define-variable @var{name}

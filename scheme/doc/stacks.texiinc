@@ -2,11 +2,11 @@
 @chapter Simple stacks
 
 
-The functions in this section are exported by the @library{stacks}
-library; the library implements stacks holding arbitrary scheme objects
-and designed for efficient last--in/first--out operations.  The
-@library{queues} library is built on top of the @library{classes}
-library.
+The functions in this section are exported by the @library{nausicaa
+stacks} library; the library implements stacks holding arbitrary scheme
+objects and designed for efficient last--in/first--out operations.  The
+@library{nausicaa queues} library is built on top of the
+@library{nausicaa language classes} library.
 
 @menu
 * stacks types::                Type definitions and constructors.

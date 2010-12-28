@@ -11,16 +11,17 @@
 @section Parsing email addresses
 
 
-The @library{email addresses} library implements a lexer and parser for
-email addresses.  The parser tries to be compliant to @rfc{} 2822
-``Internet Message Format'' (@url{http://www.ietf.org/rfc/rfc2822.txt}).
+The @library{nausicaa email addresses} library implements a lexer and
+parser for email addresses.  The parser tries to be compliant to @rfc{}
+2822 ``Internet Message Format''
+(@url{http://www.ietf.org/rfc/rfc2822.txt}).
 
 This library would not exist without the work Peter Simons did for the
 C++ library @samp{librfc822} (@url{http://cryp.to/librfc2822/}, @aurl{}
 last verified Mon Aug 24, 2009).
 
-This library is built on top of @library{classes} and
-@library{generics}.
+This library is built on top of @library{nausicaa language classes} and
+@library{nausicaa generics}.
 
 @menu
 * email addresses components::  Parsed components.
@@ -145,9 +146,9 @@ An address is a list of mailboxes and groups separated by @samp{,}.
 @subsection Record types
 
 
-All the record types defined by @library{email addresses} are meant to
-be handled with the facilities of the @library{classes} library.
-@nauref{classes, Record utilities}
+All the record types defined by @library{nausicaa email addresses} are
+meant to be handled with the facilities of the @library{nausicaa
+language classes} library.  @nauref{classes, Record utilities}
 
 @menu
 * email addresses domain::              Domain.
@@ -351,14 +352,15 @@ Return the string representation of @var{o}.
 @subsection Splitting an address into tokens
 
 
-The lexer for the @library{email addresses} library is built upon the
-@library{silex} lexer.  @ref{silex, A lexical analyser generator}
+The lexer for the @library{nausicaa email addresses} library is built
+upon the @library{nausicaa silex} lexer.  @ref{silex, A lexical analyser
+generator}
 
 
 @defun make-address-lexer @var{IS}
 Return an email address lexer closure drawing tokens from the input
 system @var{IS}.  The input system must have been created using the
-@library{silex} library.
+@library{nausicaa silex} library.
 @end defun
 
 
@@ -417,9 +419,10 @@ A quoted text element; the semantic value is the string.
 @subsection Parsing tokens
 
 
-The parser for the @library{email addresses} library is built upon the
-@library{lalr} parser generator and makes use of the @library{lalr
-lr-driver} driver.  @ref{lalr, A LALR(1) parser generator}
+The parser for the @library{nausicaa email addresses} library is built
+upon the @library{nausicaa lalr} parser generator and makes use of the
+@library{nausicaa lalr lr-driver} driver.  @ref{lalr, A LALR(1) parser
+generator}
 
 
 @defun make-address-parser
@@ -434,9 +437,8 @@ Given the helper functions:
 
 @example
 (import (rnrs)
-  (email addresses)
-  (silex)
-  (records))
+  (nausicaa email addresses)
+  (nausicaa silex))
 
 (define (error-handler message token)
   (error #f message token))

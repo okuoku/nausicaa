@@ -2,7 +2,7 @@
 @chapter Record utilities
 
 
-The @library{classes} library is an alternative to the
+The @library{nausicaa language classes} library is an alternative to the
 @rsixlibrary{records syntactic} library; it is built upon
 @rsixlibrary{records procedural} but adds some features like dot
 notation to access fields.
@@ -11,9 +11,9 @@ The library is designed to work with class type definitions imported for
 the @code{run} phase.  The facilities of the library work only on
 records of type defined with @func{define-class}.
 
-@library{classes} makes use of bindings from the
-@library{auxiliary-syntaxes} library and reexports the ones it uses as
-auxiliary syntaxes in the class definition clauses.
+@library{nausicaa language classes} makes use of bindings from the
+@library{nausicaa language auxiliary-syntaxes} library and reexports the
+ones it uses as auxiliary syntaxes in the class definition clauses.
 
 @menu
 * classes define::              Defining new class types.
@@ -36,20 +36,21 @@ auxiliary syntaxes in the class definition clauses.
 @cindex Type, label
 
 
-A @dfn{class type}, as defined by the @library{classes} library, is a
-regular record type as defined by @rsixlibrary{records procedural}, with
-the constraint of being nongenerative; new class types are defined by
+A @dfn{class type}, as defined by the @library{nausicaa language
+classes} library, is a regular record type as defined by
+@rsixlibrary{records procedural}, with the constraint of being
+nongenerative; new class types are defined by
 @c @func{define-class} and @func{define-foreign-class}, which generate
 @func{define-class} which generates auxiliary syntaxes to allow for
 virtual fields, methods, dot notation and multiple construction
 protocols.
 
-A @dfn{label type}, as defined by the @library{classes} library, is a
-special interface to the syntaxes which define dot notation for virtual
-fields and methods: it is applicable to any value, not just records and
-it is @strong{not} associated to a record type as defined by
-@rsixlibrary{records procedural}.  Labels are defined by
-@func{define-label}.
+A @dfn{label type}, as defined by the @library{nausicaa language
+classes} library, is a special interface to the syntaxes which define
+dot notation for virtual fields and methods: it is applicable to any
+value, not just records and it is @strong{not} associated to a record
+type as defined by @rsixlibrary{records procedural}.  Labels are defined
+by @func{define-label}.
 
 @menu
 * classes define class::        Defining class types.
@@ -84,7 +85,7 @@ it is @strong{not} associated to a record type as defined by
 Define a new record type satisfying the constraints of a class
 definition; expand to a regular record type definition using
 @rsixlibrary{records procedural} and some additional syntax definitions
-used by the @library{classes} library.
+used by the @library{nausicaa language classes} library.
 
 The arguments are compatible with the ones of @func{define-record-type}:
 every regular record type definition can be turned into a class
@@ -116,8 +117,8 @@ unique identifier.
 
 @c Foreign classes can be used in the hierarchy of concrete classes:
 @c foreign classes can have a proper superclass constructor protocol.
-@c foreign classes can be used to dispatch generic functions defined by the
-@c @library{generics} library.
+@c foreign classes can be used to dispatch generic functions defined by
+@c the @library{nausicaa generics} library.
 
 @c It is meaningful, but not mandatory, to define a foreign class only if
 @c we use the @func{predicate} clause described below; else there is no way
@@ -651,8 +652,8 @@ and to:
 
 @subsubheading Circular tagging
 
-In the context of the @library{classes} library, a @dfn{circular
-tagging} happens when:
+In the context of the @library{nausicaa language classes} library, a
+@dfn{circular tagging} happens when:
 
 @enumerate
 @item
@@ -698,11 +699,11 @@ structure of tags, use the @class{x} class or label:
 @end enumerate
 
 @noindent
-circular tagging is not supported by @library{classes} because it
-results in infinite recursion in the expansion of the @func{with-class}
-macro; unfortunately, it is impossible to avoid this infinite recursion
-with the technology of @library{classes} (a custom macro expander would
-be needed).
+circular tagging is not supported by @library{nausicaa language classes}
+because it results in infinite recursion in the expansion of the
+@func{with-class} macro; unfortunately, it is impossible to avoid this
+infinite recursion with the technology of @library{nausicaa language
+classes} (a custom macro expander would be needed).
 
 An attempt to detect circular tagging at expand time is performed by
 @func{define-class} and @func{define-label} and a syntax violation is
@@ -1081,8 +1082,8 @@ class can be overridden by implementations in subclasses.  For example:
 
 A virtual method call is much slower than a concrete method call, but
 mostly it is still faster than a call to a generic function as
-implemented by the @library{classes} library; @ref{generics, Multimethod
-dispatching}.
+implemented by the @library{nausicaa language classes} library;
+@ref{generics, Multimethod dispatching}.
 
 A virtual method must be declared in the definition of @var{class-name}
 as an ordinary method with the @code{methods} clause; @var{method-name}
@@ -1185,12 +1186,12 @@ Like @func{defmethod} but defines a virtual method as if
 
 @subsubheading Method overloading
 
-There is no support for methods overloading in the @library{classes}
-library, but we can do it using the facilities of the @library{generics}
-library.  Example:
+There is no support for methods overloading in the @library{nausicaa
+language classes} library, but we can do it using the facilities of the
+@library{nausicaa generics} library.  Example:
 
 @example
-(import (nausicaa) (generics))
+(import (nausicaa) (nausicaa generics))
 
 (define-class <alpha>
   (fields a)
@@ -1326,7 +1327,7 @@ define new identifiers representing virtual fields, methods, a setter
 and a getter, a parent label or class.  Labels can inherit from a class,
 but not vice versa.  Labels can be used by @func{with-class} and all its
 derived syntaxes; labels @strong{cannot} be used to dispatch generic
-functions defined by the @library{generics} library.
+functions defined by the @library{nausicaa generics} library.
 
 
 @defmac define-label @var{name} @var{clause} ...
@@ -1421,8 +1422,8 @@ it can be used as follows:
 @end example
 
 The following meaningless example shows how labels and generic functions
-from @library{generics} can be used to define ``interfaces'' and classes
-implementing them:
+from @library{nausicaa generics} can be used to define ``interfaces''
+and classes implementing them:
 
 @example
 ;; the interface <iface> has two methods
@@ -1604,13 +1605,13 @@ Example:
 @example
 (library (defs)
   (export <alpha>)
-  (import (rnrs) (classes))
+  (import (rnrs) (nausicaa language classes))
   (define-class <alpha>
     (fields a b c)))
 
 (library (tests)
   (export)
-  (import (rnrs) (classes) (alpha))
+  (import (rnrs) (nausicaa language classes) (alpha))
   (let ((x (make <alpha>
              1 2 3)))
     (is-a? x <alpha>)))
@@ -1633,7 +1634,8 @@ this is especially useful when using @func{map} or @func{for-all}:
 @end example
 
 The @code{<>} auxiliary syntax is exported by the library
-@library{auxiliary-syntaxes} and reexported by @library{classes}.
+@library{nausicaa language auxiliary-syntaxes} and reexported by
+@library{nausicaa language classes}.
 @end deffn
 
 @c page
@@ -1757,10 +1759,10 @@ supports both regular and conventional record type descriptors.
 The following syntaxes provide a way to access concrete and virtual
 fields of class instances; they also allow the extraction of accessor
 and mutator functions.  We want to remember that the @func{cut} and
-@func{cute} macros from @library{language-extensions} provide us with
-alternative ways to create closures for field access and mutation
-through @func{slot-ref} and @func{slot-set!}; @ref{lang lang} for
-details.
+@func{cute} macros from @library{nausicaa language extensions} provide
+us with alternative ways to create closures for field access and
+mutation through @func{slot-ref} and @func{slot-set!}; @ref{lang lang}
+for details.
 
 
 @deffn Syntax slot-ref @var{expr} @var{field-name} @var{class}
@@ -1784,8 +1786,9 @@ equivalent:
 @noindent
 this is useful whenever the accessor has to be used as function
 argument, for example for @func{map} or @func{for-all}.  The @code{<>}
-auxiliary syntax is exported by the library @library{auxiliary-syntaxes}
-and reexported by @library{classes}.
+auxiliary syntax is exported by the library @library{nausicaa language
+auxiliary-syntaxes} and reexported by @library{nausicaa language
+classes}.
 @end deffn
 
 
@@ -1811,8 +1814,9 @@ function itself; the following forms are equivalent:
 @noindent
 this is useful whenever the mutator has to be used as function argument,
 for example for @func{map} or @func{for-all}.  The @code{<>} auxiliary
-syntax is exported by the library @library{auxiliary-syntaxes} and
-reexported by @library{classes}.
+syntax is exported by the library @library{nausicaa language
+auxiliary-syntaxes} and reexported by @library{nausicaa language
+classes}.
 @end deffn
 
 @c page
@@ -1830,7 +1834,7 @@ Dot notation is available only for the members of types defined by
 records:
 
 @example
-(import (rnrs) (classes))
+(import (rnrs) (nausicaa language classes))
 
 (define-record-type <alpha>
   (fields a b))
@@ -2271,11 +2275,11 @@ the @func{do} syntax from @rsixlibrary{control}.
 
 @quotation
 @strong{NOTE} It is possible to use the facilities of the
-@library{contracts} library to assert that the type of values involved
-in the bindings is the one selected by the class identifiers.  Merging
-the features of contracts along with the bindings--with--classes macros
-may result in inflexible code or bloated code after the expansion; so,
-for the time being, this merging is not implemented.
+@library{nausicaa contracts} library to assert that the type of values
+involved in the bindings is the one selected by the class identifiers.
+Merging the features of contracts along with the bindings--with--classes
+macros may result in inflexible code or bloated code after the
+expansion; so, for the time being, this merging is not implemented.
 @end quotation
 
 
@@ -2473,8 +2477,8 @@ notation with @var{id}.
 
 
 @defmac do*/with-class ((@var{var} @var{init} @var{step}) ...) (@var{test} @var{expression} ...) @var{command} ...
-Like @func{do*} from @library{language-extensions}, but each @var{var}
-element can be one among:
+Like @func{do*} from @library{nausicaa language extensions}, but each
+@var{var} element can be one among:
 
 @example
 @var{id}
@@ -2533,11 +2537,11 @@ macro with the function creation facilities of the @func{lambda} and
 
 @quotation
 @strong{NOTE} It is possible to use the facilities of the
-@library{contracts} library to assert that the type of arguments to the
-functions is the one selected by the class identifiers.  Merging the
-features of contracts along with the function construction macros may
-result in inflexible code or bloated code after the expansion; so, for
-the time being, this merging is not implemented.
+@library{nausicaa contracts} library to assert that the type of
+arguments to the functions is the one selected by the class identifiers.
+Merging the features of contracts along with the function construction
+macros may result in inflexible code or bloated code after the
+expansion; so, for the time being, this merging is not implemented.
 @end quotation
 
 
@@ -2800,16 +2804,16 @@ list'' of the @var{case-clause}.
 
 Builtin Scheme object types can be treated as instances of class types
 by accepting some limitations; this allows us to use the facilities of
-the @library{classes} library with builtin objects.
+the @library{nausicaa language classes} library with builtin objects.
 
-Builtin Scheme values have no @rtd{}, so @library{classes} assigns a
-conventional one to them.  Conventional @rtd{}s have two purposes: to
-provide an interface for identifier macros defined by
+Builtin Scheme values have no @rtd{}, so @library{nausicaa language
+classes} assigns a conventional one to them.  Conventional @rtd{}s have
+two purposes: to provide an interface for identifier macros defined by
 @func{with-class}; to be used in multimethod dispatching by the
-@library{generics} library.  The conventional @rtd{}s can be used
-neither to instantiate builtin objects nor as parents for other class
-types; for example: @func{make-<string>} does @strong{not} return a
-builtin Scheme string object.
+@library{nausicaa generics} library.  The conventional @rtd{}s can be
+used neither to instantiate builtin objects nor as parents for other
+class types; for example: @func{make-<string>} does @strong{not} return
+a builtin Scheme string object.
 
 A record is described by its record type descriptor (@rtd{});
 unfortunately we cannot rely on @rtd{}s describing the same record type

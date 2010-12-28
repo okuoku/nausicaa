@@ -2,7 +2,7 @@
 @chapter Maker syntaxes
 
 
-The @library{makers} library provides a constructor for macro
+The @library{nausicaa makers} library provides a constructor for macro
 definitions; its nominal purpose is to define macros which wrap
 constructors for records and similar entities, allowing the use of
 ``keywords'' to specify non--positional arguments.
@@ -29,14 +29,14 @@ greater than three:
 in these cases it can be difficult to remember the order of the
 arguments; it can also be desirable to define default values for some or
 all of the arguments, so that at the call site some arguments can be
-omitted in the source code.  The @library{makers} library implements a
-solution to this problem.
+omitted in the source code.  The @library{nausicaa makers} library
+implements a solution to this problem.
 
 The following examples show the expansion of a simple maker with neither
 fixed nor variable arguments, only optional clauses arguments:
 
 @example
-(import (rnrs) (makers))
+(import (rnrs) (nausicaa language makers))
 
 (define-auxiliary-syntax :alpha :beta :gamma)
 
@@ -83,7 +83,7 @@ show the expansion of a maker with both fixed and variable arguments,
 plus optional clauses arguments:
 
 @example
-(import (rnrs) (makers))
+(import (rnrs) (nausicaa language makers))
 
 (define-auxiliary-syntax :alpha :beta :gamma)
 
@@ -122,7 +122,7 @@ Each default value can be any expression and it is evaluated every time
 the maker is used:
 
 @example
-(import (rnrs) (makers))
+(import (rnrs) (nausicaa language makers))
 
 (define-auxiliary-syntax :alpha :beta :gamma)
 
@@ -149,7 +149,9 @@ A maker invocation can expand itself into another macro use; this allows
 us to detect whether an optional argument was used or not:
 
 @example
-(import (rnrs) (makers) (sentinel))
+(import (rnrs)
+  (nausicaa language makers)
+  (nausicaa language sentinel))
 
 (define-auxiliary-syntax :alpha :beta :gamma)
 
@@ -180,7 +182,9 @@ us to detect whether an optional argument was used or not:
 and also to ``unpack'' multiple values used in the same argument clause:
 
 @example
-(import (rnrs) (makers) (sentinel))
+(import (rnrs)
+  (nausicaa language makers)
+  (nausicaa language sentinel))
 
 (define-auxiliary-syntax :alpha :beta :gamma)
 
@@ -211,7 +215,7 @@ have to remember to export the auxiliary syntaxes, too:
 @example
 (library (the-lib)
   (export doit alpha beta gamma)
-  (import (rnrs) (makers))
+  (import (rnrs) (nausicaa language makers))
 
   (define-auxiliary-syntax alpha beta gamma)
   (define-maker doit
@@ -236,7 +240,7 @@ A number of options can be specified to customise the parsing of
 clauses.  We can specify if a clause is mandatory or optional:
 
 @example
-(import (rnrs) (makers))
+(import (rnrs) (nausicaa language makers))
 
 (define-auxiliary-syntax :alpha :beta :gamma)
 
@@ -254,7 +258,7 @@ the default is for all the clauses to be optional.  We can specify that
 a clause must be used along one or more other clauses:
 
 @example
-(import (rnrs) (makers))
+(import (rnrs) (nausicaa language makers))
 
 (define-auxiliary-syntax :alpha :beta :gamma)
 
@@ -278,7 +282,7 @@ or we can specify that a clause must not be used along one or more other
 clauses:
 
 @example
-(import (rnrs) (makers))
+(import (rnrs) (nausicaa language makers))
 
 (define-auxiliary-syntax :alpha :beta :gamma)
 
@@ -299,7 +303,8 @@ clauses:
 @section Defining makers
 
 
-The following bindings are exported by the @library{makers} library.
+The following bindings are exported by the @library{nausicaa makers}
+library.
 
 
 @deffn Macro define-maker @var{name-spec} @var{maker-sexp} @var{keywords-defaults-options}
@@ -406,7 +411,7 @@ values are enclosed in a @func{list} form and the result is used as
 argument for the maker expression; for example:
 
 @example
-(import (rnrs) (makers))
+(import (rnrs) (nausicaa language makers))
 
 (define-auxiliary-syntax alpha:)
 
@@ -420,8 +425,8 @@ argument for the maker expression; for example:
 
 @defmac define-auxiliary-syntax @var{symbol}
 @defmacx define-auxiliary-syntax @varo{symbol} @var{symbol} ...
-This is the binding from @library{syntax-utilities}, it is reexported by
-@library{makers}.
+This is the binding from @library{nausicaa language syntax-utilities},
+it is reexported by @library{nausicaa makers}.
 @end defmac
 
 @c end of file

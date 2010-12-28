@@ -2,7 +2,7 @@
 @chapter IrRegular expressions
 
 
-The @library{irregex} library is an implementation of regular
+The @library{nausicaa irregex} library is an implementation of regular
 expressions; it supports both @posix{} syntax with various (irregular)
 Perl--Compatible Regular Expressions (@acronym{PCRE}) extensions, as
 well as SCSH's Scheme Regular Expressions (@acronym{SRE}) syntax, with
@@ -38,8 +38,8 @@ downloaded from:
 @section Conventions
 
 
-In the documentation of the @library{irregex} functions, the following
-conventions for arguments names are used:
+In the documentation of the @library{nausicaa irregex} functions, the
+following conventions for arguments names are used:
 
 @table @var
 @item pcre
@@ -272,8 +272,8 @@ this is by converting the abstract sequence into a freshly allocated
 string.  This can be expensive, or even impossible if the object is a
 text--buffer opened onto a 500MB file.
 
-@library{irregex} provides a chunked string @api{} specifically for this
-purpose.
+@library{nausicaa irregex} provides a chunked string @api{} specifically
+for this purpose.
 
 
 @defun make-irregex-chunker @var{get-next} @var{get-string}
@@ -471,10 +471,10 @@ possible.
 
 
 Since the @acronym{PCRE} syntax is so overwhelming complex, it's easier
-to just list what @library{irregex} does @strong{not} support for now.
-Refer to the @acronym{PCRE} documentation for details.@footnote{See
-@url{http://pcre.org/pcre.txt}.  @aurl{} last verified Sun Jul 12,
-2009.}
+to just list what @library{nausicaa irregex} does @strong{not} support
+for now.  Refer to the @acronym{PCRE} documentation for
+details.@footnote{See @url{http://pcre.org/pcre.txt}.  @aurl{} last
+verified Sun Jul 12, 2009.}
 
 @itemize
 @item
@@ -825,8 +825,9 @@ surprising results as they compete to make the match longer or shorter.
 If this seems confusing, that's because it is.  Non--greedy repetitions
 are defined only in terms of the specific backtracking algorithm used to
 implement them, which for compatibility purposes always means the Perl
-algorithm.  Thus, when using these patterns we force @library{irregex}
-to use a backtracking engine, and can't rely on efficient execution.
+algorithm.  Thus, when using these patterns we force @library{nausicaa
+irregex} to use a backtracking engine, and can't rely on efficient
+execution.
 
 @c page
 @node irregex sre char-sets
@@ -924,7 +925,7 @@ use @code{(or bow eow)}.
 Somewhat more generally, Perl introduced positive and negative
 @code{look-ahead} and @code{look-behind} patterns.  Perl's
 @code{look-behind} patterns are limited to a fixed length, however the
-@library{irregex} versions have no such limit.
+@library{nausicaa irregex} versions have no such limit.
 
 @example
 (irregex-match '(: "regular" (look-ahead " expression"))
@@ -963,7 +964,7 @@ as submatches.
 
 In some cases, but not always, these will overlap.  When they are
 different, @func{irregex-search} will naturally always want the
-searching version, so @library{irregex} provides that version.
+searching version, so @library{nausicaa irregex} provides that version.
 
 As an example where these might be different, consider an @aurl{}.  If
 we want to match all the @aurl{}s in some arbitrary text, we probably
@@ -972,8 +973,8 @@ it's more likely being used as punctuation rather than part of the
 @aurl{}, despite the fact that it would be valid @aurl{} syntax.
 
 Another problem with the @rfc{} definitions is the standard itself may
-have become irrelevant.  For example, the pattern @library{irregex}
-provides for email addresses doesn't match quoted local parts
+have become irrelevant.  For example, the pattern @library{nausicaa
+irregex} provides for email addresses doesn't match quoted local parts
 (e.g. @code{"first last"@@domain.com}) because these are increasingly
 rare, and unsupported by enough software that it's better to discourage
 their use.  Conversely, technically consecutive periods

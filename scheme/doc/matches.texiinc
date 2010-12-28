@@ -2,10 +2,10 @@
 @chapter Pattern matching
 
 
-The @library{matches} library implements @dfn{pattern matching}, also
-known as @dfn{destructuring bind}.  The library creates simple
-generative pattern matchers; each pattern is expanded into the required
-tests, calling a failure continuation if the tests fail.
+The @library{nausicaa matches} library implements @dfn{pattern
+matching}, also known as @dfn{destructuring bind}.  The library creates
+simple generative pattern matchers; each pattern is expanded into the
+required tests, calling a failure continuation if the tests fail.
 
 This makes the logic easy to follow and extend, but produces sub-optimal
 code in cases where we have many similar clauses due to repeating the
@@ -142,8 +142,8 @@ clauses, an error is raised with condition type
 @deftp {Condition Type} &match-mismatch
 Raised to signal an expression/pattern mismatch while evaluating the
 expansion of @func{match}; it is derived from @condition{mismatch} from
-the @library{conditions} library.  There is only one field,
-@samp{expression}, which holds the mismatched expression.
+the @library{nausicaa langugae conditions} library.  There is only one
+field, @samp{expression}, which holds the mismatched expression.
 @end deftp
 
 
@@ -1443,7 +1443,9 @@ It is possible to use @func{match} as a substitute of @func{syntax-case}
 to write macro transformers.  An example follows:
 
 @example
-(import (nausicaa) (matches) (syntax-utilities))
+(import (nausicaa)
+  (nausicaa matches)
+  (nausicaa language syntax-utilities))
 
 (define-auxiliary-syntaxes
   alpha beta delta gamma rho)

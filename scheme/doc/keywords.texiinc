@@ -2,7 +2,7 @@
 @chapter Keyword values
 
 
-The @library{keywords} library implements a type of value,
+The @library{nausicaa keywords} library implements a type of value,
 @dfn{keywords}, disjoint from all the other types.  Keywords can be
 treated much like symbols, but they must be compared with
 @func{keyword=?} not @func{eq?}.

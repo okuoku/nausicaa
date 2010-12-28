@@ -2,9 +2,10 @@
 @chapter More condition types
 
 
-The @library{conditions} library defines a set of condition types to be
-used by the Nausicaa libraries.  It re--exports all the bindings from
-the @library{unimplemented} library.
+The @library{nausicaa language conditions} library defines a set of
+condition types to be used by the Nausicaa libraries.  It re--exports
+all the bindings from the @library{nausicaa language unimplemented}
+library.
 
 @menu
 * conditions define::           Defining new condition types.
@@ -74,8 +75,8 @@ clause can be omitted and can be used at most once.  When not used, the
 parent defaults to @condition{error}.
 
 The @code{parent} identifier is the one exported by
-@rsixlibrary{syntactic} or @library{classes auxiliary-syntaxes} for the
-implementations that do not define it.
+@rsixlibrary{syntactic} or @library{nausicaa language classes
+auxiliary-syntaxes} for the implementations that do not define it.
 @end deffn
 
 
@@ -91,8 +92,8 @@ appended to the result, the string @samp{condition-} is prepended to the
 result.
 
 The @code{fields} identifier is the one exported by
-@rsixlibrary{syntactic} or @library{classes auxiliary-syntaxes} for the
-implementations that do not define it.
+@rsixlibrary{syntactic} or @library{nausicaa language classes
+auxiliary-syntaxes} for the implementations that do not define it.
 @end deffn
 
 @c page

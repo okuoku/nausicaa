@@ -2,7 +2,7 @@
 @chapter Libraries inspection
 
 
-The @library{libraries} library implements routines to inspect
+The @library{nausicaa libraries} library implements routines to inspect
 @func{library} forms as defined by @rnrs{6}.
 
 @menu
@@ -57,7 +57,7 @@ an import set with:
 
 
 The bindings documented in this section are exported by the
-@library{libraries names} library.
+@library{nausicaa libraries names} library.
 
 @menu
 * libraries names typedefs::    Type definitions.
@@ -197,7 +197,7 @@ valid library names: the behaviour of this function is undefined.
 @section Handling @rnrs{6} library references
 
 The bindings documented in this section are exported by the
-@library{libraries references} library.
+@library{nausicaa libraries references} library.
 
 @menu
 * libraries references typedefs::   Type definitions.
@@ -327,7 +327,7 @@ undefined.
 
 
 The bindings documented in this section are exported by the
-@library{libraries import-specs} library.
+@library{nausicaa libraries import-specs} library.
 
 @menu
 * libraries imports typedefs::  Type definitions.
@@ -536,7 +536,7 @@ specifying the rename operation for @var{renamings}.
 
 
 The bindings documented in this section are exported by the
-@library{libraries} library.
+@library{nausicaa libraries} library.
 
 @menu
 * libraries searching system::  Searching libraries on file systems.
@@ -643,7 +643,7 @@ that pathname skipped.
 
 
 The bindings documented in this section are exported by the
-@library{libraries} library.
+@library{nausicaa libraries} library.
 
 @menu
 * libraries libraries typedefs::    Type definitions.

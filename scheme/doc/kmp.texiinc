@@ -13,11 +13,11 @@ For an explanation of the algorithm:
 @center @url{http://en.wikipedia.org/wiki/Knuth-Morris-Pratt_algorithm}
 
 The following routines package up the initialisation and searching
-phases of the algorithm for general use in the library
-@library{knuth-morris-pratt}.  They also support searching through
-sequences that arrive in buffered chunks, in that intermediate search
-state can be carried across applications of the search loop from the end
-of one buffer application to the next.
+phases of the algorithm for general use in the library @library{nausicaa
+knuth-morris-pratt}.  They also support searching through sequences that
+arrive in buffered chunks, in that intermediate search state can be
+carried across applications of the search loop from the end of one
+buffer application to the next.
 
 A second critical property of @acronym{KMP} search is that it requires
 the allocation of auxiliary memory proportional to the length of the

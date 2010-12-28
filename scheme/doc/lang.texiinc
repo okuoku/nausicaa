@@ -3,7 +3,7 @@
 
 
 The bindings documented in this section are exported by the
-@library{language-extensions} library.
+@library{nausicaa language extensions} library.
 
 @menu
 * lang lang::                   Language constructs.
@@ -101,7 +101,8 @@ The formal syntax of a specialized expression is:
 @end example
 
 The @code{<>} and @code{<...>} auxiliary syntaxes are exported by the
-library @library{auxiliary-syntaxes} and reexported by this library.
+library @library{nausicaa language auxiliary-syntaxes} and reexported by
+this library.
 @end deffn
 
 

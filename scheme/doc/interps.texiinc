@@ -2,13 +2,14 @@
 @chapter Evaluating code as in an interpreter
 
 
-The @library{interps} library exports an interface to @rsixlibrary{eval}
-which allows evaluation of code in chunks with retention of global
-variables; @library{interps} uses the facilities of @library{classes}.
-Evaluation of code is handled by ``interpreter'' objects; examples:
+The @library{nausicaa interps} library exports an interface to
+@rsixlibrary{eval} which allows evaluation of code in chunks with
+retention of global variables; @library{nausicaa interps} uses the
+facilities of @library{nausicaa language classes}.  Evaluation of code
+is handled by ``interpreter'' objects; examples:
 
 @example
-(import (nausicaa) (interps))
+(import (nausicaa) (nausicaa interps))
 
 (let (((o <interp>) (make <interp>
                       (imports: '((rnrs))))))
@@ -41,7 +42,8 @@ Evaluation of code is handled by ``interpreter'' objects; examples:
 
 Whenever evaluation of code in an interpreter fails: an exception is
 raised with compound condition object of type @condition{interp-error}.
-The following bindings are exported by the @library{interps} library.
+The following bindings are exported by the @library{nausicaa interps}
+library.
 
 
 @deftp {Condition Type} &interp-error
@@ -73,7 +75,8 @@ interpreter object in which the error occurred.
 @section Interpreter objects
 
 
-The following bindings are exported by the @library{interps} library.
+The following bindings are exported by the @library{nausicaa interps}
+library.
 
 
 @deftp Class @aclass{interp}
@@ -225,7 +228,7 @@ variables.
 Plain expression evaluation:
 
 @example
-(import (nausicaa) (interps))
+(import (nausicaa) (nausicaa interps))
 
 (let (((o <interp>) (make* <interp> '((rnrs)))))
   (o.eval '(+ 1 2)))
@@ -236,7 +239,7 @@ Plain expression evaluation:
 variables definitions:
 
 @example
-(import (nausicaa) (interps))
+(import (nausicaa) (nausicaa interps))
 
 (let* (((o <interp>) (make* <interp> '((rnrs))))
        (return-value (o.eval '(let ()
@@ -255,7 +258,7 @@ set a variable in one @func{eval}, retrieve its value in a subsequent
 @func{eval}:
 
 @example
-(import (nausicaa) (interps))
+(import (nausicaa) (nausicaa interps))
 
 (let (((o <interp>) (make* <interp> '((rnrs)))))
   (o.eval '(let ()
@@ -269,7 +272,7 @@ set a variable in one @func{eval}, retrieve its value in a subsequent
 predefine a variable and retrieve its value in a subsequent @func{eval}:
 
 @example
-(import (nausicaa) (interps))
+(import (nausicaa) (nausicaa interps))
 
 (let (((o <interp>) (make* <interp> '((rnrs)))))
   (o.variable-set! 'woppa 123)

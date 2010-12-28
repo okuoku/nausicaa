@@ -2,8 +2,8 @@
 @chapter Syntax utilities
 
 
-The library @library{syntax-utilities} defines functions and macros to
-automate common tasks in new syntax definitions.
+The library @library{nausicaa language syntax-utilities} defines
+functions and macros to automate common tasks in new syntax definitions.
 
 @menu
 * syntax utils wrapping::       Unwrapping syntax objects.

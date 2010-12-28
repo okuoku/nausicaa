@@ -2,9 +2,10 @@
 @chapter @ascii{} characters library
 
 
-The @library{asciis} library is a small library of small functions which
-deals with exact integers representing characters in @ascii{} encoding;
-it is meant to be used with bytevectors representing strings.
+The @library{nausicaa asciis} library is a small library of small
+functions which deals with exact integers representing characters in
+@ascii{} encoding; it is meant to be used with bytevectors representing
+strings.
 
 
 @defun ascii-upper-case? @var{byte}

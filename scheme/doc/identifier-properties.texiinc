@@ -2,14 +2,14 @@
 @chapter Expand--time identifier properties
 
 
-The library @library{identifier-properties} allows the association of
-objects to identifiers at expand time, using other identifiers as
-keywords.  Useless examples:
+The library @library{nausicaa language identifier-properties} allows the
+association of objects to identifiers at expand time, using other
+identifiers as keywords.  Useless examples:
 
 @example
 (import (rnrs)
-  (identifier-properties)
-  (syntax-utilities))
+  (nausicaa language identifier-properties)
+  (nausicaa language syntax-utilities))
 
 (define-auxiliary-syntax type)
 
@@ -43,7 +43,8 @@ transformer); retrieve the value associated to the identifier
 @var{subject} using the identifier @var{key} as key.  If no property is
 found, return @var{default} which defaults to false.
 
-This function is exported for expand by @library{identifier-properties}.
+This function is exported for expand by @library{nausicaa language
+identifier-properties}.
 @end defun
 
 @c end of file

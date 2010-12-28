@@ -2,9 +2,9 @@
 @chapter Debugging utilities
 
 
-The @library{debugging} library provide simple utilities to help
-debugging.  All the following bindings are re--exported by the
-@library{checks} library.
+The @library{nausicaa debugging} library provide simple utilities to
+help debugging.  All the following bindings are re--exported by the
+@library{nausicaa checks} library.
 
 
 @deffn Parameter debugging

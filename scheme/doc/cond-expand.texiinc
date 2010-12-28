@@ -21,6 +21,9 @@ must of course refer to a feature which has a well--defined meaning.
 There is thus a need for a registry to keep track of the formal
 specification associated with each valid feature--identifier.
 
+The following bindings are exported by the @library{nausicaa language
+cond-expand} library.
+
 
 @deffn Syntax cond-expand @meta{clause} ...
 @deffnx Syntax cond-expand @meta{clause} ... (else @meta{body})

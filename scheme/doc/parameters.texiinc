@@ -2,7 +2,8 @@
 @chapter Parameter objects
 
 
-The following bindings are exported by the @library{parameters} library.
+The following bindings are exported by the @library{nausicaa language
+parameters} library.
 
 
 @defun make-parameter @var{init}

@@ -158,7 +158,7 @@ that it is the @code{expand} set that must be marked differently.  Let's
 look at:
 
 @example
-(import (rnrs) (checks))
+(import (rnrs) (nausicaa checks))
 (check-set-mode! 'report-failed)
 
 (define-syntax expand-time-func
@@ -181,7 +181,7 @@ time using @func{define-syntax}.  After evaluation phase @code{expand}
 is finished the code is equivalent to:
 
 @example
-(import (rnrs) (checks))
+(import (rnrs) (nausicaa checks))
 (check-set-mode! 'report-failed)
 
 (define (run-time-func arg)
@@ -211,7 +211,7 @@ There are functions to extract and use values in the syntax object.  For
 example the following script evaluates successfully:
 
 @example
-(import (rnrs) (checks))
+(import (rnrs) (nausicaa checks))
 (check-set-mode! 'report-failed)
 
 (define-syntax expand-time-func
@@ -248,7 +248,7 @@ Multiple underscores may appear in a @meta{pattern}.
 script will evaluate successfully:
 
 @example
-(import (rnrs) (checks))
+(import (rnrs) (nausicaa checks))
 (check-set-mode! 'report-failed)
 
 (check
@@ -331,7 +331,7 @@ more elements.  So the following correctly returns @code{error} when
 zero elements are used:
 
 @example
-(import (rnrs) (checks))
+(import (rnrs) (nausicaa checks))
 (check-set-mode! 'report-failed)
 
 (define-syntax doit
@@ -352,7 +352,7 @@ zero elements are used:
 while the following happily matches zero arguments to the macro:
 
 @example
-(import (rnrs) (checks))
+(import (rnrs) (nausicaa checks))
 (check-set-mode! 'report-failed)
 
 (define-syntax doit
@@ -385,7 +385,7 @@ matches only a proper list, @code{. ?args} matches both proper and
 improper lists.  So the following works always:
 
 @example
-(import (rnrs) (checks))
+(import (rnrs) (nausicaa checks))
 (check-set-mode! 'report-failed)
 
 (define-syntax doit
@@ -405,7 +405,7 @@ but the following raises an ``invalid syntax'' error in the improper
 list check:
 
 @example
-(import (rnrs) (checks))
+(import (rnrs) (nausicaa checks))
 (check-set-mode! 'report-failed)
 
 (define-syntax doit
@@ -451,7 +451,7 @@ In a way, @meta{literal}s can act as comments.
 The following script will evaluate successfully:
 
 @example
-(import (rnrs) (checks))
+(import (rnrs) (nausicaa checks))
 (check-set-mode! 'report-failed)
 
 ;;;In this  example 'alpha'  has NO lexical  binding in  both the

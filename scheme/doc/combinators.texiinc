@@ -2,7 +2,8 @@
 @chapter Combinators
 
 
-The following combinators are exported by @library{combinators}.
+The following combinators are exported by @library{nausicaa
+combinators}.
 
 
 @deffn Syntax K @var{form} . @var{forms}

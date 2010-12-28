@@ -10,12 +10,13 @@
 @section Bytevectors of unsigned bytes
 
 
-The @library{bytevectors u8} and @library{bytevectors u8low} libraries
-extend the bytevector operations available in the base library;
-@nauref{stdlib bytevector, Bytevectors}.  While @library{bytevectors u8}
-is a high level interface, @library{bytevectors u8low} is a low level
-interface with the same functionalities; there is special support for
-bytevectors representing strings in @ascii{} encoding.
+The @library{nausicaa bytevectors u8} and @library{nausicaa bytevectors
+u8low} libraries extend the bytevector operations available in the base
+library; @nauref{stdlib bytevector, Bytevectors}.  While
+@library{nausicaa bytevectors u8} is a high level interface,
+@library{nausicaa bytevectors u8low} is a low level interface with the
+same functionalities; there is special support for bytevectors
+representing strings in @ascii{} encoding.
 
 While the library focuses on bytevectors of unsigned bytes, it can be
 used also with bytevectors of signed bytes; when using bytevectors of
@@ -51,11 +52,12 @@ extracted or inserted are used outside of these libraries.
 
 @subsubheading Library organisation
 
-The functions are split in a high level library, @library{bytevectors
-u8}, and a low level one, @library{bytevectors u8low}.  The main
-difference between the two layers is that the high level library makes
-heavy usage of macros to implement the @dfn{bytevector views}, which
-allow accessing subvectors using a friendly syntax.
+The functions are split in a high level library, @library{nausicaa
+bytevectors u8}, and a low level one, @library{nausicaa bytevectors
+u8low}.  The main difference between the two layers is that the high
+level library makes heavy usage of macros to implement the
+@dfn{bytevector views}, which allow accessing subvectors using a
+friendly syntax.
 
 All the functions in the low level library are bound to identifiers
 starting with @code{%}; for example: @func{bytevector-u8-prefix?} is a
@@ -236,9 +238,10 @@ characters in the range allowed by @ascii{} encoding.
 
 Bytevector views are syntactic sugar to allow subvector specification
 with minimum overhead; views make use of auxiliary syntaxes exported by
-the @library{auxiliary-syntaxes} library and reexported by the
-@library{bytevectors u8} library.  Many low level bytevector functions
-act on subvectors specified with triplets of arguments:
+the @library{nausicaa language auxiliary-syntaxes} library and
+reexported by the @library{nausicaa bytevectors u8} library.  Many low
+level bytevector functions act on subvectors specified with triplets of
+arguments:
 
 @itemize
 @item
@@ -277,9 +280,9 @@ or:
   (%the-function bv 0 (bytevector-length bv)))
 @end example
 
-With the bytevector views implemented by @library{bytevectors u8}, the
-low level function is wrapped by a high level syntax which can be
-invoked as:
+With the bytevector views implemented by @library{nausicaa bytevectors
+u8}, the low level function is wrapped by a high level syntax which can
+be invoked as:
 
 @example
 (the-function '#vu8(0 1 2 3 4 5 6 7 8 9))
@@ -1112,10 +1115,11 @@ The function @func{%bytevector-u8-copy*} is an alias for
 alias for @func{subbytevector-u8*}.
 
 @quotation
-These exist for symmetry with the @library{vectors} library; they allow
-more confidence in converting a vector function into a bytevector
-function, and vice versa, by just replacing the string @code{vector} in
-the function names with the string @code{bytevector-u8}, and vice versa.
+These exist for symmetry with the @library{nausicaa vectors} library;
+they allow more confidence in converting a vector function into a
+bytevector function, and vice versa, by just replacing the string
+@code{vector} in the function names with the string
+@code{bytevector-u8}, and vice versa.
 @end quotation
 @end deffn
 

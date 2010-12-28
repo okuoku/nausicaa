@@ -4,8 +4,8 @@
 
 A set of libraries provides basic tools to implement lexers, parsers and
 the interface between them.  These tools are meant to be used by all the
-lexers and parsers distributed with @value{PACKAGE};  at present they
-are used by @library{silex} and @library{lalr}.
+lexers and parsers distributed with @value{PACKAGE}; at present they are
+used by @library{nausicaa silex} and @library{nausicaa lalr}.
 
 @menu
 * parser-tools location::       Source location records.
@@ -20,9 +20,9 @@ are used by @library{silex} and @library{lalr}.
 Location records are meant to store informations about the position of a
 token in the input stream; they should be produced by the lexer and
 either discarded or consumed by the parser's error handler.  All the
-bindings are exported by the @library{parser-tools source-location}
-library; this library is built on top of @library{classes} and
-@library{generics}.
+bindings are exported by the @library{nausicaa parser-tools
+source-location} library; this library is built on top of
+@library{nausicaa language classes} and @library{nausicaa generics}.
 
 It is cleaner to implement the parser in such a way that location
 records are used only by client--supplied error handlers, not by the
@@ -70,8 +70,8 @@ should be set to @false{}, so that they are no more numbers.
 
 Notice that these values match the local bindings @samp{yyline},
 @samp{yycolumn} and @samp{yyoffset} available to the lexer actions of
-the @library{silex} library.  @ref{silex semantics action, Evaluation of
-the actions}
+the @library{nausicaa silex} library.  @ref{silex semantics action,
+Evaluation of the actions}
 @end defcv
 
 
@@ -270,8 +270,8 @@ a @samp{#\return} character or not.
 @subsection Miscellaneous functions
 
 
-The procedures described here make use of the @library{generics}
-library; @ref{generics, Multimethod dispatching}.
+The procedures described here make use of the @library{nausicaa
+generics} library; @ref{generics, Multimethod dispatching}.
 
 
 @defun source-location->string @var{loc}
@@ -333,9 +333,9 @@ When the lexer closure has to signal a lexer error (an invalid character
 from the input stream), it must return a token with category
 @samp{*lexer-error*}.
 
-The following bindings are exported by the @library{parser-tools
-lexical-token} library; this library is built on top of
-@library{classes}.
+The following bindings are exported by the @library{nausicaa
+parser-tools lexical-token} library; this library is built on top of
+@library{nausicaa language classes}.
 
 
 @deftp Class @aclass{lexical-token}

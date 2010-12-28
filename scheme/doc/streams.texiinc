@@ -2,12 +2,12 @@
 @chapter Streams
 
 
-The @library{streams} library implements @dfn{streams}; sometimes called
-``lazy lists'', streams are a sequential data structure containing
-elements computed only on demand.  A stream is either null or is a pair
-with a stream in its cdr.  Since elements of a stream are computed only
-when accessed, streams can be infinite.  Once computed, the value of a
-stream element is cached in case it is needed again.
+The @library{nausicaa streams} library implements @dfn{streams};
+sometimes called ``lazy lists'', streams are a sequential data structure
+containing elements computed only on demand.  A stream is either null or
+is a pair with a stream in its cdr.  Since elements of a stream are
+computed only when accessed, streams can be infinite.  Once computed,
+the value of a stream element is cached in case it is needed again.
 
 @menu
 * streams basic::               Basic interface.

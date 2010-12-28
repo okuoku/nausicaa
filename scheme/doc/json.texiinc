@@ -2,9 +2,9 @@
 @chapter Parsing and generating @json{} text
 
 
-The @library{json} library implements a parser which converts @json{}
-text to Scheme S-expressions and a set of functions to generate @json{}
-text from Scheme values.
+The @library{nausicaa json} library implements a parser which converts
+@json{} text to Scheme S-expressions and a set of functions to generate
+@json{} text from Scheme values.
 
 @menu
 * json intro::                  Introduction to @json{}.
@@ -27,9 +27,9 @@ at:@footnote{@aurl{} last verified Mon May 31, 2010.}
 @noindent
 the specification is also available in @rfc{} 4627.
 
-The @library{json} library parses @json{} text using the @library{silex
-lexer} and @library{lalr lr-driver} libraries; given the terminals,
-optionally surrounded by white spaces:
+The @library{nausicaa json} library parses @json{} text using the
+@library{nausicaa silex lexer} and @library{nausicaa lalr lr-driver}
+libraries; given the terminals, optionally surrounded by white spaces:
 
 @example
 BEGIN_ARRAY             [
@@ -74,8 +74,8 @@ with the addition of @samp{NUMBER} and @samp{STRING}, the grammar is:
                 (VALUE_SEPARATOR value value-rest)))
 @end example
 
-@library{json} turns @json{} text into a Scheme S--expression; @json{}
-pairs become Scheme pairs:
+@library{nausicaa json} turns @json{} text into a Scheme S--expression;
+@json{} pairs become Scheme pairs:
 
 @example
 "Height": 600           @expansion{} ("Height" . 600)
@@ -129,8 +129,8 @@ incoming @json{} text.  To setup conversion to S--expression we do:
 
 @example
 (import (rnrs)
-  (silex lexer)
-  (json))
+  (nausicaa silex lexer)
+  (nausicaa json))
 
 (define json-text
   "@{ \"Hello\" : true, \"Ciao\": false @}")
@@ -156,9 +156,8 @@ Here is a set of meaningless examples using the event parser:
 
 @example
 (import (nausicaa)
-  (json)
-  (silex lexer))
-
+  (nausicaa json)
+  (nausicaa silex lexer))
 
 (define (doit string)
   (let* ((IS      (lexer-make-IS (string: string)
@@ -241,11 +240,12 @@ Here is a set of meaningless examples using the event parser:
 @subsection Lexing @json{} text
 
 
-The following bindings are exported by the @library{json} library.
+The following bindings are exported by the @library{nausicaa json}
+library.
 
 
 @defun make-json-rfc-lexer @var{input-system}
-Build and return a @library{silex} lexer for @json{} text using
+Build and return a @library{nausicaa silex} lexer for @json{} text using
 @var{input-system}; the lexer will parse @json{} text conforming to
 @rfc{} 4627.
 
@@ -320,22 +320,24 @@ token with category @code{*eoi*} or @code{*lexer-error*}.
 @subsection Parsing @json{} text
 
 
-The following bindings are exported by the @library{json} library.
+The following bindings are exported by the @library{nausicaa json}
+library.
 
 
 @defun make-json-parser
-Build and return a new @json{} parser using @library{lalr lr-driver};
-the returned value is a parser function as described in @ref{lalr
-parser}.  The parser function returns the S--expression representing the
-@json{} text; notice that strings in the S--expression are @strong{not}
-processed by @func{json-decode-string}.
+Build and return a new @json{} parser using @library{nausicaa lalr
+lr-driver}; the returned value is a parser function as described in
+@ref{lalr parser}.  The parser function returns the S--expression
+representing the @json{} text; notice that strings in the S--expression
+are @strong{not} processed by @func{json-decode-string}.
 @end defun
 
 
 @deffn Syntax make-json-event-parser @var{clause} ...
 Build and return a new @json{} parser which calls provided functions
 when parsing elements.  The returned parser function matches the
-interface of the parser functions based upon @library{lalr lr-driver}.
+interface of the parser functions based upon @library{nausicaa lalr
+lr-driver}.
 @end deffn
 
 
@@ -413,7 +415,8 @@ and @code{()} as second argument.
 @subsection Decoding @json{} strings
 
 
-The following bindings are exported by the @library{json} library.
+The following bindings are exported by the @library{nausicaa json}
+library.
 
 
 @defun json-decode-string @var{input-string}

@@ -2,8 +2,8 @@
 @chapter Organising assertions
 
 
-The library @library{assertions} defines functions and macros to handle
-the definition and usage of assertions.
+The library @library{nausicaa assertions} defines functions and macros
+to handle the definition and usage of assertions.
 
 @menu
 * assertions macros::           Assertion macros.
@@ -16,14 +16,15 @@ the definition and usage of assertions.
 @section Assertion macros
 
 
-The following bindings are exported by the @library{assertions} library.
+The following bindings are exported by the @library{nausicaa assertions}
+library.
 
 
 @defmac assert @var{expression}
 This is a replacement for @func{assert} from @rsixlibrary{base}; it
 behaves in the same way, but expands to @var{expression} itself if the
-parameter @func{enable-assertions?} from the library
-@library{configuration} is set to false.
+parameter @func{enable-assertions?} from the library @library{nausicaa
+configuration} is set to false.
 @end defmac
 
 
@@ -64,7 +65,7 @@ A description string used in the error message.
 
 @example
 (import (rnrs)
-  (prefix (assertions) ass.))
+  (prefix (nausicaa language assertions) ass.))
 
 (define (doit a b c)
   (ass.arguments (ass.who 'doit)
@@ -101,7 +102,8 @@ A description string used in the error message.
 @section Defining predicates
 
 
-The following bindings are exported by the @library{assertions} library.
+The following bindings are exported by the @library{nausicaa assertions}
+library.
 
 
 @defmac define-list-of-values-predicates @var{name} @var{predicate}
@@ -129,7 +131,8 @@ satisfying @var{predicate}, or false.
 @section Derived predicates
 
 
-The following bindings are exported by the @library{assertions} library.
+The following bindings are exported by the @library{nausicaa assertions}
+library.
 
 
 @defun list-of-booleans? @var{obj}

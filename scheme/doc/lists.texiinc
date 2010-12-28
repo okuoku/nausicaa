@@ -2,20 +2,20 @@
 @chapter List library
 
 
-The @library{lists} and @library{lists stx} libraries implement a
-collection of functions and macros to manipulate lists; additionally,
-@library{lists low} implements a collection of low level utilities.
-These libraries have two purposes: To provide a rich set of functions
-and macros and to be a source code repository from which code can be
-taken and specialised.  For the last purpose, the libraries export
-macros that may make little sense in most scenarios (beside the fact
-that they are always inlined).
+The @library{nausicaa lists} and @library{nausicaa lists stx} libraries
+implement a collection of functions and macros to manipulate lists;
+additionally, @library{nausicaa lists low} implements a collection of
+low level utilities.  These libraries have two purposes: To provide a
+rich set of functions and macros and to be a source code repository from
+which code can be taken and specialised.  For the last purpose, the
+libraries export macros that may make little sense in most scenarios
+(beside the fact that they are always inlined).
 
 @quotation
-@strong{Note} The @library{lists ---} libraries and this section of
-documentation are derived from the @ansrfi{1} document and reference
-implementation by Olin Shivers, but they are @strong{not} compatible
-with it.  Read carefully this documentation!
+@strong{Note} The @library{nausicaa lists ---} libraries and this
+section of documentation are derived from the @ansrfi{1} document and
+reference implementation by Olin Shivers, but they are @strong{not}
+compatible with it.  Read carefully this documentation!
 @end quotation
 
 @menu
@@ -173,11 +173,11 @@ such that @func{cdr} applied @math{n} times yields neither a pair nor
 null.  This means that, for a dotted list, either @func{null?} or
 @func{pair?} return @true{}.
 
-Users of the @library{list ---} libraries should note that dotted lists
-are not commonly used, and are considered by many Scheme programmers to
-be an ugly artifact of Scheme's lack of a true list type.  However,
-dotted lists do play a noticeable role in the syntax of Scheme, in the
-``rest'' parameters used by n--ary lambdas:
+Users of the @library{nausicaa list ---} libraries should note that
+dotted lists are not commonly used, and are considered by many Scheme
+programmers to be an ugly artifact of Scheme's lack of a true list type.
+However, dotted lists do play a noticeable role in the syntax of Scheme,
+in the ``rest'' parameters used by n--ary lambdas:
 
 @example
 (lambda (x y . rest)
@@ -218,10 +218,11 @@ Dotted lists are improper lists.
 @section Conventions
 
 
-All the functions are exported by the @library{lists} library, while all
-the macros are exported by @library{lists stx}.  Each macro has a
-corresponding function version, but some functions were not translated
-to macros.  Macro names always end with the suffix @samp{/stx}.
+All the functions are exported by the @library{nausicaa lists} library,
+while all the macros are exported by @library{nausicaa lists stx}.  Each
+macro has a corresponding function version, but some functions were not
+translated to macros.  Macro names always end with the suffix
+@samp{/stx}.
 
 It is an error to pass a circular or dotted list to a procedure not
 defined to accept such an argument; it is an error to pass a proper or
@@ -2733,7 +2734,7 @@ first list argument to construct its answer.
 @section Low level utilities
 
 
-The following bindings are exported by @library{lists low}.
+The following bindings are exported by @library{nausicaa lists low}.
 
 
 @defun %and/or-null? @var{ell} ...
@@ -2913,7 +2914,7 @@ list | | |->| | |->| | |->| | |->| | |->()
 @end example
 
 The following @api{} does not implement a full queue value; for that see
-the @library{queues} library.  @ref{queues, Simple queues}
+the @library{nausicaa queues} library.  @ref{queues, Simple queues}
 
 
 @deffn Syntax %make-queue @var{obj}
@@ -2990,9 +2991,10 @@ which is the same of doing:
 @section Class interface
 
 
-The @library{lists xlists} library exports the single binding
-@class{xlist}, which provides an interface to the @library{lists}
-functions through the facilities of the @library{classes} library.
+The @library{nausicaa lists xlists} library exports the single binding
+@class{xlist}, which provides an interface to the @library{nausicaa
+lists} functions through the facilities of the @library{nausicaa
+language classes} library.
 
 
 @deftp Label @aclass{xlist}

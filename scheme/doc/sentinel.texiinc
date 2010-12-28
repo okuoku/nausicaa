@@ -2,9 +2,10 @@
 @chapter The sentinel value
 
 
-The @library{sentinel} library defines a unique value and a predicate to
-test it.  The sentinel value can be used as terminator for sequences or
-as value for uninitialised storage locations.
+The @library{nausicaa language sentinel} library defines a unique value
+and a predicate to test it.  The sentinel value can be used as
+terminator for sequences or as value for uninitialised storage
+locations.
 
 
 @defvr Constant sentinel

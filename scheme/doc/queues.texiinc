@@ -2,11 +2,11 @@
 @chapter Simple queue
 
 
-The functions in this section are exported by the @library{queues}
-library; the library implements queues holding arbitrary scheme objects
-and designed for efficient first--in/first--out operations.  The
-@library{queues} library is built on top of the @library{classes}
-library.
+The functions in this section are exported by the @library{nausicaa
+queues} library; the library implements queues holding arbitrary scheme
+objects and designed for efficient first--in/first--out operations.  The
+@library{nausicaa queues} library is built on top of the
+@library{nausicaa language classes} library.
 
 @menu
 * queues types::                Type definitions and constructors.

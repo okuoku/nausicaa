@@ -2,9 +2,9 @@
 @chapter Uniform resource identifiers
 
 
-The @library{uri} library implements a parser and class type to handle
-@uri{}s compliant with @rfc{} 3986.@footnote{@aurl{} last verified Thu
-Jun 17, 2010:
+The @library{nausicaa uri} library implements a parser and class type to
+handle @uri{}s compliant with @rfc{} 3986.@footnote{@aurl{} last
+verified Thu Jun 17, 2010:
 
 @center @url{http://datatracker.ietf.org/doc/rfc3986/}
 }
@@ -20,8 +20,8 @@ Jun 17, 2010:
 @section Plain conversion between strings and bytevectors
 
 
-The following bindings are exported by the @library{uri low} library; it
-is suggested to prefix them when importing this library.
+The following bindings are exported by the @library{nausicaa uri low}
+library; it is suggested to prefix them when importing this library.
 
 
 @defun to-bytevector @var{obj}
@@ -45,7 +45,7 @@ them, byte to char, as @ascii{}.
 
 
 A string is valid as @uri{} component only if its characters match the
-following @library{silex} specification:
+following @library{nausicaa silex} specification:
 
 @example
 ALPHA           [a-zA-Z]
@@ -73,8 +73,8 @@ a @uri{} string; in particular the following must be encoded:
 @noindent
 the characters in the unreserved set can, but should not, be encoded.
 
-The following bindings are exported by the @library{uri low} library; it
-is suggested to prefix them when importing this library.
+The following bindings are exported by the @library{nausicaa uri low}
+library; it is suggested to prefix them when importing this library.
 
 
 @defun unreserved-char? @var{obj}

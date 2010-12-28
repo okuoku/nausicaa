@@ -2,13 +2,13 @@
 @chapter Portable regular expressions for Scheme
 
 
-The @library{pregexp} library implements regular expressions parsing
-modeled on Perl's, and includes such powerful directives as numeric and
-non--greedy quantifiers, capturing and non--capturing clustering,
-@posix{} character classes, selective case- and space--insensitivity,
-backreferences, alternation, backtrack pruning, positive and negative
-lookahead and lookbehind, in addition to the more basic directives
-familiar to all regexp users.
+The @library{nausicaa pregexp} library implements regular expressions
+parsing modeled on Perl's, and includes such powerful directives as
+numeric and non--greedy quantifiers, capturing and non--capturing
+clustering, @posix{} character classes, selective case- and
+space--insensitivity, backreferences, alternation, backtrack pruning,
+positive and negative lookahead and lookbehind, in addition to the more
+basic directives familiar to all regexp users.
 
 The library is based upon the Pregexp package by Dorai Sitaram.  It was
 modified to work with @rnrs{6} Scheme implementations and to fit into
@@ -991,12 +991,12 @@ confusing.
 
 Here's an extended example@footnote{From: Jeffrey E. F. Friedl,
 Mastering Regular Expressions, 2/e, O'Reilly, 2002.}  that covers many
-of the features in @library{pregexp}.  The problem is to fashion a
-regexp that will match any and only @ip{} addresses or dotted quads,
-i.e., four numbers separated by three dots, with each number between
-@math{0} and @math{255}.  We will use the commenting mechanism to build
-the final regexp with clarity.  First, a subregexp @code{n0-255} that
-matches @code{0} through @code{255}.
+of the features in @library{nausicaa pregexp}.  The problem is to
+fashion a regexp that will match any and only @ip{} addresses or dotted
+quads, i.e., four numbers separated by three dots, with each number
+between @math{0} and @math{255}.  We will use the commenting mechanism
+to build the final regexp with clarity.  First, a subregexp
+@code{n0-255} that matches @code{0} through @code{255}.
 
 @example
 (define n0-255

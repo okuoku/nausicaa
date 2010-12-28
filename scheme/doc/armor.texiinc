@@ -12,7 +12,8 @@ output; to split a stream of @ascii{} characters into lines, we have to
 apply a specific filter; to process a sequence of lines we have to
 remove the newlines first.
 
-All the libraries are built on top of the @library{classes} library.
+All the libraries are built on top of the @library{nausicaa language
+classes} library.
 
 @menu
 * armor conditions::            Condition objects.
@@ -33,8 +34,8 @@ All the libraries are built on top of the @library{classes} library.
 
 All the functions in the @ascii{} armor libraries raise exceptions when
 an error occurs; all the exception types are described here.  The
-bindings described in this section are exported by the @library{armor
-conditions} library.
+bindings described in this section are exported by the @library{nausicaa
+armor conditions} library.
 
 @menu
 * armor conditions error::      Base error condition.
@@ -124,9 +125,9 @@ Constructor and predicate for condition objects of type
 
 
 The bindings documented in this section are exported by the
-@library{armor base16} library.  Base16 encoding produces @math{16} bits
-of output every @math{8} bits of input, @math{2} bytes of @ascii{}
-characters every byte of binary data.
+@library{nausicaa armor base16} library.  Base16 encoding produces
+@math{16} bits of output every @math{8} bits of input, @math{2} bytes of
+@ascii{} characters every byte of binary data.
 
 @menu
 * armor base16 intro::          Introduction to base16 encoding.
@@ -446,9 +447,9 @@ according to @func{char->integer}, of an @ascii{} character in the
 
 
 The bindings documented in this section are exported by the
-@library{armor base32} library.  Base32 encoding produces @math{8} bits
-of output every @math{5} bits of input, @math{8} bytes of @ascii{}
-characters every @math{5} bytes of binary data.
+@library{nausicaa armor base32} library.  Base32 encoding produces
+@math{8} bits of output every @math{5} bits of input, @math{8} bytes of
+@ascii{} characters every @math{5} bytes of binary data.
 
 @menu
 * armor base32 intro::          Introduction to base32 encoding.
@@ -954,9 +955,9 @@ according to @func{char->integer}, of an @ascii{} character in the
 
 
 The bindings documented in this section are exported by the
-@library{armor base64} library.  Base64 encoding produces @math{8} bits
-of output every @math{6} bits of input, @math{4} bytes of @ascii{}
-characters every @math{3} bytes of binary data.
+@library{nausicaa armor base64} library.  Base64 encoding produces
+@math{8} bits of output every @math{6} bits of input, @math{4} bytes of
+@ascii{} characters every @math{3} bytes of binary data.
 
 @menu
 * armor base64 intro::          Introduction to base64 encoding.
@@ -1402,8 +1403,9 @@ according to @func{char->integer}, of an @ascii{} character in the
 
 
 The bindings documented in this section are exported by the
-@library{armor base91} library.  The base91 encoding specification is by
-Joachim Henke, published in the basE91 C language software package.
+@library{nausicaa armor base91} library.  The base91 encoding
+specification is by Joachim Henke, published in the basE91 C language
+software package.
 
 @menu
 * armor base91 intro::          Introduction to base91 encoding.
@@ -1680,8 +1682,9 @@ according to @func{char->integer}, of an @ascii{} character in the
 
 
 The bindings documented in this section are exported by the
-@library{armor ascii85} library.  @ascii{}85 encoding produces @math{5}
-bytes of @ascii{} characters every @math{4} bytes of binary data.
+@library{nausicaa armor ascii85} library.  @ascii{}85 encoding produces
+@math{5} bytes of @ascii{} characters every @math{4} bytes of binary
+data.
 
 @menu
 * armor ascii85 intro::         Introduction to @ascii{}85 encoding.
@@ -2171,7 +2174,7 @@ enough room in @var{dst-bv}.
 
 
 The bindings documented in this section are exported by the
-@library{armor quoted-printable} library.
+@library{nausicaa armor quoted-printable} library.
 
 @menu
 * armor qprint intro::          Introduction to quoted--printable
@@ -2189,9 +2192,9 @@ The bindings documented in this section are exported by the
 @subsection Introduction to quoted--printable encoding
 
 
-The encoding algorithm implemented by @library{armor quoted-printable}
-has two variants; the @code{default} encoder implements the following
-rules:
+The encoding algorithm implemented by @library{nausicaa armor
+quoted-printable} has two variants; the @code{default} encoder
+implements the following rules:
 
 @itemize
 @item
@@ -2444,7 +2447,7 @@ Return true if @var{byte-integer} would be encoded as is by the
 
 
 The bindings documented in this section are exported by the
-@library{armor newlines} library.
+@library{nausicaa armor newlines} library.
 
 @menu
 * armor newline insertion::     Inserting sequences of bytes.
@@ -2628,7 +2631,7 @@ upper case:
 
 @example
 (import (nausicaa)
-  (armor base32))
+  (nausicaa armor base32))
 
 (define ctx
   (make-<base32-encode-ctx> 'base32 #t 'upper))
@@ -2793,7 +2796,7 @@ comes in three chunks; the stream is padded and in upper case:
 
 @example
 (import (nausicaa)
-  (armor base32))
+  (nausicaa armor base32))
 
 (define ctx
   (make-<base32-decode-ctx> 'base32 #t 'upper))

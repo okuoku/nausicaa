@@ -2,8 +2,8 @@
 @chapter External representation for data with shared structure
 
 
-The following bindings are exported by the @library{shared-structures}
-library.
+The following bindings are exported by the @library{nausicaa language
+shared-structures} library.
 
 @rnrs{6} Scheme provides the procedure @func{write}, which prints
 machine--readable representations of lists and other objects.  However,

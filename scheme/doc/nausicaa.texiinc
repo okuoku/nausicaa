@@ -30,55 +30,55 @@ Unless otherwise specified, the @library{nausicaa} library reexports all
 the bindings from the following libraries:
 
 @table @library
-@item cond-expand
+@item nausicaa language cond-expand
 Feature--based conditional expansion; provides the @func{cond-expand}
 syntax.  @ref{cond-expand, Feature--based conditional expansion}.
 
-@item unimplemented
+@item nausicaa language unimplemented
 Definition of the condition object type @condition{unimplemented}.
 @ref{unimplemented, Unimplemented error condition}.
 
-@item conditions
+@item nausicaa language conditions
 Provides basic condition types and utilities for condition types
 definition.  @ref{conditions, More condition types}.
 
-@item language-extension
+@item nausicaa language extension
 Simple language extensions, mostly syntaxes.  @ref{lang, Simple language
 extensions}.  Notice that @func{receive} and @func{do*} are @strong{not}
 reexported, rather the corresponding bindings from @library{classes} are
 used and renamed to @func{receive} and @func{do*}.
 
-@item pretty-print
+@item nausicaa language pretty-print
 Provides the @func{pretty-print} function.  @ref{pretty-print, Pretty
 printing}.
 
-@item parameters
+@item nausicaa language parameters
 Parameter objects.  @ref{parameters, Parameter objects}.
 
-@item shared-structures
+@item nausicaa language shared-structures
 Reading and writing shared structures.  @ref{shared-structures, External
 representation for data with shared structure}.
 
-@item sentinel
+@item nausicaa language sentinel
 Sentinel values.  @ref{sentinel, The sentinel value}.
 
-@item makers
+@item nausicaa language makers
 Defining functions and macros with optional arguments.  @ref{makers,
 Maker syntaxes}.
 
-@item classes
+@item nausicaa language classes
 Provides record type extensions.  @ref{classes, Record utilities}.
 Notice that @func{receive/with-class} and @func{do*/with-class} are
 reexported with their name and also as @func{receive} and @func{do*}.
 
-@item compensations
+@item nausicaa language compensations
 Compensation stacks.  @ref{compensations, Compensation stacks}.
 
-@item deferred-exceptions
+@item nausicaa language deferred-exceptions
 Handling deferred exceptions.  @ref{deferred exceptions, Deferred
 exceptions}.
 
-@c @item generics
+@c @item nausicaa generics
 @c Provides generic functions.  @ref{generics, Multimethod dispatching}.
 @end table
 
@@ -167,7 +167,7 @@ do
 
 @noindent
 from @library{rnrs} are replaced by the following syntaxes from
-@library{classes}:
+@library{nausicaa language classes}:
 
 @example
 define/with-class
@@ -178,11 +178,11 @@ do/with-class
 @end example
 
 @noindent
-the original bindings from @library{classes} are still exported by
-@library{nausicaa}.
+the original bindings from @library{nausicaa language classes} are still
+exported by @library{nausicaa}.
 
 The @func{assert} syntax is redefined to be the one exported by the
-@library{assertions} library.
+@library{nausicaa language assertions} library.
 
 @c page
 @node nausicaa environment
@@ -350,7 +350,7 @@ for mutable pairs and also reexports all the bindings from
 
 @deftp Label @aclass{mutable-pair}
 Label for handling mutable pairs through the facilities of the
-@library{classes} library.
+@library{nausicaa language classes} library.
 @end deftp
 
 
@@ -411,8 +411,8 @@ for mutable strings and also reexports all the bindings from
 
 @deftp Label @aclass{mutable-string}
 Label for handling mutable strings through the facilities of the
-@library{classes} library.  Derived from @class{string}, inherits all
-its methods and fields.
+@library{nausicaa language classes} library.  Derived from
+@class{string}, inherits all its methods and fields.
 @end deftp
 
 

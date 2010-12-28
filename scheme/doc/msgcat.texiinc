@@ -2,8 +2,8 @@
 @chapter Messages catalog for internationalisation
 
 
-The @library{msgcat} allows to translate Scheme strings from the
-@code{en_GB} locale to other locales.
+The @library{nausicaa msgcat} allows to translate Scheme strings from
+the @code{en_GB} locale to other locales.
 
 @menu
 * msgcat intro::                Introduction to messages catalogs.
@@ -17,8 +17,8 @@ The @library{msgcat} allows to translate Scheme strings from the
 
 Messages translation is simply handled by a procedure applied to a
 string: the return value is meant to be the translated string.
-@library{msgcat} defines a ``standard'' translator procedure accepting
-one or two arguments:
+@library{nausicaa msgcat} defines a ``standard'' translator procedure
+accepting one or two arguments:
 
 @itemize
 @item
@@ -111,7 +111,7 @@ Here are some examples:
 
 @example
 (import (nausicaa)
-  (prefix (msgcat) msgcat:))
+  (prefix (nausicaa msgcat) msgcat:))
 
 (define it_IT (msgcat:load-catalog 'it_IT))
 (define en_US (msgcat:load-catalog 'en_US))
@@ -134,7 +134,7 @@ Load a catalog file and return a standard translator procedure;
 @var{name} must be a Scheme string or symbol representing the catalog
 name.  @value{PACKAGE} comes at least with the following catalogs
 installed as files: @samp{en_US}, @samp{it_IT}.  The @samp{en_GB}
-catalog is built into the @library{msgcat} library.
+catalog is built into the @library{nausicaa msgcat} library.
 
 The search path for the catalog file is selected by the environment
 variable @env{NAUSICAA_MSGCAT}, whose value must be a colon--separated

@@ -2,7 +2,8 @@
 @chapter Pretty printing
 
 
-The following bindings are exported by the @library{pretty-print} library.
+The following bindings are exported by the @library{nausicaa
+pretty-print} library.
 
 
 @defun pretty-print @var{obj}

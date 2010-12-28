@@ -8,7 +8,7 @@ arguments.  When called with two arguments: the first is an object and
 the second is its property value; they are stored in the hashtable.
 When called with one argument: the hashtable is queried using the
 argument as key, and the value is returned.  Object properties are
-implemented by the library @library{object-properties}.
+implemented by the library @library{nausicaa object-properties}.
 
 @quotation
 The idea of  object properties implemented in this library comes from
@@ -46,10 +46,9 @@ not registered before.  The default value is @false{}.
 The following will evaluate successfully:
 
 @example
-(import (scheme)
-  (uriel object-property)
-  (checks)
-  (srfi parameters))
+(import (nausicaa)
+  (object-property)
+  (nausicaa checks))
 
 (check-set-mode! 'report-failed)
 

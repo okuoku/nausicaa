@@ -2,8 +2,8 @@
 @chapter Deferred exceptions
 
 
-The @library{deferred-exceptions} library implements a mechanism to
-handle nested exceptions.
+The @library{nausicaa deferred-exceptions} library implements a
+mechanism to handle nested exceptions.
 
 @menu
 * deferred exceptions intro::   Introduction.
@@ -28,7 +28,7 @@ raises an exception?  If this @emph{second level} exception is left
 going: it replaces the original one (@emph{first level}), which is lost:
 
 @example
-(import (scheme))
+(import (rnrs))
 
 (with-exception-handler
     (lambda (e)

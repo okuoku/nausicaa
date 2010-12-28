@@ -2,8 +2,8 @@
 @chapter Unimplemented error condition
 
 
-The following bindings are exported by the @library{unimplemented}
-library.
+The following bindings are exported by the @library{nausicaa language
+unimplemented} library.
 
 
 @deftp Condition &unimplemented

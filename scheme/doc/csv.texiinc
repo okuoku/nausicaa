@@ -2,10 +2,10 @@
 @chapter Comma--separated values (@acronym{CSV}) utilities
 
 
-The @library{csv} library provides lexers and parsers to read data from
-``comma--separated value'' (@csv{}) files.  This format is not well
-defined, so the library provides both high level parsers and low level
-lexers that can be customised to fit specific needs.
+The @library{nausicaa csv} library provides lexers and parsers to read
+data from ``comma--separated value'' (@csv{}) files.  This format is not
+well defined, so the library provides both high level parsers and low
+level lexers that can be customised to fit specific needs.
 
 @menu
 * csv lexer::                   Low level tokenisation.
@@ -17,14 +17,14 @@ lexers that can be customised to fit specific needs.
 @section Low level tokenisation
 
 
-The @library{csv} library is built upon the @library{silex} library, and
-it makes available directly the lexer tables.  @ref{silex, A lexical
-analyser generator}
+The @library{nausicaa csv} library is built upon the @library{nausicaa
+silex} library, and it makes available directly the lexer tables.
+@ref{silex, A lexical analyser generator}
 
 
 @deffn Constant csv-unquoted-data-table
 The table used to tokenise data outside of strings.  This binding is
-exported by the @library{csv unquoted-data-lexer} library.
+exported by the @library{nausicaa csv unquoted-data-lexer} library.
 
 This table can be rebuilt from the source @file{unquoted-data.l} in the
 @file{src/libraries/csv} directory of the source distribution, with:
@@ -42,7 +42,7 @@ This table can be rebuilt from the source @file{unquoted-data.l} in the
 @deffn Constant csv-unquoted-data-table/comma
 The table used to tokenise data outside of strings, using the comma
 character as fields separator.  This binding is exported by the
-@library{csv unquoted-data-comma-lexer} library.
+@library{nausicaa csv unquoted-data-comma-lexer} library.
 
 This table can be rebuilt from the source @file{unquoted-data-comma.l}
 in the @file{src/libraries/csv} directory of the source distribution,
@@ -59,8 +59,8 @@ with:
 
 
 @deffn Constant csv-strings-table
-The table used to tokenise strings.  This binding is exported by
-the @library{csv strings-lexer} library.
+The table used to tokenise strings.  This binding is exported by the
+@library{nausicaa csv strings-lexer} library.
 
 This table can be rebuilt from the source @file{strings.l} in the
 @file{src/libraries/csv} directory of the source distribution, with:
@@ -85,9 +85,10 @@ This table can be rebuilt from the source @file{strings.l} in the
 @subsection Tokenising strings
 
 
-The @library{csv} library defines strings in a @csv{} file as sequences
-of characters enclosed in double--quotes @samp{"}.  Inside a string a
-double double--quote @samp{""} is interpreted as a single double--quote.
+The @library{nausicaa csv} library defines strings in a @csv{} file as
+sequences of characters enclosed in double--quotes @samp{"}.  Inside a
+string a double double--quote @samp{""} is interpreted as a single
+double--quote.
 
 To tokenise a string means to convert a string into the sequence of
 characters in it; this is done by a lexer using
@@ -101,11 +102,8 @@ tokenise strings as follows:
 
 @example
 (import (rnrs)
-  (only (keywords) define-keywords)
-  (silex lexer)
-  (csv strings-lexer))
-
-(define-keywords :string :counters)
+  (nausicaa silex lexer)
+  (nausicaa csv strings-lexer))
 
 (define (tokenise string)
   (let* ((IS    (lexer-make-IS (string: string) (counters: 'all)))
@@ -144,11 +142,8 @@ notice that the input system has to be created with @samp{:counters
 
 @example
 (import (rnrs)
-  (only (keywords) define-keywords)
-  (silex lexer)
-  (csv strings-lexer))
-
-(define-keywords :string)
+  (nausicaa silex lexer)
+  (nausicaa csv strings-lexer))
 
 (define (tokenise string)
   (let* ((IS    (lexer-make-IS (string: string)))
@@ -186,8 +181,8 @@ notice that the input system has to be created with @samp{:counters
 @subsection Tokenising unquoted data
 
 
-The @library{csv} library defines unquoted data as everything that is
-not inside a string.  The lexer built around
+The @library{nausicaa csv} library defines unquoted data as everything
+that is not inside a string.  The lexer built around
 @samp{csv-unquoted-data-table} will return:
 
 @itemize
@@ -217,11 +212,8 @@ We can take advantage of this to tokenise unquoted data as follows:
 
 @example
 (import (rnrs)
-  (only (keywords) define-keywords)
-  (silex lexer)
-  (csv unquoted-data-lexer))
-
-(define-keywords :string :counters)
+  (nausicaa silex lexer)
+  (nausicaa csv unquoted-data-lexer))
 
 (define (tokenise string)
   (let* ((IS    (lexer-make-IS (string: string) (counters: 'all)))
@@ -323,8 +315,8 @@ Here some examples:
 
 @example
 (import (rnrs)
-  (csv)
-  (strings))
+  (nausicaa csv)
+  (nausicaa strings))
 
 ; Notice how spaces around commas are preserved.
 (csv->list/comma

@@ -2,10 +2,11 @@
 @chapter Strings library
 
 
-The @library{strings} library extends the string operations available in
-the base library.  @nauref{baselib strings, Strings}.  While
-@library{strings} is a high level interface, @library{strings low} is a
-low level interface with the same functionalities.
+The @library{nausicaa strings} library extends the string operations
+available in the base library.  @nauref{baselib strings, Strings}.
+While @library{nausicaa strings} is a high level interface,
+@library{nausicaa strings low} is a low level interface with the same
+functionalities.
 
 @menu
 * strings intro::               Introduction.
@@ -36,11 +37,11 @@ low level interface with the same functionalities.
 
 @subsubheading Library organisation
 
-The functions are split in a high level library, @library{strings}, and
-a low level one, @library{strings low}.  The main difference between the
-two layers is that the high level library makes heavy usage of macros to
-implement the @dfn{string views}, which allow accessing substrings using
-a friendly syntax.
+The functions are split in a high level library, @library{nausicaa
+strings}, and a low level one, @library{nausicaa strings low}.  The main
+difference between the two layers is that the high level library makes
+heavy usage of macros to implement the @dfn{string views}, which allow
+accessing substrings using a friendly syntax.
 
 All the functions in the low level library are bound to identifiers
 starting with @code{%}; for example: @func{string-prefix?} is a high
@@ -59,7 +60,7 @@ sequence; for example, consider a string comprised entirely of
 zero--width Unicode accent characters with no preceding base character
 to modify: It is a legal string, albeit one that does not make sense
 when interpreted as a sequence of natural--language text.  The routines
-in @library{strings} do not handle these ``text'' concerns.
+in @library{nausicaa strings} do not handle these ``text'' concerns.
 
 @subsubheading Direction of iteration
 
@@ -250,9 +251,9 @@ table:
 
 String views are syntactic sugar to allow substring specification with
 minimum overhead; views make use of auxiliary syntaxes exported by the
-@library{auxiliary-syntaxes} library and reexported by the
-@library{strings} library.  Many low level string functions act on
-substrings specified with triplets of arguments:
+@library{nausicaa language auxiliary-syntaxes} library and reexported by
+the @library{nausicaa strings} library.  Many low level string functions
+act on substrings specified with triplets of arguments:
 
 @itemize
 @item
@@ -293,8 +294,9 @@ or:
   (%the-function str 0 (string-length str)))
 @end example
 
-With the string views implemented by @library{strings}, the low level
-function is wrapped by a high level syntax which can be invoked as:
+With the string views implemented by @library{nausicaa strings}, the low
+level function is wrapped by a high level syntax which can be invoked
+as:
 
 @example
 (the-function "ciao, hello, salut")
@@ -1351,10 +1353,10 @@ The function @func{%string-copy*} is an alias for @func{substring}; the
 macro @func{string-copy*} is an alias for @func{substring*}.
 
 @quotation
-These exist for symmetry with the @library{vectors} library; they allow
-more confidence in converting a vector function into a string function,
-and vice versa, by just replacing the string @code{vector} with the
-string @code{string}, and vice versa.
+These exist for symmetry with the @library{nausicaa vectors} library;
+they allow more confidence in converting a vector function into a string
+function, and vice versa, by just replacing the string @code{vector}
+with the string @code{string}, and vice versa.
 @end quotation
 @end deffn
 
@@ -1877,9 +1879,10 @@ the in--place side--effecting variant.
 @section Label string interface
 
 
-The @library{strings xstrings} library exports the single binding
-@class{xstring}, which provides an interface to the @library{strings}
-functions through the facilities of the @library{classes} library.
+The @library{nausicaa strings xstrings} library exports the single
+binding @class{xstring}, which provides an interface to the
+@library{nausicaa strings} functions through the facilities of the
+@library{nausicaa language classes} library.
 
 
 @deftp Label @aclass{xstring}

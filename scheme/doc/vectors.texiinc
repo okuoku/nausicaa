@@ -2,10 +2,11 @@
 @chapter Vectors library
 
 
-The @library{vectors} library extends the vector operations available in
-the base library.  @nauref{baselib vectors, Vectors}.  While
-@library{vectors} is a high level interface, @library{vectors low} is a
-low level interface with the same functionalities.
+The @library{nausicaa vectors} library extends the vector operations
+available in the base library.  @nauref{baselib vectors, Vectors}.
+While @library{nausicaa vectors} is a high level interface,
+@library{nausicaa vectors low} is a low level interface with the same
+functionalities.
 
 @menu
 * vectors intro::               Introduction.
@@ -34,11 +35,11 @@ low level interface with the same functionalities.
 
 @subsubheading Library organisation
 
-The functions are split in a high level library, @library{vectors}, and
-a low level one, @library{vectors low}.  The main difference between the
-two layers is that the high level library makes heavy usage of macros to
-implement the @dfn{vector views}, which allow accessing subvectors using
-a friendly syntax.
+The functions are split in a high level library, @library{nausicaa
+vectors}, and a low level one, @library{nausicaa vectors low}.  The main
+difference between the two layers is that the high level library makes
+heavy usage of macros to implement the @dfn{vector views}, which allow
+accessing subvectors using a friendly syntax.
 
 All the functions in the low level library are bound to identifiers
 starting with @code{%}; for example: @func{vector-prefix?} is a high
@@ -196,9 +197,9 @@ non--terminal subform of a begin expression.
 
 Vector views are syntactic sugar to allow subvector specification with
 minimum overhead; views make use of auxiliary syntaxes exported by the
-@library{auxiliary-syntaxes} library and reexported by the
-@library{vectors} library.  Many low level vector functions act on
-subvectors specified with triplets of arguments:
+@library{nausicaa language auxiliary-syntaxes} library and reexported by
+the @library{nausicaa vectors} library.  Many low level vector functions
+act on subvectors specified with triplets of arguments:
 
 @itemize
 @item
@@ -236,8 +237,9 @@ or:
   (%the-function vec 0 (vector-length vec)))
 @end example
 
-With the vector views implemented by @library{vectors}, the low level
-function is wrapped by a high level syntax which can be invoked as:
+With the vector views implemented by @library{nausicaa vectors}, the low
+level function is wrapped by a high level syntax which can be invoked
+as:
 
 @example
 (the-function '#(0 1 2 3 4 5 6 7))
@@ -1506,9 +1508,10 @@ the in--place side--effecting variant.
 @section Class interface to vector functions
 
 
-The @library{vectors xvectors} library exports the single binding
-@class{xvector}, which provides an interface to the @library{vectors}
-functions through the facilities of the @library{classes} library.
+The @library{nausicaa vectors xvectors} library exports the single
+binding @class{xvector}, which provides an interface to the
+@library{nausicaa vectors} functions through the facilities of the
+@library{nausicaa language classes} library.
 
 
 @deftp Label @aclass{xvector}

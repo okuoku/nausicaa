@@ -2,7 +2,7 @@
 @chapter Character sets
 
 
-The @library{char-sets} library handles sets of characters.
+The @library{nausicaa char-sets} library handles sets of characters.
 
 A ``character'' is every value for which the application of @func{char?}
 returns @true{}.  This library does nothing that can be related to a
@@ -69,7 +69,7 @@ character sets.
 @defvarx char-set-inner-lower-bound
 The character sets are defined by the Scheme standard to be in the
 ranges @code{[0, #xD800)} and @code{(#xDFFF, #x10FFFF]}.
-@library{char-sets} exports these symbols, defined as follows:
+@library{nausicaa char-sets} exports these symbols, defined as follows:
 
 @example
 (define char-set-lower-bound
@@ -255,8 +255,8 @@ Return a new character set holding all the characters in @var{string}.
 
 
 Several character sets are predefined for convenience by
-@library{char-sets} and other auxiliary libraries.  They are meant to
-satisfy the simplest needs.
+@library{nausicaa char-sets} and other auxiliary libraries.  They are
+meant to satisfy the simplest needs.
 
 @menu
 * char-sets sets intro::        Introduction.
@@ -323,20 +323,20 @@ The following methods were employed to define the character sets.
 @itemize
 @item
 The @ascii{}--related sets were composed by hand reading the @ascii{}
-description; they are exported by the @library{char-sets} library
-itself.
+description; they are exported by the @library{nausicaa char-sets}
+library itself.
 
 @item
 All the ranges defined by the @file{Blocks.txt} database file have been
-converted to a set by hand; they are exported by the @library{char-sets
-blocks} library (there are a lot of them).
+converted to a set by hand; they are exported by the @library{nausicaa
+char-sets blocks} library (there are a lot of them).
 
 @item
 Each general category (@code{Ll}, @code{Lu}, etc.) has been converted to
-a set; they are exported by the @library{char-sets categories} library
-(there are a lot of them).  Notice that not all the code points accepted
-by @func{char=?} are part of a general category, so the union of the
-category sets is different from the full character set.
+a set; they are exported by the @library{nausicaa char-sets categories}
+library (there are a lot of them).  Notice that not all the code points
+accepted by @func{char=?} are part of a general category, so the union
+of the category sets is different from the full character set.
 @end itemize
 
 @c ------------------------------------------------------------
@@ -399,7 +399,7 @@ lines describing the limit of a range of characters.
 The following Bourne shell script processes the @file{UnicodeData.txt}
 database and prints a Scheme program that, when evaluated, prints the
 definitions of category character sets.  The output script program makes
-use of the @library{char-sets} library itself.
+use of the @library{nausicaa char-sets} library itself.
 
 @smallexample
 # unicode-database-extract-category-code-points.sh --
@@ -409,7 +409,7 @@ DATABASE=$@{1:?'missing UnicodeData.txt pathname'@}
 
 CATEGORY_CODES=$(cut -d';' -f3 <"$DATABASE" | sort | uniq | grep -v Cs)
 
-echo '(import (rnrs) (char-sets))'
+echo '(import (rnrs) (nausicaa char-sets))'
 
 for CATEGORY in $CATEGORY_CODES
 do
@@ -467,7 +467,7 @@ ranges, is (reformatted to look human readable):
 
 
 The following character sets are defined and exported by the
-@library{char-sets} library.
+@library{nausicaa char-sets} library.
 
 
 @defvr {Character Set} char-set:full
@@ -485,7 +485,7 @@ The empty set.
 
 
 The following character sets are defined and exported by the
-@library{char-sets} library.
+@library{nausicaa char-sets} library.
 
 
 @defvr {Character Set} char-set:ascii
@@ -629,7 +629,7 @@ Sets of vowels and consonants.  Notice that lower case vowels are:
 
 
 The following character sets are defined and exported by the
-@library{char-sets blocks} library.
+@library{nausicaa char-sets blocks} library.
 
 
 @defvr {Character Set} char-set:block/basic-latin
@@ -810,7 +810,7 @@ These are the character sets corresponding to the ranges defined in the
 
 
 The following character sets are defined and exported by the
-@library{char-sets categories} library.
+@library{nausicaa char-sets categories} library.
 
 Notice that not all the code points accepted by @func{char=?} are part
 of a general category, so the union of the category sets is different

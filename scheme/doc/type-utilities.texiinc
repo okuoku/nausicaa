@@ -2,8 +2,8 @@
 @chapter Type utilities
 
 
-The following bindings are exported by the @library{type-utilities}
-library.
+The following bindings are exported by the @library{nausicaa
+type-utilities} library.
 
 
 @defmac define-type-assertion @var{name} @var{clause} ...

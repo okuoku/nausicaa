@@ -2,10 +2,11 @@
 @chapter Formatting strings
 
 
-The @library{formations} library is a distribution of the @func{format}
-function written by Dirk Lutzebaeck (@email{lutzeb@@cs.tu-berlin.de}),
-originally by Ken Dickey and Aubrey Jaffer, included in the Guile
-distribution and later adapted to @rnrs{6} Scheme by Marco Maggi.
+The @library{nausicaa formations} library is a distribution of the
+@func{format} function written by Dirk Lutzebaeck
+(@email{lutzeb@@cs.tu-berlin.de}), originally by Ken Dickey and Aubrey
+Jaffer, included in the Guile distribution and later adapted to @rnrs{6}
+Scheme by Marco Maggi.
 
 This document is derived from the documentation of Guile, the @gnu{}
 Ubiquitous Interface Language for Extensions.

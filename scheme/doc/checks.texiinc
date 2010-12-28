@@ -2,9 +2,10 @@
 @chapter Lightweight testing
 
 
-The @library{checks} library provides a simple mechanism for testing
-Scheme programs.  This library re--exports all the bindings from the
-@library{debugging} library.  As a primitive example, the expression:
+The @library{nausicaa checks} library provides a simple mechanism for
+testing Scheme programs.  This library re--exports all the bindings from
+the @library{nausicaa debugging} library.  As a primitive example, the
+expression:
 
 @example
 (check (+ 1 1) => 3)
@@ -114,7 +115,8 @@ select, Selecting tests to be run}.
 @deffnx Syntax check-ec @meta{qualifier} ... @var{expr} (=> @var{equal}) @var{expected}
 @deffnx Syntax check-ec @meta{qualifier} ... @var{expr} => @var{expected}
 An eager comprehension for executing a parametric sequence of checks.
-To use this syntax we have to import the @library{loops} library.
+To use this syntax we have to import the @library{nausicaa loops}
+library.
 
 Enumerate the sequence of bindings specified by the @meta{qualifier}
 syntaxes.  For each binding evaluate @var{equal} and @var{expected} in

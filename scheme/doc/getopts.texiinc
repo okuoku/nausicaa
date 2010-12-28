@@ -2,10 +2,11 @@
 @chapter Parsing command line arguments
 
 
-The @library{getopts} library implements basic parsing of Unix--style
-command line arguments.  It is meant to be used as low--level module in
-an infrastructure for command line interfaces (@acronym{CLI}).  The
-library is built on top of @library{classes}.
+The @library{nausicaa getopts} library implements basic parsing of
+Unix--style command line arguments.  It is meant to be used as
+low--level module in an infrastructure for command line interfaces
+(@acronym{CLI}).  The library is built on top of @library{nausicaa
+language classes}.
 
 @menu
 * getopts intro::               Introduction.
@@ -21,7 +22,7 @@ library is built on top of @library{classes}.
 
 
 Command line arguments are available through the @func{command-line}
-function from the @library{rnrs programs} library.  For the purposes of
+function from the @rsixlibrary{programs} library.  For the purposes of
 this documentation, command line arguments are divided into three
 categories:
 
@@ -273,7 +274,7 @@ Meaningless usage example:
 
 @example
 (import (rnrs)
-  (getopts))
+  (nausicaa getopts))
 
 (define result #f)
 

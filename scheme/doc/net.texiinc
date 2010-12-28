@@ -12,8 +12,8 @@
 @section Ipv4 address objects
 
 
-The library @library{net ipv4addresses} exports utilities to handle IPv4
-addresses specifications, according to @rfc{} 5735.
+The library @library{nausicaa net ipv4addresses} exports utilities to
+handle IPv4 addresses specifications, according to @rfc{} 5735.
 
 @menu
 * net ipv4address lexer::       Tokenising an IPv4 address.
@@ -28,13 +28,13 @@ addresses specifications, according to @rfc{} 5735.
 @subsection Tokenising an Ipv4 address string
 
 
-The following bindings are exported by the @library{net helpers
+The following bindings are exported by the @library{nausicaa net helpers
 ipv4address-lexer} library.
 
 
 @defvr Constant ipv4-address-lexer-table
-A lexer table to be used by the library @library{silex lexer} to
-tokenise textual IPv4 address or IPv4 address prefix representations.
+A lexer table to be used by the library @library{nausicaa silex lexer}
+to tokenise textual IPv4 address or IPv4 address prefix representations.
 @end defvr
 
 
@@ -42,10 +42,10 @@ To tokenise an IPv4 address string we can do:
 
 @example
 (import (nausicaa)
-  (silex lexer)
-  (net helpers ipv4address-lexer)
-  (parser-tools lexical-token)
-  (parser-tools source-location))
+  (nausicaa silex lexer)
+  (nausicaa net helpers ipv4address-lexer)
+  (nausicaa parser-tools lexical-token)
+  (nausicaa parser-tools source-location))
 
 (define (make-address-lexer address-string)
   (let ((IS (lexer-make-IS (string: address-string)
@@ -68,15 +68,15 @@ The longest IPv4 address string has: @math{4} numbers as address
 components, @math{3} separators between address components, a final
 slash and number to specify the address prefix length; the total is
 @math{4 + 3 + 1 = 8} tokens.  We may want to use
-@func{make-max-count-lexer} from @library{silex utilities} to limit the
-number of returned tokens.
+@func{make-max-count-lexer} from @library{nausicaa silex utilities} to
+limit the number of returned tokens.
 
 @c page
 @node net ipv4address parser
 @subsection Parsing an IPv4 address
 
 
-The following bindings are exported by the @library{net helpers
+The following bindings are exported by the @library{nausicaa net helpers
 ipv4address-parser} library.
 
 
@@ -95,11 +95,11 @@ To parse an IPv4 address string we can do:
 
 @example
 (import (nausicaa)
-  (silex lexer)
-  (net helpers ipv4address-lexer)
-  (net helpers ipv4address-parser)
-  (parser-tools lexical-token)
-  (parser-tools source-location))
+  (nausicaa silex lexer)
+  (nausicaa net helpers ipv4address-lexer)
+  (nausicaa net helpers ipv4address-parser)
+  (nausicaa parser-tools lexical-token)
+  (nausicaa parser-tools source-location))
 
 (define (make-ipv4-address-parser-error-handler who string)
   (lambda (message (token <lexical-token>))
@@ -154,8 +154,8 @@ element is a number.
 @subsection Condition objects and error handlers
 
 
-The following bindings are exported by the @library{net ipv4-addresses}
-library.
+The following bindings are exported by the @library{nausicaa net
+ipv4-addresses} library.
 
 
 @deftp {Condition Type} &ipv4-address-parser-error
@@ -201,8 +201,8 @@ to tag the compound object as @condition{error} or
 @subsection IPv4 address and address prefix class objects
 
 
-The following bindings are exported by the @library{net ipv4-addresses}
-library.
+The following bindings are exported by the @library{nausicaa net
+ipv4-addresses} library.
 
 
 @deftp Class @aclass{ipv4-address}
@@ -363,8 +363,8 @@ The string representation of the address prefix.
 @section IPv6 address objects
 
 
-The library @library{net ipv6addresses} exports utilities to handle IPv6
-addresses specifications, according to @rfc{} 4291.
+The library @library{nausicaa net ipv6addresses} exports utilities to
+handle IPv6 addresses specifications, according to @rfc{} 4291.
 
 @menu
 * net ipv6address lexer::       Tokenising an IPv6 address.
@@ -380,13 +380,13 @@ addresses specifications, according to @rfc{} 4291.
 @subsection Tokenising an IPv6 address string
 
 
-The following bindings are exported by the @library{net helpers
+The following bindings are exported by the @library{nausicaa net helpers
 ipv6address-lexer} library.
 
 
 @defvr Constant ipv6-address-lexer-table
-A lexer table to be used by the library @library{silex lexer} to
-tokenise textual IPv6 address or IPv6 address prefix representations.
+A lexer table to be used by the library @library{nausicaa silex lexer}
+to tokenise textual IPv6 address or IPv6 address prefix representations.
 @end defvr
 
 
@@ -394,10 +394,10 @@ To tokenise an IPv6 address string we can do:
 
 @example
 (import (nausicaa)
-  (silex lexer)
-  (net helpers ipv6address-lexer)
-  (parser-tools lexical-token)
-  (parser-tools source-location))
+  (nausicaa silex lexer)
+  (nausicaa net helpers ipv6address-lexer)
+  (nausicaa parser-tools lexical-token)
+  (nausicaa parser-tools source-location))
 
 (define (make-address-lexer address-string)
   (let ((IS (lexer-make-IS (string: address-string)
@@ -421,15 +421,15 @@ The longest IPv6 address string has: @math{8} numbers as address
 components, @math{7} separators between address components, a final
 slash and number to specify the address prefix length; the total is
 @math{8 + 7 + 2 = 17} tokens.  We may want to use
-@func{make-max-count-lexer} from @library{silex utilities} to limit the
-number of returned tokens.
+@func{make-max-count-lexer} from @library{nausicaa silex utilities} to
+limit the number of returned tokens.
 
 @c page
 @node net ipv6address parser
 @subsection Parsing an IPv6 address
 
 
-The following bindings are exported by the @library{net helpers
+The following bindings are exported by the @library{nausicaa net helpers
 ipv6address-parser} library.
 
 
@@ -448,11 +448,11 @@ To parse an IPv6 address string we can do:
 
 @example
 (import (nausicaa)
-  (silex lexer)
-  (net helpers ipv6address-lexer)
-  (net helpers ipv6address-parser)
-  (parser-tools lexical-token)
-  (parser-tools source-location))
+  (nausicaa silex lexer)
+  (nausicaa net helpers ipv6address-lexer)
+  (nausicaa net helpers ipv6address-parser)
+  (nausicaa parser-tools lexical-token)
+  (nausicaa parser-tools source-location))
 
 (define (make-ipv6-address-parser-error-handler who string)
   (lambda (message (token <lexical-token>))
@@ -564,8 +564,8 @@ all the bits not in the prefix must be zero.
 @subsection IPv6 address parsing utilities
 
 
-The following bindings are exported by the @library{net ipv6-addresses}
-library.
+The following bindings are exported by the @library{nausicaa net
+ipv6-addresses} library.
 
 
 @defun ipv6-address-parsed-list-split @var{ell}
@@ -684,8 +684,8 @@ objects of types @condition{ipv6-address-parser-error},
 @subsection Condition objects and error handlers
 
 
-The following bindings are exported by the @library{net ipv6-addresses}
-library.
+The following bindings are exported by the @library{nausicaa net
+ipv6-addresses} library.
 
 
 @deftp {Condition Type} &ipv6-address-parser-error
@@ -731,8 +731,8 @@ to tag the compound object as @condition{error} or
 @subsection IPv6 address and address prefix class objects
 
 
-The following bindings are exported by the @library{net ipv6-addresses}
-library.
+The following bindings are exported by the @library{nausicaa net
+ipv6-addresses} library.
 
 
 @deftp Class @aclass{ipv6-address}

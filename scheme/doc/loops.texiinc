@@ -2,8 +2,8 @@
 @chapter Loop constructs
 
 
-The @library{loops} library provides extensions to the Scheme language
-to loop over general sequences of values.
+The @library{nausicaa loops} library provides extensions to the Scheme
+language to loop over general sequences of values.
 
 @menu
 * loops intro::                 Introduction.
@@ -909,7 +909,7 @@ As @samp{continue} has been chosen by the macro implementing the
 comprehension, it can regain control and proceed with other qualifiers.
 
 In order to ensure consistency of new generators with the ones defined
-in @library{loops}, a few conventions are in order.
+in @library{nausicaa loops}, a few conventions are in order.
 
 @itemize
 @item

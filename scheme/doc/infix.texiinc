@@ -2,12 +2,12 @@
 @chapter Infix notation utilities
 
 
-The @library{infix} library provides utilities to convert infix notation
-expressions to prefix notation expressions; the library is built upon
-@library{nausicaa}, @library{silex lexer} and @library{lalr lr-driver}.
-The same functionality is packed in the standalone library
-@library{nausicaa language infix} and available as macro which can
-convert infix to prefix notation at expand time.
+The @library{nausicaa infix} library provides utilities to convert infix
+notation expressions to prefix notation expressions; the library is
+built upon @library{nausicaa}, @library{nausicaa silex lexer} and
+@library{nausicaa lalr lr-driver}.  The same functionality is packed in
+the standalone library @library{nausicaa language infix} and available
+as macro which can convert infix to prefix notation at expand time.
 
 @menu
 * infix strings::               Converting strings.
@@ -53,8 +53,8 @@ Some interpretation rules:
 Blank characters are ignored.
 
 @item
-Symbols in @var{expr-string} must match the following @library{silex}
-regular expression:
+Symbols in @var{expr-string} must match the following @library{nausicaa
+silex} regular expression:
 
 @example
 initial         [a-zA-Z_]

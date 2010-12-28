@@ -2,8 +2,8 @@
 @chapter Enumeration sets utilities
 
 
-The @library{enumerations} library defines utilities for enumeration
-sets.
+The @library{nausicaa enumerations} library defines utilities for
+enumeration sets.
 
 @menu
 * enumerations flags::          Flags and flags combinations.

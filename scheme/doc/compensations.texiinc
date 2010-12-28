@@ -2,9 +2,9 @@
 @chapter Compensation stacks
 
 
-The @library{compensations} library implements compensation stacks:
-syntactic sugar that allows us to write code to allocate a resource near
-the code that releases it in case of error.
+The @library{nausicaa language compensations} library implements
+compensation stacks: syntactic sugar that allows us to write code to
+allocate a resource near the code that releases it in case of error.
 
 @quotation
 Compensation stacks are described in: @emph{Finding and Preventing

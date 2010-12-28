@@ -2,15 +2,15 @@
 @chapter Time data types and procedures
 
 
-The @library{times-and-dates} library implements procedures and data
-types to manipulate timestamps and dates; the library is built on top of
-the facilities of the @library{classes} library.  @nauref{classes,
-Classes library}.
+The @library{nausicaa times-and-dates} library implements procedures and
+data types to manipulate timestamps and dates; the library is built on
+top of the facilities of the @library{nausicaa language classes}
+library.  @nauref{classes, Classes library}.
 
 This chapter contains chunks of slightly edited text from Wikipedia
-pages on time scales and related subjects.  The
-@library{times-and-dates} library is built upon such Wikipedia
-informations and informations extracted from the
+pages on time scales and related subjects.  The @library{nausicaa
+times-and-dates} library is built upon such Wikipedia informations and
+informations extracted from the
 @uref{http://@/www.tondering.dk/@/claus/@/calendar.html, Calendar
 @acronym{FAQ}} maintained by Claus Tondering.
 
@@ -36,8 +36,8 @@ informations and informations extracted from the
 @cindex Terrestrial time
 
 
-When using the @library{times-and-dates} library we aim at dealing with
-@uref{http://@/en.wikipedia.org/@/wiki/@/Terrestrial_Time,
+When using the @library{nausicaa times-and-dates} library we aim at
+dealing with @uref{http://@/en.wikipedia.org/@/wiki/@/Terrestrial_Time,
 @dfn{Terrestrial Time}} in which: seconds are the ones of the
 International System of Units (@acronym{SI}), defined using caesium
 atomic clocks; @math{60} seconds make one minute; @math{60} minutes make
@@ -256,9 +256,9 @@ then tai-seconds = utc-seconds + 11
 else ...
 @end example
 
-A leap seconds table is included in the library @library{times-and-dates
-leap-second-table}; it can be automatically generated with the script in
-the Nausicaa/Scheme sources
+A leap seconds table is included in the library @library{nausicaa
+times-and-dates leap-second-table}; it can be automatically generated
+with the script in the Nausicaa/Scheme sources
 @file{src/script/read-leap-seconds-table.sps} applied to the data file
 @file{src/data/tai-utc.dat}; the data file is from:
 
@@ -531,7 +531,7 @@ year/month/day hour:minute:second.
 @subsection Basic assumptions and policies
 
 
-The @library{times-and-dates} library:
+The @library{nausicaa times-and-dates} library:
 
 @itemize
 @item
@@ -597,15 +597,15 @@ the count of seconds since the Epoch on the @tai{} scale is
 @subsection Time points and interval durations
 
 
-@library{times-and-dates} represents time points as instances of the
-@class{time} class; a @class{time} object holds counts of seconds and
-nanoseconds on the @tai{} scale using the Unix Epoch as origin in time
-zone zero.  The counts are always both positive or both negative; when
-positive they represent a point in time after the Epoch, when negative
-they represent a point in time before the Epoch.
+@library{nausicaa times-and-dates} represents time points as instances
+of the @class{time} class; a @class{time} object holds counts of seconds
+and nanoseconds on the @tai{} scale using the Unix Epoch as origin in
+time zone zero.  The counts are always both positive or both negative;
+when positive they represent a point in time after the Epoch, when
+negative they represent a point in time before the Epoch.
 
-@library{times-and-dates} represents time durations as intances of the
-@class{duration} class; a @class{duration} object holds counts of
+@library{nausicaa times-and-dates} represents time durations as intances
+of the @class{duration} class; a @class{duration} object holds counts of
 seconds and nanoseconds on the @tai{} scale.  The counts are always both
 positive or both negative; when positive they represent a time interval
 from a time point forwards, when negative they represent a time interval
@@ -637,12 +637,12 @@ Conversion to @class{date} objects.
 @subsection Dates and calendar
 
 
-@library{times-and-dates} represents dates on the proleptic Gregorian
-calendar as instances of the @class{date} class.  A @class{date} object
-represents a point in time with the tuple: year, month, day, hour,
-minute, second, nanosecond on the @utc{} scale and time zone zero;
-additionally the time zone and daylight saving time are represented as
-offsets in seconds.
+@library{nausicaa times-and-dates} represents dates on the proleptic
+Gregorian calendar as instances of the @class{date} class.  A
+@class{date} object represents a point in time with the tuple: year,
+month, day, hour, minute, second, nanosecond on the @utc{} scale and
+time zone zero; additionally the time zone and daylight saving time are
+represented as offsets in seconds.
 
 @class{date} objects are immutable.
 
@@ -674,8 +674,8 @@ integral part representing the Julian Day Number.
 
 
 The following bindings are required from the underlying Scheme
-implementation, they should be exported by @library{times-and-dates
-compat}.
+implementation, they should be exported by @library{nausicaa
+times-and-dates compat}.
 
 
 @defun host:current-time
@@ -821,7 +821,7 @@ $ date '+%s' --date="$now"
 The @class{seconds-and-nanoseconds} class is meant to represent counts
 of seconds with neither selected interpretation as points in time or
 duration, nor selected time scale.  The following bindings are exported
-by the @library{times-and-dates} library.
+by the @library{nausicaa times-and-dates} library.
 
 
 @deftp Class @aclass{seconds-and-nanoseconds}
@@ -923,8 +923,8 @@ on the @tai{} scale; durations can be: defined directly, added to points
 in time or computed as difference between points in time.  Durations are
 represented by a seconds count and a nanoseconds count, which are
 normalised to be both non--negative or both non--positive.  The
-following bindings are exported by the @library{times-and-dates}
-library.
+following bindings are exported by the @library{nausicaa
+times-and-dates} library.
 
 
 @deftp Class @aclass{duration}
@@ -1093,7 +1093,7 @@ Return a copy of a @class{duration} instance.
 A time point is described by seconds and nanoseconds counts on the
 @tai{} scale (no leap seconds, time zone zero, no daylight saving time)
 using the Unix Epoch as origin.  The following bindings are exported by
-the @library{times-and-dates} library.
+the @library{nausicaa times-and-dates} library.
 
 
 @deftp Class @aclass{time}
@@ -1279,8 +1279,8 @@ the Daylight Saving Time is on.
 operations with dates, like the arithmetic ones, we have to convert the
 @class{date} objects to @class{time} objects.
 
-The following bindings are exported by the @library{times-and-dates}
-library.
+The following bindings are exported by the @library{nausicaa
+times-and-dates} library.
 
 
 @deftp Class @aclass{date}
@@ -1477,7 +1477,7 @@ Like invoking the @code{week-number} method of @var{date}.
 Before using the assertions proposed here consider using directly the
 predicate with @func{assert}: the only advantage of these assertions is
 an error message a bit more explicative.  The following bindings are
-exported by the @library{times-and-dates types} library.
+exported by the @library{nausicaa times-and-dates types} library.
 
 @c ------------------------------------------------------------
 
@@ -1786,8 +1786,8 @@ count of nanoseconds.
 @subsubsection Constant values for seconds and subseconds units
 
 
-The following bindings are exported by the @library{times-and-dates
-seconds} library.
+The following bindings are exported by the @library{nausicaa
+times-and-dates seconds} library.
 
 
 @defvr Constant $number-of-nanoseconds-in-one-microsecond
@@ -1834,8 +1834,9 @@ Conversion coefficients for second counts.
 @subsubsection Utilities for seconds and subseconds units counts
 
 
-The following bindings are exported by the @library{times-and-dates
-seconds} library.  The following naming conventions hold:
+The following bindings are exported by the @library{nausicaa
+times-and-dates seconds} library.  The following naming conventions
+hold:
 
 @itemize
 @item
@@ -2028,8 +2029,8 @@ and vice versa.
 @subsubsection Constants
 
 
-The following bindings are exported from the @library{times-and-dates
-years-and-weeks} library.
+The following bindings are exported from the @library{nausicaa
+times-and-dates years-and-weeks} library.
 
 
 @defvr Constant $number-of-seconds-in-half-day
@@ -2063,8 +2064,8 @@ month.
 @subsubsection Year utility functions
 
 
-The following bindings are exported from the @library{times-and-dates
-years-and-weeks} library.
+The following bindings are exported from the @library{nausicaa
+times-and-dates years-and-weeks} library.
 
 
 @defun gregorian-leap-year? @var{yaer}
@@ -2142,8 +2143,8 @@ From the Calendar @acronym{FAQ}, section 2.13.7.
 @subsubsection Week utility functions
 
 
-The following bindings are exported from the @library{times-and-dates
-years-and-weeks} library.
+The following bindings are exported from the @library{nausicaa
+times-and-dates years-and-weeks} library.
 
 
 @defun gregorian-index-of-day-in-week @var{year} @var{month} @var{day}
@@ -2192,9 +2193,9 @@ in which the year starts on Friday (index 5) the results are as follows:
 @subsection Julian calendar utilities
 
 
-The following bindings are exported by the @library{times-and-dates
-julian-calendar} library.  The arguments to the functions are supposed
-to be in their valid type and range:
+The following bindings are exported by the @library{nausicaa
+times-and-dates julian-calendar} library.  The arguments to the
+functions are supposed to be in their valid type and range:
 
 @itemize
 @item

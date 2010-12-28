@@ -2,10 +2,10 @@
 @chapter Sources of random bits
 
 
-The @library{randomisations} library provides an @api{} to access
-sources of random and pseudo--random bits, or ``randomness sources'' for
-brevity.  Other, auxiliary libraries provide access to miscellaneous
-randomness generators and utilities.
+The @library{nausicaa randomisations} library provides an @api{} to
+access sources of random and pseudo--random bits, or ``randomness
+sources'' for brevity.  Other, auxiliary libraries provide access to
+miscellaneous randomness generators and utilities.
 
 @menu
 * random intro::                Introduction.
@@ -363,7 +363,7 @@ adjacent fractions:
 
 @example
 (import (rnrs)
-  (lists))
+  (nausicaa lists))
 
 (define M 5)
 (fold-left (lambda (prev-X X)
@@ -558,8 +558,8 @@ Generating real numbers}, for details.
 @section L'Ecuyer's MRG32k3a generator
 
 
-The default randomness source of @library{randomisations} is Pierre
-L'Ecuyer's MRG32k3a generator:
+The default randomness source of @library{nausicaa randomisations} is
+Pierre L'Ecuyer's MRG32k3a generator:
 
 @quotation
 P. L'Ecuyer.  ``Good Parameter Sets for Combined Multiple Recursive
@@ -621,8 +621,8 @@ N = (A0 - B0) mod M1
 @noindent
 notice that @math{M1} and @math{M2} are two prime numbers just below
 @math{2^32}; @math{c2}, @math{c3}, @math{d1} and @math{d3} are called
-@dfn{recursion coefficients}.  The @library{randomisations} library
-defines the initial state vectors as:
+@dfn{recursion coefficients}.  The @library{nausicaa randomisations}
+library defines the initial state vectors as:
 
 @example
 A1 = 1062452522
@@ -716,8 +716,8 @@ reading bytes from @file{/dev/urandom}.
 @subsection Miscellaneous utility functions
 
 
-The following bindings are exported by the @library{randomisations}
-library.
+The following bindings are exported by the @library{nausicaa
+randomisations} library.
 
 
 @defun random-source-integers-maker-from-range @var{source} @var{start} @var{last}
@@ -788,9 +788,9 @@ vector of length @var{n} for the images of the points.
 @subsection Specialised list functions
 
 
-The auxiliary library @library{randomisations lists} exports bindings
-specialised to handle lists and randomness sources; it is based on
-@library{randomisations} only.
+The auxiliary library @library{nausicaa randomisations lists} exports
+bindings specialised to handle lists and randomness sources; it is based
+on @library{nausicaa randomisations} only.
 
 
 @defun random-list-unfold-numbers @var{number-maker} @var{number-of-numbers}
@@ -823,12 +823,13 @@ from @var{source}.
 @subsection Specialised vector functions
 
 
-The auxiliary library @library{randomisations vectors} exports bindings
-specialised to handle vectors and randomness sources; it is based on
-both @library{randomisations} and @library{vectors}.  Arguments to the
-following functions follow the same conventions established for
-@library{vectors} and @library{vectors low}.  @ref{vectors convention,
-Interface conventions}
+The auxiliary library @library{nausicaa randomisations vectors} exports
+bindings specialised to handle vectors and randomness sources; it is
+based on both @library{nausicaa randomisations} and @library{nausicaa
+vectors}.  Arguments to the following functions follow the same
+conventions established for @library{nausicaa vectors} and
+@library{nausicaa vectors low}.  @ref{vectors convention, Interface
+conventions}
 
 
 @defun random-vector-unfold-numbers @var{number-maker} @var{number-of-numbers}
@@ -894,12 +895,13 @@ their sum equals approximately @var{requested-sum} with @var{tolerance}:
 @subsection Specialised string functions
 
 
-The auxiliary library @library{randomisations strings} exports bindings
-specialised to handle strings and randomness sources; it is based on
-both @library{randomisations} and @library{strings}.  Arguments to the
-following functions follow the same conventions established for
-@library{strings} and @library{strings low}.  @ref{strings convention,
-Interface conventions}
+The auxiliary library @library{nausicaa randomisations strings} exports
+bindings specialised to handle strings and randomness sources; it is
+based on both @library{nausicaa randomisations} and @library{nausicaa
+strings}.  Arguments to the following functions follow the same
+conventions established for @library{nausicaa strings} and
+@library{nausicaa strings low}.  @ref{strings convention, Interface
+conventions}
 
 
 @defun random-string-unfold-chars @var{integer-maker} @var{number-of-chars}
@@ -912,9 +914,9 @@ real world applications, use a true random source):
 
 @example
 (import (rnrs)
-  (random)
-  (random strings)
-  (char-sets))
+  (nausicaa randomisations)
+  (nausicaa randomisations strings)
+  (nausicaa char-sets))
 
 (random-string-unfold-chars
   (lambda ()
@@ -992,8 +994,8 @@ length is chosen to be a Mersenne prime@footnote{Wikipedia contributors,
 @url{http://en.wikipedia.org/w/index.php?title=Mersenne_twister&oldid=299648661}
 (accessed July 1, 2009).}.
 
-The following bindings are exported by the @library{randomisations
-mersenne} library.
+The following bindings are exported by the @library{nausicaa
+randomisations mersenne} library.
 
 
 @defun make-random-source/mersenne
@@ -1010,11 +1012,11 @@ applied tot a numbers maker returning integers representable with
 @end defun
 
 
-@library{randomisations mersenne} initialises the generator drawing
-@math{32} bits integer numbers from a specifically built MRG32k3a
-randomness source, which in turn is initialised with the default
-@library{randomisations} seeds.  @ref{random mrg32k3a, L'Ecuyer's
-MRG32k3a generator}
+@library{nausicaa randomisations mersenne} initialises the generator
+drawing @math{32} bits integer numbers from a specifically built
+MRG32k3a randomness source, which in turn is initialised with the
+default @library{nausicaa randomisations} seeds.  @ref{random mrg32k3a,
+L'Ecuyer's MRG32k3a generator}
 
 @c page
 @node random generators marsaglia
@@ -1023,8 +1025,8 @@ MRG32k3a generator}
 
 The generators described here were posted by George Marsaglia in a
 thread on @url{sci.stat.math} and @url{sci.crypt} starting on January,
-12 1999.  The following bindings are exported by the
-@library{randomisations marsaglia} library.
+12 1999.  The following bindings are exported by the @library{nausicaa
+randomisations marsaglia} library.
 
 For all the randomness sources, the @func{random-source-seed!} function
 must be applied to a number maker returning integers representable with
@@ -1407,11 +1409,11 @@ can be considered a cryptographically secure @acronym{PRNG}.  The search
 of such prime numbers is a delicate and complex task; we have to turn to
 specialised literature to learn how to do it.
 
-The following bindings are exported by the @library{randomisations
-blum-blum-shub} library.  The library makes no attempt to validate the
-seed numbers for the cryptographic requirements, it just implements the
-@acronym{PRNG} algorithm; attaining cryptographic security is entirely
-on our shoulders.
+The following bindings are exported by the @library{nausicaa
+randomisations blum-blum-shub} library.  The library makes no attempt to
+validate the seed numbers for the cryptographic requirements, it just
+implements the @acronym{PRNG} algorithm; attaining cryptographic
+security is entirely on our shoulders.
 
 
 @defun make-random-source/blum-blum-shub
@@ -1476,9 +1478,9 @@ X = (S * S) mod M
 @end example
 @end enumerate
 
-The generator in @library{randomisations blum-blum-shub} computes a new
-integer @math{N} representable with @math{32} bits, from an initial
-state @math{X} with the following formulation:
+The generator in @library{nausicaa randomisations blum-blum-shub}
+computes a new integer @math{N} representable with @math{32} bits, from
+an initial state @math{X} with the following formulation:
 
 @example
 X0 = (X * X) mod M
@@ -1512,8 +1514,8 @@ Edition.  Addison-Wesley.  Page 106-108.
 @end quotation
 
 @noindent
-the following bindings are exported by the @library{randomisations
-borosh} library.
+the following bindings are exported by the @library{nausicaa
+randomisations borosh} library.
 
 
 @defun make-random-source/borosh
@@ -1544,7 +1546,8 @@ N' = (A * N) mod M
 @end example
 
 @noindent
-@library{randomisations borosh} sets the initial state to @math{N = 1}.
+@library{nausicaa randomisations borosh} sets the initial state to
+@math{N = 1}.
 
 @c page
 @node random generators cmrg
@@ -1565,8 +1568,8 @@ Operations Research, 44, 5 (1996), 816--822.
 @end quotation
 
 @noindent
-the following bindings are exported by the @library{randomisations cmrg}
-library.
+the following bindings are exported by the @library{nausicaa
+randomisations cmrg} library.
 
 
 @defun make-random-source/cmrg
@@ -1620,7 +1623,7 @@ M2 = 2^31 - 2000169 = 2145483479
 According to the paper the initial values for @math{X} must lie in the
 range @math{0 <= X < M1} and the initial values for @math{Y} must lie in
 the range @math{0 <= Y < M2}, with at least one non--zero value.
-@library{randomisations cmrg} initialises the generator with:
+@library{nausicaa randomisations cmrg} initialises the generator with:
 
 @example
 X1 = 7   X2 = 17   X3 = 47
@@ -1637,8 +1640,8 @@ generator until it is @math{0 < X < M1} and @math{0 < Y < M2}.
 @section Random numbers from known distributions
 
 
-The following functions are exported by the @library{randomisations
-distributions} library.
+The following functions are exported by the @library{nausicaa
+randomisations distributions} library.
 
 
 @defun random-exponentials-maker @var{source}

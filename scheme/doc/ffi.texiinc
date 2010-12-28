@@ -59,8 +59,8 @@ can try, at installation time, to select a C library pathname with the
 Here is a list of the most important libraries:
 
 @table @library
-@item ffi clang-data-types
-@itemx ffi clang-data-types compat
+@item nausicaa ffi clang-data-types
+@itemx nausicaa ffi clang-data-types compat
 Export functions to convert Scheme symbols representing external C
 language data types to Scheme symbols representing C language data types
 recognised by the underlying Scheme implementation; it also provides
@@ -70,31 +70,31 @@ The generic library is processed by @gnu{} Autoconf to gather values
 from the package configuration step; the @code{compat} library is
 specific to the underlying implementation.
 
-@item ffi sizeof
+@item nausicaa ffi sizeof
 Exports macros used to inspect constant values like the size of basic C
 language data types.  The library is processed by @gnu{} Autoconf to
 gather values from the package configuration step.
 
-@item ffi peekers-and-pokers
-@itemx ffi peekers-and-pokers compat
+@item nausicaa ffi peekers-and-pokers
+@itemx nausicaa ffi peekers-and-pokers compat
 Export an @api{} for raw memory access through peeker and poker
 functions and user--friendly macros; the @code{compat} library is
 specific to the underlying implementation.
 
-@item ffi conditions
+@item nausicaa ffi conditions
 Definition of condition object related to the foreign--functions
 interface.
 
-@item ffi pointers
+@item nausicaa ffi pointers
 Exports an interface to memory pointer values as disjoint Scheme object
 type.
 
-@item ffi compat
+@item nausicaa ffi compat
 Exports an adapter interface to the foreign--functions interfaces of the
 underlying Scheme implementation.  This library is not meant to be used
 directly by client code.
 
-@item ffi
+@item nausicaa ffi
 Exports both a low level function--based @api{} and a high level
 user--friendly macro--based @api{}.  It provides loading and inspection
 of shared libraries and constructors of callout and callback functions.
@@ -105,11 +105,12 @@ of shared libraries and constructors of callout and callback functions.
 @subsection Condition objects
 
 
-The bindings described in this section are exported by the @library{ffi
-conditions} library and reexported by the compound library
-@library{ffi}.  There are two kinds of condition objects: data
-conditions, which are meant to hold values; error conditions, which are
-meant to tag condition objects describing the cause of the exception.
+The bindings described in this section are exported by the
+@library{nausicaa ffi conditions} library and reexported by the compound
+library @library{nausicaa ffi}.  There are two kinds of condition
+objects: data conditions, which are meant to hold values; error
+conditions, which are meant to tag condition objects describing the
+cause of the exception.
 
 @menu
 * ffi core conditions library-name::    Foreign library names.
@@ -290,10 +291,10 @@ unsigned-int  unsigned-long  unsigned-long-long
 
 We have to remember that C strings (zero terminated arrays of
 @samp{char}) must be converted from/to Scheme strings with
-@func{string->cstring} and @func{cstring->string} from the @library{ffi
-cstrings} library (or equivalent), and exchanged with foreign functions
-as pointer objects.  @ref{ffi cstrings conversion, Converting to and
-from cstrings}.
+@func{string->cstring} and @func{cstring->string} from the
+@library{nausicaa ffi cstrings} library (or equivalent), and exchanged
+with foreign functions as pointer objects.  @ref{ffi cstrings
+conversion, Converting to and from cstrings}.
 
 @float Table
 @multitable {012345678901234567} {0123456789012345678} {01234567890123456789012}
@@ -511,7 +512,7 @@ Notice that Petite's @ffi{} is only partially supported.}
 @end float
 
 
-The following bindings are exported by the @library{ffi
+The following bindings are exported by the @library{nausicaa ffi
 clang-data-types} library.
 
 
@@ -556,16 +557,16 @@ documentation for details.
 @subsection Sizes and limits
 
 
-The @library{ffi sizeof} library exports a set of bindings to allow
-interface libraries to be aware of C language type sizes and limits.
-When using this library, it is suggested to import it with prefix
-@samp{ffi:}, because other libraries in the Nausicaa distribution export
-bindings with the same name.
+The @library{nausicaa ffi sizeof} library exports a set of bindings to
+allow interface libraries to be aware of C language type sizes and
+limits.  When using this library, it is suggested to import it with
+prefix @samp{ffi.}, because other libraries in the Nausicaa distribution
+export bindings with the same name.
 
 In all the following syntax descriptions: @meta{type name} must be a
 symbol representing a C language type in the enumeration
-@enum{clang-external-types} from the @library{ffi clang-data-types}
-library.
+@enum{clang-external-types} from the @library{nausicaa ffi
+clang-data-types} library.
 
 
 @deffn Syntax c-sizeof @ameta{type name}
@@ -646,8 +647,9 @@ reference memory blocks; they are a disjoint type defined by the
 predicate @func{pointer?}.  The only pointer constructor is
 @func{integer->pointer}.
 
-The following bindings are exported by the @library{ffi pointers}
-library and reexported by @library{ffi} and @library{ffi memory}.
+The following bindings are exported by the @library{nausicaa ffi
+pointers} library and reexported by @library{nausicaa ffi} and
+@library{nausicaa ffi memory}.
 
 
 @defun pointer? @var{x}
@@ -745,16 +747,16 @@ With the single exception of @func{pointer<>?}: All the functions return
 
 
 A rich set of procedures is implemented to access directly memory blocks
-referenced by pointer objects; they are exported by the @library{ffi
-peekers-and-pokers compat} library.  These procedures are accessible
-through a small set of macros, which expand to a direct call to the
-procedure.
+referenced by pointer objects; they are exported by the
+@library{nausicaa ffi peekers-and-pokers compat} library.  These
+procedures are accessible through a small set of macros, which expand to
+a direct call to the procedure.
 
-The bindings described in this section are exported by the @library{ffi
-peekers-and-pokers} library and reexported by @library{ffi memory}.
-When using this library, it is suggested to import it with prefix
-@samp{ffi:}, because other libraries in the Nausicaa distribution export
-bindings with the same name.
+The bindings described in this section are exported by the
+@library{nausicaa ffi peekers-and-pokers} library and reexported by
+@library{nausicaa ffi memory}.  When using this library, it is suggested
+to import it with prefix @samp{ffi:}, because other libraries in the
+Nausicaa distribution export bindings with the same name.
 
 @quotation
 @strong{NOTE} When specifying ranges of exact integers: @math{[1, 3]}
@@ -770,7 +772,7 @@ it.  @meta{pointer} must be a pointer object; @meta{offset} must be an
 exact integer which is @strong{not} scaled by the type dimension.
 
 @meta{type} must be a symbol representing a C language type in the
-enumeration @enum{clang-external-types} from the @library{ffi
+enumeration @enum{clang-external-types} from the @library{nausicaa ffi
 clang-data-types} library; in particular the meaning of the basic types
 is as follows:
 
@@ -871,7 +873,7 @@ integer which is @strong{not} scaled by the type dimension.
 @meta{value} can be an expression, which is evaluated only once.
 
 @meta{type} must be a symbol representing a C language type in the
-enumeration @enum{clang-external-types} from the @library{ffi
+enumeration @enum{clang-external-types} from the @library{nausicaa ffi
 clang-data-types} library; in particular the meaning of the basic types
 is as follows:
 
@@ -969,8 +971,8 @@ Expand to an expression evaluating to the pointer accessor function for
 @meta{type}; the returned function accepts two arguments: a pointer
 object, an offset from the pointer object.  @meta{type} must be a symbol
 representing a C language type in the enumeration
-@enum{clang-external-types} from the @library{ffi clang-data-types}
-library.
+@enum{clang-external-types} from the @library{nausicaa ffi
+clang-data-types} library.
 @end deffn
 
 
@@ -980,7 +982,7 @@ Expand to an expression evaluating to the pointer mutator function for
 object, an offset from the pointer object, the value to store at the
 selected location.  @meta{type} must be a symbol representing a C
 language type in the enumeration @enum{clang-external-types} from the
-@library{ffi clang-data-types} library.
+@library{nausicaa ffi clang-data-types} library.
 @end deffn
 
 
@@ -1013,8 +1015,8 @@ the array of @meta{type} referenced by @meta{pointer}.  @meta{pointer}
 must be a pointer object; @meta{index} must be an exact integer
 representing an index in the referenced array; @meta{type} must be a
 symbol representing a C language type in the enumeration
-@enum{clang-external-types} from the @library{ffi clang-data-types}
-library.
+@enum{clang-external-types} from the @library{nausicaa ffi
+clang-data-types} library.
 @end deffn
 
 @c page
@@ -1040,7 +1042,7 @@ interface is called @dfn{shared object}.  Under @value{PACKAGE}, a
 shared object can be opened, but not closed.  The @api{} makes use of a
 Scheme object to represent a shared object; it allows access to all the
 functions and variables exported by the library.  The following bindings
-are exported by the @library{ffi} library.
+are exported by the @library{nausicaa ffi} library.
 
 
 @defun open-shared-object @var{library-name}
@@ -1103,7 +1105,8 @@ Expand to:
 @subsubsection Calling foreign functions
 
 
-The following bindings are exported by the @library{ffi} library.
+The following bindings are exported by the @library{nausicaa ffi}
+library.
 
 
 @defun make-c-callout @var{ret-type} @var{address} @var{arg-types}
@@ -1185,9 +1188,9 @@ deflateEnd
 @subsubsection Calling Scheme functions
 
 
-The following bindings are exported by the @library{ffi} library.  As
-example, the following form defines a callback accepting three
-@samp{int} as arguments and returning an @samp{int}:
+The following bindings are exported by the @library{nausicaa ffi}
+library.  As example, the following form defines a callback accepting
+three @samp{int} as arguments and returning an @samp{int}:
 
 @example
 (define (fn a b c)
@@ -1245,7 +1248,8 @@ releasing such a resource.
 @subsubsection Utility macros
 
 
-The following bindings are exported by the @library{ffi} library.
+The following bindings are exported by the @library{nausicaa ffi}
+library.
 
 In the following macro descriptions: the type symbols in
 @ameta{ret-type} and @ameta{arg-type} are normalised by applying to each
@@ -1394,7 +1398,7 @@ Interfaces to the @func{make-c-callout*} and
 @subsubsection Low level interface
 
 
-The following bindings are exported by the @library{ffi compat}
+The following bindings are exported by the @library{nausicaa ffi compat}
 library.  This interface adapts the Scheme implementation @ffi{} to the
 requirements of the Nausicaa distribution.
 
@@ -1561,7 +1565,8 @@ or as macros:
 
 @noindent
 a user--friendly way to use these accessors and mutators is to define a
-label with the features of the @library{classes} library:
+label with the features of the @library{nausicaa language classes}
+library:
 
 @example
 (define-label <struct-z_stream>
@@ -1668,7 +1673,7 @@ or as macro:
 
 @noindent
 a user--friendly way to use this accessor is to define a label with the
-features of the @library{classes} library:
+features of the @library{nausicaa language classes} library:
 
 @example
 (define-label <struct-dirent>
@@ -2533,11 +2538,11 @@ EKEYREJECTED    EOWNERDEAD      ENOTRECOVERABLE
 @subsection Generating an interface
 
 
-This section documents the @library{ffi inspector-maker} library, which
-provides some automation in the generation of the infrastructure
-required by interfaces to foreign, C language, libraries.  At present
-this library is for internal use, so Nausicaa's end users can just
-ignore it.
+This section documents the @library{nausicaa ffi inspector-maker}
+library, which provides some automation in the generation of the
+infrastructure required by interfaces to foreign, C language, libraries.
+At present this library is for internal use, so Nausicaa's end users can
+just ignore it.
 
 The library is meant to be loaded by a Scheme program, which generates a
 set of files required by the interface; the program's file should be in
@@ -2566,18 +2571,18 @@ NAUSICAA_LIBXML
 where @code{NAUSICAA_LIBXML} is the name of the macro.
 
 @item src/libraries/xml/libxml2/sizeof.sls.in
-A template for the @library{xml libxml2 sizeof} library holding foreign
-data types inspection definitions and constants definitions.  It is
-meant  to be processed by the @command{configure} script to insert
+A template for the @library{nausicaa xml libxml2 sizeof} library holding
+foreign data types inspection definitions and constants definitions.  It
+is meant to be processed by the @command{configure} script to insert
 values for the @code{@@...@@} symbols.
 
 @item src/libraries/xml/libxml2/clang-data-types.sls.in
-A template for the @library{xml libxml2 clang-data-types} library
-holding functions to convert between Scheme symbols representing Libxml2
-data types and Scheme symbols in the @enum{clang-external-types}
-enumeration from @library{ffi clang-data-types}.  It is meant to be
-processed by the @command{configure} script to insert values for the
-@code{@@...@@} symbols.
+A template for the @library{nausicaa xml libxml2 clang-data-types}
+library holding functions to convert between Scheme symbols representing
+Libxml2 data types and Scheme symbols in the @enum{clang-external-types}
+enumeration from @library{nausicaa ffi clang-data-types}.  It is meant
+to be processed by the @command{configure} script to insert values for
+the @code{@@...@@} symbols.
 @end table
 
 @c ------------------------------------------------------------
@@ -2873,8 +2878,8 @@ introduced with @func{sizeof-lib}.  Example:
 @section Low level memory handling
 
 
-The @library{ffi memory} library exports a low level @api{} for memory
-allocation and access; memory allocated with this @api{} is not
+The @library{nausicaa ffi memory} library exports a low level @api{} for
+memory allocation and access; memory allocated with this @api{} is not
 subjected to garbage collection.  It is a compound library re--exporting
 @api{}s from the following component libraries:
 
@@ -2911,8 +2916,8 @@ Independent libraries
 @subsection Out of memory errors
 
 
-The following bindings are exported by @library{ffi memory conditions}
-and re--exported by @library{ffi memory}.
+The following bindings are exported by @library{nausicaa ffi memory
+conditions} and re--exported by @library{nausicaa ffi memory}.
 
 
 @deftp Condition {&out-of-memory}
@@ -3014,7 +3019,8 @@ requested block of memory (allocated by the exception handler).
 
 
 The memory alloction @api{} described in this section is exported by
-@library{ffi memory alloc} and re--exported by @library{ffi memory}.
+@library{nausicaa ffi memory alloc} and re--exported by
+@library{nausicaa ffi memory}.
 
 @menu
 * ffi memory alloc system::     System functions.
@@ -3031,9 +3037,9 @@ The memory alloction @api{} described in this section is exported by
 
 The system @api{} deals with pointer values as exact integers; it is a
 very raw @api{} which should be used only when absolutely required.
-Many functions in @library{ffi memory} require pointers to be of type
-@samp{pointer}; sometimes, though, foreign libraries require the raw
-pointer value, for example to be stored in structure fields.
+Many functions in @library{nausicaa ffi memory} require pointers to be
+of type @samp{pointer}; sometimes, though, foreign libraries require the
+raw pointer value, for example to be stored in structure fields.
 
 For some Scheme implementations the @samp{system-} @api{} is a little
 faster than the @samp{platform-} one, while for others it is a little
@@ -3248,10 +3254,11 @@ To log memory allocations we can do:
 @subsection Memory blocks
 
 
-The bindings described in this section are exported by @library{ffi
-memory memblocks} and reexported by @library{ffi memory}; a number of
-libraries in the @library{ffi memory ---} hierarchy makes use of this
-library.  The library is built on top of @library{classes}.
+The bindings described in this section are exported by @library{nausicaa
+ffi memory memblocks} and reexported by @library{nausicaa ffi memory}; a
+number of libraries in the @library{nausicaa ffi memory ---} hierarchy
+makes use of this library.  The library is built on top of
+@library{nausicaa language classes}.
 
 @menu
 * ffi memory blocks type::        Record type definition.
@@ -3327,7 +3334,7 @@ record.
 Return a new @class{memblock} record holding a newly allocated memory
 block equal to the one referenced by @var{mb}.  The new block is
 allocated with @var{malloc}, which must be a function like @func{malloc}
-from @library{ffi memory alloc}.
+from @library{nausicaa ffi memory alloc}.
 @end defun
 
 @c page
@@ -3344,7 +3351,7 @@ purposes.
 
 When converting from a string, the new memory block is allocated with
 @var{malloc}, which must be a function like @func{malloc} from
-@library{ffi memory alloc}.
+@library{nausicaa ffi memory alloc}.
 
 When converting to a string, the returned value is in upper case.
 @end defun
@@ -3428,10 +3435,10 @@ and zero size; it is meant to be used as sentinel value.
 @subsection Caching memory blocks
 
 
-The following bindings are exported by @library{ffi memory caches} and
-re--exported by @library{ffi memory}.  This library makes use of
-@class{memblock} records, whose interface is exported by @library{ffi
-memory memblocks}.
+The following bindings are exported by @library{nausicaa ffi memory
+caches} and re--exported by @library{nausicaa ffi memory}.  This library
+makes use of @class{memblock} records, whose interface is exported by
+@library{nausicaa ffi memory memblocks}.
 
 
 @defun make-block-cache @var{number-of-bytes} @var{max-depth}
@@ -3635,10 +3642,11 @@ The functions described here make use of compensation stacks to handle
 semi--automatice release of allocated memory.  @ref{compensations,
 Compensation stacks}
 
-The following bindings are exported by @library{ffi memory compensated}
-and re--exported by @library{ffi memory}.  This library makes internal
-use of @library{ffi memory caches}; the @api{} requires also the
-@library{compensations} and @library{ffi memory memblocks} libraries.
+The following bindings are exported by @library{nausicaa ffi memory
+compensated} and re--exported by @library{nausicaa ffi memory}.  This
+library makes internal use of @library{nausicaa ffi memory caches}; the
+@api{} requires also the @library{nausicaa language compensations} and
+@library{nausicaa ffi memory memblocks} libraries.
 
 
 @defun malloc/compensated @var{number-of-bytes}
@@ -3706,8 +3714,8 @@ environment of the current compensations stack.
 @subsection Operations
 
 
-The following bindings are exported by @library{ffi memory operations}
-and re--exported by @library{ffi memory}.
+The following bindings are exported by @library{nausicaa ffi memory
+operations} and re--exported by @library{nausicaa ffi memory}.
 
 
 @defun memcpy @var{dest-pointer} @var{source-pointer} @var{number-of-bytes}
@@ -3744,10 +3752,10 @@ return value is zero.
 @subsection Bytevectors conversion
 
 
-The following bindings are exported by @library{ffi memory bytevectors}
-and re--exported by @library{ffi memory}.  The @api{} requires the
-@library{ffi memory memblocks} library when @class{memblock} records are
-used.
+The following bindings are exported by @library{nausicaa ffi memory
+bytevectors} and re--exported by @library{nausicaa ffi memory}.  The
+@api{} requires the @library{nausicaa ffi memory memblocks} library when
+@class{memblock} records are used.
 
 In the implementation of the following functions:
 
@@ -3841,8 +3849,9 @@ contiguously from a preallocated memory block accessed through a
 in the status of the pool.  When using this allocator there is no need
 to release individual blocks: Releasing the pool releases all of them.
 
-The following bindings are exported by @library{ffi memory mempool}.
-The library is built on top of @library{classes}.
+The following bindings are exported by @library{nausicaa ffi memory
+mempool}.  The library is built on top of @library{nausicaa language
+classes}.
 
 
 @deftp Class @aclass{mempool}
@@ -3904,8 +3913,8 @@ Example:
 
 @example
 (import (nausicaa)
-  (ffi memory)
-  (ffi memory mempool))
+  (nausicaa ffi memory)
+  (nausicaa ffi memory mempool))
 
 (define pool
   (make-<mempool> (malloc 4096) 4096))
@@ -3924,9 +3933,8 @@ or using compensations:
 
 @example
 (import (nausicaa)
-  (ffi memory compensate)
-  (ffi memory mempool)
-  (compensations))
+  (nausicaa ffi memory compensate)
+  (nausicaa ffi memory mempool))
 
 (with-compensations
   (parametrise ((memory-pool
@@ -3957,7 +3965,8 @@ pointer returned by MALLOC/REFCOUNT
 the reference counter is handled as an @code{unsigned long} and it is
 located at a negative offset from the address we use to access data.
 
-The following bindings are exported by @library{ffi memory refcount}.
+The following bindings are exported by @library{nausicaa ffi memory
+refcount}.
 
 
 @defun malloc/refcount @var{number-of-bytes}
@@ -4016,8 +4025,9 @@ usage example with compensations (@pxref{compensations}):
 @subsection Memory buffers
 
 
-The following bindings are exported by @library{ffi memory membuffers};
-the library is built on top of @class{classes}.
+The following bindings are exported by @library{nausicaa ffi memory
+membuffers}; the library is built on top of @library{nausicaa language
+classes}.
 
 
 @deftp Class @aclass{membuffer}
@@ -4153,7 +4163,7 @@ Field accessors for condition objects of type
 
 The functions described in this section are usable only when the Scheme
 implementation provides guardians.  The following bindings are exported
-by @library{ffi memory guarded-malloc}.
+by @library{nausicaa ffi memory guarded-malloc}.
 
 
 @defun malloc/guarded @var{number-of-bytes}
@@ -4161,9 +4171,10 @@ A wrapper for @func{malloc} which (if the allocation is successful)
 registers the pointer into a guardian and return it.
 
 The library registers a cleanup function for the guardian in the state
-of the @library{cleanup-handlers} library, so memory allocated with this
-function is released by invoking @func{cleanup}.  @strong{Do not} free
-this memory with @func{primitive-free} or any other free function.
+of the @library{nausicaa cleanup-handlers} library, so memory allocated
+with this function is released by invoking @func{cleanup}.  @strong{Do
+not} free this memory with @func{primitive-free} or any other free
+function.
 @end defun
 
 
@@ -4179,7 +4190,7 @@ Like @func{malloc/guarded} but makes use of @func{calloc}.
 
 A @dfn{C string} is a block of memory holding a string of characters
 terminated by a zero byte.  The functions described in this chapter are
-exported by the @library{ffi cstrings} library.
+exported by the @library{nausicaa ffi cstrings} library.
 
 @menu
 * ffi cstrings constants::      Constant values.
@@ -4418,8 +4429,8 @@ strings.
 @section C language system errors
 
 
-The bindings described in this chapter are exported by the @library{ffi
-errno} library.
+The bindings described in this chapter are exported by the
+@library{nausicaa ffi errno} library.
 
 @menu
 * ffi errno values::            Error codes.

@@ -2,12 +2,12 @@
 @chapter Packrat parser
 
 
-The @library{packrat} library implements parsing combinators using the
-Packrat parsing algorithm: A memoizing, backtracking, recursive descent
-parsing technique that runs in time and space linear in the size of the
-input text.  There is no single Scheme object which can be named
-``Packrat parser'', rather a parser is a collection of combinator
-functions calling each other.
+The @library{nausicaa packrat} library implements parsing combinators
+using the Packrat parsing algorithm: A memoizing, backtracking,
+recursive descent parsing technique that runs in time and space linear
+in the size of the input text.  There is no single Scheme object which
+can be named ``Packrat parser'', rather a parser is a collection of
+combinator functions calling each other.
 
 The library makes use of the @class{lexical-token} and
 @class{source-location} record types, and follows their protocol for
@@ -19,7 +19,7 @@ following directive:
 
 @example
 (import (rnrs)
-  (prefix (packrat) packrat:))
+  (prefix (nausicaa packrat) packrat.))
 @end example
 
 @noindent
@@ -38,7 +38,8 @@ to avoid imported bindings name conflicts.
 
 
 For a generic introduction to parsers, see the tutorial for the
-@library{lalr} library.  @ref{lalr intro, Introduction to the LR parser}
+@library{nausicaa lalr} library.  @ref{lalr intro, Introduction to the
+LR parser}
 
 @menu
 * packrat intro state::         Handling the parser state.
@@ -161,8 +162,8 @@ notice how @func{first} takes care of generating a new @class{state}
 record with @func{next-state}.
 
 There are many ways, and so much freedom, in composing combinators to
-parse the tokens.  @library{packrat} provides a handful of standard ways
-to compose client supplied combinators.
+parse the tokens.  @library{nausicaa packrat} provides a handful of
+standard ways to compose client supplied combinators.
 
 @c page
 @node packrat calc
@@ -517,8 +518,8 @@ Field accessors.
 
 The @dfn{parsing combinators} are functions taking as argument a
 @class{state} record and returning a @class{result} record.
-@library{packrat} provides a set of combinator makers which can be used
-to generate commonly used combinator procedures.
+@library{nausicaa packrat} provides a set of combinator makers which can
+be used to generate commonly used combinator procedures.
 
 @menu
 * packrat comb terminal::       Expecting a token category.
@@ -1017,10 +1018,10 @@ Conditions}
 @subsection Left recursion problem
 
 
-The @library{packrat} library implements no special handling to support
-left recursive combinators; the implementation of @library{packrat} has
-the purpose of keeping the code simple (it is not the only parser
-library distributed with @value{PACKAGE}).
+The @library{nausicaa packrat} library implements no special handling to
+support left recursive combinators; the implementation of
+@library{nausicaa packrat} has the purpose of keeping the code simple
+(it is not the only parser library distributed with @value{PACKAGE}).
 
 To understand the left recursion problem of the Packrat algorithm, let's
 examine the following example:
