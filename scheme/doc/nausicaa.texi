@@ -597,7 +597,7 @@ the list of original documents and their authors.  See also the
 @insertcopying
 
 @menu
-* overview::
+* overview::                    Overview of @value{PACKAGE}.
 * scheme::                      The Scheme language.
 * baselib::                     Base library.
 * stdlib::                      Standard libraries.
@@ -674,6 +674,7 @@ More libraries
 * submodules::                  Nested modules.
 * interps::                     Evaluating code as in an interpreter.
 * evaluations::                 Evaluating code in a limited environment.
+* r6rs::                        Tools for handling @rnrs{6} source code.
 
 Low level libraries
 
@@ -781,6 +782,7 @@ Indexes
 @include submodules.texiinc
 @include interps.texiinc
 @include evaluations.texiinc
+@include r6rs.texiinc
 
 @c chapters on low level libraries
 

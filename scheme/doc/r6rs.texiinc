@@ -1,0 +1,20 @@
+@node r6rs
+@chapter Tools for handling @rnrs{6} source code
+
+
+The libraries under the @library{nausicaa r6rs ---} hierarchy provide
+tools to manipulate the Scheme source code compliant with the @rnrs{6}
+standard.
+
+@menu
+* r6rs lexer::                  Tokenising @rnrs{6} source code.
+@end menu
+
+@c page
+@node r6rs lexer
+@section Tokenising @rnrs{6} source code
+
+
+
+
+@c end of file
