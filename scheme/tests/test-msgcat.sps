@@ -25,9 +25,10 @@
 ;;;
 
 
+#!r6rs
 (import (nausicaa)
-  (msgcat)
-  (checks))
+  (nausicaa msgcat)
+  (nausicaa checks))
 
 (check-set-mode! 'report-failed)
 (display "*** testing msgcat\n")

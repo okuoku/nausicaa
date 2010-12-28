@@ -24,8 +24,9 @@
 ;;;
 
 
+#!r6rs
 (import (nausicaa)
-  (checks))
+  (nausicaa checks))
 
 (check-set-mode! 'report-failed)
 (display "*** testing some R6RS compliance and Nausicaa extensions\n")

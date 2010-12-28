@@ -29,8 +29,8 @@
   (export test-calc)
   (import (except (nausicaa) =)
     (only (rnrs) =)
-    (silex lexer)
-    (checks))
+    (nausicaa silex lexer)
+    (nausicaa checks))
 
 
 (define (test-calc table)

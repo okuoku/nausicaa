@@ -55,9 +55,10 @@
 ;;;PARTICULAR PURPOSE.
 
 
+#!r6rs
 (import (nausicaa)
-  (times-and-dates seconds-and-subseconds)
-  (checks))
+  (nausicaa times-and-dates seconds-and-subseconds)
+  (nausicaa checks))
 
 (check-set-mode! 'report-failed)
 (display "*** testing times-and-dates seconds utilities\n")

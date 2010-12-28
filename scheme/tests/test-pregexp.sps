@@ -18,9 +18,10 @@
 ;;;
 
 
+#!r6rs
 (import (nausicaa)
-  (pregexp)
-  (checks))
+  (nausicaa pregexp)
+  (nausicaa checks))
 
 (check-set-mode! 'report-failed)
 (display "*** testing pregexp\n")

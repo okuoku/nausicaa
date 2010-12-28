@@ -25,12 +25,11 @@
 
 
 (import (nausicaa)
-  (checks)
-  (ffi memory)
-  (ffi memory compensated)
-  (ffi sizeof)
-  (formations)
-  (compensations))
+  (nausicaa checks)
+  (nausicaa ffi memory)
+  (nausicaa ffi memory compensated)
+  (nausicaa ffi sizeof)
+  (nausicaa formations))
 
 (check-set-mode! 'report-failed)
 (display "*** testing memory\n")

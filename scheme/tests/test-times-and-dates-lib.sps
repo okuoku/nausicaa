@@ -54,10 +54,11 @@
 ;;;PARTICULAR PURPOSE.
 
 
+#!r6rs
 (import (nausicaa)
-  (checks)
-  (times-and-dates)
-;;;  (times-and-dates seconds)
+  (nausicaa checks)
+  (nausicaa times-and-dates)
+;;;  (nausicaa times-and-dates seconds)
   )
 
 (check-set-mode! 'report-failed)

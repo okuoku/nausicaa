@@ -26,11 +26,10 @@
 
 #!r6rs
 (import (nausicaa)
-  (keywords)
-  (lalr)
-  (sentinel)
-  (parser-tools lexical-token)
-  (checks))
+  (nausicaa lalr)
+  (nausicaa language sentinel)
+  (nausicaa parser-tools lexical-token)
+  (nausicaa checks))
 
 (check-set-mode! 'report-failed)
 (display "*** testing lalr GLR driver \n")

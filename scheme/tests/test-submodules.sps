@@ -27,11 +27,11 @@
 ;;;<http://www.gnu.org/licenses/>.
 ;;;
 
-
 
+#!r6rs
 (import (nausicaa)
-  (submodules)
-  (checks))
+  (nausicaa submodules)
+  (nausicaa checks))
 
 (check-set-mode! 'report-failed)
 (display "*** testing submodules\n")

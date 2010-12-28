@@ -28,10 +28,10 @@
 #!r6rs
 (import (nausicaa)
   (rnrs eval)
-  (makers)
+  (nausicaa language makers)
   (prefix (makers-lib) lib.)	;this is in the tests directory
-  (checks)
-  (sentinel))
+  (nausicaa checks)
+  (nausicaa language sentinel))
 
 (check-set-mode! 'report-failed)
 (display "*** testing makers\n")
@@ -666,7 +666,7 @@
 		    (beta	2)
 		    (gamma	3)))
 		 'bad)
-	      (environment '(rnrs) '(makers))))
+	      (environment '(rnrs) '(nausicaa language makers))))
     => "expected identifier as maker name in maker definition")
 
   (check
@@ -682,7 +682,7 @@
 		    (beta	2)
 		    (gamma	3)))
 		 'bad)
-	      (environment '(rnrs) '(makers))))
+	      (environment '(rnrs) '(nausicaa language makers))))
     => "expected identifiers as positional argument names")
 
   (check	;unknown clause
@@ -698,7 +698,7 @@
 		    (beta	2)
 		    (gamma	3)))
 		 (doit (ciao 9)))
-	      (environment '(rnrs) '(makers))))
+	      (environment '(rnrs) '(nausicaa language makers))))
     => "unrecognised argument keyword, expected one among: alpha, beta, gamma")
 
   #t)
@@ -719,7 +719,7 @@
 		    (beta	2)
 		    (gamma	3)))
 		 (doit #(alpha 9)))
-	      (environment '(rnrs) '(makers))))
+	      (environment '(rnrs) '(nausicaa language makers))))
     => "expected pair as maker clause")
 
   (check	;invalid clause
@@ -735,7 +735,7 @@
 		    (beta	2)
 		    (gamma	3)))
 		 (doit (123 9)))
-	      (environment '(rnrs) '(makers))))
+	      (environment '(rnrs) '(nausicaa language makers))))
     => "expected identifier as first element of maker clause")
 
   (check	;invalid clause
@@ -751,7 +751,7 @@
 		    (beta	2)
 		    (gamma	3)))
 		 (doit (alpha)))
-	      (environment '(rnrs) '(makers))))
+	      (environment '(rnrs) '(nausicaa language makers))))
     => "expected list of two or more values as maker clause")
 
   (check	;clause used multiple times
@@ -766,7 +766,7 @@
 			 (beta	2)
 			 (gamma	3)))
 		 (doit (alpha 10) (alpha 11)))
-	      (environment '(rnrs) '(makers))))
+	      (environment '(rnrs) '(nausicaa language makers))))
     => '("maker clause used multiple times" alpha))
 
 
@@ -787,7 +787,7 @@
 			 (beta	2)
 			 (gamma	3)))
 		 (doit (beta 20)))
-	      (environment '(rnrs) '(makers))))
+	      (environment '(rnrs) '(nausicaa language makers))))
     => '("missing mandatory maker clause" alpha))
 
   (check	;missing clause to be used along
@@ -802,7 +802,7 @@
 			 (beta	2)
 			 (gamma	3)))
 		 (doit (alpha 20)))
-	      (environment '(rnrs) '(makers))))
+	      (environment '(rnrs) '(nausicaa language makers))))
     => '("maker clause \"alpha\" used without companion clause" beta))
 
   (check	;clause used along with mutually exclusive clause
@@ -817,7 +817,7 @@
 			 (beta	2)
 			 (gamma	3)))
 		 (doit (alpha 20) (beta 30)))
-	      (environment '(rnrs) '(makers))))
+	      (environment '(rnrs) '(nausicaa language makers))))
     => '("maker clause \"alpha\" used with mutually exclusive clause" beta))
 
   (check	;keyword declared in its own list of companion clauses
@@ -830,7 +830,7 @@
 		 list ((alpha	1 (with alpha))
 		       (beta	2)
 		       (gamma	3)))
-	      (environment '(rnrs) '(makers))))
+	      (environment '(rnrs) '(nausicaa language makers))))
     => '("maker clause keyword used in its own list of companion clauses" alpha))
 
   (check	;keyword declared in its own list of mutually exclusive clauses
@@ -843,7 +843,7 @@
 		 list ((alpha	1 (without alpha))
 		       (beta	2)
 		       (gamma	3)))
-	      (environment '(rnrs) '(makers))))
+	      (environment '(rnrs) '(nausicaa language makers))))
     => '("maker clause keyword used in its own list of mutually exclusive clauses" alpha))
 
   (check	;same keywords in both companion clauses and mutually exclusive clauses
@@ -856,7 +856,7 @@
 		 list ((alpha	1 (without beta) (with beta))
 		       (beta	2)
 		       (gamma	3)))
-	      (environment '(rnrs) '(makers))))
+	      (environment '(rnrs) '(nausicaa language makers))))
     => '("maker clause includes the same keywords in both companion clauses and mutually exclusive clauses" (beta)))
 
   (check	;same keywords in both companion clauses and mutually exclusive clauses
@@ -869,7 +869,7 @@
 		 list ((alpha	1 (without beta gamma) (with beta gamma))
 		       (beta	2)
 		       (gamma	3)))
-	      (environment '(rnrs) '(makers))))
+	      (environment '(rnrs) '(nausicaa language makers))))
     => '("maker clause includes the same keywords in both companion clauses and mutually exclusive clauses" (beta gamma)))
 
   (check	;unknown option in "with" clauses
@@ -882,7 +882,7 @@
 		 list ((alpha	1 (with beta delta gamma))
 		       (beta	2)
 		       (gamma	3)))
-	      (environment '(rnrs) '(makers))))
+	      (environment '(rnrs) '(nausicaa language makers))))
     => '("unknown keyword in list of companion clauses" delta))
 
   (check	;unknown option in "without" clauses
@@ -895,7 +895,7 @@
 		 list ((alpha	1 (without beta delta gamma))
 		       (beta	2)
 		       (gamma	3)))
-	      (environment '(rnrs) '(makers))))
+	      (environment '(rnrs) '(nausicaa language makers))))
     => '("unknown keyword in list of mutually exclusive clauses" delta))
 
   #t)

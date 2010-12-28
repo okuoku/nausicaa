@@ -25,10 +25,11 @@
 ;;;
 
 
+#!r6rs
 (import (nausicaa)
-  (times-and-dates types)
+  (nausicaa times-and-dates types)
   (rnrs eval)
-  (checks))
+  (nausicaa checks))
 
 (check-set-mode! 'report-failed)
 (display "*** testing times-and-dates types\n")
@@ -81,7 +82,7 @@
 		       (else #f))
 	       (eval '(?func 'dummy ?ok)
 		     (environment '(rnrs)
-				  '(times-and-dates types))))
+				  '(nausicaa times-and-dates types))))
 	   => #t)
 	 ))))
 
@@ -188,7 +189,7 @@
 		       (else 'bad))
 	       (eval '(?func 'dummy ?bad)
 		     (environment '(rnrs)
-				  '(times-and-dates types))))
+				  '(nausicaa times-and-dates types))))
 	   => 'good)
 	 ...
 	 ))))

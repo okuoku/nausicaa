@@ -27,8 +27,8 @@
 
 (import (nausicaa)
   (rnrs mutable-pairs (6))
-  (checks)
-  (lists))
+  (nausicaa checks)
+  (nausicaa lists))
 
 (check-set-mode! 'report-failed)
 (display "*** testing graph notation\n")

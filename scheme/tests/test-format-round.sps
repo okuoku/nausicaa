@@ -25,10 +25,9 @@
 
 
 
-;;;; setup
-
+#!r6rs
 (import (nausicaa)
-  (checks)
+  (nausicaa checks)
   (rnrs mutable-strings))
 
 (check-set-mode! 'report-failed)

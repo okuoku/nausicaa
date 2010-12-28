@@ -29,7 +29,7 @@
 (library (makers-lib)
   (export doit1 doit2 doit3 doit4 :alpha :beta :gamma)
   (import (rnrs)
-    (makers))
+    (nausicaa language makers))
 
   (define-auxiliary-syntax :alpha)
   (define-auxiliary-syntax :beta)

@@ -32,7 +32,7 @@
     table-of-variables
     evaluated-expressions)
   (import (rnrs)
-    (parameters))
+    (nausicaa language parameters))
   (define table-of-variables
     (make-parameter #f))
   (define evaluated-expressions

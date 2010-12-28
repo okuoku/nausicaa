@@ -26,7 +26,7 @@
 
 (import (nausicaa)
   (rnrs eval (6))
-  (checks))
+  (nausicaa checks))
 
 (check-set-mode! 'report-failed)
 (display "*** testing cond-expand\n")

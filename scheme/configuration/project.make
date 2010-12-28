@@ -37,56 +37,55 @@ ds_texi_AUX_PREREQ		= $(wildcard $(ds_texi_SRCDIR)/*.texiinc)
 ## Installation of source and fasl libraries.
 ## --------------------------------------------------------------------
 
-$(eval $(call nau-libraries,core))
+$(eval $(call nau-libraries,core,.))
 
 # Lexicographic order please.
-$(eval $(call nau-libraries,armor,armor))
-$(eval $(call nau-libraries,bytevectors,bytevectors))
-$(eval $(call nau-libraries,char-sets,char-sets))
-$(eval $(call nau-libraries,cond-expand,cond-expand))
-$(eval $(call nau-libraries,classes,classes))
-$(eval $(call nau-libraries,contracts,contracts))
-$(eval $(call nau-libraries,csv,csv))
-$(eval $(call nau-libraries,email,email))
-$(eval $(call nau-libraries,email_addresses,email/addresses))
-$(eval $(call nau-libraries,evaluations,evaluations))
-$(eval $(call nau-libraries,ffi,ffi))
-$(eval $(call nau-libraries,ffi_clang_data_types,ffi/clang-data-types))
-$(eval $(call nau-libraries,ffi_pointers,ffi/pointers))
-$(eval $(call nau-libraries,ffi_peekers-and-pokers,ffi/peekers-and-pokers))
-$(eval $(call nau-libraries,ffi_memory,ffi/memory))
-$(eval $(call nau-libraries,ffi_memory_alloc,ffi/memory/alloc))
-$(eval $(call nau-libraries,generics,generics))
-$(eval $(call nau-libraries,identifier-properties,identifier-properties))
-$(eval $(call nau-libraries,infix,infix))
-$(eval $(call nau-libraries,interps,interps))
-$(eval $(call nau-libraries,json,json))
-$(eval $(call nau-libraries,lalr,lalr))
-$(eval $(call nau-libraries,libraries,libraries))
-$(eval $(call nau-libraries,lists,lists))
-$(eval $(call nau-libraries,makers,makers))
-##$(eval $(call nau-libraries,msgcat,msgcat))
+$(eval $(call nau-libraries,armor,nausicaa/armor))
+$(eval $(call nau-libraries,bytevectors,nausicaa/bytevectors))
+$(eval $(call nau-libraries,char_sets,nausicaa/char-sets))
+$(eval $(call nau-libraries,cond_expand,nausicaa/language/cond-expand))
+$(eval $(call nau-libraries,classes,nausicaa/language/classes))
+$(eval $(call nau-libraries,contracts,nausicaa/contracts))
+$(eval $(call nau-libraries,csv,nausicaa/csv))
+$(eval $(call nau-libraries,email,nausicaa/email))
+$(eval $(call nau-libraries,email_addresses,nausicaa/email/addresses))
+$(eval $(call nau-libraries,evaluations,nausicaa/evaluations))
+$(eval $(call nau-libraries,ffi,nausicaa/ffi))
+$(eval $(call nau-libraries,ffi_clang_data_types,nausicaa/ffi/clang-data-types))
+$(eval $(call nau-libraries,ffi_pointers,nausicaa/ffi/pointers))
+$(eval $(call nau-libraries,ffi_peekers_and_pokers,nausicaa/ffi/peekers-and-pokers))
+$(eval $(call nau-libraries,ffi_memory,nausicaa/ffi/memory))
+$(eval $(call nau-libraries,ffi_memory_alloc,nausicaa/ffi/memory/alloc))
+$(eval $(call nau-libraries,generics,nausicaa/generics))
+$(eval $(call nau-libraries,identifier_properties,nausicaa/language/identifier-properties))
+$(eval $(call nau-libraries,infix,nausicaa/infix))
+$(eval $(call nau-libraries,interps,nausicaa/interps))
+$(eval $(call nau-libraries,json,nausicaa/json))
+$(eval $(call nau-libraries,lalr,nausicaa/lalr))
+$(eval $(call nau-libraries,libraries,nausicaa/libraries))
+$(eval $(call nau-libraries,lists,nausicaa/lists))
+$(eval $(call nau-libraries,makers,nausicaa/language/makers))
+##$(eval $(call nau-libraries,msgcat,nausicaa/msgcat))
 $(eval $(call nau-libraries,nausicaa,nausicaa))
-$(eval $(call nau-libraries,net,net))
-$(eval $(call nau-libraries,net_helpers,net/helpers))
-$(eval $(call nau-libraries,parser-tools,parser-tools))
-$(eval $(call nau-libraries,profiling,profiling))
-$(eval $(call nau-libraries,randomisations,randomisations))
-$(eval $(call nau-libraries,r6rs,r6rs))
-$(eval $(call nau-libraries,scmobj,scmobj))
-$(eval $(call nau-libraries,silex,silex))
-$(eval $(call nau-libraries,strings,strings))
-$(eval $(call nau-libraries,times-and-dates,times-and-dates))
-$(eval $(call nau-libraries,uri,uri))
-$(eval $(call nau-libraries,vectors,vectors))
+$(eval $(call nau-libraries,nausicaa_language,nausicaa/language))
+$(eval $(call nau-libraries,net,nausicaa/net))
+$(eval $(call nau-libraries,net_helpers,nausicaa/net/helpers))
+$(eval $(call nau-libraries,parser_tools,nausicaa/parser-tools))
+$(eval $(call nau-libraries,profiling,nausicaa/profiling))
+$(eval $(call nau-libraries,randomisations,nausicaa/randomisations))
+$(eval $(call nau-libraries,silex,nausicaa/silex))
+$(eval $(call nau-libraries,strings,nausicaa/strings))
+$(eval $(call nau-libraries,times_and_dates,nausicaa/times-and-dates))
+$(eval $(call nau-libraries,uri,nausicaa/uri))
+$(eval $(call nau-libraries,vectors,nausicaa/vectors))
 
 #page
 ## --------------------------------------------------------------------
 ## Message catalogs.
 ## --------------------------------------------------------------------
 
-$(eval $(call ds-srcdir,msgcat,$(srcdir)/src/libraries/msgcat))
-$(eval $(call ds-builddir,msgcat,$(nau_sls_BUILDDIR)/msgcat))
+$(eval $(call ds-srcdir,msgcat,$(srcdir)/src/libraries/nausicaa/msgcat))
+$(eval $(call ds-builddir,msgcat,$(nau_sls_BUILDDIR)/nausicaa/msgcat))
 
 msgcat_SOURCES	= $(call ds-glob,msgcat,*.cat)
 msgcat_TARGETS	= $(call ds-replace-dir,$(msgcat_BUILDDIR),$(msgcat_SOURCES))
@@ -351,7 +350,7 @@ endif
 .PHONY: csv
 
 csv:
-	cd $(srcdir)/src/libraries/csv && $(CSV_RUNNER) $(CSV_PROGRAM)
+	cd $(srcdir)/src/libraries/nausicaa/csv && $(CSV_RUNNER) $(CSV_PROGRAM)
 
 #page
 ## --------------------------------------------------------------------
@@ -383,7 +382,7 @@ endif
 .PHONY: infix
 
 infix:
-	cd $(srcdir)/src/libraries/infix && $(INFIX_RUNNER) make-tables.sps
+	cd $(srcdir)/src/libraries/nausicaa/infix && $(INFIX_RUNNER) make-tables.sps
 
 #page
 ## --------------------------------------------------------------------
@@ -416,7 +415,7 @@ endif
 .PHONY: email
 
 email:
-	cd $(srcdir)/src/libraries/email/addresses && $(EMAIL_RUNNER) $(EMAIL_PROGRAM)
+	cd $(srcdir)/src/libraries/nausicaa/email/addresses && $(EMAIL_RUNNER) $(EMAIL_PROGRAM)
 
 #page
 ## --------------------------------------------------------------------
@@ -449,7 +448,7 @@ endif
 .PHONY: json
 
 json:
-	cd $(srcdir)/src/libraries/json && $(JSON_RUNNER) $(JSON_PROGRAM)
+	cd $(srcdir)/src/libraries/nausicaa/json && $(JSON_RUNNER) $(JSON_PROGRAM)
 
 
 #page
@@ -483,7 +482,7 @@ endif
 .PHONY: uri
 
 uri:
-	cd $(srcdir)/src/libraries/uri && $(URI_RUNNER) $(URI_PROGRAM)
+	cd $(srcdir)/src/libraries/nausicaa/uri && $(URI_RUNNER) $(URI_PROGRAM)
 
 #page
 ## --------------------------------------------------------------------
@@ -516,7 +515,7 @@ endif
 .PHONY: net
 
 net:
-	cd $(srcdir)/src/libraries/net/helpers && $(NET_RUNNER) $(NET_PROGRAM)
+	cd $(srcdir)/src/libraries/nausicaa/net/helpers && $(NET_RUNNER) $(NET_PROGRAM)
 
 #page
 ## --------------------------------------------------------------------

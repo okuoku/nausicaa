@@ -25,10 +25,9 @@
 
 
 (import (nausicaa)
-  (checks)
-  (ffi memory)
-  (ffi cstrings)
-  (compensations))
+  (nausicaa checks)
+  (nausicaa ffi memory)
+  (nausicaa ffi cstrings))
 
 (check-set-mode! 'report-failed)
 (display "*** testing cstrings\n")

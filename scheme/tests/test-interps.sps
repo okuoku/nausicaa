@@ -24,11 +24,12 @@
 ;;;
 
 
+#!r6rs
 (import (nausicaa)
   (rnrs eval)
-  (interps)
-  (only (sentinel) sentinel?)
-  (checks))
+  (nausicaa interps)
+  (only (nausicaa language sentinel) sentinel?)
+  (nausicaa checks))
 
 (check-set-mode! 'report-failed)
 (display "*** testing interpreters\n")

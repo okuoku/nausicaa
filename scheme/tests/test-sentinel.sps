@@ -24,9 +24,10 @@
 ;;;
 
 
+#!r6rs
 (import (nausicaa)
-  (sentinel)
-  (checks))
+  (nausicaa language sentinel)
+  (nausicaa checks))
 
 (check-set-mode! 'report-failed)
 (display "*** testing sentinel\n")

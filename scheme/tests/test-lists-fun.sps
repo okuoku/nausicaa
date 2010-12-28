@@ -25,9 +25,10 @@
 
 
 
+#!r6rs
 (import (nausicaa)
-  (checks)
-  (lists)
+  (nausicaa checks)
+  (nausicaa lists)
   (rnrs mutable-pairs))
 
 (check-set-mode! 'report-failed)

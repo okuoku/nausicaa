@@ -26,8 +26,8 @@
 
 
 (import (nausicaa)
-  (checks)
-  (debugging)
+  (nausicaa checks)
+  (nausicaa debugging)
   (rnrs eval))
 
 (check-set-mode! 'report-failed)

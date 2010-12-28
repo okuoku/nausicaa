@@ -24,25 +24,25 @@
 ;;;
 
 
+#!r6rs
 (import (nausicaa)
-  (checks)
-  (randomisations)
-  (lists)
-  (strings)
-  (char-sets)
-  (vectors)
+  (nausicaa checks)
+  (nausicaa randomisations)
+  (nausicaa lists)
+  (nausicaa strings)
+  (nausicaa char-sets)
+  (nausicaa vectors)
 
-  (randomisations distributions)
-  (randomisations lists)
-  (randomisations vectors)
-  (randomisations strings)
+  (nausicaa randomisations distributions)
+  (nausicaa randomisations lists)
+  (nausicaa randomisations vectors)
+  (nausicaa randomisations strings)
 
-  (randomisations marsaglia)
-  (randomisations mersenne)
-  (randomisations blum-blum-shub)
-  (randomisations borosh)
-  (randomisations cmrg)
-  )
+  (nausicaa randomisations marsaglia)
+  (nausicaa randomisations mersenne)
+  (nausicaa randomisations blum-blum-shub)
+  (nausicaa randomisations borosh)
+  (nausicaa randomisations cmrg))
 
 (check-set-mode! 'report-failed)
 (display "*** testing random\n")

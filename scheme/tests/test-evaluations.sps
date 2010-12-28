@@ -27,9 +27,9 @@
 
 #!r6rs
 (import (nausicaa)
-  (evaluations)
+  (nausicaa evaluations)
   (rnrs eval)
-  (checks))
+  (nausicaa checks))
 
 (check-set-mode! 'report-failed)
 (display "*** testing evaluations\n")
@@ -137,7 +137,7 @@
 		 (p.augment '((c . 3)
 			      (b . 4)))
 		 #f)
-	      (environment '(nausicaa) '(evaluations))))
+	      (environment '(nausicaa) '(nausicaa evaluations))))
     => #t)
 
   (check	;self augmenting environment causes duplication

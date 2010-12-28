@@ -32,8 +32,8 @@
 
 #!r6rs
 (import (rnrs)
-  (lalr)
-  (prefix (silex) lex.))
+  (nausicaa lalr)
+  (prefix (nausicaa silex) lex.))
 
 
 ;;;; lexer
@@ -41,8 +41,8 @@
 (lex.lex (lex.output-file: "calc-parser-lexer.sls")
 	 (lex.counters: 'all)
 	 (lex.library-spec: "(calc-parser-lexer)")
-	 (lex.library-imports: '((parser-tools lexical-token)
-				 (parser-tools source-location)))
+	 (lex.library-imports: '((nausicaa parser-tools lexical-token)
+				 (nausicaa parser-tools source-location)))
 	 (lex.table-name: 'calc-parser-lexer-table)
 	 (lex.input-string: "
 blanks		[ \\9]+
@@ -163,9 +163,10 @@ cparen		\\)
 
  (parser-name:		'make-calc-parser)
  (library-spec:		'(calc-parser))
- (library-imports:	'((calc-parser-helper) (rnrs eval)
-			  (parser-tools lexical-token)
-			  (parser-tools source-location)))
+ (library-imports:	'((calc-parser-helper)
+			  (rnrs eval)
+			  (nausicaa parser-tools lexical-token)
+			  (nausicaa parser-tools source-location)))
 
  (dump-table:		"calc-parser-tables.txt")
 		;output to a file the human readable LALR table

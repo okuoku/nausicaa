@@ -27,11 +27,11 @@
 ;;;; setup
 
 (import (nausicaa)
-  (checks)
-  (char-sets)
-  (char-sets blocks)
-  (char-sets categories)
-  (lists))
+  (nausicaa checks)
+  (nausicaa char-sets)
+  (nausicaa char-sets blocks)
+  (nausicaa char-sets categories)
+  (nausicaa lists))
 
 (check-set-mode! 'report-failed)
 (display "*** testing char-sets\n")

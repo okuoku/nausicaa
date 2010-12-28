@@ -28,7 +28,7 @@
 (library (records-lib)
   (export <alpha> <beta> <gamma>)
   (import (rnrs)
-    (classes))
+    (nausicaa language classes))
 
   (define-class <alpha>
     (nongenerative records-lib:<alpha>)

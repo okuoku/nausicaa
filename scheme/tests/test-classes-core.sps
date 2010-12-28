@@ -1,7 +1,7 @@
 ;;; -*- coding: utf-8 -*-
 ;;;
 ;;;Part of: Nausicaa/Scheme
-;;;Contents: tests for (classes)
+;;;Contents: tests for (nausicaa language classes)
 ;;;Date: Thu Apr  1, 2010
 ;;;
 ;;;Abstract
@@ -27,8 +27,8 @@
 
 #!r6rs
 (import (nausicaa)
-  (checks)
-  (debugging)
+  (nausicaa checks)
+  (nausicaa debugging)
   (records-lib)
   (rnrs eval)
   (rnrs mutable-pairs))
@@ -43,7 +43,7 @@
 ;; (import (rnrs)
 ;;   (parameters)
 ;;   (records-lib)
-;;   (classes)
+;;   (nausicaa language classes)
 ;;   (rnrs eval))
 
 ;; (define check-test-name
@@ -967,7 +967,7 @@
   		 (define o (make-<alpha> 1 2 3))
   		 (with-class ((o <alpha>))
 		   (set! o.c #f)))
-  	      (environment '(nausicaa) '(classes))))
+  	      (environment '(nausicaa) '(nausicaa language classes))))
     => #t)
 
 
@@ -1418,7 +1418,7 @@
   		 (define o (make-<alpha> 1 2 3))
   		 (with-class ((o <alpha>))
 		   (set! o.c #f)))
-  	      (environment '(nausicaa) '(classes))))
+  	      (environment '(nausicaa) '(nausicaa language classes))))
     => #t)
 
   #t)
@@ -3389,12 +3389,6 @@
   	      (getf (o 'hello 'salut))))
     => '(10 #f salut))
 
-  (check	;string
-      (let/with-class (((o <string>) (string-copy "ciao")))
-  	(setf (o 2) #\c)
-  	(getf (o 2)))
-    => #\c)
-
   #t)
 
 
@@ -3516,7 +3510,7 @@
 ;;; --------------------------------------------------------------------
 ;;; The following tests use the hierarchy from the (records-lib) library
 
-  (let ((env (environment '(rnrs) '(classes) '(records-lib))))
+  (let ((env (environment '(rnrs) '(nausicaa language classes) '(records-lib))))
 
     (check
 	(map record-type-uid (class-parent-rtd-list <alpha>))
@@ -3859,7 +3853,7 @@
 		 (define o
 		   (make <alpha> 1 2))
 		 (slot-set! o a <alpha> 11))
-	      (environment '(rnrs) '(classes))))
+	      (environment '(rnrs) '(nausicaa language classes))))
     => #f)
 
   (check	;unknown field for slot-ref
@@ -3874,7 +3868,7 @@
 		 (define o
 		   (make <alpha> 1 2))
 		 (slot-ref o c <alpha>))
-	      (environment '(rnrs) '(classes))))
+	      (environment '(rnrs) '(nausicaa language classes))))
     => 'c)
 
   (check	;unknown field for slot-set!
@@ -3889,7 +3883,7 @@
 		 (define o
 		   (make <alpha> 1 2))
 		 (slot-set! o c <alpha> 11))
-	      (environment '(rnrs) '(classes))))
+	      (environment '(rnrs) '(nausicaa language classes))))
     => 'c)
 
 
@@ -3957,7 +3951,7 @@
     #f)
 
 ;;; --------------------------------------------------------------------
-;;; These tests make use of the record types exported by (classes).
+;;; These tests make use of the record types exported by (nausicaa language classes).
 
   (check
       (record-type-uid (record-type-of 123))
@@ -4034,30 +4028,6 @@
   (check
       (record-type-uid (record-type-of '(1 . 2)))
     => (record-type-uid (class-record-type-descriptor <pair>)))
-
-  #t)
-
-
-(parametrise ((check-test-name 'builtin))
-
-;;; <list>
-
-  (check
-      (let (((o <list>) '(1 2 3 4 5)))
-	(o.find (lambda (n) (= 3 n))))
-    => 3)
-
-  (check
-      (let (((o <list>) '(1 2 3 4 5)))
-	(o.for-all (lambda (n) (< 0 n))))
-    => #t)
-
-  (check
-      (let (((o <list>) '(1 2 3 4 5)))
-	(o.exists (lambda (n) (if (= 3 n) n #f))))
-    => 3)
-
-;;; --------------------------------------------------------------------
 
   #t)
 

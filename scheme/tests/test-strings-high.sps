@@ -24,12 +24,11 @@
 ;;;
 
 
-;;;; setup
-
+#!r6rs
 (import (nausicaa)
-  (strings)
-  (char-sets)
-  (checks)
+  (nausicaa strings)
+  (nausicaa char-sets)
+  (nausicaa checks)
   (rnrs mutable-strings))
 
 (check-set-mode! 'report-failed)

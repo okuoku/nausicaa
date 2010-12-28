@@ -25,10 +25,9 @@
 
 
 (import (nausicaa)
-  (checks)
-  (ffi memory)
-  (ffi memory refcount)
-  (compensations))
+  (nausicaa checks)
+  (nausicaa ffi memory)
+  (nausicaa ffi memory refcount))
 
 (check-set-mode! 'report-failed)
 (display "*** testing memory refcount\n")

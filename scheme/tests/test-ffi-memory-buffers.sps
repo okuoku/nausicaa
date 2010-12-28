@@ -24,14 +24,15 @@
 ;;;
 
 
+#!r6rs
 (import (nausicaa)
-  (checks)
-  (ffi memory membuffers)
-  (ffi memory memblocks)
-  (only (ffi memory alloc) malloc)
-  (only (ffi memory operations) memcmp)
-  (only (ffi memory caches) small-blocks-cache)
-  (only (ffi memory bytevectors) bytevector->memblock))
+  (nausicaa checks)
+  (nausicaa ffi memory membuffers)
+  (nausicaa ffi memory memblocks)
+  (only (nausicaa ffi memory alloc) malloc)
+  (only (nausicaa ffi memory operations) memcmp)
+  (only (nausicaa ffi memory caches) small-blocks-cache)
+  (only (nausicaa ffi memory bytevectors) bytevector->memblock))
 
 (cond-expand (petite (exit)) (else #f))
 

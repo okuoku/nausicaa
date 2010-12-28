@@ -28,7 +28,7 @@
 #!r6rs
 (import (nausicaa)
   (rnrs eval)
-  (checks))
+  (nausicaa checks))
 
 (check-set-mode! 'report-failed)
 (display "*** testing class identifier properties\n")
@@ -44,8 +44,8 @@
 		   #`(quote #,(lookup-identifier-property #'<alpha> #':list-of-superclasses #f))))
 	       (doit))
 	    (environment '(nausicaa)
-			 '(identifier-properties)
-			 '(classes internal-auxiliary-syntaxes)))
+			 '(nausicaa language identifier-properties)
+			 '(nausicaa language classes internal-auxiliary-syntaxes)))
     => '())
 
   (check
@@ -58,8 +58,8 @@
 		   #`(quote #,(lookup-identifier-property #'<beta> #':list-of-superclasses #f))))
 	       (doit))
 	    (environment '(nausicaa)
-			 '(identifier-properties)
-			 '(classes internal-auxiliary-syntaxes)))
+			 '(nausicaa language identifier-properties)
+			 '(nausicaa language classes internal-auxiliary-syntaxes)))
     => '(<alpha>))
 
   (check
@@ -76,8 +76,8 @@
 		   #`(quote #,(lookup-identifier-property #'<gamma> #':list-of-superclasses #f))))
 	       (doit))
 	    (environment '(nausicaa)
-			 '(identifier-properties)
-			 '(classes internal-auxiliary-syntaxes)))
+			 '(nausicaa language identifier-properties)
+			 '(nausicaa language classes internal-auxiliary-syntaxes)))
     => '(<delta> <beta> <alpha>))
 
   #t)
@@ -93,8 +93,8 @@
 		   #`(quote #,(lookup-identifier-property #'<alpha> #':list-of-field-tags #f))))
 	       (doit))
 	    (environment '(nausicaa)
-			 '(identifier-properties)
-			 '(classes internal-auxiliary-syntaxes)))
+			 '(nausicaa language identifier-properties)
+			 '(nausicaa language classes internal-auxiliary-syntaxes)))
     => '())
 
   (check	;untagged fields
@@ -106,8 +106,8 @@
 		   #`(quote #,(lookup-identifier-property #'<alpha> #':list-of-field-tags #f))))
 	       (doit))
 	    (environment '(nausicaa)
-			 '(identifier-properties)
-			 '(classes internal-auxiliary-syntaxes)))
+			 '(nausicaa language identifier-properties)
+			 '(nausicaa language classes internal-auxiliary-syntaxes)))
     => '())
 
   (check	;single tagged field
@@ -119,8 +119,8 @@
 		   #`(quote #,(lookup-identifier-property #'<alpha> #':list-of-field-tags #f))))
 	       (doit))
 	    (environment '(nausicaa)
-			 '(identifier-properties)
-			 '(classes internal-auxiliary-syntaxes)))
+			 '(nausicaa language identifier-properties)
+			 '(nausicaa language classes internal-auxiliary-syntaxes)))
     => '(<pair>))
 
   (check	;single tagged field, multiple tags
@@ -132,8 +132,8 @@
 		   #`(quote #,(lookup-identifier-property #'<alpha> #':list-of-field-tags #f))))
 	       (doit))
 	    (environment '(nausicaa)
-			 '(identifier-properties)
-			 '(classes internal-auxiliary-syntaxes)))
+			 '(nausicaa language identifier-properties)
+			 '(nausicaa language classes internal-auxiliary-syntaxes)))
     => '(<pair> <list>))
 
   (check	;multiple tagged field, multiple tags
@@ -146,8 +146,8 @@
 		   #`(quote #,(lookup-identifier-property #'<alpha> #':list-of-field-tags #f))))
 	       (doit))
 	    (environment '(nausicaa)
-			 '(identifier-properties)
-			 '(classes internal-auxiliary-syntaxes)))
+			 '(nausicaa language identifier-properties)
+			 '(nausicaa language classes internal-auxiliary-syntaxes)))
     => '(<vector> <number> <pair> <list>))
 
   (check	;inheritance, multiple tagged field, multiple tags
@@ -162,8 +162,8 @@
 		   #`(quote #,(lookup-identifier-property #'<beta> #':list-of-field-tags #f))))
 	       (doit))
 	    (environment '(nausicaa)
-			 '(identifier-properties)
-			 '(classes internal-auxiliary-syntaxes)))
+			 '(nausicaa language identifier-properties)
+			 '(nausicaa language classes internal-auxiliary-syntaxes)))
     => '(<vector> <number> <pair> <list>))
 
   (check	;inheritance, multiple tagged field, multiple tags
@@ -179,8 +179,8 @@
 		   #`(quote #,(lookup-identifier-property #'<beta> #':list-of-field-tags #f))))
 	       (doit))
 	    (environment '(nausicaa)
-			 '(identifier-properties)
-			 '(classes internal-auxiliary-syntaxes)))
+			 '(nausicaa language identifier-properties)
+			 '(nausicaa language classes internal-auxiliary-syntaxes)))
     => '(<vector> <number> <pair> <list>))
 
   (check	;inheritance, multiple tagged field, multiple tags
@@ -196,8 +196,8 @@
 		   #`(quote #,(lookup-identifier-property #'<beta> #':list-of-field-tags #f))))
 	       (doit))
 	    (environment '(nausicaa)
-			 '(identifier-properties)
-			 '(classes internal-auxiliary-syntaxes)))
+			 '(nausicaa language identifier-properties)
+			 '(nausicaa language classes internal-auxiliary-syntaxes)))
     => '(<integer> <vector> <number> <pair> <list>))
 
   (check	;inheritance, multiple tagged field, multiple tags
@@ -214,8 +214,8 @@
 		   #`(quote #,(lookup-identifier-property #'<beta> #':list-of-field-tags #f))))
 	       (doit))
 	    (environment '(nausicaa)
-			 '(identifier-properties)
-			 '(classes internal-auxiliary-syntaxes)))
+			 '(nausicaa language identifier-properties)
+			 '(nausicaa language classes internal-auxiliary-syntaxes)))
     => '(<complex> <integer> <vector> <number> <pair> <list>))
 
   (check	;inheritance, multiple tagged field, multiple tags
@@ -234,8 +234,8 @@
 		   #`(quote #,(lookup-identifier-property #'<delta> #':list-of-field-tags #f))))
 	       (doit))
 	    (environment '(nausicaa)
-			 '(identifier-properties)
-			 '(classes internal-auxiliary-syntaxes)))
+			 '(nausicaa language identifier-properties)
+			 '(nausicaa language classes internal-auxiliary-syntaxes)))
     => '(<complex> <integer> <vector> <number> <pair> <list>))
 
   #t)

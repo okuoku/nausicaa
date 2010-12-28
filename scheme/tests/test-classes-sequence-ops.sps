@@ -18,7 +18,8 @@
 ;;;		              .sort()
 ;;;		              .join( ", " ) )
 ;;;
-;;;	it is possible to mimic it with the facilities of (classes).
+;;;	it  is possible  to mimic  it with  the facilities  of (nausicaa
+;;;	language classes).
 ;;;
 ;;;	[1] <http://gosu-lang.org/>
 ;;;
@@ -41,8 +42,8 @@
 
 #!r6rs
 (import (nausicaa)
-  (prefix (syntax-utilities) syn.)
-  (checks))
+  (prefix (nausicaa language syntax-utilities) syn.)
+  (nausicaa checks))
 
 (check-set-mode! 'report-failed)
 (display "*** testing class bindings with operations sequences\n")

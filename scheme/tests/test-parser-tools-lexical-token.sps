@@ -27,8 +27,8 @@
 
 #!r6rs
 (import (nausicaa)
-  (parser-tools lexical-token)
-  (checks))
+  (nausicaa parser-tools lexical-token)
+  (nausicaa checks))
 
 (check-set-mode! 'report-failed)
 (display "*** testing parser tools's lexical token\n")

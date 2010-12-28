@@ -27,7 +27,7 @@
 
 (import (nausicaa)
   (rnrs eval)
-  (checks))
+  (nausicaa checks))
 
 (check-set-mode! 'report-failed)
 (display "*** testing class virtual methods\n")

@@ -26,9 +26,9 @@
 
 #!r6rs
 (import (nausicaa)
-  (checks)
-  (sentinel)
-  (silex lexer)
+  (nausicaa checks)
+  (nausicaa language sentinel)
+  (nausicaa silex lexer)
   (silex-test)
   (calc-code-lexer)
   (calc-portable-lexer)

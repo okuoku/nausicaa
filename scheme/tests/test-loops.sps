@@ -30,10 +30,11 @@
 ;;;SOFTWARE.
 
 
+#!r6rs
 (import (rnrs)
-  (loops)
+  (nausicaa loops)
   (rnrs mutable-strings)
-  (checks))
+  (nausicaa checks))
 
 (check-set-mode! 'report-failed)
 (display "*** testing loops\n")

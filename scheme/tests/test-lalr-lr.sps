@@ -26,11 +26,11 @@
 
 #!r6rs
 (import (nausicaa)
-  (lalr)
-  (sentinel)
-  (parser-tools lexical-token)
-  (parser-tools source-location)
-  (checks))
+  (nausicaa lalr)
+  (nausicaa language sentinel)
+  (nausicaa parser-tools lexical-token)
+  (nausicaa parser-tools source-location)
+  (nausicaa checks))
 
 (check-set-mode! 'report-failed)
 (display "*** testing lalr LR driver\n")

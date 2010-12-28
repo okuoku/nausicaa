@@ -25,10 +25,9 @@
 
 
 (import (nausicaa)
-  (compensations)
-  (checks)
-  (ffi memory)
-  (for (ffi memory memblocks) expand))
+  (nausicaa checks)
+  (nausicaa ffi memory)
+  (for (nausicaa ffi memory memblocks) expand))
 
 (check-set-mode! 'report-failed)
 (display "*** testing memory blocks\n")

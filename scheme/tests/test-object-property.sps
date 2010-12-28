@@ -24,10 +24,10 @@
 ;;;
 
 
-
+#!r6rs
 (import (nausicaa)
-  (checks)
-  (object-properties))
+  (nausicaa checks)
+  (nausicaa object-properties))
 
 (check-set-mode! 'report-failed)
 (display "*** testing object property\n")

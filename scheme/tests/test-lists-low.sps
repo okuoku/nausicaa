@@ -27,9 +27,9 @@
 
 #!r6rs
 (import (nausicaa)
-  (checks)
+  (nausicaa checks)
   (rnrs mutable-pairs (6))
-  (lists low))
+  (nausicaa lists low))
 
 (check-set-mode! 'report-failed)
 (display "*** testing list-helpers\n")

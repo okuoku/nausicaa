@@ -33,8 +33,8 @@
 
 #!r6rs
 (import (except (nausicaa) assert)
-  (streams)
-  (checks))
+  (nausicaa streams)
+  (nausicaa checks))
 
 (check-set-mode! 'report-failed)
 (display "*** testing streams\n")

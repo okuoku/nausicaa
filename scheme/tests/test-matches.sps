@@ -1,6 +1,6 @@
 ;;;
 ;;;Part of: Nausicaa/Scheme
-;;;Contents: tests for (matches)
+;;;Contents: tests for (nausicaa matches)
 ;;;Date: Sat Aug 29, 2009
 ;;;
 ;;;Abstract
@@ -25,9 +25,11 @@
 ;;;
 
 
+#!r6rs
 (import (nausicaa)
-  (checks)
-  (matches)
+  (nausicaa checks)
+  (nausicaa matches)
+  (nausicaa language syntax-utilities)
   (rnrs eval))
 
 (check-set-mode! 'report-failed)
@@ -51,7 +53,7 @@
 		  (form		. ,(syntax-violation-form E))))
 	       (else #f))
        (eval (quote ?body)
-	     (environment '(rnrs) '(matches)))))))
+	     (environment '(rnrs) '(nausicaa matches)))))))
 
 (define-syntax catch-mismatch-error
   (syntax-rules ()
@@ -475,7 +477,7 @@
 		 ((:or (:predicate integer? x)
 		       (:predicate symbol?  y))
 		  y))
-	      (environment '(rnrs) '(matches))))
+	      (environment '(rnrs) '(nausicaa matches))))
     => #t)
 
   (check
@@ -484,7 +486,7 @@
 		 ((:or (:predicate integer? x)
 		       (:predicate symbol?  y))
 		  x))
-	      (environment '(rnrs) '(matches))))
+	      (environment '(rnrs) '(nausicaa matches))))
     => #t)
 
 ;;; --------------------------------------------------------------------
@@ -511,7 +513,7 @@
 	(eval '(match 123
 		 ((:not (:predicate symbol? x))
 		  x)) ; unbound identifier
-	      (environment '(rnrs) '(matches))))
+	      (environment '(rnrs) '(nausicaa matches))))
     => #t)
 
   (check
@@ -1002,7 +1004,7 @@
 	(eval '(match 1
 		 ((:setter doit)
 		  (doit 3)))
-	      (environment '(rnrs) '(matches))))
+	      (environment '(rnrs) '(nausicaa matches))))
     => #t)
 
   (check	;setter car
@@ -1111,6 +1113,94 @@
 	 #t)
 	(_ #f))
     => #f)
+
+  #t)
+
+
+(parametrise ((check-test-name	'transformers))
+
+  (let ()
+    (define-auxiliary-syntaxes
+      alpha beta delta gamma rho)
+
+    (define-syntax doit
+      (lambda (stx)
+	(match (unwrap-syntax-object stx)
+	  ((_ ?clause)
+	   (match ?clause
+	     (((:free-identifier #'alpha) ?a)
+	      #`(list 'alpha #,?a))
+
+	     (((:free-identifier #'beta) ?clause)
+	      (match ?clause
+		(((:free-identifier #'delta) ?d)
+		 #`(list 'beta 'delta #,?d))
+		(((:free-identifier #'gamma) ?g)
+		 #`(list 'beta 'gamma #,?g))))
+
+	     (((:free-identifier #'rho) ?r)
+	      #`(list 'rho #,?r)))))))
+
+    (check
+	(doit (alpha 1))
+      => '(alpha 1))
+
+    (check
+	(doit (beta (delta 2)))
+      => '(beta delta 2))
+
+    (check
+	(doit (beta (gamma 3)))
+      => '(beta gamma 3))
+
+    (check
+	(doit (rho 4))
+      => '(rho 4))
+
+    #f)
+
+;;; --------------------------------------------------------------------
+;;; the same with syntax-case
+
+  (let ()
+    (define-auxiliary-syntaxes
+      alpha beta delta gamma rho)
+
+    (define-syntax doit
+      (lambda (stx)
+	(syntax-case stx ()
+	  ((_ ?clause)
+	   (syntax-case #'?clause (alpha beta rho)
+	     ((alpha  ?a)
+	      #'(list 'alpha ?a))
+
+	     ((beta ?clause)
+	      (syntax-case #'?clause ()
+		((delta ?d)
+		 #'(list 'beta 'delta ?d))
+		((gamma ?g)
+		 #'(list 'beta 'gamma ?g))))
+
+	     ((rho ?r)
+	      #'(list 'rho ?r)))))))
+
+    (check
+	(doit (alpha 1))
+      => '(alpha 1))
+
+    (check
+	(doit (beta (delta 2)))
+      => '(beta delta 2))
+
+    (check
+	(doit (beta (gamma 3)))
+      => '(beta gamma 3))
+
+    (check
+	(doit (rho 4))
+      => '(rho 4))
+
+    #f)
 
   #t)
 

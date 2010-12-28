@@ -26,7 +26,7 @@
 
 
 (import (nausicaa)
-  (checks)
+  (nausicaa checks)
   (rnrs eval))
 
 (check-set-mode! 'report-failed)
@@ -379,7 +379,7 @@
 	(eval '(with-compensations
 		 (letrec ((a (compensate 123)))
 		   #t))
-	      (environment '(rnrs) '(compensations))))
+	      (environment '(rnrs) '(nausicaa language compensations))))
     => #t)
 
   #t)

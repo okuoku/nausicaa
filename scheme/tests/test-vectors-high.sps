@@ -24,9 +24,10 @@
 ;;;
 
 
+#!r6rs
 (import (nausicaa)
-  (vectors)
-  (checks))
+  (nausicaa vectors)
+  (nausicaa checks))
 
 (check-set-mode! 'report-failed)
 (display "*** testing vectors\n")
@@ -396,7 +397,7 @@
 	  (2 #\C)
 	  (3 #\D)))
 
-  (check 'this
+  (check
       (vector-map/with-index list
 			     '#(#\a #\b #\c #\d)
 			     '#(#\0 #\1 #\2 #\3))
@@ -405,11 +406,11 @@
 	  (2 #\c #\2)
 	  (3 #\d #\3)))
 
-  (check 'this
+  (check
       (vector-map/with-index list '#())
     => '#())
 
-  (check 'this
+  (check
       (vector-map/with-index list '#() '#())
     => '#())
 

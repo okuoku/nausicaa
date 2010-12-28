@@ -654,8 +654,6 @@ More libraries
 * combinators::                 Combinators.
 * keywords::                    Keyword values.
 * variables::                   Defining storage locations.
-* scmobj::                      A simple object system.
-* sexps::                       Handling symbolic expressions.
 * matches::                     Pattern matching.
 * irregex::                     IrRegular expressions.
 * pregexp::                     Portable regular expressions for Scheme.
@@ -681,6 +679,7 @@ Low level libraries
 
 * kmp::                         Knuth--Morris--Pratt searching.
 * one-dimension::               One dimensional extended ranges.
+* symbols-tree::                Search tree for lists of symbols.
 
 Appendices
 
@@ -762,8 +761,6 @@ Indexes
 @include combinators.texiinc
 @include keywords.texiinc
 @include variables.texiinc
-@include scmobj.texiinc
-@include sexps.texiinc
 @include matches.texiinc
 @include irregex.texiinc
 @include pregexp.texiinc
@@ -789,6 +786,7 @@ Indexes
 
 @include kmp.texiinc
 @include one-dimension.texiinc
+@include symbols-tree.texiinc
 
 @c appendices
 

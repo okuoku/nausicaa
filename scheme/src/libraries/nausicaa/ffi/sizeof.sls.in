@@ -1,0 +1,287 @@
+;;;
+;;;Part of: Nausicaa/Scheme
+;;;Contents: size of platform C language types
+;;;Date: Mon Nov 24, 2008
+;;;
+;;;Abstract
+;;;
+;;;
+;;;
+;;;Copyright (c) 2008-2010 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;
+;;;This program is free software:  you can redistribute it and/or modify
+;;;it under the terms of the  GNU General Public License as published by
+;;;the Free Software Foundation, either version 3 of the License, or (at
+;;;your option) any later version.
+;;;
+;;;This program is  distributed in the hope that it  will be useful, but
+;;;WITHOUT  ANY   WARRANTY;  without   even  the  implied   warranty  of
+;;;MERCHANTABILITY  or FITNESS FOR  A PARTICULAR  PURPOSE.  See  the GNU
+;;;General Public License for more details.
+;;;
+;;;You should  have received  a copy of  the GNU General  Public License
+;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
+;;;
+
+
+#!r6rs
+(library (nausicaa ffi sizeof)
+  (export
+    LIBC_SHARED_OBJECT_SPEC
+    c-sizeof			c-strideof
+    c-alignof			c-valueof
+    c-inspect)
+  (import (rnrs)
+    (for (nausicaa ffi syntax-helpers) expand)
+    (for (nausicaa ffi clang-data-types) expand run))
+
+
+(define-syntax c-sizeof
+  (lambda (stx)
+    (syntax-case stx ()
+
+      ((_ ?type ?number-of-elements)
+       (identifier? #'?type)
+       #`(* #,(%prepend #'c-sizeof "strideof-"
+			(map-identifier-syntax-object clang-external-type->clang-type #'?type))
+	    ?number-of-elements))
+
+      ((_ ?type)
+       (identifier? #'?type)
+       #`(begin #,(%prepend #'c-sizeof "sizeof-"
+			    (map-identifier-syntax-object
+			     clang-external-type->clang-type #'?type))))
+
+      (?input-form
+       (syntax-violation 'c-sizeof
+	 "invalid C language sizeof specification"
+	 (syntax->datum #'?input-form))))))
+
+(define-syntax c-strideof
+  (lambda (stx)
+    (syntax-case stx ()
+
+      ((_ ?type)
+       (identifier? #'?type)
+       #`(begin #,(%prepend #'c-strideof "strideof-"
+			    (map-identifier-syntax-object
+			     clang-external-type->clang-type #'?type))))
+
+      (?input-form
+       (syntax-violation 'c-strideof
+	 "invalid C language strideof specification"
+	 (syntax->datum #'?input-form))))))
+
+(define-syntax c-alignof
+  (lambda (stx)
+    (syntax-case stx ()
+
+      ((_ ?type)
+       (identifier? #'?type)
+       #`(begin #,(%prepend #'c-strideof "alignof-"
+			    (map-identifier-syntax-object
+			     clang-external-type->clang-type #'?type))))
+
+      (?input-form
+       (syntax-violation 'c-alignof
+	 "invalid C language alignof specification"
+	 (syntax->datum #'?input-form))))))
+
+(define-syntax c-valueof
+  (lambda (stx)
+    (syntax-case stx ()
+
+      ((_ ?thing)
+       (identifier? #'?thing)
+       #`(begin #,(%prepend #'c-strideof "valueof-" #'?thing)))
+
+      (?input-form
+       (syntax-violation 'c-valueof
+	 "invalid C language valueof specification"
+	 (syntax->datum #'?input-form))))))
+
+(define-syntax c-inspect
+  (lambda (stx)
+    (syntax-case stx ()
+
+      ((_ ?thing)
+       (identifier? #'?thing)
+       #`(begin #,(%prepend #'c-inspect "inspect-" #'?thing)))
+
+      (?input-form
+       (syntax-violation 'c-inspect
+	 "invalid C language valueof specification"
+	 (syntax->datum #'?input-form))))))
+
+
+(define sizeof-int8_t			@SIZEOF_INT8@)
+(define sizeof-int16_t			@SIZEOF_INT16@)
+(define sizeof-int32_t			@SIZEOF_INT32@)
+(define sizeof-int64_t			@SIZEOF_INT64@)
+(define sizeof-uint8_t			sizeof-int8_t)
+(define sizeof-uint16_t			sizeof-int16_t)
+(define sizeof-uint32_t			sizeof-int32_t)
+(define sizeof-uint64_t			sizeof-int64_t)
+
+(define sizeof-char			@SIZEOF_CHAR@)
+(define sizeof-signed-char		sizeof-char)
+(define sizeof-unsigned-char		sizeof-char)
+
+(define sizeof-short			@SIZEOF_SHORT_INT@)
+(define sizeof-int			@SIZEOF_INT@)
+(define sizeof-long			@SIZEOF_LONG@)
+(define sizeof-long-long		@SIZEOF_LLONG@)
+(define sizeof-signed-short		sizeof-short)
+(define sizeof-signed-int		sizeof-int)
+(define sizeof-signed-long		sizeof-long)
+(define sizeof-signed-long-long		sizeof-long-long)
+(define sizeof-unsigned-short		sizeof-short)
+(define sizeof-unsigned-int		sizeof-int)
+(define sizeof-unsigned-long		sizeof-long)
+(define sizeof-unsigned-long-long	sizeof-long-long)
+
+(define sizeof-float			@SIZEOF_FLOAT@)
+(define sizeof-double			@SIZEOF_DOUBLE@)
+(define sizeof-long-double		@SIZEOF_LONG_DOUBLE@)
+(define sizeof-pointer			@SIZEOF_POINTER@)
+(define sizeof-void*			sizeof-pointer)
+
+
+(define alignof-int8_t			@ALIGNOF_INT8@)
+(define alignof-int16_t			@ALIGNOF_INT16@)
+(define alignof-int32_t			@ALIGNOF_INT32@)
+(define alignof-int64_t			@ALIGNOF_INT64@)
+(define alignof-uint8_t			alignof-int8_t)
+(define alignof-uint16_t		alignof-int16_t)
+(define alignof-uint32_t		alignof-int32_t)
+(define alignof-uint64_t		alignof-int64_t)
+
+(define alignof-char			@ALIGNOF_CHAR@)
+(define alignof-signed-char		alignof-char)
+(define alignof-unsigned-char		alignof-char)
+
+(define alignof-short			@ALIGNOF_SHORT_INT@)
+(define alignof-int			@ALIGNOF_INT@)
+(define alignof-long			@ALIGNOF_LONG@)
+(define alignof-long-long		@ALIGNOF_LLONG@)
+(define alignof-signed-short		alignof-short)
+(define alignof-signed-int		alignof-int)
+(define alignof-signed-long		alignof-long)
+(define alignof-signed-long-long	alignof-long-long)
+(define alignof-unsigned-short		alignof-short)
+(define alignof-unsigned-int		alignof-int)
+(define alignof-unsigned-long		alignof-long)
+(define alignof-unsigned-long-long	alignof-long-long)
+
+(define alignof-float			@ALIGNOF_FLOAT@)
+(define alignof-double			@ALIGNOF_DOUBLE@)
+(define alignof-long-double		@ALIGNOF_LONG_DOUBLE@)
+(define alignof-pointer			@ALIGNOF_POINTER@)
+(define alignof-void*			alignof-pointer)
+
+
+(define strideof-int8_t			@STRIDEOF_INT8@)
+(define strideof-int16_t		@STRIDEOF_INT16@)
+(define strideof-int32_t		@STRIDEOF_INT32@)
+(define strideof-int64_t		@STRIDEOF_INT64@)
+(define strideof-uint8_t		strideof-int8_t)
+(define strideof-uint16_t		strideof-int16_t)
+(define strideof-uint32_t		strideof-int32_t)
+(define strideof-uint64_t		strideof-int64_t)
+
+(define strideof-char			@STRIDEOF_CHAR@)
+(define strideof-signed-char		strideof-char)
+(define strideof-unsigned-char		strideof-char)
+
+(define strideof-short			@STRIDEOF_SHORT_INT@)
+(define strideof-int			@STRIDEOF_INT@)
+(define strideof-long			@STRIDEOF_LONG@)
+(define strideof-long-long		@STRIDEOF_LLONG@)
+(define strideof-signed-short		strideof-short)
+(define strideof-signed-int		strideof-int)
+(define strideof-signed-long		strideof-long)
+(define strideof-signed-long-long	strideof-long-long)
+(define strideof-unsigned-short		strideof-short)
+(define strideof-unsigned-int		strideof-int)
+(define strideof-unsigned-long		strideof-long)
+(define strideof-unsigned-long-long	strideof-long-long)
+
+(define strideof-float			@STRIDEOF_FLOAT@)
+(define strideof-double			@STRIDEOF_DOUBLE@)
+(define strideof-long-double		@STRIDEOF_LONG_DOUBLE@)
+(define strideof-pointer		@STRIDEOF_POINTER@)
+(define strideof-void*			strideof-pointer)
+
+
+(define inspect-pointer-integer		(quote @TYPEOF_POINTER_INTEGER@))
+(define inspect-on-32-bits-system	(= (c-sizeof int) 4))
+(define inspect-on-64-bits-system	(= (c-sizeof int) 8))
+(define inspect-on-32-bits-systems	inspect-on-32-bits-system)
+(define inspect-on-64-bits-systems	inspect-on-64-bits-system)
+
+(define inspect-words-bigendian		@WORDS_BIGENDIAN@)
+
+(define LIBC_SHARED_OBJECT_SPEC		"@LIBC_SHARED_OBJECT_SPEC@")
+
+
+(define valueof-char-max	@VALUEOF_CHAR_MAX@)
+(define valueof-char-min	@VALUEOF_CHAR_MIN@)
+(define valueof-schar-max	@VALUEOF_SCHAR_MAX@)
+(define valueof-schar-min	@VALUEOF_SCHAR_MIN@)
+(define valueof-uchar-max	@VALUEOF_UCHAR_MAX@)
+(define valueof-shrt-max	@VALUEOF_SHRT_MAX@)
+(define valueof-shrt-min	@VALUEOF_SHRT_MIN@)
+(define valueof-ushrt-max	@VALUEOF_USHRT_MAX@)
+(define valueof-int-max		@VALUEOF_INT_MAX@)
+(define valueof-int-min		@VALUEOF_INT_MIN@)
+(define valueof-uint-max	@VALUEOF_UINT_MAX@)
+(define valueof-long-max	@VALUEOF_LONG_MAX@)
+(define valueof-long-min	@VALUEOF_LONG_MIN@)
+(define valueof-ulong-max	@VALUEOF_ULONG_MAX@)
+(define valueof-long-long-max
+  (- (expt 2 (- (* 8 sizeof-signed-long-long) 1)) 1))	;;@VALUEOF_LONG_LONG_MAX@
+(define valueof-long-long-min
+  (- (expt 2 (- (* 8 sizeof-signed-long-long) 1))))	;;@VALUEOF_LONG_LONG_MIN@
+(define valueof-ulong-long-max
+  (- (expt 2    (* 8 sizeof-unsigned-long-long)) 1))	;;@VALUEOF_ULONG_LONG_MAX@
+(define valueof-wchar-max	@VALUEOF_WCHAR_MAX@)
+
+(define valueof-ssize_t-max	(case (clang-external-type->clang-internal-type 'ssize_t)
+				  ((signed-int)		valueof-int-max)
+				  ((signed-long)	valueof-long-max)
+				  ((signed-long-long)	valueof-long-long-max)
+				  (else			#f)))
+(define valueof-ssize_t-min	(case (clang-external-type->clang-internal-type 'ssize_t)
+				  ((signed-int)		valueof-int-min)
+				  ((signed-long)	valueof-long-min)
+				  ((signed-long-long)	valueof-long-long-min)
+				  (else			#f)))
+(define valueof-intptr_t-max	(case (clang-external-type->clang-internal-type 'intptr_t)
+				  ((signed-int)		valueof-int-max)
+				  ((signed-long)	valueof-long-max)
+				  ((signed-long-long)	valueof-long-long-max)
+				  (else			#f)))
+(define valueof-intptr_t-min	(case (clang-external-type->clang-internal-type 'intptr_t)
+				  ((signed-int)		valueof-int-min)
+				  ((signed-long)	valueof-long-min)
+				  ((signed-long-long)	valueof-long-long-min)
+				  (else			#f)))
+(define valueof-size_t-max	(case (clang-external-type->clang-internal-type 'size_t)
+				  ((unsigned-int)	valueof-uint-max)
+				  ((unsigned-long)	valueof-ulong-max)
+				  ((unsigned-long-long)	valueof-ulong-long-max)
+				  (else			#f)))
+(define valueof-size_t-min	0)
+(define valueof-uintptr_t-max	(case (clang-external-type->clang-internal-type 'uintptr_t)
+				  ((unsigned-int)	valueof-uint-max)
+				  ((unsigned-long)	valueof-ulong-max)
+				  ((unsigned-long-long)	valueof-ulong-long-max)
+				  (else			#f)))
+(define valueof-uintptr_t-min	0)
+
+
+;;;; done
+
+)
+
+;;; end of file

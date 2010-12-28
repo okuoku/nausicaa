@@ -26,10 +26,10 @@
 
 
 (import (nausicaa)
-  (generics)
-  (generics object-to-string)
-  (checks)
-  (email addresses common))
+  (nausicaa generics)
+  (nausicaa generics object-to-string)
+  (nausicaa checks)
+  (nausicaa email addresses common))
 
 (check-set-mode! 'report-failed)
 (display "*** testing email addresses records\n")

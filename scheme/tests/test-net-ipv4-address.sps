@@ -27,13 +27,13 @@
 
 #!r6rs
 (import (nausicaa)
-  (net ipv4-addresses)
-  (silex lexer)
-  (parser-tools lexical-token)
-  (parser-tools source-location)
-  (net helpers ipv4-address-lexer)
-  (prefix (net helpers ipv4-address-parser) parser:)
-  (checks))
+  (nausicaa net ipv4-addresses)
+  (nausicaa silex lexer)
+  (nausicaa parser-tools lexical-token)
+  (nausicaa parser-tools source-location)
+  (nausicaa net helpers ipv4-address-lexer)
+  (prefix (nausicaa net helpers ipv4-address-parser) parser:)
+  (nausicaa checks))
 
 (check-set-mode! 'report-failed)
 (display "*** testing net IPv4 address\n")

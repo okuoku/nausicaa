@@ -27,9 +27,9 @@
 
 #!r6rs
 (import (nausicaa)
-  (conditions)	;we import it for the auxiliary syntaxes
+  (nausicaa language conditions)	;we import it for the auxiliary syntaxes
   (rnrs eval)
-  (checks))
+  (nausicaa checks))
 
 (check-set-mode! 'report-failed)
 (display "*** testing conditions\n")

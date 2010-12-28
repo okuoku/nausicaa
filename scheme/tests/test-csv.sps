@@ -26,13 +26,13 @@
 
 #!r6rs
 (import (nausicaa)
-  (checks)
-  (silex lexer)
-  (csv strings-lexer)
-  (csv unquoted-data-lexer)
-  (csv unquoted-data-comma-lexer)
-  (csv)
-  (strings))
+  (nausicaa checks)
+  (nausicaa silex lexer)
+  (nausicaa csv strings-lexer)
+  (nausicaa csv unquoted-data-lexer)
+  (nausicaa csv unquoted-data-comma-lexer)
+  (nausicaa csv)
+  (nausicaa strings))
 
 (check-set-mode! 'report-failed)
 (display "*** testing csv\n")

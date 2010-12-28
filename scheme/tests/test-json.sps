@@ -27,11 +27,11 @@
 
 #!r6rs
 (import (nausicaa)
-  (json)
-  (json string-lexer)
-  (parser-tools lexical-token)
-  (silex lexer)
-  (checks))
+  (nausicaa json)
+  (nausicaa json string-lexer)
+  (nausicaa parser-tools lexical-token)
+  (nausicaa silex lexer)
+  (nausicaa checks))
 
 (check-set-mode! 'report-failed)
 (display "*** testing JSON\n")

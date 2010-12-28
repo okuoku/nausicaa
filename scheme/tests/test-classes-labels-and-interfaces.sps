@@ -27,8 +27,8 @@
 
 #!r6rs
 (import (nausicaa)
-  (generics)
-  (checks))
+  (nausicaa generics)
+  (nausicaa checks))
 
 (check-set-mode! 'report-failed)
 (display "*** testing labels as interfaces\n")

@@ -25,9 +25,10 @@
 ;;;
 
 
+#!r6rs
 (import (nausicaa)
-  (asciis)
-  (checks))
+  (nausicaa asciis)
+  (nausicaa checks))
 
 (check-set-mode! 'report-failed)
 (display "*** testing asciis\n")
