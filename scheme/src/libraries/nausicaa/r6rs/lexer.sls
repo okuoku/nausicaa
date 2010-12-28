@@ -28,7 +28,9 @@
 #!r6rs
 (library (nausicaa r6rs lexer)
   (export
-    r6rs-lexer-table)
+    r6rs-lexer-table
+    r6rs-nested-comment-lexer-table
+    r6rs-string-lexer-table)
   (import (nausicaa)
     (nausicaa r6rs lexer-table))
 
