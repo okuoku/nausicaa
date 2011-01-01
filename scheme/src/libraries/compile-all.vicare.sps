@@ -90,9 +90,6 @@
   (only (nausicaa stacks))
 
   ;;High level libraries.
-  (only (nausicaa scmobj))
-  (only (nausicaa scmobj utils))
-
   (only (nausicaa combinators))
   (only (nausicaa irregex))
   (only (nausicaa pregexp))
