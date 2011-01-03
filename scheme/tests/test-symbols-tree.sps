@@ -185,7 +185,7 @@
 ;;; --------------------------------------------------------------------
 
   (check	;replace value for short key (a b1 c2)
-      (tree-cons '(a b1 c2) 99 (build-tree1))
+      (tree-cons '(a b1 c2) 99 (build-tree1) #t)
     => '((a . ((b2 . ((#f . 7)
 		      (c3 . ((#f . 6)))
 		      (c2 . ((#f . 5)))
@@ -200,7 +200,7 @@
 	       ))))
 
   (check	;replace value for key (a b1 c2 d2)
-      (tree-cons '(a b1 c2 d2) 99 (build-tree1))
+      (tree-cons '(a b1 c2 d2) 99 (build-tree1) #t)
     => '((a . ((b2 . ((#f . 7)
 		      (c3 . ((#f . 6)))
 		      (c2 . ((#f . 5)))
@@ -456,6 +456,40 @@
     (check-iter I '#(#f #f #f))
 
     #f)
+
+  #t)
+
+
+(parametrise ((check-test-name	'merge))
+
+  (check
+      (tree-merge '((#f . 1))
+		  '((#f . 2))
+		  #t)
+    => '((#f . 2)))
+
+  (check
+      (tree-merge '((#f . 1))
+		  '((#f . 2))
+		  #f)
+    => '((#f . 1)))
+
+  (check
+      (tree-merge '((#f . 1)
+		    (a . ((#f . 2)))
+		    (b . ((c1 . ((#f . 3)))
+			  (c2 . ((#f . 4))))))
+		  '((a . ((d1 . ((#f . 10)))
+			  (d2 . ((#f . 11)))))
+		    (e . ((#f . 12))))
+		  #t)
+    => '((#f . 1)
+	 (e . ((#f . 12)))
+	 (a . ((#f . 2)
+	       (d2 . ((#f . 11)))
+	       (d1 . ((#f . 10)))))
+	 (b . ((c1 . ((#f . 3)))
+	       (c2 . ((#f . 4)))))))
 
   #t)
 

@@ -64,9 +64,8 @@
 #!r6rs
 (library (nausicaa symbols-tree)
   (export
-    tree-cons treeq make-tree-iterator)
+    tree-cons treeq make-tree-iterator tree-merge)
   (import (rnrs)
-;;;(nausicaa language pretty-print)
     (rnrs mutable-pairs))
 
 
@@ -396,6 +395,26 @@ it goes as follows:
           (values #f #f #f)
 	(values #t rkey (cdaar stack))))
     ))
+
+
+;;;; merge
+
+(define tree-merge
+  ;;FIXME  This implementation should  be better;  as it  is now  it was
+  ;;quick to write.
+  ;;
+  (case-lambda
+   ((dst src)
+    (tree-merge dst src #f))
+   ((dst src overwrite?)
+    (let ((I (make-tree-iterator src)))
+      (let loop ()
+	(let-values (((more? rkey val) (I)))
+	  (if more?
+	      (begin
+		(set! dst (tree-cons (reverse rkey) val dst overwrite?))
+		(loop))
+	    dst)))))))
 
 
 ;;;; done

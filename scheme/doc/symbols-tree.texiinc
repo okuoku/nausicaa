@@ -106,4 +106,16 @@ lists:
 but this is not a big problem.
 @end defun
 
+
+@defun tree-merge @var{dst} @var{src}
+@defunx tree-merge @var{dst} @var{src} @var{overwrite?}
+Merge the @var{src} tree into the @var{dst} tree without mutating
+@var{src}; @var{dst} is mutated.
+
+If @var{overwrite?} is true and a key from @var{src} already exists in
+@var{dst}: the old value in @var{dst} is overwritten with the new value
+from @var{src}, else it is left unchanged.  @var{overwrite?} defaults to
+@false{}.
+@end defun
+
 @c end of file
