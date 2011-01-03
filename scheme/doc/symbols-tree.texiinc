@@ -3,7 +3,7 @@
 
 
 The library @library{nausicaa symbols-tree} handles search trees in
-which keys are list of Scheme symbols and values can be anything; the
+which keys are lists of Scheme symbols and values can be anything; the
 tree has the structure of nested alists.  Inserting the following keys
 and values (in this order):
 
@@ -26,31 +26,35 @@ yields the following tree:
 
 @example
 ((a . ((b2 . ((#f . 7)
-              (c3 . 6)
-              (c2 . 5)
-              (c1 . 4)))
+              (c3 . ((#f . 6)))
+              (c2 . ((#f . 5)))
+              (c1 . ((#f . 4)))))
        (b1 . ((c2 . ((#f . 8)
-                     (d3 . 3)
-                     (d2 . 2)
-                     (d1 . 1)))
-              (c1 . ((d3 . 3)
-                     (d2 . 2)
-                     (d1 . 1))))))))
+                     (d3 . ((#f . 3)))
+                     (d2 . ((#f . 2)))
+                     (d1 . ((#f . 1)))))
+              (c1 . ((d3 . ((#f . 3)))
+                     (d2 . ((#f . 2)))
+                     (d1 . ((#f . 1))))))))))
 @end example
 
 @noindent
-notice that the ``short keys'' are stored as sequences ending with a
-pair having @false{} as key, and such pairs are kept at the beginning of
-the alist.
+notice that the keys are stored as sequences ending with a pair having
+@false{} as key, and such pairs are kept at the beginning of the alist.
 
 Storing a key/value pair whose key already exists causes the old value
 to be overwritten.
 
 
 @defun tree-cons @var{key} @var{value} @var{tree}
+@defunx tree-cons @var{key} @var{value} @var{tree} @var{overwrite?}
 Add the @var{key}/@var{value} pair to @var{tree} and return the new
 tree.  @var{key} must be null or a list of symbols, @var{value} can be
 anything, @var{tree} must be null or a symbols tree.
+
+If @var{overwrite?} is true and the key already exists: the old value is
+overwritten with @var{value}, else it is left unchanged.
+@var{overwrite?} defaults to @false{}.
 @end defun
 
 
@@ -60,5 +64,46 @@ return @var{default} if @var{key} was not found.  @var{key} must be null
 or a list of symbols, @var{tree} must be null or a symbols tree.
 @end defun
 
+
+@defun make-tree-iterator @var{tree}
+Return an iterator closure upon @var{tree}.  Whenever evaluated, the
+iterator returns three values: a boolean, false if the iteration is
+over; a list of symbols representing the reversed key for this tree
+element; this element's value.
+
+Iterating over a tree means; composing a sequence of keys and values;
+for the following simple tree:
+
+@example
+((#f . 1)
+ (a . ((#f . 2)))
+ (b . ((c1 . ((#f . 3)))
+       (c2 . ((#f . 4))))))
+@end example
+
+@noindent
+iterating means generating the following sequence of key/value couples:
+
+@example
+()      1
+(a)     2
+(b c1)  3
+(b c3)  4
+@end example
+
+@noindent
+for implementation reasons the iterator returns the keys as reversed
+lists:
+
+@example
+()      1
+(a)     2
+(c1 b)  3
+(c3 b)  4
+@end example
+
+@noindent
+but this is not a big problem.
+@end defun
 
 @c end of file
