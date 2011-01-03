@@ -1,3 +1,4 @@
+;;; -*- mode: scheme; coding: utf-8 -*-
 ;;;
 ;;;Part of: Nausicaa/Scheme
 ;;;Contents: R6RS string lexer table

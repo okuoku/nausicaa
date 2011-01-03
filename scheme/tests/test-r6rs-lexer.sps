@@ -39,7 +39,7 @@
 (define eoi `(*eoi* . ,(eof-object)))
 
 
-(parametrise ((check-test-name	'strings))
+(parametrise ((check-test-name	'string-tokeniser))
 
   (define (tokenise string)
     (let* ((IS		(lexer-make-IS (string: string) (counters: 'all)))
@@ -215,6 +215,183 @@ bc" STRING *eoi*))
   (check		       ;missing ending #\; for inline-hex-escape
       (tokenise "\\x00\"")
     => '(*lexer-error*))
+
+  #t)
+
+
+(parametrise ((check-test-name	'string-parser))
+
+  (define (parse string)
+    (parse-string (lexer-make-IS (string: string) (counters: 'all))))
+
+;;; All the test strings must end with a double-quote char.
+
+  (check				;empty string
+      (parse "\"")
+    => "")
+
+  (check
+      (parse "\\\"\"")
+    => "\"")
+
+  (check
+      (parse "\\\\/\"")
+    => "\\/")
+
+  (check
+      (parse "\\a\"")
+    => "\a")
+
+  (check
+      (parse "\\b\"")
+    => "\b")
+
+  (check
+      (parse "\\t\"")
+    => "\t")
+
+  (check
+      (parse "\\n\"")
+    => "\n")
+
+  (check
+      (parse "\\v\"")
+    => "\v")
+
+  (check
+      (parse "\\f\"")
+    => "\f")
+
+  (check
+      (parse "\\r\"")
+    => "\r")
+
+  (check
+      (parse "\\\"\"")
+    => "\"")
+
+  (check
+      (parse "\\\\\"")
+    => "\\")
+
+  (check
+      (parse "inizio\\\"/\\b\\f\\n\\r\\tfine\"")
+    => "inizio\"/\b\f\n\r\tfine")
+
+  (check
+      (parse "\\x005C;\"")
+    => "\\")
+
+  (check
+      (parse "\\xA;\"")
+    => "\n")
+
+  (check
+      (parse "x\\xA;x\"")
+    => "x\xA;x")
+
+  (check
+      (parse "x\\xA;\\x9;\"")
+    => "x\xA;\x9;")
+
+  (check
+      (parse "\\x0063;\\x0069;\\x0061;\\x006f;\"")
+    => "\x0063;\x0069;\x0061;\x006f;")
+
+  (check				;a string
+      (parse "ciao\"")
+    => "ciao")
+
+  (check
+      ;;Nested double quotes.  The Scheme string "\\\"" is seen as \" by
+      ;;the lexer and the backslash quoting character is removed.
+      (parse "ciao \\\"hello\\\" salut\"")
+    => "ciao \"hello\" salut")
+
+  (check				;intraline space
+      (parse "ciao \\\nmamma\"")
+    => "ciao mamma")
+
+  (check				;intraline space
+      (parse "ciao \
+mamma\"")
+    => "ciao mamma")
+
+;;; ------------------------------------------------------------
+;;; the following are from the R6RS document
+
+  (check
+      (parse "\\x41;bc\"")
+    => "\x41;bc")
+
+  (check
+      (parse "\\x41; bc\"")
+    => "\x41; bc")
+
+
+  (check
+      (parse "\\x41bc;\"")
+    => "\x41bc;")
+
+  (check
+      (guard (E ((lexical-violation? E)
+;;;		 (display (condition-message E))(newline)
+		 (condition-irritants E))
+		(else E))
+	(parse "\\x41"))
+    => '("\\x41"))
+
+  (check
+      (guard (E ((lexical-violation? E)
+;;;		 (display (condition-message E))(newline)
+		 (condition-irritants E))
+		(else E))
+	(parse "\\x;"))
+    => '("\\x;"))
+
+  (check
+      (guard (E ((lexical-violation? E)
+;;;		 (display (condition-message E))(newline)
+		 (condition-irritants E))
+		(else E))
+	(parse "\\x41bx;"))
+    => '("\\x41bx;"))
+
+  (check
+      (parse "\\x00000041;\"")
+    => "\x00000041;")
+
+  (check
+      (parse "\\x0010FFFF;\"")
+    => "\x0010FFFF;")
+
+  (check	;inline-hex-escape out of range
+      (guard (E ((lexical-violation? E)
+;;;		 (display (condition-message E))(newline)
+		 (condition-irritants E))
+		(else E))
+	(parse "\\x00110000;"))
+    => '("\\x00110000;"))
+
+  (check
+      (parse "\\x000000001;\"")
+    => "\x000000001;")
+
+  (check	;&lexical exception, in excluded range
+      (guard (E ((lexical-violation? E)
+;;;		 (display (condition-message E))(newline)
+		 (condition-irritants E))
+		(else E))
+	(parse "\\xD800;"))
+    => '("\\xD800;"))
+
+  (check	;&lexical exception, in excluded range
+      (guard (E ((lexical-violation? E)
+;;;		 (display (condition-message E))(newline)
+		 (condition-irritants E))
+		(else E))
+	(parse "\\xDFFF;"))
+    => '("\\xDFFF;"))
 
   #t)
 

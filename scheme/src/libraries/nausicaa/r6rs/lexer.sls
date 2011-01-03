@@ -30,16 +30,48 @@
   (export
     r6rs-lexer-table
     r6rs-nested-comment-lexer-table
-    r6rs-string-lexer-table)
+    r6rs-string-lexer-table
+
+    parse-string)
   (import (nausicaa)
     (nausicaa r6rs lexer-table)
     (nausicaa r6rs string-lexer-table)
     (nausicaa r6rs nested-comment-lexer-table)
+    (nausicaa parser-tools lexical-token)
+    (nausicaa silex lexer)
     )
 
 
-;;;; code
-
+(define (parse-string IS)
+  ;;Given  an input  system  from  which a  double  quote character  has
+  ;;already  been consumed,  read  characters composing  an R6RS  string
+  ;;stopping at the ending double quote.  Return the Scheme string.
+  ;;
+  ;;If an error occurs reading  the string: a condition object is raised
+  ;;with  components &lexical,  &message, &who,  &irritants;  the single
+  ;;value in the &irritants list is the string that caused the error.
+  ;;
+  ;;If end of  input is found reading the string:  a condition object is
+  ;;raised with components &lexical, &message, &who, &irritants.
+  ;;
+  (let-values (((port getter)	(open-string-output-port))
+	       ((lexer)		(lexer-make-lexer r6rs-string-lexer-table IS)))
+    (let next (((T <lexical-token>) (lexer)))
+      (define (%error message)
+	(raise
+	 (condition (make-lexical-violation)
+		    (make-message-condition message)
+		    (make-who-condition 'parse-string)
+		    (make-irritants-condition (list T.value)))))
+      (cond (T.end-of-input?
+	     (%error "end of input found while parsing string"))
+	    (T.lexer-error?
+	     (%error "lexical violation while parsing string"))
+	    ((eq? T 'STRING)
+	     (getter))
+	    (else
+	     (display T port)
+	     (next (lexer)))))))
 
 
 ;;;; done

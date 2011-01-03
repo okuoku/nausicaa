@@ -15,6 +15,116 @@ standard.
 @section Tokenising @rnrs{6} source code
 
 
+The library @library{nausicaa r6rs lexer} implements a lexer compliant
+with the @rnrs{6} specification for Scheme source code; the lexer is
+built on top of the @library{silex} parser generator.  @ref{silex}
+
+@menu
+* r6rs lexer strings::          Reading strings.
+@end menu
+
+
+
+
+@defvr Constant r6rs-lexer-table
+A @library{silex} lexer table to parse @rnrs{6} compliant Scheme source
+code.
+@end defvr
+
+
+@defvr Constant r6rs-nested-comment-lexer-table
+A @library{silex} lexer table to parse @rnrs{6} compliant nested
+comments of the form @code{#| ... |#}.
+@end defvr
+
+@c page
+@node r6rs lexer strings
+@subsection Reading strings
+
+
+@cindex Reading Scheme strings
+@cindex Lexer, Scheme strings
+@cindex Scheme strings, reading
+@cindex Scheme strings, lexer
+
+
+The following bindings are exported by the @library{nausicaa r6rs lexer}
+library.
+
+
+@defvr Constant r6rs-string-lexer-table
+A @library{silex} lexer table to parse @rnrs{6} compliant Scheme
+strings.  A lexer using this table must be used after the opening double
+quote of the string has been consumed from the input system.  See the
+documentation of @func{parse-string} for a usage example.
+
+A lexer function using this table returns:
+
+@itemize
+@item
+Scheme characters read from the input system.
+
+@item
+Scheme strings read from the input system.
+
+@item
+Records of class @class{lexical-token} with category @code{*eoi*} when
+the end--of--input is found.
+
+@item
+Records of class @class{lexical-token} with category
+@code{*lexer-error*} a lexical error is detected in the input system.
+
+@item
+The symbol @code{STRING} when a double quote is read from the input
+system.  This symbol signals that the string is finished, we may want to
+continue reading with a different lexer function.
+@end itemize
+@end defvr
+
+
+@defun parse-string @var{IS}
+Given a @library{silex} input system from which a double quote character
+has already been consumed, read characters composing an @rnrs{6} string
+stopping at the ending double quote.  Return the Scheme string.
+
+If an error occurs reading the string: a condition object is raised with
+components @condition{lexical}, @condition{message}, @condition{who},
+@condition{irritants}; the single value in the @condition{irritants}
+list is the string that caused the error.
+
+If end of input is found reading the string: a condition object is
+raised with components @condition{lexical}, @condition{message},
+@condition{who}, @condition{irritants}; the single value in the
+@condition{irritants} list is the end--of--file object.
+
+The implementation of this function is a useful example of usage for
+@code{r6rs-string-lexer-table}:
+
+@example
+(define (parse-string IS)
+  (let-values
+      (((port getter) (open-string-output-port))
+       ((lexer) (lexer-make-lexer r6rs-string-lexer-table IS)))
+    (let next (((T <lexical-token>) (lexer)))
+      (define (%error message)
+        (raise
+         (condition (make-lexical-violation)
+                    (make-message-condition message)
+                    (make-who-condition 'parse-string)
+                    (make-irritants-condition (list T.value)))))
+      (cond (T.end-of-input?
+             (%error "end of input found while parsing string"))
+            (T.lexer-error?
+             (%error "lexical violation while parsing string"))
+            ((eq? T 'STRING)
+             (getter))
+            (else
+             (display T port)
+             (next (lexer)))))))
+@end example
+@end defun
+
 
 
 @c end of file
