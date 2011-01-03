@@ -8,7 +8,7 @@
 ;;;
 ;;;	The ancestor of this library is ScmObj by Dorai Sitaram.
 ;;;
-;;;Copyright (c) 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2010, 2011 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;Copyright (c) 1996 Dorai Sitaram
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
@@ -31,12 +31,16 @@
     define-generic define-method add-method define-generic/merge
     call-next-method next-method?)
   (import (rnrs)
-    (rename (only (nausicaa language classes)
-		  class-uid-list class-uid-list-of lambda/with-class <top>)
-	    (class-uid-list	type-uid-list)
-	    (class-uid-list-of	type-uid-list-of)
-	    (lambda/with-class	method-lambda)
-	    (<top>		top-type))
+    (prefix (rename (only (nausicaa language classes)
+			  class-uid-list
+			  class-uid-list-of
+			  lambda/with-class
+			  <top>)
+		    (class-uid-list	uid-list)
+		    (class-uid-list-of	uid-list-of)
+		    (lambda/with-class	method-lambda)
+		    (<top>		top))
+	    type.)
     (only (nausicaa language extensions)
 	  begin0 begin0-let define-constant)
     (nausicaa language parameters)
@@ -46,20 +50,20 @@
 
 ;;;We need to define or import four bindings:
 ;;;
-;;;type-uid-list - A syntax which, applied to a type identifier, expands
+;;;type.uid-list - A syntax which, applied to a type identifier, expands
 ;;;into a list of symbols  representing the type hierarchy from subclass
 ;;;to  parent class.   All the  expansions of  this macro  for  the same
 ;;;identifier must yield the same list in the sense of EQ?.
 ;;;
-;;;type-uid-list-of - A function which,  applied to any value, returns a
+;;;type.uid-list-of - A function which,  applied to any value, returns a
 ;;;list  of symbols  representing the  type hierarchy  from  subclass to
 ;;;parent class.   The returned value  must be EQ? to  the corresponding
-;;;expansion of TYPE-UID-LIST.
+;;;expansion of TYPE.UID-LIST.
 ;;;
-;;;method-lambda -  A syntax which  must work like LAMBDA  but recognise
-;;;arguments tagged with types.
+;;;type.method-lambda  -  A  syntax  which  must work  like  LAMBDA  but
+;;;recognise arguments tagged with types.
 ;;;
-;;;top-type - An identifier representing the topmost parent type for all
+;;;type.top - An identifier representing the topmost parent type for all
 ;;;the classes.
 ;;;
 
@@ -74,20 +78,35 @@
 	   (cons (car ell) (loop (cdr ell)))
 	 ell)))))
 
-;;The  following  bindings  are  needed  by  the  cache  implemented  as
-;;hashtable; currently it is implemented  as a symbols-tree, so they are
-;;commented out.
-;;
-;; (define-constant $gf
-;;   (greatest-fixnum))
-;;
-;; (define (signature-hash signature)
-;;   (let loop ((hash      0)
-;; 	     (signature signature))
-;;     (if (null? signature)
-;; 	hash
-;;       (loop (mod (+ hash (symbol-hash (caar signature))) $gf)
-;; 	    (cdr signature)))))
+#|  The  following bindings  are  needed  by  the cache  implemented  as
+hashtable; currently  it is implemented  as a symbols-tree, so  they are
+commented out.
+
+ (define-constant $gf
+   (greatest-fixnum))
+
+ (define (signature-hash signature)
+   (let loop ((hash      0)
+ 	     (signature signature))
+     (if (null? signature)
+ 	hash
+       (loop (mod (+ hash (symbol-hash (caar signature))) $gf)
+ 	    (cdr signature)))))
+
+these should go in the expansion of DEFINE-GENERIC:
+
+  (define cache
+    (make-hashtable signature-hash eq?))
+
+  (define (cache-clear)
+    (hashtable-clear! cache))
+
+  (define (cache-store signature methods)
+    (hashtable-set! cache signature methods))
+
+  (define (cache-ref signature)
+    (hashtable-ref cache signature #f))
+|#
 
 
 ;;;; next method implementation
@@ -117,7 +136,7 @@
 ;;The "signature" of  a method is a list of lists,  each sublist being a
 ;;list of record type UIDs.  The  first sublist is the hierarchy of UIDs
 ;;of the first method's argument, the second sublist is the hierarchy of
-;;the second arguments, etc.  For example, a method defined as:
+;;the second argument, etc.  For example, a method defined as:
 ;;
 ;;   (define-method (doit (a <complex>) (b <string>) (c <char>))
 ;;     ---)
@@ -160,24 +179,22 @@
 	     (if (null? methods-alist)
 		 #f
 	       (length (caar methods-alist))))
-	   (define cache
-	     #;(make-hashtable signature-hash eq?)
-	     '()) ;symbols tree
+	   (define cache '()) ;symbols tree
 	   (define (cache-clear)
-	     #;(hashtable-clear! cache)
 	     (set! cache '()))
 	   (define (cache-store signature methods)
-	     #;(hashtable-set! cache signature methods)
 	     (set! cache (tree-cons signature methods cache)))
 	   (define (cache-ref signature)
-	     #;(hashtable-ref cache signature #f)
 	     (treeq cache signature #f))
 	   (define (method-add signature closure)
 	     (let ((len (length signature)))
 	       (if number-of-arguments
 		   (unless (= number-of-arguments len)
 		     (syntax-violation '?name
-		       "attempt to define method with wrong number of arguments"
+		       (string-append
+			"attempt to define method with wrong number of arguments, expected "
+			(number->string number-of-arguments) " got "
+			(number->string len))
 		       signature))
 		 (set! number-of-arguments len)))
 	     (cache-clear)
@@ -210,7 +227,7 @@
 					 number-of-arguments arguments)
 
   (define signature
-    (map type-uid-list-of arguments))
+    (map type.uid-list-of arguments))
 
   (define applicable-methods
     (or (cache-ref signature)
@@ -294,20 +311,20 @@
     ;;type.
     ((_ ?generic-function (?next-arg-name . ?args) (?type-name ...) (?arg-name ...) . ?body)
      (%collect-types-and-arguments ?generic-function ?args
-				   (?type-name ... top-type)
+				   (?type-name ... type.top)
 				   (?arg-name  ... ?next-arg-name)
 				   . ?body))
 
     ;;Matches the form when all the arguments have been processed.
     ((_ ?generic-function () (?type-name ...) (?arg-name ...) . ?body)
      (add-method ?generic-function (?type-name ...)
-		 (method-lambda ((?arg-name ?type-name) ...) . ?body)))))
+		 (type.method-lambda ((?arg-name ?type-name) ...) . ?body)))))
 
 (define-syntax add-method
   (syntax-rules ()
     ((_ ?generic-function (?type-name ...) ?closure)
      (?generic-function :method-add
-			(list (type-uid-list ?type-name) ...) ;this is the signature
+			(list (type.uid-list ?type-name) ...) ;this is the signature
 			?closure))))
 
 

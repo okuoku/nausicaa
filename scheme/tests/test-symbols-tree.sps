@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2010, 2011 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -42,9 +42,9 @@
         (set! tree (tree-cons '(b) 2 tree))
         (set! tree (tree-cons '(c) 3 tree))
 	tree)
-    => '((c . 3)
-	 (b . 2)
-	 (a . 1)))
+    => '((c . ((#f . 3)))
+	 (b . ((#f . 2)))
+	 (a . ((#f . 1)))))
 
   (check	;multi symbol keys
       (let ((tree '()))
@@ -52,9 +52,9 @@
         (set! tree (tree-cons '(a b c d2) 2 tree))
         (set! tree (tree-cons '(a b c d3) 3 tree))
 	tree)
-    => '((a . ((b . ((c . ((d3 . 3)
-			   (d2 . 2)
-			   (d1 . 1)))))))))
+    => '((a . ((b . ((c . ((d3 . ((#f . 3)))
+			   (d2 . ((#f . 2)))
+			   (d1 . ((#f . 1)))))))))))
 
   (check	;multi symbol keys
       (let ((tree '()))
@@ -65,12 +65,12 @@
         (set! tree (tree-cons '(a b c2 d2) 2 tree))
         (set! tree (tree-cons '(a b c2 d3) 3 tree))
 	tree)
-    => '((a . ((b . ((c2 . ((d3 . 3)
-			    (d2 . 2)
-			    (d1 . 1)))
-		     (c1 . ((d3 . 3)
-			    (d2 . 2)
-			    (d1 . 1)))
+    => '((a . ((b . ((c2 . ((d3 . ((#f . 3)))
+			    (d2 . ((#f . 2)))
+			    (d1 . ((#f . 1)))))
+		     (c1 . ((d3 . ((#f . 3)))
+			    (d2 . ((#f . 2)))
+			    (d1 . ((#f . 1)))))
 		     ))))))
 
   (check	;multi symbol keys
@@ -85,15 +85,15 @@
         (set! tree (tree-cons '(a b2 c2) 5 tree))
         (set! tree (tree-cons '(a b2 c3) 6 tree))
 	tree)
-    => '((a . ((b2 . ((c3 . 6)
-		      (c2 . 5)
-		      (c1 . 4)))
-	       (b1 . ((c2 . ((d3 . 3)
-			     (d2 . 2)
-			     (d1 . 1)))
-		      (c1 . ((d3 . 3)
-			     (d2 . 2)
-			     (d1 . 1)))))
+    => '((a . ((b2 . ((c3 . ((#f . 6)))
+		      (c2 . ((#f . 5)))
+		      (c1 . ((#f . 4)))))
+	       (b1 . ((c2 . ((d3 . ((#f . 3)))
+			     (d2 . ((#f . 2)))
+			     (d1 . ((#f . 1)))))
+		      (c1 . ((d3 . ((#f . 3)))
+			     (d2 . ((#f . 2)))
+			     (d1 . ((#f . 1)))))))
 	       ))))
 
   (check	;multi symbol keys
@@ -108,15 +108,15 @@
         (set! tree (tree-cons '(a b1 c2 d3) 3 tree))
         (set! tree (tree-cons '(a b2 c3) 6 tree))
 	tree)
-    => '((a . ((b2 . ((c3 . 6)
-		      (c2 . 5)
-		      (c1 . 4)))
-	       (b1 . ((c2 . ((d3 . 3)
-			     (d2 . 2)
-			     (d1 . 1)))
-		      (c1 . ((d3 . 3)
-			     (d2 . 2)
-			     (d1 . 1)))))
+    => '((a . ((b2 . ((c3 . ((#f . 6)))
+		      (c2 . ((#f . 5)))
+		      (c1 . ((#f . 4)))))
+	       (b1 . ((c2 . ((d3 . ((#f . 3)))
+			     (d2 . ((#f . 2)))
+			     (d1 . ((#f . 1)))))
+		      (c1 . ((d3 . ((#f . 3)))
+			     (d2 . ((#f . 2)))
+			     (d1 . ((#f . 1)))))))
 	       ))))
 
   (check	;multi symbol keys, some shorter keys
@@ -134,16 +134,16 @@
         (set! tree (tree-cons '(a b1 c2) 8 tree))
 	tree)
     => '((a . ((b2 . ((#f . 7)
-		      (c3 . 6)
-		      (c2 . 5)
-		      (c1 . 4)))
+		      (c3 . ((#f . 6)))
+		      (c2 . ((#f . 5)))
+		      (c1 . ((#f . 4)))))
 	       (b1 . ((c2 . ((#f . 8)
-			     (d3 . 3)
-			     (d2 . 2)
-			     (d1 . 1)))
-		      (c1 . ((d3 . 3)
-			     (d2 . 2)
-			     (d1 . 1)))))
+			     (d3 . ((#f . 3)))
+			     (d2 . ((#f . 2)))
+			     (d1 . ((#f . 1)))))
+		      (c1 . ((d3 . ((#f . 3)))
+			     (d2 . ((#f . 2)))
+			     (d1 . ((#f . 1)))))))
 	       ))))
 
   #t)
@@ -169,49 +169,49 @@
   (check
       (build-tree1)
     => '((a . ((b2 . ((#f . 7)
-		      (c3 . 6)
-		      (c2 . 5)
-		      (c1 . 4)))
+		      (c3 . ((#f . 6)))
+		      (c2 . ((#f . 5)))
+		      (c1 . ((#f . 4)))))
 	       (b1 . ((c2 . ((#f . 8)
-			     (d3 . 3)
-			     (d2 . 2)
-			     (d1 . 1)))
-		      (c1 . ((d3 . 3)
-			     (d2 . 2)
-			     (d1 . 1))))
+			     (d3 . ((#f . 3)))
+			     (d2 . ((#f . 2)))
+			     (d1 . ((#f . 1)))))
+		      (c1 . ((d3 . ((#f . 3)))
+			     (d2 . ((#f . 2)))
+			     (d1 . ((#f . 1))))))
 		   ))
 	    )))
 
 ;;; --------------------------------------------------------------------
 
   (check	;replace value for short key (a b1 c2)
-      (tree-cons '(a b1 c2) 99 (build-tree1))
+      (tree-cons '(a b1 c2) 99 (build-tree1) #t)
     => '((a . ((b2 . ((#f . 7)
-		      (c3 . 6)
-		      (c2 . 5)
-		      (c1 . 4)))
+		      (c3 . ((#f . 6)))
+		      (c2 . ((#f . 5)))
+		      (c1 . ((#f . 4)))))
 	       (b1 . ((c2 . ((#f . 99)
-			     (d3 . 3)
-			     (d2 . 2)
-			     (d1 . 1)))
-		      (c1 . ((d3 . 3)
-			     (d2 . 2)
-			     (d1 . 1)))))
+			     (d3 . ((#f . 3)))
+			     (d2 . ((#f . 2)))
+			     (d1 . ((#f . 1)))))
+		      (c1 . ((d3 . ((#f . 3)))
+			     (d2 . ((#f . 2)))
+			     (d1 . ((#f . 1)))))))
 	       ))))
 
   (check	;replace value for key (a b1 c2 d2)
-      (tree-cons '(a b1 c2 d2) 99 (build-tree1))
+      (tree-cons '(a b1 c2 d2) 99 (build-tree1) #t)
     => '((a . ((b2 . ((#f . 7)
-		      (c3 . 6)
-		      (c2 . 5)
-		      (c1 . 4)))
+		      (c3 . ((#f . 6)))
+		      (c2 . ((#f . 5)))
+		      (c1 . ((#f . 4)))))
 	       (b1 . ((c2 . ((#f . 8)
-			     (d3 . 3)
-			     (d2 . 99)
-			     (d1 . 1)))
-		      (c1 . ((d3 . 3)
-			     (d2 . 2)
-			     (d1 . 1)))))
+			     (d3 . ((#f . 3)))
+			     (d2 . ((#f . 99)))
+			     (d1 . ((#f . 1)))))
+		      (c1 . ((d3 . ((#f . 3)))
+			     (d2 . ((#f . 2)))
+			     (d1 . ((#f . 1)))))))
 	       ))))
 
   #t)
@@ -254,16 +254,16 @@
   (check
       (build-tree1)
     => '((a . ((b2 . ((#f . 7)
-		      (c3 . 6)
-		      (c2 . 5)
-		      (c1 . 4)))
+		      (c3 . ((#f . 6)))
+		      (c2 . ((#f . 5)))
+		      (c1 . ((#f . 4)))))
 	       (b1 . ((c2 . ((#f . 8)
-			     (d3 . 3)
-			     (d2 . 2)
-			     (d1 . 1)))
-		      (c1 . ((d3 . 3)
-			     (d2 . 2)
-			     (d1 . 1))))
+			     (d3 . ((#f . 3)))
+			     (d2 . ((#f . 2)))
+			     (d1 . ((#f . 1)))))
+		      (c1 . ((d3 . ((#f . 3)))
+			     (d2 . ((#f . 2)))
+			     (d1 . ((#f . 1))))))
 		   ))
 	    )))
 
@@ -272,16 +272,16 @@
     => '((#f . 10)
 	 (a . ((#f . 11)
 	       (b2 . ((#f . 7)
-		      (c3 . 6)
-		      (c2 . 5)
-		      (c1 . 4)))
+		      (c3 . ((#f . 6)))
+		      (c2 . ((#f . 5)))
+		      (c1 . ((#f . 4)))))
 	       (b1 . ((c2 . ((#f . 8)
-			     (d3 . 3)
-			     (d2 . 2)
-			     (d1 . 1)))
-		      (c1 . ((d3 . 3)
-			     (d2 . 2)
-			     (d1 . 1))))
+			     (d3 . ((#f . 3)))
+			     (d2 . ((#f . 2)))
+			     (d1 . ((#f . 1)))))
+		      (c1 . ((d3 . ((#f . 3)))
+			     (d2 . ((#f . 2)))
+			     (d1 . ((#f . 1))))))
 		   ))
 	    )))
 
@@ -326,7 +326,7 @@
 
     #t)
 
-  (let ((tree '((a . 1))))
+  (let ((tree '((a . ((#f . 1))))))
 
     (check (treeq '(a) tree #t)	=> 1)
     (check (treeq '()  tree #t)	=> #t)
@@ -335,13 +335,161 @@
     #t)
 
   (let ((tree '((#f . 0)
-		(a  . 1))))
+		(a  . ((#f . 1))))))
 
     (check (treeq '(a) tree #t)	=> 1)
     (check (treeq '()  tree #t)	=> 0)
     (check (treeq '(Z) tree #t)	=> #t)
 
     #t)
+
+  #t)
+
+
+(parametrise ((check-test-name	'iter))
+
+  (define (build-tree1)
+    (begin0-let ((tree '()))
+      (set! tree (tree-cons '(a b2) 2 tree))
+      (set! tree (tree-cons '(a b1) 1 tree))
+      (set! tree (tree-cons '(a)    3 tree))
+      ))
+
+  (define (build-tree2)
+    (let ((tree '()))
+      (set! tree (tree-cons '(a b1 c1 d1) 1 tree))
+      (set! tree (tree-cons '(a b1 c1 d2) 2 tree))
+      (set! tree (tree-cons '(a b1 c2 d1) 1 tree))
+      (set! tree (tree-cons '(a b1 c1 d3) 3 tree))
+      (set! tree (tree-cons '(a b2 c1) 4 tree))
+      (set! tree (tree-cons '(a b1 c2 d2) 2 tree))
+      (set! tree (tree-cons '(a b2 c2) 5 tree))
+      (set! tree (tree-cons '(a b1 c2 d3) 3 tree))
+      (set! tree (tree-cons '(a b2 c3) 6 tree))
+      (set! tree (tree-cons '(a b2) 7 tree))
+      (set! tree (tree-cons '(a b1 c2) 8 tree))
+      (set! tree (tree-cons '() 10 tree))
+      (set! tree (tree-cons '(a) 11 tree))
+      tree))
+
+  (define-syntax check-iter
+    (syntax-rules ()
+      ((_ ?iter ?result)
+       (check
+	   (receive (bool key val)
+	       (?iter)
+	     (vector bool key val))
+	 => ?result))))
+
+  (check
+      (build-tree1)
+    => '((a . ((#f . 3)
+	       (b1 . ((#f . 1)))
+	       (b2 . ((#f . 2)))))))
+
+  (check
+      (build-tree2)
+    => '((#f . 10)
+	 (a . ((#f . 11)
+	       (b2 . ((#f . 7)
+		      (c3 . ((#f . 6)))
+		      (c2 . ((#f . 5)))
+		      (c1 . ((#f . 4)))))
+	       (b1 . ((c2 . ((#f . 8)
+			     (d3 . ((#f . 3)))
+			     (d2 . ((#f . 2)))
+			     (d1 . ((#f . 1)))))
+		      (c1 . ((d3 . ((#f . 3)))
+			     (d2 . ((#f . 2)))
+			     (d1 . ((#f . 1))))))
+		   ))
+	    )))
+
+;;; --------------------------------------------------------------------
+
+  (let ((I (make-tree-iterator (build-tree1))))
+
+    (check-iter I '#(#t (a)		3))
+    (check-iter I '#(#t (b1 a)		1))
+    (check-iter I '#(#t (b2 a)		2))
+    (check-iter I '#(#f #f #f))
+
+    #f)
+
+  (let ((I (make-tree-iterator (build-tree2))))
+
+    (check-iter I '#(#t ()		10))
+    (check-iter I '#(#t (a)		11))
+    (check-iter I '#(#t (b2 a)		7))
+    (check-iter I '#(#t (c3 b2 a)	6))
+    (check-iter I '#(#t (c2 b2 a)	5))
+    (check-iter I '#(#t (c1 b2 a)	4))
+    (check-iter I '#(#t (c2 b1 a)	8))
+    (check-iter I '#(#t (d3 c2 b1 a)	3))
+    (check-iter I '#(#t (d2 c2 b1 a)	2))
+    (check-iter I '#(#t (d1 c2 b1 a)	1))
+    (check-iter I '#(#t (d3 c1 b1 a)	3))
+    (check-iter I '#(#t (d2 c1 b1 a)	2))
+    (check-iter I '#(#t (d1 c1 b1 a)	1))
+    (check-iter I '#(#f #f #f))
+
+    #f)
+
+  (let ((I (make-tree-iterator '())))
+
+    (check-iter I '#(#f #f #f))
+
+    #f)
+
+  (let ((I (make-tree-iterator '((#f . 1)))))
+
+    (check-iter I '#(#t ()		1))
+    (check-iter I '#(#f #f #f))
+
+    #f)
+
+  (let ((I (make-tree-iterator '((#f . 1)
+				 (a  . ((#f . 2)))))))
+
+    (check-iter I '#(#t ()		1))
+    (check-iter I '#(#t (a)		2))
+    (check-iter I '#(#f #f #f))
+
+    #f)
+
+  #t)
+
+
+(parametrise ((check-test-name	'merge))
+
+  (check
+      (tree-merge '((#f . 1))
+		  '((#f . 2))
+		  #t)
+    => '((#f . 2)))
+
+  (check
+      (tree-merge '((#f . 1))
+		  '((#f . 2))
+		  #f)
+    => '((#f . 1)))
+
+  (check
+      (tree-merge '((#f . 1)
+		    (a . ((#f . 2)))
+		    (b . ((c1 . ((#f . 3)))
+			  (c2 . ((#f . 4))))))
+		  '((a . ((d1 . ((#f . 10)))
+			  (d2 . ((#f . 11)))))
+		    (e . ((#f . 12))))
+		  #t)
+    => '((#f . 1)
+	 (e . ((#f . 12)))
+	 (a . ((#f . 2)
+	       (d2 . ((#f . 11)))
+	       (d1 . ((#f . 10)))))
+	 (b . ((c1 . ((#f . 3)))
+	       (c2 . ((#f . 4)))))))
 
   #t)
 
