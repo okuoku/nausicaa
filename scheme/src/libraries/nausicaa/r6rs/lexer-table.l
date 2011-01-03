@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2010, 2011 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -239,7 +239,7 @@ CHARACTER		{SHARPBACKSLASH}((x{HEX_SCALAR_VALUE})|{CHARACTER_NAME}|.)
 					      (make-<source-location> #f yyline yycolumn yyoffset)
 					      (case yytext
 						(("#t" "#T")	#t)
-						(("#f" "#F"	#f)))
+						(("#f" "#F")	#f))
 					      2)
 
 {CHARACTER}		(make-<lexical-token> 'character

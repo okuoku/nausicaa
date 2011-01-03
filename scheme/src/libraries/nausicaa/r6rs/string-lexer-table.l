@@ -7,23 +7,20 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2010, 2011 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
-;;;This  program  is free  software:  you  can redistribute  it
-;;;and/or modify it  under the terms of the  GNU General Public
-;;;License as published by the Free Software Foundation, either
-;;;version  3 of  the License,  or (at  your option)  any later
-;;;version.
+;;;This program is free software:  you can redistribute it and/or modify
+;;;it under the terms of the  GNU General Public License as published by
+;;;the Free Software Foundation, either version 3 of the License, or (at
+;;;your option) any later version.
 ;;;
-;;;This  program is  distributed in  the hope  that it  will be
-;;;useful, but  WITHOUT ANY WARRANTY; without  even the implied
-;;;warranty  of  MERCHANTABILITY or  FITNESS  FOR A  PARTICULAR
-;;;PURPOSE.   See  the  GNU  General Public  License  for  more
-;;;details.
+;;;This program is  distributed in the hope that it  will be useful, but
+;;;WITHOUT  ANY   WARRANTY;  without   even  the  implied   warranty  of
+;;;MERCHANTABILITY  or FITNESS FOR  A PARTICULAR  PURPOSE.  See  the GNU
+;;;General Public License for more details.
 ;;;
-;;;You should  have received a  copy of the GNU  General Public
-;;;License   along   with    this   program.    If   not,   see
-;;;<http://www.gnu.org/licenses/>.
+;;;You should  have received  a copy of  the GNU General  Public License
+;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
 DOUBLEQUOTE		\"
@@ -73,43 +70,51 @@ LINEENDING		[\10\13\133\8232]|(\13\10)|(\13\133)
 ;;		#x205F		\8287
 ;;		#x3000		\12288
 ;;
-INTRALINE_WHITESPACE	[\9\32\160\5760\6158\8192\8193\8194\8195\8196\8197\8198\8199\8200\8201\8202\8239\8287\12288]
+INTRALINE-WHITESPACE	[\9\32\160\5760\6158\8192\8193\8194\8195\8196\8197\8198\8199\8200\8201\8202\8239\8287\12288]
+
+LINE-WRAP-TO-IGNORE	\\{INTRALINE-WHITESPACE}*{LINEENDING}{INTRALINE-WHITESPACE}*
+
 
 DIGIT			[0-9]
 HEXDIGIT		{DIGIT}|[a-fA-F]
-HEX_SCALAR_VALUE	{HEXDIGIT}+
-INLINE_HEX_ESCAPE	\\x{HEX_SCALAR_VALUE}\;
+HEX-SCALAR-VALUE	{HEXDIGIT}+
+INLINE-HEX-ESCAPE	\\x{HEX-SCALAR-VALUE}\;
 
-STRING_ELEMENT		[^\"\\]+
+STRING-ELEMENT		[^\"\\]+
 
 %%
 
-{DOUBLEQUOTE}			(make-<lexical-token> 'DOUBLEQUOTE
-						      (make-<source-location> #f yyline yycolumn yyoffset)
-						      #\" 1)
+{DOUBLEQUOTE}			(quote STRING)
 
-{ESCAPED-STRING-ELEMENT}	(make-<lexical-token> 'ESCAPED-STRING-ELEMENT
-						      (make-<source-location> #f yyline yycolumn yyoffset)
-						      (case yytext
-                                                        (("\\a")	#x7)
-                                                        (("\\b")	#x8)
-                                                        (("\\t")	#x9)
-                                                        (("\\n")	#xA)
-                                                        (("\\v")	#xB)
-                                                        (("\\f")	#xC)
-                                                        (("\\r")	#xD)
-                                                        (("\\\"")	#x22)
-                                                        (("\\\\")	#x5C))
-                                                      (string-length yytext))
+{ESCAPED-A}			#\x7
+{ESCAPED-B}			#\x8
+{ESCAPED-T}			#\x9
+{ESCAPED-N}			#\xA
+{ESCAPED-V}			#\xB
+{ESCAPED-F}			#\xC
+{ESCAPED-R}			#\xD
+{ESCAPED-DOUBLEQUOTE}		#\x22
+{ESCAPED-BACKSLASH}		#\x5C
 
-{INTRALINE_WHITESPACE}		;;ignored
 
-{INLINE_HEX_ESCAPE}		(make-<lexical-token> 'INLINE_HEX_ESCAPE
-						      (make-<source-location> #f yyline yycolumn yyoffset)
-						      yytext (string-length yytext))
+{LINE-WRAP-TO-IGNORE}		;;ignored
 
-{STRING_ELEMENT}		(make-<lexical-token> 'STRING_ELEMENT
+{INLINE-HEX-ESCAPE}		(let ((num (string->number (substring yytext 2
+								      (- (string-length yytext) 1))
+							   16)))
+				  (if (or (<= 0 num #xD7FF) (<= #xE000 num #x10FFFF))
+				      (integer->char num)
+				    (make-<lexical-token>
+				     '*lexer-error*
+				     (make-<source-location> #f yyline yycolumn yyoffset)
+				     yytext (string-length yytext))))
+
+{STRING-ELEMENT}		yytext
+
+<<EOF>>				(make-<lexical-token> '*eoi*
 						      (make-<source-location> #f yyline yycolumn yyoffset)
-						      yytext (string-length yytext))
+						      (eof-object) 0)
+
+<<ERROR>>			(silex-default-error-handler)
 
 ;;; end of file

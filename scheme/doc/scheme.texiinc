@@ -1119,7 +1119,7 @@ language: @code{@{ @}}
 @end example
 
 A @meta{hex scalar value} represents a Unicode scalar value between
-@code{0} and @code{#x10FFFF}, excluding the range @code{[#D800,
+@code{0} and @code{#x10FFFF}, excluding the range @code{[#xD800,
 #xDFFF]}.
 
 The rules for @meta{num R}, @meta{complex R}, @meta{real R}, @meta{ureal

@@ -212,7 +212,7 @@
 					      (make-<source-location> #f yyline yycolumn yyoffset)
 					      (case yytext
 						(("#t" "#T")	#t)
-						(("#f" "#F"	#f)))
+						(("#f" "#F")	#f))
 					      2)
         ))
     #t
