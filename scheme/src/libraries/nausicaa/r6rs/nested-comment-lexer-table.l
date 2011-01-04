@@ -28,23 +28,22 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
-OCOMMENT		#\|
-CCOMMENT		\|#
+OPEN			#\|
+CLOSE			\|#
+
+;;Note that  we cannot  define the following  pattern as .+  because its
+;;match would be  longer than the two-characters #|  and |#; SILex gives
+;;precedence to the longest match.
+CHAR			.
 
 %%
 
-{CCOMMENT}		(make-<lexical-token> 'CCOMMENT
-					      (make-<source-location> #f yyline yycolumn yyoffset)
-					      yytext 2)
+{OPEN}			'OPEN
+{CLOSE}			'CLOSE
 
-{OCOMMENT}		(make-<lexical-token> 'OCOMMENT
-					      (make-<source-location> #f yyline yycolumn yyoffset)
-					      yytext 2)
+{CHAR}			(string-ref yytext 0)
 
-<<EOF>>			(make-<lexical-token> '*eoi*
-			 (make-<source-location> #f yyline yycolumn yyoffset)
-			 (eof-object) 0)
-
+<<EOF>>			(silex-default-eof-handler)
 <<ERROR>>		(silex-default-error-handler)
 
 ;;; end of file

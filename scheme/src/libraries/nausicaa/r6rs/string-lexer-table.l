@@ -85,37 +85,32 @@ STRING-ELEMENT		[^\"\\]+
 
 %%
 
-{DOUBLEQUOTE}			(quote STRING)
+{DOUBLEQUOTE}		(quote STRING)
 
-{ESCAPED-A}			#\x7
-{ESCAPED-B}			#\x8
-{ESCAPED-T}			#\x9
-{ESCAPED-N}			#\xA
-{ESCAPED-V}			#\xB
-{ESCAPED-F}			#\xC
-{ESCAPED-R}			#\xD
-{ESCAPED-DOUBLEQUOTE}		#\x22
-{ESCAPED-BACKSLASH}		#\x5C
+{ESCAPED-A}		#\x7
+{ESCAPED-B}		#\x8
+{ESCAPED-T}		#\x9
+{ESCAPED-N}		#\xA
+{ESCAPED-V}		#\xB
+{ESCAPED-F}		#\xC
+{ESCAPED-R}		#\xD
+{ESCAPED-DOUBLEQUOTE}	#\x22
+{ESCAPED-BACKSLASH}	#\x5C
 
 
-{LINE-WRAP-TO-IGNORE}		;;ignored
+{LINE-WRAP-TO-IGNORE}	;;ignored
 
-{INLINE-HEX-ESCAPE}		(let ((num (string->number (substring yytext 2
-								      (- (string-length yytext) 1))
-							   16)))
-				  (if (or (<= 0 num #xD7FF) (<= #xE000 num #x10FFFF))
-				      (integer->char num)
-				    (make-<lexical-token>
-				     '*lexer-error*
-				     (make-<source-location> #f yyline yycolumn yyoffset)
-				     yytext (string-length yytext))))
+{INLINE-HEX-ESCAPE}	(let* ((len (string-length yytext))
+			       (num (string->number (substring yytext 2 (- len 1)) 16)))
+			  (if (or (<= 0 num #xD7FF) (<= #xE000 num #x10FFFF))
+			      (integer->char num)
+			    (make-<lexical-token> '*lexer-error*
+						  (make-<source-location> #f yyline yycolumn yyoffset)
+						  yytext len)))
 
-{STRING-ELEMENT}		yytext
+{STRING-ELEMENT}	yytext
 
-<<EOF>>				(make-<lexical-token> '*eoi*
-						      (make-<source-location> #f yyline yycolumn yyoffset)
-						      (eof-object) 0)
-
-<<ERROR>>			(silex-default-error-handler)
+<<EOF>>			(silex-default-eof-handler)
+<<ERROR>>		(silex-default-error-handler)
 
 ;;; end of file

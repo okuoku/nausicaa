@@ -12,13 +12,11 @@
    'all
    (lambda (yycontinue yygetc yyungetc)
      (lambda (yytext yyline yycolumn yyoffset)
-       				(make-<lexical-token> '*eoi*
-						      (make-<source-location> #f yyline yycolumn yyoffset)
-						      (eof-object) 0)
+       			(silex-default-eof-handler)
        ))
    (lambda (yycontinue yygetc yyungetc)
      (lambda (yytext yyline yycolumn yyoffset)
-         			(silex-default-error-handler)
+         		(silex-default-error-handler)
 
 ;;; end of file
        ))
@@ -26,77 +24,75 @@
     #f
     (lambda (yycontinue yygetc yyungetc)
       (lambda (yyline yycolumn yyoffset)
-             			(quote STRING)
+             		(quote STRING)
         ))
     #f
     (lambda (yycontinue yygetc yyungetc)
       (lambda (yyline yycolumn yyoffset)
-           			#\x7
+           		#\x7
         ))
     #f
     (lambda (yycontinue yygetc yyungetc)
       (lambda (yyline yycolumn yyoffset)
-           			#\x8
+           		#\x8
         ))
     #f
     (lambda (yycontinue yygetc yyungetc)
       (lambda (yyline yycolumn yyoffset)
-           			#\x9
+           		#\x9
         ))
     #f
     (lambda (yycontinue yygetc yyungetc)
       (lambda (yyline yycolumn yyoffset)
-           			#\xA
+           		#\xA
         ))
     #f
     (lambda (yycontinue yygetc yyungetc)
       (lambda (yyline yycolumn yyoffset)
-           			#\xB
+           		#\xB
         ))
     #f
     (lambda (yycontinue yygetc yyungetc)
       (lambda (yyline yycolumn yyoffset)
-           			#\xC
+           		#\xC
         ))
     #f
     (lambda (yycontinue yygetc yyungetc)
       (lambda (yyline yycolumn yyoffset)
-           			#\xD
+           		#\xD
         ))
     #f
     (lambda (yycontinue yygetc yyungetc)
       (lambda (yyline yycolumn yyoffset)
-                     		#\x22
+                     	#\x22
         ))
     #f
     (lambda (yycontinue yygetc yyungetc)
       (lambda (yyline yycolumn yyoffset)
-                   		#\x5C
+                   	#\x5C
         ))
     #f
     (lambda (yycontinue yygetc yyungetc)
       (lambda (yyline yycolumn yyoffset)
-                     		;;ignored
+                     	;;ignored
 
         (yycontinue)
         ))
     #t
     (lambda (yycontinue yygetc yyungetc)
       (lambda (yytext yyline yycolumn yyoffset)
-                   		(let ((num (string->number (substring yytext 2
-								      (- (string-length yytext) 1))
-							   16)))
-				  (if (or (<= 0 num #xD7FF) (<= #xE000 num #x10FFFF))
-				      (integer->char num)
-				    (make-<lexical-token>
-				     '*lexer-error*
-				     (make-<source-location> #f yyline yycolumn yyoffset)
-				     yytext (string-length yytext))))
+                   	(let* ((len (string-length yytext))
+			       (num (string->number (substring yytext 2 (- len 1)) 16)))
+			  (if (or (<= 0 num #xD7FF) (<= #xE000 num #x10FFFF))
+			      (integer->char num)
+			    (make-<lexical-token> '*lexer-error*
+						  (make-<source-location> #f yyline yycolumn yyoffset)
+						  yytext len)))
         ))
     #t
     (lambda (yycontinue yygetc yyungetc)
       (lambda (yytext yyline yycolumn yyoffset)
-                		yytext
+                	yytext
         )))
    'code
    (lambda (<<EOF>>-pre-action

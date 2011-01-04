@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2010, 2011 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -26,7 +26,8 @@
 
 
 (library (nausicaa silex default-error-handler)
-  (export silex-default-error-handler)
+  (export silex-default-error-handler
+	  silex-default-eof-handler)
   (import (rnrs)
     (nausicaa parser-tools lexical-token)
     (nausicaa parser-tools source-location))
@@ -66,6 +67,18 @@
      '*lexer-error*
      (make-<source-location> #f yyline yycolumn yyoffset)
      text (string-length text))))
+
+
+(define-syntax silex-default-eof-handler
+  (lambda (stx)
+    (syntax-case stx ()
+      ((?key)
+       #`(make-<lexical-token> '*eoi*
+			       (make-<source-location> #f
+						       #,(datum->syntax #'?key 'yyline)
+						       #,(datum->syntax #'?key 'yycolumn)
+						       #,(datum->syntax #'?key 'yyoffset))
+			       (eof-object) 0)))))
 
 
 ;;;; done

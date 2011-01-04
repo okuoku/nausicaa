@@ -12,9 +12,7 @@
    'all
    (lambda (yycontinue yygetc yyungetc)
      (lambda (yytext yyline yycolumn yyoffset)
-       			(make-<lexical-token> '*eoi*
-			 (make-<source-location> #f yyline yycolumn yyoffset)
-			 (eof-object) 0)
+       			(silex-default-eof-handler)
        ))
    (lambda (yycontinue yygetc yyungetc)
      (lambda (yytext yyline yycolumn yyoffset)
@@ -23,19 +21,20 @@
 ;;; end of file
        ))
    (vector
-    #t
+    #f
     (lambda (yycontinue yygetc yyungetc)
-      (lambda (yytext yyline yycolumn yyoffset)
-          		(make-<lexical-token> 'CCOMMENT
-					      (make-<source-location> #f yyline yycolumn yyoffset)
-					      yytext 2)
+      (lambda (yyline yycolumn yyoffset)
+      			'OPEN
+        ))
+    #f
+    (lambda (yycontinue yygetc yyungetc)
+      (lambda (yyline yycolumn yyoffset)
+       			'CLOSE
         ))
     #t
     (lambda (yycontinue yygetc yyungetc)
       (lambda (yytext yyline yycolumn yyoffset)
-          		(make-<lexical-token> 'OCOMMENT
-					      (make-<source-location> #f yyline yycolumn yyoffset)
-					      yytext 2)
+      			(string-ref yytext 0)
         )))
    'code
    (lambda (<<EOF>>-pre-action
@@ -47,6 +46,7 @@
           (user-action-<<ERROR>> #f)
           (user-action-0 #f)
           (user-action-1 #f)
+          (user-action-2 #f)
           (start-go-to-end    (:input-system-start-go-to-end	IS))
           (end-go-to-point    (:input-system-end-go-to-point	IS))
           (init-lexeme        (:input-system-init-lexeme	IS))
@@ -67,47 +67,60 @@
              (user-action-<<ERROR>> "" yyline yycolumn yyoffset)))
           (action-0
            (lambda (yyline yycolumn yyoffset)
-             (let ((yytext (get-start-end-text)))
-               (start-go-to-end)
-               (user-action-0 yytext yyline yycolumn yyoffset))))
+             (start-go-to-end)
+             (user-action-0 yyline yycolumn yyoffset)))
           (action-1
+           (lambda (yyline yycolumn yyoffset)
+             (start-go-to-end)
+             (user-action-1 yyline yycolumn yyoffset)))
+          (action-2
            (lambda (yyline yycolumn yyoffset)
              (let ((yytext (get-start-end-text)))
                (start-go-to-end)
-               (user-action-1 yytext yyline yycolumn yyoffset))))
+               (user-action-2 yytext yyline yycolumn yyoffset))))
           (state-0
            (lambda (action)
              (let ((c (read-char)))
                (if c
-                   (if (< c 36)
-                       (if (< c 35)
+                   (if (< c 35)
+                       (if (= c 10)
                            action
                            (state-1 action))
-                       (if (= c 124)
-                           (state-2 action)
-                           action))
+                       (if (< c 124)
+                           (if (< c 36)
+                               (state-3 action)
+                               (state-1 action))
+                           (if (< c 125)
+                               (state-2 action)
+                               (state-1 action))))
                    action))))
           (state-1
            (lambda (action)
-             (let ((c (read-char)))
-               (if c
-                   (if (= c 124)
-                       (state-3 action)
-                       action)
-                   action))))
+             (end-go-to-point)
+             action-2))
           (state-2
            (lambda (action)
+             (end-go-to-point)
              (let ((c (read-char)))
                (if c
                    (if (= c 35)
-                       (state-4 action)
-                       action)
-                   action))))
+                       (state-4 action-2)
+                       action-2)
+                   action-2))))
           (state-3
            (lambda (action)
              (end-go-to-point)
-             action-1))
+             (let ((c (read-char)))
+               (if c
+                   (if (= c 124)
+                       (state-5 action-2)
+                       action-2)
+                   action-2))))
           (state-4
+           (lambda (action)
+             (end-go-to-point)
+             action-1))
+          (state-5
            (lambda (action)
              (end-go-to-point)
              action-0))
@@ -130,6 +143,8 @@
        (set! user-action-0 ((vector-ref rules-pre-action 1)
                             final-lexer user-getc user-ungetc))
        (set! user-action-1 ((vector-ref rules-pre-action 3)
+                            final-lexer user-getc user-ungetc))
+       (set! user-action-2 ((vector-ref rules-pre-action 5)
                             final-lexer user-getc user-ungetc))
        final-lexer))))
 

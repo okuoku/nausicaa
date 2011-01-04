@@ -124,9 +124,11 @@ PECULIAR_IDENTIFIER	[\+\-]|"..."|\->{SUBSEQUENT}*
 
 BOOLEAN			#t|#f|#T|#F
 
-CHARACTER_NAME		nul|alarm|backspace|tab|linefeed|newline|vtab|page|return|esc|space|delete
 SHARPBACKSLASH		#\\
-CHARACTER		{SHARPBACKSLASH}((x{HEX_SCALAR_VALUE})|{CHARACTER_NAME}|.)
+CHARACTER_NAME		nul|alarm|backspace|tab|linefeed|newline|vtab|page|return|esc|space|delete
+NAMED_CHARACTER		{SHARPBACKSLASH}{CHARACTER_NAME}
+HEX_CHARACTER		{SHARPBACKSLASH}x{HEX_SCALAR_VALUE}
+LITERAL_CHARACTER	{SHARPBACKSLASH}.
 
 %%
 
@@ -242,14 +244,52 @@ CHARACTER		{SHARPBACKSLASH}((x{HEX_SCALAR_VALUE})|{CHARACTER_NAME}|.)
 						(("#f" "#F")	#f))
 					      2)
 
-{CHARACTER}		(make-<lexical-token> 'character
-					      (make-<source-location> #f yyline yycolumn yyoffset)
-					      yytext (string-length yytext))
+;;; --------------------------------------------------------------------
 
-<<EOF>>			(make-<lexical-token> '*eoi*
+;;Notice that we cannot use a CASE with strings; refer to the definition
+;;of EQV? in the R6RS document.
+{NAMED_CHARACTER}	(make-<lexical-token>
+			 'character
 			 (make-<source-location> #f yyline yycolumn yyoffset)
-			 (eof-object) 0)
+			 (cond
+			  ((string=? yytext "#\\nul")		#\nul)
+			  ((string=? yytext "#\\alarm")		#\alarm)
+			  ((string=? yytext "#\\backspace")	#\backspace)
+			  ((string=? yytext "#\\tab")		#\tab)
+			  ((string=? yytext "#\\linefeed")	#\linefeed)
+			  ((string=? yytext "#\\newline")	#\newline)
+			  ((string=? yytext "#\\vtab")		#\vtab)
+			  ((string=? yytext "#\\page")		#\page)
+			  ((string=? yytext "#\\return")	#\return)
+			  ((string=? yytext "#\\esc")		#\esc)
+			  ((string=? yytext "#\\space")		#\space)
+			  ((string=? yytext "#\\delete")	#\delete)
+			  (else
+			   ;;Notice that this should never happen.
+			   (assertion-violation 'r6rs-character-lexer-table
+			     "internal error, invalid named character" yytext)))
+			 (string-length yytext))
 
+{HEX_CHARACTER}		(make-<lexical-token>
+			 'character
+			 (make-<source-location> #f yyline yycolumn yyoffset)
+			 (let* ((len (string-length yytext))
+				(num (string->number (substring yytext 3 len) 16)))
+			   (if (or (<= 0 num #xD7FF) (<= #xE000 num #x10FFFF))
+			       (integer->char num)
+			     (make-<lexical-token> '*lexer-error*
+						   (make-<source-location> #f yyline yycolumn yyoffset)
+						   yytext len)))
+			 (string-length yytext))
+
+{LITERAL_CHARACTER}	(make-<lexical-token> 'character
+					      (make-<source-location> #f yyline yycolumn yyoffset)
+					      (string-ref yytext 2)
+					      (string-length yytext))
+
+;;; --------------------------------------------------------------------
+
+<<EOF>>			(silex-default-eof-handler)
 <<ERROR>>		(silex-default-error-handler)
 
 ;;; end of file

@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2010, 2011 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -57,6 +57,16 @@
 				  (nausicaa parser-tools lexical-token)
 				  (nausicaa parser-tools source-location)))
 	 (lex.table-name:	'r6rs-string-lexer-table)
+	 (lex.lexer-format:	'code)
+	 (lex.counters:		'all))
+
+(lex.lex (lex.input-file:	"character-lexer-table.l")
+	 (lex.output-file:	"character-lexer-table.sls")
+	 (lex.library-spec:	"(nausicaa r6rs character-lexer-table)")
+	 (lex.library-imports:	'((nausicaa silex default-error-handler)
+				  (nausicaa parser-tools lexical-token)
+				  (nausicaa parser-tools source-location)))
+	 (lex.table-name:	'r6rs-character-lexer-table)
 	 (lex.lexer-format:	'code)
 	 (lex.counters:		'all))
 

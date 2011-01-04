@@ -56,7 +56,7 @@
 ;;; --------------------------------------------------------------------
 ;;; All the test strings must end with a double-quote char.
 
-  (check				;empty string
+  (check	;empty string
       (tokenise "\"")
     => '(STRING *eoi*))
 
@@ -128,7 +128,7 @@
       (tokenise "\\x0063;\\x0069;\\x0061;\\x006f;\"")
     => '(#\c #\i #\a #\o STRING *eoi*))
 
-  (check				;a string
+  (check	;a string
       (tokenise "ciao\"")
     => '("ciao" STRING *eoi*))
 
@@ -138,15 +138,15 @@
       (tokenise "ciao \\\"hello\\\" salut\"")
     => '("ciao " #\" "hello" #\" " salut"  STRING *eoi*))
 
-  (check				;intraline space
+  (check	;intraline space
       (tokenise "ciao \\\nmamma\"")
     => '("ciao " "mamma" STRING *eoi*))
 
-  (check				;intraline space
+  (check	;intraline space
       (tokenise "ciao \\   \n   mamma\"")
     => '("ciao " "mamma" STRING *eoi*))
 
-  (check				;intraline space, real usage example
+  (check	;intraline space, real usage example
       (tokenise "ciao \\
 mamma\"")
     => '("ciao " "mamma" STRING *eoi*))
@@ -212,21 +212,21 @@ bc" STRING *eoi*))
 ;;; --------------------------------------------------------------------
 ;;; errors
 
-  (check		       ;missing ending #\; for inline-hex-escape
+  (check	;missing ending #\; for inline-hex-escape
       (tokenise "\\x00\"")
     => '(*lexer-error*))
 
   #t)
 
 
-(parametrise ((check-test-name	'string-parser))
+(parametrise ((check-test-name	'string-reader))
 
   (define (parse string)
-    (parse-string (lexer-make-IS (string: string) (counters: 'all))))
+    (read-string (lexer-make-IS (string: string) (counters: 'all))))
 
 ;;; All the test strings must end with a double-quote char.
 
-  (check				;empty string
+  (check	;empty string
       (parse "\"")
     => "")
 
@@ -298,7 +298,7 @@ bc" STRING *eoi*))
       (parse "\\x0063;\\x0069;\\x0061;\\x006f;\"")
     => "\x0063;\x0069;\x0061;\x006f;")
 
-  (check				;a string
+  (check	;a string
       (parse "ciao\"")
     => "ciao")
 
@@ -308,11 +308,11 @@ bc" STRING *eoi*))
       (parse "ciao \\\"hello\\\" salut\"")
     => "ciao \"hello\" salut")
 
-  (check				;intraline space
+  (check	;intraline space
       (parse "ciao \\\nmamma\"")
     => "ciao mamma")
 
-  (check				;intraline space
+  (check	;intraline space
       (parse "ciao \
 mamma\"")
     => "ciao mamma")
@@ -392,6 +392,296 @@ mamma\"")
 		(else E))
 	(parse "\\xDFFF;"))
     => '("\\xDFFF;"))
+
+  #t)
+
+
+(parametrise ((check-test-name	'nested-comment-tokeniser))
+
+  (define (tokenise string)
+    (let* ((IS		(lexer-make-IS (string: string) (counters: 'all)))
+	   (lexer	(lexer-make-lexer r6rs-nested-comment-lexer-table IS))
+	   (result	'()))
+      (do (((T <lexical-token>) (lexer) (lexer)))
+	  (T.special?
+	   (reverse `(,(if (is-a? T <lexical-token>)
+			   T.category
+			 T)
+		      . ,result)))
+	(set-cons! result T))))
+
+  (check
+      (tokenise "#||#")
+    => '(OPEN CLOSE *eoi*))
+
+  (check
+      (tokenise "#|# |#")
+    => '(OPEN #\# #\space CLOSE *eoi*))
+
+  (check
+      (tokenise "#|||#")
+    => '(OPEN #\| CLOSE *eoi*))
+
+  (check
+      (tokenise "#|ciao|#")
+    => '(OPEN #\c #\i #\a #\o CLOSE *eoi*))
+
+  (check
+      (tokenise "#|#|#|#|")
+    => '(OPEN OPEN OPEN OPEN *eoi*))
+
+  (check
+      (tokenise "|#|#|#|#")
+    => '(CLOSE CLOSE CLOSE CLOSE *eoi*))
+
+  #t)
+
+
+(parametrise ((check-test-name	'nested-comment-reader))
+
+  (define (parse string)
+    (read-nested-comment (lexer-make-IS (string: string) (counters: 'all))))
+
+  (define-syntax identity
+    (syntax-rules ()
+      ((_ ?string)
+       (check
+	   (parse ?string)
+	 => (string-append "#|" ?string)))))
+
+  (identity "|#")
+  (identity "#||#|#")
+  (identity "ciao |#")
+  (identity "ciao #| mamma |# ciao |#")
+
+  (check
+      (guard (E ((lexical-violation? E)
+;;;		 (display (condition-message E))(newline)
+		 (condition-irritants E))
+		(else E))
+	(parse ""))
+    => (list (eof-object)))
+
+  (check
+      (guard (E ((lexical-violation? E)
+;;;		 (display (condition-message E))(newline)
+		 (condition-irritants E))
+		(else E))
+	(parse "ciao #| mamma |#"))
+    => (list (eof-object)))
+
+  #t)
+
+
+(parametrise ((check-test-name	'character-tokeniser))
+
+  (define (tokenise string)
+    (let* ((IS		(lexer-make-IS (string: string) (counters: 'all)))
+	   (lexer	(lexer-make-lexer r6rs-character-lexer-table IS))
+	   (result	'()))
+      (do (((T <lexical-token>) (lexer) (lexer)))
+	  (T.special?
+	   (reverse `(,(if (is-a? T <lexical-token>)
+			   T.category
+			 T)
+		      . ,result)))
+	(set-cons! result T))))
+
+  (check
+      (tokenise "")
+    => '(*eoi*))
+
+  (check
+      (tokenise "#\\1")
+    => '(#\1 *eoi*))
+
+  (check
+      (tokenise "#\\A")
+    => '(#\A *eoi*))
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (tokenise "#\\x005C")
+    => '(#\x005C *eoi*))
+
+  (check
+      (tokenise "#\\xA")
+    => '(#\xA *eoi*))
+
+  (check
+      (tokenise "#\\x0063")
+    => '(#\c *eoi*))
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (tokenise "#\\nul")
+    => '(#\nul *eoi*))
+
+  (check
+      (tokenise "#\\alarm")
+    => '(#\alarm *eoi*))
+
+  (check
+      (tokenise "#\\backspace")
+    => '(#\backspace *eoi*))
+
+  (check
+      (tokenise "#\\tab")
+    => '(#\tab *eoi*))
+
+  (check
+      (tokenise "#\\linefeed")
+    => '(#\linefeed *eoi*))
+
+  (check
+      (tokenise "#\\newline")
+    => '(#\newline *eoi*))
+
+  (check
+      (tokenise "#\\vtab")
+    => '(#\vtab *eoi*))
+
+  (check
+      (tokenise "#\\page")
+    => '(#\page *eoi*))
+
+  (check
+      (tokenise "#\\return")
+    => '(#\return *eoi*))
+
+  (check
+      (tokenise "#\\esc")
+    => '(#\esc *eoi*))
+
+  (check
+      (tokenise "#\\space")
+    => '(#\space *eoi*))
+
+  (check
+      (tokenise "#\\delete")
+    => '(#\delete *eoi*))
+
+;;; --------------------------------------------------------------------
+;;; errors
+
+  (check
+      (guard (E ((lexical-violation? E)
+		 (condition-irritants E))
+		(else E))
+	(tokenise "c"))
+    => '(*lexer-error*))
+
+  (check
+      (guard (E ((lexical-violation? E)
+		 (condition-irritants E))
+		(else E))
+	(tokenise "#\\ciao"))
+    => '(#\c *lexer-error*))
+
+  #t)
+
+
+(parametrise ((check-test-name	'character-reader))
+
+  (define (parse string)
+    (read-character (lexer-make-IS (string: string) (counters: 'all))))
+
+  (check
+      (parse "#\\1")
+    => #\1)
+
+  (check
+      (parse "#\\A")
+    => #\A)
+
+  (check
+      (parse "#\\ciao")
+    => #\c)
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (parse "#\\x005C")
+    => #\x005C)
+
+  (check
+      (parse "#\\xA")
+    => #\xA)
+
+  (check
+      (parse "#\\x0063")
+    => #\c)
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (parse "#\\nul")
+    => #\nul)
+
+  (check
+      (parse "#\\alarm")
+    => #\alarm)
+
+  (check
+      (parse "#\\backspace")
+    => #\backspace)
+
+  (check
+      (parse "#\\tab")
+    => #\tab)
+
+  (check
+      (parse "#\\linefeed")
+    => #\linefeed)
+
+  (check
+      (parse "#\\newline")
+    => #\newline)
+
+  (check
+      (parse "#\\vtab")
+    => #\vtab)
+
+  (check
+      (parse "#\\page")
+    => #\page)
+
+  (check
+      (parse "#\\return")
+    => #\return)
+
+  (check
+      (parse "#\\esc")
+    => #\esc)
+
+  (check
+      (parse "#\\space")
+    => #\space)
+
+  (check
+      (parse "#\\delete")
+    => #\delete)
+
+;;; --------------------------------------------------------------------
+;;; errors
+
+  (check
+      (guard (E ((lexical-violation? E)
+;;;		 (display (condition-message E))(newline)
+		 (condition-irritants E))
+		(else E))
+	(parse ""))
+    => `(,(eof-object)))
+
+  (check
+      (guard (E ((lexical-violation? E)
+;;;		 (display (condition-message E))(newline)
+		 (condition-irritants E))
+		(else E))
+	(parse "c"))
+    => '("c"))
 
   #t)
 

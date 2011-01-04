@@ -127,6 +127,8 @@
   (only (nausicaa email addresses parser))
   (only (nausicaa email addresses))
 
+  (only (nausicaa r6rs lexer))
+
   (only (nausicaa getopts))
   (only (nausicaa json))
   (only (nausicaa uri))

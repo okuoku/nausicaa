@@ -21,20 +21,14 @@ built on top of the @library{silex} parser generator.  @ref{silex}
 
 @menu
 * r6rs lexer strings::          Reading strings.
+* r6rs lexer characters::       Reading characters.
+* r6rs lexer nested comments::  Reading nested comments.
 @end menu
-
-
 
 
 @defvr Constant r6rs-lexer-table
 A @library{silex} lexer table to parse @rnrs{6} compliant Scheme source
 code.
-@end defvr
-
-
-@defvr Constant r6rs-nested-comment-lexer-table
-A @library{silex} lexer table to parse @rnrs{6} compliant nested
-comments of the form @code{#| ... |#}.
 @end defvr
 
 @c page
@@ -46,6 +40,8 @@ comments of the form @code{#| ... |#}.
 @cindex Lexer, Scheme strings
 @cindex Scheme strings, reading
 @cindex Scheme strings, lexer
+@cindex Strings in Scheme, lexer
+@cindex Strings in Scheme, reader
 
 
 The following bindings are exported by the @library{nausicaa r6rs lexer}
@@ -53,10 +49,10 @@ library.
 
 
 @defvr Constant r6rs-string-lexer-table
-A @library{silex} lexer table to parse @rnrs{6} compliant Scheme
-strings.  A lexer using this table must be used after the opening double
-quote of the string has been consumed from the input system.  See the
-documentation of @func{parse-string} for a usage example.
+A @library{silex} lexer table to read @rnrs{6} compliant Scheme strings.
+A lexer using this table must be used after the opening double quote of
+the string has been consumed from the input system.  See the
+documentation of @func{read-string} for a usage example.
 
 A lexer function using this table returns:
 
@@ -68,12 +64,13 @@ Scheme characters read from the input system.
 Scheme strings read from the input system.
 
 @item
-Records of class @class{lexical-token} with category @code{*eoi*} when
+A record of class @class{lexical-token} with category @code{*eoi*} when
 the end--of--input is found.
 
 @item
-Records of class @class{lexical-token} with category
-@code{*lexer-error*} a lexical error is detected in the input system.
+A record of class @class{lexical-token} with category
+@code{*lexer-error*} when a lexical error is detected in the input
+system.
 
 @item
 The symbol @code{STRING} when a double quote is read from the input
@@ -83,7 +80,7 @@ continue reading with a different lexer function.
 @end defvr
 
 
-@defun parse-string @var{IS}
+@defun read-string @var{IS}
 Given a @library{silex} input system from which a double quote character
 has already been consumed, read characters composing an @rnrs{6} string
 stopping at the ending double quote.  Return the Scheme string.
@@ -102,7 +99,7 @@ The implementation of this function is a useful example of usage for
 @code{r6rs-string-lexer-table}:
 
 @example
-(define (parse-string IS)
+(define (read-string IS)
   (let-values
       (((port getter) (open-string-output-port))
        ((lexer) (lexer-make-lexer r6rs-string-lexer-table IS)))
@@ -111,14 +108,189 @@ The implementation of this function is a useful example of usage for
         (raise
          (condition (make-lexical-violation)
                     (make-message-condition message)
-                    (make-who-condition 'parse-string)
+                    (make-who-condition read-string)
                     (make-irritants-condition (list T.value)))))
       (cond (T.end-of-input?
-             (%error "end of input found while parsing string"))
+             (%error "end of input found while reading string"))
             (T.lexer-error?
-             (%error "lexical violation while parsing string"))
+             (%error "lexical violation while reading string"))
             ((eq? T 'STRING)
              (getter))
+            (else
+             (display T port)
+             (next (lexer)))))))
+@end example
+@end defun
+
+@c page
+@node r6rs lexer characters
+@subsection Reading characters
+
+
+@cindex Reading Scheme characters
+@cindex Lexer, Scheme characters
+@cindex Scheme characters, reading
+@cindex Scheme characters, lexer
+@cindex Characters in Scheme, lexer
+@cindex Characters in Scheme, reader
+
+
+The following bindings are exported by the @library{nausicaa r6rs lexer}
+library.
+
+
+@defvr Constant r6rs-string-lexer-table
+A @library{silex} lexer table to read @rnrs{6} compliant Scheme
+characters.  See the documentation of @func{read-character} for a usage
+example.  A lexer function using this table returns:
+
+@itemize
+@item
+Scheme characters read from the input system.
+
+@item
+A record of class @class{lexical-token} with category @code{*eoi*} when
+the end--of--input is found.
+
+@item
+A record of class @class{lexical-token} with category
+@code{*lexer-error*} when a lexical error is detected in the input
+system.
+@end itemize
+@end defvr
+
+
+@defun read-character @var{IS}
+Given an input system, read a single character datum compliant with
+@rnrs{6}; return the Scheme character.
+
+If an error occurs reading the character: a condition object is raised
+with components @condition{lexical}, @condition{message},
+@condition{who}, @condition{irritants}; the single value in the
+@condition{irritants} list is the string that caused the error.
+
+If end of input is found reading the character: a condition object is
+raised with components @condition{lexical}, @condition{message},
+@condition{who}, @condition{irritants}.  The single value in the
+irritants list is the end--of--file object.
+
+@example
+(define (read-character IS)
+  (let (((T <lexical-token>)
+        ((lexer-make-lexer r6rs-character-lexer-table IS))))
+    (define (%error message)
+      (raise
+       (condition (make-lexical-violation)
+                  (make-message-condition message)
+                  (make-who-condition 'read-string)
+                  (make-irritants-condition (list T.value)))))
+    (cond (T.end-of-input?
+           (%error "end of input found while reading character"))
+          (T.lexer-error?
+           (%error "lexical violation while reading character"))
+          (else T))))
+@end example
+@end defun
+
+
+@c page
+@node r6rs lexer nested comments
+@subsection Reading nested comments
+
+
+@cindex Reading Scheme nested comments
+@cindex Lexer, Scheme nested comments
+@cindex Scheme nested comments, reading
+@cindex Scheme nested comments, lexer
+@cindex Nested comments in Scheme, lexer
+@cindex Nested comments in Scheme, reader
+
+
+The following bindings are exported by the @library{nausicaa r6rs lexer}
+library.
+
+
+@defvr Constant r6rs-nested-comment-lexer-table
+A @library{silex} lexer table to read @rnrs{6} compliant nested comments
+of the form @code{#| ... |#}.  See the documentation of
+@func{read-nested-comment} for a usage example.  A lexer function using
+this table returns:
+
+@itemize
+@item
+The symbol @code{OPEN} when the sequence @samp{#|} is read from the
+input system.
+
+@item
+The symbol @code{CLOSE} when the sequence @samp{|#} is read from the
+input system.
+
+@item
+The single character value read from the input system.
+
+@item
+A record of class @class{lexical-token} with category @code{*eoi*} when
+the end--of--input is found.
+
+@item
+A record of class @class{lexical-token} with category
+@code{*lexer-error*} when a lexical error is detected in the input
+system.  Notice that this should never happen.
+@end itemize
+@end defvr
+
+
+@defun read-nested-comment @var{IS}
+Given an input system from which the opening sequence of nested comments
+@samp{#|} has already been consumed, read characters composing an
+@rnrs{6} nested comment matching sequence @samp{|#}.  Return the comment
+as Scheme string enclosed in @samp{#|} and @samp{|#} sequences.
+
+If an error occurs reading the nested comment: a condition object is
+raised with components @condition{lexical}, @condition{message},
+@condition{who}, @condition{irritants}; the single value in the
+&irritants list is the string that caused the error.  Notice that this
+should never happen.
+
+If end of input is found reading the nested comment: a condition object
+is raised with components @condition{lexical}, @condition{message},
+@condition{who}, @condition{irritants}.  The single value in the
+irritants list is the end--of--file object.
+
+The implementation of this function is a useful example of usage for
+@code{r6rs-nested-comment-lexer-table}:
+
+@example
+(define (read-nested-comment IS)
+  (let-values
+      (((port getter) (open-string-output-port))
+       ((lexer) (lexer-make-lexer
+                   r6rs-nested-comment-lexer-table IS))
+       ((count) 1))
+    (display "#|" port)
+    (let next (((T <lexical-token>) (lexer)))
+      (define (%error message)
+        (raise
+         (condition (make-lexical-violation)
+                    (make-message-condition message)
+                    (make-who-condition 'read-nested-comment)
+                    (make-irritants-condition (list T.value)))))
+      (cond (T.end-of-input?
+             (%error
+              "end of input found while reading nested comment"))
+            (T.lexer-error? ;this should never happen
+             (%error
+              "lexical violation while reading nested comment"))
+            ((eq? T 'CLOSE)
+             (decr! count)
+             (display "|#" port)
+             (if (zero? count)
+                 (getter)
+               (next (lexer))))
+            ((eq? T 'OPEN)
+             (incr! count)
+             (display "#|" port)
+             (next (lexer)))
             (else
              (display T port)
              (next (lexer)))))))
