@@ -789,6 +789,175 @@ mamma\"")
   #t)
 
 
+(parametrise ((check-test-name	'identifier-tokeniser))
+
+  (define (tokenise string)
+    (let* ((IS		(lexer-make-IS (string: string) (counters: 'all)))
+	   (lexer	(lexer-make-lexer r6rs-identifier-lexer-table IS))
+	   (result	'()))
+      (do (((T <lexical-token>) (lexer) (lexer)))
+	  (T.special?
+	   (reverse `(,(if (is-a? T <lexical-token>)
+			   T.category
+			 T)
+		      . ,result)))
+	(set-cons! result T))))
+
+  (check
+      (tokenise "")
+    => '(*eoi*))
+
+  (check
+      (tokenise "c")
+    => '(c *eoi*))
+
+  (check
+      (tokenise "ciao")
+    => '(ciao *eoi*))
+
+  (check
+      (tokenise "ciao-mamma")
+    => '(ciao-mamma *eoi*))
+
+  (check
+      (tokenise "->ciao")
+    => '(->ciao *eoi*))
+
+  (check
+      (tokenise "?ciao")
+    => '(?ciao *eoi*))
+
+  (check
+      (tokenise "?")
+    => '(? *eoi*))
+
+  (check
+      (tokenise "+")
+    => '(+ *eoi*))
+
+  (check
+      (tokenise "-")
+    => '(- *eoi*))
+
+  (check
+      (tokenise "...")
+    => '(... *eoi*))
+
+  (check
+      (tokenise "->")
+    => '(-> *eoi*))
+
+  (check
+      (tokenise "ciao123")
+    => '(ciao123 *eoi*))
+
+  (check
+      (tokenise "ciao123+-.@")
+    => '(ciao123+-.@ *eoi*))
+
+  (check
+      (tokenise "ciao123+-.@ciao")
+    => '(ciao123+-.@ciao *eoi*))
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (tokenise "@this")
+    => '(*lexer-error*))
+
+  (check
+      (tokenise "123")
+    => '(*lexer-error*))
+
+  #t)
+
+
+(parametrise ((check-test-name	'identifier-reader))
+
+  (define (parse string)
+    (read-identifier (lexer-make-IS (string: string) (counters: 'all))))
+
+  (check
+      (parse "c")
+    => 'c)
+
+  (check
+      (parse "ciao")
+    => 'ciao)
+
+  (check
+      (parse "ciao-mamma")
+    => 'ciao-mamma)
+
+  (check
+      (parse "->ciao")
+    => '->ciao)
+
+  (check
+      (parse "?ciao")
+    => '?ciao)
+
+  (check
+      (parse "?")
+    => '?)
+
+  (check
+      (parse "+")
+    => '+)
+
+  (check
+      (parse "-")
+    => '-)
+
+  (check
+      (parse "...")
+    => '...)
+
+  (check
+      (parse "->")
+    => '->)
+
+  (check
+      (parse "ciao123")
+    => 'ciao123)
+
+  (check
+      (parse "ciao123+-.@")
+    => 'ciao123+-.@)
+
+  (check
+      (parse "ciao123+-.@ciao")
+    => 'ciao123+-.@ciao)
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (guard (E ((lexical-violation? E)
+;;;		 (display (condition-message E)) (newline)
+		 (condition-irritants E))
+		(else E))
+	(parse ""))
+    => `(,(eof-object)))
+
+  (check
+      (guard (E ((lexical-violation? E)
+;;;		 (display (condition-message E)) (newline)
+		 (condition-irritants E))
+		(else E))
+	(parse "@this"))
+    => '("@this"))
+
+  (check
+      (guard (E ((lexical-violation? E)
+;;;		 (display (condition-message E)) (newline)
+		 (condition-irritants E))
+		(else E))
+	(parse "123"))
+    => '("123"))
+
+  #t)
+
+
 ;;;; done
 
 (check-report)
