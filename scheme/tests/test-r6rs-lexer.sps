@@ -859,6 +859,18 @@ mamma\"")
       (tokenise "ciao123+-.@ciao")
     => '(ciao123+-.@ciao *eoi*))
 
+  (check	;char with Unicode category Nd
+      (tokenise "ciao\\x0CE7;mamma")
+    => `(,(string->symbol "ciao\\x0CE7;mamma") *eoi*))
+
+  (check	;char with Unicode category Mc
+      (tokenise "ciao\\x09BF;mamma")
+    => `(,(string->symbol "ciao\\x09BF;mamma") *eoi*))
+
+  (check	;char with Unicode category Me
+      (tokenise "ciao\\x20E4;mamma")
+    => `(,(string->symbol "ciao\\x20E4;mamma") *eoi*))
+
 ;;; --------------------------------------------------------------------
 
   (check
@@ -928,6 +940,18 @@ mamma\"")
   (check
       (parse "ciao123+-.@ciao")
     => 'ciao123+-.@ciao)
+
+  (check	;char with Unicode category Nd
+      (parse "ciao\\x0CE7;mamma")
+    => (string->symbol "ciao\\x0CE7;mamma"))
+
+  (check	;char with Unicode category Mc
+      (parse "ciao\\x09BF;mamma")
+    => (string->symbol "ciao\\x09BF;mamma"))
+
+  (check	;char with Unicode category Me
+      (parse "ciao\\x20E4;mamma")
+    => (string->symbol "ciao\\x20E4;mamma"))
 
 ;;; --------------------------------------------------------------------
 
