@@ -24,6 +24,7 @@ details about using the @library{silex} library.
 * r6rs lexer strings::          Reading strings.
 * r6rs lexer characters::       Reading characters.
 * r6rs lexer identifiers::      Reading identifiers.
+* r6rs lexer numbers::          Reading numbers.
 * r6rs lexer nested comments::  Reading nested comments.
 * r6rs lexer line comments::    Reading line comments.
 @end menu
@@ -177,6 +178,9 @@ raised with components @condition{lexical}, @condition{message},
 @condition{who}, @condition{irritants}.  The single value in the
 irritants list is the end--of--file object.
 
+The implementation of this function is a useful example of usage for
+@code{r6rs-character-lexer-table}:
+
 @example
 (define (read-character IS)
   (let (((T <lexical-token>)
@@ -212,7 +216,7 @@ The following bindings are exported by the @library{nausicaa r6rs lexer}
 library.
 
 
-@defvr Constant r6rs-string-lexer-table
+@defvr Constant r6rs-identifier-lexer-table
 A @library{silex} lexer table to read @rnrs{6} compliant Scheme
 identifiers.  See the documentation of @func{read-identifier} for a
 usage example.  A lexer function using this table returns:
@@ -247,6 +251,9 @@ raised with components @condition{lexical}, @condition{message},
 @condition{who}, @condition{irritants}.  The single value in the
 irritants list is the end--of--file object.
 
+The implementation of this function is a useful example of usage for
+@code{r6rs-identifier-lexer-table}:
+
 @example
 (define (read-identifier IS)
   (let (((T <lexical-token>)
@@ -263,6 +270,81 @@ irritants list is the end--of--file object.
           (T.lexer-error?
            (%error
             "lexical violation while reading identifier"))
+          (else T))))
+@end example
+@end defun
+
+@c page
+@node r6rs lexer numbers
+@subsection Reading numbers
+
+
+@cindex Reading Scheme numbers
+@cindex Lexer, Scheme numbers
+@cindex Scheme numbers, reading
+@cindex Scheme numbers, lexer
+@cindex Numbers in Scheme, lexer
+@cindex Numbers in Scheme, reader
+
+
+The following bindings are exported by the @library{nausicaa r6rs lexer}
+library.
+
+
+@defvr Constant r6rs-number-lexer-table
+A @library{silex} lexer table to read @rnrs{6} compliant Scheme numbers.
+See the documentation of @func{read-number} for a usage example.  A
+lexer function using this table returns:
+
+@itemize
+@item
+Scheme numbers read from the input system.
+
+@item
+A record of class @class{lexical-token} with category @code{*eoi*} when
+the end--of--input is found.
+
+@item
+A record of class @class{lexical-token} with category
+@code{*lexer-error*} when a lexical error is detected in the input
+system.
+@end itemize
+@end defvr
+
+
+@defun read-number @var{IS}
+Given an input system, read a single number datum compliant with
+@rnrs{6}; return the Scheme number.
+
+If an error occurs reading the number: a condition object is raised with
+components @condition{lexical}, @condition{message}, @condition{who},
+@condition{irritants}; the single value in the @condition{irritants}
+list is the string that caused the error.
+
+If end of input is found reading the number: a condition object is
+raised with components @condition{lexical}, @condition{message},
+@condition{who}, @condition{irritants}.  The single value in the
+irritants list is the end--of--file object.
+
+The implementation of this function is a useful example of usage for
+@code{r6rs-number-lexer-table}:
+
+@example
+(define (read-number IS)
+  (let (((T <lexical-token>)
+        ((lexer-make-lexer r6rs-number-lexer-table IS))))
+    (define (%error message)
+      (raise
+       (condition (make-lexical-violation)
+                  (make-message-condition message)
+                  (make-who-condition 'read-string)
+                  (make-irritants-condition (list T.value)))))
+    (cond (T.end-of-input?
+           (%error
+            "end of input found while reading number"))
+          (T.lexer-error?
+           (%error
+            "lexical violation while reading number"))
           (else T))))
 @end example
 @end defun

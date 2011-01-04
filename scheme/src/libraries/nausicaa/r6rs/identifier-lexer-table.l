@@ -38,7 +38,6 @@ CHARS-ND-MC-ME	{CHARS-ND}|{CHARS-MC}|{CHARS-ME}
 LETTER			[a-zA-Z]
 CONSTITUENT		{LETTER}|[\127-\55295]|[\57344-\1114111]
 SPECIAL_INITIAL		[!\$%&\*/:<=>\?\^_~]
-;;FIXME add below: any char whose category is Nd, Mc, Me
 DIGIT			[0-9]
 HEXDIGIT		{DIGIT}|[a-fA-F]
 SPECIAL_SUBSEQUENT	[\+\-\.@]

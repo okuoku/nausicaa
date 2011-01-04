@@ -1,4 +1,4 @@
-;;; -*- coding: utf-8 -*-
+;;; -*- coding: utf-8-unix -*-
 ;;;
 ;;;Part of: Nausicaa/Scheme
 ;;;Contents: tests for R6RS lexer
@@ -6,9 +6,11 @@
 ;;;
 ;;;Abstract
 ;;;
-;;;
+;;;	The original tests for number conversion are from the test suite
+;;;	of Ikarus Scheme by Abdulaziz Ghuloum.
 ;;;
 ;;;Copyright (c) 2010, 2011 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (C) 2006,2007,2008  Abdulaziz Ghuloum
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -978,6 +980,382 @@ mamma\"")
 		(else E))
 	(parse "123"))
     => '("123"))
+
+  #t)
+
+
+(parametrise ((check-test-name	'identifier-tokeniser))
+
+  (define (tokenise string)
+    (let* ((IS		(lexer-make-IS (string: string) (counters: 'all)))
+	   (lexer	(lexer-make-lexer r6rs-number-lexer-table IS))
+	   (result	'()))
+      (do (((T <lexical-token>) (lexer) (lexer)))
+	  (T.special?
+	   (reverse `(,(if (is-a? T <lexical-token>)
+			   T.category
+			 T)
+		      . ,result)))
+	(set-cons! result T))))
+
+  (check
+      (tokenise "123")
+    => '(123 *eoi*))
+
+  (check
+      (tokenise "10")
+    => '(10 *eoi*))
+
+  (check
+      (tokenise "#e10")
+    => '(#e10 *eoi*))
+
+  (check
+      (tokenise "#i10")
+    => '(#i10 *eoi*))
+
+  #t)
+
+
+(parametrise ((check-test-name	'number-reader))
+
+  (define (parse string)
+    (read-number (lexer-make-IS (string: string) (counters: 'all))))
+
+  (define (equal-results? x y)
+    (define (== x y)
+      (define epsilon 1e-6)
+      (cond ((nan? x) (nan? y))
+	    ((zero? x)
+	     (zero? y)
+	     ;;(and (= x y) (= (atan 0.0 x) (atan 0.0 y)))
+	     )
+	    ((infinite? x)
+	     (and (infinite? y)
+		  (or (and (positive? x) (positive? y))
+		      (and (negative? x) (negative? y)))))
+	    (else
+	     (and (or (and (exact? x) (exact? y))
+		      (and (inexact? x) (inexact? y)))
+		  ;;(= x y)
+		  (< (abs (- x y)) epsilon)
+		  ))))
+    (cond ((and (number? x) (number? y))
+	   (and (== (real-part x) (real-part y))
+		(== (imag-part x) (imag-part y))))
+	  (else (equal? x y))))
+
+  (define (generated-tests)
+    ;;DO NOT TRY TO CONVERT THIS FUNCTION TO A MACRO!!!  I already tried
+    ;;and it generates so much code that it fills up the memory.
+    ;;
+    (define (gen ls1 ls2 comp1 comp2)
+      (apply append (map (lambda (x1)
+			   (map (lambda (x2)
+				  (cons (comp1 (car x1) (car x2))
+					(comp2 (cdr x1) (cdr x2))))
+			     ls2))
+		      ls1)))
+    (define (gensa ls1 ls2 comp)
+      (gen ls1 ls2 string-append comp))
+    (define suffixed-int
+      '(("0" . 0)
+	("1" . 1)
+	("1." . 1.0)
+	("1.0" . 1.0)
+	(".5" . 0.5)
+	("0.5" . 0.5)))
+    (define exponents
+      '(("e0" . 1.0)
+	("e+0" . 1.0)
+	("e-0" . 1.0)
+	("e-1" . 0.1)))
+    (define decimal10
+      (append suffixed-int
+	      (gensa suffixed-int exponents *)))
+    (define naninf
+      '(("nan.0" . +nan.0)
+	("inf.0" . +inf.0)))
+    (define ureal
+      (append
+       decimal10
+       (gensa decimal10 '(("|53" . #f)) (lambda (x _) (inexact x)))))
+    (define sign
+      '(("+" . +1)
+	("-" . -1)))
+;;; <real> = <sign> <ureal>
+;;;        | + <naninf>
+;;;        | - <naninf>
+    (define sreal
+      (append (gensa sign ureal *)
+	      (gensa sign naninf *)))
+    (define real
+      (append ureal sreal))
+;;;<complex> = <real>
+;;;          | <real> @ <real>
+;;;          | <real> <creal>
+;;;          | <creal>
+;;; <creal> = <seal> i
+;;;         | +i
+;;;         | -i
+    (define comps
+      (append (gensa sreal '(("i" . #f)) (lambda (x f) x))
+	      '(("+i" . 1)
+		("-i" . -1))))
+    (define creal
+      (map (lambda (x) (cons (car x) (make-rectangular 0 (cdr x)))) comps))
+    (define complex
+      (append real creal
+	      (gensa real comps make-rectangular)
+	      (gen real real (lambda (x y) (string-append x "@" y)) make-polar)))
+    (display (string-append "generating " (number->string (length complex)) " number tests\n"))
+    (map (lambda (x)
+;;;	   (write `(test ,(car x) ,(cdr x)))(newline)
+	   (test (car x) (cdr x)))
+      complex))
+
+  (define inf+
+    (fl/ (inexact 1) (inexact 0)))
+  (define inf-
+    (fl/ (inexact -1) (inexact 0)))
+
+;;; --------------------------------------------------------------------
+
+  (define-syntax test
+    (syntax-rules ()
+      ((_ ?string ?expected)
+       (check
+	   (parse ?string)
+	 (=> equal-results?) ?expected))))
+
+  (define-syntax test-lexical-error
+    (syntax-rules ()
+      ((_ ?string)
+       (check
+	   (guard (E ((lexical-violation? E)
+;;;		      (display (condition-message E))(newline)
+		      (condition-irritants E))
+		     (else E))
+	     (parse ?string))
+	 => '(?string)))))
+
+;;; --------------------------------------------------------------------
+
+  (test "10" 10)
+  (test "1" 1)
+  (test "-17" -17)
+  (test "12" 12)
+  (test "+12" +12)
+  (test "-12" -12)
+  (test "+13476238746782364786237846872346782364876238477" 13476238746782364786237846872346782364876238477)
+  (test "+inf.0" inf+)
+  (test "-inf.0" inf-)
+  (test "+i" (make-rectangular 0 +1))
+  (test "-i" (make-rectangular 0 -1))
+  (test "+15i" (make-rectangular 0 +15))
+  (test "-15i" (make-rectangular 0 -15))
+  (test "12/7" (/ 12 7))
+  (test "-12/7" (/ -12 7))
+  (test "+12/7" (/ 12 7))
+  (test "-12/7i" (make-rectangular 0 (/ -12 7)))
+  (test "+12/7i" (make-rectangular 0 (/ 12 7)))
+  (test "12/7+7i" (make-rectangular (/ 12 7) (/ 7 1)))
+  (test "12/7+7/5i" (make-rectangular (/ 12 7) (/ 7 5)))
+  (test "12/7-7/5i" (make-rectangular (/ 12 7) (/ -7 5)))
+  (test "12." (inexact 12))
+  (test "#e12." 12)
+  (test "12.5" (inexact (/ 125 10)))
+  (test "#e12.5123" (/ 125123 10000))
+  (test "#i125123/10000" (inexact (/ 125123 10000)))
+  (test "+inf.0i" (make-rectangular 0 inf+))
+  (test "-inf.0i" (make-rectangular 0 inf-))
+
+  (test "1/2" (/ 1 2))
+  (test "-1/2" (/ 1 -2))
+  (test "#x24" 36)
+  (test "#x-24" -36)
+  (test "#b+00000110110" 54)
+  (test "#b-00000110110/10" -27)
+  (test "#e10" 10)
+  (test "#e1" 1)
+  (test "#e-17" -17)
+  (test "#e#x24" 36)
+  (test "#e#x-24" -36)
+  (test "#e#b+00000110110" 54)
+  (test "#e#b-00000110110/10" -27)
+  (test "#x#e24" 36)
+  (test "#x#e-24" -36)
+  (test "#b#e+00000110110" 54)
+  (test "#b#e-00000110110/10" -27)
+  (test "#e1e1000" (expt 10 1000))
+  (test "#e-1e1000" (- (expt 10 1000)))
+  (test "#e1e-1000" (expt 10 -1000))
+  (test "#e-1e-1000" (- (expt 10 -1000)))
+  (test "#i1e100" (inexact (expt 10 100)))
+  (test "#i1e1000" (inexact (expt 10 1000)))
+  (test "#i-1e1000" (inexact (- (expt 10 1000))))
+  (test "1e100" (inexact (expt 10 100)))
+  (test "1.0e100" (inexact (expt 10 100)))
+  (test "1.e100" (inexact (expt 10 100)))
+  (test "0.1e100" (inexact (expt 10 99)))
+  (test ".1e100" (inexact (expt 10 99)))
+  (test "+1e100" (inexact (expt 10 100)))
+  (test "+1.0e100" (inexact (expt 10 100)))
+  (test "+1.e100" (inexact (expt 10 100)))
+  (test "+0.1e100" (inexact (expt 10 99)))
+  (test "+.1e100" (inexact (expt 10 99)))
+  (test "-1e100" (inexact   (- (expt 10 100))))
+  (test "-1.0e100" (inexact (- (expt 10 100))))
+  (test "-1.e100" (inexact  (- (expt 10 100))))
+  (test "-0.1e100" (inexact (- (expt 10 99))))
+  (test "-.1e100" (inexact  (- (expt 10 99))))
+
+  (test "8+6.0i" (make-rectangular 8 6.0))
+  (test "8.0+6i" (make-rectangular 8.0 6))
+  (test "+8+6.0i" (make-rectangular 8 6.0))
+  (test "+8.0+6i" (make-rectangular 8.0 6))
+  (test "-8+6.0i" (make-rectangular -8 6.0))
+  (test "-8.0+6i" (make-rectangular -8.0 6))
+
+  (test "8-6.0i" (make-rectangular 8 -6.0))
+  (test "8.0-6i" (make-rectangular 8.0 -6))
+  (test "+8-6.0i" (make-rectangular 8 -6.0))
+  (test "+8.0-6i" (make-rectangular 8.0 -6))
+  (test "-8-6.0i" (make-rectangular -8 -6.0))
+  (test "-8.0-6i" (make-rectangular -8.0 -6))
+
+  (test "+0i" 0)
+  (test "-0i" 0)
+
+  (test "+1i" (make-rectangular 0 1))
+  (test "-1i" (make-rectangular 0 -1))
+
+  (test "8+nan.0i" (make-rectangular 8 +nan.0))
+  (test "8.0+nan.0i" (make-rectangular 8.0 +nan.0))
+  (test "+8+nan.0i" (make-rectangular 8 +nan.0))
+  (test "+8.0+nan.0i" (make-rectangular 8.0 +nan.0))
+  (test "-8+nan.0i" (make-rectangular -8 +nan.0))
+  (test "-8.0+nan.0i" (make-rectangular -8.0 +nan.0))
+  (test "8-nan.0i" (make-rectangular 8 -nan.0))
+  (test "8.0-nan.0i" (make-rectangular 8.0 -nan.0))
+  (test "+8-nan.0i" (make-rectangular 8 -nan.0))
+  (test "+8.0-nan.0i" (make-rectangular 8.0 -nan.0))
+  (test "-8-nan.0i" (make-rectangular -8 -nan.0))
+  (test "-8.0-nan.0i" (make-rectangular -8.0 -nan.0))
+  (test "+nan.0+6.0i" (make-rectangular +nan.0 6.0))
+  (test "+nan.0+6i" (make-rectangular +nan.0 6))
+  (test "+nan.0+6.0i" (make-rectangular +nan.0 6.0))
+  (test "+nan.0+6i" (make-rectangular +nan.0 6))
+  (test "-nan.0+6.0i" (make-rectangular -nan.0 6.0))
+  (test "-nan.0+6i" (make-rectangular -nan.0 6))
+  (test "+nan.0-6.0i" (make-rectangular +nan.0 -6.0))
+  (test "+nan.0-6i" (make-rectangular +nan.0 -6))
+  (test "+nan.0-6.0i" (make-rectangular +nan.0 -6.0))
+  (test "+nan.0-6i" (make-rectangular +nan.0 -6))
+  (test "-nan.0-6.0i" (make-rectangular -nan.0 -6.0))
+  (test "-nan.0-6i" (make-rectangular -nan.0 -6))
+  (test "+nan.0+nan.0i" (make-rectangular +nan.0 +nan.0))
+  (test "+nan.0-nan.0i" (make-rectangular +nan.0 -nan.0))
+  (test "-nan.0+nan.0i" (make-rectangular -nan.0 +nan.0))
+  (test "-nan.0-nan.0i" (make-rectangular -nan.0 -nan.0))
+
+  (test "+nan.0+i" (make-rectangular +nan.0 +1))
+  (test "+nan.0-i" (make-rectangular +nan.0 -1))
+  (test "-nan.0+i" (make-rectangular -nan.0 +1))
+  (test "-nan.0-i" (make-rectangular -nan.0 -1))
+
+  (test "8+inf.0i" (make-rectangular 8 +inf.0))
+  (test "8.0+inf.0i" (make-rectangular 8.0 +inf.0))
+  (test "+8+inf.0i" (make-rectangular 8 +inf.0))
+  (test "+8.0+inf.0i" (make-rectangular 8.0 +inf.0))
+  (test "-8+inf.0i" (make-rectangular -8 +inf.0))
+  (test "-8.0+inf.0i" (make-rectangular -8.0 +inf.0))
+  (test "8-inf.0i" (make-rectangular 8 -inf.0))
+  (test "8.0-inf.0i" (make-rectangular 8.0 -inf.0))
+  (test "+8-inf.0i" (make-rectangular 8 -inf.0))
+  (test "+8.0-inf.0i" (make-rectangular 8.0 -inf.0))
+  (test "-8-inf.0i" (make-rectangular -8 -inf.0))
+  (test "-8.0-inf.0i" (make-rectangular -8.0 -inf.0))
+  (test "+inf.0+6.0i" (make-rectangular +inf.0 6.0))
+  (test "+inf.0+6i" (make-rectangular +inf.0 6))
+  (test "+inf.0+6.0i" (make-rectangular +inf.0 6.0))
+  (test "+inf.0+6i" (make-rectangular +inf.0 6))
+  (test "-inf.0+6.0i" (make-rectangular -inf.0 6.0))
+  (test "-inf.0+6i" (make-rectangular -inf.0 6))
+  (test "+inf.0-6.0i" (make-rectangular +inf.0 -6.0))
+  (test "+inf.0-6i" (make-rectangular +inf.0 -6))
+  (test "+inf.0-6.0i" (make-rectangular +inf.0 -6.0))
+  (test "+inf.0-6i" (make-rectangular +inf.0 -6))
+  (test "-inf.0-6.0i" (make-rectangular -inf.0 -6.0))
+  (test "-inf.0-6i" (make-rectangular -inf.0 -6))
+  (test "+inf.0+inf.0i" (make-rectangular +inf.0 +inf.0))
+  (test "+inf.0-inf.0i" (make-rectangular +inf.0 -inf.0))
+  (test "-inf.0+inf.0i" (make-rectangular -inf.0 +inf.0))
+  (test "-inf.0-inf.0i" (make-rectangular -inf.0 -inf.0))
+
+  (test "+inf.0+i" (make-rectangular +inf.0 +1))
+  (test "+inf.0-i" (make-rectangular +inf.0 -1))
+  (test "-inf.0+i" (make-rectangular -inf.0 +1))
+  (test "-inf.0-i" (make-rectangular -inf.0 -1))
+
+  (test "8+6e20i" (make-rectangular +8 +6e20))
+  (test "8-6e20i" (make-rectangular +8 -6e20))
+  (test "8e20+6i" (make-rectangular +8e20 +6))
+  (test "8e20-6i" (make-rectangular +8e20 -6))
+  (test "+8+6e20i" (make-rectangular +8 +6e20))
+  (test "+8-6e20i" (make-rectangular +8 -6e20))
+  (test "+8e20+6i" (make-rectangular +8e20 +6))
+  (test "+8e20-6i" (make-rectangular +8e20 -6))
+  (test "-8+6e20i" (make-rectangular -8 +6e20))
+  (test "-8-6e20i" (make-rectangular -8 -6e20))
+  (test "-8e20+6i" (make-rectangular -8e20 +6))
+  (test "-8e20-6i" (make-rectangular -8e20 -6))
+
+  (test "8e10+6e20i" (make-rectangular +8e10 +6e20))
+  (test "8e10-6e20i" (make-rectangular +8e10 -6e20))
+  (test "+8e10+6e20i" (make-rectangular +8e10 +6e20))
+  (test "+8e10-6e20i" (make-rectangular +8e10 -6e20))
+  (test "-8e10+6e20i" (make-rectangular -8e10 +6e20))
+  (test "-8e10-6e20i" (make-rectangular -8e10 -6e20))
+
+  (test "-0e-10" -0.0)
+  (test "-0e-0" -0.0)
+  (test "#d-0e-10-0e-0i" (make-rectangular -0.0 -0.0))
+  (test "-0.i" (make-rectangular 0.0 -0.0))
+  (test "#d#e-0.0f-0-.0s-0i" 0)
+
+  (test "+.234e4i" (make-rectangular 0 0.234e4))
+  (test "+.234e-5i" (make-rectangular 0 0.234e-5))
+  (test "+.234i" (make-rectangular 0 0.234))
+
+  (cond-expand
+   ;;Petite Chez Scheme has some  problems with these tests: they may be
+   ;;related to  a known  problem with exponentials  (Tue Jan  4, 2011).
+   ;;Exclude Petite so that running the  tests with it is fast (good for
+   ;;debugging).
+   (petite #f)
+   (else
+    (generated-tests)))
+
+;;; --------------------------------------------------------------------
+
+  (test-lexical-error "0i")
+  (test-lexical-error "1i+")
+  (test-lexical-error "12/7i")
+  (test-lexical-error "i")
+  (test-lexical-error "/")
+  (test-lexical-error "12/0")
+  (test-lexical-error "+12/0")
+  (test-lexical-error "-12/0")
+  (test-lexical-error "12/0000")
+  (test-lexical-error "+12/0000")
+  (test-lexical-error "-12/0000")
+  (test-lexical-error "12+")
+  (test-lexical-error "+12+")
+  (test-lexical-error "-12+")
+  (test-lexical-error "12+")
+  (test-lexical-error "+12+")
+  (test-lexical-error "-12+")
 
   #t)
 

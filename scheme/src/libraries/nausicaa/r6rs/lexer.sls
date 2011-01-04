@@ -31,9 +31,9 @@
     r6rs-lexer-table
     r6rs-nested-comment-lexer-table r6rs-line-comment-lexer-table
     r6rs-string-lexer-table r6rs-character-lexer-table
-    r6rs-identifier-lexer-table
+    r6rs-identifier-lexer-table r6rs-number-lexer-table
 
-    read-string read-character read-identifier
+    read-string read-character read-identifier read-number
     read-nested-comment read-line-comment)
   (import (nausicaa)
     (nausicaa r6rs lexer-table)
@@ -42,6 +42,7 @@
     (nausicaa r6rs string-lexer-table)
     (nausicaa r6rs character-lexer-table)
     (nausicaa r6rs identifier-lexer-table)
+    (nausicaa r6rs number-lexer-table)
     (nausicaa parser-tools lexical-token)
     (nausicaa silex lexer))
 
@@ -128,6 +129,31 @@
 	   (%error "end of input found while reading identifier"))
 	  (T.lexer-error?
 	   (%error "lexical violation while reading identifier"))
+	  (else T))))
+
+(define (read-number IS)
+  ;;Given  an input  system, read  a number  datum compliant  with R6RS.
+  ;;Return the Scheme number.
+  ;;
+  ;;If an error occurs reading  the number: a condition object is raised
+  ;;with  components &lexical,  &message, &who,  &irritants;  the single
+  ;;value in the &irritants list is the string that caused the error.
+  ;;
+  ;;If end of  input is found reading the number:  a condition object is
+  ;;raised  with components &lexical,  &message, &who,  &irritants.  The
+  ;;single value in the irritants list is the EOF object.
+  ;;
+  (let (((T <lexical-token>) ((lexer-make-lexer r6rs-number-lexer-table IS))))
+    (define (%error message)
+      (raise
+       (condition (make-lexical-violation)
+		  (make-message-condition message)
+		  (make-who-condition 'read-string)
+		  (make-irritants-condition (list T.value)))))
+    (cond (T.end-of-input?
+	   (%error "end of input found while reading number"))
+	  (T.lexer-error?
+	   (%error "lexical violation while reading number"))
 	  (else T))))
 
 (define (read-nested-comment IS)

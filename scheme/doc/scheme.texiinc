@@ -1159,7 +1159,7 @@ decimal radix.
 <exponent marker> -> e | E | s | S | f | F
          | d | D | l | L
 <mantissa width> -> <empty>
-         | | <digit 10>+
+         | \| <digit 10>+
 <sign> -> <empty> | + | -
 <exactness> -> <empty>
          | #i| #I | #e| #E
