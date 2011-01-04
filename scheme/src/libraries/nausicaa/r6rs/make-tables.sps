@@ -37,7 +37,8 @@
 				  (nausicaa parser-tools lexical-token)
 				  (nausicaa parser-tools source-location)))
 	 (lex.table-name:	'r6rs-lexer-table)
-	 (lex.lexer-format:	'code)
+;;;	 (lex.lexer-format:	'code) ;this format makes the library 1.2MB in size
+	 (lex.lexer-format:	'decision-tree) ;this format makes the library 123KB in size
 	 (lex.counters:		'all))
 
 (lex.lex (lex.input-file:	"nested-comment-lexer-table.l")
