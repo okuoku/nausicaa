@@ -473,6 +473,109 @@ mamma\"")
   #t)
 
 
+(parametrise ((check-test-name	'line-comment-tokeniser))
+
+  (define (tokenise string)
+    (let* ((IS		(lexer-make-IS (string: string) (counters: 'all)))
+	   (lexer	(lexer-make-lexer r6rs-line-comment-lexer-table IS))
+	   (result	'()))
+      (do (((T <lexical-token>) (lexer) (lexer)))
+	  (T.special?
+	   (reverse `(,(if (is-a? T <lexical-token>)
+			   T.category
+			 T)
+		      . ,result)))
+	(set-cons! result T))))
+
+  (define-syntax identity
+    (syntax-rules ()
+      ((_ ?string)
+       (check
+	   (tokenise ?string)
+	 => '(?string *eoi*)))))
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (tokenise "")
+    => '(*eoi*))
+
+  (identity ";\n")
+  (identity ";;\n")
+  (identity ";;;\n")
+  (identity ";;; ciao\n")
+  (identity ";;; ciao\r")
+
+;;; --------------------------------------------------------------------
+;;; errors
+
+  (check
+      (guard (E ((lexical-violation? E)
+		 (condition-irritants E))
+		(else E))
+	(tokenise "; ciao"))
+    => '(*lexer-error*))
+
+  (check
+      (guard (E ((lexical-violation? E)
+		 (condition-irritants E))
+		(else E))
+	(tokenise ";;;"))
+    => '(*lexer-error*))
+
+  #t)
+
+
+(parametrise ((check-test-name	'line-comment-reader))
+
+  (define (parse string)
+    (read-line-comment (lexer-make-IS (string: string) (counters: 'all))))
+
+  (define-syntax identity
+    (syntax-rules ()
+      ((_ ?string)
+       (check
+	   (parse ?string)
+	 => ?string))))
+
+;;; --------------------------------------------------------------------
+
+  (identity ";\n")
+  (identity ";;\n")
+  (identity ";;;\n")
+  (identity ";;; ciao\n")
+  (identity ";;; ciao\r")
+
+;;; --------------------------------------------------------------------
+;;; errors
+
+  (check
+      (guard (E ((lexical-violation? E)
+;;;		 (display (condition-message E))(newline)
+		 (condition-irritants E))
+		(else E))
+	(parse ""))
+    => `(,(eof-object)))
+
+  (check
+      (guard (E ((lexical-violation? E)
+;;;		 (display (condition-message E))(newline)
+		 (condition-irritants E))
+		(else E))
+	(parse "; ciao"))
+    => '("; ciao"))
+
+  (check
+      (guard (E ((lexical-violation? E)
+;;;		 (display (condition-message E))(newline)
+		 (condition-irritants E))
+		(else E))
+	(parse ";;;"))
+    => '(";;;"))
+
+  #t)
+
+
 (parametrise ((check-test-name	'character-tokeniser))
 
   (define (tokenise string)

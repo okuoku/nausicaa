@@ -23,6 +23,7 @@ built on top of the @library{silex} parser generator.  @ref{silex}
 * r6rs lexer strings::          Reading strings.
 * r6rs lexer characters::       Reading characters.
 * r6rs lexer nested comments::  Reading nested comments.
+* r6rs lexer line comments::    Reading line comments.
 @end menu
 
 
@@ -297,6 +298,81 @@ The implementation of this function is a useful example of usage for
 @end example
 @end defun
 
+@c page
+@node r6rs lexer line comments
+@subsection Reading line comments
+
+
+@cindex Reading Scheme line comments
+@cindex Lexer, Scheme line comments
+@cindex Scheme line comments, reading
+@cindex Scheme line comments, lexer
+@cindex Line comments in Scheme, lexer
+@cindex Line comments in Scheme, reader
+
+
+The following bindings are exported by the @library{nausicaa r6rs lexer}
+library.
+
+
+@defvr Constant r6rs-line-comment-lexer-table
+A @library{silex} lexer table to read @rnrs{6} compliant line comments;
+the comment @strong{must} include the end of line, truncated lines will
+cause a lexer error.  See the documentation of @func{read-line-comment}
+for a usage example.  A lexer function using this table returns:
+
+@itemize
+@item
+The comment as a string.
+
+@item
+A record of class @class{lexical-token} with category @code{*eoi*} when
+the end--of--input is found.
+
+@item
+A record of class @class{lexical-token} with category
+@code{*lexer-error*} when a lexical error is detected in the input
+system.
+@end itemize
+@end defvr
+
+
+@defun read-line-comment @var{IS}
+Given an input system, read characters composing an @rnrs{6} line
+comment.  Return the string representing the comment.
+
+If an error occurs reading the line comment: a condition object is
+raised with components @condition{lexical}, @condition{message},
+@condition{who}, @condition{irritants}; the single value in the
+&irritants list is the string that caused the error.
+
+If end of input is found reading the line comment: a condition object
+is raised with components @condition{lexical}, @condition{message},
+@condition{who}, @condition{irritants}.  The single value in the
+irritants list is the end--of--file object.
+
+The implementation of this function is a useful example of usage for
+@code{r6rs-line-comment-lexer-table}:
+
+@example
+(define (read-line-comment IS)
+  (let (((T <lexical-token>)
+        ((lexer-make-lexer r6rs-line-comment-lexer-table IS))))
+    (define (%error message)
+      (raise
+       (condition (make-lexical-violation)
+                  (make-message-condition message)
+                  (make-who-condition 'read-line-comment)
+                  (make-irritants-condition (list T.value)))))
+    (cond (T.end-of-input?
+           (%error
+            "end of input found while reading line comment"))
+          (T.lexer-error?
+           (%error
+           "lexical violation while reading line comment"))
+          (else T))))
+@end example
+@end defun
 
 
 @c end of file

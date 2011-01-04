@@ -50,6 +50,16 @@
 	 (lex.lexer-format:	'code)
 	 (lex.counters:		'all))
 
+(lex.lex (lex.input-file:	"line-comment-lexer-table.l")
+	 (lex.output-file:	"line-comment-lexer-table.sls")
+	 (lex.library-spec:	"(nausicaa r6rs line-comment-lexer-table)")
+	 (lex.library-imports:	'((nausicaa silex default-error-handler)
+				  (nausicaa parser-tools lexical-token)
+				  (nausicaa parser-tools source-location)))
+	 (lex.table-name:	'r6rs-line-comment-lexer-table)
+	 (lex.lexer-format:	'code)
+	 (lex.counters:		'all))
+
 (lex.lex (lex.input-file:	"string-lexer-table.l")
 	 (lex.output-file:	"string-lexer-table.sls")
 	 (lex.library-spec:	"(nausicaa r6rs string-lexer-table)")
