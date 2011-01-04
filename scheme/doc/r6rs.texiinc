@@ -32,7 +32,8 @@ details about using the @library{silex} library.
 
 @defvr Constant r6rs-lexer-table
 A @library{silex} lexer table to parse @rnrs{6} compliant Scheme source
-code.
+code.  This table needs an input system configured with @code{(counters:
+'all)}.
 @end defvr
 
 @c page
@@ -55,7 +56,8 @@ library.
 @defvr Constant r6rs-string-lexer-table
 A @library{silex} lexer table to read @rnrs{6} compliant Scheme strings.
 A lexer using this table must be used after the opening double quote of
-the string has been consumed from the input system.  See the
+the string has been consumed from the input system.  This table needs an
+input system configured with @code{(counters: 'all)}.  See the
 documentation of @func{read-string} for a usage example.
 
 A lexer function using this table returns:
@@ -145,8 +147,9 @@ library.
 
 @defvr Constant r6rs-character-lexer-table
 A @library{silex} lexer table to read @rnrs{6} compliant Scheme
-characters.  See the documentation of @func{read-character} for a usage
-example.  A lexer function using this table returns:
+characters.  This table needs an input system configured with
+@code{(counters: 'all)}.  See the documentation of @func{read-character}
+for a usage example.  A lexer function using this table returns:
 
 @itemize
 @item
@@ -218,8 +221,10 @@ library.
 
 @defvr Constant r6rs-identifier-lexer-table
 A @library{silex} lexer table to read @rnrs{6} compliant Scheme
-identifiers.  See the documentation of @func{read-identifier} for a
-usage example.  A lexer function using this table returns:
+identifiers.  This table needs an input system configured with
+@code{(counters: 'all)}.  See the documentation of
+@func{read-identifier} for a usage example.  A lexer function using this
+table returns:
 
 @itemize
 @item
@@ -293,8 +298,9 @@ library.
 
 @defvr Constant r6rs-number-lexer-table
 A @library{silex} lexer table to read @rnrs{6} compliant Scheme numbers.
-See the documentation of @func{read-number} for a usage example.  A
-lexer function using this table returns:
+This table needs an input system configured with @code{(counters:
+'all)}.  See the documentation of @func{read-number} for a usage
+example.  A lexer function using this table returns:
 
 @itemize
 @item
@@ -368,7 +374,8 @@ library.
 
 @defvr Constant r6rs-nested-comment-lexer-table
 A @library{silex} lexer table to read @rnrs{6} compliant nested comments
-of the form @code{#| ... |#}.  See the documentation of
+of the form @code{#| ... |#}.  This table needs an input system
+configured with @code{(counters: 'all)}.  See the documentation of
 @func{read-nested-comment} for a usage example.  A lexer function using
 this table returns:
 
@@ -473,8 +480,10 @@ library.
 @defvr Constant r6rs-line-comment-lexer-table
 A @library{silex} lexer table to read @rnrs{6} compliant line comments;
 the comment @strong{must} include the end of line, truncated lines will
-cause a lexer error.  See the documentation of @func{read-line-comment}
-for a usage example.  A lexer function using this table returns:
+cause a lexer error.  This table needs an input system configured with
+@code{(counters: 'all)}.  See the documentation of
+@func{read-line-comment} for a usage example.  A lexer function using
+this table returns:
 
 @itemize
 @item
