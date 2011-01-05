@@ -25,6 +25,10 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
+;;When a valid lexeme is followed by this tail it is wrong.  This is the
+;;negation of the <delimiter> element.
+TAIL_OF_WRONG		[^\9\10\11\12\13\32\160\5760\6158\8192\8193\8194\8195\8196\8197\8198\8199\8200\8201\8202\8239\8287\12288\8232\8233\(\)\[\]\"\;#]+
+
 SHARPBACKSLASH		#\\
 DIGIT			[0-9]
 HEXDIGIT		{DIGIT}|[a-fA-F]
@@ -34,9 +38,6 @@ CHARACTER_NAME		nul|alarm|backspace|tab|linefeed|newline|vtab|page|return|esc|sp
 NAMED_CHARACTER		{SHARPBACKSLASH}{CHARACTER_NAME}
 HEX_CHARACTER		{SHARPBACKSLASH}x{HEX_SCALAR_VALUE}
 LITERAL_CHARACTER	{SHARPBACKSLASH}.
-
-;;When a valid lexeme is followed by this tail it is wrong.
-TAIL_OF_WRONG		[^{WHITESPACE}#\;\(]+
 
 WRONG_NAMED_CHARACTER	{NAMED_CHARACTER}{TAIL_OF_WRONG}
 WRONG_HEX_CHARACTER	{SHARPBACKSLASH}x{HEX_SCALAR_VALUE}{TAIL_OF_WRONG}

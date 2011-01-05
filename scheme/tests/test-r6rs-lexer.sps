@@ -72,6 +72,26 @@
 (define-constant inf-
   (fl/ (inexact -1) (inexact 0)))
 
+(define-syntax test-lexical-error
+  (syntax-rules ()
+    ((_ ?lexer ?string)
+     (check
+	 (guard (E ((lexical-violation? E)
+;;;		      (display (condition-message E))(newline)
+		    (condition-irritants E))
+		   (else E))
+	   (?lexer ?string))
+       => '((*lexer-error* ?string))))
+    ((_ ?name ?lexer ?string)
+     (check ?name
+       (guard (E ((lexical-violation? E)
+;;;		      (display (condition-message E))(newline)
+		  (condition-irritants E))
+		 (else E))
+	 (?lexer ?string))
+       => '((*lexer-error* ?string))))
+    ))
+
 
 (parametrise ((check-test-name	'string-tokeniser))
 
@@ -1810,6 +1830,43 @@ mamma\"")
   (test-lexical-error "12+")
   (test-lexical-error "+12+")
   (test-lexical-error "-12+")
+
+  #t)
+
+
+(parametrise ((check-test-name	'full-misc)
+	      (debugging	#f))
+
+  (define (tokenise string)
+    (let* ((IS		(lexer-make-IS (string: string) (counters: 'all)))
+	   (lexer	(lexer-make-lexer r6rs-lexer-table IS))
+	   (result	'()))
+      (do (((T <lexical-token>) (lexer) (lexer)))
+	  (T.special?
+	   (reverse `(,(if T.lexer-error?
+			   `(,T.category ,T.value)
+			 T.category). ,result)))
+	(debug "misc token ~s >>~s<<" T.category T.value)
+	(set-cons! result (list T.category T.value)))))
+
+;;; --------------------------------------------------------------------
+
+  (check (tokenise "#t") => '((BOOLEAN #t) *eoi*))
+  (check (tokenise "#T") => '((BOOLEAN #t) *eoi*))
+  (check (tokenise "#f") => '((BOOLEAN #f) *eoi*))
+  (check (tokenise "#F") => '((BOOLEAN #f) *eoi*))
+
+  (check (tokenise "#t(") => '((BOOLEAN #t) (OPAREN #\() *eoi*))
+  (check (tokenise "#f(") => '((BOOLEAN #f) (OPAREN #\() *eoi*))
+  (check (tokenise "#t)") => '((BOOLEAN #t) (CPAREN #\)) *eoi*))
+  (check (tokenise "#f)") => '((BOOLEAN #f) (CPAREN #\)) *eoi*))
+
+  (test-lexical-error tokenise "#tciao")
+  (test-lexical-error tokenise "#fciao")
+
+;;; --------------------------------------------------------------------
+
+
 
   #t)
 

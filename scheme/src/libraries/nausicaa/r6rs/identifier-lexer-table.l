@@ -48,8 +48,9 @@ SUBSEQUENT		{INITIAL}|{DIGIT}|{CHARS-ND-MC-ME}|{SPECIAL_SUBSEQUENT}
 IDENTIFIER		{INITIAL}{SUBSEQUENT}*
 PECULIAR_IDENTIFIER	[\+\-]|"..."|(\->{SUBSEQUENT}*)
 
-;;When a valid lexeme is followed by this tail it is wrong.
-TAIL_OF_WRONG		[^{WHITESPACE}#\;\(]+
+;;When a valid lexeme is followed by this tail it is wrong.  This is the
+;;negation of the <delimiter> element.
+TAIL_OF_WRONG		[^\9\10\11\12\13\32\160\5760\6158\8192\8193\8194\8195\8196\8197\8198\8199\8200\8201\8202\8239\8287\12288\8232\8233\(\)\[\]\"\;#]+
 
 WRONG_IDENTIFIER	{IDENTIFIER}{TAIL_OF_WRONG}
 
