@@ -12,7 +12,7 @@
    'all
    (lambda (yycontinue yygetc yyungetc)
      (lambda (yytext yyline yycolumn yyoffset)
-       			(silex-default-eof-handler)
+       			((eof-token-maker)		yygetc yyungetc yytext yyline yycolumn yyoffset)
        ))
    (lambda (yycontinue yygetc yyungetc)
      (lambda (yytext yyline yycolumn yyoffset)
@@ -72,7 +72,7 @@
     #t
     (lambda (yycontinue yygetc yyungetc)
       (lambda (yytext yyline yycolumn yyoffset)
-             		((doublequote-token-maker)	yygetc yyungetc yytext yyline yycolumn yyoffset)
+             		((double-quote-token-maker)	yygetc yyungetc yytext yyline yycolumn yyoffset)
         ))
     #t
     (lambda (yycontinue yygetc yyungetc)
@@ -119,37 +119,39 @@
     #t
     (lambda (yycontinue yygetc yyungetc)
       (lambda (yytext yyline yycolumn yyoffset)
-             		((line-comment-token-maker)		yygetc yyungetc yytext yyline yycolumn yyoffset)
+             		((line-comment-token-maker)	yygetc yyungetc yytext yyline yycolumn yyoffset)
         ))
     #t
     (lambda (yycontinue yygetc yyungetc)
       (lambda (yytext yyline yycolumn yyoffset)
-                   	((line-comment-noend-token-maker)	yygetc yyungetc yytext yyline yycolumn yyoffset)
+                   	((line-comment-noend-token-maker)
+			 yygetc yyungetc yytext yyline yycolumn yyoffset)
         ))
     #t
     (lambda (yycontinue yygetc yyungetc)
       (lambda (yytext yyline yycolumn yyoffset)
-                	((open-nested-comment-token-maker)	yygetc yyungetc yytext yyline yycolumn yyoffset)
+                	((open-nested-comment-token-maker)
+			 yygetc yyungetc yytext yyline yycolumn yyoffset)
         ))
     #t
     (lambda (yycontinue yygetc yyungetc)
       (lambda (yytext yyline yycolumn yyoffset)
-               		((sharp-bang-r6rs-token-maker)		yygetc yyungetc yytext yyline yycolumn yyoffset)
+               		((sharp-bang-r6rs-token-maker)	yygetc yyungetc yytext yyline yycolumn yyoffset)
         ))
     #t
     (lambda (yycontinue yygetc yyungetc)
       (lambda (yytext yyline yycolumn yyoffset)
-           		((sharp-bang-token-maker)		yygetc yyungetc yytext yyline yycolumn yyoffset)
+           		((sharp-bang-token-maker)	yygetc yyungetc yytext yyline yycolumn yyoffset)
         ))
     #t
     (lambda (yycontinue yygetc yyungetc)
       (lambda (yytext yyline yycolumn yyoffset)
-            		((white-space-token-maker)		yygetc yyungetc yytext yyline yycolumn yyoffset)
+            		((white-space-token-maker)	yygetc yyungetc yytext yyline yycolumn yyoffset)
         ))
     #t
     (lambda (yycontinue yygetc yyungetc)
       (lambda (yytext yyline yycolumn yyoffset)
-            		((line-ending-token-maker)		yygetc yyungetc yytext yyline yycolumn yyoffset)
+            		((line-ending-token-maker)	yygetc yyungetc yytext yyline yycolumn yyoffset)
 
 ;;page
 ;;; identifiers
@@ -157,78 +159,78 @@
     #t
     (lambda (yycontinue yygetc yyungetc)
       (lambda (yytext yyline yycolumn yyoffset)
-            			((identifier-token-maker)	yygetc yyungetc yytext yyline yycolumn yyoffset)
+            		((identifier-token-maker)	yygetc yyungetc yytext yyline yycolumn yyoffset)
         ))
     #t
     (lambda (yycontinue yygetc yyungetc)
       (lambda (yytext yyline yycolumn yyoffset)
-                     		((identifier-token-maker)	yygetc yyungetc yytext yyline yycolumn yyoffset)
+                     	((identifier-token-maker)	yygetc yyungetc yytext yyline yycolumn yyoffset)
         ))
     #t
     (lambda (yycontinue yygetc yyungetc)
       (lambda (yytext yyline yycolumn yyoffset)
-                  		((lexical-error-token-maker)	yygetc yyungetc yytext yyline yycolumn yyoffset)
+                  	((lexical-error-token-maker)	yygetc yyungetc yytext yyline yycolumn yyoffset)
         ))
     #t
     (lambda (yycontinue yygetc yyungetc)
       (lambda (yytext yyline yycolumn yyoffset)
-                           	((lexical-error-token-maker)	yygetc yyungetc yytext yyline yycolumn yyoffset)
+                            ((lexical-error-token-maker) yygetc yyungetc yytext yyline yycolumn yyoffset)
 
 ;;; booleans
         ))
     #t
     (lambda (yycontinue yygetc yyungetc)
       (lambda (yytext yyline yycolumn yyoffset)
-         			((boolean-token-maker)		yygetc yyungetc yytext yyline yycolumn yyoffset)
+         		((boolean-token-maker)		yygetc yyungetc yytext yyline yycolumn yyoffset)
         ))
     #t
     (lambda (yycontinue yygetc yyungetc)
       (lambda (yytext yyline yycolumn yyoffset)
-               			((lexical-error-token-maker)	yygetc yyungetc yytext yyline yycolumn yyoffset)
+               		((lexical-error-token-maker)	yygetc yyungetc yytext yyline yycolumn yyoffset)
 
 ;;; characters
         ))
     #t
     (lambda (yycontinue yygetc yyungetc)
       (lambda (yytext yyline yycolumn yyoffset)
-                 		((named-character-token-maker)	yygetc yyungetc yytext yyline yycolumn yyoffset)
+                 	((named-character-token-maker)	yygetc yyungetc yytext yyline yycolumn yyoffset)
         ))
     #t
     (lambda (yycontinue yygetc yyungetc)
       (lambda (yytext yyline yycolumn yyoffset)
-               			((hex-character-token-maker)	yygetc yyungetc yytext yyline yycolumn yyoffset)
+               		((hex-character-token-maker)	yygetc yyungetc yytext yyline yycolumn yyoffset)
         ))
     #t
     (lambda (yycontinue yygetc yyungetc)
       (lambda (yytext yyline yycolumn yyoffset)
-                   		((literal-character-token-maker)yygetc yyungetc yytext yyline yycolumn yyoffset)
+                   	((literal-character-token-maker)yygetc yyungetc yytext yyline yycolumn yyoffset)
         ))
     #t
     (lambda (yycontinue yygetc yyungetc)
       (lambda (yytext yyline yycolumn yyoffset)
-                       		((lexical-error-token-maker)	yygetc yyungetc yytext yyline yycolumn yyoffset)
+                       	((lexical-error-token-maker)	yygetc yyungetc yytext yyline yycolumn yyoffset)
         ))
     #t
     (lambda (yycontinue yygetc yyungetc)
       (lambda (yytext yyline yycolumn yyoffset)
-                     		((lexical-error-token-maker)	yygetc yyungetc yytext yyline yycolumn yyoffset)
+                     	((lexical-error-token-maker)	yygetc yyungetc yytext yyline yycolumn yyoffset)
         ))
     #t
     (lambda (yycontinue yygetc yyungetc)
       (lambda (yytext yyline yycolumn yyoffset)
-                         	((lexical-error-token-maker)	yygetc yyungetc yytext yyline yycolumn yyoffset)
+                          ((lexical-error-token-maker)	yygetc yyungetc yytext yyline yycolumn yyoffset)
 
 ;;; numbers
         ))
     #t
     (lambda (yycontinue yygetc yyungetc)
       (lambda (yytext yyline yycolumn yyoffset)
-        			((number-token-maker)		yygetc yyungetc yytext yyline yycolumn yyoffset)
+        		((number-token-maker)		yygetc yyungetc yytext yyline yycolumn yyoffset)
         ))
     #t
     (lambda (yycontinue yygetc yyungetc)
       (lambda (yytext yyline yycolumn yyoffset)
-              			((lexical-error-token-maker)	yygetc yyungetc yytext yyline yycolumn yyoffset)
+              		((lexical-error-token-maker)	yygetc yyungetc yytext yyline yycolumn yyoffset)
 
 ;;page
 ;;;; done

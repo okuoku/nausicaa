@@ -43,7 +43,7 @@
     comma-at-token-maker		make-comma-at-token
     comma-token-maker			make-comma-token
     dot-token-maker			make-dot-token
-    doublequote-token-maker		make-doublequote-token
+    double-quote-token-maker		make-double-quote-token
     semicolon-token-maker		make-semicolon-token
     sharp-paren-token-maker		make-sharp-paren-token
     sharp-vu8paren-token-maker		make-sharp-vu8paren-token
@@ -127,7 +127,7 @@
 (define (make-dot-token yygetc yyungetc yytext yyline yycolumn yyoffset)
   (make* <lexical-token> 'DOT (input-source) #\. 1))
 
-(define (make-doublequote-token yygetc yyungetc yytext yyline yycolumn yyoffset)
+(define (make-double-quote-token yygetc yyungetc yytext yyline yycolumn yyoffset)
   (make* <lexical-token> 'DOUBLEQUOTE (input-source) #\" 1))
 
 (define (make-semicolon-token yygetc yyungetc yytext yyline yycolumn yyoffset)
@@ -262,7 +262,7 @@
 (define-token-maker-parameter comma-at-token-maker		make-comma-at-token)
 (define-token-maker-parameter comma-token-maker			make-comma-token)
 (define-token-maker-parameter dot-token-maker			make-dot-token)
-(define-token-maker-parameter doublequote-token-maker		make-doublequote-token)
+(define-token-maker-parameter double-quote-token-maker		make-double-quote-token)
 (define-token-maker-parameter semicolon-token-maker		make-semicolon-token)
 (define-token-maker-parameter sharp-paren-token-maker		make-sharp-paren-token)
 (define-token-maker-parameter sharp-vu8paren-token-maker	make-sharp-vu8paren-token)

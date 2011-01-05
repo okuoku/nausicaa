@@ -43,6 +43,21 @@ details about using the @library{silex} library.
 @cindex Source code of Scheme, reader
 
 
+The full @rnrs{6} source code lexer makes heavy use of parameters from
+@library{nausicaa language parameters} to make it possible to customise
+the tokens returned by the lexer function.
+
+@menu
+* r6rs lexer full table::       Full lexer table.
+* r6rs lexer full params::      Full lexer table parameters.
+* r6rs lexer full makers::      Full lexer table token makers.
+@end menu
+
+@c page
+@node r6rs lexer full table
+@subsubsection Full lexer table
+
+
 The following bindings are exported by the @library{nausicaa r6rs lexer}
 library.
 
@@ -50,8 +65,478 @@ library.
 @defvr Constant r6rs-lexer-table
 A @library{silex} lexer table to parse @rnrs{6} compliant Scheme source
 code.  This table needs an input system configured with @code{(counters:
-'all)}.
+'all)}.  The semantic action forms make use of the parameters documented
+in this chapter to build the lexical tokens.
 @end defvr
+
+@c page
+@node r6rs lexer full params
+@subsubsection Full lexer table parameters
+
+
+The following bindings are exported by the @library{nausicaa r6rs
+lexeme-processing} library.  The rules in the full @rnrs{6} lexer table
+invoke the functions referenced by the following parameters.
+
+All the parameters whose name has the @code{-token-maker} suffix, must
+be set to functions with the following behaviour:
+
+@example
+(lambda (yygetc yyungetc yytext yyline yycolumn yyoffset)
+  (make <lexical-token> ---))
+@end example
+
+@noindent
+where the arguments are the bindings handed by @library{silex lexer} to
+the semantic action forms; @ref{silex semantics action} for details.
+Notice that it is perfectly possible to subclass @class{lexical-token}
+and make the functions return instances of the subclass.
+
+@c ------------------------------------------------------------
+
+@subsubheading General token maker parameters
+
+
+@deffn Parameter current-input-source
+Hold the value representing the current input source; to be used to fill
+the @code{input} field of @class{source-location} records.  The default
+value is @false{}.
+@end deffn
+
+
+@deffn Parameter eof-token-maker
+Set to a function returning a @class{lexical-token} record representing
+the end--of--input.  The default is @func{make-eof-token}.
+@end deffn
+
+
+@deffn Parameter lexical-error-token-maker
+Set to a function returning a @class{lexical-token} record representing
+a lexical error.  The default is @func{make-lexical-error-token}.
+@end deffn
+
+@c ------------------------------------------------------------
+
+@subsubheading Fixed semantic value token maker parameters
+
+
+@deffn Parameter open-paren-token-maker
+Set to a function returning a @class{lexical-token} record representing
+an open parenthesis, @samp{(} .  The default is
+@func{make-open-paren-token}.
+@end deffn
+
+@deffn Parameter close-paren-token-maker
+Set to a function returning a @class{lexical-token} record representing
+a close parenthesis, @samp{)}.  The default is
+@func{make-close-paren-token}.
+@end deffn
+
+@deffn Parameter open-bracket-token-maker
+Set to a function returning a @class{lexical-token} record representing
+an open bracket, @samp{[}.  The default is
+@func{make-open-bracket-token}.
+@end deffn
+
+@deffn Parameter close-bracket-token-maker
+Set to a function returning a @class{lexical-token} record representing
+a close bracket, @samp{[}.  The default is
+@func{make-close-bracket-token}.
+@end deffn
+
+@deffn Parameter tick-token-maker
+Set to a function returning a @class{lexical-token} record representing
+a tick, @samp{'}.  The default is @func{make-tick-token}.
+@end deffn
+
+@deffn Parameter back-tick-token-maker
+Set to a function returning a @class{lexical-token} record representing
+a back tick, @samp{`}.  The default is @func{make-back-tick-token}.
+@end deffn
+
+@deffn Parameter comma-at-token-maker
+Set to a function returning a @class{lexical-token} record representing
+a comma--at, @samp{,@@}.  The default is @func{make-comma-at-token}.
+@end deffn
+
+@deffn Parameter comma-token-maker
+Set to a function returning a @class{lexical-token} record representing
+a comma, @samp{,}.  The default is @func{make-comma-token}.
+@end deffn
+
+@deffn Parameter dot-token-maker
+Set to a function returning a @class{lexical-token} record representing
+a dot, @samp{.}.  The default is @func{make-dot-token}.
+@end deffn
+
+@deffn Parameter double-quote-token-maker
+Set to a function returning a @class{lexical-token} record representing
+a double quote, @samp{"}; double quotes open strings, which must be read
+with a separate lexer table.  The default is
+@func{make-double-quote-token}.
+@end deffn
+
+@deffn Parameter semicolon-token-maker
+Set to a function returning a @class{lexical-token} record representing
+a semicolon, @samp{;}.  The default is @func{make-semicolon-token}.
+@end deffn
+
+@deffn Parameter sharp-paren-token-maker
+Set to a function returning a @class{lexical-token} record representing
+a sharp--open parenthesis, @samp{#(}.  The default is
+@func{make-sharp-paren-token}.
+@end deffn
+
+@deffn Parameter sharp-vu8paren-token-maker
+Set to a function returning a @class{lexical-token} record representing
+a sharp--vu8--open parenthesis, @samp{#vu8(}.  The default is
+@func{make-sharp-vu8paren-token}.
+@end deffn
+
+@deffn Parameter sharp-tick-token-maker
+Set to a function returning a @class{lexical-token} record representing
+a sharp--tick, @samp{#'}.  The default is @func{make-sharp-tick-token}.
+@end deffn
+
+@deffn Parameter sharp-back-tick-token-maker
+Set to a function returning a @class{lexical-token} record representing
+a sharp--back tick, @samp{#`}.  The default is
+@func{make-sharp-back-tick-token}.
+@end deffn
+
+@deffn Parameter sharp-comma-at-token-maker
+Set to a function returning a @class{lexical-token} record representing
+a sharp--commma--at, @samp{#,@@}.  The default is
+@func{make-sharp-comma-at-token}.
+@end deffn
+
+@deffn Parameter sharp-comma-token-maker
+Set to a function returning a @class{lexical-token} record representing
+a sharp--comma, @samp{#,}.  The default is
+@func{make-sharp-comma-token}.
+@end deffn
+
+@deffn Parameter sharp-semicolon-token-maker
+Set to a function returning a @class{lexical-token} record representing
+a sharp--semicolon, @samp{#;}.  The default is
+@func{make-sharp-semicolon-token}.
+@end deffn
+
+@c ------------------------------------------------------------
+
+@subsubheading Variable semantic value token maker parameters
+
+@deffn Parameter line-comment-token-maker
+Set to a function returning a @class{lexical-token} record representing
+a line comment with line--ending included, @samp{; ---}.  The default is
+@func{make-line-comment-token}.
+@end deffn
+
+@deffn Parameter line-comment-noend-token-maker
+Set to a function returning a @class{lexical-token} record representing
+a line comment without line--ending; only end--of--input should be
+allowed after this token.  The default is
+@func{make-line-comment-noend-token}.
+@end deffn
+
+@deffn Parameter open-nested-comment-token-maker
+Set to a function returning a @class{lexical-token} record representing
+the opening of a nested comment, @samp{#|}; the nested comment must be
+read with a separate lexer table.  The default is
+@func{make-open-nested-comment-token}.
+@end deffn
+
+@deffn Parameter sharp-bang-r6rs-token-maker
+Set to a function returning a @class{lexical-token} record representing
+a @samp{#!r6rs} token.  The default is
+@func{make-sharp-bang-r6rs-token}.
+@end deffn
+
+@deffn Parameter sharp-bang-token-maker
+Set to a function returning a @class{lexical-token} record representing
+a sharp--bang, @samp{#!}; this token should be followed by an
+identifier.  The default is @func{make-sharp-bang-token}.
+@end deffn
+
+@deffn Parameter white-space-token-maker
+Set to a function returning a @class{lexical-token} record representing
+a white space.  The default is @func{make-white-space-token}.
+@end deffn
+
+@deffn Parameter line-ending-token-maker
+Set to a function returning a @class{lexical-token} record representing
+a line ending.  The default is @func{make-line-ending-token}.
+@end deffn
+
+@c ------------------------------------------------------------
+
+@subsubheading Scheme semantic value token maker parameters
+
+
+@deffn Parameter identifier-token-maker
+Set to a function returning a @class{lexical-token} record representing
+an identifier .  The default is @func{make-identifier-token}.
+@end deffn
+
+@deffn Parameter boolean-token-maker
+Set to a function returning a @class{lexical-token} record representing
+a boolean value.  The default is @func{make-boolean-token}.
+@end deffn
+
+@deffn Parameter named-character-token-maker
+Set to a function returning a @class{lexical-token} record representing
+a named character, for example @samp{#\newline}.  The default is
+@func{make-named-character-token}.
+@end deffn
+
+@deffn Parameter hex-character-token-maker
+Set to a function returning a @class{lexical-token} record representing
+a hex character, for example @samp{#\x005C}.  The default is
+@func{make-hex-character-token}.
+@end deffn
+
+@deffn Parameter literal-character-token-maker
+Set to a function returning a @class{lexical-token} record representing
+a literal character, for example @samp{#\A}.  The default is
+@func{make-literal-character-token}.
+@end deffn
+
+@deffn Parameter number-token-maker
+Set to a function returning a @class{lexical-token} record representing
+a number.  The default is @func{make-number-token}.
+@end deffn
+
+@c page
+@node r6rs lexer full makers
+@subsubsection Full lexer table token makers
+
+
+The following bindings are exported by the @library{nausicaa r6rs
+lexeme-processing} library.  The following functions are the default
+token makers, used to build @class{lexical-token} records representing
+lexemes from the input.
+
+All the functions build and return instances of @class{lexical-token}
+records; all the functions make use of the @func{current-input-source}
+parameter to fill the @code{input} field of @class{source-location}
+records.
+
+When a function cannot return a Scheme token because the input string is
+incorrect: it makes use of the @func{lexical-error-token-maker}
+parameter to build and return a @class{lexical-token} record
+representing a lexer error.  This happens, for example, if the hex
+character string holds a hex number out of range for Unicode.
+
+@c ------------------------------------------------------------
+
+@subsubheading General token maker parameters
+
+
+@defun make-eof-token @var{yygetc} @var{yyungetc} @var{yytext} @var{yyline} @var{yycolumn} @var{yyoffset}
+Return a @class{lexical-token} record representing the end--of--input.
+@end defun
+
+
+@defun make-lexical-error-token @var{yygetc} @var{yyungetc} @var{yytext} @var{yyline} @var{yycolumn} @var{yyoffset}
+Return a @class{lexical-token} record representing a lexical error.
+@end defun
+
+@c ------------------------------------------------------------
+
+@subsubheading Fixed semantic value token maker parameters
+
+
+@defun make-open-paren-token @var{yygetc} @var{yyungetc} @var{yytext} @var{yyline} @var{yycolumn} @var{yyoffset}
+Return a @class{lexical-token} record representing an open parenthesis,
+@samp{(} .  The default is @func{make-open-paren-token}.
+@end defun
+
+
+@defun make-close-paren-token @var{yygetc} @var{yyungetc} @var{yytext} @var{yyline} @var{yycolumn} @var{yyoffset}
+Return a @class{lexical-token} record representing a close parenthesis,
+@samp{)}.  The default is @func{make-close-paren-token}.
+@end defun
+
+
+@defun make-open-bracket-token @var{yygetc} @var{yyungetc} @var{yytext} @var{yyline} @var{yycolumn} @var{yyoffset}
+Return a @class{lexical-token} record representing an open bracket,
+@samp{[}.  The default is @func{make-open-bracket-token}.
+@end defun
+
+
+@defun make-close-bracket-token @var{yygetc} @var{yyungetc} @var{yytext} @var{yyline} @var{yycolumn} @var{yyoffset}
+Return a @class{lexical-token} record representing a close bracket,
+@samp{[}.  The default is @func{make-close-bracket-token}.
+@end defun
+
+
+@defun make-tick-token @var{yygetc} @var{yyungetc} @var{yytext} @var{yyline} @var{yycolumn} @var{yyoffset}
+Return a @class{lexical-token} record representing a tick, @samp{'}.
+@end defun
+
+
+@defun make-back-tick-token @var{yygetc} @var{yyungetc} @var{yytext} @var{yyline} @var{yycolumn} @var{yyoffset}
+Return a @class{lexical-token} record representing a back tick,
+@samp{`}.
+@end defun
+
+
+@defun make-comma-at-token @var{yygetc} @var{yyungetc} @var{yytext} @var{yyline} @var{yycolumn} @var{yyoffset}
+Return a @class{lexical-token} record representing a comma--at,
+@samp{,@@}.
+@end defun
+
+
+@defun make-comma-token @var{yygetc} @var{yyungetc} @var{yytext} @var{yyline} @var{yycolumn} @var{yyoffset}
+Return a @class{lexical-token} record representing a comma, @samp{,}.
+@end defun
+
+
+@defun make-dot-token @var{yygetc} @var{yyungetc} @var{yytext} @var{yyline} @var{yycolumn} @var{yyoffset}
+Return a @class{lexical-token} record representing a dot, @samp{.}.
+@end defun
+
+
+@defun make-double-quote-token @var{yygetc} @var{yyungetc} @var{yytext} @var{yyline} @var{yycolumn} @var{yyoffset}
+Return a @class{lexical-token} record representing a double quote,
+@samp{"}; double quotes open strings, which must be read with a separate
+lexer table.
+@end defun
+
+
+@defun make-semicolon-token @var{yygetc} @var{yyungetc} @var{yytext} @var{yyline} @var{yycolumn} @var{yyoffset}
+Return a @class{lexical-token} record representing a semicolon,
+@samp{;}.
+@end defun
+
+
+@defun make-sharp-paren-token @var{yygetc} @var{yyungetc} @var{yytext} @var{yyline} @var{yycolumn} @var{yyoffset}
+Return a @class{lexical-token} record representing a sharp--open
+parenthesis, @samp{#(}.
+@end defun
+
+
+@defun make-sharp-vu8paren-token @var{yygetc} @var{yyungetc} @var{yytext} @var{yyline} @var{yycolumn} @var{yyoffset}
+Return a @class{lexical-token} record representing a sharp--vu8--open
+parenthesis, @samp{#vu8(}.  The default is
+@func{make-sharp-vu8paren-token}.
+@end defun
+
+
+@defun make-sharp-tick-token @var{yygetc} @var{yyungetc} @var{yytext} @var{yyline} @var{yycolumn} @var{yyoffset}
+Return a @class{lexical-token} record representing a sharp--tick,
+@samp{#'}.
+@end defun
+
+
+@defun make-sharp-back-tick-token @var{yygetc} @var{yyungetc} @var{yytext} @var{yyline} @var{yycolumn} @var{yyoffset}
+Return a @class{lexical-token} record representing a sharp--back tick,
+@samp{#`}.
+@end defun
+
+
+@defun make-sharp-comma-at-token @var{yygetc} @var{yyungetc} @var{yytext} @var{yyline} @var{yycolumn} @var{yyoffset}
+Return a @class{lexical-token} record representing a sharp--commma--at,
+@samp{#,@@}.
+@end defun
+
+
+@defun make-sharp-comma-token @var{yygetc} @var{yyungetc} @var{yytext} @var{yyline} @var{yycolumn} @var{yyoffset}
+Return a @class{lexical-token} record representing a sharp--comma,
+@samp{#,}.
+@end defun
+
+
+@defun make-sharp-semicolon-token @var{yygetc} @var{yyungetc} @var{yytext} @var{yyline} @var{yycolumn} @var{yyoffset}
+Return a @class{lexical-token} record representing a sharp--semicolon,
+@samp{#;}.
+@end defun
+
+@c ------------------------------------------------------------
+
+@subsubheading Variable semantic value token maker parameters
+
+
+@defun make-line-comment-token @var{yygetc} @var{yyungetc} @var{yytext} @var{yyline} @var{yycolumn} @var{yyoffset}
+Return a @class{lexical-token} record representing a line comment with
+line--ending included, @samp{; ---}.
+@end defun
+
+
+@defun make-line-comment-noend-token @var{yygetc} @var{yyungetc} @var{yytext} @var{yyline} @var{yycolumn} @var{yyoffset}
+Return a @class{lexical-token} record representing a line comment
+without line--ending; only end--of--input should be allowed after this
+token.
+@end defun
+
+
+@defun make-open-nested-comment-token @var{yygetc} @var{yyungetc} @var{yytext} @var{yyline} @var{yycolumn} @var{yyoffset}
+Return a @class{lexical-token} record representing the opening of a
+nested comment, @samp{#|}; the nested comment must be read with a
+separate lexer table.
+@end defun
+
+
+@defun make-sharp-bang-r6rs-token @var{yygetc} @var{yyungetc} @var{yytext} @var{yyline} @var{yycolumn} @var{yyoffset}
+Return a @class{lexical-token} record representing a @samp{#!r6rs}
+token.
+@end defun
+
+
+@defun make-sharp-bang-token @var{yygetc} @var{yyungetc} @var{yytext} @var{yyline} @var{yycolumn} @var{yyoffset}
+Return a @class{lexical-token} record representing a sharp--bang,
+@samp{#!}; this token should be followed by an identifier.
+@end defun
+
+
+@defun make-white-space-token @var{yygetc} @var{yyungetc} @var{yytext} @var{yyline} @var{yycolumn} @var{yyoffset}
+Return a @class{lexical-token} record representing a white space.
+@end defun
+
+
+@defun make-line-ending-token @var{yygetc} @var{yyungetc} @var{yytext} @var{yyline} @var{yycolumn} @var{yyoffset}
+Return a @class{lexical-token} record representing a line ending.
+@end defun
+
+@c ------------------------------------------------------------
+
+@subsubheading Scheme semantic value token maker parameters
+
+
+
+@defun make-identifier-token @var{yygetc} @var{yyungetc} @var{yytext} @var{yyline} @var{yycolumn} @var{yyoffset}
+Return a @class{lexical-token} record representing an identifier .
+@end defun
+
+
+@defun make-boolean-token @var{yygetc} @var{yyungetc} @var{yytext} @var{yyline} @var{yycolumn} @var{yyoffset}
+Return a @class{lexical-token} record representing a boolean value.
+@end defun
+
+
+@defun make-named-character-token @var{yygetc} @var{yyungetc} @var{yytext} @var{yyline} @var{yycolumn} @var{yyoffset}
+Return a @class{lexical-token} record representing a named character,
+for example @samp{#\newline}.  The default is
+@func{make-named-character-token}.
+@end defun
+
+
+@defun make-hex-character-token @var{yygetc} @var{yyungetc} @var{yytext} @var{yyline} @var{yycolumn} @var{yyoffset}
+Return a @class{lexical-token} record representing a hex character, for
+example @samp{#\x005C}.  The default is @func{make-hex-character-token}.
+@end defun
+
+
+@defun make-literal-character-token @var{yygetc} @var{yyungetc} @var{yytext} @var{yyline} @var{yycolumn} @var{yyoffset}
+Return a @class{lexical-token} record representing a literal character,
+for example @samp{#\A}.  The default is
+@func{make-literal-character-token}.
+@end defun
+
+
+@defun make-number-token @var{yygetc} @var{yyungetc} @var{yytext} @var{yyline} @var{yycolumn} @var{yyoffset}
+Return a @class{lexical-token} record representing a number.
+@end defun
 
 @c page
 @node r6rs lexer strings
