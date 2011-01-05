@@ -35,7 +35,8 @@
 	 (lex.library-spec:	"(nausicaa r6rs lexer-table)")
 	 (lex.library-imports:	'((nausicaa silex default-error-handler)
 				  (nausicaa parser-tools lexical-token)
-				  (nausicaa parser-tools source-location)))
+				  (nausicaa parser-tools source-location)
+				  (nausicaa r6rs lexeme-processing)))
 	 (lex.table-name:	'r6rs-lexer-table)
 ;;;	 (lex.lexer-format:	'code) ;this format makes the library 1.2MB in size
 	 (lex.lexer-format:	'decision-tree) ;this format makes the library 123KB in size

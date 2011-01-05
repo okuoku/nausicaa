@@ -1,7 +1,7 @@
 (library (nausicaa r6rs lexer-table)
   (export
     r6rs-lexer-table)
-  (import (rnrs) (nausicaa silex lexer)(nausicaa silex default-error-handler)(nausicaa parser-tools lexical-token)(nausicaa parser-tools source-location))
+  (import (rnrs) (nausicaa silex lexer)(nausicaa silex default-error-handler)(nausicaa parser-tools lexical-token)(nausicaa parser-tools source-location)(nausicaa r6rs lexeme-processing))
 
 ;
 ; Table generated from the file lexer-table.l by SILex 1.0
@@ -16,7 +16,7 @@
        ))
    (lambda (yycontinue yygetc yyungetc)
      (lambda (yytext yyline yycolumn yyoffset)
-         		(silex-default-error-handler yytext)
+         		((lexical-error-token-maker)	yygetc yyungetc yytext yyline yycolumn yyoffset)
 
 ;;; end of file
 ;; Local Variables:
@@ -24,316 +24,214 @@
 ;; End:
        ))
    (vector
-    #f
+    #t
     (lambda (yycontinue yygetc yyungetc)
-      (lambda (yyline yycolumn yyoffset)
-        		(make-<lexical-token> 'OPAREN
-					      (make-<source-location> #f yyline yycolumn yyoffset)
-					      #\( 1)
-        ))
-    #f
-    (lambda (yycontinue yygetc yyungetc)
-      (lambda (yyline yycolumn yyoffset)
-        		(make-<lexical-token> 'CPAREN
-					      (make-<source-location> #f yyline yycolumn yyoffset)
-					      #\) 1)
-        ))
-    #f
-    (lambda (yycontinue yygetc yyungetc)
-      (lambda (yyline yycolumn yyoffset)
-          		(make-<lexical-token> 'OBRACKET
-					      (make-<source-location> #f yyline yycolumn yyoffset)
-					      #\[ 1)
-        ))
-    #f
-    (lambda (yycontinue yygetc yyungetc)
-      (lambda (yyline yycolumn yyoffset)
-          		(make-<lexical-token> 'CBRACKET
-					      (make-<source-location> #f yyline yycolumn yyoffset)
-					      #\] 1)
-        ))
-    #f
-    (lambda (yycontinue yygetc yyungetc)
-      (lambda (yyline yycolumn yyoffset)
-      			(make-<lexical-token> 'TICK
-					      (make-<source-location> #f yyline yycolumn yyoffset)
-					      #\' 1)
-        ))
-    #f
-    (lambda (yycontinue yygetc yyungetc)
-      (lambda (yyline yycolumn yyoffset)
-          		(make-<lexical-token> 'BACKTICK
-					      (make-<source-location> #f yyline yycolumn yyoffset)
-					      #\` 1)
-        ))
-    #f
-    (lambda (yycontinue yygetc yyungetc)
-      (lambda (yyline yycolumn yyoffset)
-         		(make-<lexical-token> 'COMMAAT
-					      (make-<source-location> #f yyline yycolumn yyoffset)
-					      ",@" 2)
-        ))
-    #f
-    (lambda (yycontinue yygetc yyungetc)
-      (lambda (yyline yycolumn yyoffset)
-       			(make-<lexical-token> 'COMMA
-					      (make-<source-location> #f yyline yycolumn yyoffset)
-					      #\, 1)
-        ))
-    #f
-    (lambda (yycontinue yygetc yyungetc)
-      (lambda (yyline yycolumn yyoffset)
-     			(make-<lexical-token> 'DOT
-					      (make-<source-location> #f yyline yycolumn yyoffset)
-					      #\. 1)
-        ))
-    #f
-    (lambda (yycontinue yygetc yyungetc)
-      (lambda (yyline yycolumn yyoffset)
-             		(make-<lexical-token> 'DOUBLEQUOTE
-					      (make-<source-location> #f yyline yycolumn yyoffset)
-					      #\" 1)
-        ))
-    #f
-    (lambda (yycontinue yygetc yyungetc)
-      (lambda (yyline yycolumn yyoffset)
-           		(make-<lexical-token> 'SEMICOLON
-					      (make-<source-location> #f yyline yycolumn yyoffset)
-					      #\; 1)
-        ))
-    #f
-    (lambda (yycontinue yygetc yyungetc)
-      (lambda (yyline yycolumn yyoffset)
-            		(make-<lexical-token> 'SHARPPAREN
-					      (make-<source-location> #f yyline yycolumn yyoffset)
-					      "#(" 2)
-        ))
-    #f
-    (lambda (yycontinue yygetc yyungetc)
-      (lambda (yyline yycolumn yyoffset)
-               		(make-<lexical-token> 'SHARPVU8PAREN
-					      (make-<source-location> #f yyline yycolumn yyoffset)
-					      "#vu8(" 4)
-        ))
-    #f
-    (lambda (yycontinue yygetc yyungetc)
-      (lambda (yyline yycolumn yyoffset)
-           		(make-<lexical-token> 'SHARPTICK
-					      (make-<source-location> #f yyline yycolumn yyoffset)
-					      "#'" 2)
-        ))
-    #f
-    (lambda (yycontinue yygetc yyungetc)
-      (lambda (yyline yycolumn yyoffset)
-               		(make-<lexical-token> 'SHARPBACKTICK
-					      (make-<source-location> #f yyline yycolumn yyoffset)
-					      "#`" 2)
-        ))
-    #f
-    (lambda (yycontinue yygetc yyungetc)
-      (lambda (yyline yycolumn yyoffset)
-              		(make-<lexical-token> 'SHARPCOMMAAT
-					      (make-<source-location> #f yyline yycolumn yyoffset)
-					      "#,@" 3)
-        ))
-    #f
-    (lambda (yycontinue yygetc yyungetc)
-      (lambda (yyline yycolumn yyoffset)
-            		(make-<lexical-token> 'SHARPCOMMA
-					      (make-<source-location> #f yyline yycolumn yyoffset)
-					      #\( 1)
-        ))
-    #f
-    (lambda (yycontinue yygetc yyungetc)
-      (lambda (yyline yycolumn yyoffset)
-                	(make-<lexical-token> 'SHARPSEMICOLON
-					      (make-<source-location> #f yyline yycolumn yyoffset)
-					      "#;" 2)
+      (lambda (yytext yyline yycolumn yyoffset)
+        		((open-paren-token-maker)	yygetc yyungetc yytext yyline yycolumn yyoffset)
         ))
     #t
     (lambda (yycontinue yygetc yyungetc)
       (lambda (yytext yyline yycolumn yyoffset)
-             		(make-<lexical-token> 'LINECOMMENT
-					      (make-<source-location> #f yyline yycolumn yyoffset)
-					      yytext (string-length yytext))
+        		((close-paren-token-maker)	yygetc yyungetc yytext yyline yycolumn yyoffset)
         ))
     #t
     (lambda (yycontinue yygetc yyungetc)
       (lambda (yytext yyline yycolumn yyoffset)
-                   	(make-<lexical-token> 'LINECOMMENT-NOEND
-					      (make-<source-location> #f yyline yycolumn yyoffset)
-					      yytext (string-length yytext))
-        ))
-    #f
-    (lambda (yycontinue yygetc yyungetc)
-      (lambda (yyline yycolumn yyoffset)
-                	(make-<lexical-token> 'ONESTEDCOMMENT
-					      (make-<source-location> #f yyline yycolumn yyoffset)
-					      "#|" 2)
+          		((open-bracket-token-maker)	yygetc yyungetc yytext yyline yycolumn yyoffset)
         ))
     #t
     (lambda (yycontinue yygetc yyungetc)
       (lambda (yytext yyline yycolumn yyoffset)
-               		(make-<lexical-token> 'SHARPBANGR6RS
-					      (make-<source-location> #f yyline yycolumn yyoffset)
-					      yytext 6)
-        ))
-    #f
-    (lambda (yycontinue yygetc yyungetc)
-      (lambda (yyline yycolumn yyoffset)
-           		(make-<lexical-token> 'SHARPBANG
-					      (make-<source-location> #f yyline yycolumn yyoffset)
-					      "#!" 2)
+          		((close-bracket-token-maker)	yygetc yyungetc yytext yyline yycolumn yyoffset)
         ))
     #t
     (lambda (yycontinue yygetc yyungetc)
       (lambda (yytext yyline yycolumn yyoffset)
-            		(make-<lexical-token> 'WHITESPACE
-					      (make-<source-location> #f yyline yycolumn yyoffset)
-					      yytext (string-length yytext))
+      			((tick-token-maker)		yygetc yyungetc yytext yyline yycolumn yyoffset)
         ))
     #t
     (lambda (yycontinue yygetc yyungetc)
       (lambda (yytext yyline yycolumn yyoffset)
-            		(make-<lexical-token> 'LINEENDING
-					      (make-<source-location> #f yyline yycolumn yyoffset)
-					      yytext (string-length yytext))
+          		((back-tick-token-maker)	yygetc yyungetc yytext yyline yycolumn yyoffset)
+        ))
+    #t
+    (lambda (yycontinue yygetc yyungetc)
+      (lambda (yytext yyline yycolumn yyoffset)
+         		((comma-at-token-maker)		yygetc yyungetc yytext yyline yycolumn yyoffset)
+        ))
+    #t
+    (lambda (yycontinue yygetc yyungetc)
+      (lambda (yytext yyline yycolumn yyoffset)
+       			((comma-token-maker)		yygetc yyungetc yytext yyline yycolumn yyoffset)
+        ))
+    #t
+    (lambda (yycontinue yygetc yyungetc)
+      (lambda (yytext yyline yycolumn yyoffset)
+     			((dot-token-maker)		yygetc yyungetc yytext yyline yycolumn yyoffset)
+        ))
+    #t
+    (lambda (yycontinue yygetc yyungetc)
+      (lambda (yytext yyline yycolumn yyoffset)
+             		((doublequote-token-maker)	yygetc yyungetc yytext yyline yycolumn yyoffset)
+        ))
+    #t
+    (lambda (yycontinue yygetc yyungetc)
+      (lambda (yytext yyline yycolumn yyoffset)
+           		((semicolon-token-maker)	yygetc yyungetc yytext yyline yycolumn yyoffset)
+        ))
+    #t
+    (lambda (yycontinue yygetc yyungetc)
+      (lambda (yytext yyline yycolumn yyoffset)
+            		((sharp-paren-token-maker)	yygetc yyungetc yytext yyline yycolumn yyoffset)
+        ))
+    #t
+    (lambda (yycontinue yygetc yyungetc)
+      (lambda (yytext yyline yycolumn yyoffset)
+               		((sharp-vu8paren-token-maker)	yygetc yyungetc yytext yyline yycolumn yyoffset)
+        ))
+    #t
+    (lambda (yycontinue yygetc yyungetc)
+      (lambda (yytext yyline yycolumn yyoffset)
+           		((sharp-tick-token-maker)	yygetc yyungetc yytext yyline yycolumn yyoffset)
+        ))
+    #t
+    (lambda (yycontinue yygetc yyungetc)
+      (lambda (yytext yyline yycolumn yyoffset)
+               		((sharp-back-tick-token-maker)	yygetc yyungetc yytext yyline yycolumn yyoffset)
+        ))
+    #t
+    (lambda (yycontinue yygetc yyungetc)
+      (lambda (yytext yyline yycolumn yyoffset)
+              		((sharp-comma-at-token-maker)	yygetc yyungetc yytext yyline yycolumn yyoffset)
+        ))
+    #t
+    (lambda (yycontinue yygetc yyungetc)
+      (lambda (yytext yyline yycolumn yyoffset)
+            		((sharp-comma-token-maker)	yygetc yyungetc yytext yyline yycolumn yyoffset)
+        ))
+    #t
+    (lambda (yycontinue yygetc yyungetc)
+      (lambda (yytext yyline yycolumn yyoffset)
+                	((sharp-semicolon-token-maker)	yygetc yyungetc yytext yyline yycolumn yyoffset)
 
-;;; --------------------------------------------------------------------
+;;page
         ))
     #t
     (lambda (yycontinue yygetc yyungetc)
       (lambda (yytext yyline yycolumn yyoffset)
-            		(make-<lexical-token> 'IDENTIFIER
-					      (make-<source-location> #f yyline yycolumn yyoffset)
-					      (string->symbol yytext) (string-length yytext))
+             		((line-comment-token-maker)		yygetc yyungetc yytext yyline yycolumn yyoffset)
         ))
     #t
     (lambda (yycontinue yygetc yyungetc)
       (lambda (yytext yyline yycolumn yyoffset)
-                  	(silex-default-error-handler yytext)
+                   	((line-comment-noend-token-maker)	yygetc yyungetc yytext yyline yycolumn yyoffset)
         ))
     #t
     (lambda (yycontinue yygetc yyungetc)
       (lambda (yytext yyline yycolumn yyoffset)
-                     	(make-<lexical-token> 'IDENTIFIER
-					      (make-<source-location> #f yyline yycolumn yyoffset)
-					      (string->symbol yytext) (string-length yytext))
+                	((open-nested-comment-token-maker)	yygetc yyungetc yytext yyline yycolumn yyoffset)
         ))
     #t
     (lambda (yycontinue yygetc yyungetc)
       (lambda (yytext yyline yycolumn yyoffset)
-                           	(silex-default-error-handler yytext)
+               		((sharp-bang-r6rs-token-maker)		yygetc yyungetc yytext yyline yycolumn yyoffset)
+        ))
+    #t
+    (lambda (yycontinue yygetc yyungetc)
+      (lambda (yytext yyline yycolumn yyoffset)
+           		((sharp-bang-token-maker)		yygetc yyungetc yytext yyline yycolumn yyoffset)
+        ))
+    #t
+    (lambda (yycontinue yygetc yyungetc)
+      (lambda (yytext yyline yycolumn yyoffset)
+            		((white-space-token-maker)		yygetc yyungetc yytext yyline yycolumn yyoffset)
+        ))
+    #t
+    (lambda (yycontinue yygetc yyungetc)
+      (lambda (yytext yyline yycolumn yyoffset)
+            		((line-ending-token-maker)		yygetc yyungetc yytext yyline yycolumn yyoffset)
 
-;;; --------------------------------------------------------------------
+;;page
+;;; identifiers
         ))
     #t
     (lambda (yycontinue yygetc yyungetc)
       (lambda (yytext yyline yycolumn yyoffset)
-         		(make-<lexical-token>
-			 'BOOLEAN
-			 (make-<source-location> #f yyline yycolumn yyoffset)
-			 (cond ((or (string=? yytext "#t")
-				    (string=? yytext "#T")) #t)
-			       ((or (string=? yytext "#f")
-				    (string=? yytext "#F")) #f)
-			       (else
-				;;Notice that this should never happen.
-				(assertion-violation 'r6rs-character-lexer-table
-				  "internal error, invalid boolean" yytext)))
-			 2)
+            			((identifier-token-maker)	yygetc yyungetc yytext yyline yycolumn yyoffset)
         ))
     #t
     (lambda (yycontinue yygetc yyungetc)
       (lambda (yytext yyline yycolumn yyoffset)
-               		(silex-default-error-handler yytext)
+                     		((identifier-token-maker)	yygetc yyungetc yytext yyline yycolumn yyoffset)
+        ))
+    #t
+    (lambda (yycontinue yygetc yyungetc)
+      (lambda (yytext yyline yycolumn yyoffset)
+                  		((lexical-error-token-maker)	yygetc yyungetc yytext yyline yycolumn yyoffset)
+        ))
+    #t
+    (lambda (yycontinue yygetc yyungetc)
+      (lambda (yytext yyline yycolumn yyoffset)
+                           	((lexical-error-token-maker)	yygetc yyungetc yytext yyline yycolumn yyoffset)
 
-;;; --------------------------------------------------------------------
+;;; booleans
+        ))
+    #t
+    (lambda (yycontinue yygetc yyungetc)
+      (lambda (yytext yyline yycolumn yyoffset)
+         			((boolean-token-maker)		yygetc yyungetc yytext yyline yycolumn yyoffset)
+        ))
+    #t
+    (lambda (yycontinue yygetc yyungetc)
+      (lambda (yytext yyline yycolumn yyoffset)
+               			((lexical-error-token-maker)	yygetc yyungetc yytext yyline yycolumn yyoffset)
 
-;;Notice that we cannot use a CASE with strings; refer to the definition
-;;of EQV? in the R6RS document.
+;;; characters
         ))
     #t
     (lambda (yycontinue yygetc yyungetc)
       (lambda (yytext yyline yycolumn yyoffset)
-                 	(make-<lexical-token>
-			 'CHARACTER
-			 (make-<source-location> #f yyline yycolumn yyoffset)
-			 (cond
-			  ((string=? yytext "#\\nul")		#\nul)
-			  ((string=? yytext "#\\alarm")		#\alarm)
-			  ((string=? yytext "#\\backspace")	#\backspace)
-			  ((string=? yytext "#\\tab")		#\tab)
-			  ((string=? yytext "#\\linefeed")	#\linefeed)
-			  ((string=? yytext "#\\newline")	#\newline)
-			  ((string=? yytext "#\\vtab")		#\vtab)
-			  ((string=? yytext "#\\page")		#\page)
-			  ((string=? yytext "#\\return")	#\return)
-			  ((string=? yytext "#\\esc")		#\esc)
-			  ((string=? yytext "#\\space")		#\space)
-			  ((string=? yytext "#\\delete")	#\delete)
-			  (else
-			   ;;Notice that this should never happen.
-			   (assertion-violation 'r6rs-character-lexer-table
-			     "internal error, invalid named character" yytext)))
-			 (string-length yytext))
+                 		((named-character-token-maker)	yygetc yyungetc yytext yyline yycolumn yyoffset)
         ))
     #t
     (lambda (yycontinue yygetc yyungetc)
       (lambda (yytext yyline yycolumn yyoffset)
-                       	(silex-default-error-handler yytext)
+               			((hex-character-token-maker)	yygetc yyungetc yytext yyline yycolumn yyoffset)
         ))
     #t
     (lambda (yycontinue yygetc yyungetc)
       (lambda (yytext yyline yycolumn yyoffset)
-               		(make-<lexical-token>
-			 'CHARACTER
-			 (make-<source-location> #f yyline yycolumn yyoffset)
-			 (let* ((len (string-length yytext))
-				(num (string->number (substring yytext 3 len) 16)))
-			   (if (or (<= 0 num #xD7FF) (<= #xE000 num #x10FFFF))
-			       (integer->char num)
-			     (make-<lexical-token> '*lexer-error*
-						   (make-<source-location> #f yyline yycolumn yyoffset)
-						   yytext len)))
-			 (string-length yytext))
+                   		((literal-character-token-maker)yygetc yyungetc yytext yyline yycolumn yyoffset)
         ))
     #t
     (lambda (yycontinue yygetc yyungetc)
       (lambda (yytext yyline yycolumn yyoffset)
-                     	(silex-default-error-handler yytext)
+                       		((lexical-error-token-maker)	yygetc yyungetc yytext yyline yycolumn yyoffset)
         ))
     #t
     (lambda (yycontinue yygetc yyungetc)
       (lambda (yytext yyline yycolumn yyoffset)
-                   	(make-<lexical-token> 'CHARACTER
-					      (make-<source-location> #f yyline yycolumn yyoffset)
-					      (string-ref yytext 2)
-					      (string-length yytext))
+                     		((lexical-error-token-maker)	yygetc yyungetc yytext yyline yycolumn yyoffset)
         ))
     #t
     (lambda (yycontinue yygetc yyungetc)
       (lambda (yytext yyline yycolumn yyoffset)
-                         	(silex-default-error-handler yytext)
+                         	((lexical-error-token-maker)	yygetc yyungetc yytext yyline yycolumn yyoffset)
 
-;;; --------------------------------------------------------------------
+;;; numbers
         ))
     #t
     (lambda (yycontinue yygetc yyungetc)
       (lambda (yytext yyline yycolumn yyoffset)
-        		(let ((n (string->number yytext)))
-			  (if n
-			      (make-<lexical-token> 'NUMBER
-						    (make-<source-location> #f yyline yycolumn yyoffset)
-						    n (string-length yytext))
-			    (silex-default-error-handler yytext)))
+        			((number-token-maker)		yygetc yyungetc yytext yyline yycolumn yyoffset)
         ))
     #t
     (lambda (yycontinue yygetc yyungetc)
       (lambda (yytext yyline yycolumn yyoffset)
-              		(silex-default-error-handler yytext)
+              			((lexical-error-token-maker)	yygetc yyungetc yytext yyline yycolumn yyoffset)
 
-;;; --------------------------------------------------------------------
+;;page
+;;;; done
         )))
    'decision-trees
    0
@@ -2446,12 +2344,12 @@
     231 err) (101 231 353)))) (8203 (5761 (161 (160 231 err) (5760 231
     err)) (6159 (6158 231 err) (8192 231 err))) (8240 (8234 (8232 231 err)
     (8239 231 err)) (8288 (8287 231 err) (= 12288 err 231))))))
-   '#((#f . #f) (37 . 37) (27 . 27) (27 . 27) (#f . #f) (25 . 25) (24 . 24)
+   '#((#f . #f) (37 . 37) (26 . 26) (26 . 26) (#f . #f) (25 . 25) (24 . 24)
     (23 . 23) (23 . 23) (23 . 23) (23 . 23) (23 . 23) (#f . #f) (10 . 10)
     (9 . 9) (8 . 8) (7 . 7) (5 . 5) (4 . 4) (3 . 3) (2 . 2) (1 . 1) (0 . 0)
     (38 . 38) (38 . 38) (38 . 38) (38 . 38) (37 . 37) (38 . 38) (38 . 38)
-    (38 . 38) (37 . 37) (37 . 37) (#f . #f) (37 . 37) (#f . #f) (27 . 27)
-    (37 . 37) (#f . #f) (37 . 37) (#f . #f) (#f . #f) (26 . 26) (26 . 26)
+    (38 . 38) (37 . 37) (37 . 37) (#f . #f) (37 . 37) (#f . #f) (26 . 26)
+    (37 . 37) (#f . #f) (37 . 37) (#f . #f) (#f . #f) (27 . 27) (27 . 27)
     (25 . 25) (24 . 24) (#f . #f) (#f . #f) (#f . #f) (#f . #f) (#f . #f)
     (#f . #f) (29 . 29) (22 . 22) (20 . 20) (17 . 17) (16 . 16) (14 . 14)
     (13 . 13) (#f . #f) (11 . 11) (19 . 19) (18 . 18) (18 . 18) (18 . 18)
@@ -2459,26 +2357,26 @@
     . 37) (38 . 38) (38 . 38) (38 . 38) (37 . 37) (38 . 38) (38 . 38) (38 .
     38) (37 . 37) (38 . 38) (37 . 37) (38 . 38) (37 . 37) (37 . 37) (38 .
     38) (#f . #f) (37 . 37) (37 . 37) (38 . 38) (38 . 38) (38 . 38) (37 .
-    37) (37 . 37) (28 . 28) (28 . 28) (27 . 27) (38 . 38) (#f . #f) (37 .
-    37) (38 . 38) (38 . 38) (38 . 38) (37 . 37) (37 . 37) (#f . #f) (26 .
-    26) (37 . 37) (#f . #f) (#f . #f) (#f . #f) (#f . #f) (#f . #f) (#f .
+    37) (37 . 37) (28 . 28) (28 . 28) (26 . 26) (38 . 38) (#f . #f) (37 .
+    37) (38 . 38) (38 . 38) (38 . 38) (37 . 37) (37 . 37) (#f . #f) (27 .
+    27) (37 . 37) (#f . #f) (#f . #f) (#f . #f) (#f . #f) (#f . #f) (#f .
     #f) (#f . #f) (37 . 37) (#f . #f) (#f . #f) (#f . #f) (#f . #f) (37 .
-    37) (#f . #f) (#f . #f) (#f . #f) (35 . 35) (35 . 35) (35 . 35) (35 .
-    35) (35 . 35) (35 . 35) (35 . 35) (35 . 35) (35 . 35) (35 . 35) (35 .
-    35) (35 . 35) (35 . 35) (30 . 30) (#f . #f) (15 . 15) (#f . #f) (#f .
-    #f) (37 . 37) (38 . 38) (27 . 27) (38 . 38) (38 . 38) (38 . 38) (38 .
+    37) (#f . #f) (#f . #f) (#f . #f) (33 . 33) (33 . 33) (33 . 33) (33 .
+    33) (33 . 33) (33 . 33) (33 . 33) (33 . 33) (33 . 33) (33 . 33) (33 .
+    33) (33 . 33) (33 . 33) (30 . 30) (#f . #f) (15 . 15) (#f . #f) (#f .
+    #f) (37 . 37) (38 . 38) (26 . 26) (38 . 38) (38 . 38) (38 . 38) (38 .
     38) (38 . 38) (38 . 38) (38 . 38) (38 . 38) (38 . 38) (38 . 38) (38 .
     38) (38 . 38) (38 . 38) (38 . 38) (37 . 37) (38 . 38) (38 . 38) (38 .
     38) (37 . 37) (38 . 38) (38 . 38) (38 . 38) (38 . 38) (38 . 38) (37 .
     37) (38 . 38) (38 . 38) (#f . #f) (37 . 37) (38 . 38) (37 . 37) (38 .
     38) (37 . 37) (37 . 37) (37 . 37) (38 . 38) (28 . 28) (38 . 38) (#f .
     #f) (37 . 37) (38 . 38) (37 . 37) (38 . 38) (37 . 37) (37 . 37) (37 .
-    37) (38 . 38) (26 . 26) (38 . 38) (38 . 38) (38 . 38) (38 . 38) (37 .
+    37) (38 . 38) (27 . 27) (38 . 38) (38 . 38) (38 . 38) (38 . 38) (37 .
     37) (#f . #f) (#f . #f) (#f . #f) (37 . 37) (#f . #f) (#f . #f) (37 .
     37) (#f . #f) (38 . 38) (38 . 38) (38 . 38) (38 . 38) (37 . 37) (#f .
     #f) (#f . #f) (#f . #f) (37 . 37) (#f . #f) (#f . #f) (37 . 37) (#f .
     #f) (38 . 38) (38 . 38) (38 . 38) (38 . 38) (37 . 37) (#f . #f) (#f .
-    #f) (37 . 37) (#f . #f) (#f . #f) (37 . 37) (36 . 36) (33 . 33) (36 .
+    #f) (37 . 37) (#f . #f) (#f . #f) (37 . 37) (36 . 36) (32 . 32) (36 .
     36) (36 . 36) (36 . 36) (36 . 36) (36 . 36) (36 . 36) (36 . 36) (36 .
     36) (36 . 36) (36 . 36) (36 . 36) (36 . 36) (#f . #f) (#f . #f) (37 .
     37) (38 . 38) (38 . 38) (38 . 38) (38 . 38) (38 . 38) (38 . 38) (38 .
@@ -2495,7 +2393,7 @@
     #f) (38 . 38) (37 . 37) (#f . #f) (#f . #f) (38 . 38) (37 . 37) (37 .
     37) (38 . 38) (38 . 38) (37 . 37) (38 . 38) (38 . 38) (37 . 37) (38 .
     38) (38 . 38) (37 . 37) (#f . #f) (#f . #f) (38 . 38) (37 . 37) (#f .
-    #f) (#f . #f) (38 . 38) (37 . 37) (34 . 34) (33 . 33) (36 . 36) (36 .
+    #f) (#f . #f) (38 . 38) (37 . 37) (35 . 35) (32 . 32) (36 . 36) (36 .
     36) (31 . 31) (36 . 36) (36 . 36) (36 . 36) (36 . 36) (36 . 36) (36 .
     36) (36 . 36) (#f . #f) (12 . 12) (38 . 38) (38 . 38) (38 . 38) (38 .
     38) (38 . 38) (38 . 38) (38 . 38) (38 . 38) (38 . 38) (38 . 38) (38 .
@@ -2509,7 +2407,7 @@
     #f) (#f . #f) (37 . 37) (#f . #f) (#f . #f) (37 . 37) (38 . 38) (38 .
     38) (38 . 38) (38 . 38) (38 . 38) (38 . 38) (38 . 38) (38 . 38) (38 .
     38) (38 . 38) (38 . 38) (#f . #f) (#f . #f) (37 . 37) (#f . #f) (#f .
-    #f) (37 . 37) (36 . 36) (36 . 36) (32 . 32) (36 . 36) (36 . 36) (36 .
+    #f) (37 . 37) (36 . 36) (36 . 36) (34 . 34) (36 . 36) (36 . 36) (36 .
     36) (36 . 36) (36 . 36) (21 . 21) (38 . 38) (38 . 38) (38 . 38) (38 .
     38) (38 . 38) (38 . 38) (37 . 37) (38 . 38) (38 . 38) (38 . 38) (38 .
     38) (38 . 38) (38 . 38) (38 . 38) (38 . 38) (38 . 38) (38 . 38) (38 .

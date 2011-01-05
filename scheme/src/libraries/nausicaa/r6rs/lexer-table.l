@@ -603,203 +603,68 @@ WRONG_BOOLEAN		{BOOLEAN}{TAIL_OF_WRONG}
 ;;page
 %%
 
-{OPAREN}		(make-<lexical-token> 'OPAREN
-					      (make-<source-location> #f yyline yycolumn yyoffset)
-					      #\( 1)
+{OPAREN}		((open-paren-token-maker)	yygetc yyungetc yytext yyline yycolumn yyoffset)
+{CPAREN}		((close-paren-token-maker)	yygetc yyungetc yytext yyline yycolumn yyoffset)
+{OBRACKET}		((open-bracket-token-maker)	yygetc yyungetc yytext yyline yycolumn yyoffset)
+{CBRACKET}		((close-bracket-token-maker)	yygetc yyungetc yytext yyline yycolumn yyoffset)
+{TICK}			((tick-token-maker)		yygetc yyungetc yytext yyline yycolumn yyoffset)
+{BACKTICK}		((back-tick-token-maker)	yygetc yyungetc yytext yyline yycolumn yyoffset)
+{COMMAAT}		((comma-at-token-maker)		yygetc yyungetc yytext yyline yycolumn yyoffset)
+{COMMA}			((comma-token-maker)		yygetc yyungetc yytext yyline yycolumn yyoffset)
+{DOT}			((dot-token-maker)		yygetc yyungetc yytext yyline yycolumn yyoffset)
+{DOUBLEQUOTE}		((doublequote-token-maker)	yygetc yyungetc yytext yyline yycolumn yyoffset)
+{SEMICOLON}		((semicolon-token-maker)	yygetc yyungetc yytext yyline yycolumn yyoffset)
+{SHARPPAREN}		((sharp-paren-token-maker)	yygetc yyungetc yytext yyline yycolumn yyoffset)
+{SHARPVU8PAREN}		((sharp-vu8paren-token-maker)	yygetc yyungetc yytext yyline yycolumn yyoffset)
+{SHARPTICK}		((sharp-tick-token-maker)	yygetc yyungetc yytext yyline yycolumn yyoffset)
+{SHARPBACKTICK}		((sharp-back-tick-token-maker)	yygetc yyungetc yytext yyline yycolumn yyoffset)
+{SHARPCOMMAAT}		((sharp-comma-at-token-maker)	yygetc yyungetc yytext yyline yycolumn yyoffset)
+{SHARPCOMMA}		((sharp-comma-token-maker)	yygetc yyungetc yytext yyline yycolumn yyoffset)
+{SHARPSEMICOLON}	((sharp-semicolon-token-maker)	yygetc yyungetc yytext yyline yycolumn yyoffset)
 
-{CPAREN}		(make-<lexical-token> 'CPAREN
-					      (make-<source-location> #f yyline yycolumn yyoffset)
-					      #\) 1)
+;;page
+{LINECOMMENT}		((line-comment-token-maker)	yygetc yyungetc yytext yyline yycolumn yyoffset)
+{LINECOMMENT-NOEND}	((line-comment-noend-token-maker)
+			 yygetc yyungetc yytext yyline yycolumn yyoffset)
+{ONESTEDCOMMENT}	((open-nested-comment-token-maker)
+			 yygetc yyungetc yytext yyline yycolumn yyoffset)
+{SHARPBANGR6RS}		((sharp-bang-r6rs-token-maker)	yygetc yyungetc yytext yyline yycolumn yyoffset)
+{SHARPBANG}		((sharp-bang-token-maker)	yygetc yyungetc yytext yyline yycolumn yyoffset)
+{WHITESPACE}		((white-space-token-maker)	yygetc yyungetc yytext yyline yycolumn yyoffset)
+{LINEENDING}		((line-ending-token-maker)	yygetc yyungetc yytext yyline yycolumn yyoffset)
 
-{OBRACKET}		(make-<lexical-token> 'OBRACKET
-					      (make-<source-location> #f yyline yycolumn yyoffset)
-					      #\[ 1)
+;;page
+;;; identifiers
 
-{CBRACKET}		(make-<lexical-token> 'CBRACKET
-					      (make-<source-location> #f yyline yycolumn yyoffset)
-					      #\] 1)
+{IDENTIFIER}		((identifier-token-maker)	yygetc yyungetc yytext yyline yycolumn yyoffset)
+{PECULIAR_IDENTIFIER}	((identifier-token-maker)	yygetc yyungetc yytext yyline yycolumn yyoffset)
+{WRONG_IDENTIFIER}	((lexical-error-token-maker)	yygetc yyungetc yytext yyline yycolumn yyoffset)
+{WRONG_PECULIAR_IDENTIFIER} ((lexical-error-token-maker) yygetc yyungetc yytext yyline yycolumn yyoffset)
 
-{TICK}			(make-<lexical-token> 'TICK
-					      (make-<source-location> #f yyline yycolumn yyoffset)
-					      #\' 1)
+;;; booleans
 
-{BACKTICK}		(make-<lexical-token> 'BACKTICK
-					      (make-<source-location> #f yyline yycolumn yyoffset)
-					      #\` 1)
+{BOOLEAN}		((boolean-token-maker)		yygetc yyungetc yytext yyline yycolumn yyoffset)
+{WRONG_BOOLEAN}		((lexical-error-token-maker)	yygetc yyungetc yytext yyline yycolumn yyoffset)
 
-{COMMAAT}		(make-<lexical-token> 'COMMAAT
-					      (make-<source-location> #f yyline yycolumn yyoffset)
-					      ",@" 2)
+;;; characters
 
-{COMMA}			(make-<lexical-token> 'COMMA
-					      (make-<source-location> #f yyline yycolumn yyoffset)
-					      #\, 1)
+{NAMED_CHARACTER}	((named-character-token-maker)	yygetc yyungetc yytext yyline yycolumn yyoffset)
+{HEX_CHARACTER}		((hex-character-token-maker)	yygetc yyungetc yytext yyline yycolumn yyoffset)
+{LITERAL_CHARACTER}	((literal-character-token-maker)yygetc yyungetc yytext yyline yycolumn yyoffset)
+{WRONG_NAMED_CHARACTER}	((lexical-error-token-maker)	yygetc yyungetc yytext yyline yycolumn yyoffset)
+{WRONG_HEX_CHARACTER}	((lexical-error-token-maker)	yygetc yyungetc yytext yyline yycolumn yyoffset)
+{WRONG_LITERAL_CHARACTER} ((lexical-error-token-maker)	yygetc yyungetc yytext yyline yycolumn yyoffset)
 
-{DOT}			(make-<lexical-token> 'DOT
-					      (make-<source-location> #f yyline yycolumn yyoffset)
-					      #\. 1)
+;;; numbers
 
-{DOUBLEQUOTE}		(make-<lexical-token> 'DOUBLEQUOTE
-					      (make-<source-location> #f yyline yycolumn yyoffset)
-					      #\" 1)
+{NUMBER}		((number-token-maker)		yygetc yyungetc yytext yyline yycolumn yyoffset)
+{WRONG_NUMBER}		((lexical-error-token-maker)	yygetc yyungetc yytext yyline yycolumn yyoffset)
 
-{SEMICOLON}		(make-<lexical-token> 'SEMICOLON
-					      (make-<source-location> #f yyline yycolumn yyoffset)
-					      #\; 1)
+;;page
+;;;; done
 
-{SHARPPAREN}		(make-<lexical-token> 'SHARPPAREN
-					      (make-<source-location> #f yyline yycolumn yyoffset)
-					      "#(" 2)
-
-{SHARPVU8PAREN}		(make-<lexical-token> 'SHARPVU8PAREN
-					      (make-<source-location> #f yyline yycolumn yyoffset)
-					      "#vu8(" 4)
-
-{SHARPTICK}		(make-<lexical-token> 'SHARPTICK
-					      (make-<source-location> #f yyline yycolumn yyoffset)
-					      "#'" 2)
-
-{SHARPBACKTICK}		(make-<lexical-token> 'SHARPBACKTICK
-					      (make-<source-location> #f yyline yycolumn yyoffset)
-					      "#`" 2)
-
-
-{SHARPCOMMAAT}		(make-<lexical-token> 'SHARPCOMMAAT
-					      (make-<source-location> #f yyline yycolumn yyoffset)
-					      "#,@" 3)
-
-{SHARPCOMMA}		(make-<lexical-token> 'SHARPCOMMA
-					      (make-<source-location> #f yyline yycolumn yyoffset)
-					      #\( 1)
-
-{SHARPSEMICOLON}	(make-<lexical-token> 'SHARPSEMICOLON
-					      (make-<source-location> #f yyline yycolumn yyoffset)
-					      "#;" 2)
-
-{LINECOMMENT}		(make-<lexical-token> 'LINECOMMENT
-					      (make-<source-location> #f yyline yycolumn yyoffset)
-					      yytext (string-length yytext))
-
-{LINECOMMENT-NOEND}	(make-<lexical-token> 'LINECOMMENT-NOEND
-					      (make-<source-location> #f yyline yycolumn yyoffset)
-					      yytext (string-length yytext))
-
-{ONESTEDCOMMENT}	(make-<lexical-token> 'ONESTEDCOMMENT
-					      (make-<source-location> #f yyline yycolumn yyoffset)
-					      "#|" 2)
-
-{SHARPBANGR6RS}		(make-<lexical-token> 'SHARPBANGR6RS
-					      (make-<source-location> #f yyline yycolumn yyoffset)
-					      yytext 6)
-
-{SHARPBANG}		(make-<lexical-token> 'SHARPBANG
-					      (make-<source-location> #f yyline yycolumn yyoffset)
-					      "#!" 2)
-
-{WHITESPACE}		(make-<lexical-token> 'WHITESPACE
-					      (make-<source-location> #f yyline yycolumn yyoffset)
-					      yytext (string-length yytext))
-
-{LINEENDING}		(make-<lexical-token> 'LINEENDING
-					      (make-<source-location> #f yyline yycolumn yyoffset)
-					      yytext (string-length yytext))
-
-;;; --------------------------------------------------------------------
-
-{IDENTIFIER}		(make-<lexical-token> 'IDENTIFIER
-					      (make-<source-location> #f yyline yycolumn yyoffset)
-					      (string->symbol yytext) (string-length yytext))
-
-{WRONG_IDENTIFIER}	(silex-default-error-handler yytext)
-
-{PECULIAR_IDENTIFIER}	(make-<lexical-token> 'IDENTIFIER
-					      (make-<source-location> #f yyline yycolumn yyoffset)
-					      (string->symbol yytext) (string-length yytext))
-
-{WRONG_PECULIAR_IDENTIFIER}	(silex-default-error-handler yytext)
-
-;;; --------------------------------------------------------------------
-
-{BOOLEAN}		(make-<lexical-token>
-			 'BOOLEAN
-			 (make-<source-location> #f yyline yycolumn yyoffset)
-			 (cond ((or (string=? yytext "#t")
-				    (string=? yytext "#T")) #t)
-			       ((or (string=? yytext "#f")
-				    (string=? yytext "#F")) #f)
-			       (else
-				;;Notice that this should never happen.
-				(assertion-violation 'r6rs-character-lexer-table
-				  "internal error, invalid boolean" yytext)))
-			 2)
-
-{WRONG_BOOLEAN}		(silex-default-error-handler yytext)
-
-;;; --------------------------------------------------------------------
-
-;;Notice that we cannot use a CASE with strings; refer to the definition
-;;of EQV? in the R6RS document.
-{NAMED_CHARACTER}	(make-<lexical-token>
-			 'CHARACTER
-			 (make-<source-location> #f yyline yycolumn yyoffset)
-			 (cond
-			  ((string=? yytext "#\\nul")		#\nul)
-			  ((string=? yytext "#\\alarm")		#\alarm)
-			  ((string=? yytext "#\\backspace")	#\backspace)
-			  ((string=? yytext "#\\tab")		#\tab)
-			  ((string=? yytext "#\\linefeed")	#\linefeed)
-			  ((string=? yytext "#\\newline")	#\newline)
-			  ((string=? yytext "#\\vtab")		#\vtab)
-			  ((string=? yytext "#\\page")		#\page)
-			  ((string=? yytext "#\\return")	#\return)
-			  ((string=? yytext "#\\esc")		#\esc)
-			  ((string=? yytext "#\\space")		#\space)
-			  ((string=? yytext "#\\delete")	#\delete)
-			  (else
-			   ;;Notice that this should never happen.
-			   (assertion-violation 'r6rs-character-lexer-table
-			     "internal error, invalid named character" yytext)))
-			 (string-length yytext))
-
-{WRONG_NAMED_CHARACTER}	(silex-default-error-handler yytext)
-
-{HEX_CHARACTER}		(make-<lexical-token>
-			 'CHARACTER
-			 (make-<source-location> #f yyline yycolumn yyoffset)
-			 (let* ((len (string-length yytext))
-				(num (string->number (substring yytext 3 len) 16)))
-			   (if (or (<= 0 num #xD7FF) (<= #xE000 num #x10FFFF))
-			       (integer->char num)
-			     (make-<lexical-token> '*lexer-error*
-						   (make-<source-location> #f yyline yycolumn yyoffset)
-						   yytext len)))
-			 (string-length yytext))
-
-{WRONG_HEX_CHARACTER}	(silex-default-error-handler yytext)
-
-{LITERAL_CHARACTER}	(make-<lexical-token> 'CHARACTER
-					      (make-<source-location> #f yyline yycolumn yyoffset)
-					      (string-ref yytext 2)
-					      (string-length yytext))
-
-{WRONG_LITERAL_CHARACTER}	(silex-default-error-handler yytext)
-
-;;; --------------------------------------------------------------------
-
-{NUMBER}		(let ((n (string->number yytext)))
-			  (if n
-			      (make-<lexical-token> 'NUMBER
-						    (make-<source-location> #f yyline yycolumn yyoffset)
-						    n (string-length yytext))
-			    (silex-default-error-handler yytext)))
-
-{WRONG_NUMBER}		(silex-default-error-handler yytext)
-
-;;; --------------------------------------------------------------------
-
-
-<<EOF>>			(silex-default-eof-handler)
-<<ERROR>>		(silex-default-error-handler yytext)
+<<EOF>>			((eof-token-maker)		yygetc yyungetc yytext yyline yycolumn yyoffset)
+<<ERROR>>		((lexical-error-token-maker)	yygetc yyungetc yytext yyline yycolumn yyoffset)
 
 ;;; end of file
 ;; Local Variables:

@@ -1866,7 +1866,23 @@ mamma\"")
 
 ;;; --------------------------------------------------------------------
 
-
+  (check (tokenise "(")		=> '((OPAREN		#\() *eoi*))
+  (check (tokenise ")")		=> '((CPAREN		#\)) *eoi*))
+  (check (tokenise "[")		=> '((OBRACKET		#\[) *eoi*))
+  (check (tokenise "]")		=> '((CBRACKET		#\]) *eoi*))
+  (check (tokenise "'")		=> '((TICK		#\') *eoi*))
+  (check (tokenise "`")		=> '((BACKTICK		#\`) *eoi*))
+  (check (tokenise ",")		=> '((COMMA		#\,) *eoi*))
+  (check (tokenise ",@")	=> '((COMMAAT		",@") *eoi*))
+  (check (tokenise ".")		=> '((DOT		#\.) *eoi*))
+  (check (tokenise "\"")	=> '((DOUBLEQUOTE	#\") *eoi*))
+  (check (tokenise "#(")	=> '((SHARPPAREN	"#(") *eoi*))
+  (check (tokenise "#vu8(")	=> '((SHARPVU8PAREN	"#vu8(") *eoi*))
+  (check (tokenise "#'")	=> '((SHARPTICK		"#'") *eoi*))
+  (check (tokenise "#`")	=> '((SHARPBACKTICK	"#`") *eoi*))
+  (check (tokenise "#,")	=> '((SHARPCOMMA	"#,") *eoi*))
+  (check (tokenise "#,@")	=> '((SHARPCOMMAAT	"#,@") *eoi*))
+  (check (tokenise "#;")	=> '((SHARPSEMICOLON	"#;") *eoi*))
 
   #t)
 
