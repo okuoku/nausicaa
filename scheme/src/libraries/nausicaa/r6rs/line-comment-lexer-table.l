@@ -39,10 +39,12 @@ LINEENDING		[\10\13\133\8232]|(\13\10)|(\13\133)
 ;;a paragraph separator (#x2029 = \8233).
 ;;
 LINECOMMENT		\;.*({LINEENDING}|\8233)
+LINECOMMENT-NOEND	\;[^\10\13\133\8232\8233]*
 
 %%
 
 {LINECOMMENT}		yytext
+{LINECOMMENT-NOEND}	yytext
 <<EOF>>			(silex-default-eof-handler)
 <<ERROR>>		(silex-default-error-handler)
 

@@ -540,22 +540,12 @@ mamma\"")
   (identity ";;; ciao\n")
   (identity ";;; ciao\r")
 
-;;; --------------------------------------------------------------------
-;;; errors
-
-  (check
-      (guard (E ((lexical-violation? E)
-		 (condition-irritants E))
-		(else E))
-	(tokenise "; ciao"))
-    => '(*lexer-error*))
-
-  (check
-      (guard (E ((lexical-violation? E)
-		 (condition-irritants E))
-		(else E))
-	(tokenise ";;;"))
-    => '(*lexer-error*))
+  ;; no line end
+  (identity ";")
+  (identity ";;")
+  (identity ";;;")
+  (identity ";;; ciao")
+  (identity ";;; ciao")
 
   #t)
 
@@ -580,32 +570,11 @@ mamma\"")
   (identity ";;; ciao\n")
   (identity ";;; ciao\r")
 
-;;; --------------------------------------------------------------------
-;;; errors
-
-  (check
-      (guard (E ((lexical-violation? E)
-;;;		 (display (condition-message E))(newline)
-		 (condition-irritants E))
-		(else E))
-	(parse ""))
-    => `(,(eof-object)))
-
-  (check
-      (guard (E ((lexical-violation? E)
-;;;		 (display (condition-message E))(newline)
-		 (condition-irritants E))
-		(else E))
-	(parse "; ciao"))
-    => '("; ciao"))
-
-  (check
-      (guard (E ((lexical-violation? E)
-;;;		 (display (condition-message E))(newline)
-		 (condition-irritants E))
-		(else E))
-	(parse ";;;"))
-    => '(";;;"))
+  ;; no line ending
+  (identity ";")
+  (identity ";;")
+  (identity ";;;")
+  (identity ";;; ciao")
 
   #t)
 

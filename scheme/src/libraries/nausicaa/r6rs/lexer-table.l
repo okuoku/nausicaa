@@ -99,6 +99,7 @@ TAIL_OF_WRONG		[^{WHITESPACE}#\;\(]+
 ;;a paragraph separator (#x2029 = \8233).
 ;;
 LINECOMMENT		\;.*({LINEENDING}|\8233)
+LINECOMMENT-NOEND	\;[^\10\13\133\8232\8233]*
 
 ;;Multiline comments can contain nested multiline comments, so we need a
 ;;sublexer.
@@ -671,6 +672,10 @@ WRONG_BOOLEAN		{BOOLEAN}{TAIL_OF_WRONG}
 					      "#;" 2)
 
 {LINECOMMENT}		(make-<lexical-token> 'LINECOMMENT
+					      (make-<source-location> #f yyline yycolumn yyoffset)
+					      yytext (string-length yytext))
+
+{LINECOMMENT-NOEND}	(make-<lexical-token> 'LINECOMMENT-NOEND
 					      (make-<source-location> #f yyline yycolumn yyoffset)
 					      yytext (string-length yytext))
 

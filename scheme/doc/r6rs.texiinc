@@ -495,10 +495,10 @@ library.
 
 
 @defvr Constant r6rs-line-comment-lexer-table
-A @library{silex} lexer table to read @rnrs{6} compliant line comments;
-the comment @strong{must} include the end of line, truncated lines will
-cause a lexer error.  This table needs an input system configured with
-@code{(counters: 'all)}.  See the documentation of
+A @library{silex} lexer table to read @rnrs{6} compliant line comments.
+Both comments with end--of--line and comments spanning until the
+end--of--input are accepted.  This table needs an input system
+configured with @code{(counters: 'all)}.  See the documentation of
 @func{read-line-comment} for a usage example.  A lexer function using
 this table returns:
 
