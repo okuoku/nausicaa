@@ -38,7 +38,39 @@
 (check-set-mode! 'report-failed)
 (display "*** testing R6RS lexer\n")
 
-(define eoi `(*eoi* . ,(eof-object)))
+
+;;;; helpers
+
+(define (equal-number-results? x y)
+  ;;Used to compare numbers.
+  ;;
+  (define (== x y)
+    (define epsilon 1e-6)
+    (cond ((nan? x) (nan? y))
+	  ((zero? x)
+	   (zero? y)
+	   ;;(and (= x y) (= (atan 0.0 x) (atan 0.0 y)))
+	   )
+	  ((infinite? x)
+	   (and (infinite? y)
+		(or (and (positive? x) (positive? y))
+		    (and (negative? x) (negative? y)))))
+	  (else
+	   (and (or (and (exact? x) (exact? y))
+		    (and (inexact? x) (inexact? y)))
+		;;(= x y)
+		(< (abs (- x y)) epsilon)
+		))))
+  (cond ((and (number? x) (number? y))
+	 (and (== (real-part x) (real-part y))
+	      (== (imag-part x) (imag-part y))))
+	(else (equal? x y))))
+
+(define-constant inf+
+  (fl/ (inexact 1) (inexact 0)))
+
+(define-constant inf-
+  (fl/ (inexact -1) (inexact 0)))
 
 
 (parametrise ((check-test-name	'string-tokeniser))
@@ -683,7 +715,7 @@ mamma\"")
 		 (condition-irritants E))
 		(else E))
 	(tokenise "#\\ciao"))
-    => '(#\c *lexer-error*))
+    => '(*lexer-error*))
 
   #t)
 
@@ -700,10 +732,6 @@ mamma\"")
   (check
       (parse "#\\A")
     => #\A)
-
-  (check
-      (parse "#\\ciao")
-    => #\c)
 
 ;;; --------------------------------------------------------------------
 
@@ -787,6 +815,14 @@ mamma\"")
 		(else E))
 	(parse "c"))
     => '("c"))
+
+  (check
+      (guard (E ((lexical-violation? E)
+;;;		 (display (condition-message E))(newline)
+		 (condition-irritants E))
+		(else E))
+	(parse "#\\ciao"))
+    => '("#\\ciao"))
 
   #t)
 
@@ -1022,29 +1058,6 @@ mamma\"")
   (define (parse string)
     (read-number (lexer-make-IS (string: string) (counters: 'all))))
 
-  (define (equal-results? x y)
-    (define (== x y)
-      (define epsilon 1e-6)
-      (cond ((nan? x) (nan? y))
-	    ((zero? x)
-	     (zero? y)
-	     ;;(and (= x y) (= (atan 0.0 x) (atan 0.0 y)))
-	     )
-	    ((infinite? x)
-	     (and (infinite? y)
-		  (or (and (positive? x) (positive? y))
-		      (and (negative? x) (negative? y)))))
-	    (else
-	     (and (or (and (exact? x) (exact? y))
-		      (and (inexact? x) (inexact? y)))
-		  ;;(= x y)
-		  (< (abs (- x y)) epsilon)
-		  ))))
-    (cond ((and (number? x) (number? y))
-	   (and (== (real-part x) (real-part y))
-		(== (imag-part x) (imag-part y))))
-	  (else (equal? x y))))
-
   (define (generated-tests)
     ;;DO NOT TRY TO CONVERT THIS FUNCTION TO A MACRO!!!  I already tried
     ;;and it generates so much code that it fills up the memory.
@@ -1114,11 +1127,6 @@ mamma\"")
 	   (test (car x) (cdr x)))
       complex))
 
-  (define inf+
-    (fl/ (inexact 1) (inexact 0)))
-  (define inf-
-    (fl/ (inexact -1) (inexact 0)))
-
 ;;; --------------------------------------------------------------------
 
   (define-syntax test
@@ -1126,7 +1134,7 @@ mamma\"")
       ((_ ?string ?expected)
        (check
 	   (parse ?string)
-	 (=> equal-results?) ?expected))))
+	 (=> equal-number-results?) ?expected))))
 
   (define-syntax test-lexical-error
     (syntax-rules ()
@@ -1344,6 +1352,483 @@ mamma\"")
   (test-lexical-error "12/7i")
   (test-lexical-error "i")
   (test-lexical-error "/")
+  (test-lexical-error "12/0")
+  (test-lexical-error "+12/0")
+  (test-lexical-error "-12/0")
+  (test-lexical-error "12/0000")
+  (test-lexical-error "+12/0000")
+  (test-lexical-error "-12/0000")
+  (test-lexical-error "12+")
+  (test-lexical-error "+12+")
+  (test-lexical-error "-12+")
+  (test-lexical-error "12+")
+  (test-lexical-error "+12+")
+  (test-lexical-error "-12+")
+
+  #t)
+
+
+(parametrise ((check-test-name	'full-identifiers)
+	      (debugging	#f))
+
+  (define (tokenise string)
+    (let* ((IS		(lexer-make-IS (string: string) (counters: 'all)))
+	   (lexer	(lexer-make-lexer r6rs-lexer-table IS))
+	   (result	'()))
+      (do (((T <lexical-token>) (lexer) (lexer)))
+	  (T.special?
+	   (reverse `(,(if T.lexer-error?
+			   `(,T.category ,T.value)
+			 T.category). ,result)))
+	(debug "id token ~s >>~s<<" T.category T.value)
+	(set-cons! result (list T.category T.value)))))
+
+  (check
+      (tokenise "")
+    => '(*eoi*))
+
+  (check
+      (tokenise "c")
+    => '((IDENTIFIER c) *eoi*))
+
+  (check
+      (tokenise "ciao")
+    => '((IDENTIFIER ciao) *eoi*))
+
+  (check
+      (tokenise "ciao-mamma")
+    => '((IDENTIFIER ciao-mamma) *eoi*))
+
+  (check
+      (tokenise "->ciao")
+    => '((IDENTIFIER ->ciao) *eoi*))
+
+  (check
+      (tokenise "?ciao")
+    => '((IDENTIFIER ?ciao) *eoi*))
+
+  (check
+      (tokenise "?")
+    => '((IDENTIFIER ?) *eoi*))
+
+  (check
+      (tokenise "+")
+    => '((IDENTIFIER +) *eoi*))
+
+  (check
+      (tokenise "-")
+    => '((IDENTIFIER -) *eoi*))
+
+  (check
+      (tokenise "...")
+    => '((IDENTIFIER ...) *eoi*))
+
+  (check
+      (tokenise "->")
+    => '((IDENTIFIER ->) *eoi*))
+
+  (check
+      (tokenise "ciao123")
+    => '((IDENTIFIER ciao123) *eoi*))
+
+  (check
+      (tokenise "ciao123+-.@")
+    => '((IDENTIFIER ciao123+-.@) *eoi*))
+
+  (check
+      (tokenise "ciao123+-.@ciao")
+    => '((IDENTIFIER ciao123+-.@ciao) *eoi*))
+
+  (check	;char with Unicode category Nd
+      (tokenise "ciao\\x0CE7;mamma")
+    => `((IDENTIFIER ,(string->symbol "ciao\\x0CE7;mamma")) *eoi*))
+
+  (check	;char with Unicode category Mc
+      (tokenise "ciao\\x09BF;mamma")
+    => `((IDENTIFIER ,(string->symbol "ciao\\x09BF;mamma")) *eoi*))
+
+  (check	;char with Unicode category Me
+      (tokenise "ciao\\x20E4;mamma")
+    => `((IDENTIFIER ,(string->symbol "ciao\\x20E4;mamma")) *eoi*))
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (tokenise "@this")
+    => '((*lexer-error* "@this")))
+
+  #t)
+
+
+(parametrise ((check-test-name	'full-characters)
+	      (debugging	#f))
+
+  (define (tokenise string)
+    (let* ((IS		(lexer-make-IS (string: string) (counters: 'all)))
+	   (lexer	(lexer-make-lexer r6rs-lexer-table IS))
+	   (result	'()))
+      (do (((T <lexical-token>) (lexer) (lexer)))
+	  (T.special?
+	   (reverse `(,(if T.lexer-error?
+			   `(,T.category ,T.value)
+			 T.category). ,result)))
+	(debug "char token ~s >>~s<<" T.category T.value)
+	(set-cons! result (list T.category T.value)))))
+
+  (check
+      (tokenise "")
+    => '(*eoi*))
+
+  (check
+      (tokenise "#\\1")
+    => '((CHARACTER #\1) *eoi*))
+
+  (check
+      (tokenise "#\\A")
+    => '((CHARACTER #\A) *eoi*))
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (tokenise "#\\x005C")
+    => '((CHARACTER #\x005C) *eoi*))
+
+  (check
+      (tokenise "#\\xA")
+    => '((CHARACTER #\xA) *eoi*))
+
+  (check
+      (tokenise "#\\x0063")
+    => '((CHARACTER #\c) *eoi*))
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (tokenise "#\\nul")
+    => '((CHARACTER #\nul) *eoi*))
+
+  (check
+      (tokenise "#\\alarm")
+    => '((CHARACTER #\alarm) *eoi*))
+
+  (check
+      (tokenise "#\\backspace")
+    => '((CHARACTER #\backspace) *eoi*))
+
+  (check
+      (tokenise "#\\tab")
+    => '((CHARACTER #\tab) *eoi*))
+
+  (check
+      (tokenise "#\\linefeed")
+    => '((CHARACTER #\linefeed) *eoi*))
+
+  (check
+      (tokenise "#\\newline")
+    => '((CHARACTER #\newline) *eoi*))
+
+  (check
+      (tokenise "#\\vtab")
+    => '((CHARACTER #\vtab) *eoi*))
+
+  (check
+      (tokenise "#\\page")
+    => '((CHARACTER #\page) *eoi*))
+
+  (check
+      (tokenise "#\\return")
+    => '((CHARACTER #\return) *eoi*))
+
+  (check
+      (tokenise "#\\esc")
+    => '((CHARACTER #\esc) *eoi*))
+
+  (check
+      (tokenise "#\\space")
+    => '((CHARACTER #\space) *eoi*))
+
+  (check
+      (tokenise "#\\delete")
+    => '((CHARACTER #\delete) *eoi*))
+
+;;; --------------------------------------------------------------------
+;;; errors
+
+  (check
+      (guard (E ((lexical-violation? E)
+		 (condition-irritants E))
+		(else E))
+	(tokenise "#\\ciao"))
+    => '((*lexer-error* "#\\ciao")))
+
+  #t)
+
+
+(parametrise ((check-test-name	'full-numbers)
+	      (debugging	#f))
+
+  (define (tokenise string)
+    (let* ((IS		(lexer-make-IS (string: string) (counters: 'all)))
+	   (lexer	(lexer-make-lexer r6rs-lexer-table IS))
+	   (result	'()))
+      (do (((T <lexical-token>) (lexer) (lexer)))
+	  (T.special?
+	   (reverse `(,(if T.lexer-error?
+			   `(,T.category ,T.value)
+			 T.category). ,result)))
+	(debug "number token ~s >>~s<<" T.category T.value)
+	(set-cons! result (list T.category T.value)))))
+
+  (define (equal-results? a b)
+    (and (= (length a) (length b))
+	 (for-all (lambda (la lb)
+		    (or (eq? la lb)
+			(and (eq? (car la) (car lb))
+			     (equal-number-results? (cadr la) (cadr lb)))))
+	   a b)))
+
+  (define-syntax test
+    (syntax-rules ()
+      ((_ ?string ?expected)
+       (check
+	   (tokenise ?string)
+	 (=> equal-results?)
+	 `((NUMBER ,?expected) *eoi*)))
+      ((_ ?name ?string ?expected)
+       (check ?name
+	   (tokenise ?string)
+	 (=> equal-results?)
+	 `((NUMBER ,?expected) *eoi*)))
+      ))
+
+  (define-syntax test-lexical-error
+    (syntax-rules ()
+      ((_ ?string)
+       (check
+	   (guard (E ((lexical-violation? E)
+;;;		      (display (condition-message E))(newline)
+		      (condition-irritants E))
+		     (else E))
+	     (tokenise ?string))
+	 => '((*lexer-error* ?string))))
+      ((_ ?name ?string)
+       (check ?name
+	   (guard (E ((lexical-violation? E)
+;;;		      (display (condition-message E))(newline)
+		      (condition-irritants E))
+		     (else E))
+	     (tokenise ?string))
+	 => '((*lexer-error* ?string))))
+      ))
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (tokenise "")
+    => '(*eoi*))
+
+;;; --------------------------------------------------------------------
+
+  (test "10" 10)
+  (test "1" 1)
+  (test "-17" -17)
+  (test "12" 12)
+  (test "+12" +12)
+  (test "-12" -12)
+  (test "+13476238746782364786237846872346782364876238477" 13476238746782364786237846872346782364876238477)
+  (test "+inf.0" inf+)
+  (test "-inf.0" inf-)
+  (test "+i" (make-rectangular 0 +1))
+  (test "-i" (make-rectangular 0 -1))
+  (test "+15i" (make-rectangular 0 +15))
+  (test "-15i" (make-rectangular 0 -15))
+  (test "12/7" (/ 12 7))
+  (test "-12/7" (/ -12 7))
+  (test "+12/7" (/ 12 7))
+  (test "-12/7i" (make-rectangular 0 (/ -12 7)))
+  (test "+12/7i" (make-rectangular 0 (/ 12 7)))
+  (test "12/7+7i" (make-rectangular (/ 12 7) (/ 7 1)))
+  (test "12/7+7/5i" (make-rectangular (/ 12 7) (/ 7 5)))
+  (test "12/7-7/5i" (make-rectangular (/ 12 7) (/ -7 5)))
+  (test "12." (inexact 12))
+  (test "#e12." 12)
+  (test "12.5" (inexact (/ 125 10)))
+  (test "#e12.5123" (/ 125123 10000))
+  (test "#i125123/10000" (inexact (/ 125123 10000)))
+  (test "+inf.0i" (make-rectangular 0 inf+))
+  (test "-inf.0i" (make-rectangular 0 inf-))
+
+  (test "1/2" (/ 1 2))
+  (test "-1/2" (/ 1 -2))
+  (test "#x24" 36)
+  (test "#x-24" -36)
+  (test "#b+00000110110" 54)
+  (test "#b-00000110110/10" -27)
+  (test "#e10" 10)
+  (test "#e1" 1)
+  (test "#e-17" -17)
+  (test "#e#x24" 36)
+  (test "#e#x-24" -36)
+  (test "#e#b+00000110110" 54)
+  (test "#e#b-00000110110/10" -27)
+  (test "#x#e24" 36)
+  (test "#x#e-24" -36)
+  (test "#b#e+00000110110" 54)
+  (test "#b#e-00000110110/10" -27)
+  (test "#e1e1000" (expt 10 1000))
+  (test "#e-1e1000" (- (expt 10 1000)))
+  (test "#e1e-1000" (expt 10 -1000))
+  (test "#e-1e-1000" (- (expt 10 -1000)))
+  (test "#i1e100" (inexact (expt 10 100)))
+  (test "#i1e1000" (inexact (expt 10 1000)))
+  (test "#i-1e1000" (inexact (- (expt 10 1000))))
+  (test "1e100" (inexact (expt 10 100)))
+  (test "1.0e100" (inexact (expt 10 100)))
+  (test "1.e100" (inexact (expt 10 100)))
+  (test "0.1e100" (inexact (expt 10 99)))
+  (test ".1e100" (inexact (expt 10 99)))
+  (test "+1e100" (inexact (expt 10 100)))
+  (test "+1.0e100" (inexact (expt 10 100)))
+  (test "+1.e100" (inexact (expt 10 100)))
+  (test "+0.1e100" (inexact (expt 10 99)))
+  (test "+.1e100" (inexact (expt 10 99)))
+  (test "-1e100" (inexact   (- (expt 10 100))))
+  (test "-1.0e100" (inexact (- (expt 10 100))))
+  (test "-1.e100" (inexact  (- (expt 10 100))))
+  (test "-0.1e100" (inexact (- (expt 10 99))))
+  (test "-.1e100" (inexact  (- (expt 10 99))))
+
+  (test "8+6.0i" (make-rectangular 8 6.0))
+  (test "8.0+6i" (make-rectangular 8.0 6))
+  (test "+8+6.0i" (make-rectangular 8 6.0))
+  (test "+8.0+6i" (make-rectangular 8.0 6))
+  (test "-8+6.0i" (make-rectangular -8 6.0))
+  (test "-8.0+6i" (make-rectangular -8.0 6))
+
+  (test "8-6.0i" (make-rectangular 8 -6.0))
+  (test "8.0-6i" (make-rectangular 8.0 -6))
+  (test "+8-6.0i" (make-rectangular 8 -6.0))
+  (test "+8.0-6i" (make-rectangular 8.0 -6))
+  (test "-8-6.0i" (make-rectangular -8 -6.0))
+  (test "-8.0-6i" (make-rectangular -8.0 -6))
+
+  (test "+0i" 0)
+  (test "-0i" 0)
+
+  (test "+1i" (make-rectangular 0 1))
+  (test "-1i" (make-rectangular 0 -1))
+
+  (test "8+nan.0i" (make-rectangular 8 +nan.0))
+  (test "8.0+nan.0i" (make-rectangular 8.0 +nan.0))
+  (test "+8+nan.0i" (make-rectangular 8 +nan.0))
+  (test "+8.0+nan.0i" (make-rectangular 8.0 +nan.0))
+  (test "-8+nan.0i" (make-rectangular -8 +nan.0))
+  (test "-8.0+nan.0i" (make-rectangular -8.0 +nan.0))
+  (test "8-nan.0i" (make-rectangular 8 -nan.0))
+  (test "8.0-nan.0i" (make-rectangular 8.0 -nan.0))
+  (test "+8-nan.0i" (make-rectangular 8 -nan.0))
+  (test "+8.0-nan.0i" (make-rectangular 8.0 -nan.0))
+  (test "-8-nan.0i" (make-rectangular -8 -nan.0))
+  (test "-8.0-nan.0i" (make-rectangular -8.0 -nan.0))
+  (test "+nan.0+6.0i" (make-rectangular +nan.0 6.0))
+  (test "+nan.0+6i" (make-rectangular +nan.0 6))
+  (test "+nan.0+6.0i" (make-rectangular +nan.0 6.0))
+  (test "+nan.0+6i" (make-rectangular +nan.0 6))
+  (test "-nan.0+6.0i" (make-rectangular -nan.0 6.0))
+  (test "-nan.0+6i" (make-rectangular -nan.0 6))
+  (test "+nan.0-6.0i" (make-rectangular +nan.0 -6.0))
+  (test "+nan.0-6i" (make-rectangular +nan.0 -6))
+  (test "+nan.0-6.0i" (make-rectangular +nan.0 -6.0))
+  (test "+nan.0-6i" (make-rectangular +nan.0 -6))
+  (test "-nan.0-6.0i" (make-rectangular -nan.0 -6.0))
+  (test "-nan.0-6i" (make-rectangular -nan.0 -6))
+  (test "+nan.0+nan.0i" (make-rectangular +nan.0 +nan.0))
+  (test "+nan.0-nan.0i" (make-rectangular +nan.0 -nan.0))
+  (test "-nan.0+nan.0i" (make-rectangular -nan.0 +nan.0))
+  (test "-nan.0-nan.0i" (make-rectangular -nan.0 -nan.0))
+
+  (test "+nan.0+i" (make-rectangular +nan.0 +1))
+  (test "+nan.0-i" (make-rectangular +nan.0 -1))
+  (test "-nan.0+i" (make-rectangular -nan.0 +1))
+  (test "-nan.0-i" (make-rectangular -nan.0 -1))
+
+  (test "8+inf.0i" (make-rectangular 8 +inf.0))
+  (test "8.0+inf.0i" (make-rectangular 8.0 +inf.0))
+  (test "+8+inf.0i" (make-rectangular 8 +inf.0))
+  (test "+8.0+inf.0i" (make-rectangular 8.0 +inf.0))
+  (test "-8+inf.0i" (make-rectangular -8 +inf.0))
+  (test "-8.0+inf.0i" (make-rectangular -8.0 +inf.0))
+  (test "8-inf.0i" (make-rectangular 8 -inf.0))
+  (test "8.0-inf.0i" (make-rectangular 8.0 -inf.0))
+  (test "+8-inf.0i" (make-rectangular 8 -inf.0))
+  (test "+8.0-inf.0i" (make-rectangular 8.0 -inf.0))
+  (test "-8-inf.0i" (make-rectangular -8 -inf.0))
+  (test "-8.0-inf.0i" (make-rectangular -8.0 -inf.0))
+  (test "+inf.0+6.0i" (make-rectangular +inf.0 6.0))
+  (test "+inf.0+6i" (make-rectangular +inf.0 6))
+  (test "+inf.0+6.0i" (make-rectangular +inf.0 6.0))
+  (test "+inf.0+6i" (make-rectangular +inf.0 6))
+  (test "-inf.0+6.0i" (make-rectangular -inf.0 6.0))
+  (test "-inf.0+6i" (make-rectangular -inf.0 6))
+  (test "+inf.0-6.0i" (make-rectangular +inf.0 -6.0))
+  (test "+inf.0-6i" (make-rectangular +inf.0 -6))
+  (test "+inf.0-6.0i" (make-rectangular +inf.0 -6.0))
+  (test "+inf.0-6i" (make-rectangular +inf.0 -6))
+  (test "-inf.0-6.0i" (make-rectangular -inf.0 -6.0))
+  (test "-inf.0-6i" (make-rectangular -inf.0 -6))
+  (test "+inf.0+inf.0i" (make-rectangular +inf.0 +inf.0))
+  (test "+inf.0-inf.0i" (make-rectangular +inf.0 -inf.0))
+  (test "-inf.0+inf.0i" (make-rectangular -inf.0 +inf.0))
+  (test "-inf.0-inf.0i" (make-rectangular -inf.0 -inf.0))
+
+  (test "+inf.0+i" (make-rectangular +inf.0 +1))
+  (test "+inf.0-i" (make-rectangular +inf.0 -1))
+  (test "-inf.0+i" (make-rectangular -inf.0 +1))
+  (test "-inf.0-i" (make-rectangular -inf.0 -1))
+
+  (test "8+6e20i" (make-rectangular +8 +6e20))
+  (test "8-6e20i" (make-rectangular +8 -6e20))
+  (test "8e20+6i" (make-rectangular +8e20 +6))
+  (test "8e20-6i" (make-rectangular +8e20 -6))
+  (test "+8+6e20i" (make-rectangular +8 +6e20))
+  (test "+8-6e20i" (make-rectangular +8 -6e20))
+  (test "+8e20+6i" (make-rectangular +8e20 +6))
+  (test "+8e20-6i" (make-rectangular +8e20 -6))
+  (test "-8+6e20i" (make-rectangular -8 +6e20))
+  (test "-8-6e20i" (make-rectangular -8 -6e20))
+  (test "-8e20+6i" (make-rectangular -8e20 +6))
+  (test "-8e20-6i" (make-rectangular -8e20 -6))
+
+  (test "8e10+6e20i" (make-rectangular +8e10 +6e20))
+  (test "8e10-6e20i" (make-rectangular +8e10 -6e20))
+  (test "+8e10+6e20i" (make-rectangular +8e10 +6e20))
+  (test "+8e10-6e20i" (make-rectangular +8e10 -6e20))
+  (test "-8e10+6e20i" (make-rectangular -8e10 +6e20))
+  (test "-8e10-6e20i" (make-rectangular -8e10 -6e20))
+
+  (test "-0e-10" -0.0)
+  (test "-0e-0" -0.0)
+  (test "#d-0e-10-0e-0i" (make-rectangular -0.0 -0.0))
+  (test "-0.i" (make-rectangular 0.0 -0.0))
+  (test "#d#e-0.0f-0-.0s-0i" 0)
+
+  (test "+.234e4i" (make-rectangular 0 0.234e4))
+  (test "+.234e-5i" (make-rectangular 0 0.234e-5))
+  (test "+.234i" (make-rectangular 0 0.234))
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (tokenise "i")
+    => `((IDENTIFIER i) *eoi*))
+
+  (check
+      (tokenise "/")
+    => `((IDENTIFIER /) *eoi*))
+
+  (test-lexical-error "0i")
+  (test-lexical-error "1i+")
+  (test-lexical-error "12/7i")
   (test-lexical-error "12/0")
   (test-lexical-error "+12/0")
   (test-lexical-error "-12/0")

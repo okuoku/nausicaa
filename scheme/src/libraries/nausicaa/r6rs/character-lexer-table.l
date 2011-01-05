@@ -35,6 +35,13 @@ NAMED_CHARACTER		{SHARPBACKSLASH}{CHARACTER_NAME}
 HEX_CHARACTER		{SHARPBACKSLASH}x{HEX_SCALAR_VALUE}
 LITERAL_CHARACTER	{SHARPBACKSLASH}.
 
+;;When a valid lexeme is followed by this tail it is wrong.
+TAIL_OF_WRONG		[^{WHITESPACE}#\;\(]+
+
+WRONG_NAMED_CHARACTER	{NAMED_CHARACTER}{TAIL_OF_WRONG}
+WRONG_HEX_CHARACTER	{SHARPBACKSLASH}x{HEX_SCALAR_VALUE}{TAIL_OF_WRONG}
+WRONG_LITERAL_CHARACTER	{SHARPBACKSLASH}.{TAIL_OF_WRONG}
+
 %%
 
 ;;Notice that we cannot use a CASE with strings; refer to the definition
@@ -66,6 +73,10 @@ LITERAL_CHARACTER	{SHARPBACKSLASH}.
 						  yytext len)))
 
 {LITERAL_CHARACTER}	(string-ref yytext 2)
+
+{WRONG_NAMED_CHARACTER}		(silex-default-error-handler yytext)
+{WRONG_HEX_CHARACTER}		(silex-default-error-handler yytext)
+{WRONG_LITERAL_CHARACTER}	(silex-default-error-handler yytext)
 
 <<EOF>>			(silex-default-eof-handler)
 <<ERROR>>		(silex-default-error-handler)

@@ -28,6 +28,7 @@
 ;;;use the R? regular expression operator.
 
 NANINF			"nan.0"|"inf.0"
+IMAG			i
 DIGIT			[0-9]
 HEXDIGIT		{DIGIT}|[a-fA-F]
 DIGIT2			[01]
@@ -51,7 +52,7 @@ UREAL2			{UINTEGER2}|({UINTEGER2}/{UINTEGER2})
 REAL2			({SIGN}{UREAL2})|(\+{NANINF})|(\-{NANINF})
 
 PREFIX2			({RADIX2}{EXACTNESS})|({EXACTNESS}{RADIX2})
-COMPLEX2		{REAL2}|{REAL2}@{REAL2}|({REAL2}\+{UREAL2}i)|({REAL2}\-{UREAL2}i)|({REAL2}\+{NANINF}i)|({REAL2}\-{NANINF}i)|({REAL2}\+i)|({REAL2}\-i)|(\+{UREAL2}i)|(\-{UREAL2}i)|(\+{NANINF}i)|(\-{NANINF}i)|(\+i)|(\-i)
+COMPLEX2		{REAL2}|{REAL2}@{REAL2}|({REAL2}\+{UREAL2}{IMAG})|({REAL2}\-{UREAL2}{IMAG})|({REAL2}\+{NANINF}{IMAG})|({REAL2}\-{NANINF}{IMAG})|({REAL2}\+{IMAG})|({REAL2}\-{IMAG})|(\+{UREAL2}{IMAG})|(\-{UREAL2}{IMAG})
 NUMBER2			{PREFIX2}{COMPLEX2}
 
 ;;; --------------------------------------------------------------------
@@ -61,7 +62,7 @@ UREAL8			{UINTEGER8}|({UINTEGER8}/{UINTEGER8})
 REAL8			({SIGN}{UREAL8})|(\+{NANINF})|(\-{NANINF})
 
 PREFIX8			({RADIX8}{EXACTNESS})|({EXACTNESS}{RADIX8})
-COMPLEX8		{REAL8}|{REAL8}@{REAL8}|({REAL8}\+{UREAL8}i)|({REAL8}\-{UREAL8}i)|({REAL8}\+{NANINF}i)|({REAL8}\-{NANINF}i)|({REAL8}\+i)|({REAL8}\-i)|(\+{UREAL8}i)|(\-{UREAL8}i)|(\+{NANINF}i)|(\-{NANINF}i)|(\+i)|(\-i)
+COMPLEX8		{REAL8}|{REAL8}@{REAL8}|({REAL8}\+{UREAL8}{IMAG})|({REAL8}\-{UREAL8}{IMAG})|({REAL8}\+{NANINF}{IMAG})|({REAL8}\-{NANINF}{IMAG})|({REAL8}\+{IMAG})|({REAL8}\-{IMAG})|(\+{UREAL8}{IMAG})|(\-{UREAL8}{IMAG})
 NUMBER8			{PREFIX8}{COMPLEX8}
 
 ;;; --------------------------------------------------------------------
@@ -74,7 +75,8 @@ UREAL10			({UINTEGER10})|({UINTEGER10}/{UINTEGER10})|({DECIMAL10}{MANTISSA-WIDTH
 REAL10			({SIGN}{UREAL10})|(\+{NANINF})|(\-{NANINF})
 
 PREFIX10		({RADIX10}{EXACTNESS})|({EXACTNESS}{RADIX10})
-COMPLEX10		{REAL10}|{REAL10}@{REAL10}|({REAL10}\+{UREAL10}i)|({REAL10}\-{UREAL10}i)|({REAL10}\+{NANINF}i)|({REAL10}\-{NANINF}i)|({REAL10}\+i)|({REAL10}\-i)|(\+{UREAL10}i)|(\-{UREAL10}i)|(\+{NANINF}i)|(\-{NANINF}i)|(\+i)|(\-i)
+;;The tail of this rule is unique for base 10.
+COMPLEX10		{REAL10}|{REAL10}@{REAL10}|({REAL10}\+{UREAL10}{IMAG})|({REAL10}\-{UREAL10}{IMAG})|({REAL10}\+{NANINF}{IMAG})|({REAL10}\-{NANINF}{IMAG})|({REAL10}\+{IMAG})|({REAL10}\-{IMAG})|(\+{UREAL10}{IMAG})|(\-{UREAL10}{IMAG})|(\+{NANINF}{IMAG})|(\-{NANINF}{IMAG})|(\+{IMAG})|(\-{IMAG})
 NUMBER10		{PREFIX10}{COMPLEX10}
 
 ;;; --------------------------------------------------------------------
@@ -84,7 +86,7 @@ UREAL16			{UINTEGER16}|({UINTEGER16}/{UINTEGER16})
 REAL16			({SIGN}{UREAL16})|(\+{NANINF})|(\-{NANINF})
 
 PREFIX16		({RADIX16}{EXACTNESS})|({EXACTNESS}{RADIX16})
-COMPLEX16		{REAL16}|{REAL16}@{REAL16}|({REAL16}\+{UREAL16}i)|({REAL16}\-{UREAL16}i)|({REAL16}\+{NANINF}i)|({REAL16}\-{NANINF}i)|({REAL16}\+i)|({REAL16}\-i)|(\+{UREAL16}i)|(\-{UREAL16}i)|(\+{NANINF}i)|(\-{NANINF}i)|(\+i)|(\-i)
+COMPLEX16		{REAL16}|{REAL16}@{REAL16}|({REAL16}\+{UREAL16}{IMAG})|({REAL16}\-{UREAL16}{IMAG})|({REAL16}\+{NANINF}{IMAG})|({REAL16}\-{NANINF}{IMAG})|({REAL16}\+{IMAG})|({REAL16}\-{IMAG})|(\+{UREAL16}{IMAG})|(\-{UREAL16}{IMAG})
 NUMBER16		{PREFIX16}{COMPLEX16}
 
 ;;; --------------------------------------------------------------------
@@ -124,12 +126,15 @@ NUMBER16		{PREFIX16}{COMPLEX16}
 ;;
 WHITESPACE		\9\10\11\12\13\32\160\5760\6158\8192\8193\8194\8195\8196\8197\8198\8199\8200\8201\8202\8239\8287\12288\8232\8233
 
-COMMENT			#;
+COMMENT			#\;
 
 ;;; --------------------------------------------------------------------
 
+;;When a valid lexeme is followed by this tail it is wrong.
+TAIL_OF_WRONG		[^{WHITESPACE}#\;\(]+
+
 NUMBER			{NUMBER2}|{NUMBER8}|{NUMBER10}|{NUMBER16}
-WRONG_NUMBER		{NUMBER}[^{WHITESPACE}{COMMENT}]+
+WRONG_NUMBER		{NUMBER}{TAIL_OF_WRONG}
 
 %%
 

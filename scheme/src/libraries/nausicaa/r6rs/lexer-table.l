@@ -32,7 +32,7 @@ TICK			'
 BACKTICK		`
 COMMA			,
 COMMAAT			,@
-DOT			.
+DOT			\.
 DOUBLEQUOTE		\"
 SEMICOLON		\;
 SHARPPAREN		#\(
@@ -42,9 +42,6 @@ SHARPBACKTICK		#`
 SHARPCOMMA		#,
 SHARPCOMMAAT		#,@
 SHARPSEMICOLON		#\;
-
-;;FIXME Is this actually useful for something?
-SHARP			#
 
 ;;<whitespace> is one among:
 ;;
@@ -92,6 +89,9 @@ WHITESPACE		[\9\10\11\12\13\32\160\5760\6158\8192\8193\8194\8195\8196\8197\8198\
 ;;
 LINEENDING		[\10\13\133\8232]|(\13\10)|(\13\133)
 
+;;When a valid lexeme is followed by this tail it is wrong.
+TAIL_OF_WRONG		[^{WHITESPACE}#\;\(]+
+
 ;;page
 ;;;; comments
 
@@ -106,7 +106,7 @@ LINECOMMENT		\;.*({LINEENDING}|\8233)
 ONESTEDCOMMENT		#\|
 
 ;;page
-;;;; special regex silex macros needed for identifiers
+;;;; special silex regex macros needed for identifiers
 
 ;;Characters with Unicode category Nd, Mc, Me:
 ;;(http://www.fileformat.info/info/unicode/category/index.htm)
@@ -495,8 +495,15 @@ INLINE_HEX_ESCAPE	\\x{HEX_SCALAR_VALUE}\;
 INITIAL			{CONSTITUENT}|{SPECIAL_INITIAL}|{INLINE_HEX_ESCAPE}
 SUBSEQUENT		{INITIAL}|{DIGIT}|{CHARS-ND-MC-ME}|{SPECIAL_SUBSEQUENT}
 IDENTIFIER		{INITIAL}{SUBSEQUENT}*
+PECULIAR_IDENTIFIER	[\+\-]|"..."|(\->{SUBSEQUENT}*)
 
-PECULIAR_IDENTIFIER	[\+\-]|"..."|\->{SUBSEQUENT}*
+WRONG_IDENTIFIER		{IDENTIFIER}{TAIL_OF_WRONG}
+
+;;We do not include the peculiar  identifiers "+" and "-" here, else the
+;;numbers  starting  with  +  and   -  would  be  interpreted  as  wrong
+;;identifiers.
+;;
+WRONG_PECULIAR_IDENTIFIER	("..."|(\->{SUBSEQUENT}*)){TAIL_OF_WRONG}
 
 ;;page
 ;;;; characters
@@ -507,10 +514,15 @@ NAMED_CHARACTER		{SHARPBACKSLASH}{CHARACTER_NAME}
 HEX_CHARACTER		{SHARPBACKSLASH}x{HEX_SCALAR_VALUE}
 LITERAL_CHARACTER	{SHARPBACKSLASH}.
 
+WRONG_NAMED_CHARACTER	{NAMED_CHARACTER}{TAIL_OF_WRONG}
+WRONG_HEX_CHARACTER	{SHARPBACKSLASH}x{HEX_SCALAR_VALUE}{TAIL_OF_WRONG}
+WRONG_LITERAL_CHARACTER	{SHARPBACKSLASH}.{TAIL_OF_WRONG}
+
 ;;page
 ;;;; numbers
 
 NANINF			"nan.0"|"inf.0"
+IMAG			i
 DIGIT2			[01]
 DIGIT8			[01234567]
 DIGIT10			{DIGIT}
@@ -532,7 +544,7 @@ UREAL2			{UINTEGER2}|({UINTEGER2}/{UINTEGER2})
 REAL2			({SIGN}{UREAL2})|(\+{NANINF})|(\-{NANINF})
 
 PREFIX2			({RADIX2}{EXACTNESS})|({EXACTNESS}{RADIX2})
-COMPLEX2		{REAL2}|{REAL2}@{REAL2}|({REAL2}\+{UREAL2}i)|({REAL2}\-{UREAL2}i)|({REAL2}\+{NANINF}i)|({REAL2}\-{NANINF}i)|({REAL2}\+i)|({REAL2}\-i)|(\+{UREAL2}i)|(\-{UREAL2}i)|(\+{NANINF}i)|(\-{NANINF}i)|(\+i)|(\-i)
+COMPLEX2		{REAL2}|{REAL2}@{REAL2}|({REAL2}\+{UREAL2}{IMAG})|({REAL2}\-{UREAL2}{IMAG})|({REAL2}\+{NANINF}{IMAG})|({REAL2}\-{NANINF}{IMAG})|({REAL2}\+{IMAG})|({REAL2}\-{IMAG})|(\+{UREAL2}{IMAG})|(\-{UREAL2}{IMAG})
 NUMBER2			{PREFIX2}{COMPLEX2}
 
 ;;; --------------------------------------------------------------------
@@ -542,7 +554,7 @@ UREAL8			{UINTEGER8}|({UINTEGER8}/{UINTEGER8})
 REAL8			({SIGN}{UREAL8})|(\+{NANINF})|(\-{NANINF})
 
 PREFIX8			({RADIX8}{EXACTNESS})|({EXACTNESS}{RADIX8})
-COMPLEX8		{REAL8}|{REAL8}@{REAL8}|({REAL8}\+{UREAL8}i)|({REAL8}\-{UREAL8}i)|({REAL8}\+{NANINF}i)|({REAL8}\-{NANINF}i)|({REAL8}\+i)|({REAL8}\-i)|(\+{UREAL8}i)|(\-{UREAL8}i)|(\+{NANINF}i)|(\-{NANINF}i)|(\+i)|(\-i)
+COMPLEX8		{REAL8}|{REAL8}@{REAL8}|({REAL8}\+{UREAL8}{IMAG})|({REAL8}\-{UREAL8}{IMAG})|({REAL8}\+{NANINF}{IMAG})|({REAL8}\-{NANINF}{IMAG})|({REAL8}\+{IMAG})|({REAL8}\-{IMAG})|(\+{UREAL8}{IMAG})|(\-{UREAL8}{IMAG})
 NUMBER8			{PREFIX8}{COMPLEX8}
 
 ;;; --------------------------------------------------------------------
@@ -555,7 +567,7 @@ UREAL10			({UINTEGER10})|({UINTEGER10}/{UINTEGER10})|({DECIMAL10}{MANTISSA-WIDTH
 REAL10			({SIGN}{UREAL10})|(\+{NANINF})|(\-{NANINF})
 
 PREFIX10		({RADIX10}{EXACTNESS})|({EXACTNESS}{RADIX10})
-COMPLEX10		{REAL10}|{REAL10}@{REAL10}|({REAL10}\+{UREAL10}i)|({REAL10}\-{UREAL10}i)|({REAL10}\+{NANINF}i)|({REAL10}\-{NANINF}i)|({REAL10}\+i)|({REAL10}\-i)|(\+{UREAL10}i)|(\-{UREAL10}i)|(\+{NANINF}i)|(\-{NANINF}i)|(\+i)|(\-i)
+COMPLEX10		{REAL10}|{REAL10}@{REAL10}|({REAL10}\+{UREAL10}{IMAG})|({REAL10}\-{UREAL10}{IMAG})|({REAL10}\+{NANINF}{IMAG})|({REAL10}\-{NANINF}{IMAG})|({REAL10}\+{IMAG})|({REAL10}\-{IMAG})|(\+{UREAL10}{IMAG})|(\-{UREAL10}{IMAG})|(\+{NANINF}{IMAG})|(\-{NANINF}{IMAG})|(\+{IMAG})|(\-{IMAG})
 NUMBER10		{PREFIX10}{COMPLEX10}
 
 ;;; --------------------------------------------------------------------
@@ -565,20 +577,22 @@ UREAL16			{UINTEGER16}|({UINTEGER16}/{UINTEGER16})
 REAL16			({SIGN}{UREAL16})|(\+{NANINF})|(\-{NANINF})
 
 PREFIX16		({RADIX16}{EXACTNESS})|({EXACTNESS}{RADIX16})
-COMPLEX16		{REAL16}|{REAL16}@{REAL16}|({REAL16}\+{UREAL16}i)|({REAL16}\-{UREAL16}i)|({REAL16}\+{NANINF}i)|({REAL16}\-{NANINF}i)|({REAL16}\+i)|({REAL16}\-i)|(\+{UREAL16}i)|(\-{UREAL16}i)|(\+{NANINF}i)|(\-{NANINF}i)|(\+i)|(\-i)
+COMPLEX16		{REAL16}|{REAL16}@{REAL16}|({REAL16}\+{UREAL16}{IMAG})|({REAL16}\-{UREAL16}{IMAG})|({REAL16}\+{NANINF}{IMAG})|({REAL16}\-{NANINF}{IMAG})|({REAL16}\+{IMAG})|({REAL16}\-{IMAG})|(\+{UREAL16}{IMAG})|(\-{UREAL16}{IMAG})|(\+{NANINF}{IMAG})
 NUMBER16		{PREFIX16}{COMPLEX16}
 
 ;;; --------------------------------------------------------------------
 
 NUMBER			{NUMBER2}|{NUMBER8}|{NUMBER10}|{NUMBER16}
-WRONG_NUMBER		{NUMBER}[^{WHITESPACE}#;]+
+WRONG_NUMBER		{NUMBER}{TAIL_OF_WRONG}
 
 ;;page
 ;;;; misc stuff
 
 SHARPBANGR6RS		#!r6rs
 SHARPBANG		#!
+
 BOOLEAN			#t|#f|#T|#F
+WRONG_BOOLEAN		{BOOLEAN}{TAIL_OF_WRONG}
 
 ;;page
 %%
@@ -680,27 +694,43 @@ BOOLEAN			#t|#f|#T|#F
 					      (make-<source-location> #f yyline yycolumn yyoffset)
 					      yytext (string-length yytext))
 
+;;; --------------------------------------------------------------------
+
 {IDENTIFIER}		(make-<lexical-token> 'IDENTIFIER
 					      (make-<source-location> #f yyline yycolumn yyoffset)
 					      (string->symbol yytext) (string-length yytext))
+
+{WRONG_IDENTIFIER}	(silex-default-error-handler yytext)
 
 {PECULIAR_IDENTIFIER}	(make-<lexical-token> 'IDENTIFIER
 					      (make-<source-location> #f yyline yycolumn yyoffset)
 					      (string->symbol yytext) (string-length yytext))
 
-{BOOLEAN}		(make-<lexical-token> 'BOOLEAN
-					      (make-<source-location> #f yyline yycolumn yyoffset)
-					      (case yytext
-						(("#t" "#T")	#t)
-						(("#f" "#F")	#f))
-					      2)
+{WRONG_PECULIAR_IDENTIFIER}	(silex-default-error-handler yytext)
+
+;;; --------------------------------------------------------------------
+
+{BOOLEAN}		(make-<lexical-token>
+			 'BOOLEAN
+			 (make-<source-location> #f yyline yycolumn yyoffset)
+			 (cond ((or (string=? yytext "#t")
+				    (string=? yytext "#T")) #t)
+			       ((or (string=? yytext "#f")
+				    (string=? yytext "#F")) #f)
+			       (else
+				;;Notice that this should never happen.
+				(assertion-violation 'r6rs-character-lexer-table
+				  "internal error, invalid boolean" yytext)))
+			 2)
+
+{WRONG_BOOLEAN}		(silex-default-error-handler yytext)
 
 ;;; --------------------------------------------------------------------
 
 ;;Notice that we cannot use a CASE with strings; refer to the definition
 ;;of EQV? in the R6RS document.
 {NAMED_CHARACTER}	(make-<lexical-token>
-			 'character
+			 'CHARACTER
 			 (make-<source-location> #f yyline yycolumn yyoffset)
 			 (cond
 			  ((string=? yytext "#\\nul")		#\nul)
@@ -721,8 +751,10 @@ BOOLEAN			#t|#f|#T|#F
 			     "internal error, invalid named character" yytext)))
 			 (string-length yytext))
 
+{WRONG_NAMED_CHARACTER}	(silex-default-error-handler yytext)
+
 {HEX_CHARACTER}		(make-<lexical-token>
-			 'character
+			 'CHARACTER
 			 (make-<source-location> #f yyline yycolumn yyoffset)
 			 (let* ((len (string-length yytext))
 				(num (string->number (substring yytext 3 len) 16)))
@@ -733,15 +765,23 @@ BOOLEAN			#t|#f|#T|#F
 						   yytext len)))
 			 (string-length yytext))
 
-{LITERAL_CHARACTER}	(make-<lexical-token> 'character
+{WRONG_HEX_CHARACTER}	(silex-default-error-handler yytext)
+
+{LITERAL_CHARACTER}	(make-<lexical-token> 'CHARACTER
 					      (make-<source-location> #f yyline yycolumn yyoffset)
 					      (string-ref yytext 2)
 					      (string-length yytext))
 
+{WRONG_LITERAL_CHARACTER}	(silex-default-error-handler yytext)
+
 ;;; --------------------------------------------------------------------
 
 {NUMBER}		(let ((n (string->number yytext)))
-			  (or n (silex-default-error-handler)))
+			  (if n
+			      (make-<lexical-token> 'NUMBER
+						    (make-<source-location> #f yyline yycolumn yyoffset)
+						    n (string-length yytext))
+			    (silex-default-error-handler yytext)))
 
 {WRONG_NUMBER}		(silex-default-error-handler yytext)
 
@@ -749,7 +789,7 @@ BOOLEAN			#t|#f|#T|#F
 
 
 <<EOF>>			(silex-default-eof-handler)
-<<ERROR>>		(silex-default-error-handler)
+<<ERROR>>		(silex-default-error-handler yytext)
 
 ;;; end of file
 ;; Local Variables:

@@ -46,13 +46,27 @@ INLINE_HEX_ESCAPE	\\x{HEX_SCALAR_VALUE}\;
 INITIAL			{CONSTITUENT}|{SPECIAL_INITIAL}|{INLINE_HEX_ESCAPE}
 SUBSEQUENT		{INITIAL}|{DIGIT}|{CHARS-ND-MC-ME}|{SPECIAL_SUBSEQUENT}
 IDENTIFIER		{INITIAL}{SUBSEQUENT}*
+PECULIAR_IDENTIFIER	[\+\-]|"..."|(\->{SUBSEQUENT}*)
 
-PECULIAR_IDENTIFIER	[\+\-]|"..."|\->{SUBSEQUENT}*
+;;When a valid lexeme is followed by this tail it is wrong.
+TAIL_OF_WRONG		[^{WHITESPACE}#\;\(]+
+
+WRONG_IDENTIFIER	{IDENTIFIER}{TAIL_OF_WRONG}
+
+;;We do not include the peculiar  identifiers "+" and "-" here, else the
+;;numbers  starting  with  +  and   -  would  be  interpreted  as  wrong
+;;identifiers.
+;;
+WRONG_PECULIAR_IDENTIFIER	("..."|(\->{SUBSEQUENT}*)){TAIL_OF_WRONG}
+
 
 %%
 
 {IDENTIFIER}		(string->symbol yytext)
 {PECULIAR_IDENTIFIER}	(string->symbol yytext)
+
+{WRONG_IDENTIFIER}	(silex-default-error-handler yytext)
+{WRONG_PECULIAR_IDENTIFIER}	(silex-default-error-handler yytext)
 
 <<EOF>>			(silex-default-eof-handler)
 <<ERROR>>		(silex-default-error-handler)

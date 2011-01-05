@@ -21,6 +21,7 @@ built on top of the @library{silex} parser generator.  @ref{silex} for
 details about using the @library{silex} library.
 
 @menu
+* r6rs lexer full::             Full source code lexer.
 * r6rs lexer strings::          Reading strings.
 * r6rs lexer characters::       Reading characters.
 * r6rs lexer identifiers::      Reading identifiers.
@@ -28,6 +29,22 @@ details about using the @library{silex} library.
 * r6rs lexer nested comments::  Reading nested comments.
 * r6rs lexer line comments::    Reading line comments.
 @end menu
+
+@c page
+@node r6rs lexer full
+@subsection Full source code lexer
+
+
+@cindex Reading Scheme source code
+@cindex Lexer, Scheme source code
+@cindex Scheme source code, reading
+@cindex Scheme source code, lexer
+@cindex Source code of Scheme, lexer
+@cindex Source code of Scheme, reader
+
+
+The following bindings are exported by the @library{nausicaa r6rs lexer}
+library.
 
 
 @defvr Constant r6rs-lexer-table
