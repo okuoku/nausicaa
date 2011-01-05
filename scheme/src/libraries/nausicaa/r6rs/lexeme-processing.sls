@@ -192,7 +192,7 @@
 		    (string=? yytext "#F")) #f)
 	       (else
 		;;Notice that this should never happen.
-		(assertion-violation 'r6rs-character-lexer-table
+		(assertion-violation 'make-boolean-token
 		  "internal error, invalid boolean" yytext)))
 	 2))
 
@@ -214,7 +214,7 @@
 	       ((string=? yytext "#\\delete")	#\delete)
 	       (else
 		;;Notice that this should never happen.
-		(assertion-violation 'r6rs-character-lexer-table
+		(assertion-violation 'make-named-character-token
 		  "internal error, invalid named character" yytext)))
 	 (string-length yytext)))
 
