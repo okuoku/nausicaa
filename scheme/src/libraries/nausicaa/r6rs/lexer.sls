@@ -33,8 +33,9 @@
     r6rs-string-lexer-table r6rs-character-lexer-table
     r6rs-identifier-lexer-table r6rs-number-lexer-table
 
-    read-string read-character read-identifier read-number
-    read-nested-comment read-line-comment make-token-lexer)
+    read-string read-string* read-character read-identifier read-number
+    read-nested-comment read-nested-comment*
+    read-line-comment make-token-lexer)
   (import (nausicaa)
     (nausicaa r6rs lexer-table)
     (nausicaa r6rs nested-comment-lexer-table)
@@ -242,13 +243,13 @@
       (lambda ()
 	(let next (((T <lexical-token>) (lexer)))
 	  (define (%string-token)
-	    (let ((S (read-string IS)))
+	    (let ((S (read-string* IS)))
 	      (if (string? S)
 		  ((string-token-maker) (lexer-get-func-getc IS) (lexer-get-func-ungetc IS)
 		   S T.location.line T.location.column T.location.offset)
 		S)))
 	  (define (%nested-comment-token)
-	    (let ((S (read-nested-comment IS)))
+	    (let ((S (read-nested-comment* IS)))
 	      (if (string? S)
 		  ((nested-comment-token-maker) (lexer-get-func-getc IS) (lexer-get-func-ungetc IS)
 		   S T.location.line T.location.column T.location.offset)
@@ -263,6 +264,66 @@
 		((eq? T.category 'ONESTEDCOMMENT)
 		 (%nested-comment-token))
 		(else T))))))))
+
+(define (read-string* IS)
+  ;;Like READ-STRING but do not raise exceptions.  Given an input system
+  ;;from which a double quote  character has already been consumed, read
+  ;;characters composing  an R6RS string  stopping at the  ending double
+  ;;quote.  Return the Scheme string.
+  ;;
+  ;;If an  error occurs reading the  string: return the  return value of
+  ;;the function referenced  by the parameter LEXICAL-ERROR-TOKEN-MAKER,
+  ;;which must be a <lexical-token> having *lexer-error* as category.
+  ;;
+  ;;If the end  of input is found reading the  string: return the return
+  ;;value of  the function referenced by  the parameter EOF-TOKEN-MAKER,
+  ;;which must be a <lexical-token> having *eoi* as category.
+  ;;
+  (let-values (((port getter)	(open-string-output-port))
+	       ((lexer)		(lexer-make-lexer r6rs-string-lexer-table IS)))
+    (let next (((T <lexical-token>) (lexer)))
+      (cond (T.end-of-input?	T)
+	    (T.lexer-error?	T)
+	    ((eq? T 'STRING)	(getter))
+	    (else
+	     (display T port)
+	     (next (lexer)))))))
+
+(define (read-nested-comment* IS)
+  ;;Like  READ-NESTED-COMMENT but  do  not raise  exceptions.  Given  an
+  ;;input system from which the opening sequence of nested comments "#|"
+  ;;has already been consumed,  read characters composing an R6RS nested
+  ;;comment matching sequence "|#".  Return the comment as Scheme string
+  ;;enclosed in "#|" and "|#" sequences.
+  ;;
+  ;;If an error  occurs reading the comment: return  the return value of
+  ;;the function referenced  by the parameter LEXICAL-ERROR-TOKEN-MAKER,
+  ;;which must be a <lexical-token> having *lexer-error* as category.
+  ;;
+  ;;If the end of input is  found reading the comment: return the return
+  ;;value of  the function referenced by  the parameter EOF-TOKEN-MAKER,
+  ;;which must be a <lexical-token> having *eoi* as category.
+  ;;
+  (let-values (((port getter)	(open-string-output-port))
+	       ((lexer)		(lexer-make-lexer r6rs-nested-comment-lexer-table IS))
+	       ((count)		1))
+    (display "#|" port)
+    (let next (((T <lexical-token>) (lexer)))
+      (cond (T.end-of-input?	T)
+	    (T.lexer-error?	T) ;this should never happen
+	    ((eq? T 'CLOSE)
+	     (decr! count)
+	     (display "|#" port)
+	     (if (zero? count)
+		 (getter)
+	       (next (lexer))))
+	    ((eq? T 'OPEN)
+	     (incr! count)
+	     (display "#|" port)
+	     (next (lexer)))
+	    (else
+	     (display T port)
+	     (next (lexer)))))))
 
 
 ;;;; done

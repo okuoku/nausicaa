@@ -65,7 +65,9 @@ A lexer function generator for full @rnrs{6} source code reading.  Given
 an input system @var{IS} build and return a lexer function using the
 @var{lexer-table}, which defaults to @code{r6rs-lexer-table}.
 
-The definition of this function is a good example of full table usage:
+The definition of this function is a good example of full table usage;
+notice that strings and nested comments are read with
+@func{read-string*} and @func{read-nested-comment*} respectively:
 
 @example
 (define make-token-lexer
@@ -77,7 +79,7 @@ The definition of this function is a good example of full table usage:
       (lambda ()
         (let next (((T <lexical-token>) (lexer)))
           (define (%string-token)
-            (let ((S (read-string IS)))
+            (let ((S (read-string* IS)))
               (if (string? S)
                   ((string-token-maker)
                      (lexer-get-func-getc IS)
@@ -86,7 +88,7 @@ The definition of this function is a good example of full table usage:
                      T.location.column T.location.offset)
                 S)))
           (define (%nested-comment-token)
-            (let ((S (read-nested-comment IS)))
+            (let ((S (read-nested-comment* IS)))
               (if (string? S)
                   ((nested-comment-token-maker)
                      (lexer-get-func-getc IS)
@@ -943,6 +945,23 @@ The implementation of this function is a useful example of usage for
 @end example
 @end defun
 
+
+@defun read-string* @var{IS}
+Like @func{read-string} but do not raise exceptions.  Given an input
+system from which a double quote character has already been consumed,
+read characters composing an @rnrs{6} string stopping at the ending
+double quote.  Return the Scheme string.
+
+If an error occurs reading the string: return the return value of the
+function referenced by the parameter @func{lexical-error-token-maker},
+which must be a @class{lexical-token} having @code{*lexer-error*} as
+category.
+
+If the end of input is found reading the string: return the return value
+of the function referenced by the parameter @func{eof-token-maker},
+which must be a @class{lexical-token} having @code{*eoi*} as category.
+@end defun
+
 @c page
 @node r6rs lexer characters
 @subsection Reading characters
@@ -1282,6 +1301,25 @@ The implementation of this function is a useful example of usage for
              (display T port)
              (next (lexer)))))))
 @end example
+@end defun
+
+
+@defun read-nested-comment* @var{IS}
+Like @func{read-nested-comment} but do not raise exceptions.  Given an
+input system from which the opening sequence of nested comments
+@samp{#|} has already been consumed, read characters composing an
+@rnrs{6} nested comment matching sequence @samp{|#}.  Return the comment
+as Scheme string enclosed in @samp{#|} and @samp{|#} sequences.
+
+If an error occurs reading the comment: return the return value of the
+function referenced by the parameter @func{lexical-error-token-maker},
+which must be a @class{lexical-token} having @code{*lexer-error*} as
+category.
+
+If the end of input is found reading the comment: return the return
+value of the function referenced by the parameter
+@func{eof-token-maker}, which must be a @class{lexical-token} having
+@code{*eoi*} as category.
 @end defun
 
 @c page
