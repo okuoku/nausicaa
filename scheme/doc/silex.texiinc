@@ -6,12 +6,14 @@ The @library{nausicaa silex} library generates a lexical analyser table
 from a Lex--like specification file.  The @library{nausicaa silex lexer}
 library generates a Scheme lexical analyser using a supplied table.
 
+@quotation
 ``SILex'' stands for ``Scheme Implementation of Lex''.  The library is a
 port to @rnrs{6} Scheme of SILex version 1.0 by Danny Dube'.  The
 original code is available at@footnote{@aurl{} last verified Mon Aug 3,
 2009}:
 
 @center @url{http://www.iro.umontreal.ca/~dube/}
+@end quotation
 
 @menu
 * silex example::               A lexer example for a calculator.

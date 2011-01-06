@@ -3,7 +3,7 @@
 
 
 The libraries under the @library{nausicaa r6rs ---} hierarchy provide
-tools to manipulate the Scheme source code compliant with the @rnrs{6}
+tools to manipulate Scheme source code compliant with the @rnrs{6}
 standard.
 
 @menu
@@ -16,12 +16,14 @@ standard.
 
 
 The library @library{nausicaa r6rs lexer} implements a lexer compliant
-with the @rnrs{6} specification for Scheme source code; the lexer is
-built on top of the @library{silex} parser generator.  @ref{silex} for
-details about using the @library{silex} library.
+with the @rnrs{6} specification for Scheme source code.  The lexer is
+built on top of the @library{nausicaa silex} parser generator;
+@ref{silex} for details.
 
 @menu
-* r6rs lexer full::             Full source code lexer.
+* r6rs lexer full::             Full lexer table.
+* r6rs lexer params::           Full lexer semantic action parameters.
+* r6rs lexer makers::           Full lexer token makers.
 * r6rs lexer strings::          Reading strings.
 * r6rs lexer characters::       Reading characters.
 * r6rs lexer identifiers::      Reading identifiers.
@@ -43,43 +45,143 @@ details about using the @library{silex} library.
 @cindex Source code of Scheme, reader
 
 
-The full @rnrs{6} source code lexer makes heavy use of parameters from
-@library{nausicaa language parameters} to make it possible to customise
-the tokens returned by the lexer function.
-
-@menu
-* r6rs lexer full table::       Full lexer table.
-* r6rs lexer full params::      Full lexer table parameters.
-* r6rs lexer full makers::      Full lexer table token makers.
-@end menu
-
-@c page
-@node r6rs lexer full table
-@subsubsection Full lexer table
-
-
-The following bindings are exported by the @library{nausicaa r6rs lexer}
-library.
+The full @rnrs{6} source code lexer makes heavy use of parametrised
+functions to allow customisation of the tokens.  The following bindings
+are exported by the @library{nausicaa r6rs lexer} library.
 
 
 @defvr Constant r6rs-lexer-table
-A @library{silex} lexer table to parse @rnrs{6} compliant Scheme source
-code.  This table needs an input system configured with @code{(counters:
-'all)}.  The semantic action forms make use of the parameters documented
-in this chapter to build the lexical tokens.
+A lexer table to parse @rnrs{6} compliant Scheme source code.  This
+table needs an input system configured with @code{(counters: 'all)}.
+The semantic action forms make use of the parameters documented in this
+chapter to build the lexical tokens; @ref{r6rs lexer params} for
+details.
 @end defvr
 
+
+@defun make-token-lexer @var{IS}
+@defunx make-token-lexer @var{IS} @var{lexer-table}
+A lexer function generator for full @rnrs{6} source code reading.  Given
+an input system @var{IS} build and return a lexer function using the
+@var{lexer-table}, which defaults to @code{r6rs-lexer-table}.
+
+The definition of this function is a good example of full table usage:
+
+@example
+(define make-token-lexer
+  (case-lambda
+   ((IS)
+    (make-token-lexer IS r6rs-lexer-table))
+   ((IS lexer-table)
+    (let ((lexer (lexer-make-lexer lexer-table IS)))
+      (lambda ()
+        (let next (((T <lexical-token>) (lexer)))
+          (define (%string-token)
+            (let ((S (read-string IS)))
+              (if (string? S)
+                  ((string-token-maker)
+                     (lexer-get-func-getc IS)
+                     (lexer-get-func-ungetc IS)
+                     S T.location.line
+                     T.location.column T.location.offset)
+                S)))
+          (define (%nested-comment-token)
+            (let ((S (read-nested-comment IS)))
+              (if (string? S)
+                  ((nested-comment-token-maker)
+                     (lexer-get-func-getc IS)
+                     (lexer-get-func-ungetc IS)
+                     S T.location.line
+                     T.location.column T.location.offset)
+                S)))
+          (cond (T.special? T)
+                ((eq? T.category 'WHITESPACE)
+                 (next (lexer)))
+                ((eq? T.category 'LINEENDING)
+                 (next (lexer)))
+                ((eq? T.category 'DOUBLEQUOTE)
+                 (%string-token))
+                ((eq? T.category 'ONESTEDCOMMENT)
+                 (%nested-comment-token))
+                (else T))))))))
+@end example
+@end defun
+
+
+Here is how to test the lexer function maker:
+
+@example
+#!r6rs
+(import (nausicaa)
+  (nausicaa r6rs lexer)
+  (nausicaa silex lexer)
+  (nausicaa silex lexeme-processing)
+  (nausicaa parser-tools lexical-token)
+  (nausicaa parser-tools source-location))
+
+(define (tokenise string)
+  (let* ((IS     (lexer-make-IS (string: string)
+                                (counters: 'all)))
+         (lexer  (make-token-lexer IS)))
+    (let next (((T <lexical-token>) (lexer))
+               (result              '()))
+      (cond (T.lexer-error?
+             (reverse `((,T.category ,T.value)
+                        . ,result)))
+            (T.end-of-input?
+             (reverse `(*eoi* . ,result)))
+            (else
+             (next (lexer) `((,T.category ,T.value)
+                             . ,result)))))))
+
+(tokenise "( \"ciao\" ciao 123 )")
+@result{} ((OPAREN #\()
+    (STRING "ciao")
+    (IDENTIFIER "ciao")
+    (NUMBER 123)
+    (CPAREN #\))
+    *eoi*)
+
+(let ((mt (lambda (yygetc yyungetc yytext yyline yycolumn yyoffset)
+            (make* <lexical-token>
+              'THE-IDENTIFIER
+              (make* <source-location>
+                (current-input-source)
+                yyline yycolumn yyoffset)
+              (string->symbol yytext)
+              (string-length yytext)))))
+  (parametrise ((identifier-token-maker mt))
+    (tokenise "( \"ciao\" ciao 123 )")))
+@result{} ((OPAREN #\()
+    (STRING "ciao")
+    (THE-IDENTIFIER ciao)
+    (NUMBER 123)
+    (CPAREN #\))
+    *eoi*)
+@end example
+
 @c page
-@node r6rs lexer full params
-@subsubsection Full lexer table parameters
+@node r6rs lexer params
+@subsection Full lexer table semantic action parameters
 
 
-The following bindings are exported by the @library{nausicaa r6rs
-lexeme-processing} library.  The rules in the full @rnrs{6} lexer table
-invoke the functions referenced by the following parameters.
+Some of the bindings exported by the library @library{nausicaa r6rs
+lexeme-processing} reference parameter functions as defined by
+@library{nausicaa language parameters}.  The semantic action forms in
+the full @rnrs{6} lexer table, @code{r6rs-lexer-table}, invoke the
+functions referenced by the parameters to produce lexical tokens.
 
-All the parameters whose name has the @code{-token-maker} suffix, must
-be set to functions with the following behaviour:
+All the parameters whose name has the @code{-token-maker} suffix are
+used as follows in the semantic action forms:
+
+@example
+((open-paren-token-maker)
+    yygetc yyungetc yytext yyline yycolumn yyoffset)
+@end example
+
+@noindent
+and they must be set to functions with the following (or equivalent)
+behaviour:
 
 @example
 (lambda (yygetc yyungetc yytext yyline yycolumn yyoffset)
@@ -87,26 +189,47 @@ be set to functions with the following behaviour:
 @end example
 
 @noindent
-where the arguments are the bindings handed by @library{silex lexer} to
-the semantic action forms; @ref{silex semantics action} for details.
+where the arguments are the bindings handed by @library{nausicaa silex
+lexer} to the semantic action forms; @ref{silex semantics action} for
+details.
+
 Notice that it is perfectly possible to subclass @class{lexical-token}
-and make the functions return instances of the subclass.
+and make the functions return instances of the subclass.  Also, it is
+not strictly needed to return @class{lexical-token} records, altough
+they help at least in tracking the location of values in the source
+code.
 
-@c ------------------------------------------------------------
+@menu
+* r6rs lexer params general::   General token maker parameters.
+* r6rs lexer params fixed::     Fixed semantic value token maker
+                                parameters.
+* r6rs lexer params variable::  Variable semantic value token maker
+                                parameters.
+* r6rs lexer params scheme::    Scheme semantic value token maker
+                                parameters.
+* r6rs lexer params special::   Special token maker parameters.
+@end menu
 
-@subsubheading General token maker parameters
+@c page
+@node r6rs lexer params general
+@subsubsection General token maker parameters
+
+
+The following bindings are exported by the library @library{nausicaa
+r6rs lexeme-processing}.
 
 
 @deffn Parameter current-input-source
 Hold the value representing the current input source; to be used to fill
 the @code{input} field of @class{source-location} records.  The default
-value is @false{}.
+value is @false{}.  Currently there are no constraints on this value: it
+can be anything.
 @end deffn
 
 
-@deffn Parameter eof-token-maker
+@deffn Parameter eoi-token-maker
 Set to a function returning a @class{lexical-token} record representing
-the end--of--input.  The default is @func{make-eof-token}.
+the end--of--input.  The default is @func{make-eoi-token}.
 @end deffn
 
 
@@ -115,9 +238,13 @@ Set to a function returning a @class{lexical-token} record representing
 a lexical error.  The default is @func{make-lexical-error-token}.
 @end deffn
 
-@c ------------------------------------------------------------
+@c page
+@node r6rs lexer params fixed
+@subsubsection Fixed semantic value token maker parameters
 
-@subsubheading Fixed semantic value token maker parameters
+
+The following bindings are exported by the library @library{nausicaa
+r6rs lexeme-processing}.
 
 
 @deffn Parameter open-paren-token-maker
@@ -193,10 +320,10 @@ a sharp--open parenthesis, @samp{#(}.  The default is
 @end deffn
 
 
-@deffn Parameter sharp-vu8paren-token-maker
+@deffn Parameter sharp-vu8-paren-token-maker
 Set to a function returning a @class{lexical-token} record representing
 a sharp--vu8--open parenthesis, @samp{#vu8(}.  The default is
-@func{make-sharp-vu8paren-token}.
+@func{make-sharp-vu8-paren-token}.
 @end deffn
 
 
@@ -233,30 +360,10 @@ a sharp--semicolon, @samp{#;}.  The default is
 @func{make-sharp-semicolon-token}.
 @end deffn
 
-@c ------------------------------------------------------------
-
-@subsubheading Variable semantic value token maker parameters
-
-
-@deffn Parameter line-comment-token-maker
-Set to a function returning a @class{lexical-token} record representing
-a line comment with line--ending included, @samp{; ---}.  The default is
-@func{make-line-comment-token}.
-@end deffn
-
-
-@deffn Parameter line-comment-noend-token-maker
-Set to a function returning a @class{lexical-token} record representing
-a line comment without line--ending; only end--of--input should be
-allowed after this token.  The default is
-@func{make-line-comment-noend-token}.
-@end deffn
-
 
 @deffn Parameter open-nested-comment-token-maker
 Set to a function returning a @class{lexical-token} record representing
-the opening of a nested comment, @samp{#|}; the nested comment must be
-read with a separate lexer table.  The default is
+the opening of a nested comment, @samp{#|}.  The default is
 @func{make-open-nested-comment-token}.
 @end deffn
 
@@ -274,6 +381,29 @@ a sharp--bang, @samp{#!}; this token should be followed by an
 identifier.  The default is @func{make-sharp-bang-token}.
 @end deffn
 
+@c page
+@node r6rs lexer params variable
+@subsubsection Variable semantic value token maker parameters
+
+
+The following bindings are exported by the library @library{nausicaa
+r6rs lexeme-processing}.
+
+
+@deffn Parameter line-comment-token-maker
+Set to a function returning a @class{lexical-token} record representing
+a line comment with line--ending included, @samp{; ---}.  The default is
+@func{make-line-comment-token}.
+@end deffn
+
+
+@deffn Parameter line-comment-noend-token-maker
+Set to a function returning a @class{lexical-token} record representing
+a line comment without line--ending; only end--of--input should be
+allowed after this token.  The default is
+@func{make-line-comment-noend-token}.
+@end deffn
+
 
 @deffn Parameter white-space-token-maker
 Set to a function returning a @class{lexical-token} record representing
@@ -286,14 +416,18 @@ Set to a function returning a @class{lexical-token} record representing
 a line ending.  The default is @func{make-line-ending-token}.
 @end deffn
 
-@c ------------------------------------------------------------
+@c page
+@node r6rs lexer params scheme
+@subsubsection Scheme semantic value token maker parameters
 
-@subsubheading Scheme semantic value token maker parameters
+
+The following bindings are exported by the library @library{nausicaa
+r6rs lexeme-processing}.
 
 
 @deffn Parameter identifier-token-maker
 Set to a function returning a @class{lexical-token} record representing
-an identifier .  The default is @func{make-identifier-token}.
+an identifier.  The default is @func{make-identifier-token}.
 @end deffn
 
 
@@ -330,228 +464,390 @@ a number.  The default is @func{make-number-token}.
 @end deffn
 
 @c page
-@node r6rs lexer full makers
-@subsubsection Full lexer table token makers
+@node r6rs lexer params special
+@subsubsection Special token maker parameters
 
 
-The following bindings are exported by the @library{nausicaa r6rs
-lexeme-processing} library.  The following functions are the default
-token makers, used to build @class{lexical-token} records representing
-lexemes from the input.
+The following parameters are @strong{not} used directly by the semantic
+action forms of @code{r6rs-lexer-table}: this table directly process
+neither strings nor nested comments; rather is produces lexical tokens
+for double quote characters (which open strings) and nested comment
+opening sequences, @samp{#|}.  A full @rnrs{6} lexer must recognise such
+opening tokens and switch table to process strings and nested comments,
+for example using @func{read-string} and @func{read-nested-comment} from
+@library{nausicaa r6rs lexer}.
+
+The following bindings are exported by the library @library{nausicaa
+r6rs lexeme-processing}.  See @func{make-token-lexer} for an example
+usage of these parameters.
+
+
+@deffn Parameter string-token-maker
+Set to a function returning a @class{lexical-token} record representing
+a string.  The default is @func{make-string-token}.
+@end deffn
+
+
+@deffn Parameter nested-comment-token-maker
+Set to a function returning a @class{lexical-token} record representing
+a nested comment.  The default is @func{make-nested-comment-token}.
+@end deffn
+
+@c page
+@node r6rs lexer makers
+@subsection Full lexer table token makers
+
+
+The bindings documented in this section are exported by the
+@library{nausicaa r6rs lexeme-processing} library; the functions are the
+default token makers, used to build @class{lexical-token} records
+representing lexemes from the input.
 
 All the functions build and return instances of @class{lexical-token}
 records; all the functions make use of the @func{current-input-source}
 parameter to fill the @code{input} field of @class{source-location}
 records.
 
-When a function cannot return a Scheme token because the input string is
-incorrect: it makes use of the @func{lexical-error-token-maker}
+When a function cannot return a Scheme token, because the input string
+is incorrect: it makes use of the @func{lexical-error-token-maker}
 parameter to build and return a @class{lexical-token} record
 representing a lexer error.  This happens, for example, if the hex
 character string holds a hex number out of range for Unicode.
 
-@c ------------------------------------------------------------
+All the functions have the following behaviour:
 
-@subsubheading General token maker parameters
+@example
+(lambda (yygetc yyungetc yytext yyline yycolumn yyoffset)
+  (make <lexical-token> ---))
+@end example
+
+@noindent
+where the arguments are the bindings handed by @library{nausicaa silex
+lexer} to the semantic action forms; @ref{silex semantics action} for
+details.
+
+Here is a summary of the lexical token categories:
+
+@example
+*eoi*                   *lexer-error*
+BACKTICK                BOOLEAN
+CBRACKET                CHARACTER
+COMMA                   COMMAAT
+CPAREN                  DOT
+DOUBLEQUOTE             IDENTIFIER
+LINECOMMENT             LINEENDING
+NESTED-COMMENT          NUMBER
+OBRACKET                ONESTEDCOMMENT
+OPAREN                  SHARPBACKTICK
+SHARPBANG               SHARPBANGR6RS
+SHARPCOMMA              SHARPCOMMAAT
+SHARPPAREN              SHARPSEMICOLON
+SHARPTICK               SHARPVU8PAREN
+STRING                  TICK
+WHITESPACE
+@end example
+
+@menu
+* r6rs lexer makers general::   General token makers.
+* r6rs lexer makers fixed::     Fixed semantic value token makers.
+* r6rs lexer makers variable::  Variable semantic value token makers.
+* r6rs lexer makers scheme::    Scheme semantic value token makers.
+* r6rs lexer makers special::   Special token makers.
+@end menu
+
+@c page
+@node r6rs lexer makers general
+@subsubsection General token makers
 
 
-@defun make-eof-token @var{yygetc} @var{yyungetc} @var{yytext} @var{yyline} @var{yycolumn} @var{yyoffset}
+The following bindings are exported by the library @library{nausicaa
+r6rs lexeme-processing}.
+
+
+@defun make-eoi-token @var{yygetc} @var{yyungetc} @var{yytext} @var{yyline} @var{yycolumn} @var{yyoffset}
 Return a @class{lexical-token} record representing the end--of--input.
+The category is set to the symbol @code{*value*}; the semantic value is
+set to @code{(eof-object)}.
 @end defun
 
 
 @defun make-lexical-error-token @var{yygetc} @var{yyungetc} @var{yytext} @var{yyline} @var{yycolumn} @var{yyoffset}
-Return a @class{lexical-token} record representing a lexical error.
+Return a @class{lexical-token} record representing a lexical error.  The
+category is set to the symbol @code{*lexer-error*}; the semantic value
+is set to the Scheme string representing the input which caused the
+error.
 @end defun
 
-@c ------------------------------------------------------------
+@c page
+@node r6rs lexer makers fixed
+@subsubsection Fixed semantic value token makers
 
-@subsubheading Fixed semantic value token maker parameters
+
+The following bindings are exported by the library @library{nausicaa
+r6rs lexeme-processing}.
 
 
 @defun make-open-paren-token @var{yygetc} @var{yyungetc} @var{yytext} @var{yyline} @var{yycolumn} @var{yyoffset}
 Return a @class{lexical-token} record representing an open parenthesis,
-@samp{(} .  The default is @func{make-open-paren-token}.
+@samp{(}.  The category is set to the symbol @code{OPAREN}; the semantic
+value is set to the character @code{#\(}.
 @end defun
 
 
 @defun make-close-paren-token @var{yygetc} @var{yyungetc} @var{yytext} @var{yyline} @var{yycolumn} @var{yyoffset}
 Return a @class{lexical-token} record representing a close parenthesis,
-@samp{)}.  The default is @func{make-close-paren-token}.
+@samp{)}.  The category is set to the symbol @code{CPAREN}; the semantic
+value is set to the character @code{#\)}.
 @end defun
 
 
 @defun make-open-bracket-token @var{yygetc} @var{yyungetc} @var{yytext} @var{yyline} @var{yycolumn} @var{yyoffset}
 Return a @class{lexical-token} record representing an open bracket,
-@samp{[}.  The default is @func{make-open-bracket-token}.
+@samp{[}.  The category is set to the symbol @code{OBRACKET}; the
+semantic value is set to the character @code{#\[}.
 @end defun
 
 
 @defun make-close-bracket-token @var{yygetc} @var{yyungetc} @var{yytext} @var{yyline} @var{yycolumn} @var{yyoffset}
 Return a @class{lexical-token} record representing a close bracket,
-@samp{[}.  The default is @func{make-close-bracket-token}.
+@samp{[}.  The category is set to the symbol @code{CBRACKET}; the
+semantic value is set to the character @code{#\]}.
 @end defun
 
 
 @defun make-tick-token @var{yygetc} @var{yyungetc} @var{yytext} @var{yyline} @var{yycolumn} @var{yyoffset}
 Return a @class{lexical-token} record representing a tick, @samp{'}.
+The category is set to the symbol @code{TICK}; the semantic value is set
+to the character @code{#\'}.
 @end defun
 
 
 @defun make-back-tick-token @var{yygetc} @var{yyungetc} @var{yytext} @var{yyline} @var{yycolumn} @var{yyoffset}
 Return a @class{lexical-token} record representing a back tick,
-@samp{`}.
+@samp{`}.  The category is set to the symbol @code{BACKTICK}; the
+semantic value is set to the character @code{#\`}.
 @end defun
 
 
 @defun make-comma-at-token @var{yygetc} @var{yyungetc} @var{yytext} @var{yyline} @var{yycolumn} @var{yyoffset}
 Return a @class{lexical-token} record representing a comma--at,
-@samp{,@@}.
+@samp{,@@}.  The category is set to the symbol @code{COMMAAT}; the
+semantic value is set to the string @code{",@"}.
 @end defun
 
 
 @defun make-comma-token @var{yygetc} @var{yyungetc} @var{yytext} @var{yyline} @var{yycolumn} @var{yyoffset}
 Return a @class{lexical-token} record representing a comma, @samp{,}.
+The category is set to the symbol @code{COMMA}; the semantic value is
+set to the character @code{#\,}.
 @end defun
 
 
 @defun make-dot-token @var{yygetc} @var{yyungetc} @var{yytext} @var{yyline} @var{yycolumn} @var{yyoffset}
-Return a @class{lexical-token} record representing a dot, @samp{.}.
+Return a @class{lexical-token} record representing a dot, @samp{.}.  The
+category is set to the symbol @code{DOT}; the semantic value is set to
+the character @code{#\.}.
 @end defun
 
 
 @defun make-double-quote-token @var{yygetc} @var{yyungetc} @var{yytext} @var{yyline} @var{yycolumn} @var{yyoffset}
 Return a @class{lexical-token} record representing a double quote,
 @samp{"}; double quotes open strings, which must be read with a separate
-lexer table.
+lexer table.  The category is set to the symbol @code{DOUBLEQUOTE}; the
+semantic value is set to the character @code{#\"}.
 @end defun
 
 
 @defun make-sharp-paren-token @var{yygetc} @var{yyungetc} @var{yytext} @var{yyline} @var{yycolumn} @var{yyoffset}
 Return a @class{lexical-token} record representing a sharp--open
-parenthesis, @samp{#(}.
+parenthesis, @samp{#(}.  The category is set to the symbol
+@code{SHARPPAREN}; the semantic value is set to the string @code{"#("}.
 @end defun
 
 
-@defun make-sharp-vu8paren-token @var{yygetc} @var{yyungetc} @var{yytext} @var{yyline} @var{yycolumn} @var{yyoffset}
+@defun make-sharp-vu8-paren-token @var{yygetc} @var{yyungetc} @var{yytext} @var{yyline} @var{yycolumn} @var{yyoffset}
 Return a @class{lexical-token} record representing a sharp--vu8--open
-parenthesis, @samp{#vu8(}.  The default is
-@func{make-sharp-vu8paren-token}.
+parenthesis, @samp{#vu8(}.  The category is set to the symbol
+@code{SHARPVU8PAREN}; the semantic value is set to the string
+@code{"#vu8("}.
 @end defun
 
 
 @defun make-sharp-tick-token @var{yygetc} @var{yyungetc} @var{yytext} @var{yyline} @var{yycolumn} @var{yyoffset}
 Return a @class{lexical-token} record representing a sharp--tick,
-@samp{#'}.
+@samp{#'}.  The category is set to the symbol @code{SHARPTICK}; the
+semantic value is set to the string @code{"#'"}.
 @end defun
 
 
 @defun make-sharp-back-tick-token @var{yygetc} @var{yyungetc} @var{yytext} @var{yyline} @var{yycolumn} @var{yyoffset}
 Return a @class{lexical-token} record representing a sharp--back tick,
-@samp{#`}.
+@samp{#`}.  The category is set to the symbol @code{SHARPBACKTICK}; the
+semantic value is set to the string @code{"#`"}.
 @end defun
 
 
 @defun make-sharp-comma-at-token @var{yygetc} @var{yyungetc} @var{yytext} @var{yyline} @var{yycolumn} @var{yyoffset}
 Return a @class{lexical-token} record representing a sharp--commma--at,
-@samp{#,@@}.
+@samp{#,@@}.  The category is set to the symbol @code{SHARPCOMMAAT}; the
+semantic value is set to the string @code{"#,@@"}.
 @end defun
 
 
 @defun make-sharp-comma-token @var{yygetc} @var{yyungetc} @var{yytext} @var{yyline} @var{yycolumn} @var{yyoffset}
 Return a @class{lexical-token} record representing a sharp--comma,
-@samp{#,}.
+@samp{#,}.  The category is set to the symbol @code{SHARPCOMMA}; the
+semantic value is set to the string @code{"#,"}.
 @end defun
 
 
 @defun make-sharp-semicolon-token @var{yygetc} @var{yyungetc} @var{yytext} @var{yyline} @var{yycolumn} @var{yyoffset}
 Return a @class{lexical-token} record representing a sharp--semicolon,
-@samp{#;}.
-@end defun
-
-@c ------------------------------------------------------------
-
-@subsubheading Variable semantic value token maker parameters
-
-
-@defun make-line-comment-token @var{yygetc} @var{yyungetc} @var{yytext} @var{yyline} @var{yycolumn} @var{yyoffset}
-Return a @class{lexical-token} record representing a line comment with
-line--ending included, @samp{; ---}.
-@end defun
-
-
-@defun make-line-comment-noend-token @var{yygetc} @var{yyungetc} @var{yytext} @var{yyline} @var{yycolumn} @var{yyoffset}
-Return a @class{lexical-token} record representing a line comment
-without line--ending; only end--of--input should be allowed after this
-token.
+@samp{#;}.  The category is set to the symbol @code{SHARPSEMICOLON}; the
+semantic value is set to the string @code{"#;"}.
 @end defun
 
 
 @defun make-open-nested-comment-token @var{yygetc} @var{yyungetc} @var{yytext} @var{yyline} @var{yycolumn} @var{yyoffset}
 Return a @class{lexical-token} record representing the opening of a
-nested comment, @samp{#|}; the nested comment must be read with a
-separate lexer table.
+nested comment, @samp{#|}.  The category is set to the symbol
+@code{ONESTEDCOMMENT}; the semantic value is set to the string
+@code{"#|"}.
 @end defun
 
 
 @defun make-sharp-bang-r6rs-token @var{yygetc} @var{yyungetc} @var{yytext} @var{yyline} @var{yycolumn} @var{yyoffset}
 Return a @class{lexical-token} record representing a @samp{#!r6rs}
-token.
+token.  The category is set to the symbol @code{SHARPBANGR6RS}; the
+semantic value is set to the string @code{"#!r6rs"}.
 @end defun
 
 
 @defun make-sharp-bang-token @var{yygetc} @var{yyungetc} @var{yytext} @var{yyline} @var{yycolumn} @var{yyoffset}
 Return a @class{lexical-token} record representing a sharp--bang,
-@samp{#!}; this token should be followed by an identifier.
+@samp{#!}.  The category is set to the symbol @code{SHARPBANG}; the
+semantic value is set to the string @code{"#!"}.
+@end defun
+
+@c page
+@node r6rs lexer makers variable
+@subsubsection Variable semantic value token makers
+
+
+The following bindings are exported by the library @library{nausicaa
+r6rs lexeme-processing}.
+
+
+@defun make-line-comment-token @var{yygetc} @var{yyungetc} @var{yytext} @var{yyline} @var{yycolumn} @var{yyoffset}
+Return a @class{lexical-token} record representing a line comment with
+line--ending included, @samp{; ---}.  The category is set to the symbol
+@code{LINECOMMENT}; the semantic value is set to the string representing
+the comment, line ending included.
+@end defun
+
+
+@defun make-line-comment-noend-token @var{yygetc} @var{yyungetc} @var{yytext} @var{yyline} @var{yycolumn} @var{yyoffset}
+The next character from the input system is peeked, if it is the end of
+file: return a @class{lexical-token} record representing a line comment
+without line--ending.  The category is set to the symbol
+@code{LINECOMMENT}; the semantic value is set to the string representing
+the comment.
+
+If the next character from the input system is not the end of file:
+apply the function referenced by the @func{lexical-error-token-maker}
+parameter to the same arguments given to this function and return its
+result.
+
+If in the lexer table there is no error in the regular expression
+matching a comment without line ending: the next character from the
+input stream is always the end of file.
 @end defun
 
 
 @defun make-white-space-token @var{yygetc} @var{yyungetc} @var{yytext} @var{yyline} @var{yycolumn} @var{yyoffset}
-Return a @class{lexical-token} record representing a white space.
+Return a @class{lexical-token} record representing a white space.  The
+category is set to the symbol @code{WHITESPACE}; the semantic value is
+set to the string representing the blank characters.
 @end defun
 
 
 @defun make-line-ending-token @var{yygetc} @var{yyungetc} @var{yytext} @var{yyline} @var{yycolumn} @var{yyoffset}
-Return a @class{lexical-token} record representing a line ending.
+Return a @class{lexical-token} record representing a line ending.  The
+category is set to the symbol @code{LINEENDING}; the semantic value is
+set to the string representing the line ending character or characters.
 @end defun
 
-@c ------------------------------------------------------------
+@c page
+@node r6rs lexer makers scheme
+@subsubsection Scheme semantic value token makers
 
-@subsubheading Scheme semantic value token maker parameters
+
+The following bindings are exported by the library @library{nausicaa
+r6rs lexeme-processing}.
 
 
 @defun make-identifier-token @var{yygetc} @var{yyungetc} @var{yytext} @var{yyline} @var{yycolumn} @var{yyoffset}
-Return a @class{lexical-token} record representing an identifier .
+Return a @class{lexical-token} record representing an identifier.  The
+category is set to the symbol @code{IDENTIFIER}; the semantic value is
+set to the string representing the identifier.
 @end defun
 
 
 @defun make-boolean-token @var{yygetc} @var{yyungetc} @var{yytext} @var{yyline} @var{yycolumn} @var{yyoffset}
-Return a @class{lexical-token} record representing a boolean value.
+Return a @class{lexical-token} record representing a boolean value.  The
+category is set to the symbol @code{BOOLEAN}; the semantic value is set
+to the boolean value.
 @end defun
 
 
 @defun make-named-character-token @var{yygetc} @var{yyungetc} @var{yytext} @var{yyline} @var{yycolumn} @var{yyoffset}
 Return a @class{lexical-token} record representing a named character,
-for example @samp{#\newline}.  The default is
-@func{make-named-character-token}.
+for example @samp{#\newline}.  The category is set to the symbol
+@code{CHARACTER}; the semantic value is set to the character itself.
 @end defun
 
 
 @defun make-hex-character-token @var{yygetc} @var{yyungetc} @var{yytext} @var{yyline} @var{yycolumn} @var{yyoffset}
 Return a @class{lexical-token} record representing a hex character, for
-example @samp{#\x005C}.  The default is @func{make-hex-character-token}.
+example @samp{#\x005C}.  The category is set to the symbol
+@code{CHARACTER}; the semantic value is set to the character itself.
 @end defun
 
 
 @defun make-literal-character-token @var{yygetc} @var{yyungetc} @var{yytext} @var{yyline} @var{yycolumn} @var{yyoffset}
 Return a @class{lexical-token} record representing a literal character,
-for example @samp{#\A}.  The default is
-@func{make-literal-character-token}.
+for example @samp{#\A}.  The category is set to the symbol
+@code{CHARACTER}; the semantic value is set to the character itself.
 @end defun
 
 
 @defun make-number-token @var{yygetc} @var{yyungetc} @var{yytext} @var{yyline} @var{yycolumn} @var{yyoffset}
-Return a @class{lexical-token} record representing a number.
+Return a @class{lexical-token} record representing a number.  The
+category is set to the symbol @code{NUMBER}; the semantic value is set
+to the number itself.
+@end defun
+
+@c page
+@node r6rs lexer makers special
+@subsubsection Special token makers
+
+
+The following bindings are exported by the library @library{nausicaa
+r6rs lexeme-processing}.
+
+
+@defun make-string-token @var{yygetc} @var{yyungetc} @var{yytext} @var{yyline} @var{yycolumn} @var{yyoffset}
+Set to a function returning a @class{lexical-token} record representing
+a string.  The category is set to the symbol @code{STRING}; the semantic
+value is set to the string itself.
+@end defun
+
+
+@defun make-nested-comment-token @var{yygetc} @var{yyungetc} @var{yytext} @var{yyline} @var{yycolumn} @var{yyoffset}
+Set to a function returning a @class{lexical-token} record representing
+a nested comment.  The category is set to the symbol
+@code{NESTED-COMMENT}; the semantic value is set to the string
+representing the nested comment.
 @end defun
 
 @c page
@@ -572,13 +868,12 @@ library.
 
 
 @defvr Constant r6rs-string-lexer-table
-A @library{silex} lexer table to read @rnrs{6} compliant Scheme strings.
-A lexer using this table must be used after the opening double quote of
-the string has been consumed from the input system.  This table needs an
-input system configured with @code{(counters: 'all)}.  See the
-documentation of @func{read-string} for a usage example.
-
-A lexer function using this table returns:
+A lexer table to read @rnrs{6} compliant Scheme strings.  This table
+needs an input system configured with @code{(counters: 'all)}.  A lexer
+thunk using this table must be invoked after the opening double quote of
+the string has been consumed from the input system.  See the
+documentation of @func{read-string} for a usage example.  A lexer thunk
+using this table returns:
 
 @itemize
 @item
@@ -588,26 +883,28 @@ Scheme characters read from the input system.
 Scheme strings read from the input system.
 
 @item
-A record of class @class{lexical-token} with category @code{*eoi*} when
-the end--of--input is found.
-
-@item
-A record of class @class{lexical-token} with category
-@code{*lexer-error*} when a lexical error is detected in the input
-system.
-
-@item
 The symbol @code{STRING} when a double quote is read from the input
 system.  This symbol signals that the string is finished, we may want to
-continue reading with a different lexer function.
+continue reading with a different lexer thunk.
+
+@item
+The return value of the function referenced by the parameter
+@func{eoi-token-maker} when the end of input is found.
+
+@item
+The return value of the function referenced by the parameter
+@func{lexical-error-token-maker} when a lexical error is detected in the
+input system.
 @end itemize
 @end defvr
 
 
 @defun read-string @var{IS}
-Given a @library{silex} input system from which a double quote character
-has already been consumed, read characters composing an @rnrs{6} string
-stopping at the ending double quote.  Return the Scheme string.
+Given an input system from which a double quote character has already
+been consumed, read characters composing an @rnrs{6} string stopping at
+the ending double quote; return the Scheme string.  This function
+expects the default functions to be in the parameters of
+@library{nausicaa r6rs lexeme-processing}.
 
 If an error occurs reading the string: a condition object is raised with
 components @condition{lexical}, @condition{message}, @condition{who},
@@ -664,30 +961,32 @@ library.
 
 
 @defvr Constant r6rs-character-lexer-table
-A @library{silex} lexer table to read @rnrs{6} compliant Scheme
-characters.  This table needs an input system configured with
-@code{(counters: 'all)}.  See the documentation of @func{read-character}
-for a usage example.  A lexer function using this table returns:
+A lexer table to read @rnrs{6} compliant Scheme characters.  This table
+needs an input system configured with @code{(counters: 'all)}.  See the
+documentation of @func{read-character} for a usage example.  A lexer
+thunk using this table returns:
 
 @itemize
 @item
 Scheme characters read from the input system.
 
 @item
-A record of class @class{lexical-token} with category @code{*eoi*} when
-the end--of--input is found.
+The return value of the function referenced by the parameter
+@func{eoi-token-maker} when the end of input is found.
 
 @item
-A record of class @class{lexical-token} with category
-@code{*lexer-error*} when a lexical error is detected in the input
-system.
+The return value of the function referenced by the parameter
+@func{lexical-error-token-maker} when a lexical error is detected in the
+input system.
 @end itemize
 @end defvr
 
 
 @defun read-character @var{IS}
 Given an input system, read a single character datum compliant with
-@rnrs{6}; return the Scheme character.
+@rnrs{6}; return the Scheme character.  This function expects the
+default functions to be in the parameters of @library{nausicaa r6rs
+lexeme-processing}.
 
 If an error occurs reading the character: a condition object is raised
 with components @condition{lexical}, @condition{message},
@@ -697,7 +996,7 @@ with components @condition{lexical}, @condition{message},
 If end of input is found reading the character: a condition object is
 raised with components @condition{lexical}, @condition{message},
 @condition{who}, @condition{irritants}.  The single value in the
-irritants list is the end--of--file object.
+@condition{irritants} list is the end--of--file object.
 
 The implementation of this function is a useful example of usage for
 @code{r6rs-character-lexer-table}:
@@ -713,9 +1012,11 @@ The implementation of this function is a useful example of usage for
                   (make-who-condition 'read-string)
                   (make-irritants-condition (list T.value)))))
     (cond (T.end-of-input?
-           (%error "end of input found while reading character"))
+           (%error
+            "end of input found while reading character"))
           (T.lexer-error?
-           (%error "lexical violation while reading character"))
+           (%error
+            "lexical violation while reading character"))
           (else T))))
 @end example
 @end defun
@@ -738,31 +1039,32 @@ library.
 
 
 @defvr Constant r6rs-identifier-lexer-table
-A @library{silex} lexer table to read @rnrs{6} compliant Scheme
-identifiers.  This table needs an input system configured with
-@code{(counters: 'all)}.  See the documentation of
-@func{read-identifier} for a usage example.  A lexer function using this
-table returns:
+A lexer table to read @rnrs{6} compliant Scheme identifiers.  This table
+needs an input system configured with @code{(counters: 'all)}.  See the
+documentation of @func{read-identifier} for a usage example.  A lexer
+thunk using this table returns:
 
 @itemize
 @item
-Scheme symbols read from the input system.
+Scheme strings read from the input system representing identifiers.
 
 @item
-A record of class @class{lexical-token} with category @code{*eoi*} when
-the end--of--input is found.
+The return value of the function referenced by the parameter
+@func{eoi-token-maker} when the end of input is found.
 
 @item
-A record of class @class{lexical-token} with category
-@code{*lexer-error*} when a lexical error is detected in the input
-system.
+The return value of the function referenced by the parameter
+@func{lexical-error-token-maker} when a lexical error is detected in the
+input system.
 @end itemize
 @end defvr
 
 
 @defun read-identifier @var{IS}
 Given an input system, read a single identifier datum compliant with
-@rnrs{6}; return the Scheme symbol.
+@rnrs{6}; return the identifier as a Scheme string.  This function
+expects the default functions to be in the parameters of
+@library{nausicaa r6rs lexeme-processing}.
 
 If an error occurs reading the identifier: a condition object is raised
 with components @condition{lexical}, @condition{message},
@@ -772,7 +1074,7 @@ with components @condition{lexical}, @condition{message},
 If end of input is found reading the identifier: a condition object is
 raised with components @condition{lexical}, @condition{message},
 @condition{who}, @condition{irritants}.  The single value in the
-irritants list is the end--of--file object.
+@condition{irritants} list is the end--of--file object.
 
 The implementation of this function is a useful example of usage for
 @code{r6rs-identifier-lexer-table}:
@@ -785,7 +1087,7 @@ The implementation of this function is a useful example of usage for
       (raise
        (condition (make-lexical-violation)
                   (make-message-condition message)
-                  (make-who-condition 'read-string)
+                  (make-who-condition 'read-identifier)
                   (make-irritants-condition (list T.value)))))
     (cond (T.end-of-input?
            (%error
@@ -815,30 +1117,32 @@ library.
 
 
 @defvr Constant r6rs-number-lexer-table
-A @library{silex} lexer table to read @rnrs{6} compliant Scheme numbers.
-This table needs an input system configured with @code{(counters:
-'all)}.  See the documentation of @func{read-number} for a usage
-example.  A lexer function using this table returns:
+A lexer table to read @rnrs{6} compliant Scheme numbers.  This table
+needs an input system configured with @code{(counters: 'all)}.  See the
+documentation of @func{read-number} for a usage example.  A lexer thunk
+using this table returns:
 
 @itemize
 @item
 Scheme numbers read from the input system.
 
 @item
-A record of class @class{lexical-token} with category @code{*eoi*} when
-the end--of--input is found.
+The return value of the function referenced by the parameter
+@func{eoi-token-maker} when the end of input is found.
 
 @item
-A record of class @class{lexical-token} with category
-@code{*lexer-error*} when a lexical error is detected in the input
-system.
+The return value of the function referenced by the parameter
+@func{lexical-error-token-maker} when a lexical error is detected in the
+input system.
 @end itemize
 @end defvr
 
 
 @defun read-number @var{IS}
 Given an input system, read a single number datum compliant with
-@rnrs{6}; return the Scheme number.
+@rnrs{6}; return the Scheme number.  This function expects the default
+functions to be in the parameters of @library{nausicaa r6rs
+lexeme-processing}.
 
 If an error occurs reading the number: a condition object is raised with
 components @condition{lexical}, @condition{message}, @condition{who},
@@ -848,7 +1152,7 @@ list is the string that caused the error.
 If end of input is found reading the number: a condition object is
 raised with components @condition{lexical}, @condition{message},
 @condition{who}, @condition{irritants}.  The single value in the
-irritants list is the end--of--file object.
+@condition{irritants} list is the end--of--file object.
 
 The implementation of this function is a useful example of usage for
 @code{r6rs-number-lexer-table}:
@@ -861,7 +1165,7 @@ The implementation of this function is a useful example of usage for
       (raise
        (condition (make-lexical-violation)
                   (make-message-condition message)
-                  (make-who-condition 'read-string)
+                  (make-who-condition 'read-number)
                   (make-irritants-condition (list T.value)))))
     (cond (T.end-of-input?
            (%error
@@ -891,10 +1195,10 @@ library.
 
 
 @defvr Constant r6rs-nested-comment-lexer-table
-A @library{silex} lexer table to read @rnrs{6} compliant nested comments
-of the form @code{#| ... |#}.  This table needs an input system
-configured with @code{(counters: 'all)}.  See the documentation of
-@func{read-nested-comment} for a usage example.  A lexer function using
+A lexer table to read @rnrs{6} compliant nested comments of the form
+@code{#| ... |#}.  This table needs an input system configured with
+@code{(counters: 'all)}.  See the documentation of
+@func{read-nested-comment} for a usage example.  A lexer thunk using
 this table returns:
 
 @itemize
@@ -910,13 +1214,13 @@ input system.
 The single character value read from the input system.
 
 @item
-A record of class @class{lexical-token} with category @code{*eoi*} when
-the end--of--input is found.
+The return value of the function referenced by the parameter
+@func{eoi-token-maker} when the end of input is found.
 
 @item
-A record of class @class{lexical-token} with category
-@code{*lexer-error*} when a lexical error is detected in the input
-system.  Notice that this should never happen.
+The return value of the function referenced by the parameter
+@func{lexical-error-token-maker} when a lexical error is detected in the
+input system.
 @end itemize
 @end defvr
 
@@ -925,18 +1229,20 @@ system.  Notice that this should never happen.
 Given an input system from which the opening sequence of nested comments
 @samp{#|} has already been consumed, read characters composing an
 @rnrs{6} nested comment matching sequence @samp{|#}.  Return the comment
-as Scheme string enclosed in @samp{#|} and @samp{|#} sequences.
+as Scheme string enclosed in @samp{#|} and @samp{|#} sequences.  This
+function expects the default functions to be in the parameters of
+@library{nausicaa r6rs lexeme-processing}.
 
 If an error occurs reading the nested comment: a condition object is
 raised with components @condition{lexical}, @condition{message},
 @condition{who}, @condition{irritants}; the single value in the
-&irritants list is the string that caused the error.  Notice that this
-should never happen.
+@condition{irritants} list is the string that caused the error.  Notice
+that this should never happen.
 
 If end of input is found reading the nested comment: a condition object
 is raised with components @condition{lexical}, @condition{message},
 @condition{who}, @condition{irritants}.  The single value in the
-irritants list is the end--of--file object.
+@condition{irritants} list is the end--of--file object.
 
 The implementation of this function is a useful example of usage for
 @code{r6rs-nested-comment-lexer-table}:
@@ -996,42 +1302,44 @@ library.
 
 
 @defvr Constant r6rs-line-comment-lexer-table
-A @library{silex} lexer table to read @rnrs{6} compliant line comments.
-Both comments with end--of--line and comments spanning until the
-end--of--input are accepted.  This table needs an input system
-configured with @code{(counters: 'all)}.  See the documentation of
-@func{read-line-comment} for a usage example.  A lexer function using
-this table returns:
+A lexer table to read @rnrs{6} compliant line comments.  Both comments
+with end--of--line and comments spanning until the end--of--input are
+accepted.  This table needs an input system configured with
+@code{(counters: 'all)}.  See the documentation of
+@func{read-line-comment} for a usage example.  A lexer thunk using this
+table returns:
 
 @itemize
 @item
 The comment as a string.
 
 @item
-A record of class @class{lexical-token} with category @code{*eoi*} when
-the end--of--input is found.
+The return value of the function referenced by the parameter
+@func{eoi-token-maker} when the end of input is found.
 
 @item
-A record of class @class{lexical-token} with category
-@code{*lexer-error*} when a lexical error is detected in the input
-system.
+The return value of the function referenced by the parameter
+@func{lexical-error-token-maker} when a lexical error is detected in the
+input system.
 @end itemize
 @end defvr
 
 
 @defun read-line-comment @var{IS}
 Given an input system, read characters composing an @rnrs{6} line
-comment.  Return the string representing the comment.
+comment; return the string representing the comment.  This function
+expects the default functions to be in the parameters of
+@library{nausicaa r6rs lexeme-processing}.
 
 If an error occurs reading the line comment: a condition object is
 raised with components @condition{lexical}, @condition{message},
 @condition{who}, @condition{irritants}; the single value in the
-&irritants list is the string that caused the error.
+@condition{irritants} list is the string that caused the error.
 
-If end of input is found reading the line comment: a condition object
-is raised with components @condition{lexical}, @condition{message},
+If end of input is found reading the line comment: a condition object is
+raised with components @condition{lexical}, @condition{message},
 @condition{who}, @condition{irritants}.  The single value in the
-irritants list is the end--of--file object.
+@condition{irritants} list is the end--of--file object.
 
 The implementation of this function is a useful example of usage for
 @code{r6rs-line-comment-lexer-table}:
@@ -1055,6 +1363,5 @@ The implementation of this function is a useful example of usage for
           (else T))))
 @end example
 @end defun
-
 
 @c end of file
