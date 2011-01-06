@@ -44,7 +44,6 @@
     comma-token-maker			make-comma-token
     dot-token-maker			make-dot-token
     double-quote-token-maker		make-double-quote-token
-    semicolon-token-maker		make-semicolon-token
     sharp-paren-token-maker		make-sharp-paren-token
     sharp-vu8paren-token-maker		make-sharp-vu8paren-token
     sharp-tick-token-maker		make-sharp-tick-token
@@ -130,9 +129,6 @@
 (define (make-double-quote-token yygetc yyungetc yytext yyline yycolumn yyoffset)
   (make* <lexical-token> 'DOUBLEQUOTE (input-source) #\" 1))
 
-(define (make-semicolon-token yygetc yyungetc yytext yyline yycolumn yyoffset)
-  (make* <lexical-token> 'SEMICOLON (input-source) #\; 1))
-
 (define (make-sharp-paren-token yygetc yyungetc yytext yyline yycolumn yyoffset)
   (make* <lexical-token> 'SHARPPAREN (input-source) "#(" 2))
 
@@ -160,7 +156,14 @@
   (make* <lexical-token> 'LINECOMMENT (input-source) yytext (string-length yytext)))
 
 (define (make-line-comment-noend-token yygetc yyungetc yytext yyline yycolumn yyoffset)
-  (make* <lexical-token> 'LINECOMMENT-NOEND (input-source) yytext (string-length yytext)))
+  (let ((ch (dynamic-wind
+		(lambda () #f)
+		(lambda ()
+		  (yygetc))
+		(lambda () (yyungetc)))))
+    (if (eof-object? ch)
+	(make* <lexical-token> 'LINECOMMENT (input-source) yytext (string-length yytext))
+      ((lexical-error-token-maker) yygetc yyungetc yytext yyline yycolumn yyoffset))))
 
 (define (make-open-nested-comment-token yygetc yyungetc yytext yyline yycolumn yyoffset)
   (make* <lexical-token> 'ONESTEDCOMMENT (input-source) "#|" 2))
@@ -263,7 +266,6 @@
 (define-token-maker-parameter comma-token-maker			make-comma-token)
 (define-token-maker-parameter dot-token-maker			make-dot-token)
 (define-token-maker-parameter double-quote-token-maker		make-double-quote-token)
-(define-token-maker-parameter semicolon-token-maker		make-semicolon-token)
 (define-token-maker-parameter sharp-paren-token-maker		make-sharp-paren-token)
 (define-token-maker-parameter sharp-vu8paren-token-maker	make-sharp-vu8paren-token)
 (define-token-maker-parameter sharp-tick-token-maker		make-sharp-tick-token)

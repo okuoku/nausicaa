@@ -1834,6 +1834,47 @@ mamma\"")
   #t)
 
 
+(parametrise ((check-test-name	'full-line-comment))
+
+  (define (tokenise string)
+    (let* ((IS		(lexer-make-IS (string: string) (counters: 'all)))
+	   (lexer	(lexer-make-lexer r6rs-lexer-table IS))
+	   (result	'()))
+      (do (((T <lexical-token>) (lexer) (lexer)))
+	  (T.special?
+	   (reverse `(,(if T.lexer-error?
+			   `(,T.category ,T.value)
+			 T.category). ,result)))
+	(debug "line comment token ~s >>~s<<" T.category T.value)
+	(set-cons! result (list T.category T.value)))))
+
+  (define-syntax test
+    (syntax-rules ()
+      ((_ ?string)
+       (check (tokenise ?string) => '((LINECOMMENT ?string) *eoi*)))))
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (tokenise "")
+    => '(*eoi*))
+
+  (test ";\n")
+  (test ";;\n")
+  (test ";;;\n")
+  (test ";;; ciao\n")
+  (test ";;; ciao\r")
+
+  ;; no line end
+  (test ";")
+  (test ";;")
+  (test ";;;")
+  (test ";;; ciao")
+  (test ";;; ciao")
+
+  #t)
+
+
 (parametrise ((check-test-name	'full-misc)
 	      (debugging	#f))
 
