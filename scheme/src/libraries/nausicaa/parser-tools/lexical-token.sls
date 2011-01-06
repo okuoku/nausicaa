@@ -9,7 +9,7 @@
 ;;;	lexer and consumed  by a parser.  It is meant to  be used by all
 ;;;	the parser libraries distributed with Nausicaa.
 ;;;
-;;;Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2009, 2010, 2011 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;Copyright (c) 2005-2008 Dominique Boucher
 ;;;
 ;;;Original  code  by Dominique  Boucher.   Port  to  R6RS and  Nausicaa
@@ -57,6 +57,7 @@
     <lexical-token>?/lexer-error
     <lexical-token>?/special)
   (import (rnrs)
+    (nausicaa parser-tools source-location)
     (nausicaa language classes)
     (nausicaa language makers)
     (only (nausicaa language syntax-utilities) define-auxiliary-syntaxes))
@@ -76,7 +77,7 @@
 	 (value:	#f)
 	 (length:	0))
   (fields (immutable category)
-	  (immutable location)
+	  (immutable (location <source-location>))
 	  (immutable value)
 	  (immutable length))
   (virtual-fields (immutable end-of-input?	<lexical-token>?/end-of-input)

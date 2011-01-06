@@ -66,6 +66,8 @@
     hex-character-token-maker		make-hex-character-token
     literal-character-token-maker	make-literal-character-token
     number-token-maker			make-number-token
+    string-token-maker			make-string-token
+    nested-comment-maker		make-nested-comment-token
     )
   (import (nausicaa)
     (nausicaa parser-tools lexical-token)
@@ -239,6 +241,12 @@
 	(make* <lexical-token> 'NUMBER (input-source) n (string-length yytext))
       ((lexical-error-token-maker) yygetc yyungetc yytext yyline yycolumn yyoffset))))
 
+(define (make-string-token yygetc yyungetc yytext yyline yycolumn yyoffset)
+  (make* <lexical-token> 'STRING (input-source) yytext (string-length yytext)))
+
+(define (make-nested-comment-token yygetc yyungetc yytext yyline yycolumn yyoffset)
+  (make* <lexical-token> 'NESTED-COMMENT (input-source) yytext (string-length yytext)))
+
 
 ;;;; token maker parameters
 
@@ -288,6 +296,9 @@
 (define-token-maker-parameter hex-character-token-maker		make-hex-character-token)
 (define-token-maker-parameter literal-character-token-maker	make-literal-character-token)
 (define-token-maker-parameter number-token-maker		make-number-token)
+
+(define-token-maker-parameter string-token-maker make-string-token)
+(define-token-maker-parameter nested-comment-maker make-nested-comment-token)
 
 
 ;;;; done

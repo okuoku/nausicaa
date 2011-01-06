@@ -34,7 +34,7 @@
     r6rs-identifier-lexer-table r6rs-number-lexer-table
 
     read-string read-character read-identifier read-number
-    read-nested-comment read-line-comment)
+    read-nested-comment read-line-comment make-token-lexer)
   (import (nausicaa)
     (nausicaa r6rs lexer-table)
     (nausicaa r6rs nested-comment-lexer-table)
@@ -43,6 +43,7 @@
     (nausicaa r6rs character-lexer-table)
     (nausicaa r6rs identifier-lexer-table)
     (nausicaa r6rs number-lexer-table)
+    (nausicaa r6rs lexeme-processing)
     (nausicaa parser-tools lexical-token)
     (nausicaa silex lexer))
 
@@ -227,6 +228,34 @@
 	  (T.lexer-error?
 	   (%error "lexical violation while reading line comment"))
 	  (else T))))
+
+
+(define make-token-lexer
+  (case-lambda
+   ((IS)
+    (make-token-lexer IS r6rs-lexer-table))
+   ((IS lexer-table)
+    (let ((lexer (lexer-make-lexer lexer-table IS)))
+      (lambda ()
+	(let (((T <lexical-token>) (lexer)))
+	  (cond (T.special? T)
+		((eq? T.category 'DOUBLEQUOTE)
+		 (let ((S (read-string IS)))
+		   (if (string? S)
+		       ((line-comment-token-maker)
+			(lexer-get-func-getc IS)
+			(lexer-get-func-ungetc IS)
+			S T.location.line T.location.column T.location.offset)
+		     S)))
+		((eq? T.category 'ONESTEDCOMMENT)
+		 (let ((S (read-nested-comment IS)))
+		   (if (string? S)
+		       ((line-comment-token-maker)
+			(lexer-get-func-getc IS)
+			(lexer-get-func-ungetc IS)
+			S T.location.line T.location.column T.location.offset)
+		     S)))
+		(else T))))))))
 
 
 ;;;; done

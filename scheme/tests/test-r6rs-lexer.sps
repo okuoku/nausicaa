@@ -1330,7 +1330,7 @@ mamma\"")
    ;;related to  a known  problem with exponentials  (Tue Jan  4, 2011).
    ;;Exclude Petite so that running the  tests with it is fast (good for
    ;;debugging).
-   (petite #f)
+   ((or petite mosh) #f)
    (else
     (generated-tests)))
 
@@ -1357,7 +1357,7 @@ mamma\"")
   #t)
 
 
-(parametrise ((check-test-name	'full-identifiers)
+(parametrise ((check-test-name	'full-table-identifiers)
 	      (debugging	#f))
 
   (define (tokenise string)
@@ -1449,7 +1449,7 @@ mamma\"")
   #t)
 
 
-(parametrise ((check-test-name	'full-characters)
+(parametrise ((check-test-name	'full-table-characters)
 	      (debugging	#f))
 
   (define (tokenise string)
@@ -1553,7 +1553,7 @@ mamma\"")
   #t)
 
 
-(parametrise ((check-test-name	'full-numbers)
+(parametrise ((check-test-name	'full-table-numbers)
 	      (debugging	#f))
 
   (define (tokenise string)
@@ -1834,7 +1834,8 @@ mamma\"")
   #t)
 
 
-(parametrise ((check-test-name	'full-line-comment))
+(parametrise ((check-test-name	'full-table-line-comment)
+	      (debugging	#f))
 
   (define (tokenise string)
     (let* ((IS		(lexer-make-IS (string: string) (counters: 'all)))
@@ -1875,7 +1876,7 @@ mamma\"")
   #t)
 
 
-(parametrise ((check-test-name	'full-misc)
+(parametrise ((check-test-name	'full-table-misc)
 	      (debugging	#f))
 
   (define (tokenise string)
@@ -1916,7 +1917,6 @@ mamma\"")
   (check (tokenise ",")		=> '((COMMA		#\,) *eoi*))
   (check (tokenise ",@")	=> '((COMMAAT		",@") *eoi*))
   (check (tokenise ".")		=> '((DOT		#\.) *eoi*))
-  (check (tokenise "\"")	=> '((DOUBLEQUOTE	#\") *eoi*))
   (check (tokenise "#(")	=> '((SHARPPAREN	"#(") *eoi*))
   (check (tokenise "#vu8(")	=> '((SHARPVU8PAREN	"#vu8(") *eoi*))
   (check (tokenise "#'")	=> '((SHARPTICK		"#'") *eoi*))
@@ -1924,6 +1924,67 @@ mamma\"")
   (check (tokenise "#,")	=> '((SHARPCOMMA	"#,") *eoi*))
   (check (tokenise "#,@")	=> '((SHARPCOMMAAT	"#,@") *eoi*))
   (check (tokenise "#;")	=> '((SHARPSEMICOLON	"#;") *eoi*))
+
+  (check (tokenise "#!r6rs")	=> '((SHARPBANGR6RS	"#!r6rs") *eoi*))
+  (check (tokenise "#!")	=> '((SHARPBANG		"#!") *eoi*))
+
+  ;;Fine here, but in a full lexer a double quote must open a string.
+  (check (tokenise "\"")	=> '((DOUBLEQUOTE	#\") *eoi*))
+
+  #t)
+
+
+(parametrise ((check-test-name	'full-lexer-misc)
+	      (debugging	#f))
+
+  (define (tokenise string)
+    (let* ((IS		(lexer-make-IS (string: string) (counters: 'all)))
+	   (lexer	(make-token-lexer IS)))
+      (let next (((T <lexical-token>)	(lexer))
+		 (result		'()))
+	(cond (T.lexer-error?
+	       (reverse `((,T.category ,T.value) . ,result)))
+	      (T.end-of-input?
+	       (reverse `(*eoi* . ,result)))
+	      (else
+	       (next (lexer) `((,T.category ,T.value) . ,result)))))))
+
+;;; --------------------------------------------------------------------
+
+  (check (tokenise "#t") => '((BOOLEAN #t) *eoi*))
+  (check (tokenise "#T") => '((BOOLEAN #t) *eoi*))
+  (check (tokenise "#f") => '((BOOLEAN #f) *eoi*))
+  (check (tokenise "#F") => '((BOOLEAN #f) *eoi*))
+
+  (check (tokenise "#t(") => '((BOOLEAN #t) (OPAREN #\() *eoi*))
+  (check (tokenise "#f(") => '((BOOLEAN #f) (OPAREN #\() *eoi*))
+  (check (tokenise "#t)") => '((BOOLEAN #t) (CPAREN #\)) *eoi*))
+  (check (tokenise "#f)") => '((BOOLEAN #f) (CPAREN #\)) *eoi*))
+
+  (test-lexical-error tokenise "#tciao")
+  (test-lexical-error tokenise "#fciao")
+
+;;; --------------------------------------------------------------------
+
+  (check (tokenise "(")		=> '((OPAREN		#\() *eoi*))
+  (check (tokenise ")")		=> '((CPAREN		#\)) *eoi*))
+  (check (tokenise "[")		=> '((OBRACKET		#\[) *eoi*))
+  (check (tokenise "]")		=> '((CBRACKET		#\]) *eoi*))
+  (check (tokenise "'")		=> '((TICK		#\') *eoi*))
+  (check (tokenise "`")		=> '((BACKTICK		#\`) *eoi*))
+  (check (tokenise ",")		=> '((COMMA		#\,) *eoi*))
+  (check (tokenise ",@")	=> '((COMMAAT		",@") *eoi*))
+  (check (tokenise ".")		=> '((DOT		#\.) *eoi*))
+  (check (tokenise "#(")	=> '((SHARPPAREN	"#(") *eoi*))
+  (check (tokenise "#vu8(")	=> '((SHARPVU8PAREN	"#vu8(") *eoi*))
+  (check (tokenise "#'")	=> '((SHARPTICK		"#'") *eoi*))
+  (check (tokenise "#`")	=> '((SHARPBACKTICK	"#`") *eoi*))
+  (check (tokenise "#,")	=> '((SHARPCOMMA	"#,") *eoi*))
+  (check (tokenise "#,@")	=> '((SHARPCOMMAAT	"#,@") *eoi*))
+  (check (tokenise "#;")	=> '((SHARPSEMICOLON	"#;") *eoi*))
+
+  (check (tokenise "#!r6rs")	=> '((SHARPBANGR6RS	"#!r6rs") *eoi*))
+  (check (tokenise "#!")	=> '((SHARPBANG		"#!") *eoi*))
 
   #t)
 
