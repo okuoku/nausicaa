@@ -614,7 +614,7 @@ WRONG_BOOLEAN		{BOOLEAN}{TAIL_OF_WRONG}
 {DOT}			((dot-token-maker)		yygetc yyungetc yytext yyline yycolumn yyoffset)
 {DOUBLEQUOTE}		((double-quote-token-maker)	yygetc yyungetc yytext yyline yycolumn yyoffset)
 {SHARPPAREN}		((sharp-paren-token-maker)	yygetc yyungetc yytext yyline yycolumn yyoffset)
-{SHARPVU8PAREN}		((sharp-vu8paren-token-maker)	yygetc yyungetc yytext yyline yycolumn yyoffset)
+{SHARPVU8PAREN}		((sharp-vu8-paren-token-maker)	yygetc yyungetc yytext yyline yycolumn yyoffset)
 {SHARPTICK}		((sharp-tick-token-maker)	yygetc yyungetc yytext yyline yycolumn yyoffset)
 {SHARPBACKTICK}		((sharp-back-tick-token-maker)	yygetc yyungetc yytext yyline yycolumn yyoffset)
 {SHARPCOMMAAT}		((sharp-comma-at-token-maker)	yygetc yyungetc yytext yyline yycolumn yyoffset)

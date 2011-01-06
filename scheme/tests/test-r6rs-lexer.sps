@@ -33,6 +33,7 @@
   (nausicaa parser-tools lexical-token)
   (nausicaa parser-tools source-location)
   (nausicaa r6rs lexer)
+  (nausicaa r6rs lexeme-processing)
   (nausicaa checks))
 
 (check-set-mode! 'report-failed)
@@ -1985,6 +1986,87 @@ mamma\"")
 
   (check (tokenise "#!r6rs")	=> '((SHARPBANGR6RS	"#!r6rs") *eoi*))
   (check (tokenise "#!")	=> '((SHARPBANG		"#!") *eoi*))
+
+  #t)
+
+
+(parametrise ((check-test-name	'full-sexp)
+	      (debugging	#f))
+
+  (define (tokenise string)
+    (let* ((IS		(lexer-make-IS (string: string) (counters: 'all)))
+	   (lexer	(make-token-lexer IS)))
+      (let next (((T <lexical-token>)	(lexer))
+		 (result		'()))
+	(cond (T.lexer-error?
+	       (reverse `((,T.category ,T.value) . ,result)))
+	      (T.end-of-input?
+	       (reverse `(*eoi* . ,result)))
+	      (else
+	       (next (lexer) `((,T.category ,T.value) . ,result)))))))
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (tokenise "( \"ciao\" ciao 123 )")
+    => '((OPAREN #\()
+	 (STRING "ciao")
+	 (IDENTIFIER ciao)
+	 (NUMBER 123)
+	 (CPAREN #\))
+	 *eoi*))
+
+  (check
+      (tokenise "(\"ciao\"ciao)")
+    => '((OPAREN #\()
+	 (STRING "ciao")
+	 (IDENTIFIER ciao)
+	 (CPAREN #\))
+	 *eoi*))
+
+  (check
+      (tokenise "(1.2 1/2 +1.3i)")
+    => '((OPAREN #\()
+	 (NUMBER 1.2)
+	 (NUMBER 1/2)
+	 (NUMBER +1.3i)
+	 (CPAREN #\))
+	 *eoi*))
+
+  (check
+      (tokenise "([1.2 1/2 +1.3i])")
+    => '((OPAREN #\()
+	 (OBRACKET #\[)
+	 (NUMBER 1.2)
+	 (NUMBER 1/2)
+	 (NUMBER +1.3i)
+	 (CBRACKET #\])
+	 (CPAREN #\))
+	 *eoi*))
+
+  (check
+      (tokenise "ciao#| per la |#mamma")
+    => '((IDENTIFIER ciao)
+	 (NESTED-COMMENT "#| per la |#")
+	 (IDENTIFIER mamma)
+	 *eoi*))
+
+  (let ((mt (lambda (yygetc yyungetc yytext yyline yycolumn yyoffset)
+	      (make* <lexical-token>
+		'THE-IDENTIFIER
+		(make* <source-location>
+		  (current-input-source) yyline yycolumn yyoffset)
+		(string->symbol yytext)
+		(string-length yytext)))))
+    (parametrise ((identifier-token-maker mt))
+      (check
+	  (tokenise "( \"ciao\" ciao 123 )")
+	=> '((OPAREN #\()
+	     (STRING "ciao")
+	     (THE-IDENTIFIER ciao)
+	     (NUMBER 123)
+	     (CPAREN #\))
+	     *eoi*))))
 
   #t)
 

@@ -45,7 +45,7 @@
     dot-token-maker			make-dot-token
     double-quote-token-maker		make-double-quote-token
     sharp-paren-token-maker		make-sharp-paren-token
-    sharp-vu8paren-token-maker		make-sharp-vu8paren-token
+    sharp-vu8-paren-token-maker		make-sharp-vu8-paren-token
     sharp-tick-token-maker		make-sharp-tick-token
     sharp-back-tick-token-maker		make-sharp-back-tick-token
     sharp-comma-at-token-maker		make-sharp-comma-at-token
@@ -67,7 +67,7 @@
     literal-character-token-maker	make-literal-character-token
     number-token-maker			make-number-token
     string-token-maker			make-string-token
-    nested-comment-maker		make-nested-comment-token
+    nested-comment-token-maker		make-nested-comment-token
     )
   (import (nausicaa)
     (nausicaa parser-tools lexical-token)
@@ -134,7 +134,7 @@
 (define (make-sharp-paren-token yygetc yyungetc yytext yyline yycolumn yyoffset)
   (make* <lexical-token> 'SHARPPAREN (input-source) "#(" 2))
 
-(define (make-sharp-vu8paren-token yygetc yyungetc yytext yyline yycolumn yyoffset)
+(define (make-sharp-vu8-paren-token yygetc yyungetc yytext yyline yycolumn yyoffset)
   (make* <lexical-token> 'SHARPVU8PAREN (input-source) "#vu8(" 4))
 
 (define (make-sharp-tick-token yygetc yyungetc yytext yyline yycolumn yyoffset)
@@ -152,6 +152,15 @@
 (define (make-sharp-semicolon-token yygetc yyungetc yytext yyline yycolumn yyoffset)
   (make* <lexical-token> 'SHARPSEMICOLON (input-source) "#;" 2))
 
+(define (make-sharp-bang-r6rs-token yygetc yyungetc yytext yyline yycolumn yyoffset)
+  (make* <lexical-token> 'SHARPBANGR6RS (input-source) "#!r6rs" 6))
+
+(define (make-sharp-bang-token yygetc yyungetc yytext yyline yycolumn yyoffset)
+  (make* <lexical-token> 'SHARPBANG (input-source) "#!" 2))
+
+(define (make-open-nested-comment-token yygetc yyungetc yytext yyline yycolumn yyoffset)
+  (make* <lexical-token> 'ONESTEDCOMMENT (input-source) "#|" 2))
+
 ;;; --------------------------------------------------------------------
 
 (define (make-line-comment-token yygetc yyungetc yytext yyline yycolumn yyoffset)
@@ -166,15 +175,6 @@
     (if (eof-object? ch)
 	(make* <lexical-token> 'LINECOMMENT (input-source) yytext (string-length yytext))
       ((lexical-error-token-maker) yygetc yyungetc yytext yyline yycolumn yyoffset))))
-
-(define (make-open-nested-comment-token yygetc yyungetc yytext yyline yycolumn yyoffset)
-  (make* <lexical-token> 'ONESTEDCOMMENT (input-source) "#|" 2))
-
-(define (make-sharp-bang-r6rs-token yygetc yyungetc yytext yyline yycolumn yyoffset)
-  (make* <lexical-token> 'SHARPBANGR6RS (input-source) "#!r6rs" 6))
-
-(define (make-sharp-bang-token yygetc yyungetc yytext yyline yycolumn yyoffset)
-  (make* <lexical-token> 'SHARPBANG (input-source) "#!" 2))
 
 (define (make-white-space-token yygetc yyungetc yytext yyline yycolumn yyoffset)
   (make* <lexical-token> 'WHITESPACE (input-source) yytext (string-length yytext)))
@@ -275,7 +275,7 @@
 (define-token-maker-parameter dot-token-maker			make-dot-token)
 (define-token-maker-parameter double-quote-token-maker		make-double-quote-token)
 (define-token-maker-parameter sharp-paren-token-maker		make-sharp-paren-token)
-(define-token-maker-parameter sharp-vu8paren-token-maker	make-sharp-vu8paren-token)
+(define-token-maker-parameter sharp-vu8-paren-token-maker	make-sharp-vu8-paren-token)
 (define-token-maker-parameter sharp-tick-token-maker		make-sharp-tick-token)
 (define-token-maker-parameter sharp-back-tick-token-maker	make-sharp-back-tick-token)
 (define-token-maker-parameter sharp-comma-at-token-maker	make-sharp-comma-at-token)
@@ -297,8 +297,8 @@
 (define-token-maker-parameter literal-character-token-maker	make-literal-character-token)
 (define-token-maker-parameter number-token-maker		make-number-token)
 
-(define-token-maker-parameter string-token-maker make-string-token)
-(define-token-maker-parameter nested-comment-maker make-nested-comment-token)
+(define-token-maker-parameter string-token-maker		make-string-token)
+(define-token-maker-parameter nested-comment-token-maker	make-nested-comment-token)
 
 
 ;;;; done

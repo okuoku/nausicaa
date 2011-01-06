@@ -231,30 +231,37 @@
 
 
 (define make-token-lexer
+  ;;This is the full R6RS  lexer function maker.  Given an input system,
+  ;;return a lexer function producing tokens.
+  ;;
   (case-lambda
    ((IS)
     (make-token-lexer IS r6rs-lexer-table))
    ((IS lexer-table)
     (let ((lexer (lexer-make-lexer lexer-table IS)))
       (lambda ()
-	(let (((T <lexical-token>) (lexer)))
+	(let next (((T <lexical-token>) (lexer)))
+	  (define (%string-token)
+	    (let ((S (read-string IS)))
+	      (if (string? S)
+		  ((string-token-maker) (lexer-get-func-getc IS) (lexer-get-func-ungetc IS)
+		   S T.location.line T.location.column T.location.offset)
+		S)))
+	  (define (%nested-comment-token)
+	    (let ((S (read-nested-comment IS)))
+	      (if (string? S)
+		  ((nested-comment-token-maker) (lexer-get-func-getc IS) (lexer-get-func-ungetc IS)
+		   S T.location.line T.location.column T.location.offset)
+		S)))
 	  (cond (T.special? T)
+		((eq? T.category 'WHITESPACE)
+		 (next (lexer)))
+                ((eq? T.category 'LINEENDING)
+                 (next (lexer)))
 		((eq? T.category 'DOUBLEQUOTE)
-		 (let ((S (read-string IS)))
-		   (if (string? S)
-		       ((line-comment-token-maker)
-			(lexer-get-func-getc IS)
-			(lexer-get-func-ungetc IS)
-			S T.location.line T.location.column T.location.offset)
-		     S)))
+		 (%string-token))
 		((eq? T.category 'ONESTEDCOMMENT)
-		 (let ((S (read-nested-comment IS)))
-		   (if (string? S)
-		       ((line-comment-token-maker)
-			(lexer-get-func-getc IS)
-			(lexer-get-func-ungetc IS)
-			S T.location.line T.location.column T.location.offset)
-		     S)))
+		 (%nested-comment-token))
 		(else T))))))))
 
 

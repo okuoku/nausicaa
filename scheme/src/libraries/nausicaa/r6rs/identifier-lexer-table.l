@@ -66,10 +66,10 @@ WRONG_PECULIAR_IDENTIFIER	("..."|(\->{SUBSEQUENT}*)){TAIL_OF_WRONG}
 {IDENTIFIER}		(string->symbol yytext)
 {PECULIAR_IDENTIFIER}	(string->symbol yytext)
 
-{WRONG_IDENTIFIER}	(silex-default-error-handler yytext)
-{WRONG_PECULIAR_IDENTIFIER}	(silex-default-error-handler yytext)
+{WRONG_IDENTIFIER}	    ((lexical-error-token-maker) yygetc yyungetc yytext yyline yycolumn yyoffset)
+{WRONG_PECULIAR_IDENTIFIER} ((lexical-error-token-maker) yygetc yyungetc yytext yyline yycolumn yyoffset)
 
-<<EOF>>			(silex-default-eof-handler)
-<<ERROR>>		(silex-default-error-handler)
+<<EOF>>			((eof-token-maker)		yygetc yyungetc yytext yyline yycolumn yyoffset)
+<<ERROR>>		((lexical-error-token-maker)	yygetc yyungetc yytext yyline yycolumn yyoffset)
 
 ;;; end of file

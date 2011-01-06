@@ -82,7 +82,7 @@
     #t
     (lambda (yycontinue yygetc yyungetc)
       (lambda (yytext yyline yycolumn yyoffset)
-               		((sharp-vu8paren-token-maker)	yygetc yyungetc yytext yyline yycolumn yyoffset)
+               		((sharp-vu8-paren-token-maker)	yygetc yyungetc yytext yyline yycolumn yyoffset)
         ))
     #t
     (lambda (yycontinue yygetc yyungetc)

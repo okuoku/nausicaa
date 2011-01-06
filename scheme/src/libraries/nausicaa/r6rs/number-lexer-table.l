@@ -140,11 +140,12 @@ WRONG_NUMBER		{NUMBER}{TAIL_OF_WRONG}
 %%
 
 {NUMBER}		(let ((n (string->number yytext)))
-			  (or n (silex-default-error-handler)))
+			  (or n ((lexical-error-token-maker)
+				 yygetc yyungetc yytext yyline yycolumn yyoffset)))
 
-{WRONG_NUMBER}		(silex-default-error-handler yytext)
+{WRONG_NUMBER}		((lexical-error-token-maker)	yygetc yyungetc yytext yyline yycolumn yyoffset)
 
-<<EOF>>			(silex-default-eof-handler)
-<<ERROR>>		(silex-default-error-handler)
+<<EOF>>			((eof-token-maker)		yygetc yyungetc yytext yyline yycolumn yyoffset)
+<<ERROR>>		((lexical-error-token-maker)	yygetc yyungetc yytext yyline yycolumn yyoffset)
 
 ;;; end of file

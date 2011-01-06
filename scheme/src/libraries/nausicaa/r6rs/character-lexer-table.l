@@ -75,11 +75,11 @@ WRONG_LITERAL_CHARACTER	{SHARPBACKSLASH}.{TAIL_OF_WRONG}
 
 {LITERAL_CHARACTER}	(string-ref yytext 2)
 
-{WRONG_NAMED_CHARACTER}		(silex-default-error-handler yytext)
-{WRONG_HEX_CHARACTER}		(silex-default-error-handler yytext)
-{WRONG_LITERAL_CHARACTER}	(silex-default-error-handler yytext)
+{WRONG_NAMED_CHARACTER}	  ((lexical-error-token-maker)	yygetc yyungetc yytext yyline yycolumn yyoffset)
+{WRONG_HEX_CHARACTER}	  ((lexical-error-token-maker)	yygetc yyungetc yytext yyline yycolumn yyoffset)
+{WRONG_LITERAL_CHARACTER} ((lexical-error-token-maker)	yygetc yyungetc yytext yyline yycolumn yyoffset)
 
-<<EOF>>			(silex-default-eof-handler)
-<<ERROR>>		(silex-default-error-handler)
+<<EOF>>			((eof-token-maker)		yygetc yyungetc yytext yyline yycolumn yyoffset)
+<<ERROR>>		((lexical-error-token-maker)	yygetc yyungetc yytext yyline yycolumn yyoffset)
 
 ;;; end of file

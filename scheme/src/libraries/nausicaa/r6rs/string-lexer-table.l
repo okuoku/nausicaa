@@ -104,13 +104,12 @@ STRING-ELEMENT		[^\"\\]+
 			       (num (string->number (substring yytext 2 (- len 1)) 16)))
 			  (if (or (<= 0 num #xD7FF) (<= #xE000 num #x10FFFF))
 			      (integer->char num)
-			    (make-<lexical-token> '*lexer-error*
-						  (make-<source-location> #f yyline yycolumn yyoffset)
-						  yytext len)))
+			    ((lexical-error-token-maker)
+			     yygetc yyungetc yytext yyline yycolumn yyoffset)))
 
 {STRING-ELEMENT}	yytext
 
-<<EOF>>			(silex-default-eof-handler)
-<<ERROR>>		(silex-default-error-handler)
+<<EOF>>			((eof-token-maker)		yygetc yyungetc yytext yyline yycolumn yyoffset)
+<<ERROR>>		((lexical-error-token-maker)	yygetc yyungetc yytext yyline yycolumn yyoffset)
 
 ;;; end of file

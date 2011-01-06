@@ -1,7 +1,7 @@
 (library (nausicaa r6rs nested-comment-lexer-table)
   (export
     r6rs-nested-comment-lexer-table)
-  (import (rnrs) (nausicaa silex lexer)(nausicaa silex default-error-handler)(nausicaa parser-tools lexical-token)(nausicaa parser-tools source-location))
+  (import (rnrs) (nausicaa silex lexer)(nausicaa r6rs lexeme-processing)(nausicaa parser-tools lexical-token)(nausicaa parser-tools source-location))
 
 ;
 ; Table generated from the file nested-comment-lexer-table.l by SILex 1.0
@@ -12,11 +12,11 @@
    'all
    (lambda (yycontinue yygetc yyungetc)
      (lambda (yytext yyline yycolumn yyoffset)
-       			(silex-default-eof-handler)
+       			((eof-token-maker)		yygetc yyungetc yytext yyline yycolumn yyoffset)
        ))
    (lambda (yycontinue yygetc yyungetc)
      (lambda (yytext yyline yycolumn yyoffset)
-         		(silex-default-error-handler)
+         		((lexical-error-token-maker)	yygetc yyungetc yytext yyline yycolumn yyoffset)
 
 ;;; end of file
        ))

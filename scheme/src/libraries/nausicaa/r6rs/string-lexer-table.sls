@@ -1,7 +1,7 @@
 (library (nausicaa r6rs string-lexer-table)
   (export
     r6rs-string-lexer-table)
-  (import (rnrs) (nausicaa silex lexer)(nausicaa silex default-error-handler)(nausicaa parser-tools lexical-token)(nausicaa parser-tools source-location))
+  (import (rnrs) (nausicaa silex lexer)(nausicaa r6rs lexeme-processing)(nausicaa parser-tools lexical-token)(nausicaa parser-tools source-location))
 
 ;
 ; Table generated from the file string-lexer-table.l by SILex 1.0
@@ -12,11 +12,11 @@
    'all
    (lambda (yycontinue yygetc yyungetc)
      (lambda (yytext yyline yycolumn yyoffset)
-       			(silex-default-eof-handler)
+       			((eof-token-maker)		yygetc yyungetc yytext yyline yycolumn yyoffset)
        ))
    (lambda (yycontinue yygetc yyungetc)
      (lambda (yytext yyline yycolumn yyoffset)
-         		(silex-default-error-handler)
+         		((lexical-error-token-maker)	yygetc yyungetc yytext yyline yycolumn yyoffset)
 
 ;;; end of file
        ))
@@ -85,9 +85,8 @@
 			       (num (string->number (substring yytext 2 (- len 1)) 16)))
 			  (if (or (<= 0 num #xD7FF) (<= #xE000 num #x10FFFF))
 			      (integer->char num)
-			    (make-<lexical-token> '*lexer-error*
-						  (make-<source-location> #f yyline yycolumn yyoffset)
-						  yytext len)))
+			    ((lexical-error-token-maker)
+			     yygetc yyungetc yytext yyline yycolumn yyoffset)))
         ))
     #t
     (lambda (yycontinue yygetc yyungetc)
