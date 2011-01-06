@@ -44,7 +44,14 @@ LINECOMMENT-NOEND	\;[^\10\13\133\8232\8233]*
 %%
 
 {LINECOMMENT}		yytext
-{LINECOMMENT-NOEND}	yytext
+{LINECOMMENT-NOEND}	(let ((ch (dynamic-wind
+				      (lambda () #f)
+				      (lambda ()
+					(yygetc))
+				      (lambda () (yyungetc)))))
+			  (if (eof-object? ch)
+			      yytext
+			    (silex-default-error-handler yytext)))
 <<EOF>>			(silex-default-eof-handler)
 <<ERROR>>		(silex-default-error-handler)
 

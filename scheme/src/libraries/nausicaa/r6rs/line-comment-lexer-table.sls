@@ -29,7 +29,14 @@
     #t
     (lambda (yycontinue yygetc yyungetc)
       (lambda (yytext yyline yycolumn yyoffset)
-                   	yytext
+                   	(let ((ch (dynamic-wind
+				      (lambda () #f)
+				      (lambda ()
+					(yygetc))
+				      (lambda () (yyungetc)))))
+			  (if (eof-object? ch)
+			      yytext
+			    (silex-default-error-handler yytext)))
         )))
    'code
    (lambda (<<EOF>>-pre-action
