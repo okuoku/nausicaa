@@ -63,8 +63,8 @@ WRONG_PECULIAR_IDENTIFIER	("..."|(\->{SUBSEQUENT}*)){TAIL_OF_WRONG}
 
 %%
 
-{IDENTIFIER}		(string->symbol yytext)
-{PECULIAR_IDENTIFIER}	(string->symbol yytext)
+{IDENTIFIER}		yytext
+{PECULIAR_IDENTIFIER}	yytext
 
 {WRONG_IDENTIFIER}	    ((lexical-error-token-maker) yygetc yyungetc yytext yyline yycolumn yyoffset)
 {WRONG_PECULIAR_IDENTIFIER} ((lexical-error-token-maker) yygetc yyungetc yytext yyline yycolumn yyoffset)

@@ -24,12 +24,12 @@
     #t
     (lambda (yycontinue yygetc yyungetc)
       (lambda (yytext yyline yycolumn yyoffset)
-            		(string->symbol yytext)
+            		yytext
         ))
     #t
     (lambda (yycontinue yygetc yyungetc)
       (lambda (yytext yyline yycolumn yyoffset)
-                     	(string->symbol yytext)
+                     	yytext
         ))
     #t
     (lambda (yycontinue yygetc yyungetc)

@@ -837,67 +837,67 @@ mamma\"")
 
   (check
       (tokenise "c")
-    => '(c *eoi*))
+    => '("c" *eoi*))
 
   (check
       (tokenise "ciao")
-    => '(ciao *eoi*))
+    => '("ciao" *eoi*))
 
   (check
       (tokenise "ciao-mamma")
-    => '(ciao-mamma *eoi*))
+    => '("ciao-mamma" *eoi*))
 
   (check
       (tokenise "->ciao")
-    => '(->ciao *eoi*))
+    => '("->ciao" *eoi*))
 
   (check
       (tokenise "?ciao")
-    => '(?ciao *eoi*))
+    => '("?ciao" *eoi*))
 
   (check
       (tokenise "?")
-    => '(? *eoi*))
+    => '("?" *eoi*))
 
   (check
       (tokenise "+")
-    => '(+ *eoi*))
+    => '("+" *eoi*))
 
   (check
       (tokenise "-")
-    => '(- *eoi*))
+    => '("-" *eoi*))
 
   (check
       (tokenise "...")
-    => '(... *eoi*))
+    => '("..." *eoi*))
 
   (check
       (tokenise "->")
-    => '(-> *eoi*))
+    => '("->" *eoi*))
 
   (check
       (tokenise "ciao123")
-    => '(ciao123 *eoi*))
+    => '("ciao123" *eoi*))
 
   (check
       (tokenise "ciao123+-.@")
-    => '(ciao123+-.@ *eoi*))
+    => '("ciao123+-.@" *eoi*))
 
   (check
       (tokenise "ciao123+-.@ciao")
-    => '(ciao123+-.@ciao *eoi*))
+    => '("ciao123+-.@ciao" *eoi*))
 
   (check	;char with Unicode category Nd
       (tokenise "ciao\\x0CE7;mamma")
-    => `(,(string->symbol "ciao\\x0CE7;mamma") *eoi*))
+    => `("ciao\\x0CE7;mamma" *eoi*))
 
   (check	;char with Unicode category Mc
       (tokenise "ciao\\x09BF;mamma")
-    => `(,(string->symbol "ciao\\x09BF;mamma") *eoi*))
+    => `("ciao\\x09BF;mamma" *eoi*))
 
   (check	;char with Unicode category Me
       (tokenise "ciao\\x20E4;mamma")
-    => `(,(string->symbol "ciao\\x20E4;mamma") *eoi*))
+    => `("ciao\\x20E4;mamma" *eoi*))
 
 ;;; --------------------------------------------------------------------
 
@@ -919,67 +919,67 @@ mamma\"")
 
   (check
       (parse "c")
-    => 'c)
+    => "c")
 
   (check
       (parse "ciao")
-    => 'ciao)
+    => "ciao")
 
   (check
       (parse "ciao-mamma")
-    => 'ciao-mamma)
+    => "ciao-mamma")
 
   (check
       (parse "->ciao")
-    => '->ciao)
+    => "->ciao")
 
   (check
       (parse "?ciao")
-    => '?ciao)
+    => "?ciao")
 
   (check
       (parse "?")
-    => '?)
+    => "?")
 
   (check
       (parse "+")
-    => '+)
+    => "+")
 
   (check
       (parse "-")
-    => '-)
+    => "-")
 
   (check
       (parse "...")
-    => '...)
+    => "...")
 
   (check
       (parse "->")
-    => '->)
+    => "->")
 
   (check
       (parse "ciao123")
-    => 'ciao123)
+    => "ciao123")
 
   (check
       (parse "ciao123+-.@")
-    => 'ciao123+-.@)
+    => "ciao123+-.@")
 
   (check
       (parse "ciao123+-.@ciao")
-    => 'ciao123+-.@ciao)
+    => "ciao123+-.@ciao")
 
   (check	;char with Unicode category Nd
       (parse "ciao\\x0CE7;mamma")
-    => (string->symbol "ciao\\x0CE7;mamma"))
+    => "ciao\\x0CE7;mamma")
 
   (check	;char with Unicode category Mc
       (parse "ciao\\x09BF;mamma")
-    => (string->symbol "ciao\\x09BF;mamma"))
+    => "ciao\\x09BF;mamma")
 
   (check	;char with Unicode category Me
       (parse "ciao\\x20E4;mamma")
-    => (string->symbol "ciao\\x20E4;mamma"))
+    => "ciao\\x20E4;mamma")
 
 ;;; --------------------------------------------------------------------
 
@@ -1010,7 +1010,7 @@ mamma\"")
   #t)
 
 
-(parametrise ((check-test-name	'identifier-tokeniser))
+(parametrise ((check-test-name	'number-tokeniser))
 
   (define (tokenise string)
     (let* ((IS		(lexer-make-IS (string: string) (counters: 'all)))
@@ -1379,67 +1379,67 @@ mamma\"")
 
   (check
       (tokenise "c")
-    => '((IDENTIFIER c) *eoi*))
+    => '((IDENTIFIER "c") *eoi*))
 
   (check
       (tokenise "ciao")
-    => '((IDENTIFIER ciao) *eoi*))
+    => '((IDENTIFIER "ciao") *eoi*))
 
   (check
       (tokenise "ciao-mamma")
-    => '((IDENTIFIER ciao-mamma) *eoi*))
+    => '((IDENTIFIER "ciao-mamma") *eoi*))
 
   (check
       (tokenise "->ciao")
-    => '((IDENTIFIER ->ciao) *eoi*))
+    => '((IDENTIFIER "->ciao") *eoi*))
 
   (check
       (tokenise "?ciao")
-    => '((IDENTIFIER ?ciao) *eoi*))
+    => '((IDENTIFIER "?ciao") *eoi*))
 
   (check
       (tokenise "?")
-    => '((IDENTIFIER ?) *eoi*))
+    => '((IDENTIFIER "?") *eoi*))
 
   (check
       (tokenise "+")
-    => '((IDENTIFIER +) *eoi*))
+    => '((IDENTIFIER "+") *eoi*))
 
   (check
       (tokenise "-")
-    => '((IDENTIFIER -) *eoi*))
+    => '((IDENTIFIER "-") *eoi*))
 
   (check
       (tokenise "...")
-    => '((IDENTIFIER ...) *eoi*))
+    => '((IDENTIFIER "...") *eoi*))
 
   (check
       (tokenise "->")
-    => '((IDENTIFIER ->) *eoi*))
+    => '((IDENTIFIER "->") *eoi*))
 
   (check
       (tokenise "ciao123")
-    => '((IDENTIFIER ciao123) *eoi*))
+    => '((IDENTIFIER "ciao123") *eoi*))
 
   (check
       (tokenise "ciao123+-.@")
-    => '((IDENTIFIER ciao123+-.@) *eoi*))
+    => '((IDENTIFIER "ciao123+-.@") *eoi*))
 
   (check
       (tokenise "ciao123+-.@ciao")
-    => '((IDENTIFIER ciao123+-.@ciao) *eoi*))
+    => '((IDENTIFIER "ciao123+-.@ciao") *eoi*))
 
   (check	;char with Unicode category Nd
       (tokenise "ciao\\x0CE7;mamma")
-    => `((IDENTIFIER ,(string->symbol "ciao\\x0CE7;mamma")) *eoi*))
+    => '((IDENTIFIER "ciao\\x0CE7;mamma") *eoi*))
 
   (check	;char with Unicode category Mc
       (tokenise "ciao\\x09BF;mamma")
-    => `((IDENTIFIER ,(string->symbol "ciao\\x09BF;mamma")) *eoi*))
+    => '((IDENTIFIER "ciao\\x09BF;mamma") *eoi*))
 
   (check	;char with Unicode category Me
       (tokenise "ciao\\x20E4;mamma")
-    => `((IDENTIFIER ,(string->symbol "ciao\\x20E4;mamma")) *eoi*))
+    => '((IDENTIFIER "ciao\\x20E4;mamma") *eoi*))
 
 ;;; --------------------------------------------------------------------
 
@@ -1810,11 +1810,11 @@ mamma\"")
 
   (check
       (tokenise "i")
-    => `((IDENTIFIER i) *eoi*))
+    => `((IDENTIFIER "i") *eoi*))
 
   (check
       (tokenise "/")
-    => `((IDENTIFIER /) *eoi*))
+    => `((IDENTIFIER "/") *eoi*))
 
   (test-lexical-error "0i")
   (test-lexical-error "1i+")
@@ -2011,7 +2011,7 @@ mamma\"")
       (tokenise "( \"ciao\" ciao 123 )")
     => '((OPAREN #\()
 	 (STRING "ciao")
-	 (IDENTIFIER ciao)
+	 (IDENTIFIER "ciao")
 	 (NUMBER 123)
 	 (CPAREN #\))
 	 *eoi*))
@@ -2020,7 +2020,7 @@ mamma\"")
       (tokenise "(\"ciao\"ciao)")
     => '((OPAREN #\()
 	 (STRING "ciao")
-	 (IDENTIFIER ciao)
+	 (IDENTIFIER "ciao")
 	 (CPAREN #\))
 	 *eoi*))
 
@@ -2046,9 +2046,9 @@ mamma\"")
 
   (check
       (tokenise "ciao#| per la |#mamma")
-    => '((IDENTIFIER ciao)
+    => '((IDENTIFIER "ciao")
 	 (NESTED-COMMENT "#| per la |#")
-	 (IDENTIFIER mamma)
+	 (IDENTIFIER "mamma")
 	 *eoi*))
 
   (let ((mt (lambda (yygetc yyungetc yytext yyline yycolumn yyoffset)

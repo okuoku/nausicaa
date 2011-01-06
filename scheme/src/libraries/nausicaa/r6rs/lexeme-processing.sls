@@ -185,7 +185,7 @@
 ;;; --------------------------------------------------------------------
 
 (define (make-identifier-token yygetc yyungetc yytext yyline yycolumn yyoffset)
-  (make* <lexical-token> 'IDENTIFIER (input-source) (string->symbol yytext) (string-length yytext)))
+  (make* <lexical-token> 'IDENTIFIER (input-source) yytext (string-length yytext)))
 
 (define (make-boolean-token yygetc yyungetc yytext yyline yycolumn yyoffset)
   (make* <lexical-token> 'BOOLEAN (input-source)
