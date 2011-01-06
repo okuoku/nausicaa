@@ -12,7 +12,7 @@
    'all
    (lambda (yycontinue yygetc yyungetc)
      (lambda (yytext yyline yycolumn yyoffset)
-       			((eof-token-maker)		yygetc yyungetc yytext yyline yycolumn yyoffset)
+       			((eoi-token-maker)		yygetc yyungetc yytext yyline yycolumn yyoffset)
        ))
    (lambda (yycontinue yygetc yyungetc)
      (lambda (yytext yyline yycolumn yyoffset)

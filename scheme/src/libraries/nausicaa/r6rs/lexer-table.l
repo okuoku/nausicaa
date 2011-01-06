@@ -662,7 +662,7 @@ WRONG_BOOLEAN		{BOOLEAN}{TAIL_OF_WRONG}
 ;;page
 ;;;; done
 
-<<EOF>>			((eof-token-maker)		yygetc yyungetc yytext yyline yycolumn yyoffset)
+<<EOF>>			((eoi-token-maker)		yygetc yyungetc yytext yyline yycolumn yyoffset)
 <<ERROR>>		((lexical-error-token-maker)	yygetc yyungetc yytext yyline yycolumn yyoffset)
 
 ;;; end of file

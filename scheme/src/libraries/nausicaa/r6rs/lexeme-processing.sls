@@ -32,7 +32,7 @@
 
     ;; token maker parameters		 default token makers
     lexical-error-token-maker		make-lexical-error-token
-    eof-token-maker			make-eof-token
+    eoi-token-maker			make-eoi-token
 
     open-paren-token-maker		make-open-paren-token
     close-paren-token-maker		make-close-paren-token
@@ -96,7 +96,7 @@
 (define (make-lexical-error-token yygetc yyungetc yytext yyline yycolumn yyoffset)
   (silex-default-error-handler yytext))
 
-(define (make-eof-token yygetc yyungetc yytext yyline yycolumn yyoffset)
+(define (make-eoi-token yygetc yyungetc yytext yyline yycolumn yyoffset)
   (silex-default-eof-handler))
 
 ;;; --------------------------------------------------------------------
@@ -262,7 +262,7 @@
 	       "expected procedure as parameter value" obj))))))))
 
 (define-token-maker-parameter lexical-error-token-maker		make-lexical-error-token)
-(define-token-maker-parameter eof-token-maker			make-eof-token)
+(define-token-maker-parameter eoi-token-maker			make-eoi-token)
 
 (define-token-maker-parameter open-paren-token-maker		make-open-paren-token)
 (define-token-maker-parameter close-paren-token-maker		make-close-paren-token)

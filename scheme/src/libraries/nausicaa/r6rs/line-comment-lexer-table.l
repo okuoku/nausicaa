@@ -54,7 +54,7 @@ LINECOMMENT-NOEND	\;[^\10\13\133\8232\8233]*
 			    ((lexical-error-token-maker)
 			     yygetc yyungetc yytext yyline yycolumn yyoffset)))
 
-<<EOF>>			((eof-token-maker)		yygetc yyungetc yytext yyline yycolumn yyoffset)
+<<EOF>>			((eoi-token-maker)		yygetc yyungetc yytext yyline yycolumn yyoffset)
 <<ERROR>>		((lexical-error-token-maker)	yygetc yyungetc yytext yyline yycolumn yyoffset)
 
 ;;; end of file
