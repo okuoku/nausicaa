@@ -124,7 +124,7 @@
       (raise
        (condition (make-lexical-violation)
 		  (make-message-condition message)
-		  (make-who-condition 'read-string)
+		  (make-who-condition 'read-identifier)
 		  (make-irritants-condition (list T.value)))))
     (cond (T.end-of-input?
 	   (%error "end of input found while reading identifier"))
@@ -149,7 +149,7 @@
       (raise
        (condition (make-lexical-violation)
 		  (make-message-condition message)
-		  (make-who-condition 'read-string)
+		  (make-who-condition 'read-number)
 		  (make-irritants-condition (list T.value)))))
     (cond (T.end-of-input?
 	   (%error "end of input found while reading number"))
