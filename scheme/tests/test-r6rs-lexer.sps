@@ -1927,7 +1927,7 @@ mamma\"")
   (check (tokenise "#;")	=> '((SHARPSEMICOLON	"#;") *eoi*))
 
   (check (tokenise "#!r6rs")	=> '((SHARPBANGR6RS	"#!r6rs") *eoi*))
-  (check (tokenise "#!")	=> '((SHARPBANG		"#!") *eoi*))
+  (check (tokenise "#!ciao")	=> '((SHARPBANG		"#!ciao") *eoi*))
 
   ;;Fine here, but in a full lexer a double quote must open a string.
   (check (tokenise "\"")	=> '((DOUBLEQUOTE	#\") *eoi*))
@@ -1985,7 +1985,7 @@ mamma\"")
   (check (tokenise "#;")	=> '((SHARPSEMICOLON	"#;") *eoi*))
 
   (check (tokenise "#!r6rs")	=> '((SHARPBANGR6RS	"#!r6rs") *eoi*))
-  (check (tokenise "#!")	=> '((SHARPBANG		"#!") *eoi*))
+  (check (tokenise "#!ciao")	=> '((SHARPBANG		"#!ciao") *eoi*))
 
   #t)
 

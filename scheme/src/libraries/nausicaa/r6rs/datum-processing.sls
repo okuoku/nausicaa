@@ -147,8 +147,8 @@
 (define (make-sharp-semicolon-datum yypushback yycustom the-datum)
   string.sharp-bang-r6rs)
 
-(define (make-sharp-bang-datum yypushback yycustom the-identifier-datum)
-  (string-append "#!" (symbol->string the-identifier-datum)))
+(define (make-sharp-bang-datum yypushback yycustom the-sharp-bang-string)
+  the-sharp-bang-string)
 
 (define (make-sharp-bang-r6rs-datum yypushback yycustom the-sharp-bang-r6rs-string)
   the-sharp-bang-r6rs-string)

@@ -235,7 +235,7 @@
      (LINECOMMENT)			: ((line-comment-datum-maker)    yypushback yycustom $1)
      (NESTEDCOMMENT)			: ((nested-comment-datum-maker)  yypushback yycustom $1)
      (SHARPBANGR6RS)			: ((sharp-bang-r6rs-datum-maker) yypushback yycustom $1)
-     (SHARPBANG identifier)		: ((sharp-bang-datum-maker)      yypushback yycustom $2)
+     (SHARPBANG)			: ((sharp-bang-datum-maker)      yypushback yycustom $1)
      (SHARPSEMICOLON
       interlexeme-space datum)		: ((sharp-semicolon-datum-maker) yypushback yycustom $3))
 

@@ -156,9 +156,6 @@
 (define (make-sharp-bang-r6rs-token yygetc yyungetc yytext yyline yycolumn yyoffset)
   (make* <lexical-token> 'SHARPBANGR6RS (input-source) string.sharp-bang-r6rs 6))
 
-(define (make-sharp-bang-token yygetc yyungetc yytext yyline yycolumn yyoffset)
-  (make* <lexical-token> 'SHARPBANG (input-source) string.sharp-bang 2))
-
 (define (make-open-nested-comment-token yygetc yyungetc yytext yyline yycolumn yyoffset)
   (make* <lexical-token> 'ONESTEDCOMMENT (input-source) string.open-nested-comment 2))
 
@@ -182,6 +179,9 @@
 
 (define (make-line-ending-token yygetc yyungetc yytext yyline yycolumn yyoffset)
   (make* <lexical-token> 'LINEENDING (input-source) yytext (string-length yytext)))
+
+(define (make-sharp-bang-token yygetc yyungetc yytext yyline yycolumn yyoffset)
+  (make* <lexical-token> 'SHARPBANG (input-source) yytext (string-length yytext)))
 
 ;;; --------------------------------------------------------------------
 

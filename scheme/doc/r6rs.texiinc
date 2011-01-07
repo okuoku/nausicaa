@@ -388,13 +388,6 @@ a @samp{#!r6rs} token.  The default is
 @func{make-sharp-bang-r6rs-token}.
 @end deffn
 
-
-@deffn Parameter sharp-bang-token-maker
-Set to a function returning a @class{lexical-token} record representing
-a sharp--bang, @samp{#!}; this token should be followed by an
-identifier.  The default is @func{make-sharp-bang-token}.
-@end deffn
-
 @c page
 @node r6rs lexer params variable
 @subsubsection Variable semantic value token maker parameters
@@ -428,6 +421,13 @@ a white space.  The default is @func{make-white-space-token}.
 @deffn Parameter line-ending-token-maker
 Set to a function returning a @class{lexical-token} record representing
 a line ending.  The default is @func{make-line-ending-token}.
+@end deffn
+
+
+@deffn Parameter sharp-bang-token-maker
+Set to a function returning a @class{lexical-token} record representing
+a sharp--bang plus identifier, @samp{#!---}.  The default is
+@func{make-sharp-bang-token}.
 @end deffn
 
 @c page
@@ -738,13 +738,6 @@ token.  The category is set to the symbol @code{SHARPBANGR6RS}; the
 semantic value is set to the string @code{"#!r6rs"}.
 @end defun
 
-
-@defun make-sharp-bang-token @var{yygetc} @var{yyungetc} @var{yytext} @var{yyline} @var{yycolumn} @var{yyoffset}
-Return a @class{lexical-token} record representing a sharp--bang,
-@samp{#!}.  The category is set to the symbol @code{SHARPBANG}; the
-semantic value is set to the string @code{"#!"}.
-@end defun
-
 @c page
 @node r6rs lexer makers variable
 @subsubsection Variable semantic value token makers
@@ -791,6 +784,14 @@ set to the string representing the blank characters.
 Return a @class{lexical-token} record representing a line ending.  The
 category is set to the symbol @code{LINEENDING}; the semantic value is
 set to the string representing the line ending character or characters.
+@end defun
+
+
+@defun make-sharp-bang-token @var{yygetc} @var{yyungetc} @var{yytext} @var{yyline} @var{yycolumn} @var{yyoffset}
+Return a @class{lexical-token} record representing a sharp--bang plus
+identifier, @samp{#!---}.  The category is set to the symbol
+@code{SHARPBANG}; the semantic value is set to a string whose prefix is
+@code{#!} followed by the identifier.
 @end defun
 
 @c page

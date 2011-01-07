@@ -595,7 +595,7 @@ WRONG_NUMBER		{NUMBER}{TAIL_OF_WRONG}
 ;;;; misc stuff
 
 SHARPBANGR6RS		#!r6rs
-SHARPBANG		#!
+SHARPBANGIDENTIFIER	#!({IDENTIFIER}|{PECULIAR_IDENTIFIER})
 
 BOOLEAN			#t|#f|#T|#F
 WRONG_BOOLEAN		{BOOLEAN}{TAIL_OF_WRONG}
@@ -628,7 +628,7 @@ WRONG_BOOLEAN		{BOOLEAN}{TAIL_OF_WRONG}
 {ONESTEDCOMMENT}	((open-nested-comment-token-maker)
 			 yygetc yyungetc yytext yyline yycolumn yyoffset)
 {SHARPBANGR6RS}		((sharp-bang-r6rs-token-maker)	yygetc yyungetc yytext yyline yycolumn yyoffset)
-{SHARPBANG}		((sharp-bang-token-maker)	yygetc yyungetc yytext yyline yycolumn yyoffset)
+{SHARPBANGIDENTIFIER}	((sharp-bang-token-maker)	yygetc yyungetc yytext yyline yycolumn yyoffset)
 {WHITESPACE}		((white-space-token-maker)	yygetc yyungetc yytext yyline yycolumn yyoffset)
 {LINEENDING}		((line-ending-token-maker)	yygetc yyungetc yytext yyline yycolumn yyoffset)
 
