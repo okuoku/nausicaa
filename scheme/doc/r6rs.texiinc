@@ -8,6 +8,7 @@ standard.
 
 @menu
 * r6rs lexer::                  Tokenising @rnrs{6} source code.
+* r6rs fixed-strings::          A collection of common strings.
 @end menu
 
 @c page
@@ -586,7 +587,9 @@ error.
 
 
 The following bindings are exported by the library @library{nausicaa
-r6rs lexeme-processing}.
+r6rs lexeme-processing}.  All the functions make use of the fixed
+strings from @library{nausicaa r6rs fixed-strings} as semantic values;
+@ref{r6rs fixed-strings} for details.
 
 
 @defun make-open-paren-token @var{yygetc} @var{yyungetc} @var{yytext} @var{yyline} @var{yycolumn} @var{yyoffset}
@@ -1400,6 +1403,155 @@ The implementation of this function is a useful example of usage for
            "lexical violation while reading line comment"))
           (else T))))
 @end example
+@end defun
+
+@c page
+@node r6rs fixed-strings
+@section A collection of common strings
+
+
+The library @library{nausicaa r6rs fixed-strings} exports bindings to
+common strings which are meant to be comparable using @func{eq?}.
+
+@c ------------------------------------------------------------
+
+@subsubheading Scheme source strings
+
+@defun comma-at
+Bound to the string @samp{",@@"}.
+@end defun
+
+
+@defun sharp-paren
+Bound to the string @samp{"#("}.
+@end defun
+
+
+@defun sharp-vu8-paren
+Bound to the string @samp{"#vu8("}.
+@end defun
+
+
+@defun sharp-tick
+Bound to the string @samp{"#'"}.
+@end defun
+
+
+@defun sharp-back-tick
+Bound to the string @samp{"#`"}.
+@end defun
+
+
+@defun sharp-comma-at
+Bound to the string @samp{"#,@@"}.
+@end defun
+
+
+@defun sharp-comma-
+Bound to the string @samp{"#,"}.
+@end defun
+
+
+@defun sharp-semicolon
+Bound to the string @samp{"#;"}.
+@end defun
+
+
+@defun sharp-bang-r6rs
+Bound to the string @samp{"#!r6rs"}.
+@end defun
+
+
+@defun sharp-bang
+Bound to the string @samp{"#!"}.
+@end defun
+
+
+@defun open-nested-comment
+Bound to the string @samp{"#|"}.
+@end defun
+
+
+@defun true-small
+Bound to the string @samp{"#t"}.
+@end defun
+
+
+@defun true-capital
+Bound to the string @samp{"#T"}.
+@end defun
+
+
+@defun false-small
+Bound to the string @samp{"#f"}.
+@end defun
+
+
+@defun false-capital
+Bound to the string @samp{"#F"}.
+@end defun
+
+@c ------------------------------------------------------------
+
+@subsubheading Named character strings
+
+@defun named-character-nul
+Bound to the string @samp{"#\\nul"}.
+@end defun
+
+
+@defun named-character-alarm
+Bound to the string @samp{"#\\alarm"}.
+@end defun
+
+
+@defun named-character-backspace
+Bound to the string @samp{"#\\backspace"}.
+@end defun
+
+
+@defun named-character-tab
+Bound to the string @samp{"#\\tab"}.
+@end defun
+
+
+@defun named-character-linefeed
+Bound to the string @samp{"#\\linefeed"}.
+@end defun
+
+
+@defun named-character-newline
+Bound to the string @samp{"#\\newline"}.
+@end defun
+
+
+@defun named-character-vtab
+Bound to the string @samp{"#\\vtab"}.
+@end defun
+
+
+@defun named-character-page
+Bound to the string @samp{"#\\page"}.
+@end defun
+
+
+@defun named-character-return
+Bound to the string @samp{"#\\return"}.
+@end defun
+
+
+@defun named-character-esc
+Bound to the string @samp{"#\\esc"}.
+@end defun
+
+
+@defun named-character-space
+Bound to the string @samp{"#\\space"}.
+@end defun
+
+
+@defun named-character-delete
+Bound to the string @samp{"#\\delete")}.
 @end defun
 
 @c end of file

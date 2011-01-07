@@ -72,7 +72,8 @@
   (import (nausicaa)
     (nausicaa parser-tools lexical-token)
     (nausicaa parser-tools source-location)
-    (nausicaa silex default-error-handler))
+    (nausicaa silex default-error-handler)
+    (prefix (nausicaa r6rs fixed-strings) string.))
 
 
 ;;;; input source handling
@@ -120,7 +121,7 @@
   (make* <lexical-token> 'BACKTICK (input-source) #\` 1))
 
 (define (make-comma-at-token yygetc yyungetc yytext yyline yycolumn yyoffset)
-  (make* <lexical-token> 'COMMAAT (input-source) ",@" 2))
+  (make* <lexical-token> 'COMMAAT (input-source) string.comma-at 2))
 
 (define (make-comma-token yygetc yyungetc yytext yyline yycolumn yyoffset)
   (make* <lexical-token> 'COMMA (input-source) #\, 1))
@@ -132,34 +133,34 @@
   (make* <lexical-token> 'DOUBLEQUOTE (input-source) #\" 1))
 
 (define (make-sharp-paren-token yygetc yyungetc yytext yyline yycolumn yyoffset)
-  (make* <lexical-token> 'SHARPPAREN (input-source) "#(" 2))
+  (make* <lexical-token> 'SHARPPAREN (input-source) string.sharp-paren 2))
 
 (define (make-sharp-vu8-paren-token yygetc yyungetc yytext yyline yycolumn yyoffset)
-  (make* <lexical-token> 'SHARPVU8PAREN (input-source) "#vu8(" 4))
+  (make* <lexical-token> 'SHARPVU8PAREN (input-source) string.sharp-vu8-paren 4))
 
 (define (make-sharp-tick-token yygetc yyungetc yytext yyline yycolumn yyoffset)
-  (make* <lexical-token> 'SHARPTICK (input-source) "#'" 2))
+  (make* <lexical-token> 'SHARPTICK (input-source) string.sharp-tick 2))
 
 (define (make-sharp-back-tick-token yygetc yyungetc yytext yyline yycolumn yyoffset)
-  (make* <lexical-token> 'SHARPBACKTICK (input-source) "#`" 2))
+  (make* <lexical-token> 'SHARPBACKTICK (input-source) string.sharp-back-tick 2))
 
 (define (make-sharp-comma-at-token yygetc yyungetc yytext yyline yycolumn yyoffset)
-  (make* <lexical-token> 'SHARPCOMMAAT (input-source) "#,@" 3))
+  (make* <lexical-token> 'SHARPCOMMAAT (input-source) string.sharp-comma-at 3))
 
 (define (make-sharp-comma-token yygetc yyungetc yytext yyline yycolumn yyoffset)
-  (make* <lexical-token> 'SHARPCOMMA (input-source) "#," 1))
+  (make* <lexical-token> 'SHARPCOMMA (input-source) string.sharp-comma 1))
 
 (define (make-sharp-semicolon-token yygetc yyungetc yytext yyline yycolumn yyoffset)
-  (make* <lexical-token> 'SHARPSEMICOLON (input-source) "#;" 2))
+  (make* <lexical-token> 'SHARPSEMICOLON (input-source) string.sharp-semicolon 2))
 
 (define (make-sharp-bang-r6rs-token yygetc yyungetc yytext yyline yycolumn yyoffset)
-  (make* <lexical-token> 'SHARPBANGR6RS (input-source) "#!r6rs" 6))
+  (make* <lexical-token> 'SHARPBANGR6RS (input-source) string.sharp-bang-r6rs 6))
 
 (define (make-sharp-bang-token yygetc yyungetc yytext yyline yycolumn yyoffset)
-  (make* <lexical-token> 'SHARPBANG (input-source) "#!" 2))
+  (make* <lexical-token> 'SHARPBANG (input-source) string.sharp-bang 2))
 
 (define (make-open-nested-comment-token yygetc yyungetc yytext yyline yycolumn yyoffset)
-  (make* <lexical-token> 'ONESTEDCOMMENT (input-source) "#|" 2))
+  (make* <lexical-token> 'ONESTEDCOMMENT (input-source) string.open-nested-comment 2))
 
 ;;; --------------------------------------------------------------------
 
@@ -191,10 +192,10 @@
   (make* <lexical-token> 'BOOLEAN (input-source)
 	 ;;Notice that  we cannot use a  CASE with strings;  refer to the
 	 ;;definition of EQV? in the R6RS document.
-	 (cond ((or (string=? yytext "#t")
-		    (string=? yytext "#T")) #t)
-	       ((or (string=? yytext "#f")
-		    (string=? yytext "#F")) #f)
+	 (cond ((or (string=? yytext string.true-small)
+		    (string=? yytext string.true-capital)) #t)
+	       ((or (string=? yytext string.false-small)
+		    (string=? yytext string.false-capital)) #f)
 	       (else
 		;;Notice that this should never happen.
 		(assertion-violation 'make-boolean-token
@@ -205,18 +206,18 @@
   (make* <lexical-token> 'CHARACTER (input-source)
 	 ;;Notice that  we cannot use a  CASE with strings;  refer to the
 	 ;;definition of EQV? in the R6RS document.
-	 (cond ((string=? yytext "#\\nul")	#\nul)
-	       ((string=? yytext "#\\alarm")	#\alarm)
-	       ((string=? yytext "#\\backspace")	#\backspace)
-	       ((string=? yytext "#\\tab")	#\tab)
-	       ((string=? yytext "#\\linefeed")	#\linefeed)
-	       ((string=? yytext "#\\newline")	#\newline)
-	       ((string=? yytext "#\\vtab")	#\vtab)
-	       ((string=? yytext "#\\page")	#\page)
-	       ((string=? yytext "#\\return")	#\return)
-	       ((string=? yytext "#\\esc")	#\esc)
-	       ((string=? yytext "#\\space")	#\space)
-	       ((string=? yytext "#\\delete")	#\delete)
+	 (cond ((string=? yytext string.named-character-nul)		#\nul)
+	       ((string=? yytext string.named-character-alarm)		#\alarm)
+	       ((string=? yytext string.named-character-backspace)	#\backspace)
+	       ((string=? yytext string.named-character-tab)		#\tab)
+	       ((string=? yytext string.named-character-linefeed)	#\linefeed)
+	       ((string=? yytext string.named-character-newline)	#\newline)
+	       ((string=? yytext string.named-character-vtab)		#\vtab)
+	       ((string=? yytext string.named-character-page)		#\page)
+	       ((string=? yytext string.named-character-return)		#\return)
+	       ((string=? yytext string.named-character-esc)		#\esc)
+	       ((string=? yytext string.named-character-space)		#\space)
+	       ((string=? yytext string.named-character-delete)		#\delete)
 	       (else
 		;;Notice that this should never happen.
 		(assertion-violation 'make-named-character-token

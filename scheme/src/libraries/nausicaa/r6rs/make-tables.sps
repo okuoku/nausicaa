@@ -1,4 +1,4 @@
-;;; -*- coding: utf-8 -*-
+;;; -*- coding: utf-8-unix -*-
 ;;;
 ;;;Part of: Nausicaa/Scheme
 ;;;Contents: SILex and LALR tables for R6RS lexer and parser
@@ -101,13 +101,13 @@
 	 (lex.lexer-format:	'code)
 	 (lex.counters:		'all))
 
-;;; --------------------------------------------------------------------
-
+
 (lalr.lalr-parser
 
  (lalr.output-file:	"parser-table.sls")
- (lalr.parser-name:	'make-r6rs-parser-parser)
+ (lalr.parser-name:	'make-r6rs-parser)
  (lalr.library-spec:	'(nausicaa r6rs parser-table))
+ (lalr.library-imports:	'((nausicaa r6rs datum-processing)))
 
  (lalr.terminals:	'( ;;
 			  OPAREN		CPAREN
@@ -131,38 +131,88 @@
 			  SHARPBANGR6RS		SHARPBANG))
 
  (lalr.rules:
-  '((lexeme		(IDENTIFIER)		: $1
-			(BOOLEAN)		: $1
-			(NUMBER)		: $1
-			(CHARACTER)		: $1
-			(STRING)		: $1
-			(OPAREN)		: $1
-			(CPAREN)		: $1
-			(OBRACKET)		: $1
-			(CBRACKET)		: $1
-			(SHARPPAREN)		: $1
-			(SHARPVU8PAREN)		: $1
-			(TICK)			: $1
-			(BACKTICK)		: $1
-			(COMMA)			: $1
-			(COMMAAT)		: $1
-			(DOT)			: $1
-			(SHARPTICK)		: $1
-			(SHARPBACKTICK)		: $1
-			(SHARPCOMMA)		: $1
-			(SHARPCOMMAAT)		: $1)
+  '((datum
+     (identifier)		: $1
+     (boolean)			: $1
+     (number)			: $1
+     (string)			: $1
+     (character)		: $1
+     (vector)			: $1
+     (bytevector)		: $1
+     (pair)			: $1
+     (list)			: $1)
 
-    (interlexeme-space	(atmosphere atmosphere-tail)		: $1)
-    (atmosphere		(WHITESPACE)				: $1
-			(comment)				: #f)
-    (atmosphere-tail	(atmosphere atmosphere-tail)		: $1)
+    (identifier
+     (IDENTIFIER)	: ((identifier-datum-maker)	yypushback yycustom $1))
 
-    (comment		(LINECOMMENT)				: #f
-			(NESTEDCOMMENT)				: #f
-			(SHARPBANGR6RS)				: #f
-			;;FIXME the following must end with a DATUM token
-			(SHARPBANG interlexeme-space )		: #f)
+    (boolean
+     (BOOLEAN)		: ((boolean-datum-maker)	yypushback yycustom $1))
 
+    (number
+     (NUMBER)		: ((number-datum-maker)		yypushback yycustom $1))
+
+    (character
+     (CHARACTER)	: ((character-datum-maker)	yypushback yycustom $1))
+
+    (string
+     (STRING)		: ((string-datum-maker)		yypushback yycustom $1))
+
+    (pair
+     (OPAREN datum DOT datum CPAREN)	: ((pair-datum-maker) yypushback yycustom $2 $4))
+
+    (list
+     (OPAREN   datum paren-list-tail)	: ((list-datum-maker) yypushback yycustom (cons $2 $3))
+     (OBRACKET datum bracket-list-tail)	: ((list-datum-maker) yypushback yycustom (cons $2 $3)))
+    (paren-list-tail
+     (CPAREN)				: '()
+     (datum paren-list-tail)		: (cons $1 $2))
+    (bracket-list-tail
+     (CBRACKET)				: '()
+     (datum bracket-list-tail)		: (cons $1 $2))
+
+    (vector
+     (SHARPPAREN datum vector-tail)	: ((vector-datum-maker) yypushback yycustom (cons $2 $3)))
+    (vector-tail
+     (CPAREN)				: '()
+     (datum vector-tail)		: (cons $1 $2))
+
+    (bytevector
+     (SHARPVU8PAREN datum bvector-tail)	: ((bytevector-datum-maker) yypushback yycustom (cons $2 $3)))
+    (bvector-tail
+     (CPAREN)				: '()
+     (datum bvector-tail)		: (cons $1 $2))
+
+    (quoted-datum
+     (TICK datum)			: ((quoted-datum-maker) yypushback yycustom $2))
+    (quasiquoted-datum
+     (BACKTICK datum)			: ((quasiquoted-datum-maker) yypushback yycustom $2))
+    (unquoted-datum
+     (COMMA datum)			: ((unquoted-datum-maker) yypushback yycustom $2))
+    (unquoted-splicing-datum
+     (COMMAAT datum)			: ((unquoted-splicing-datum-maker) yypushback yycustom $2))
+
+    (syntax-datum
+     (SHARPTICK datum)			: ((syntax-datum-maker) yypushback yycustom $2))
+    (quasisyntax-datum
+     (SHARPBACKTICK datum)		: ((quasisyntax-datum-maker) yypushback yycustom $2))
+    (unsyntax-datum
+     (SHARPCOMMA datum)			: ((unsyntax-datum-maker) yypushback yycustom $2))
+    (unsyntax-splicing-datum
+     (SHARPCOMMAAT datum)		: ((unsyntax-splicing-datum-maker) yypushback yycustom $2))
+
+    (interlexeme-space
+     (atmosphere atmosphere-tail)	: $1)
+    (atmosphere
+     (WHITESPACE)			: $1
+     (comment)				: #f)
+    (atmosphere-tail
+     (atmosphere atmosphere-tail)	: $1)
+
+    (comment
+     (LINECOMMENT)				: #f
+     (NESTEDCOMMENT)				: #f
+     (SHARPBANGR6RS)				: ((sharp-bang-r6rs-datum-maker) yypushback yycustom $1)
+     (SHARPBANG interlexeme-space identifier)	: ((sharp-bang-datum-maker) yypushback yycustom $3))
     )))
 
 ;;; end of file

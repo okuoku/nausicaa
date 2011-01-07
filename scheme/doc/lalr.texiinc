@@ -1010,18 +1010,18 @@ implementing an instance of the parser.
 @end deffn
 
 
-@deffn {Auxiliary Syntax} terminals: @var{sexpr}
+@deffn {Auxiliary Syntax} {terminals:} @var{sexpr}
 Specifies a list representing the terminal symbols, their precedence and
 their associativity.
 @end deffn
 
 
-@deffn {Auxiliary Syntax} rules: @var{sexpr}
+@deffn {Auxiliary Syntax} {rules:} @var{sexpr}
 Specifies a list representing the grammar production rules.
 @end deffn
 
 
-@deffn {Auxiliary Syntax} expect: @var{number-of-conflicts}
+@deffn {Auxiliary Syntax} {expect:} @var{number-of-conflicts}
 Specifies the number of rule conflicts we expect in the parser
 definition.  The default is zero.
 
@@ -1032,13 +1032,13 @@ displayed on the error port.
 @end deffn
 
 
-@deffn {Auxiliary Syntax} parser-type: @var{driver}
+@deffn {Auxiliary Syntax} {parser-type:} @var{driver}
 Select the type of tables to generate.  Available drivers are selected
 with a symbol among: @samp{lr}, @samp{glr}.  The default is @samp{lr}.
 @end deffn
 
 
-@deffn {Auxiliary Syntax} output-value: #t|#f
+@deffn {Auxiliary Syntax} {output-value:} #t|#f
 If the value is true, instruct @func{lalr-parser} to evaluate the output
 with @func{eval} and return a proper Scheme function implementing a
 parser maker.  @nauref{stdlib eval, Evaluation}
@@ -1061,7 +1061,7 @@ When used together, this option supersedes @samp{output-port:} and
 @end deffn
 
 
-@deffn {Auxiliary Syntax} output-port: @var{port}
+@deffn {Auxiliary Syntax} {output-port:} @var{port}
 Instruct @func{lalr-parser} to print the generated code to the specified
 port.  When used together, this option supersedes @samp{output-file:}.
 
@@ -1072,7 +1072,7 @@ and @samp{parser-name:} for details on the other output types.
 @end deffn
 
 
-@deffn {Auxiliary Syntax} output-file: @var{pathname}
+@deffn {Auxiliary Syntax} {output-file:} @var{pathname}
 Instruct @func{lalr-parser} to save the generated code to the specified
 file; the file will be overwritten if it already exists.  @var{pathname}
 must be a Scheme string representing a file pathname.
@@ -1084,7 +1084,7 @@ and @samp{parser-name:} for details on the other output types.
 @end deffn
 
 
-@deffn {Auxiliary Syntax} dump-table: @var{pathname}
+@deffn {Auxiliary Syntax} {dump-table:} @var{pathname}
 Instruct @func{lalr-parser} to save a human readable dump of the
 generated parser in the specified file.  The file will be overwritten if
 it already exists.  This is useful for debugging purposes (if we know
@@ -1092,7 +1092,7 @@ how the parser works).
 @end deffn
 
 
-@deffn {Auxiliary Syntax} parser-name: @var{name}
+@deffn {Auxiliary Syntax} {parser-name:} @var{name}
 Instruct @func{lalr-parser} to use the symbol @var{name} as identifier
 to which bind the parser maker function.  It is mandatory to use this
 option when generating a library.
@@ -1108,7 +1108,7 @@ If this option is used, but @samp{library-spec:} is not: The output is a
 @end deffn
 
 
-@deffn {Auxiliary Syntax} library-spec: @var{spec}
+@deffn {Auxiliary Syntax} {library-spec:} @var{spec}
 Instruct @func{lalr-parser} to generate a proper Scheme library, holding
 the parser definition and exporting a binding to the parser maker
 function.  @var{spec} must be a proper @meta{library name} as defined by
@@ -1136,7 +1136,7 @@ used for the @samp{parser-name:} option:
 @end deffn
 
 
-@deffn {Auxiliary Syntax} library-imports: @var{imports}
+@deffn {Auxiliary Syntax} {library-imports:} @var{imports}
 Instruct @func{lalr-parser} to add @var{imports} to the list of Scheme
 libraries required by the parser definition.  @var{imports} must be a
 list of library specifications; for example, if the parser definition

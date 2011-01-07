@@ -1,0 +1,161 @@
+;;; -*- coding: utf-8-unix -*-
+;;;
+;;;Part of: Nausicaa/Scheme
+;;;Contents: parameters and functions to process Scheme data
+;;;Date: Fri Jan  7, 2011
+;;;
+;;;Abstract
+;;;
+;;;
+;;;
+;;;Copyright (C) 2011 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;
+;;;This program is free software:  you can redistribute it and/or modify
+;;;it under the terms of the  GNU General Public License as published by
+;;;the Free Software Foundation, either version 3 of the License, or (at
+;;;your option) any later version.
+;;;
+;;;This program is  distributed in the hope that it  will be useful, but
+;;;WITHOUT  ANY   WARRANTY;  without   even  the  implied   warranty  of
+;;;MERCHANTABILITY  or FITNESS FOR  A PARTICULAR  PURPOSE.  See  the GNU
+;;;General Public License for more details.
+;;;
+;;;You should  have received  a copy of  the GNU General  Public License
+;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
+;;;
+
+
+#!r6rs
+(library (nausicaa r6rs datum-processing)
+  (export
+    identifier-datum-maker		make-identifier-datum
+    boolean-datum-maker			make-boolean-datum
+    number-datum-maker			make-number-datum
+    string-datum-maker			make-string-datum
+    character-datum-maker		make-character-datum
+    pair-datum-maker			make-pair-datum
+    list-datum-maker			make-list-datum
+    vector-datum-maker			make-vector-datum
+    bytevector-datum-maker		make-bytevector-datum
+    sharp-bang-datum-maker		make-sharp-bang-datum
+    sharp-bang-r6rs-datum-maker		make-sharp-bang-r6rs-datum
+
+    quoted-datum-maker			make-quoted-datum
+    quasiquoted-datum-maker		make-quasiquoted-datum
+    unquoted-datum-maker		make-unquoted-datum
+    unquoted-splicing-datum-maker	make-unquoted-splicing-datum
+    syntax-datum-maker			make-syntax-datum
+    quasisyntax-datum-maker		make-quasisyntax-datum
+    unsyntax-datum-maker		make-unsyntax-datum
+    unsyntax-splicing-datum-maker	make-unsyntax-splicing-datum)
+  (import (nausicaa)
+    (nausicaa parser-tools lexical-token)
+    (nausicaa parser-tools source-location))
+
+
+;;;; datum makers
+
+(define (make-identifier-datum yypushback yycustom the-identifier-string)
+  (string->symbol the-identifier-string))
+
+(define (make-boolean-datum yypushback yycustom the-boolean)
+  the-boolean)
+
+(define (make-number-datum yypushback yycustom the-number)
+  the-number)
+
+(define (make-string-datum yypushback yycustom the-string)
+  the-string)
+
+(define (make-character-datum yypushback yycustom the-character)
+  the-character)
+
+(define (make-pair-datum yypushback yycustom the-car the-cdr)
+  (cons the-car the-cdr))
+
+(define (make-list-datum yypushback yycustom the-list-of-items)
+  the-list-of-items)
+
+(define (make-vector-datum yypushback yycustom the-list-of-items)
+  (list->vector the-list-of-items))
+
+(define (make-bytevector-datum yypushback yycustom the-list-of-u8-integers)
+  (u8-list->bytevector the-list-of-u8-integers))
+
+;;; --------------------------------------------------------------------
+
+(define (make-sharp-bang-datum yypushback yycustom datum)
+  #f)
+
+(define (make-sharp-bang-r6rs-datum yypushback yycustom datum)
+  #f)
+
+;;; --------------------------------------------------------------------
+
+(define (make-quoted-datum yypushback yycustom datum)
+  (cons 'quote datum))
+
+(define (make-quasiquoted-datum yypushback yycustom datum)
+  (cons 'quasiquoted datum))
+
+(define (make-unquoted-datum yypushback yycustom datum)
+  (cons 'unquote datum))
+
+(define (make-unquoted-splicing-datum yypushback yycustom datum)
+  (cons 'unquote-splicing datum))
+
+;;; --------------------------------------------------------------------
+
+(define (make-syntax-datum yypushback yycustom datum)
+  (cons 'syntax datum))
+
+(define (make-quasisyntax-datum yypushback yycustom datum)
+  (cons 'quasisyntax datum))
+
+(define (make-unsyntax-datum yypushback yycustom datum)
+  (cons 'unsyntax datum))
+
+(define (make-unsyntax-splicing-datum yypushback yycustom datum)
+  (cons 'unsyntax-splicing datum))
+
+
+;;;; parameters
+
+(define-syntax define-datum-processor-parameter
+  (syntax-rules ()
+    ((_ ?param ?default)
+     (define ?param
+       (make-parameter ?default
+	 (lambda (obj)
+	   (if (procedure? obj)
+	       obj
+	     (assertion-violation '?param
+	       "expected procedure as parameter value" obj))))))))
+
+(define-datum-processor-parameter identifier-datum-maker	make-identifier-datum)
+(define-datum-processor-parameter boolean-datum-maker		make-boolean-datum)
+(define-datum-processor-parameter number-datum-maker		make-number-datum)
+(define-datum-processor-parameter string-datum-maker		make-string-datum)
+(define-datum-processor-parameter character-datum-maker		make-character-datum)
+(define-datum-processor-parameter pair-datum-maker		make-pair-datum)
+(define-datum-processor-parameter list-datum-maker		make-list-datum)
+(define-datum-processor-parameter vector-datum-maker		make-vector-datum)
+(define-datum-processor-parameter bytevector-datum-maker	make-bytevector-datum)
+(define-datum-processor-parameter sharp-bang-datum-maker	make-sharp-bang-datum)
+(define-datum-processor-parameter sharp-bang-r6rs-datum-maker	make-sharp-bang-r6rs-datum)
+
+(define-datum-processor-parameter quoted-datum-maker		make-quoted-datum)
+(define-datum-processor-parameter quasiquoted-datum-maker	make-quasiquoted-datum)
+(define-datum-processor-parameter unquoted-datum-maker		make-unquoted-datum)
+(define-datum-processor-parameter unquoted-splicing-datum-maker	make-unquoted-splicing-datum)
+(define-datum-processor-parameter syntax-datum-maker		make-syntax-datum)
+(define-datum-processor-parameter quasisyntax-datum-maker	make-quasisyntax-datum)
+(define-datum-processor-parameter unsyntax-datum-maker		make-unsyntax-datum)
+(define-datum-processor-parameter unsyntax-splicing-datum-maker	make-unsyntax-splicing-datum)
+
+
+;;;; done
+
+)
+
+;;; end of file
