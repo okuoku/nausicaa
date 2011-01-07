@@ -37,8 +37,6 @@
     list-datum-maker			make-list-datum
     vector-datum-maker			make-vector-datum
     bytevector-datum-maker		make-bytevector-datum
-    sharp-bang-datum-maker		make-sharp-bang-datum
-    sharp-bang-r6rs-datum-maker		make-sharp-bang-r6rs-datum
 
     quoted-datum-maker			make-quoted-datum
     quasiquoted-datum-maker		make-quasiquoted-datum
@@ -47,10 +45,19 @@
     syntax-datum-maker			make-syntax-datum
     quasisyntax-datum-maker		make-quasisyntax-datum
     unsyntax-datum-maker		make-unsyntax-datum
-    unsyntax-splicing-datum-maker	make-unsyntax-splicing-datum)
+    unsyntax-splicing-datum-maker	make-unsyntax-splicing-datum
+
+    interlexeme-datum-maker		make-interlexeme-datum
+    whitespace-datum-maker		make-whitespace-datum
+    line-comment-datum-maker		make-line-comment-datum
+    nested-comment-datum-maker		make-nested-comment-datum
+    sharp-semicolon-datum-maker		make-sharp-semicolon-datum
+    sharp-bang-datum-maker		make-sharp-bang-datum
+    sharp-bang-r6rs-datum-maker		make-sharp-bang-r6rs-datum)
   (import (nausicaa)
     (nausicaa parser-tools lexical-token)
-    (nausicaa parser-tools source-location))
+    (nausicaa parser-tools source-location)
+    (prefix (nausicaa r6rs fixed-strings) string.))
 
 
 ;;;; datum makers
@@ -80,43 +87,71 @@
   (list->vector the-list-of-items))
 
 (define (make-bytevector-datum yypushback yycustom the-list-of-u8-integers)
-  (u8-list->bytevector the-list-of-u8-integers))
-
-;;; --------------------------------------------------------------------
-
-(define (make-sharp-bang-datum yypushback yycustom datum)
-  #f)
-
-(define (make-sharp-bang-r6rs-datum yypushback yycustom datum)
-  #f)
+  (let ((wrong (exists (lambda (n)
+			 (if (and (integer? n)
+				  (exact?   n)
+				  (<= 0 n 255))
+			     #f
+			   n))
+		 the-list-of-u8-integers)))
+    (if wrong
+	(raise
+	 (condition (make-lexical-violation)
+		    (make-who-condition 'make-bytevector-datum)
+		    (make-message-condition "invalid value in bytevector")
+		    (make-irritants-condition `(,wrong))))
+      (u8-list->bytevector the-list-of-u8-integers))))
 
 ;;; --------------------------------------------------------------------
 
 (define (make-quoted-datum yypushback yycustom datum)
-  (cons 'quote datum))
+  (list 'quote datum))
 
 (define (make-quasiquoted-datum yypushback yycustom datum)
-  (cons 'quasiquoted datum))
+  (list 'quasiquoted datum))
 
 (define (make-unquoted-datum yypushback yycustom datum)
-  (cons 'unquote datum))
+  (list 'unquote datum))
 
 (define (make-unquoted-splicing-datum yypushback yycustom datum)
-  (cons 'unquote-splicing datum))
+  (list 'unquote-splicing datum))
 
 ;;; --------------------------------------------------------------------
 
 (define (make-syntax-datum yypushback yycustom datum)
-  (cons 'syntax datum))
+  (list 'syntax datum))
 
 (define (make-quasisyntax-datum yypushback yycustom datum)
-  (cons 'quasisyntax datum))
+  (list 'quasisyntax datum))
 
 (define (make-unsyntax-datum yypushback yycustom datum)
-  (cons 'unsyntax datum))
+  (list 'unsyntax datum))
 
 (define (make-unsyntax-splicing-datum yypushback yycustom datum)
-  (cons 'unsyntax-splicing datum))
+  (list 'unsyntax-splicing datum))
+
+;;; --------------------------------------------------------------------
+
+(define (make-interlexeme-datum yypushback yycustom the-list-of-atmospheres)
+  the-list-of-atmospheres)
+
+(define (make-whitespace-datum yypushback yycustom the-whitespace-string)
+  the-whitespace-string)
+
+(define (make-line-comment-datum yypushback yycustom the-comment-string)
+  the-comment-string)
+
+(define (make-nested-comment-datum yypushback yycustom the-comment-string)
+  the-comment-string)
+
+(define (make-sharp-semicolon-datum yypushback yycustom the-datum)
+  string.sharp-bang-r6rs)
+
+(define (make-sharp-bang-datum yypushback yycustom the-identifier-datum)
+  (string-append "#!" (symbol->string the-identifier-datum)))
+
+(define (make-sharp-bang-r6rs-datum yypushback yycustom the-sharp-bang-r6rs-string)
+  the-sharp-bang-r6rs-string)
 
 
 ;;;; parameters
@@ -141,8 +176,6 @@
 (define-datum-processor-parameter list-datum-maker		make-list-datum)
 (define-datum-processor-parameter vector-datum-maker		make-vector-datum)
 (define-datum-processor-parameter bytevector-datum-maker	make-bytevector-datum)
-(define-datum-processor-parameter sharp-bang-datum-maker	make-sharp-bang-datum)
-(define-datum-processor-parameter sharp-bang-r6rs-datum-maker	make-sharp-bang-r6rs-datum)
 
 (define-datum-processor-parameter quoted-datum-maker		make-quoted-datum)
 (define-datum-processor-parameter quasiquoted-datum-maker	make-quasiquoted-datum)
@@ -152,6 +185,14 @@
 (define-datum-processor-parameter quasisyntax-datum-maker	make-quasisyntax-datum)
 (define-datum-processor-parameter unsyntax-datum-maker		make-unsyntax-datum)
 (define-datum-processor-parameter unsyntax-splicing-datum-maker	make-unsyntax-splicing-datum)
+
+(define-datum-processor-parameter interlexeme-datum-maker	make-interlexeme-datum)
+(define-datum-processor-parameter whitespace-datum-maker	make-whitespace-datum)
+(define-datum-processor-parameter line-comment-datum-maker	make-line-comment-datum)
+(define-datum-processor-parameter nested-comment-datum-maker	make-nested-comment-datum)
+(define-datum-processor-parameter sharp-semicolon-datum-maker	make-sharp-semicolon-datum)
+(define-datum-processor-parameter sharp-bang-datum-maker	make-sharp-bang-datum)
+(define-datum-processor-parameter sharp-bang-r6rs-datum-maker	make-sharp-bang-r6rs-datum)
 
 
 ;;;; done

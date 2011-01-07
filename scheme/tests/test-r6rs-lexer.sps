@@ -2068,6 +2068,58 @@ mamma\"")
 	     (CPAREN #\))
 	     *eoi*))))
 
+;;; --------------------------------------------------------------------
+
+  (check
+      (tokenise "'ciao")
+    => '((TICK #\')
+	 (IDENTIFIER "ciao")
+	 *eoi*))
+
+  (check
+      (tokenise "`ciao")
+    => '((BACKTICK #\`)
+	 (IDENTIFIER "ciao")
+	 *eoi*))
+
+  (check
+      (tokenise ",ciao")
+    => '((COMMA #\,)
+	 (IDENTIFIER "ciao")
+	 *eoi*))
+
+  (check
+      (tokenise ",@ciao")
+    => '((COMMAAT ",@")
+	 (IDENTIFIER "ciao")
+	 *eoi*))
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (tokenise "#'ciao")
+    => '((SHARPTICK "#'")
+	 (IDENTIFIER "ciao")
+	 *eoi*))
+
+  (check
+      (tokenise "#`ciao")
+    => '((SHARPBACKTICK "#`")
+	 (IDENTIFIER "ciao")
+	 *eoi*))
+
+  (check
+      (tokenise "#,ciao")
+    => '((SHARPCOMMA "#,")
+	 (IDENTIFIER "ciao")
+	 *eoi*))
+
+  (check
+      (tokenise "#,@ciao")
+    => '((SHARPCOMMAAT "#,@")
+	 (IDENTIFIER "ciao")
+	 *eoi*))
+
   #t)
 
 

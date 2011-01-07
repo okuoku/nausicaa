@@ -1559,8 +1559,8 @@ semicolons and closing curly brackets by writing error rules like these:
 (statement
    (expression SEMICOLON)        : ---
    (LBRACKET statement RBRACKET) : ---
-   (error SEMICOLON)    ;empty semantic claus
-   (error RBRACKET))    ;empty semantic claus
+   (error SEMICOLON)    ;empty semantic clause
+   (error RBRACKET))    ;empty semantic clause
 @end example
 
 @noindent

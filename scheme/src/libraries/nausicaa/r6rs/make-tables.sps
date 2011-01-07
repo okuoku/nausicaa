@@ -140,7 +140,18 @@
      (vector)			: $1
      (bytevector)		: $1
      (pair)			: $1
-     (list)			: $1)
+     (list)			: $1
+     (quoted-datum)		: $1
+     (quasiquoted-datum)	: $1
+     (unquoted-datum)		: $1
+     (unquoted-splicing-datum)	: $1
+     (syntax-datum)		: $1
+     (quasisyntax-datum)	: $1
+     (unsyntax-datum)		: $1
+     (unsyntax-splicing-datum)	: $1
+     (interlexeme-space)	: $1)
+
+;;; --------------------------------------------------------------------
 
     (identifier
      (IDENTIFIER)	: ((identifier-datum-maker)	yypushback yycustom $1))
@@ -158,11 +169,12 @@
      (STRING)		: ((string-datum-maker)		yypushback yycustom $1))
 
     (pair
-     (OPAREN datum DOT datum CPAREN)	: ((pair-datum-maker) yypushback yycustom $2 $4))
+     (OPAREN   datum DOT datum CPAREN)	 : ((pair-datum-maker) yypushback yycustom $2 $4)
+     (OBRACKET datum DOT datum CBRACKET) : ((pair-datum-maker) yypushback yycustom $2 $4))
 
     (list
-     (OPAREN   datum paren-list-tail)	: ((list-datum-maker) yypushback yycustom (cons $2 $3))
-     (OBRACKET datum bracket-list-tail)	: ((list-datum-maker) yypushback yycustom (cons $2 $3)))
+     (OPAREN   paren-list-tail)		: ((list-datum-maker) yypushback yycustom $2)
+     (OBRACKET bracket-list-tail)	: ((list-datum-maker) yypushback yycustom $2))
     (paren-list-tail
      (CPAREN)				: '()
      (datum paren-list-tail)		: (cons $1 $2))
@@ -171,16 +183,20 @@
      (datum bracket-list-tail)		: (cons $1 $2))
 
     (vector
-     (SHARPPAREN datum vector-tail)	: ((vector-datum-maker) yypushback yycustom (cons $2 $3)))
+     (SHARPPAREN vector-tail)		: ((vector-datum-maker) yypushback yycustom $2))
     (vector-tail
      (CPAREN)				: '()
      (datum vector-tail)		: (cons $1 $2))
 
     (bytevector
-     (SHARPVU8PAREN datum bvector-tail)	: ((bytevector-datum-maker) yypushback yycustom (cons $2 $3)))
+     (SHARPVU8PAREN bvector-tail)	: ((bytevector-datum-maker) yypushback yycustom $2))
     (bvector-tail
      (CPAREN)				: '()
+     ;;Let the parametrised function detect  the problem if DATUM is not
+     ;;a u8 integer.
      (datum bvector-tail)		: (cons $1 $2))
+
+;;; --------------------------------------------------------------------
 
     (quoted-datum
      (TICK datum)			: ((quoted-datum-maker) yypushback yycustom $2))
@@ -191,6 +207,8 @@
     (unquoted-splicing-datum
      (COMMAAT datum)			: ((unquoted-splicing-datum-maker) yypushback yycustom $2))
 
+;;; --------------------------------------------------------------------
+
     (syntax-datum
      (SHARPTICK datum)			: ((syntax-datum-maker) yypushback yycustom $2))
     (quasisyntax-datum
@@ -200,19 +218,41 @@
     (unsyntax-splicing-datum
      (SHARPCOMMAAT datum)		: ((unsyntax-splicing-datum-maker) yypushback yycustom $2))
 
+;;; --------------------------------------------------------------------
+
     (interlexeme-space
-     (atmosphere atmosphere-tail)	: $1)
+     (atmosphere)			: ((interlexeme-datum-maker) yypushback yycustom (list $1))
+     (atmosphere atmosphere-tail)	: ((interlexeme-datum-maker) yypushback yycustom (cons $1 $2)))
     (atmosphere
-     (WHITESPACE)			: $1
-     (comment)				: #f)
+     (WHITESPACE)			: ((whitespace-datum-maker) yypushback yycustom $1)
+     (LINEENDING)			: ((whitespace-datum-maker) yypushback yycustom $1)
+     (comment)				: $1)
     (atmosphere-tail
-     (atmosphere atmosphere-tail)	: $1)
+     (atmosphere)			: (list $1)
+     (atmosphere atmosphere-tail)	: (cons $1 $2))
 
     (comment
-     (LINECOMMENT)				: #f
-     (NESTEDCOMMENT)				: #f
-     (SHARPBANGR6RS)				: ((sharp-bang-r6rs-datum-maker) yypushback yycustom $1)
-     (SHARPBANG interlexeme-space identifier)	: ((sharp-bang-datum-maker) yypushback yycustom $3))
+     (LINECOMMENT)			: ((line-comment-datum-maker)    yypushback yycustom $1)
+     (NESTEDCOMMENT)			: ((nested-comment-datum-maker)  yypushback yycustom $1)
+     (SHARPBANGR6RS)			: ((sharp-bang-r6rs-datum-maker) yypushback yycustom $1)
+     (SHARPBANG identifier)		: ((sharp-bang-datum-maker)      yypushback yycustom $2)
+     (SHARPSEMICOLON
+      interlexeme-space datum)		: ((sharp-semicolon-datum-maker) yypushback yycustom $3))
+
+;;; --------------------------------------------------------------------
+
+    (paren-mismatch
+     (OPAREN paren-mismatch-tail)		#;empty)
+    (paren-mismatch-tail
+     (error CBRACKET)				;empty
+     (datum paren-mismatch-tail)		: (cons $1 $2))
+
+    (bracket-mismatch
+     (OBRACKET bracket-mismatch-tail)		#;empty)
+    (bracket-mismatch-tail
+     (error CPAREN)				;empty
+     (datum bracket-mismatch-tail)		: (cons $1 $2))
+
     )))
 
 ;;; end of file
