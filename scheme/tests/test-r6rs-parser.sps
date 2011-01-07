@@ -205,28 +205,6 @@
 	(parse "#vu8(1 ciao 3)"))
     => '(ciao))
 
-;;; --------------------------------------------------------------------
-;;; comments
-
-;;Remember that  we are  using a lexer  built by  MAKE-TOKEN-LEXER which
-;;discards WHITESPACE and LINENEDING tokens.
-
-  (check	;single line comment
-      (parse ";; ciao")
-    => '(";; ciao"))
-
-  (check	;multiple line comments
-      (parse ";; ciao\n;; mamma\n;; sto bene")
-    => '(";; ciao\n" ";; mamma\n" ";; sto bene"))
-
-  (check
-      (parse "#!r6rs")
-    => '("#!r6rs"))
-
-  (check	;mixed comments
-      (parse "#!r6rs #!ciao #!mamma")
-    => '("#!r6rs" "#!ciao" "#!mamma"))
-
   #t)
 
 
@@ -302,6 +280,53 @@
 
   (test-lexical-error "(1 2]" #\])
   (test-lexical-error "[1 2)" #\))
+
+  #t)
+
+
+(parametrise ((check-test-name	'comments)
+	      (debugging	#f))
+
+  (define (error-handler message (T <lexical-token>))
+    (raise
+     (condition (make-lexical-violation)
+		(make-message-condition
+		 (string-append message
+				" line " (number->string T.location.line)
+				" column " (number->string T.location.column)))
+		(make-irritants-condition `(,T.value)))))
+
+  (define (parse string)
+    (let* ((IS		(lexer-make-IS (string: string) (counters: 'all)))
+	   (true-lexer	(make-token-lexer* IS))
+	   (lexer	(lambda ()
+			  (let (((T <lexical-token>) (true-lexer)))
+			    (debug "c: ~s, v: ~s" T.category T.value)
+			    T)))
+	   (parser	(make-r6rs-parser)))
+      (parser lexer error-handler #f)))
+
+;;; --------------------------------------------------------------------
+;;; comments
+
+;;Notice that we are using a lexer built by MAKE-TOKEN-LEXER* which does
+;;not discard WHITESPACE and LINENEDING tokens.
+
+  (check	;single line comment
+      (parse ";; ciao")
+    => '(";; ciao"))
+
+  (check	;multiple line comments
+      (parse ";; ciao\n;; mamma\n;; sto bene")
+    => '(";; ciao\n" ";; mamma\n" ";; sto bene"))
+
+  (check
+      (parse "#!r6rs")
+    => '("#!r6rs"))
+
+  (check	;mixed comments
+      (parse "#!r6rs #!ciao #!mamma")
+    => '("#!r6rs" " " "#!ciao" " " "#!mamma"))
 
   #t)
 

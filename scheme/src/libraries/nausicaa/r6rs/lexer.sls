@@ -33,9 +33,12 @@
     r6rs-string-lexer-table r6rs-character-lexer-table
     r6rs-identifier-lexer-table r6rs-number-lexer-table
 
-    read-string read-string* read-character read-identifier read-number
+    read-character read-identifier read-number
+    read-string read-string*
     read-nested-comment read-nested-comment*
-    read-line-comment make-token-lexer)
+    read-line-comment
+
+    make-token-lexer make-token-lexer*)
   (import (nausicaa)
     (nausicaa r6rs lexer-table)
     (nausicaa r6rs nested-comment-lexer-table)
@@ -232,8 +235,9 @@
 
 
 (define make-token-lexer
-  ;;This is the full R6RS  lexer function maker.  Given an input system,
-  ;;return a lexer function producing tokens.
+  ;;This is  a full R6RS lexer  function maker.  Given  an input system,
+  ;;return a  lexer function  producing tokens.  Discard  WHITESPACE and
+  ;;LINEENDING tokens.
   ;;
   (case-lambda
    ((IS)
@@ -259,6 +263,37 @@
 		 (next (lexer)))
                 ((eq? T.category 'LINEENDING)
                  (next (lexer)))
+		((eq? T.category 'DOUBLEQUOTE)
+		 (%string-token))
+		((eq? T.category 'ONESTEDCOMMENT)
+		 (%nested-comment-token))
+		(else T))))))))
+
+(define make-token-lexer*
+  ;;Like MAKE-TOKEN-LEXER*  but do not  discard blanks.  This is  a full
+  ;;R6RS lexer  function maker.  Given  an input system, return  a lexer
+  ;;function producing tokens.
+  ;;
+  (case-lambda
+   ((IS)
+    (make-token-lexer* IS r6rs-lexer-table))
+   ((IS lexer-table)
+    (let ((lexer (lexer-make-lexer lexer-table IS)))
+      (lambda ()
+	(let next (((T <lexical-token>) (lexer)))
+	  (define (%string-token)
+	    (let ((S (read-string* IS)))
+	      (if (string? S)
+		  ((string-token-maker) (lexer-get-func-getc IS) (lexer-get-func-ungetc IS)
+		   S T.location.line T.location.column T.location.offset)
+		S)))
+	  (define (%nested-comment-token)
+	    (let ((S (read-nested-comment* IS)))
+	      (if (string? S)
+		  ((nested-comment-token-maker) (lexer-get-func-getc IS) (lexer-get-func-ungetc IS)
+		   S T.location.line T.location.column T.location.offset)
+		S)))
+	  (cond (T.special? T)
 		((eq? T.category 'DOUBLEQUOTE)
 		 (%string-token))
 		((eq? T.category 'ONESTEDCOMMENT)

@@ -64,7 +64,8 @@ details.
 @defunx make-token-lexer @var{IS} @var{lexer-table}
 A lexer function generator for full @rnrs{6} source code reading.  Given
 an input system @var{IS} build and return a lexer function using the
-@var{lexer-table}, which defaults to @code{r6rs-lexer-table}.
+@var{lexer-table}, which defaults to @code{r6rs-lexer-table}.  Tokens of
+category @code{WHITESPACE} and @code{LINEENDING} are discarded.
 
 The definition of this function is a good example of full table usage;
 notice that strings and nested comments are read with
@@ -108,6 +109,16 @@ notice that strings and nested comments are read with
                  (%nested-comment-token))
                 (else T))))))))
 @end example
+@end defun
+
+
+@defun make-token-lexer* @var{IS}
+@defunx make-token-lexer* @var{IS} @var{lexer-table}
+A lexer function generator for full @rnrs{6} source code reading.  Given
+an input system @var{IS} build and return a lexer function using the
+@var{lexer-table}, which defaults to @code{r6rs-lexer-table}.  It is
+like @func{make-token-lexer} but the returned lexer thunk does not
+discard tokens with category @code{WHITESPACE} and @code{LINEENDING}.
 @end defun
 
 
