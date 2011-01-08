@@ -1,4 +1,4 @@
-;;; -*- coding: utf-8 -*-
+;;; -*- coding: utf-8-unix -*-
 ;;;
 ;;;Part of: Nausicaa/Scheme
 ;;;Contents: helper definitions for classes library
@@ -16,7 +16,7 @@
 ;;;	for the  case in which the  requested KEYWORD is  not present in
 ;;;	the input syntax object.
 ;;;
-;;;Copyright (c) 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2010, 2011 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -66,6 +66,7 @@
     %collect-clause/setter
     %collect-clause/getter
     %collect-clause/bindings
+    %collect-clause/mixins
     )
   (import (rnrs)
     (for (only (rnrs base) define-syntax) (meta -1))
@@ -1139,6 +1140,30 @@
     (_
      (synner "invalid method-syntax clause" clause))
     ))
+
+
+(define (%collect-clause/mixins clauses synner)
+  ;;Given  a list  of definition  clauses  in CLAUSES,  extract all  the
+  ;;MIXINS clauses and parse them;  there can be multiple MIXINS clauses
+  ;;in CLAUSES.
+  ;;
+  ;;Return null or a validated list of mixin identifiers.
+  ;;
+  ;;SYNNER must  be the closure  used to raise  a syntax violation  if a
+  ;;parse  error  occurs; it  must  accept  two  arguments: the  message
+  ;;string, the subform.
+  ;;
+  (let next-clause ((clauses   (filter-clauses #'mixins clauses))
+		    (collected '()))
+    (if (null? clauses)
+	(reverse collected)
+      (syntax-case (car clauses) (mixins)
+	((mixins ?mixin-name0 ?mixin-name ...)
+	 (all-identifiers? #'(?mixin-name0 ?mixin-name ...))
+	 (next-clause (cdr clauses) (append (syntax->list #'(?mixin-name0 ?mixin-name ...))
+					    collected)))
+	(_
+	 (synner "invalid mixins clause" (car clauses)))))))
 
 
 ;;;; done

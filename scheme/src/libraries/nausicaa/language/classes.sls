@@ -1,4 +1,4 @@
-;;; -*- coding: utf-8 -*-
+;;; -*- coding: utf-8-unix -*-
 ;;;
 ;;;Part of: Nausicaa/Scheme
 ;;;Contents: record types as classes
@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2010, 2011 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -53,9 +53,9 @@
 
     ;; usage macros
     define-class			;;define-foreign-class
-    define-label			is-a?
+    define-label			define-mixin
     make				make-from-fields
-    make*
+    make*				is-a?
     define-virtual-method
     defmethod				defmethod-virtual
     slot-ref				slot-set!
@@ -95,7 +95,7 @@
     setter getter bindings
     public-protocol maker-protocol superclass-protocol
     virtual-fields methods method method-syntax
-    <>
+    <> mixins
 
     ;; builtin classes
     <top> <builtin> <pair> <list>
@@ -507,25 +507,14 @@
 	((_ ?name-spec . ?clauses)
 	 (%synner "invalid name specification in class definition" #'?name-spec))))
 
-    (validate-definition-clauses
-     ;; mandatory keywords
-     '()
-     ;; optional keywords
-     (list #'parent #'sealed #'opaque #'parent-rtd #'nongenerative #'fields #'protocol
-	   #'inherit #'predicate #'maker #'maker-transformer #'custom-maker
-	   #'setter #'getter #'bindings
-	   #'public-protocol #'maker-protocol #'superclass-protocol
-	   #'virtual-fields #'methods #'method #'method-syntax)
-     ;; at most once keywords
-     (list #'parent #'sealed #'opaque #'parent-rtd #'nongenerative
-	   #'inherit #'predicate #'maker #'maker-transformer #'custom-maker
-	   #'setter #'getter #'bindings
-	   #'protocol #'public-protocol #'maker-protocol #'superclass-protocol)
-     ;; mutually exclusive keywords sets
-     (list (list #'inherit #'parent #'parent-rtd)
-	   (list #'maker #'custom-maker)
-	   (list #'maker-transformer #'custom-maker))
-     clauses %synner)
+    (validate-class-clauses clauses %synner)
+    (let loop ((mixins (%collect-clause/mixins clauses %synner)))
+      (unless (null? mixins)
+	(set! clauses (append clauses
+			      (%compose-class-with-mixin (car mixins) class-identifier clauses)))
+	;;After each composition validate the clauses.
+	(validate-class-clauses clauses %synner)
+	(loop (cdr mixins))))
 
     (let-values
 	;;The superclass identifier or false; the inherit options: all
@@ -1290,19 +1279,14 @@
       ((_ ?name-spec . ?clauses)
        (%synner "invalid name specification in label definition" #'?name-spec))))
 
-  (validate-definition-clauses
-   ;; mandatory keywords
-   '()
-   ;; optional keywords
-   (list #'inherit #'predicate #'setter #'getter #'bindings
-	 #'virtual-fields #'methods #'method #'method-syntax
-	 #'custom-maker)
-   ;; at most once keywords
-   (list #'inherit #'predicate #'setter #'getter #'bindings
-	 #'custom-maker)
-   ;; mutually exclusive keywords sets
-   '()
-   clauses %synner)
+  (validate-label-clauses clauses %synner)
+  (let loop ((mixins (%collect-clause/mixins clauses %synner)))
+    (unless (null? mixins)
+      (set! clauses (append clauses
+			    (%compose-label-with-mixin (car mixins) label-identifier clauses)))
+      ;;After each composition validate the clauses.
+      (validate-label-clauses clauses %synner)
+      (loop (cdr mixins))))
 
   (let-values
       ;;The  superlabel identifier  or false;  the inherit  options: all
@@ -1600,6 +1584,14 @@
 	     field-tags))
           #'(define dummy)))
       )))
+
+
+(define-syntax* (define-mixin stx)
+  (syntax-case stx ()
+    ((_ ?mixin-identifier . ?clauses)
+     (begin
+       (validate-mixin-clauses (unwrap-syntax-object #'?clauses) synner)
+       #'(define-identifier-property ?mixin-identifier mixin-clauses ?clauses)))))
 
 
 ;;;; virtual methods

@@ -58,10 +58,12 @@ given symbol arguments.
 @end defmac
 
 
-@defun syntax->list @var{stx} @var{tail}
+@defun syntax->list @var{stx}
+@defunx syntax->list @var{stx} @var{tail}
 Given a syntax object @var{stx} holding a list, return a new proper list
 holding the component syntax objects.  @var{tail} must be null or a
-proper list which will become the tail of the returned list.
+proper list which will become the tail of the returned list; @var{tail}
+defaults to null.
 @end defun
 
 

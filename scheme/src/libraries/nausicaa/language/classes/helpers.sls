@@ -1,4 +1,4 @@
-;;; -*- coding: utf-8 -*-
+;;; -*- coding: utf-8-unix -*-
 ;;;
 ;;;Part of: Nausicaa/Scheme
 ;;;Contents: miscellaneous helper functions
@@ -8,29 +8,31 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2010, 2011 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
-;;;This  program  is free  software:  you  can redistribute  it
-;;;and/or modify it  under the terms of the  GNU General Public
-;;;License as published by the Free Software Foundation, either
-;;;version  3 of  the License,  or (at  your option)  any later
-;;;version.
+;;;This program is free software:  you can redistribute it and/or modify
+;;;it under the terms of the  GNU General Public License as published by
+;;;the Free Software Foundation, either version 3 of the License, or (at
+;;;your option) any later version.
 ;;;
-;;;This  program is  distributed in  the hope  that it  will be
-;;;useful, but  WITHOUT ANY WARRANTY; without  even the implied
-;;;warranty  of  MERCHANTABILITY or  FITNESS  FOR A  PARTICULAR
-;;;PURPOSE.   See  the  GNU  General Public  License  for  more
-;;;details.
+;;;This program is  distributed in the hope that it  will be useful, but
+;;;WITHOUT  ANY   WARRANTY;  without   even  the  implied   warranty  of
+;;;MERCHANTABILITY  or FITNESS FOR  A PARTICULAR  PURPOSE.  See  the GNU
+;;;General Public License for more details.
 ;;;
-;;;You should  have received a  copy of the GNU  General Public
-;;;License   along   with    this   program.    If   not,   see
-;;;<http://www.gnu.org/licenses/>.
+;;;You should  have received  a copy of  the GNU General  Public License
+;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
 
 #!r6rs
 (library (nausicaa language classes helpers)
   (export
+    validate-class-clauses
+    validate-label-clauses
+    validate-mixin-clauses
+    %compose-class-with-mixin
+    (rename (%compose-class-with-mixin %compose-label-with-mixin))
     %variable-name->Setter-name
     %variable-name->Getter-name
     %make-fields-accessor-of-transformer
@@ -42,7 +44,95 @@
   (import (rnrs)
     (nausicaa language classes internal-auxiliary-syntaxes)
     (nausicaa language identifier-properties)
-    (nausicaa language syntax-utilities))
+    (nausicaa language syntax-utilities)
+    (for (nausicaa language auxiliary-syntaxes) (meta -1)))
+
+
+(define (validate-class-clauses clauses synner)
+  ;;Validate the definition clauses  for DEFINE-CLASS; CLAUSES must be a
+  ;;syntax object holding the definition clauses.
+  ;;
+  ;;SYNNER must  be the closure  used to raise  a syntax violation  if a
+  ;;parse  error  occurs; it  must  accept  two  arguments: the  message
+  ;;string, the subform.
+  ;;
+  (validate-definition-clauses
+   ;; mandatory keywords
+   '()
+   ;; optional keywords
+   (list #'parent #'sealed #'opaque #'parent-rtd #'nongenerative #'fields #'protocol
+	 #'inherit #'predicate #'maker #'maker-transformer #'custom-maker
+	 #'setter #'getter #'bindings
+	 #'public-protocol #'maker-protocol #'superclass-protocol
+	 #'virtual-fields #'methods #'method #'method-syntax
+	 #'mixins)
+   ;; at most once keywords
+   (list #'parent #'sealed #'opaque #'parent-rtd #'nongenerative
+	 #'inherit #'predicate #'maker #'maker-transformer #'custom-maker
+	 #'setter #'getter #'bindings
+	 #'protocol #'public-protocol #'maker-protocol #'superclass-protocol)
+   ;; mutually exclusive keywords sets
+   (list (list #'inherit #'parent #'parent-rtd)
+	 (list #'maker #'custom-maker)
+	 (list #'maker-transformer #'custom-maker))
+   clauses synner))
+
+(define (validate-label-clauses clauses synner)
+  ;;Validate the definition clauses  for DEFINE-LABEL; CLAUSES must be a
+  ;;syntax object holding the definition clauses.
+  ;;
+  ;;SYNNER must  be the closure  used to raise  a syntax violation  if a
+  ;;parse  error  occurs; it  must  accept  two  arguments: the  message
+  ;;string, the subform.
+  ;;
+  (validate-definition-clauses
+   ;; mandatory keywords
+   '()
+   ;; optional keywords
+   (list #'inherit #'predicate #'setter #'getter #'bindings
+	 #'virtual-fields #'methods #'method #'method-syntax
+	 #'custom-maker #'mixins)
+   ;; at most once keywords
+   (list #'inherit #'predicate #'setter #'getter #'bindings
+	 #'custom-maker)
+   ;; mutually exclusive keywords sets
+   '()
+   clauses synner))
+
+(define (validate-mixin-clauses clauses synner)
+  ;;Validate the definition clauses  for DEFINE-MIXIN; CLAUSES must be a
+  ;;syntax object  holding the definition clauses.   The only difference
+  ;;between  this  function  and  VALIDATE-CLASS-CLAUSES  is  that  this
+  ;;function does not allow the MIXIN clause.
+  ;;
+  ;;SYNNER must  be the closure  used to raise  a syntax violation  if a
+  ;;parse  error  occurs; it  must  accept  two  arguments: the  message
+  ;;string, the subform.
+  ;;
+  (validate-definition-clauses
+   ;; mandatory keywords
+   '()
+   ;; optional keywords
+   (list #'parent #'sealed #'opaque #'parent-rtd #'nongenerative #'fields #'protocol
+	 #'inherit #'predicate #'maker #'maker-transformer #'custom-maker
+	 #'setter #'getter #'bindings
+	 #'public-protocol #'maker-protocol #'superclass-protocol
+	 #'virtual-fields #'methods #'method #'method-syntax)
+   ;; at most once keywords
+   (list #'parent #'sealed #'opaque #'parent-rtd #'nongenerative
+	 #'inherit #'predicate #'maker #'maker-transformer #'custom-maker
+	 #'setter #'getter #'bindings
+	 #'protocol #'public-protocol #'maker-protocol #'superclass-protocol)
+   ;; mutually exclusive keywords sets
+   (list (list #'inherit #'parent #'parent-rtd)
+	 (list #'maker #'custom-maker)
+	 (list #'maker-transformer #'custom-maker))
+   clauses synner))
+
+
+(define (%compose-class-with-mixin mixin-identifier class-identifier class-clauses)
+  (identifier-subst (list mixin-identifier) (list class-identifier)
+		    (lookup-identifier-property mixin-identifier #'mixin-clauses)))
 
 
 (define (%variable-name->Setter-name variable-name-stx)

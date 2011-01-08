@@ -1,3 +1,4 @@
+;;; -*- coding: utf-8-unix -*-
 ;;;
 ;;;Part of: Nausicaa/Scheme
 ;;;Contents: augmented Scheme language around (rnrs)
@@ -7,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2010, 2011 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -834,9 +835,9 @@
 
     ;; usage macros
     define-class			;;define-foreign-class
-    define-label			is-a?
+    define-label			define-mixin
     make				make-from-fields
-    make*
+    make*				is-a?
     define-virtual-method
     defmethod				defmethod-virtual
     slot-ref				slot-set!
@@ -872,7 +873,7 @@
     ;; auxiliary syntaxes
     inherit predicate maker maker-transformer setter getter bindings
     public-protocol maker-protocol superclass-protocol virtual-fields
-    methods method method-syntax custom-maker
+    methods method method-syntax custom-maker mixins
 
     ;; builtin classes
     <top> <builtin> <pair> <list>

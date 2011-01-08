@@ -1,4 +1,4 @@
-;;; -*- coding: utf-8 -*-
+;;; -*- coding: utf-8-unix -*-
 ;;;
 ;;;Part of: Nausicaa/Scheme
 ;;;Contents: auxiliary syntaxes
@@ -11,7 +11,7 @@
 ;;;	auxiliary  syntaxes, like  the ones  for the  vector  and string
 ;;;	views.
 ;;;
-;;;Copyright (c) 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2010, 2011 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -38,7 +38,10 @@
     ;; custom bindings for (classes)
     inherit predicate maker maker-transformer setter getter bindings
     public-protocol maker-protocol superclass-protocol virtual-fields
-    methods method method-syntax custom-maker
+    methods method method-syntax custom-maker mixins
+
+    ;; identifier properties
+    mixin-clauses
 
     ;; bindings for string and vector views
     view start past
@@ -63,6 +66,9 @@
     methods
     method
     method-syntax
+    mixins
+
+    mixin-clauses
 
     <>
     <...>

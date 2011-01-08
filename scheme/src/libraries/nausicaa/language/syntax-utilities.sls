@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2010, 2011 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -108,18 +108,22 @@
     (_
      (syntax-violation 'syntax->vector "expected vector input form" (syntax->datum stx)))))
 
-(define (syntax->list stx tail)
-  ;;Given  a syntax  object STX  holding a  list, return  a  proper list
-  ;;holding the component syntax objects.  TAIL must be null or a proper
-  ;;list which will become the tail of the returned list.
-  ;;
-  (syntax-case stx ()
-    ((?car . ?cdr)
-     ;;Yes, it  is not tail recursive;  "they" say it  is efficient this
-     ;;way.
-     (cons #'?car (syntax->list #'?cdr tail)))
-    (()
-     tail)))
+(define syntax->list
+  (case-lambda
+   ((stx)
+    (syntax->list stx '()))
+   ((stx tail)
+    ;;Given a  syntax object  STX holding a  list, return a  proper list
+    ;;holding  the component  syntax objects.   TAIL must  be null  or a
+    ;;proper list which will become the tail of the returned list.
+    ;;
+    (syntax-case stx ()
+      ((?car . ?cdr)
+       ;;Yes, it  is not tail recursive;  "they" say it  is efficient this
+       ;;way.
+       (cons #'?car (syntax->list #'?cdr tail)))
+      (()
+       tail)))))
 
 
 (define (quoted-syntax-object? stx)
