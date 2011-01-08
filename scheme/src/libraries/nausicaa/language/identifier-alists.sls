@@ -1,4 +1,4 @@
-;;; -*- coding: utf-8 -*-
+;;; -*- coding: utf-8-unix -*-
 ;;;
 ;;;Part of: Nausicaa/Scheme
 ;;;Contents: routines to handle alists with identifiers as keys
@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2010, 2011 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -30,14 +30,16 @@
   (export
     identifier-alist-cons
     identifier-alist-replace
+    identifier-alist-new
     identifier-alist-ref
-    identifier-alist-remove)
+    identifier-alist-remove
+    identifier-alist-exists)
   (import (rnrs))
 
 
 (define (identifier-alist-cons key value table)
   ;;Given the alist  TABLE: store KEY and VALUE in  the alist and return
-  ;;the new alist.  Any occurrences of KEY in TABLE are removed.
+  ;;the new alist.  Does no check for duplicate KEY in TABLE.
   ;;
   `((,key . ,value) . ,table))
 
@@ -47,13 +49,29 @@
   ;;
   `((,key . ,value) . ,(identifier-alist-remove table key)))
 
+(define (identifier-alist-new key value table)
+  ;;Given the alist  TABLE: store KEY and VALUE in  the alist and return
+  ;;the new alist.  Check if KEY is  already in TABLE: if it is raise an
+  ;;assertion violation.
+  ;;
+  (if (identifier-alist-exists table key)
+      (assertion-violation 'identifier-alist-new
+	"key already present in identifier alist" key)
+    `((,key . ,value) . ,table)))
+
+(define (identifier-alist-exists table key)
+  ;;Given the alist TABLE: return the  first pair in the list having KEY
+  ;;as car.  If KEY is not present: return false.
+  ;;
+  (assp (lambda (pair-key)
+	  (free-identifier=? pair-key key))
+    table))
+
 (define (identifier-alist-ref table key default)
-  ;;Given the  alist TABLE  look for the  identifier KEY and  return its
+  ;;Given the  alist TABLE: look for  the identifier KEY  and return its
   ;;value.  If KEY is not present: return DEFAULT.
   ;;
-  (let ((pair (assp (lambda (pair-key)
-		      (free-identifier=? pair-key key))
-		table)))
+  (let ((pair (identifier-alist-exists table key)))
     (if pair
 	(cdr pair)
       default)))

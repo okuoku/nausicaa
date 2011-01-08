@@ -44,7 +44,7 @@
     %reverse-inheritance-hierarchy-identifiers)
   (import (rnrs)
     (nausicaa language classes internal-auxiliary-syntaxes)
-    (nausicaa language identifier-properties)
+    (prefix (nausicaa language identifier-properties) ip.)
     (nausicaa language syntax-utilities)
     (for (nausicaa language auxiliary-syntaxes) (meta -1)))
 
@@ -112,7 +112,7 @@
   ;;parse  error  occurs; it  must  accept  two  arguments: the  message
   ;;string, the subform.
   ;;
-  (let ((mixin-clauses (lookup-identifier-property mixin-identifier #'mixin-clauses #f)))
+  (let ((mixin-clauses (ip.ref mixin-identifier #'mixin-clauses #f)))
     (if mixin-clauses
 	(unwrap-syntax-object	;the receiving end expects an unwrapped object
 	 (identifier-subst (list mixin-identifier) (list class-identifier) mixin-clauses))
@@ -352,7 +352,7 @@
   ;;and ends with THING itself.
   ;;
   (let loop ((parents `(,thing)))
-    (let ((p (lookup-identifier-property (car parents) #':superclass-property)))
+    (let ((p (ip.ref (car parents) #':superclass-property)))
       (if p
 	  (loop (cons p parents))
 	parents))))

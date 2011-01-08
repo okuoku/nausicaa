@@ -112,7 +112,7 @@
     (nausicaa language makers)
     (nausicaa language auxiliary-syntaxes)
     (nausicaa language extensions)
-    (nausicaa language identifier-properties)
+    (prefix (nausicaa language identifier-properties) ip.)
     (nausicaa language classes internal-auxiliary-syntaxes)
     (nausicaa language classes top))
 
@@ -690,7 +690,7 @@
 	 fields virtual-fields
 	 (if the-parent-is-a-class?
 	     (syntax->list ;identifier properties come in syntax objects
-	      (lookup-identifier-property superclass-identifier #':list-of-field-tags '()) '())
+	      (ip.ref superclass-identifier #':list-of-field-tags '()) '())
 	   '())
 	 %synner))
 
@@ -698,7 +698,7 @@
 	(if the-parent-is-a-class?
 	    (cons superclass-identifier
 		  (syntax->list
-		   (lookup-identifier-property superclass-identifier #':list-of-superclasses '()) '()))
+		   (ip.ref superclass-identifier #':list-of-superclasses '()) '()))
 	  '()))
 
       (let ((id (duplicated-identifiers? (append (map cadr fields)
@@ -1037,8 +1037,8 @@
 	      ;;want.   (Especially  when  evaluating class  definitions
 	      ;;with an EVAL as we do in the test suite.)
 	      ;;
-	      (define-identifier-property THE-CLASS :list-of-superclasses LIST-OF-SUPERCLASSES)
-	      (define-identifier-property THE-CLASS :list-of-field-tags LIST-OF-FIELD-TAGS)
+	      (ip.define-identifier-property THE-CLASS :list-of-superclasses LIST-OF-SUPERCLASSES)
+	      (ip.define-identifier-property THE-CLASS :list-of-field-tags LIST-OF-FIELD-TAGS)
 	      (define-dummy-and-detect-circular-tagging THE-CLASS INPUT-FORM)
 
 	      (define-syntax* (with-class-bindings stx)
@@ -1384,7 +1384,7 @@
        '() virtual-fields
        (if the-parent-is-a-label?
 	   (syntax->list ;identifier properties come in syntax objects
-	    (lookup-identifier-property superlabel-identifier #':list-of-field-tags '()) '())
+	    (ip.ref superlabel-identifier #':list-of-field-tags '()) '())
 	 '())
        %synner))
 
@@ -1392,7 +1392,7 @@
       (if the-parent-is-a-label?
 	  (cons superlabel-identifier
 		(syntax->list
-		 (lookup-identifier-property superlabel-identifier #':list-of-superclasses '()) '()))
+		 (ip.ref superlabel-identifier #':list-of-superclasses '()) '()))
 	'()))
 
     (let ((id (duplicated-identifiers? (append (map cadr virtual-fields)
@@ -1497,8 +1497,8 @@
 	  ;;evaluating label  definitions with an  EVAL as we do  in the
 	  ;;test suite.)
 	  ;;
-	  (define-identifier-property THE-LABEL :list-of-superclasses LIST-OF-SUPERCLASSES)
-	  (define-identifier-property THE-LABEL :list-of-field-tags   LIST-OF-FIELD-TAGS)
+	  (ip.define-identifier-property THE-LABEL :list-of-superclasses LIST-OF-SUPERCLASSES)
+	  (ip.define-identifier-property THE-LABEL :list-of-field-tags   LIST-OF-FIELD-TAGS)
 	  (define-dummy-and-detect-circular-tagging THE-LABEL INPUT-FORM)
 
 	  (define-syntax* (with-label-bindings stx)
@@ -1567,16 +1567,10 @@
 		       (syntax-violation #f
 			 "detected circular tagging"
 			 (syntax->datum #'?input-form) (syntax->datum #'?thing)))))
-;;;(newline)(newline)(newline)
-;;;(display "enter detect for ")(display (syntax->datum #'?thing))(newline)
 	 (let search ((current	#'?thing)
 		      (thing	#'?thing))
 	   (define field-tags	;includes the ones of the superclasses
-	     (syntax->list (lookup-identifier-property current #':list-of-field-tags '()) '()))
-;;;(newline)
-;;;(display "searching for ")(display current)(newline)
-;;;(display "field tags of ")(display current)(display field-tags)(newline)
-;;;(display "memq ")(display (identifier-memq thing field-tags))(newline)
+	     (syntax->list (ip.ref current #':list-of-field-tags '()) '()))
 	   (when (identifier-memq thing field-tags)
 	     (synner))
 	   (for-each (lambda (tag)
@@ -1605,7 +1599,7 @@
 	     ;;After each composition validate the clauses.
 	     (validate-mixin-clauses other-clauses synner)
 	     (loop (cdr mixins))))
-	 #`(define-identifier-property ?mixin-identifier mixin-clauses #,other-clauses))))))
+	 #`(ip.define-identifier-property ?mixin-identifier mixin-clauses #,other-clauses))))))
 
 
 ;;;; virtual methods

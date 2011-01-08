@@ -620,6 +620,7 @@ Basic libraries
 * assertions::                  Organising assertions.
 * contracts::                   Function call contracts.
 * makers::                      Maker syntaxes.
+* identifier alists::           Alist of identifiers.
 * identifier properties::       Expand--time identifier properties.
 * classes::                     Record utilities.
 * compensations::               Compensation stacks.
@@ -728,6 +729,7 @@ Indexes
 @include assertions.texiinc
 @include contracts.texiinc
 @include makers.texiinc
+@include identifier-alists.texiinc
 @include identifier-properties.texiinc
 @include classes.texiinc
 @include compensations.texiinc

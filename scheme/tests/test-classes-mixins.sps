@@ -85,17 +85,17 @@
 
   (let ()	;mixin accessing the fields of the receiving class
 
-    (define-mixin <stuff>
+    (define-mixin <stuff1>
       (fields c)
-      (method (doit (o <stuff>))
+      (method (doit (o <stuff1>))
 	(+ o.a o.c)))
 
-    (define-class <alpha>
+    (define-class <alpha1>
       (fields a)
-      (mixins <stuff>))
+      (mixins <stuff1>))
 
     (check
-	(let-make ((o <alpha> 1 2))
+	(let-make ((o <alpha1> 1 2))
 	  (o.doit))
       => 3)
 
@@ -106,26 +106,26 @@
 
 (parametrise ((check-test-name	'label))
 
-  (define-mixin <stuff>
+  (define-mixin <stuff2>
     (virtual-fields (immutable c car))
-    (method (doit (o <stuff>))
+    (method (doit (o <stuff2>))
       (+ 1 o.c)))
 
-  (define-label <one>
+  (define-label <one2>
     (virtual-fields (immutable p cdr))
-    (mixins <stuff>))
+    (mixins <stuff2>))
 
-  (define-label <two>
+  (define-label <two2>
     (virtual-fields (immutable q cdr))
-    (mixins <stuff>))
+    (mixins <stuff2>))
 
   (check
-      (let (((o <one>) '(10 . 20)))
+      (let (((o <one2>) '(10 . 20)))
         (o.doit))
     => 11)
 
   (check
-      (let (((o <two>) '(10 . 20)))
+      (let (((o <two2>) '(10 . 20)))
         (o.doit))
     => 11)
 
@@ -134,27 +134,27 @@
 
 (parametrise ((check-test-name	'multiple-mixins))
 
-  (define-mixin <stuff>
+  (define-mixin <stuff3>
     (fields c)
-    (method (doit (o <stuff>))
+    (method (doit (o <stuff3>))
       (+ 1 o.c)))
 
-  (define-mixin <other-stuff>
+  (define-mixin <other-stuff3>
     (fields p))
 
-  (define-class <base>
+  (define-class <base3>
     (fields a))
 
-  (define-class <one>
-    (inherit <base>)
+  (define-class <one3>
+    (inherit <base3>)
     (maker ()
 	   (a:	#f)
 	   (p:	#f)
 	   (c:	#f))
-    (mixins <stuff> <other-stuff>))
+    (mixins <stuff3> <other-stuff3>))
 
   (check
-      (let-make ((o <one>
+      (let-make ((o <one3>
 		    (a: 10)
 		    (p: 20)
 		    (c: 30)))
@@ -162,7 +162,7 @@
     => 31)
 
   (check
-      (let-make ((o <one>
+      (let-make ((o <one3>
 		    (a: 10)
 		    (p: 20)
 		    (c: 30)))
@@ -174,28 +174,28 @@
 
 (parametrise ((check-test-name	'composite-mixins))
 
-  (define-mixin <stuff>
+  (define-mixin <stuff4>
     (fields c)
-    (method (doit (o <stuff>))
+    (method (doit (o <stuff4>))
       (+ 1 o.c)))
 
-  (define-mixin <other-stuff>
+  (define-mixin <other-stuff4>
     (fields p)
-    (mixins <stuff>))
+    (mixins <stuff4>))
 
-  (define-class <base>
+  (define-class <base4>
     (fields a))
 
-  (define-class <one>
-    (inherit <base>)
+  (define-class <one4>
+    (inherit <base4>)
     (maker ()
 	   (a:	#f)
 	   (p:	#f)
 	   (c:	#f))
-    (mixins <other-stuff>))
+    (mixins <other-stuff4>))
 
   (check
-      (let-make ((o <one>
+      (let-make ((o <one4>
 		    (a: 10)
 		    (p: 20)
 		    (c: 30)))
@@ -203,7 +203,7 @@
     => 31)
 
   (check
-      (let-make ((o <one>
+      (let-make ((o <one4>
 		    (a: 10)
 		    (p: 20)
 		    (c: 30)))
@@ -224,7 +224,7 @@
 		 (debug-print-condition "wrong:" E)
 		 E))
 	(eval '(let ()
-		 (define-mixin <alpha>))
+		 (define-mixin <alpha10>))
 	      (environment '(nausicaa))))
     => '#f)
 
@@ -238,11 +238,11 @@
 		 (debug-print-condition "wrong:" E)
 		 E))
 	(eval '(let ()
-		 (define-mixin <alpha>
+		 (define-mixin <alpha11>
 		   (fields A))
-		 (define-class <beta>
+		 (define-class <beta11>
 		   (fields A)
-		   (mixins <alpha>)))
+		   (mixins <alpha11>)))
 	      (environment '(nausicaa))))
     => 'A)
 
@@ -254,14 +254,14 @@
 		 (debug-print-condition "wrong:" E)
 		 E))
 	(eval '(let ()
-		 (define-mixin <alpha>
+		 (define-mixin <alpha12>
 		   (fields A))
-		 (define-mixin <beta>
+		 (define-mixin <beta12>
 		   (fields B)
-		   (mixins <alpha>))
-		 (define-class <delta>
+		   (mixins <alpha12>))
+		 (define-class <delta12>
 		   (fields A)
-		   (mixins <beta>)))
+		   (mixins <beta12>)))
 	      (environment '(nausicaa))))
     => 'A)
 
@@ -273,11 +273,11 @@
 		 (debug-print-condition "wrong:" E)
 		 E))
 	(eval '(let ()
-		 (define-mixin unique.<beta>
+		 (define-mixin <beta13>
 		   (fields A)
-		   (mixins unique.<beta>)))
+		   (mixins <beta13>)))
 	      (environment '(nausicaa))))
-    => 'unique.<beta>)
+    => '<beta13>)
 
 ;;; --------------------------------------------------------------------
 
@@ -289,12 +289,12 @@
 		 (debug-print-condition "wrong:" E)
 		 E))
 	(eval '(let ()
-		 (define-mixin <beta>
+		 (define-mixin <beta14>
 		   (fields A))
-		 (define-class <alpha>
-		   (mixins <beta> <beta>)))
+		 (define-class <alpha14>
+		   (mixins <beta14> <beta14>)))
 	      (environment '(nausicaa))))
-    => '<beta>)
+    => '<beta14>)
 
   (check	;same mixin multiple selection in label
       (guard (E ((syntax-violation? E)
@@ -304,12 +304,12 @@
 		 (debug-print-condition "wrong:" E)
 		 E))
 	(eval '(let ()
-		 (define-mixin <beta>
+		 (define-mixin <beta15>
 		   (fields A))
-		 (define-label <alpha>
-		   (mixins <beta> <beta>)))
+		 (define-label <alpha15>
+		   (mixins <beta15> <beta15>)))
 	      (environment '(nausicaa))))
-    => '<beta>)
+    => '<beta15>)
 
   #t)
 

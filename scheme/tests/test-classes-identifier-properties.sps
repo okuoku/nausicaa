@@ -1,4 +1,4 @@
-;;; -*- coding: utf-8 -*-
+;;; -*- coding: utf-8-unix -*-
 ;;;
 ;;;Part of: Nausicaa/Scheme
 ;;;Contents: tests for class identifier properties
@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2010, 2011 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -41,10 +41,10 @@
 	       (define-class <alpha>)
 	       (define-syntax doit
 		 (lambda (stx)
-		   #`(quote #,(lookup-identifier-property #'<alpha> #':list-of-superclasses #f))))
+		   #`(quote #,(ip.ref #'<alpha> #':list-of-superclasses #f))))
 	       (doit))
 	    (environment '(nausicaa)
-			 '(nausicaa language identifier-properties)
+			 '(prefix (nausicaa language identifier-properties) ip.)
 			 '(nausicaa language classes internal-auxiliary-syntaxes)))
     => '())
 
@@ -55,10 +55,10 @@
 		 (inherit <alpha>))
 	       (define-syntax doit
 		 (lambda (stx)
-		   #`(quote #,(lookup-identifier-property #'<beta> #':list-of-superclasses #f))))
+		   #`(quote #,(ip.ref #'<beta> #':list-of-superclasses #f))))
 	       (doit))
 	    (environment '(nausicaa)
-			 '(nausicaa language identifier-properties)
+			 '(prefix (nausicaa language identifier-properties) ip.)
 			 '(nausicaa language classes internal-auxiliary-syntaxes)))
     => '(<alpha>))
 
@@ -73,10 +73,10 @@
 		 (inherit <delta>))
 	       (define-syntax doit
 		 (lambda (stx)
-		   #`(quote #,(lookup-identifier-property #'<gamma> #':list-of-superclasses #f))))
+		   #`(quote #,(ip.ref #'<gamma> #':list-of-superclasses #f))))
 	       (doit))
 	    (environment '(nausicaa)
-			 '(nausicaa language identifier-properties)
+			 '(prefix (nausicaa language identifier-properties) ip.)
 			 '(nausicaa language classes internal-auxiliary-syntaxes)))
     => '(<delta> <beta> <alpha>))
 
@@ -90,10 +90,10 @@
 	       (define-class <alpha>)
 	       (define-syntax doit
 		 (lambda (stx)
-		   #`(quote #,(lookup-identifier-property #'<alpha> #':list-of-field-tags #f))))
+		   #`(quote #,(ip.ref #'<alpha> #':list-of-field-tags #f))))
 	       (doit))
 	    (environment '(nausicaa)
-			 '(nausicaa language identifier-properties)
+			 '(prefix (nausicaa language identifier-properties) ip.)
 			 '(nausicaa language classes internal-auxiliary-syntaxes)))
     => '())
 
@@ -103,10 +103,10 @@
 		 (fields a))
 	       (define-syntax doit
 		 (lambda (stx)
-		   #`(quote #,(lookup-identifier-property #'<alpha> #':list-of-field-tags #f))))
+		   #`(quote #,(ip.ref #'<alpha> #':list-of-field-tags #f))))
 	       (doit))
 	    (environment '(nausicaa)
-			 '(nausicaa language identifier-properties)
+			 '(prefix (nausicaa language identifier-properties) ip.)
 			 '(nausicaa language classes internal-auxiliary-syntaxes)))
     => '())
 
@@ -116,10 +116,10 @@
 		 (fields (a <pair>)))
 	       (define-syntax doit
 		 (lambda (stx)
-		   #`(quote #,(lookup-identifier-property #'<alpha> #':list-of-field-tags #f))))
+		   #`(quote #,(ip.ref #'<alpha> #':list-of-field-tags #f))))
 	       (doit))
 	    (environment '(nausicaa)
-			 '(nausicaa language identifier-properties)
+			 '(prefix (nausicaa language identifier-properties) ip.)
 			 '(nausicaa language classes internal-auxiliary-syntaxes)))
     => '(<pair>))
 
@@ -129,10 +129,10 @@
 		 (fields (a <pair> <list>)))
 	       (define-syntax doit
 		 (lambda (stx)
-		   #`(quote #,(lookup-identifier-property #'<alpha> #':list-of-field-tags #f))))
+		   #`(quote #,(ip.ref #'<alpha> #':list-of-field-tags #f))))
 	       (doit))
 	    (environment '(nausicaa)
-			 '(nausicaa language identifier-properties)
+			 '(prefix (nausicaa language identifier-properties) ip.)
 			 '(nausicaa language classes internal-auxiliary-syntaxes)))
     => '(<pair> <list>))
 
@@ -143,10 +143,10 @@
 			 (b <vector> <number>)))
 	       (define-syntax doit
 		 (lambda (stx)
-		   #`(quote #,(lookup-identifier-property #'<alpha> #':list-of-field-tags #f))))
+		   #`(quote #,(ip.ref #'<alpha> #':list-of-field-tags #f))))
 	       (doit))
 	    (environment '(nausicaa)
-			 '(nausicaa language identifier-properties)
+			 '(prefix (nausicaa language identifier-properties) ip.)
 			 '(nausicaa language classes internal-auxiliary-syntaxes)))
     => '(<vector> <number> <pair> <list>))
 
@@ -159,10 +159,10 @@
 		 (inherit <alpha>))
 	       (define-syntax doit
 		 (lambda (stx)
-		   #`(quote #,(lookup-identifier-property #'<beta> #':list-of-field-tags #f))))
+		   #`(quote #,(ip.ref #'<beta> #':list-of-field-tags #f))))
 	       (doit))
 	    (environment '(nausicaa)
-			 '(nausicaa language identifier-properties)
+			 '(prefix (nausicaa language identifier-properties) ip.)
 			 '(nausicaa language classes internal-auxiliary-syntaxes)))
     => '(<vector> <number> <pair> <list>))
 
@@ -176,10 +176,10 @@
 		 (fields c))
 	       (define-syntax doit
 		 (lambda (stx)
-		   #`(quote #,(lookup-identifier-property #'<beta> #':list-of-field-tags #f))))
+		   #`(quote #,(ip.ref #'<beta> #':list-of-field-tags #f))))
 	       (doit))
 	    (environment '(nausicaa)
-			 '(nausicaa language identifier-properties)
+			 '(prefix (nausicaa language identifier-properties) ip.)
 			 '(nausicaa language classes internal-auxiliary-syntaxes)))
     => '(<vector> <number> <pair> <list>))
 
@@ -193,10 +193,10 @@
 		 (fields (c <integer>)))
 	       (define-syntax doit
 		 (lambda (stx)
-		   #`(quote #,(lookup-identifier-property #'<beta> #':list-of-field-tags #f))))
+		   #`(quote #,(ip.ref #'<beta> #':list-of-field-tags #f))))
 	       (doit))
 	    (environment '(nausicaa)
-			 '(nausicaa language identifier-properties)
+			 '(prefix (nausicaa language identifier-properties) ip.)
 			 '(nausicaa language classes internal-auxiliary-syntaxes)))
     => '(<integer> <vector> <number> <pair> <list>))
 
@@ -211,10 +211,10 @@
 			 (d <complex>)))
 	       (define-syntax doit
 		 (lambda (stx)
-		   #`(quote #,(lookup-identifier-property #'<beta> #':list-of-field-tags #f))))
+		   #`(quote #,(ip.ref #'<beta> #':list-of-field-tags #f))))
 	       (doit))
 	    (environment '(nausicaa)
-			 '(nausicaa language identifier-properties)
+			 '(prefix (nausicaa language identifier-properties) ip.)
 			 '(nausicaa language classes internal-auxiliary-syntaxes)))
     => '(<complex> <integer> <vector> <number> <pair> <list>))
 
@@ -231,10 +231,10 @@
 		 (inherit <beta>))
 	       (define-syntax doit
 		 (lambda (stx)
-		   #`(quote #,(lookup-identifier-property #'<delta> #':list-of-field-tags #f))))
+		   #`(quote #,(ip.ref #'<delta> #':list-of-field-tags #f))))
 	       (doit))
 	    (environment '(nausicaa)
-			 '(nausicaa language identifier-properties)
+			 '(prefix (nausicaa language identifier-properties) ip.)
 			 '(nausicaa language classes internal-auxiliary-syntaxes)))
     => '(<complex> <integer> <vector> <number> <pair> <list>))
 

@@ -29,10 +29,13 @@
 
 #!r6rs
 (library (nausicaa language identifier-properties)
-  (export define-identifier-property
-	  lookup-identifier-property)
+  (export
+    define-identifier-property
+    (rename (ip.define	define)
+	    (ip.set!	set!)
+	    (ip.ref	ref)))
   (import (rnrs)
-    (for (nausicaa language identifier-properties helpers) expand))
+    (for (prefix (nausicaa language identifier-properties helpers) ip.) expand))
 
   (define-syntax define-identifier-property
     (lambda (stx)
@@ -41,7 +44,7 @@
 	 (begin
 	   (assert (identifier? #'?subject))
 	   (assert (identifier? #'?key))
-	   (identifier-property-set! #'?subject #'?key #'?value)
+	   (ip.define #'?subject #'?key #'?value)
 	   #'(define dummy))))))
   )
 
