@@ -52,7 +52,7 @@
 
     ;; clauses helpers
     validate-list-of-clauses		validate-definition-clauses
-    filter-clauses
+    filter-clauses			discard-clauses
 
     define-auxiliary-syntax		define-auxiliary-syntaxes)
   (import (rnrs))
@@ -173,20 +173,24 @@
     (()		#t)
     (_		#f)))
 
-(define (duplicated-identifiers? ell/stx)
+(define duplicated-identifiers?
   ;;Recursive  function.  Search  the  list of  identifiers ELL/STX  for
   ;;duplicated  identifiers; at  the first  duplicate found,  return it;
   ;;return false if no duplications are found.
   ;;
-  (if (null? ell/stx)
-      #f
-    (let loop ((x  (car ell/stx))
-	       (ls (cdr ell/stx)))
-      (if (null? ls)
-	  (duplicated-identifiers? (cdr ell/stx))
-	(if (bound-identifier=? x (car ls))
-	    x
-	  (loop x (cdr ls)))))))
+  (case-lambda
+   ((ell/stx)
+    (duplicated-identifiers? ell/stx bound-identifier=?))
+   ((ell/stx identifier=)
+    (if (null? ell/stx)
+	#f
+      (let loop ((x  (car ell/stx))
+		 (ls (cdr ell/stx)))
+	(if (null? ls)
+	    (duplicated-identifiers? (cdr ell/stx) identifier=)
+	  (if (identifier= x (car ls))
+	      x
+	    (loop x (cdr ls)))))))))
 
 (define (delete-duplicated-identifiers ids)
   ;;Given the list of  identifiers IDS remove the duplicated identifiers
@@ -324,9 +328,9 @@
   ;;
   ;;    ((<identifier> <thing> ...) ...)
   ;;
-  ;;look for  the ones having  KEYWORD-IDENTIFIER as car and  return the
-  ;;selected clauses  in a  list; return the  empty list if  no matching
-  ;;clause is found.
+  ;;look  for the ones  having KEYWORD-IDENTIFIER  as car  (according to
+  ;;FREE-IDENTIFIER=?) and return the selected clauses in a list; return
+  ;;the empty list if no matching clause is found.
   ;;
   (assert (identifier? keyword-identifier))
   (let next-clause ((clauses  clauses)
@@ -337,6 +341,26 @@
 		     (if (free-identifier=? keyword-identifier (caar clauses))
 			 (cons (car clauses) selected)
 		       selected)))))
+
+(define (discard-clauses keyword-identifier clauses)
+  ;;Given a list of clauses with the format:
+  ;;
+  ;;    ((<identifier> <thing> ...) ...)
+  ;;
+  ;;look  for the ones  having KEYWORD-IDENTIFIER  as car  (according to
+  ;;FREE-IDENTIFIER=?) and discard them; return all the other clauses in
+  ;;a   list;  return   the  empty   list  if   all  the   clauses  have
+  ;;KEYWORD-IDENTIFIER as car.
+  ;;
+  (assert (identifier? keyword-identifier))
+  (let next-clause ((clauses  clauses)
+		    (selected '()))
+    (if (null? clauses)
+	(reverse selected) ;it is important to keep the order
+	(next-clause (cdr clauses)
+		     (if (free-identifier=? keyword-identifier (caar clauses))
+			 selected
+		       (cons (car clauses) selected))))))
 
 
 (define (validate-definition-clauses mandatory-keywords optional-keywords

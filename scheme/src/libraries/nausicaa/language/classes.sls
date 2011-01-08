@@ -511,7 +511,7 @@
     (let loop ((mixins (%collect-clause/mixins clauses %synner)))
       (unless (null? mixins)
 	(set! clauses (append clauses
-			      (%compose-class-with-mixin (car mixins) class-identifier clauses)))
+			      (%compose-class-with-mixin (car mixins) class-identifier %synner)))
 	;;After each composition validate the clauses.
 	(validate-class-clauses clauses %synner)
 	(loop (cdr mixins))))
@@ -1283,7 +1283,7 @@
   (let loop ((mixins (%collect-clause/mixins clauses %synner)))
     (unless (null? mixins)
       (set! clauses (append clauses
-			    (%compose-label-with-mixin (car mixins) label-identifier clauses)))
+			    (%compose-label-with-mixin (car mixins) label-identifier %synner)))
       ;;After each composition validate the clauses.
       (validate-label-clauses clauses %synner)
       (loop (cdr mixins))))
@@ -1589,9 +1589,21 @@
 (define-syntax* (define-mixin stx)
   (syntax-case stx ()
     ((_ ?mixin-identifier . ?clauses)
-     (begin
-       (validate-mixin-clauses (unwrap-syntax-object #'?clauses) synner)
-       #'(define-identifier-property ?mixin-identifier mixin-clauses ?clauses)))))
+     (let ((clauses (unwrap-syntax-object #'?clauses)))
+       (when (null? clauses)
+	 (synner "at least one clause needed in mixin definition"))
+       (validate-mixin-clauses clauses synner)
+       (let ((submixin-identifiers	(%collect-clause/mixins clauses synner))
+	     (other-clauses		(discard-clauses #'mixins clauses)))
+	 (let loop ((mixins submixin-identifiers))
+	   (unless (null? mixins)
+	     (set! other-clauses
+		   (append other-clauses
+			   (%compose-mixin-with-mixin (car mixins) #'?mixin-identifier synner)))
+	     ;;After each composition validate the clauses.
+	     (validate-mixin-clauses other-clauses synner)
+	     (loop (cdr mixins))))
+	 #`(define-identifier-property ?mixin-identifier mixin-clauses #,other-clauses))))))
 
 
 ;;;; virtual methods

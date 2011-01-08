@@ -30,9 +30,10 @@
   (export
     validate-class-clauses
     validate-label-clauses
-    validate-mixin-clauses
+    (rename (validate-class-clauses validate-mixin-clauses))
     %compose-class-with-mixin
-    (rename (%compose-class-with-mixin %compose-label-with-mixin))
+    (rename (%compose-class-with-mixin %compose-label-with-mixin)
+	    (%compose-class-with-mixin %compose-mixin-with-mixin))
     %variable-name->Setter-name
     %variable-name->Getter-name
     %make-fields-accessor-of-transformer
@@ -99,40 +100,22 @@
    '()
    clauses synner))
 
-(define (validate-mixin-clauses clauses synner)
-  ;;Validate the definition clauses  for DEFINE-MIXIN; CLAUSES must be a
-  ;;syntax object  holding the definition clauses.   The only difference
-  ;;between  this  function  and  VALIDATE-CLASS-CLAUSES  is  that  this
-  ;;function does not allow the MIXIN clause.
+
+(define (%compose-class-with-mixin mixin-identifier class-identifier synner)
+  ;;Given a mixin identifier name  and a class identifier name: retrieve
+  ;;the clauses  of the mixin,  substitute the occurrences of  the mixin
+  ;;identifier with the  class identifier, return the result.
+  ;;
+  ;;It is an error if the mixin identifier is undefined.
   ;;
   ;;SYNNER must  be the closure  used to raise  a syntax violation  if a
   ;;parse  error  occurs; it  must  accept  two  arguments: the  message
   ;;string, the subform.
   ;;
-  (validate-definition-clauses
-   ;; mandatory keywords
-   '()
-   ;; optional keywords
-   (list #'parent #'sealed #'opaque #'parent-rtd #'nongenerative #'fields #'protocol
-	 #'inherit #'predicate #'maker #'maker-transformer #'custom-maker
-	 #'setter #'getter #'bindings
-	 #'public-protocol #'maker-protocol #'superclass-protocol
-	 #'virtual-fields #'methods #'method #'method-syntax)
-   ;; at most once keywords
-   (list #'parent #'sealed #'opaque #'parent-rtd #'nongenerative
-	 #'inherit #'predicate #'maker #'maker-transformer #'custom-maker
-	 #'setter #'getter #'bindings
-	 #'protocol #'public-protocol #'maker-protocol #'superclass-protocol)
-   ;; mutually exclusive keywords sets
-   (list (list #'inherit #'parent #'parent-rtd)
-	 (list #'maker #'custom-maker)
-	 (list #'maker-transformer #'custom-maker))
-   clauses synner))
-
-
-(define (%compose-class-with-mixin mixin-identifier class-identifier class-clauses)
-  (identifier-subst (list mixin-identifier) (list class-identifier)
-		    (lookup-identifier-property mixin-identifier #'mixin-clauses)))
+  (let ((mixin-clauses (lookup-identifier-property mixin-identifier #'mixin-clauses #f)))
+    (if mixin-clauses
+	(identifier-subst (list mixin-identifier) (list class-identifier) mixin-clauses)
+      (synner "undefined mixin identifier" mixin-identifier))))
 
 
 (define (%variable-name->Setter-name variable-name-stx)

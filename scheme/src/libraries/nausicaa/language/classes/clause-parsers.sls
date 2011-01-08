@@ -1147,6 +1147,9 @@
   ;;MIXINS clauses and parse them;  there can be multiple MIXINS clauses
   ;;in CLAUSES.
   ;;
+  ;;It is  an error if the  same mixin identifier  is specified multiple
+  ;;times in the MIXINS clauses.
+  ;;
   ;;Return null or a validated list of mixin identifiers.
   ;;
   ;;SYNNER must  be the closure  used to raise  a syntax violation  if a
@@ -1156,7 +1159,11 @@
   (let next-clause ((clauses   (filter-clauses #'mixins clauses))
 		    (collected '()))
     (if (null? clauses)
-	(reverse collected)
+	(begin
+	  (let ((dup (duplicated-identifiers? collected free-identifier=?)))
+	    (when dup
+	      (synner "mixin included multiple times" dup)))
+	  (reverse collected))
       (syntax-case (car clauses) (mixins)
 	((mixins ?mixin-name0 ?mixin-name ...)
 	 (all-identifiers? #'(?mixin-name0 ?mixin-name ...))
