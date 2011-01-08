@@ -114,7 +114,8 @@
   ;;
   (let ((mixin-clauses (lookup-identifier-property mixin-identifier #'mixin-clauses #f)))
     (if mixin-clauses
-	(identifier-subst (list mixin-identifier) (list class-identifier) mixin-clauses)
+	(unwrap-syntax-object	;the receiving end expects an unwrapped object
+	 (identifier-subst (list mixin-identifier) (list class-identifier) mixin-clauses))
       (synner "undefined mixin identifier" mixin-identifier))))
 
 

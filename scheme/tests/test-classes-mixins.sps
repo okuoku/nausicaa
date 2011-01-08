@@ -36,47 +36,70 @@
 
 (parametrise ((check-test-name	'class))
 
-  (define-mixin <stuff>
-    (fields c)
-    (method (doit (o <stuff>))
-      (+ 1 o.c)))
+  (let ()
+    (define-mixin <stuff>
+      (fields c)
+      (method (doit (o <stuff>))
+	(+ 1 o.c)))
 
-  (define-class <base>
-    (fields a))
+    (define-class <base>
+      (fields a))
 
-  (define-class <one>
-    (inherit <base>)
-    (maker ()
-	   (a:	#f)
-	   (p:	#f)
-	   (c:	#f))
-    (fields p)
-    (mixins <stuff>))
+    (define-class <one>
+      (inherit <base>)
+      (maker ()
+	     (a:	#f)
+	     (p:	#f)
+	     (c:	#f))
+      (fields p)
+      (mixins <stuff>))
 
-  (define-class <two>
-    (inherit <base>)
-    (maker ()
-	   (a:	#f)
-	   (q:	#f)
-	   (c:	#f))
-    (fields q)
-    (mixins <stuff>))
+    (define-class <two>
+      (inherit <base>)
+      (maker ()
+	     (a:	#f)
+	     (q:	#f)
+	     (c:	#f))
+      (fields q)
+      (mixins <stuff>))
 
-  (check
-      (let-make ((o <one>
-		    (a: 10)
-		    (p: 20)
-		    (c: 30)))
-        (o.doit))
-    => 31)
+    (check
+	(let-make ((o <one>
+		      (a: 10)
+		      (p: 20)
+		      (c: 30)))
+	  (o.doit))
+      => 31)
 
-  (check
-      (let-make ((o <two>
-		    (a: 10)
-		    (q: 20)
-		    (c: 30)))
-        (o.doit))
-    => 31)
+    (check
+	(let-make ((o <two>
+		      (a: 10)
+		      (q: 20)
+		      (c: 30)))
+	  (o.doit))
+      => 31)
+
+    #f)
+
+;;; --------------------------------------------------------------------
+
+  (let ()	;mixin accessing the fields of the receiving class
+
+    (define-mixin <stuff>
+      (fields c)
+      (method (doit (o <stuff>))
+	(+ o.a o.c)))
+
+    (define-class <alpha>
+      (fields a)
+      (mixins <stuff>))
+
+    (check
+	(let-make ((o <alpha> 1 2))
+	  (o.doit))
+      => 3)
+
+    #f)
 
   #t)
 

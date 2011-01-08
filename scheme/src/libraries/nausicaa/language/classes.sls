@@ -1587,6 +1587,8 @@
 
 
 (define-syntax* (define-mixin stx)
+  ;;Define a new mixin.
+  ;;
   (syntax-case stx ()
     ((_ ?mixin-identifier . ?clauses)
      (let ((clauses (unwrap-syntax-object #'?clauses)))
