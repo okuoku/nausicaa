@@ -113,8 +113,8 @@
     (nausicaa language auxiliary-syntaxes)
     (nausicaa language extensions)
     (prefix (nausicaa language identifier-properties) ip.)
+    (for (prefix (nausicaa language classes properties) prop.) expand)
     (nausicaa language classes internal-auxiliary-syntaxes)
-    (nausicaa language classes property-auxiliary-syntaxes)
     (nausicaa language classes top))
 
 
@@ -684,7 +684,14 @@
 	 ((satisfactions)
 	  (%collect-clause/satisfies clauses %synner)))
 
-      (define the-parent-is-a-class? (identifier? superclass-identifier))
+      (define-values (the-parent-is-a-class? superclass-properties)
+	(let ((id? (identifier? superclass-identifier)))
+	  (if id?
+	      (let ((props (and id? (ip.ref superclass-identifier #':struct-properties))))
+		(if props
+		    (values #t props)
+		  (values #f #f)))
+	    (values #f #f))))
 
       (define all-methods
 	(append methods methods-from-methods syntax-methods))
@@ -696,16 +703,15 @@
 	(%list-of-unique-field-types
 	 fields virtual-fields
 	 (if the-parent-is-a-class?
-	     (syntax->list ;identifier properties come in syntax objects
-	      (ip.ref superclass-identifier #':list-of-field-tags '()) '())
+	     ;;struct properties come in syntax objects
+	     (syntax->list (prop.class-list-of-field-tags superclass-properties))
 	   '())
 	 %synner))
 
       (define list-of-superclasses
 	(if the-parent-is-a-class?
 	    (cons superclass-identifier
-		  (syntax->list
-		   (ip.ref superclass-identifier #':list-of-superclasses '()) '()))
+		  (syntax->list (prop.class-list-of-supers superclass-properties)))
 	  '()))
 
       (let ((id (duplicated-identifiers? (append (map cadr fields)
@@ -829,8 +835,9 @@
 	   (((MUTABILITY FIELD X ...) ...) fields)
 	   (LIST-OF-FIELD-TAGS		list-of-field-tags)
 	   (LIST-OF-SUPERCLASSES	list-of-superclasses)
-	   (INPUT-FORM			stx)
-	   ((SATISFACTION ...)		satisfactions))
+	   (MIXIN-IDENTIFIERS		mixin-identifiers)
+	   ((SATISFACTION ...)		satisfactions)
+	   (INPUT-FORM			stx))
 	(with-syntax
 	    ;;Here we  try to  build and select  at expand time  what is
 	    ;;possible.
@@ -1045,17 +1052,24 @@
 	      ;;want.   (Especially  when  evaluating class  definitions
 	      ;;with an EVAL as we do in the test suite.)
 	      ;;
-	      (ip.define-identifier-property THE-CLASS :list-of-superclasses LIST-OF-SUPERCLASSES)
-	      (ip.define-identifier-property THE-CLASS :list-of-field-tags LIST-OF-FIELD-TAGS)
-	      (ip.define-identifier-property THE-CLASS :field-specs FIELD-SPECS)
-	      (ip.define-identifier-property THE-CLASS :virtual-field-specs VIRTUAL-FIELD-SPECS)
-	      (ip.define-identifier-property THE-CLASS :method-specs METHOD-SPECS)
+	      (define-syntax define-properties
+		(lambda (stx)
+		  (begin
+		    (ip.define #'THE-CLASS #':struct-properties
+			       (prop.make-class #'LIST-OF-SUPERCLASSES
+						#'FIELD-SPECS
+						#'VIRTUAL-FIELD-SPECS
+						#'METHOD-SPECS
+						#'MIXIN-IDENTIFIERS
+						#'LIST-OF-FIELD-TAGS))
+		    #'(define dummy))))
+	      (define-properties)
 	      (define-dummy-and-detect-circular-tagging THE-CLASS INPUT-FORM)
 	      (define-syntax get-satisfaction
 		(lambda (stx)
 		  (begin
 		    (SATISFACTION #'THE-CLASS) ...
-		    #'(define dummy-satisfaction))))
+		    #'(define dummy))))
 	      (get-satisfaction)
 
 	      (define-syntax* (with-class-bindings stx)
@@ -1393,8 +1407,14 @@
        ((satisfactions)
 	(%collect-clause/satisfies clauses %synner)))
 
-    (define the-parent-is-a-label?
-      (identifier? superlabel-identifier))
+    (define-values (the-parent-is-a-label? superlabel-properties)
+      (let ((id? (identifier? superlabel-identifier)))
+	(if id?
+	    (let ((props (and id? (ip.ref superlabel-identifier #':struct-properties))))
+	      (if props
+		  (values #t props)
+		(values #f #f)))
+	  (values #f #f))))
 
     (define all-methods
       (append methods methods-from-methods syntax-methods))
@@ -1406,16 +1426,15 @@
       (%list-of-unique-field-types
        '() virtual-fields
        (if the-parent-is-a-label?
-	   (syntax->list ;identifier properties come in syntax objects
-	    (ip.ref superlabel-identifier #':list-of-field-tags '()) '())
+	   ;;struct properties come in syntax objects
+	   (syntax->list (prop.label-list-of-field-tags superlabel-properties))
 	 '())
        %synner))
 
-    (define list-of-superclasses
+    (define list-of-superlabels
       (if the-parent-is-a-label?
 	  (cons superlabel-identifier
-		(syntax->list
-		 (ip.ref superlabel-identifier #':list-of-superclasses '()) '()))
+		(syntax->list (prop.label-list-of-supers superlabel-properties)))
 	'()))
 
     (let ((id (duplicated-identifiers? (append (map cadr virtual-fields)
@@ -1440,7 +1459,7 @@
 	 (VIRTUAL-FIELD-SPECS		virtual-fields)
 	 (METHOD-SPECS			all-methods)
 	 (LIST-OF-FIELD-TAGS		list-of-field-tags)
-	 (LIST-OF-SUPERCLASSES		list-of-superclasses)
+	 (LIST-OF-SUPERLABELS		list-of-superlabels)
 	 ((SATISFACTION ...)		satisfactions)
 	 (SLOT-ACCESSOR-OF-TRANSFORMER
 	  (%make-fields-accessor-of-transformer label-identifier '() virtual-fields %synner))
@@ -1448,6 +1467,7 @@
 	  (%make-fields-mutator-of-transformer label-identifier '() virtual-fields %synner))
 	 (WITH-FIELD-CLASS-BINDINGS
 	  (%make-with-field-class-bindings '() virtual-fields %synner))
+	 (MIXIN-IDENTIFIERS		mixin-identifiers)
 	 (INPUT-FORM			stx))
       #'(begin
 	  (define THE-PREDICATE
@@ -1519,10 +1539,17 @@
 	  ;;evaluating label  definitions with an  EVAL as we do  in the
 	  ;;test suite.)
 	  ;;
-	  (ip.define-identifier-property THE-LABEL :list-of-superclasses LIST-OF-SUPERCLASSES)
-	  (ip.define-identifier-property THE-LABEL :list-of-field-tags   LIST-OF-FIELD-TAGS)
-	  (ip.define-identifier-property THE-LABEL :virtual-field-specs VIRTUAL-FIELD-SPECS)
-	  (ip.define-identifier-property THE-LABEL :method-specs METHOD-SPECS)
+	  (define-syntax define-properties
+	    (lambda (stx)
+	      (begin
+		(ip.define #'THE-LABEL #':struct-properties
+			   (prop.make-label #'LIST-OF-SUPERLABELS
+					    #'VIRTUAL-FIELD-SPECS
+					    #'METHOD-SPECS
+					    #'MIXIN-IDENTIFIERS
+					    #'LIST-OF-FIELD-TAGS))
+		#'(define dummy))))
+	  (define-properties)
 	  (define-dummy-and-detect-circular-tagging THE-LABEL INPUT-FORM)
 	  (define-syntax get-satisfaction
 	    (lambda (stx)
@@ -1600,7 +1627,10 @@
 	 (let search ((current	#'?thing)
 		      (thing	#'?thing))
 	   (define field-tags	;includes the ones of the superclasses
-	     (syntax->list (ip.ref current #':list-of-field-tags '()) '()))
+	     (let ((p (ip.ref current #':struct-properties)))
+	       (if p
+		   (syntax->list (prop.struct-list-of-field-tags p))
+		 '())))
 	   (when (identifier-memq thing field-tags)
 	     (synner))
 	   (for-each (lambda (tag)
@@ -1629,7 +1659,8 @@
 	     ;;After each composition validate the clauses.
 	     (validate-mixin-clauses other-clauses synner)
 	     (loop (cdr mixins))))
-	 #`(ip.define-identifier-property ?mixin-identifier :mixin-clauses #,other-clauses))))))
+	 #`(ip.define-identifier-property ?mixin-identifier
+					  prop.:mixin-clauses #,other-clauses))))))
 
 
 ;;;; virtual methods

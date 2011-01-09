@@ -32,7 +32,7 @@
     has-fields-a/b/c has-virtual-fields-a/b/c)
   (import (nausicaa)
     (prefix (nausicaa language identifier-properties) ip.)
-    (nausicaa language classes property-auxiliary-syntaxes))
+    (prefix (nausicaa language classes properties) prop.))
 
 
 (define (has-fields-a/b/c the-identifier)
@@ -40,7 +40,7 @@
   ;;with names "a", "b" and "c".
   ;;
   (define specs
-    (ip.ref the-identifier #':field-specs '()))
+    (prop.class-field-specs (ip.ref the-identifier #':struct-properties)))
   (define (%synner message subform)
     (syntax-violation 'has-fields-a/b/c
       (string-append "checking class identifier "
@@ -74,7 +74,7 @@
   ;;fields with names "a", "b" and "c".
   ;;
   (define specs
-    (ip.ref the-identifier #':virtual-field-specs '()))
+    (prop.label-virtual-field-specs (ip.ref the-identifier #':struct-properties)))
   (define (%synner message subform)
     (syntax-violation 'has-virtual-fields-a/b/c
       (string-append "checking class identifier "

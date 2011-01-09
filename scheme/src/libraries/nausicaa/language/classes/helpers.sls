@@ -40,11 +40,10 @@
     %make-fields-mutator-of-transformer
     %make-with-field-class-bindings
     %list-of-unique-field-types
-    %detect-recursive-type-in-fields
-    %reverse-inheritance-hierarchy-identifiers)
+    %detect-recursive-type-in-fields)
   (import (rnrs)
     (nausicaa language classes internal-auxiliary-syntaxes)
-    (nausicaa language classes property-auxiliary-syntaxes)
+    (nausicaa language classes properties)
     (prefix (nausicaa language identifier-properties) ip.)
     (nausicaa language syntax-utilities)
     (for (nausicaa language auxiliary-syntaxes) (meta -1)))
@@ -339,24 +338,6 @@
 	     field-classes)))
     (when c
       (synner "detected recursive type" c))))
-
-
-;;;; miscellaneous helpers
-
-(define (%reverse-inheritance-hierarchy-identifiers thing)
-  ;;Given  the identifier  THING  representing a  class  or label  name,
-  ;;return  the   list  of  identifiers   representing  its  inheritance
-  ;;hierarchy;  the list  does include  the <TOP>  class/label  which is
-  ;;always the root of classes and labels.
-  ;;
-  ;;The returned list is from the topmost superclass to the lowest class
-  ;;and ends with THING itself.
-  ;;
-  (let loop ((parents `(,thing)))
-    (let ((p (ip.ref (car parents) #':superclass-property)))
-      (if p
-	  (loop (cons p parents))
-	parents))))
 
 
 ;;;; done

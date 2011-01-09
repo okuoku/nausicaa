@@ -37,7 +37,7 @@
 (parametrise ((check-test-name	'fields)
 	      (debugging	#f))
 
-  (check	;satisfies has fields
+  (check 	;satisfies has fields
       (eval '(let ()
 	       (define-class <alpha>
 		 (fields a b c)
@@ -65,7 +65,7 @@
 
 ;;; --------------------------------------------------------------------
 
-  (check	;satisfies has fields
+  (check 	;satisfies has fields
       (eval '(let ()
 	       (define-label <alpha>
 		 (virtual-fields a b c)

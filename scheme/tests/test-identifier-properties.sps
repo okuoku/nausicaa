@@ -1,4 +1,4 @@
-;;; -*- coding: utf-8 -*-
+;;; -*- coding: utf-8-unix -*-
 ;;;
 ;;;Part of: Nausicaa/Scheme
 ;;;Contents: tests for expand-time identifier properties
@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2010, 2011 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -27,7 +27,7 @@
 
 #!r6rs
 (import (nausicaa)
-  (nausicaa language identifier-properties)
+  (prefix (nausicaa language identifier-properties) ip.)
   (nausicaa checks))
 
 (check-set-mode! 'report-failed)
@@ -43,15 +43,15 @@
       (lambda (stx)
 	(syntax-case stx ()
 	  ((_ ?id)
-	   (lookup-identifier-property #'?id #'type)))))
+	   (ip.ref #'?id #'type)))))
 
     (define-syntax get-spiffy
       (lambda (stx)
 	(syntax-case stx ()
 	  ((_ ?id)
-	   (lookup-identifier-property #'?id #'spiffy)))))
+	   (ip.ref #'?id #'spiffy)))))
 
-    (define-identifier-property a type 'int)
+    (ip.define-identifier-property a type 'int)
 
     (check (get-type a) => 'int)
     (check (get-type b) => #f)

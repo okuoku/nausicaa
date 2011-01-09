@@ -30,7 +30,8 @@
   (export <top> <top>-superclass <top>-superlabel <top>-bindings)
   (import (rnrs)
     (nausicaa language classes internal-auxiliary-syntaxes)
-    (nausicaa language classes property-auxiliary-syntaxes))
+    (prefix (nausicaa language identifier-properties) ip.)
+    (prefix (nausicaa language classes properties) prop.))
 
 
 (define-record-type <top>
@@ -100,6 +101,19 @@
   (syntax-rules ()
     ((_ ?class-name ?identifier . ?body)
      (begin . ?body))))
+
+(define-syntax define-properties
+  (lambda (stx)
+    (begin
+      (ip.define #'<top> #':struct-properties
+		 (prop.make-class '()	;list of supers
+				  '()	;field specs
+				  '()	;virtual field specs
+				  '()	;method specs
+				  '()	;mixins
+				  '()))	;list of field tags
+      #'(define dummy))))
+(define-properties)
 
 
 ;;;; done
