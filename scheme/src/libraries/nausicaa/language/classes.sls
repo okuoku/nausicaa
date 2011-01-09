@@ -1296,8 +1296,9 @@
       ((_ ?name-spec . ?clauses)
        (%synner "invalid name specification in label definition" #'?name-spec))))
 
+  (define mixin-identifiers (%collect-clause/mixins clauses %synner))
   (validate-label-clauses clauses %synner)
-  (let loop ((mixins (%collect-clause/mixins clauses %synner)))
+  (let loop ((mixins mixin-identifiers))
     (unless (null? mixins)
       (set! clauses (append clauses
 			    (%compose-label-with-mixin (car mixins) label-identifier %synner)))
@@ -1385,7 +1386,12 @@
        ;;    (define-syntax <macro identifier> <expression>)
        ;;
        ((syntax-methods syntax-definitions)
-	(%collect-clause/method-syntax label-identifier clauses %synner)))
+	(%collect-clause/method-syntax label-identifier clauses %synner))
+
+       ;;Null or a list of satisfaction function identifiers.
+       ;;
+       ((satisfactions)
+	(%collect-clause/satisfies clauses %synner)))
 
     (define the-parent-is-a-label?
       (identifier? superlabel-identifier))
@@ -1435,14 +1441,13 @@
 	 (METHOD-SPECS			all-methods)
 	 (LIST-OF-FIELD-TAGS		list-of-field-tags)
 	 (LIST-OF-SUPERCLASSES		list-of-superclasses)
-
+	 ((SATISFACTION ...)		satisfactions)
 	 (SLOT-ACCESSOR-OF-TRANSFORMER
 	  (%make-fields-accessor-of-transformer label-identifier '() virtual-fields %synner))
 	 (SLOT-MUTATOR-OF-TRANSFORMER
 	  (%make-fields-mutator-of-transformer label-identifier '() virtual-fields %synner))
 	 (WITH-FIELD-CLASS-BINDINGS
 	  (%make-with-field-class-bindings '() virtual-fields %synner))
-
 	 (INPUT-FORM			stx))
       #'(begin
 	  (define THE-PREDICATE
@@ -1516,7 +1521,15 @@
 	  ;;
 	  (ip.define-identifier-property THE-LABEL :list-of-superclasses LIST-OF-SUPERCLASSES)
 	  (ip.define-identifier-property THE-LABEL :list-of-field-tags   LIST-OF-FIELD-TAGS)
+	  (ip.define-identifier-property THE-LABEL :virtual-field-specs VIRTUAL-FIELD-SPECS)
+	  (ip.define-identifier-property THE-LABEL :method-specs METHOD-SPECS)
 	  (define-dummy-and-detect-circular-tagging THE-LABEL INPUT-FORM)
+	  (define-syntax get-satisfaction
+	    (lambda (stx)
+	      (begin
+		(SATISFACTION #'THE-LABEL) ...
+		#'(define dummy-satisfaction))))
+	  (get-satisfaction)
 
 	  (define-syntax* (with-label-bindings stx)
 	    ;;This  macro  defines all  the  syntaxes  to  be used  by

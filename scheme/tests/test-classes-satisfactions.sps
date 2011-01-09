@@ -34,7 +34,7 @@
 (display "*** testing class satisfactions\n")
 
 
-(parametrise ((check-test-name	'class)
+(parametrise ((check-test-name	'fields)
 	      (debugging	#f))
 
   (check	;satisfies has fields
@@ -49,7 +49,7 @@
 
   (check	;wrong has fields
       (guard (E ((syntax-violation? E)
-		 (debug-print-condition "wrong:" E)
+		 (debug-print-condition "good:" E)
 		 (syntax-violation-subform E))
 		(else
 		 (debug-print-condition "wrong:" E)
@@ -58,6 +58,34 @@
 		 (define-class <alpha>
 		   (fields a c)
 		   (satisfies has-fields-a/b/c))
+		 #t)
+	      (environment '(nausicaa)
+			   '(for (class-satisfactions) expand))))
+    => 'b)
+
+;;; --------------------------------------------------------------------
+
+  (check	;satisfies has fields
+      (eval '(let ()
+	       (define-label <alpha>
+		 (virtual-fields a b c)
+		 (satisfies has-virtual-fields-a/b/c))
+	       #t)
+	    (environment '(nausicaa)
+			 '(for (class-satisfactions) expand)))
+    => #t)
+
+  (check	;wrong has fields
+      (guard (E ((syntax-violation? E)
+		 (debug-print-condition "good:" E)
+		 (syntax-violation-subform E))
+		(else
+		 (debug-print-condition "wrong:" E)
+		 E))
+	(eval '(let ()
+		 (define-label <alpha>
+		   (virtual-fields a c)
+		   (satisfies has-virtual-fields-a/b/c))
 		 #t)
 	      (environment '(nausicaa)
 			   '(for (class-satisfactions) expand))))

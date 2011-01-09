@@ -29,49 +29,78 @@
 #!r6rs
 (library (class-satisfactions)
   (export
-    has-fields-a/b/c)
+    has-fields-a/b/c has-virtual-fields-a/b/c)
   (import (nausicaa)
     (prefix (nausicaa language identifier-properties) ip.)
     (nausicaa language classes property-auxiliary-syntaxes))
 
 
-(define (has-fields-a/b/c the-class-identifier)
-  (let ((specs (ip.ref the-class-identifier #':field-specs)))
-    (define (%synner message subform)
-      (syntax-violation 'has-fields-a/b/c
-	(string-append "checking class identifier "
-		       (symbol->string (syntax->datum the-class-identifier))
-		       ": " message)
-	(syntax->datum specs) (syntax->datum subform)))
-    (let loop ((specs specs)
-	       (a #f) (b #f) (c #f))
-      (syntax-case specs (mutable immutable)
-	(()
-	 (unless (and a b c)
-	   (%synner "missing required field" (cond ((not a) 'a) ((not b) 'b) ((not c) 'c)))))
-	(((mutable ?name ?accessor ?mutator) . ?specs)
-	 (case (syntax->datum #'?name)
-	   ((a)
-	    (loop #'?specs #t b c))
-	   ((b)
-	    (loop #'?specs a #t c))
-	   ((c)
-	    (loop #'?specs a b #t))
-	   (else
-	    (loop #'?specs a b c))))
-	(((immutable ?name ?accessor) . ?specs)
-	 (case (syntax->datum #'?name)
-	   ((a)
-	    (loop #'?specs #t b c))
-	   ((b)
-	    (loop #'?specs a #t c))
-	   ((c)
-	    (loop #'?specs a b #t))
-	   (else
-	    (loop #'?specs a b c))))
-	(?thing
-	 (%synner "invalid fields specification" #'?thing))
-	))))
+(define (has-fields-a/b/c the-identifier)
+  ;;Check that  the class  definition of THE-IDENTIFIER  includes fields
+  ;;with names "a", "b" and "c".
+  ;;
+  (define specs
+    (ip.ref the-identifier #':field-specs '()))
+  (define (%synner message subform)
+    (syntax-violation 'has-fields-a/b/c
+      (string-append "checking class identifier "
+		     (symbol->string (syntax->datum the-identifier))
+		     ": " message)
+      (syntax->datum specs) (syntax->datum subform)))
+  (let loop ((specs specs)
+	     (a #f) (b #f) (c #f))
+    (syntax-case specs ()
+      (()
+       (unless (and a b c)
+	 (%synner "missing required field"
+		  (cond ((not a) 'a) ((not b) 'b) ((not c) 'c)))))
+      (((mutability ?name . ?rest) . ?specs)
+       (case (syntax->datum #'?name)
+	 ((a)
+	  (loop #'?specs #t b c))
+	 ((b)
+	  (loop #'?specs a #t c))
+	 ((c)
+	  (loop #'?specs a b #t))
+	 (else
+	  (loop #'?specs a b c))))
+      (?thing
+       (%synner "invalid fields specification" #'?thing))
+      )))
+
+
+(define (has-virtual-fields-a/b/c the-identifier)
+  ;;Check that  the class definition of  THE-IDENTIFIER includes virtual
+  ;;fields with names "a", "b" and "c".
+  ;;
+  (define specs
+    (ip.ref the-identifier #':virtual-field-specs '()))
+  (define (%synner message subform)
+    (syntax-violation 'has-virtual-fields-a/b/c
+      (string-append "checking class identifier "
+		     (symbol->string (syntax->datum the-identifier))
+		     ": " message)
+      (syntax->datum specs) (syntax->datum subform)))
+  (let loop ((specs specs)
+	     (a #f) (b #f) (c #f))
+    (syntax-case specs ()
+      (()
+       (unless (and a b c)
+	 (%synner "missing required field"
+		  (cond ((not a) 'a) ((not b) 'b) ((not c) 'c)))))
+      (((mutability ?name . ?rest) . ?specs)
+       (case (syntax->datum #'?name)
+	 ((a)
+	  (loop #'?specs #t b c))
+	 ((b)
+	  (loop #'?specs a #t c))
+	 ((c)
+	  (loop #'?specs a b #t))
+	 (else
+	  (loop #'?specs a b c))))
+      (?thing
+       (%synner "invalid fields specification" #'?thing))
+      )))
 
 
 ;;;; done
