@@ -44,6 +44,7 @@
     %reverse-inheritance-hierarchy-identifiers)
   (import (rnrs)
     (nausicaa language classes internal-auxiliary-syntaxes)
+    (nausicaa language classes property-auxiliary-syntaxes)
     (prefix (nausicaa language identifier-properties) ip.)
     (nausicaa language syntax-utilities)
     (for (nausicaa language auxiliary-syntaxes) (meta -1)))
@@ -66,7 +67,7 @@
 	 #'setter #'getter #'bindings
 	 #'public-protocol #'maker-protocol #'superclass-protocol
 	 #'virtual-fields #'methods #'method #'method-syntax
-	 #'mixins)
+	 #'mixins #'satisfies)
    ;; at most once keywords
    (list #'parent #'sealed #'opaque #'parent-rtd #'nongenerative
 	 #'inherit #'predicate #'maker #'maker-transformer #'custom-maker
@@ -92,7 +93,7 @@
    ;; optional keywords
    (list #'inherit #'predicate #'setter #'getter #'bindings
 	 #'virtual-fields #'methods #'method #'method-syntax
-	 #'custom-maker #'mixins)
+	 #'custom-maker #'mixins #'satisfies)
    ;; at most once keywords
    (list #'inherit #'predicate #'setter #'getter #'bindings
 	 #'custom-maker)
@@ -112,7 +113,7 @@
   ;;parse  error  occurs; it  must  accept  two  arguments: the  message
   ;;string, the subform.
   ;;
-  (let ((mixin-clauses (ip.ref mixin-identifier #'mixin-clauses #f)))
+  (let ((mixin-clauses (ip.ref mixin-identifier #':mixin-clauses #f)))
     (if mixin-clauses
 	(unwrap-syntax-object	;the receiving end expects an unwrapped object
 	 (identifier-subst (list mixin-identifier) (list class-identifier) mixin-clauses))

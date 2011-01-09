@@ -68,8 +68,9 @@ by @func{define-label}.
                                 setters and getters.
 * classes define bindings::     Defining classes having custom
                                 bindings.
-* classes define mixins::       Composing with mixins.
 * classes define labels::       Defining labels.
+* classes define mixins::       Composing with mixins.
+* classes define satisfy::      Verifying definition constraints.
 @end menu
 
 @c page
@@ -1320,101 +1321,6 @@ introduced by @func{with-class}.
 @end deffn
 
 @c page
-@node classes define mixins
-@subsection Composing with mixins
-
-
-@dfn{Mixins} are a way to add definition clauses to classes and labels.
-Let's consider this situation:
-
-@example
-(define-class <alpha>
-  (field a))
-
-(define-class <beta>
-  (field b))
-
-(define-class <delta>
-  (inherit <alpha>)
-  (field v)
-  (method (doit (o <delta>))
-    (+ 1 o.v)))
-
-(define-class <gamma>
-  (inherit <beta>)
-  (field v)
-  (method (doit (o <gamma>))
-    (+ 1 o.v)))
-@end example
-
-@noindent
-the definitions of @class{delta} and @class{gamma} share some clauses;
-both of them already have a parent class and multiple inheritance is not
-supported.  Is it possible to write the shared clauses only once and
-attach them to the class definitions?  Yes, with mixins.
-
-The example above is equivalent to the following:
-
-@example
-(define-class <alpha>
-  (field a))
-
-(define-class <beta>
-  (field b))
-
-(define-mixin <stuff>
-  (field v)
-  (method (doit (o <stuff>))
-    (+ 1 o.v)))
-
-(define-class <delta>
-  (inherit <alpha>)
-  (mixins <stuff>))
-
-(define-class <gamma>
-  (inherit <beta>)
-  (mixins <stuff>))
-@end example
-
-@noindent
-@func{define-mixin} associates a set of clauses to the identifier
-@class{stuff}; when the @code{mixins} clause is used in the body of a
-class definition:
-
-@enumerate
-@item
-The clauses associated to the selected identifier are retrieved as
-syntax object.
-
-@item
-All the instances of the identifier @class{stuff} are substituted with
-the identifier of the enclosing class or label.
-
-@item
-The resulting clauses are added to the enclosing definition.
-@end enumerate
-
-@ref{classes mixins} for further examples.  When we compose a class with
-a mixin, we can rightly think that the receiving class or label knows of
-it; there is no need to keep the receiving definition separate from the
-mixin definition.  In particular the constructor functions must prepare
-appropriate values for the fields of the mixins; the order of the fields
-in the receiving class is the same of the order of the @code{fields}
-clauses.
-
-
-@deffn {Auxiliary Syntax} mixins @varo{name} @var{name} ...
-Compose the enclosing class or label definition with the given list of
-mixins.  The @func{mixins} clause can be used any number of times; each
-of them can list any number of mixin identifiers.
-
-It is a syntax violation if a mixin identifier is not already associated
-to a set of clauses.  It is a syntax violation if the same mixin
-identifier is used multiple times in the @code{mixins} clauses of the
-same definition.
-@end deffn
-
-@c page
 @node classes define labels
 @subsection Defining labels
 
@@ -1555,6 +1461,128 @@ and classes implementing them:
   (check (q.two) @result{} '(two . beta))
   )
 @end example
+
+@c page
+@node classes define mixins
+@subsection Composing with mixins
+
+
+@dfn{Mixins} are a way to add definition clauses to classes and labels.
+Let's consider this situation:
+
+@example
+(define-class <alpha>
+  (field a))
+
+(define-class <beta>
+  (field b))
+
+(define-class <delta>
+  (inherit <alpha>)
+  (field v)
+  (method (doit (o <delta>))
+    (+ 1 o.v)))
+
+(define-class <gamma>
+  (inherit <beta>)
+  (field v)
+  (method (doit (o <gamma>))
+    (+ 1 o.v)))
+@end example
+
+@noindent
+the definitions of @class{delta} and @class{gamma} share some clauses;
+both of them already have a parent class and multiple inheritance is not
+supported.  Is it possible to write the shared clauses only once and
+attach them to the class definitions?  Yes, with mixins.
+
+The example above is equivalent to the following:
+
+@example
+(define-class <alpha>
+  (field a))
+
+(define-class <beta>
+  (field b))
+
+(define-mixin <stuff>
+  (field v)
+  (method (doit (o <stuff>))
+    (+ 1 o.v)))
+
+(define-class <delta>
+  (inherit <alpha>)
+  (mixins <stuff>))
+
+(define-class <gamma>
+  (inherit <beta>)
+  (mixins <stuff>))
+@end example
+
+@noindent
+@func{define-mixin} associates a set of clauses to the identifier
+@class{stuff}; when the @code{mixins} clause is used in the body of a
+class definition:
+
+@enumerate
+@item
+The clauses associated to the selected identifier are retrieved as
+syntax object.
+
+@item
+All the instances of the identifier @class{stuff} are substituted with
+the identifier of the enclosing class or label.
+
+@item
+The resulting clauses are added to the enclosing definition.
+@end enumerate
+
+@ref{classes mixins} for further examples.  When we compose a class with
+a mixin, we can rightly think that the receiving class or label knows of
+it; there is no need to keep the receiving definition separate from the
+mixin definition.  In particular the constructor functions must prepare
+appropriate values for the fields of the mixins; the order of the fields
+in the receiving class is the same of the order of the @code{fields}
+clauses.
+
+
+@deffn {Auxiliary Syntax} mixins @var{name} ...
+Compose the enclosing class or label definition with the given list of
+mixins.  The @func{mixins} clause can be used any number of times; each
+of them can list any number of mixin identifiers.
+
+It is a syntax violation if a mixin identifier is not already associated
+to a set of clauses.  It is a syntax violation if the same mixin
+identifier is used multiple times in the @code{mixins} clauses of the
+same definition.
+@end deffn
+
+@c page
+@node classes define satisfy
+@subsection Verifying definition constraints
+
+
+It is useful to validate the definition of classes and labels against a
+set of requirements; this allows, for example, to verify if a class
+implements an @api{}.
+
+
+@deffn {Auxiliary Syntax} satisfies @var{satisfaction} ...
+This clause can be used any number of times in the definition of both
+classes and labels.  Select a number of functions to invoke, at expand
+time, to validate the properties of the class or label.
+
+All the @var{satisfaction} arguments must be identifiers bound to
+functions imported for expand; the functions are applied, at expand
+time, to the class or label name identifier: they can just return
+nothing if the constraints are satisfied or raise an exception if they
+are not.
+
+To validate a class or label definition the satisfaction functions can
+query the identifier properties associated to the class or label name
+identifier.
+@end deffn
+
 
 @c page
 @node classes make

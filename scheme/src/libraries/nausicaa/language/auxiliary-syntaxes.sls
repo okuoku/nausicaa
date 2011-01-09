@@ -38,10 +38,7 @@
     ;; custom bindings for (classes)
     inherit predicate maker maker-transformer setter getter bindings
     public-protocol maker-protocol superclass-protocol virtual-fields
-    methods method method-syntax custom-maker mixins
-
-    ;; identifier properties
-    mixin-clauses
+    methods method method-syntax custom-maker mixins satisfies
 
     ;; bindings for string and vector views
     view start past
@@ -67,8 +64,7 @@
     method
     method-syntax
     mixins
-
-    mixin-clauses
+    satisfies
 
     <>
     <...>

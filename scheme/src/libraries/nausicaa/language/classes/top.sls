@@ -1,4 +1,4 @@
-;;; -*- coding: utf-8 -*-
+;;; -*- coding: utf-8-unix -*-
 ;;;
 ;;;Part of: Nausicaa/Scheme
 ;;;Contents: implementation of <top> class bindings
@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2010, 2011 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -29,7 +29,8 @@
 (library (nausicaa language classes top)
   (export <top> <top>-superclass <top>-superlabel <top>-bindings)
   (import (rnrs)
-    (nausicaa language classes internal-auxiliary-syntaxes))
+    (nausicaa language classes internal-auxiliary-syntaxes)
+    (nausicaa language classes property-auxiliary-syntaxes))
 
 
 (define-record-type <top>

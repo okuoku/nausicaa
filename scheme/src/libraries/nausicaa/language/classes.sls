@@ -95,7 +95,7 @@
     setter getter bindings
     public-protocol maker-protocol superclass-protocol
     virtual-fields methods method method-syntax
-    <> mixins
+    <> mixins satisfies
 
     ;; builtin classes
     <top> <builtin> <pair> <list>
@@ -104,16 +104,17 @@
     <fixnum> <flonum> <integer> <integer-valued> <rational> <rational-valued>
     <real> <real-valued> <complex> <number>)
   (import (rnrs)
-    (for (nausicaa language syntax-utilities)		expand)
-    (for (nausicaa language classes helpers)		expand)
-    (for (nausicaa language classes binding-makers)	expand)
-    (for (nausicaa language classes clause-parsers)	expand)
+    (for (nausicaa language syntax-utilities)			expand)
+    (for (nausicaa language classes helpers)			expand)
+    (for (nausicaa language classes binding-makers)		expand)
+    (for (nausicaa language classes clause-parsers)		expand)
     (for (prefix (nausicaa language sentinel) sentinel.)	expand)
     (nausicaa language makers)
     (nausicaa language auxiliary-syntaxes)
     (nausicaa language extensions)
     (prefix (nausicaa language identifier-properties) ip.)
     (nausicaa language classes internal-auxiliary-syntaxes)
+    (nausicaa language classes property-auxiliary-syntaxes)
     (nausicaa language classes top))
 
 
@@ -507,8 +508,9 @@
 	((_ ?name-spec . ?clauses)
 	 (%synner "invalid name specification in class definition" #'?name-spec))))
 
+    (define mixin-identifiers (%collect-clause/mixins clauses %synner))
     (validate-class-clauses clauses %synner)
-    (let loop ((mixins (%collect-clause/mixins clauses %synner)))
+    (let loop ((mixins mixin-identifiers))
       (unless (null? mixins)
 	(set! clauses (append clauses
 			      (%compose-class-with-mixin (car mixins) class-identifier %synner)))
@@ -675,7 +677,12 @@
 	 ;;    (define-syntax <macro identifier> <expression>)
 	 ;;
 	 ((syntax-methods syntax-definitions)
-	  (%collect-clause/method-syntax class-identifier clauses %synner)))
+	  (%collect-clause/method-syntax class-identifier clauses %synner))
+
+	 ;;Null or a list of satisfaction function identifiers.
+	 ;;
+	 ((satisfactions)
+	  (%collect-clause/satisfies clauses %synner)))
 
       (define the-parent-is-a-class? (identifier? superclass-identifier))
 
@@ -822,7 +829,8 @@
 	   (((MUTABILITY FIELD X ...) ...) fields)
 	   (LIST-OF-FIELD-TAGS		list-of-field-tags)
 	   (LIST-OF-SUPERCLASSES	list-of-superclasses)
-	   (INPUT-FORM			stx))
+	   (INPUT-FORM			stx)
+	   ((SATISFACTION ...)		satisfactions))
 	(with-syntax
 	    ;;Here we  try to  build and select  at expand time  what is
 	    ;;possible.
@@ -1039,7 +1047,16 @@
 	      ;;
 	      (ip.define-identifier-property THE-CLASS :list-of-superclasses LIST-OF-SUPERCLASSES)
 	      (ip.define-identifier-property THE-CLASS :list-of-field-tags LIST-OF-FIELD-TAGS)
+	      (ip.define-identifier-property THE-CLASS :field-specs FIELD-SPECS)
+	      (ip.define-identifier-property THE-CLASS :virtual-field-specs VIRTUAL-FIELD-SPECS)
+	      (ip.define-identifier-property THE-CLASS :method-specs METHOD-SPECS)
 	      (define-dummy-and-detect-circular-tagging THE-CLASS INPUT-FORM)
+	      (define-syntax get-satisfaction
+		(lambda (stx)
+		  (begin
+		    (SATISFACTION #'THE-CLASS) ...
+		    #'(define dummy-satisfaction))))
+	      (get-satisfaction)
 
 	      (define-syntax* (with-class-bindings stx)
 		;;This  macro defines  all the  syntaxes to  be  used by
@@ -1599,7 +1616,7 @@
 	     ;;After each composition validate the clauses.
 	     (validate-mixin-clauses other-clauses synner)
 	     (loop (cdr mixins))))
-	 #`(ip.define-identifier-property ?mixin-identifier mixin-clauses #,other-clauses))))))
+	 #`(ip.define-identifier-property ?mixin-identifier :mixin-clauses #,other-clauses))))))
 
 
 ;;;; virtual methods

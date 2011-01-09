@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2010, 2011 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -46,11 +46,8 @@
     :superclass-protocol
     :with-class-bindings-of
     :slot-accessor
-    :slot-mutator
-    :list-of-superclasses
-    :list-of-field-tags)
-  (import (rnrs)
-    (only (nausicaa language syntax-utilities) define-auxiliary-syntaxes))
+    :slot-mutator)
+  (import (only (nausicaa language syntax-utilities) define-auxiliary-syntaxes))
   (define-auxiliary-syntaxes
     :class-record-type-descriptor
     :class-type-uid
@@ -70,8 +67,6 @@
     :superclass-protocol
     :with-class-bindings-of
     :slot-accessor
-    :slot-mutator
-    :list-of-superclasses
-    :list-of-field-tags))
+    :slot-mutator))
 
 ;;; end of file

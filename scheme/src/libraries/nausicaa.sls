@@ -873,7 +873,7 @@
     ;; auxiliary syntaxes
     inherit predicate maker maker-transformer setter getter bindings
     public-protocol maker-protocol superclass-protocol virtual-fields
-    methods method method-syntax custom-maker mixins
+    methods method method-syntax custom-maker mixins satisfies
 
     ;; builtin classes
     <top> <builtin> <pair> <list>

@@ -67,6 +67,7 @@
     %collect-clause/getter
     %collect-clause/bindings
     %collect-clause/mixins
+    %collect-clause/satisfies
     )
   (import (rnrs)
     (for (only (rnrs base) define-syntax) (meta -1))
@@ -1165,12 +1166,42 @@
 	      (synner "mixin included multiple times" dup)))
 	  (reverse collected))
       (syntax-case (car clauses) (mixins)
-	((mixins ?mixin-name0 ?mixin-name ...)
-	 (all-identifiers? #'(?mixin-name0 ?mixin-name ...))
-	 (next-clause (cdr clauses) (append (syntax->list #'(?mixin-name0 ?mixin-name ...))
+	((mixins ?mixin-name ...)
+	 (all-identifiers? #'(?mixin-name ...))
+	 (next-clause (cdr clauses) (append (syntax->list #'(?mixin-name ...))
 					    collected)))
 	(_
 	 (synner "invalid mixins clause" (car clauses)))))))
+
+(define (%collect-clause/satisfies clauses synner)
+  ;;Given  a list  of definition  clauses  in CLAUSES,  extract all  the
+  ;;SATISFIES clauses  and parse them;  there can be  multiple SATISFIES
+  ;;clauses in CLAUSES.
+  ;;
+  ;;It  is an  error if  the same  satisfaction identifier  is specified
+  ;;multiple times in the SATISFIES clauses.
+  ;;
+  ;;Return null or a validated list of satisfaction identifiers.
+  ;;
+  ;;SYNNER must  be the closure  used to raise  a syntax violation  if a
+  ;;parse  error  occurs; it  must  accept  two  arguments: the  message
+  ;;string, the subform.
+  ;;
+  (let next-clause ((clauses   (filter-clauses #'satisfies clauses))
+		    (collected '()))
+    (if (null? clauses)
+	(begin
+	  (let ((dup (duplicated-identifiers? collected free-identifier=?)))
+	    (when dup
+	      (synner "satisfaction included multiple times" dup)))
+	  (reverse collected))
+      (syntax-case (car clauses) (satisfies)
+	((satisfies ?satisfaction-name ...)
+	 (all-identifiers? #'(?satisfaction-name ...))
+	 (next-clause (cdr clauses) (append (syntax->list #'(?satisfaction-name ...))
+					    collected)))
+	(_
+	 (synner "invalid satisfactions clause" (car clauses)))))))
 
 
 ;;;; done

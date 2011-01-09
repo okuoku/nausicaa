@@ -45,7 +45,7 @@
 	       (doit))
 	    (environment '(nausicaa)
 			 '(prefix (nausicaa language identifier-properties) ip.)
-			 '(nausicaa language classes internal-auxiliary-syntaxes)))
+			 '(nausicaa language classes property-auxiliary-syntaxes)))
     => '())
 
   (check
@@ -59,7 +59,7 @@
 	       (doit))
 	    (environment '(nausicaa)
 			 '(prefix (nausicaa language identifier-properties) ip.)
-			 '(nausicaa language classes internal-auxiliary-syntaxes)))
+			 '(nausicaa language classes property-auxiliary-syntaxes)))
     => '(<alpha>))
 
   (check
@@ -77,7 +77,7 @@
 	       (doit))
 	    (environment '(nausicaa)
 			 '(prefix (nausicaa language identifier-properties) ip.)
-			 '(nausicaa language classes internal-auxiliary-syntaxes)))
+			 '(nausicaa language classes property-auxiliary-syntaxes)))
     => '(<delta> <beta> <alpha>))
 
   #t)
@@ -94,7 +94,7 @@
 	       (doit))
 	    (environment '(nausicaa)
 			 '(prefix (nausicaa language identifier-properties) ip.)
-			 '(nausicaa language classes internal-auxiliary-syntaxes)))
+			 '(nausicaa language classes property-auxiliary-syntaxes)))
     => '())
 
   (check	;untagged fields
@@ -107,7 +107,7 @@
 	       (doit))
 	    (environment '(nausicaa)
 			 '(prefix (nausicaa language identifier-properties) ip.)
-			 '(nausicaa language classes internal-auxiliary-syntaxes)))
+			 '(nausicaa language classes property-auxiliary-syntaxes)))
     => '())
 
   (check	;single tagged field
@@ -120,7 +120,7 @@
 	       (doit))
 	    (environment '(nausicaa)
 			 '(prefix (nausicaa language identifier-properties) ip.)
-			 '(nausicaa language classes internal-auxiliary-syntaxes)))
+			 '(nausicaa language classes property-auxiliary-syntaxes)))
     => '(<pair>))
 
   (check	;single tagged field, multiple tags
@@ -133,7 +133,7 @@
 	       (doit))
 	    (environment '(nausicaa)
 			 '(prefix (nausicaa language identifier-properties) ip.)
-			 '(nausicaa language classes internal-auxiliary-syntaxes)))
+			 '(nausicaa language classes property-auxiliary-syntaxes)))
     => '(<pair> <list>))
 
   (check	;multiple tagged field, multiple tags
@@ -147,7 +147,7 @@
 	       (doit))
 	    (environment '(nausicaa)
 			 '(prefix (nausicaa language identifier-properties) ip.)
-			 '(nausicaa language classes internal-auxiliary-syntaxes)))
+			 '(nausicaa language classes property-auxiliary-syntaxes)))
     => '(<vector> <number> <pair> <list>))
 
   (check	;inheritance, multiple tagged field, multiple tags
@@ -163,7 +163,7 @@
 	       (doit))
 	    (environment '(nausicaa)
 			 '(prefix (nausicaa language identifier-properties) ip.)
-			 '(nausicaa language classes internal-auxiliary-syntaxes)))
+			 '(nausicaa language classes property-auxiliary-syntaxes)))
     => '(<vector> <number> <pair> <list>))
 
   (check	;inheritance, multiple tagged field, multiple tags
@@ -180,7 +180,7 @@
 	       (doit))
 	    (environment '(nausicaa)
 			 '(prefix (nausicaa language identifier-properties) ip.)
-			 '(nausicaa language classes internal-auxiliary-syntaxes)))
+			 '(nausicaa language classes property-auxiliary-syntaxes)))
     => '(<vector> <number> <pair> <list>))
 
   (check	;inheritance, multiple tagged field, multiple tags
@@ -197,7 +197,7 @@
 	       (doit))
 	    (environment '(nausicaa)
 			 '(prefix (nausicaa language identifier-properties) ip.)
-			 '(nausicaa language classes internal-auxiliary-syntaxes)))
+			 '(nausicaa language classes property-auxiliary-syntaxes)))
     => '(<integer> <vector> <number> <pair> <list>))
 
   (check	;inheritance, multiple tagged field, multiple tags
@@ -215,7 +215,7 @@
 	       (doit))
 	    (environment '(nausicaa)
 			 '(prefix (nausicaa language identifier-properties) ip.)
-			 '(nausicaa language classes internal-auxiliary-syntaxes)))
+			 '(nausicaa language classes property-auxiliary-syntaxes)))
     => '(<complex> <integer> <vector> <number> <pair> <list>))
 
   (check	;inheritance, multiple tagged field, multiple tags
@@ -235,7 +235,7 @@
 	       (doit))
 	    (environment '(nausicaa)
 			 '(prefix (nausicaa language identifier-properties) ip.)
-			 '(nausicaa language classes internal-auxiliary-syntaxes)))
+			 '(nausicaa language classes property-auxiliary-syntaxes)))
     => '(<complex> <integer> <vector> <number> <pair> <list>))
 
   #t)
