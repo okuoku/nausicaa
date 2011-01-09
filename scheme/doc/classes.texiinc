@@ -3942,6 +3942,57 @@ Conventional type for objects satisfying @func{record?}.
 @section Class, label, mixin properties
 
 
+@deffn {Property Syntax} :list-of-superclasses
+Property of both class and label identifiers.  A syntax object holding a
+list of identifiers representing the superclasses or superlabels of the
+given class or label.
+@end deffn
+
+
+@deffn {Property Syntax} :field-specs
+Property of class identifiers.  A syntax object holding a list of lists
+of concrete field specifications; the format of the list is:
+
+@example
+((mutable   @var{name} @var{accessor} @var{mutator}) ...
+ (immutable @var{name} @var{accessor}) ...)
+@end example
+
+@noindent
+where: @code{mutable} and @code{immutable} are the auxiliary syntaxes
+exported by @rsixlibrary{records syntactic}; @var{name} is an identifier
+representing the name of the field; @var{accessor} and @var{mutator} are
+identifiers bound to the accessor and mutator functions for the record.
+@end deffn
+
+
+@deffn {Property Syntax} :virtual-field-specs
+Property of both class and label identifiers.  A syntax object holding a
+list of lists of virtual field specifications; the format of the list
+is:
+
+@example
+((mutable   @var{name} @var{accessor} @var{mutator}) ...
+ (immutable @var{name} @var{accessor}) ...)
+@end example
+
+@noindent
+where @code{mutable} and @code{immutable} are the auxiliary syntaxes
+exported by @rsixlibrary{records syntactic}; @var{name} is an identifier
+representing the name of the field; @var{accessor} and @var{mutator} are
+identifiers bound to the accessor and mutator functions for the record.
+@end deffn
+
+
+@deffn {Property Syntax} :method-specs
+
+@end deffn
+
+
+@deffn {Property Syntax} :list-of-field-tags
+
+@end deffn
+
 
 
 @c end of file
