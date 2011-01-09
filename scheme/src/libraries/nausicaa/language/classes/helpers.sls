@@ -43,8 +43,7 @@
     %detect-recursive-type-in-fields)
   (import (rnrs)
     (nausicaa language classes internal-auxiliary-syntaxes)
-    (nausicaa language classes properties)
-    (prefix (nausicaa language identifier-properties) ip.)
+    (prefix (nausicaa language classes properties) prop.)
     (nausicaa language syntax-utilities)
     (for (nausicaa language auxiliary-syntaxes) (meta -1)))
 
@@ -112,7 +111,7 @@
   ;;parse  error  occurs; it  must  accept  two  arguments: the  message
   ;;string, the subform.
   ;;
-  (let ((mixin-clauses (ip.ref mixin-identifier #':mixin-clauses #f)))
+  (let ((mixin-clauses (prop.mixin-clauses-ref mixin-identifier)))
     (if mixin-clauses
 	(unwrap-syntax-object	;the receiving end expects an unwrapped object
 	 (identifier-subst (list mixin-identifier) (list class-identifier) mixin-clauses))

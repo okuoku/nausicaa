@@ -28,6 +28,9 @@
 #!r6rs
 (library (nausicaa language classes properties)
   (export
+    struct-properties-ref	struct-properties-define
+    mixin-clauses-ref		mixin-clauses-define
+
     struct?
     struct-list-of-supers
     struct-field-specs
@@ -45,6 +48,15 @@
 	    (struct-mixins			class-mixins)
 	    (struct-list-of-field-tags		class-list-of-field-tags))
 
+    make-mixin
+    mixin?
+    (rename (struct-list-of-supers		mixin-list-of-supers)
+	    (struct-field-specs			mixin-field-specs)
+	    (struct-virtual-field-specs		mixin-virtual-field-specs)
+	    (struct-method-specs		mixin-method-specs)
+	    (struct-mixins			mixin-mixins)
+	    (struct-list-of-field-tags		mixin-list-of-field-tags))
+
     make-label
     label?
     (rename (struct-list-of-supers		label-list-of-supers)
@@ -52,24 +64,27 @@
 	    (struct-virtual-field-specs		label-virtual-field-specs)
 	    (struct-method-specs		label-method-specs)
 	    (struct-mixins			label-mixins)
-	    (struct-list-of-field-tags		label-list-of-field-tags))
-
-    :struct-properties
-    ;; :list-of-superclasses
-    ;; :list-of-field-tags
-    ;; :field-specs
-    ;; :virtual-field-specs
-    ;; :method-specs
-
-    ;; used by DEFINE-MIXIN and the MIXINS clause
-    :mixin-clauses)
+	    (struct-list-of-field-tags		label-list-of-field-tags)))
   (import (rnrs)
+    (prefix (nausicaa language identifier-properties) ip.)
     (only (nausicaa language syntax-utilities) define-auxiliary-syntaxes))
 
 
 (define-auxiliary-syntaxes
   :struct-properties
   :mixin-clauses)
+
+(define (struct-properties-ref identifier)
+  (ip.ref identifier #':struct-properties #f))
+
+(define (struct-properties-define identifier value)
+  (ip.define identifier #':struct-properties value))
+
+(define (mixin-clauses-ref identifier)
+  (ip.ref identifier #':mixin-clauses #f))
+
+(define (mixin-clauses-define identifier value)
+  (ip.define identifier #':mixin-clauses value))
 
 
 (define-record-type struct
@@ -83,6 +98,12 @@
 
 (define-record-type class
   (nongenerative nausicaa:language:classes:properties:class)
+  (parent struct)
+  (opaque #t)
+  (sealed #t))
+
+(define-record-type mixin
+  (nongenerative nausicaa:language:classes:properties:mixin)
   (parent struct)
   (opaque #t)
   (sealed #t))

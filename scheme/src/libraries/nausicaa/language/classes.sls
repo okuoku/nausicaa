@@ -112,8 +112,7 @@
     (nausicaa language makers)
     (nausicaa language auxiliary-syntaxes)
     (nausicaa language extensions)
-    (prefix (nausicaa language identifier-properties) ip.)
-    (for (prefix (nausicaa language classes properties) prop.) expand)
+    (for (prefix (nausicaa language classes properties) prop.)  expand)
     (nausicaa language classes internal-auxiliary-syntaxes)
     (nausicaa language classes top))
 
@@ -684,10 +683,12 @@
 	 ((satisfactions)
 	  (%collect-clause/satisfies clauses %synner)))
 
+      ;;If the  parent is a  record, rather than  a class, there  are no
+      ;;superclass properties to be inspected.
       (define-values (the-parent-is-a-class? superclass-properties)
 	(let ((id? (identifier? superclass-identifier)))
 	  (if id?
-	      (let ((props (and id? (ip.ref superclass-identifier #':struct-properties))))
+	      (let ((props (and id? (prop.struct-properties-ref superclass-identifier))))
 		(if props
 		    (values #t props)
 		  (values #f #f)))
@@ -1054,15 +1055,14 @@
 	      ;;
 	      (define-syntax define-properties
 		(lambda (stx)
-		  (begin
-		    (ip.define #'THE-CLASS #':struct-properties
-			       (prop.make-class #'LIST-OF-SUPERCLASSES
-						#'FIELD-SPECS
-						#'VIRTUAL-FIELD-SPECS
-						#'METHOD-SPECS
-						#'MIXIN-IDENTIFIERS
-						#'LIST-OF-FIELD-TAGS))
-		    #'(define dummy))))
+		  (prop.struct-properties-define #'THE-CLASS
+						 (prop.make-class #'LIST-OF-SUPERCLASSES
+								  #'FIELD-SPECS
+								  #'VIRTUAL-FIELD-SPECS
+								  #'METHOD-SPECS
+								  #'MIXIN-IDENTIFIERS
+								  #'LIST-OF-FIELD-TAGS))
+		  #'(define dummy)))
 	      (define-properties)
 	      (define-dummy-and-detect-circular-tagging THE-CLASS INPUT-FORM)
 	      (define-syntax get-satisfaction
@@ -1410,7 +1410,7 @@
     (define-values (the-parent-is-a-label? superlabel-properties)
       (let ((id? (identifier? superlabel-identifier)))
 	(if id?
-	    (let ((props (and id? (ip.ref superlabel-identifier #':struct-properties))))
+	    (let ((props (and id? (prop.struct-properties-ref superlabel-identifier) )))
 	      (if props
 		  (values #t props)
 		(values #f #f)))
@@ -1541,14 +1541,13 @@
 	  ;;
 	  (define-syntax define-properties
 	    (lambda (stx)
-	      (begin
-		(ip.define #'THE-LABEL #':struct-properties
-			   (prop.make-label #'LIST-OF-SUPERLABELS
-					    #'VIRTUAL-FIELD-SPECS
-					    #'METHOD-SPECS
-					    #'MIXIN-IDENTIFIERS
-					    #'LIST-OF-FIELD-TAGS))
-		#'(define dummy))))
+	      (prop.struct-properties-define #'THE-LABEL
+					     (prop.make-label #'LIST-OF-SUPERLABELS
+							      #'VIRTUAL-FIELD-SPECS
+							      #'METHOD-SPECS
+							      #'MIXIN-IDENTIFIERS
+							      #'LIST-OF-FIELD-TAGS))
+	      #'(define dummy)))
 	  (define-properties)
 	  (define-dummy-and-detect-circular-tagging THE-LABEL INPUT-FORM)
 	  (define-syntax get-satisfaction
@@ -1627,7 +1626,7 @@
 	 (let search ((current	#'?thing)
 		      (thing	#'?thing))
 	   (define field-tags	;includes the ones of the superclasses
-	     (let ((p (ip.ref current #':struct-properties)))
+	     (let ((p (prop.struct-properties-ref current)))
 	       (if p
 		   (syntax->list (prop.struct-list-of-field-tags p))
 		 '())))
@@ -1651,6 +1650,8 @@
        (validate-mixin-clauses clauses synner)
        (let ((submixin-identifiers	(%collect-clause/mixins clauses synner))
 	     (other-clauses		(discard-clauses #'mixins clauses)))
+	 ;;Compose the clauses of this mixin with the clauses of all the
+	 ;;mixins in the MIXIN clauses of this mixin.
 	 (let loop ((mixins submixin-identifiers))
 	   (unless (null? mixins)
 	     (set! other-clauses
@@ -1659,8 +1660,8 @@
 	     ;;After each composition validate the clauses.
 	     (validate-mixin-clauses other-clauses synner)
 	     (loop (cdr mixins))))
-	 #`(ip.define-identifier-property ?mixin-identifier
-					  prop.:mixin-clauses #,other-clauses))))))
+	 (prop.mixin-clauses-define #'?mixin-identifier other-clauses)
+	 #'(define dummy))))))
 
 
 ;;;; virtual methods

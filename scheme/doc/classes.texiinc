@@ -1351,6 +1351,9 @@ parent is another label, but when the parent is a class we should use
 the @code{concrete-fields} option to enable bindings for the parent's
 concrete fields.
 
+If no @code{inherit} clause is present: by default the label inherits
+from @class{top}, which is a class.
+
 @item predicate
 Select a predicate function to be used to identify values with the
 @func{is-a?} macro; it has the same syntax and semantics of the
@@ -1597,12 +1600,11 @@ function checking that the class definition of
   (export
     has-fields-a/b/c)
   (import (nausicaa)
-    (prefix (nausicaa language identifier-properties) ip.)
-    (nausicaa language classes property-auxiliary-syntaxes))
+    (prefix (nausicaa language classes properties) prop.))
 
   (define (has-fields-a/b/c the-class-identifier)
     (define specs
-      (ip.ref the-class-identifier #':field-specs '()))
+      (prop.class-field-specs (prop.struct-properties-ref the-identifier)))
     (define (%synner message subform)
       (syntax-violation 'has-fields-a/b/c
         (string-append "checking class identifier "
@@ -3942,14 +3944,16 @@ Conventional type for objects satisfying @func{record?}.
 @section Class, label, mixin properties
 
 
-@deffn {Property Syntax} :list-of-superclasses
+@defun class-list-of-supers @var{prop}
+@defunx label-list-of-supers @var{prop}
 Property of both class and label identifiers.  A syntax object holding a
 list of identifiers representing the superclasses or superlabels of the
-given class or label.
-@end deffn
+class or label associated to @var{prop}.
+@end defun
 
 
-@deffn {Property Syntax} :field-specs
+@defun struct-field-specs @var{prop}
+@defunx class-field-specs @var{prop}
 Property of class identifiers.  A syntax object holding a list of lists
 of concrete field specifications; the format of the list is:
 
