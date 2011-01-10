@@ -249,6 +249,7 @@
   ;;true.
   ;;
   (let ((id? (identifier? identifier)))
+;(write (list id? (and id? (prop.struct-properties-ref identifier))))(newline)
     (if id?
 	(let ((props (and id? (prop.struct-properties-ref identifier))))
 	  (if props

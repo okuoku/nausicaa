@@ -3944,59 +3944,168 @@ Conventional type for objects satisfying @func{record?}.
 @section Class, label, mixin properties
 
 
-@defun class-list-of-supers @var{prop}
+The library @library{nausicaa language classes properties} exports an
+@api{} to query at expand time the definition attributes of classes,
+labels and mixins.  The attributes of a mixin are the same as the
+attributes of a class.
+
+@menu
+* classes properties def::      Defining and retrieving properties.
+* classes properties query::    Querying the properties values.
+@end menu
+
+@c page
+@node classes properties def
+@subsection Defining and retrieving properties
+
+
+The following bindings are exported by the @library{nausicaa language
+classes properties} library.
+
+
+@defun struct-properties-define @var{identifier} @var{value}
+Associate a properties @var{value} to @var{identifier}.
+@var{identifier} must be an already bound identifier representing the
+name of a class, label or mixin.  @var{value} must be the return value
+of @func{make-class}, @func{make-label} or @func{make-mixin}.
+
+It is an error if a properties value has already been associated to
+@var{identifier}.
+@end defun
+
+
+@defun struct-properties-ref @var{identifier}
+Return the properties value associated to @var{identifier} by a previous
+call to @func{struct-properties-define}.
+@end defun
+
+@c page
+@node classes properties query
+@subsection Querying the properties values
+
+
+The following bindings are exported by the @library{nausicaa language
+classes properties} library.  The functions with prefix @code{struct-}
+can be applied to all the properties values; the functions with prefix
+@code{class-}, @code{label-}, @code{mixin-} can be applied only to
+properties values for classes, labels and mixins respectively.
+
+
+@defun make-class . @var{args}
+@defunx make-label . @var{args}
+@defunx make-mixin . @var{args}
+Build and return a new properties value.  These function are meant to be
+for internal use only, so their arguments are undocumented.
+@end defun
+
+
+@defun struct? @var{obj}
+@defunx class? @var{obj}
+@defunx label? @var{obj}
+@defunx mixin? @var{obj}
+Return true if @var{obj} is a properties value, a class properties
+value, a label properties value, a mixin properties value respectively.
+@end defun
+
+
+@defun struct-list-of-supers @var{prop}
+@defunx class-list-of-supers @var{prop}
 @defunx label-list-of-supers @var{prop}
-Property of both class and label identifiers.  A syntax object holding a
-list of identifiers representing the superclasses or superlabels of the
-class or label associated to @var{prop}.
+@defunx mixin-list-of-supers @var{prop}
+Query a properties value.  Return an unwrapped syntax object being null
+or a list of identifiers representing the superclasses or superlabels of
+the class, label or mixin associated to @var{prop}.
+
+The returned value is null when @var{prop} is associated to: the
+@class{top} class; a class having a record as parent (rather than a
+class).
 @end defun
 
 
 @defun struct-field-specs @var{prop}
 @defunx class-field-specs @var{prop}
-Property of class identifiers.  A syntax object holding a list of lists
-of concrete field specifications; the format of the list is:
+@defunx mixin-field-specs @var{prop}
+Query a properties value.  Return an unwrapped syntax object being null
+or a list of lists of concrete field specifications; the format of the
+list is:
 
 @example
-((mutable   @var{name} @var{accessor} @var{mutator}) ...
- (immutable @var{name} @var{accessor}) ...)
+((mutable   @var{name} @var{accessor} @var{mutator} @var{tag} ...)
+ ...
+ (immutable @var{name} @var{accessor} @var{tag} ...)
+ ...)
 @end example
 
 @noindent
 where: @code{mutable} and @code{immutable} are the auxiliary syntaxes
 exported by @rsixlibrary{records syntactic}; @var{name} is an identifier
 representing the name of the field; @var{accessor} and @var{mutator} are
-identifiers bound to the accessor and mutator functions for the record.
+identifiers bound to the accessor and mutator functions for the record;
+the optional @var{tag} values are identifiers representing the field
+type tags.
 @end defun
 
 
-@deffn {Property Syntax} :virtual-field-specs
-Property of both class and label identifiers.  A syntax object holding a
-list of lists of virtual field specifications; the format of the list
-is:
+@defun struct-virtual-field-specs @var{prop}
+@defunx class-virtual-field-specs @var{prop}
+@defunx label-virtual-field-specs @var{prop}
+@defunx mixin-virtual-field-specs @var{prop}
+Query a properties value.  Return an unwrapped syntax object being null
+or a list of lists of virtual field specifications; the format of the
+list is:
 
 @example
-((mutable   @var{name} @var{accessor} @var{mutator}) ...
- (immutable @var{name} @var{accessor}) ...)
+((mutable   @var{name} @var{accessor} @var{mutator} @var{tag} ...)
+ ...
+ (immutable @var{name} @var{accessor} @var{tag} ...)
+ ...)
 @end example
 
 @noindent
-where @code{mutable} and @code{immutable} are the auxiliary syntaxes
+where: @code{mutable} and @code{immutable} are the auxiliary syntaxes
 exported by @rsixlibrary{records syntactic}; @var{name} is an identifier
 representing the name of the field; @var{accessor} and @var{mutator} are
-identifiers bound to the accessor and mutator functions for the record.
-@end deffn
+identifiers bound to the accessor and mutator functions for the field;
+the optional @var{tag} values are identifiers representing the field
+type tags.
+@end defun
 
 
-@deffn {Property Syntax} :method-specs
+@defun struct-method-specs @var{prop}
+@defunx class-method-specs @var{prop}
+@defunx label-method-specs @var{prop}
+@defunx mixin-method-specs @var{prop}
+Query a properties value.  Return an unwrapped syntax object being null
+or list of method specifications; the format of the list is:
 
-@end deffn
+@example
+((@var{method-name} @var{function-or-macro-identifier})
+ ...)
+@end example
+
+@noindent
+where: @code{method-name} is an identifier representing the name of the
+method; @var{function-or-macro-identifier} is an identifier bound to the
+function or macro implementing the method.
+@end defun
 
 
-@deffn {Property Syntax} :list-of-field-tags
+@defun struct-mixin-identifiers @var{prop}
+@defunx class-mixin-identifiers @var{prop}
+@defunx label-mixin-identifiers @var{prop}
+@defunx mixin-mixin-identifiers @var{prop}
+Query a properties value.  Return an unwrapped syntax object being null
+or a list of identifiers representing the requested mixins.
+@end defun
 
-@end deffn
 
-
+@defun struct-list-of-field-tags @var{prop}
+@defunx class-list-of-field-tags @var{prop}
+@defunx label-list-of-field-tags @var{prop}
+@defunx mixin-list-of-field-tags @var{prop}
+Query a properties value.  Return an unwrapped syntax object being null
+or a list of identifiers representing the full list of field tags; this
+value is used internally to detect circular tagging.
+@end defun
 
 @c end of file

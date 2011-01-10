@@ -532,7 +532,7 @@
   ;;Return  five  values:  an  identifier  representing  the  superlabel
   ;;defaulting to  <top> when no  INHERIT clause is present,  4 booleans
   ;;representing the  inherit options.  If  no INHERIT clause  is found:
-  ;;return "<top>-superlabel" and all true.
+  ;;return "<top>", false for concrete fields, and the rest all true.
   ;;
   ;;SYNNER must  be the closure  used to raise  a syntax violation  if a
   ;;parse  error  occurs; it  must  accept  two  arguments: the  message

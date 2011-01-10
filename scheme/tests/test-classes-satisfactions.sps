@@ -112,8 +112,35 @@
       (lambda (id)
 	(let ((P (prop.struct-properties-ref id)))
 	  (unless (free-identifier=? #'<top> (car (prop.class-list-of-supers P)))
-	    (syntax-violation #f
-	      "expected top as superclass"))))
+	    (syntax-violation #f "expected top as superclass"))))
+      )))
+
+  (test
+   (define-class <alpha>
+     (satisfies
+      (lambda (id)
+	(let ((P (prop.struct-properties-ref id)))
+	  (unless (free-identifier=? #'<top> (car (prop.class-list-of-supers P)))
+	    (syntax-violation #f "expected top as superclass"))))
+      )))
+
+  (test
+   (define-label <alpha>
+     (inherit <top>)
+     (satisfies
+      (lambda (id)
+	(let ((P (prop.struct-properties-ref id)))
+	  (unless (free-identifier=? #'<top> (car (prop.label-list-of-supers P)))
+	    (syntax-violation #f "expected top as superlabel"))))
+      )))
+
+  (test
+   (define-label <alpha>
+     (satisfies
+      (lambda (id)
+	(let ((P (prop.struct-properties-ref id)))
+	  (unless (free-identifier=? #'<top> (car (prop.label-list-of-supers P)))
+	    (syntax-violation #f "expected top as superlabel"))))
       )))
 
   #t)

@@ -36,13 +36,15 @@
 
 (parametrise ((check-test-name	'superclass-list))
 
-  (check
+  (check 'this
       (eval '(let ()
-	       (define-class <alpha>)
+	       (define-class <alpha1>
+		 ;(inherit <top>)
+		 )
 	       (define-syntax doit
 		 (lambda (stx)
-		   #`(quote #,(prop.class-list-of-supers
-			       (prop.struct-properties-ref #'<alpha>)))))
+		   (let ((P (prop.struct-properties-ref #'<alpha1>)))
+		     #`(quote #,(prop.class-list-of-supers P)))))
 	       (doit))
 	    (environment '(nausicaa)
 			 '(prefix (nausicaa language identifier-properties) ip.)
@@ -51,37 +53,37 @@
 
   (check
       (eval '(let ()
-	       (define-class <alpha>)
-	       (define-class <beta>
-		 (inherit <alpha>))
+	       (define-class <alpha2>)
+	       (define-class <beta2>
+		 (inherit <alpha2>))
 	       (define-syntax doit
 		 (lambda (stx)
 		   #`(quote #,(prop.class-list-of-supers
-			       (prop.struct-properties-ref #'<beta>)))))
+			       (prop.struct-properties-ref #'<beta2>)))))
 	       (doit))
 	    (environment '(nausicaa)
 			 '(prefix (nausicaa language identifier-properties) ip.)
 			 '(prefix (nausicaa language classes properties) prop.)))
-    => '(<alpha> <top>))
+    => '(<alpha2> <top>))
 
   (check
       (eval '(let ()
-	       (define-class <alpha>)
-	       (define-class <beta>
-		 (inherit <alpha>))
-	       (define-class <delta>
-		 (inherit <beta>))
-	       (define-class <gamma>
-		 (inherit <delta>))
+	       (define-class <alpha3>)
+	       (define-class <beta3>
+		 (inherit <alpha3>))
+	       (define-class <delta3>
+		 (inherit <beta3>))
+	       (define-class <gamma3>
+		 (inherit <delta3>))
 	       (define-syntax doit
 		 (lambda (stx)
 		   #`(quote #,(prop.class-list-of-supers
-			       (prop.struct-properties-ref #'<gamma>)))))
+			       (prop.struct-properties-ref #'<gamma3>)))))
 	       (doit))
 	    (environment '(nausicaa)
 			 '(prefix (nausicaa language identifier-properties) ip.)
 			 '(prefix (nausicaa language classes properties) prop.)))
-    => '(<delta> <beta> <alpha> <top>))
+    => '(<delta3> <beta3> <alpha3> <top>))
 
   #t)
 
@@ -90,11 +92,11 @@
 
   (check	;no fields
       (eval '(let ()
-	       (define-class <alpha>)
+	       (define-class <alpha4>)
 	       (define-syntax doit
 		 (lambda (stx)
 		   #`(quote #,(prop.class-list-of-field-tags
-			       (prop.struct-properties-ref #'<alpha>)))))
+			       (prop.struct-properties-ref #'<alpha4>)))))
 	       (doit))
 	    (environment '(nausicaa)
 			 '(prefix (nausicaa language identifier-properties) ip.)
@@ -103,12 +105,12 @@
 
   (check	;untagged fields
       (eval '(let ()
-	       (define-class <alpha>
+	       (define-class <alpha5>
 		 (fields a))
 	       (define-syntax doit
 		 (lambda (stx)
 		   #`(quote #,(prop.class-list-of-field-tags
-			       (prop.struct-properties-ref #'<alpha>)))))
+			       (prop.struct-properties-ref #'<alpha5>)))))
 	       (doit))
 	    (environment '(nausicaa)
 			 '(prefix (nausicaa language identifier-properties) ip.)
@@ -117,12 +119,12 @@
 
   (check	;single tagged field
       (eval '(let ()
-	       (define-class <alpha>
+	       (define-class <alpha6>
 		 (fields (a <pair>)))
 	       (define-syntax doit
 		 (lambda (stx)
 		   #`(quote #,(prop.class-list-of-field-tags
-			       (prop.struct-properties-ref #'<alpha>)))))
+			       (prop.struct-properties-ref #'<alpha6>)))))
 	       (doit))
 	    (environment '(nausicaa)
 			 '(prefix (nausicaa language identifier-properties) ip.)
@@ -131,12 +133,12 @@
 
   (check	;single tagged field, multiple tags
       (eval '(let ()
-	       (define-class <alpha>
+	       (define-class <alpha7>
 		 (fields (a <pair> <list>)))
 	       (define-syntax doit
 		 (lambda (stx)
 		   #`(quote #,(prop.class-list-of-field-tags
-			       (prop.struct-properties-ref #'<alpha>)))))
+			       (prop.struct-properties-ref #'<alpha7>)))))
 	       (doit))
 	    (environment '(nausicaa)
 			 '(prefix (nausicaa language identifier-properties) ip.)
@@ -145,13 +147,13 @@
 
   (check	;multiple tagged field, multiple tags
       (eval '(let ()
-	       (define-class <alpha>
+	       (define-class <alpha8>
 		 (fields (a <pair> <list>)
 			 (b <vector> <number>)))
 	       (define-syntax doit
 		 (lambda (stx)
 		   #`(quote #,(prop.class-list-of-field-tags
-			       (prop.struct-properties-ref #'<alpha>)))))
+			       (prop.struct-properties-ref #'<alpha8>)))))
 	       (doit))
 	    (environment '(nausicaa)
 			 '(prefix (nausicaa language identifier-properties) ip.)
@@ -160,15 +162,15 @@
 
   (check	;inheritance, multiple tagged field, multiple tags
       (eval '(let ()
-	       (define-class <alpha>
+	       (define-class <alpha9>
 		 (fields (a <pair> <list>)
 			 (b <vector> <number>)))
-	       (define-class <beta>
-		 (inherit <alpha>))
+	       (define-class <beta9>
+		 (inherit <alpha9>))
 	       (define-syntax doit
 		 (lambda (stx)
 		   #`(quote #,(prop.class-list-of-field-tags
-			       (prop.struct-properties-ref #'<beta>)))))
+			       (prop.struct-properties-ref #'<beta9>)))))
 	       (doit))
 	    (environment '(nausicaa)
 			 '(prefix (nausicaa language identifier-properties) ip.)
@@ -177,16 +179,16 @@
 
   (check	;inheritance, multiple tagged field, multiple tags
       (eval '(let ()
-	       (define-class <alpha>
+	       (define-class <alpha10>
 		 (fields (a <pair> <list>)
 			 (b <vector> <number>)))
-	       (define-class <beta>
-		 (inherit <alpha>)
+	       (define-class <beta10>
+		 (inherit <alpha10>)
 		 (fields c))
 	       (define-syntax doit
 		 (lambda (stx)
 		   #`(quote #,(prop.class-list-of-field-tags
-			       (prop.struct-properties-ref #'<beta>)))))
+			       (prop.struct-properties-ref #'<beta10>)))))
 	       (doit))
 	    (environment '(nausicaa)
 			 '(prefix (nausicaa language identifier-properties) ip.)
@@ -195,16 +197,16 @@
 
   (check	;inheritance, multiple tagged field, multiple tags
       (eval '(let ()
-	       (define-class <alpha>
+	       (define-class <alpha11>
 		 (fields (a <pair> <list>)
 			 (b <vector> <number>)))
-	       (define-class <beta>
-		 (inherit <alpha>)
+	       (define-class <beta11>
+		 (inherit <alpha11>)
 		 (fields (c <integer>)))
 	       (define-syntax doit
 		 (lambda (stx)
 		   #`(quote #,(prop.class-list-of-field-tags
-			       (prop.struct-properties-ref #'<beta>)))))
+			       (prop.struct-properties-ref #'<beta11>)))))
 	       (doit))
 	    (environment '(nausicaa)
 			 '(prefix (nausicaa language identifier-properties) ip.)
@@ -213,17 +215,17 @@
 
   (check	;inheritance, multiple tagged field, multiple tags
       (eval '(let ()
-	       (define-class <alpha>
+	       (define-class <alpha12>
 		 (fields (a <pair> <list>)
 			 (b <vector> <number>)))
-	       (define-class <beta>
-		 (inherit <alpha>)
+	       (define-class <beta12>
+		 (inherit <alpha12>)
 		 (fields (c <integer>)
 			 (d <complex>)))
 	       (define-syntax doit
 		 (lambda (stx)
 		   #`(quote #,(prop.class-list-of-field-tags
-			       (prop.struct-properties-ref #'<beta>)))))
+			       (prop.struct-properties-ref #'<beta12>)))))
 	       (doit))
 	    (environment '(nausicaa)
 			 '(prefix (nausicaa language identifier-properties) ip.)
@@ -232,19 +234,19 @@
 
   (check	;inheritance, multiple tagged field, multiple tags
       (eval '(let ()
-	       (define-class <alpha>
+	       (define-class <alpha13>
 		 (fields (a <pair> <list>)
 			 (b <vector> <number>)))
-	       (define-class <beta>
-		 (inherit <alpha>)
+	       (define-class <beta13>
+		 (inherit <alpha13>)
 		 (fields (c <integer>)
 			 (d <complex>)))
-	       (define-label <delta>
-		 (inherit <beta>))
+	       (define-label <delta13>
+		 (inherit <beta13>))
 	       (define-syntax doit
 		 (lambda (stx)
 		   #`(quote #,(prop.label-list-of-field-tags
-			       (prop.struct-properties-ref #'<delta>)))))
+			       (prop.struct-properties-ref #'<delta13>)))))
 	       (doit))
 	    (environment '(nausicaa)
 			 '(prefix (nausicaa language identifier-properties) ip.)
