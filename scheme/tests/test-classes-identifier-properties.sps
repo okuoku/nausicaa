@@ -1,4 +1,4 @@
-;;; -*- coding: utf-8 -*-
+;;; -*- coding: utf-8-unix -*-
 ;;;
 ;;;Part of: Nausicaa/Scheme
 ;;;Contents: tests for class identifier properties
@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2010, 2011 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -28,7 +28,8 @@
 #!r6rs
 (import (nausicaa)
   (rnrs eval)
-  (nausicaa checks))
+  (nausicaa checks)
+  (prefix (nausicaa language classes properties) prop.))
 
 (check-set-mode! 'report-failed)
 (display "*** testing class identifier properties\n")
@@ -38,47 +39,62 @@
 
   (check
       (eval '(let ()
-	       (define-class <alpha>)
 	       (define-syntax doit
 		 (lambda (stx)
-		   #`(quote #,(lookup-identifier-property #'<alpha> #':list-of-superclasses #f))))
+		   (prop.class? (prop.struct-properties-ref #'<top>))))
 	       (doit))
 	    (environment '(nausicaa)
-			 '(nausicaa language identifier-properties)
-			 '(nausicaa language classes internal-auxiliary-syntaxes)))
-    => '())
+			 '(prefix (nausicaa language classes properties) prop.)))
+    => #t)
+
+  #t)
+
+
+(parametrise ((check-test-name	'superclass-list))
 
   (check
       (eval '(let ()
-	       (define-class <alpha>)
-	       (define-class <beta>
-		 (inherit <alpha>))
+	       (define-class <alpha1>)
 	       (define-syntax doit
 		 (lambda (stx)
-		   #`(quote #,(lookup-identifier-property #'<beta> #':list-of-superclasses #f))))
+		   (let ((P (prop.struct-properties-ref #'<alpha1>)))
+		     #`(quote #,(prop.class-list-of-supers P)))))
 	       (doit))
 	    (environment '(nausicaa)
-			 '(nausicaa language identifier-properties)
-			 '(nausicaa language classes internal-auxiliary-syntaxes)))
-    => '(<alpha>))
+			 '(prefix (nausicaa language classes properties) prop.)))
+    => '(<top>))
 
   (check
       (eval '(let ()
-	       (define-class <alpha>)
-	       (define-class <beta>
-		 (inherit <alpha>))
-	       (define-class <delta>
-		 (inherit <beta>))
-	       (define-class <gamma>
-		 (inherit <delta>))
+	       (define-class <alpha2>)
+	       (define-class <beta2>
+		 (inherit <alpha2>))
 	       (define-syntax doit
 		 (lambda (stx)
-		   #`(quote #,(lookup-identifier-property #'<gamma> #':list-of-superclasses #f))))
+		   #`(quote #,(prop.class-list-of-supers
+			       (prop.struct-properties-ref #'<beta2>)))))
 	       (doit))
 	    (environment '(nausicaa)
-			 '(nausicaa language identifier-properties)
-			 '(nausicaa language classes internal-auxiliary-syntaxes)))
-    => '(<delta> <beta> <alpha>))
+			 '(prefix (nausicaa language classes properties) prop.)))
+    => '(<alpha2> <top>))
+
+  (check
+      (eval '(let ()
+	       (define-class <alpha3>)
+	       (define-class <beta3>
+		 (inherit <alpha3>))
+	       (define-class <delta3>
+		 (inherit <beta3>))
+	       (define-class <gamma3>
+		 (inherit <delta3>))
+	       (define-syntax doit
+		 (lambda (stx)
+		   #`(quote #,(prop.class-list-of-supers
+			       (prop.struct-properties-ref #'<gamma3>)))))
+	       (doit))
+	    (environment '(nausicaa)
+			 '(prefix (nausicaa language classes properties) prop.)))
+    => '(<delta3> <beta3> <alpha3> <top>))
 
   #t)
 
@@ -87,155 +103,155 @@
 
   (check	;no fields
       (eval '(let ()
-	       (define-class <alpha>)
+	       (define-class <alpha4>)
 	       (define-syntax doit
 		 (lambda (stx)
-		   #`(quote #,(lookup-identifier-property #'<alpha> #':list-of-field-tags #f))))
+		   #`(quote #,(prop.class-list-of-field-tags
+			       (prop.struct-properties-ref #'<alpha4>)))))
 	       (doit))
 	    (environment '(nausicaa)
-			 '(nausicaa language identifier-properties)
-			 '(nausicaa language classes internal-auxiliary-syntaxes)))
+			 '(prefix (nausicaa language classes properties) prop.)))
     => '())
 
   (check	;untagged fields
       (eval '(let ()
-	       (define-class <alpha>
+	       (define-class <alpha5>
 		 (fields a))
 	       (define-syntax doit
 		 (lambda (stx)
-		   #`(quote #,(lookup-identifier-property #'<alpha> #':list-of-field-tags #f))))
+		   #`(quote #,(prop.class-list-of-field-tags
+			       (prop.struct-properties-ref #'<alpha5>)))))
 	       (doit))
 	    (environment '(nausicaa)
-			 '(nausicaa language identifier-properties)
-			 '(nausicaa language classes internal-auxiliary-syntaxes)))
+			 '(prefix (nausicaa language classes properties) prop.)))
     => '())
 
   (check	;single tagged field
       (eval '(let ()
-	       (define-class <alpha>
+	       (define-class <alpha6>
 		 (fields (a <pair>)))
 	       (define-syntax doit
 		 (lambda (stx)
-		   #`(quote #,(lookup-identifier-property #'<alpha> #':list-of-field-tags #f))))
+		   #`(quote #,(prop.class-list-of-field-tags
+			       (prop.struct-properties-ref #'<alpha6>)))))
 	       (doit))
 	    (environment '(nausicaa)
-			 '(nausicaa language identifier-properties)
-			 '(nausicaa language classes internal-auxiliary-syntaxes)))
+			 '(prefix (nausicaa language classes properties) prop.)))
     => '(<pair>))
 
   (check	;single tagged field, multiple tags
       (eval '(let ()
-	       (define-class <alpha>
+	       (define-class <alpha7>
 		 (fields (a <pair> <list>)))
 	       (define-syntax doit
 		 (lambda (stx)
-		   #`(quote #,(lookup-identifier-property #'<alpha> #':list-of-field-tags #f))))
+		   #`(quote #,(prop.class-list-of-field-tags
+			       (prop.struct-properties-ref #'<alpha7>)))))
 	       (doit))
 	    (environment '(nausicaa)
-			 '(nausicaa language identifier-properties)
-			 '(nausicaa language classes internal-auxiliary-syntaxes)))
+			 '(prefix (nausicaa language classes properties) prop.)))
     => '(<pair> <list>))
 
   (check	;multiple tagged field, multiple tags
       (eval '(let ()
-	       (define-class <alpha>
+	       (define-class <alpha8>
 		 (fields (a <pair> <list>)
 			 (b <vector> <number>)))
 	       (define-syntax doit
 		 (lambda (stx)
-		   #`(quote #,(lookup-identifier-property #'<alpha> #':list-of-field-tags #f))))
+		   #`(quote #,(prop.class-list-of-field-tags
+			       (prop.struct-properties-ref #'<alpha8>)))))
 	       (doit))
 	    (environment '(nausicaa)
-			 '(nausicaa language identifier-properties)
-			 '(nausicaa language classes internal-auxiliary-syntaxes)))
+			 '(prefix (nausicaa language classes properties) prop.)))
     => '(<vector> <number> <pair> <list>))
 
   (check	;inheritance, multiple tagged field, multiple tags
       (eval '(let ()
-	       (define-class <alpha>
+	       (define-class <alpha9>
 		 (fields (a <pair> <list>)
 			 (b <vector> <number>)))
-	       (define-class <beta>
-		 (inherit <alpha>))
+	       (define-class <beta9>
+		 (inherit <alpha9>))
 	       (define-syntax doit
 		 (lambda (stx)
-		   #`(quote #,(lookup-identifier-property #'<beta> #':list-of-field-tags #f))))
+		   #`(quote #,(prop.class-list-of-field-tags
+			       (prop.struct-properties-ref #'<beta9>)))))
 	       (doit))
 	    (environment '(nausicaa)
-			 '(nausicaa language identifier-properties)
-			 '(nausicaa language classes internal-auxiliary-syntaxes)))
+			 '(prefix (nausicaa language classes properties) prop.)))
     => '(<vector> <number> <pair> <list>))
 
   (check	;inheritance, multiple tagged field, multiple tags
       (eval '(let ()
-	       (define-class <alpha>
+	       (define-class <alpha10>
 		 (fields (a <pair> <list>)
 			 (b <vector> <number>)))
-	       (define-class <beta>
-		 (inherit <alpha>)
+	       (define-class <beta10>
+		 (inherit <alpha10>)
 		 (fields c))
 	       (define-syntax doit
 		 (lambda (stx)
-		   #`(quote #,(lookup-identifier-property #'<beta> #':list-of-field-tags #f))))
+		   #`(quote #,(prop.class-list-of-field-tags
+			       (prop.struct-properties-ref #'<beta10>)))))
 	       (doit))
 	    (environment '(nausicaa)
-			 '(nausicaa language identifier-properties)
-			 '(nausicaa language classes internal-auxiliary-syntaxes)))
+			 '(prefix (nausicaa language classes properties) prop.)))
     => '(<vector> <number> <pair> <list>))
 
   (check	;inheritance, multiple tagged field, multiple tags
       (eval '(let ()
-	       (define-class <alpha>
+	       (define-class <alpha11>
 		 (fields (a <pair> <list>)
 			 (b <vector> <number>)))
-	       (define-class <beta>
-		 (inherit <alpha>)
+	       (define-class <beta11>
+		 (inherit <alpha11>)
 		 (fields (c <integer>)))
 	       (define-syntax doit
 		 (lambda (stx)
-		   #`(quote #,(lookup-identifier-property #'<beta> #':list-of-field-tags #f))))
+		   #`(quote #,(prop.class-list-of-field-tags
+			       (prop.struct-properties-ref #'<beta11>)))))
 	       (doit))
 	    (environment '(nausicaa)
-			 '(nausicaa language identifier-properties)
-			 '(nausicaa language classes internal-auxiliary-syntaxes)))
+			 '(prefix (nausicaa language classes properties) prop.)))
     => '(<integer> <vector> <number> <pair> <list>))
 
   (check	;inheritance, multiple tagged field, multiple tags
       (eval '(let ()
-	       (define-class <alpha>
+	       (define-class <alpha12>
 		 (fields (a <pair> <list>)
 			 (b <vector> <number>)))
-	       (define-class <beta>
-		 (inherit <alpha>)
+	       (define-class <beta12>
+		 (inherit <alpha12>)
 		 (fields (c <integer>)
 			 (d <complex>)))
 	       (define-syntax doit
 		 (lambda (stx)
-		   #`(quote #,(lookup-identifier-property #'<beta> #':list-of-field-tags #f))))
+		   #`(quote #,(prop.class-list-of-field-tags
+			       (prop.struct-properties-ref #'<beta12>)))))
 	       (doit))
 	    (environment '(nausicaa)
-			 '(nausicaa language identifier-properties)
-			 '(nausicaa language classes internal-auxiliary-syntaxes)))
+			 '(prefix (nausicaa language classes properties) prop.)))
     => '(<complex> <integer> <vector> <number> <pair> <list>))
 
   (check	;inheritance, multiple tagged field, multiple tags
       (eval '(let ()
-	       (define-class <alpha>
+	       (define-class <alpha13>
 		 (fields (a <pair> <list>)
 			 (b <vector> <number>)))
-	       (define-class <beta>
-		 (inherit <alpha>)
+	       (define-class <beta13>
+		 (inherit <alpha13>)
 		 (fields (c <integer>)
 			 (d <complex>)))
-	       (define-label <delta>
-		 (inherit <beta>))
+	       (define-label <delta13>
+		 (inherit <beta13>))
 	       (define-syntax doit
 		 (lambda (stx)
-		   #`(quote #,(lookup-identifier-property #'<delta> #':list-of-field-tags #f))))
+		   #`(quote #,(prop.label-list-of-field-tags
+			       (prop.struct-properties-ref #'<delta13>)))))
 	       (doit))
 	    (environment '(nausicaa)
-			 '(nausicaa language identifier-properties)
-			 '(nausicaa language classes internal-auxiliary-syntaxes)))
+			 '(prefix (nausicaa language classes properties) prop.)))
     => '(<complex> <integer> <vector> <number> <pair> <list>))
 
   #t)

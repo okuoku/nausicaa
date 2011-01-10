@@ -1,4 +1,4 @@
-;;; -*- coding: utf-8 -*-
+;;; -*- coding: utf-8-unix -*-
 ;;;
 ;;;Part of: Nausicaa/Scheme
 ;;;Contents: implementation of <top> class bindings
@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2010, 2011 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -27,15 +27,29 @@
 
 #!r6rs
 (library (nausicaa language classes top)
-  (export <top> <top>-superclass <top>-superlabel <top>-bindings)
+  (export <top> <top>-bindings)
   (import (rnrs)
     (nausicaa language classes internal-auxiliary-syntaxes))
 
 
-(define-record-type <top>
-  (nongenerative nausicaa:builtin:<top>))
+(define <top>-rtd
+  (make-record-type-descriptor '<top>
+			       #f ;parent-rtd
+			       'nausicaa:builtin:<top>
+			       #f     ;sealed
+			       #f     ;opaque
+			       '#())) ;fields
 
-(define-syntax <top>-superclass
+(define <top>-cd
+  (make-record-constructor-descriptor <top>-rtd #f #f))
+
+(define make-<top>
+  (record-constructor <top>-cd))
+
+(define <top>?
+  (record-predicate <top>-rtd))
+
+(define-syntax <top>
   (lambda (stx)
     (syntax-case stx (:class-record-type-descriptor
 		      :class-type-uid
@@ -48,7 +62,7 @@
 		      :with-class-bindings-of)
 
       ((_ :class-record-type-descriptor)
-       #'(record-type-descriptor <top>))
+       #'<top>-rtd)
 
       ((_ :class-type-uid)
        #'(quote nausicaa:builtin:<top>))
@@ -57,16 +71,16 @@
        #'(quote (nausicaa:builtin:<top>)))
 
       ((_ :public-constructor-descriptor)
-       #'(record-constructor-descriptor <top>))
+       #'<top>-cd)
 
       ((_ :superclass-constructor-descriptor)
-       #'(record-constructor-descriptor <top>))
+       #'<top>-cd)
 
       ((_ :from-fields-constructor-descriptor)
-       #'(record-constructor-descriptor <top>))
+       #'<top>-cd)
 
       ((_ :parent-rtd-list)
-       #'(list (record-type-descriptor <top>)))
+       #'(list <top>-rtd))
 
       ((_ :is-a? ?arg)
        #'(<top>? ?arg))
@@ -77,28 +91,28 @@
       ((_ ?keyword . ?rest)
        (syntax-violation '<top>
 	 "invalid class internal keyword"
-	 (syntax->datum #'(<top> ?keyword . ?rest))
-	 (syntax->datum #'?keyword))))))
-
-(define-syntax <top>-superlabel
-  (syntax-rules (:is-a? :with-class-bindings-of)
-
-    ((_ :is-a? ?arg)
-     #t)
-
-    ((_ :with-class-bindings-of ?inherit-options ?variable-name . ?body)
-     (begin . ?body))
-
-    ((_ ?keyword . ?rest)
-     (syntax-violation '<top>
-       "invalid class internal keyword"
-       (syntax->datum #'(<top> ?keyword . ?rest))
-       (syntax->datum #'?keyword)))))
+	 (syntax->datum stx) (syntax->datum #'?keyword))))))
 
 (define-syntax <top>-bindings
   (syntax-rules ()
     ((_ ?class-name ?identifier . ?body)
      (begin . ?body))))
+
+;;This  should be  here but  is  instead in  (nausicaa language  classes
+;;properties); this is to  circumvent a bug in Ikarus/Vicare precompiled
+;;libraries which  is causing  the property to  be misteriously  not set
+;;when it is queried from the helpers library; the bug shows itself only
+;;when running with precompiled libraries, not when running with a clean
+;;cache (Marco Maggi; Mon Jan 10, 2011).
+;;
+;; (define-for-expansion-evaluation
+;;   (prop.struct-properties-define
+;;    #'<top> (prop.make-class '()	   ;list of supers
+;; 			    '()	   ;field specs
+;; 			    '()	   ;virtual field specs
+;; 			    '()	   ;method specs
+;; 			    '()	   ;mixins
+;; 			    '()))) ;list of field tags
 
 
 ;;;; done

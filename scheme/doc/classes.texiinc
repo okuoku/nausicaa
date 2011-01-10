@@ -21,8 +21,10 @@ ones it uses as auxiliary syntaxes in the class definition clauses.
 * classes pred::                Record type predicates.
 * classes inspect::             Class and instance inspection.
 * classes slots::               Accessors and mutators.
+* classes mixins::              Defining and composing mixins.
 * classes dot::                 Using dot notation.
 * classes builtin::             Conventional type descriptors.
+* classes properties::          Class, label, mixin properties.
 @end menu
 
 @c page
@@ -68,6 +70,8 @@ by @func{define-label}.
 * classes define bindings::     Defining classes having custom
                                 bindings.
 * classes define labels::       Defining labels.
+* classes define mixins::       Composing with mixins.
+* classes define satisfy::      Verifying definition constraints.
 @end menu
 
 @c page
@@ -1347,6 +1351,9 @@ parent is another label, but when the parent is a class we should use
 the @code{concrete-fields} option to enable bindings for the parent's
 concrete fields.
 
+If no @code{inherit} clause is present: by default the label inherits
+from @class{top}, which is a class.
+
 @item predicate
 Select a predicate function to be used to identify values with the
 @func{is-a?} macro; it has the same syntax and semantics of the
@@ -1457,6 +1464,190 @@ and classes implementing them:
   (check (q.one) @result{} '(one . beta))
   (check (q.two) @result{} '(two . beta))
   )
+@end example
+
+@c page
+@node classes define mixins
+@subsection Composing with mixins
+
+
+@dfn{Mixins} are a way to add definition clauses to classes and labels.
+Let's consider this situation:
+
+@example
+(define-class <alpha>
+  (field a))
+
+(define-class <beta>
+  (field b))
+
+(define-class <delta>
+  (inherit <alpha>)
+  (field v)
+  (method (doit (o <delta>))
+    (+ 1 o.v)))
+
+(define-class <gamma>
+  (inherit <beta>)
+  (field v)
+  (method (doit (o <gamma>))
+    (+ 1 o.v)))
+@end example
+
+@noindent
+the definitions of @class{delta} and @class{gamma} share some clauses;
+both of them already have a parent class and multiple inheritance is not
+supported.  Is it possible to write the shared clauses only once and
+attach them to the class definitions?  Yes, with mixins.
+
+The example above is equivalent to the following:
+
+@example
+(define-class <alpha>
+  (field a))
+
+(define-class <beta>
+  (field b))
+
+(define-mixin <stuff>
+  (field v)
+  (method (doit (o <stuff>))
+    (+ 1 o.v)))
+
+(define-class <delta>
+  (inherit <alpha>)
+  (mixins <stuff>))
+
+(define-class <gamma>
+  (inherit <beta>)
+  (mixins <stuff>))
+@end example
+
+@noindent
+@func{define-mixin} associates a set of clauses to the identifier
+@class{stuff}; when the @code{mixins} clause is used in the body of a
+class definition:
+
+@enumerate
+@item
+The clauses associated to the selected identifier are retrieved as
+syntax object.
+
+@item
+All the instances of the identifier @class{stuff} are substituted with
+the identifier of the enclosing class or label.
+
+@item
+The resulting clauses are added to the enclosing definition.
+@end enumerate
+
+@ref{classes mixins} for further examples.  When we compose a class with
+a mixin, we can rightly think that the receiving class or label knows of
+it; there is no need to keep the receiving definition separate from the
+mixin definition.  In particular the constructor functions must prepare
+appropriate values for the fields of the mixins; the order of the fields
+in the receiving class is the same of the order of the @code{fields}
+clauses.
+
+
+@deffn {Auxiliary Syntax} mixins @var{name} ...
+Compose the enclosing class or label definition with the given list of
+mixins.  The @func{mixins} clause can be used any number of times; each
+of them can list any number of mixin identifiers.
+
+It is a syntax violation if a mixin identifier is not already associated
+to a set of clauses.  It is a syntax violation if the same mixin
+identifier is used multiple times in the @code{mixins} clauses of the
+same definition.
+@end deffn
+
+@c page
+@node classes define satisfy
+@subsection Verifying definition constraints
+
+
+It is useful to validate the definition of classes and labels against a
+set of requirements; this allows, for example, to verify if a class
+implements an @api{}.
+
+
+@deffn {Auxiliary Syntax} satisfies @var{satisfaction} ...
+This clause can be used any number of times in the definition of both
+classes and labels.  Select a number of functions to invoke, at expand
+time, to validate the properties of a class or label.
+
+All the @var{satisfaction} arguments must be expressions evaluating to
+functions; these expressions are evaluated at expand time.  The
+functions are applied, at expand time, to the class or label name
+identifier: they can just return nothing if the constraints are
+satisfied or raise an exception if they are not.
+
+To validate a class or label definition the satisfaction functions can
+query the identifier properties associated to the class or label name
+identifier.  @ref{classes properties} for details on the available
+properties.
+@end deffn
+
+
+For example, the following library exports a binding to a satisfaction
+function checking that the class definition of
+@var{the-class-identifier} includes concrete fields with names @samp{a},
+@samp{b} and @samp{c}:
+
+@example
+#!r6rs
+(library (class-satisfactions)
+  (export
+    has-fields-a/b/c)
+  (import (nausicaa)
+    (prefix (nausicaa language classes properties) prop.))
+
+  (define (has-fields-a/b/c the-class-identifier)
+    (define specs
+      (prop.class-field-specs
+       (prop.struct-properties-ref the-identifier)))
+    (define (%synner message subform)
+      (syntax-violation 'has-fields-a/b/c
+        (string-append "checking class identifier "
+          (symbol->string
+           (syntax->datum the-class-identifier))
+          ": " message)
+        (syntax->datum specs) (syntax->datum subform)))
+    (let loop ((specs specs)
+               (a #f) (b #f) (c #f))
+      (syntax-case specs ()
+        (()
+         (unless (and a b c)
+           (%synner "missing required field"
+                    (cond ((not a) 'a)
+                          ((not b) 'b)
+                          ((not c) 'c)))))
+        (((mutability ?name . ?rest) . ?specs)
+         (case (syntax->datum #'?name)
+           ((a)
+            (loop #'?specs #t b c))
+           ((b)
+            (loop #'?specs a #t c))
+           ((c)
+            (loop #'?specs a b #t))
+           (else
+            (loop #'?specs a b c))))
+        (?thing
+         (%synner "invalid fields specification" #'?thing))
+        ))))
+@end example
+
+@noindent
+and it can be used as follows:
+
+@example
+#!r6rs
+(import (nausicaa)
+  (for (class-satisfactions) expand))
+
+(define-class <alpha>
+  (fields a b c)
+  (satisfies has-fields-a/b/c))
 @end example
 
 @c page
@@ -1818,6 +2009,159 @@ syntax is exported by the library @library{nausicaa language
 auxiliary-syntaxes} and reexported by @library{nausicaa language
 classes}.
 @end deffn
+
+@c page
+@node classes mixins
+@section Defining and composing mixins
+
+
+@deffn Syntax define-mixin @var{name} @varo{clause} @var{clause} ...
+Associate a set of mixin clauses to the identifier @var{name}, which can
+be later referenced by a @code{mixins} clause in the body of a class or
+label definition.
+
+Right or wrong @func{define-mixin} imposes no constraints on the given
+clauses; it is our responsibility to select the ones which are
+convenient for the application model.
+
+The @code{mixins} clause can be used in the body of a mixin definition;
+the result is that the clauses of the selected mixins are added to the
+definition of the current mixin.
+@end deffn
+
+
+The following is an example of mixin usage in which the maker of the
+receiving class accepts a value for a field in the mixin:
+
+@example
+#!r6rs
+(import (nausicaa))
+
+(define-mixin <stuff>
+  (fields c)
+  (method (doit (o <stuff>))
+    (+ 1 o.c)))
+
+(define-class <base>
+  (fields a))
+
+(define-class <one>
+  (inherit <base>)
+  (maker ()
+         (a:  #f)
+         (p:  #f)
+         (c:  #f))
+  (fields p)
+  (mixins <stuff>))
+
+(define-class <two>
+  (inherit <base>)
+  (maker ()
+         (a:  #f)
+         (q:  #f)
+         (c:  #f))
+  (fields q)
+  (mixins <stuff>))
+
+(let-make ((o <one>
+                (a: 10)
+                (p: 20)
+                (c: 30)))
+  (o.doit))
+@result{} 31
+@end example
+
+@noindent
+the following is an example of multiple mixins attached to the same
+class definition:
+
+@example
+#!r6rs
+(import (nausicaa))
+
+(define-mixin <stuff>
+  (fields c)
+  (method (doit (o <stuff>))
+    (+ 1 o.c)))
+
+(define-mixin <other-stuff>
+  (fields p))
+
+(define-class <base>
+  (fields a))
+
+(define-class <one>
+  (inherit <base>)
+  (maker ()
+         (a:  #f)
+         (p:  #f)
+         (c:  #f))
+  (mixins <stuff> <other-stuff>))
+
+(let-make ((o <one>
+                (a: 10)
+                (p: 20)
+                (c: 30)))
+  (o.doit))
+@result{} 31
+@end example
+
+@noindent
+the following is an example of composite mixins:
+
+@example
+#!r6rs
+(import (nausicaa))
+
+(define-mixin <stuff>
+  (fields c)
+  (method (doit (o <stuff>))
+    (+ 1 o.c)))
+
+(define-mixin <other-stuff>
+  (fields p)
+  (mixins <stuff>))
+
+(define-class <base>
+  (fields a))
+
+(define-class <one>
+  (inherit <base>)
+  (maker ()
+         (a:  #f)
+         (p:  #f)
+         (c:  #f))
+  (mixins <other-stuff>))
+
+(let-make ((o <one>
+                (a: 10)
+                (p: 20)
+                (c: 30)))
+  (o.doit))
+@result{} 31
+@end example
+
+@noindent
+the following is an example of mixin accessing the fields of the
+receiving class:
+
+@example
+#!r6rs
+(import (nausicaa))
+
+(define-mixin <stuff>
+  (fields c)
+  (method (doit (o <stuff>))
+    (+ o.a o.c)))
+
+(define-class <alpha>
+  (fields a)
+  (mixins <stuff>))
+
+(let-make ((o <alpha> 1 2))
+  (o.doit))
+@result{} 3
+@end example
 
 @c page
 @node classes dot
@@ -3595,5 +3939,174 @@ condition object.
 @deftp {Foreign Class} @aclass{record}
 Conventional type for objects satisfying @func{record?}.
 @end deftp
+
+@c page
+@node classes properties
+@section Class, label, mixin properties
+
+
+The library @library{nausicaa language classes properties} exports an
+@api{} to query at expand time the definition attributes of classes,
+labels and mixins.  The attributes of a mixin are the same as the
+attributes of a class.
+
+@menu
+* classes properties def::      Defining and retrieving properties.
+* classes properties query::    Querying the properties values.
+@end menu
+
+@c page
+@node classes properties def
+@subsection Defining and retrieving properties
+
+
+The following bindings are exported by the @library{nausicaa language
+classes properties} library.
+
+
+@defun struct-properties-define @var{identifier} @var{value}
+Associate a properties @var{value} to @var{identifier}.
+@var{identifier} must be an already bound identifier representing the
+name of a class, label or mixin.  @var{value} must be the return value
+of @func{make-class}, @func{make-label} or @func{make-mixin}.
+
+It is an error if a properties value has already been associated to
+@var{identifier}.
+@end defun
+
+
+@defun struct-properties-ref @var{identifier}
+Return the properties value associated to @var{identifier} by a previous
+call to @func{struct-properties-define}.
+@end defun
+
+@c page
+@node classes properties query
+@subsection Querying the properties values
+
+
+The following bindings are exported by the @library{nausicaa language
+classes properties} library.  The functions with prefix @code{struct-}
+can be applied to all the properties values; the functions with prefix
+@code{class-}, @code{label-}, @code{mixin-} can be applied only to
+properties values for classes, labels and mixins respectively.
+
+
+@defun make-class . @var{args}
+@defunx make-label . @var{args}
+@defunx make-mixin . @var{args}
+Build and return a new properties value.  These function are meant to be
+for internal use only, so their arguments are undocumented.
+@end defun
+
+
+@defun struct? @var{obj}
+@defunx class? @var{obj}
+@defunx label? @var{obj}
+@defunx mixin? @var{obj}
+Return true if @var{obj} is a properties value, a class properties
+value, a label properties value, a mixin properties value respectively.
+@end defun
+
+
+@defun struct-list-of-supers @var{prop}
+@defunx class-list-of-supers @var{prop}
+@defunx label-list-of-supers @var{prop}
+@defunx mixin-list-of-supers @var{prop}
+Query a properties value.  Return an unwrapped syntax object being null
+or a list of identifiers representing the superclasses or superlabels of
+the class, label or mixin associated to @var{prop}.
+
+The returned value is null when @var{prop} is associated to: the
+@class{top} class; a class having a record as parent (rather than a
+class).
+@end defun
+
+
+@defun struct-field-specs @var{prop}
+@defunx class-field-specs @var{prop}
+@defunx mixin-field-specs @var{prop}
+Query a properties value.  Return an unwrapped syntax object being null
+or a list of lists of concrete field specifications; the format of the
+list is:
+
+@example
+((mutable   @var{name} @var{accessor} @var{mutator} @var{tag} ...)
+ ...
+ (immutable @var{name} @var{accessor} @var{tag} ...)
+ ...)
+@end example
+
+@noindent
+where: @code{mutable} and @code{immutable} are the auxiliary syntaxes
+exported by @rsixlibrary{records syntactic}; @var{name} is an identifier
+representing the name of the field; @var{accessor} and @var{mutator} are
+identifiers bound to the accessor and mutator functions for the record;
+the optional @var{tag} values are identifiers representing the field
+type tags.
+@end defun
+
+
+@defun struct-virtual-field-specs @var{prop}
+@defunx class-virtual-field-specs @var{prop}
+@defunx label-virtual-field-specs @var{prop}
+@defunx mixin-virtual-field-specs @var{prop}
+Query a properties value.  Return an unwrapped syntax object being null
+or a list of lists of virtual field specifications; the format of the
+list is:
+
+@example
+((mutable   @var{name} @var{accessor} @var{mutator} @var{tag} ...)
+ ...
+ (immutable @var{name} @var{accessor} @var{tag} ...)
+ ...)
+@end example
+
+@noindent
+where: @code{mutable} and @code{immutable} are the auxiliary syntaxes
+exported by @rsixlibrary{records syntactic}; @var{name} is an identifier
+representing the name of the field; @var{accessor} and @var{mutator} are
+identifiers bound to the accessor and mutator functions for the field;
+the optional @var{tag} values are identifiers representing the field
+type tags.
+@end defun
+
+
+@defun struct-method-specs @var{prop}
+@defunx class-method-specs @var{prop}
+@defunx label-method-specs @var{prop}
+@defunx mixin-method-specs @var{prop}
+Query a properties value.  Return an unwrapped syntax object being null
+or list of method specifications; the format of the list is:
+
+@example
+((@var{method-name} @var{function-or-macro-identifier})
+ ...)
+@end example
+
+@noindent
+where: @code{method-name} is an identifier representing the name of the
+method; @var{function-or-macro-identifier} is an identifier bound to the
+function or macro implementing the method.
+@end defun
+
+
+@defun struct-mixin-identifiers @var{prop}
+@defunx class-mixin-identifiers @var{prop}
+@defunx label-mixin-identifiers @var{prop}
+@defunx mixin-mixin-identifiers @var{prop}
+Query a properties value.  Return an unwrapped syntax object being null
+or a list of identifiers representing the requested mixins.
+@end defun
+
+
+@defun struct-list-of-field-tags @var{prop}
+@defunx class-list-of-field-tags @var{prop}
+@defunx label-list-of-field-tags @var{prop}
+@defunx mixin-list-of-field-tags @var{prop}
+Query a properties value.  Return an unwrapped syntax object being null
+or a list of identifiers representing the full list of field tags; this
+value is used internally to detect circular tagging.
+@end defun
 
 @c end of file

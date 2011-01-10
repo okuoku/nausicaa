@@ -58,10 +58,12 @@ given symbol arguments.
 @end defmac
 
 
-@defun syntax->list @var{stx} @var{tail}
+@defun syntax->list @var{stx}
+@defunx syntax->list @var{stx} @var{tail}
 Given a syntax object @var{stx} holding a list, return a new proper list
 holding the component syntax objects.  @var{tail} must be null or a
-proper list which will become the tail of the returned list.
+proper list which will become the tail of the returned list; @var{tail}
+defaults to null.
 @end defun
 
 
@@ -95,16 +97,21 @@ identifiers; return false otherwise.
 @end defun
 
 
-@defun duplicated-identifiers? @var{unwrapped-stx}
-Search the list of identifiers @var{unwrapped-stx} for duplicated
+@defun duplicate-identifiers? @var{unwrapped-stx}
+@defunx duplicate-identifiers? @var{unwrapped-stx} @var{identifier=}
+Search the list of identifiers @var{unwrapped-stx} for duplicate
 identifiers; at the first duplicate found, return it; return false if no
 duplications are found.
+
+@var{identifier=} must be the predicate used to compare identifiers; it
+is typically @func{bound-identifier=?} or @func{free-identifier=?}.
+When not given: @var{identifier=} defaults to @func{bound-identifier=?}.
 @end defun
 
 
-@defun delete-duplicated-identifiers @var{unwrapped-ids}
-Given a list of identifiers: remove the duplicated identifiers and
-return a proper list of unique identifiers.
+@defun delete-duplicate-identifiers @var{unwrapped-ids}
+Given a list of identifiers: remove the duplicate identifiers and return
+a proper list of unique identifiers.
 @end defun
 
 
@@ -240,9 +247,24 @@ Given a list of clauses with the format:
 @end example
 
 @noindent
-look for the ones having @var{keyword-identifier} as car and return the
-selected clauses in a list; return the empty list if no matching clause
-is found.
+look for the ones having @var{keyword-identifier} as car (according to
+@func{free-identifier=?}) and return the selected clauses in a list;
+return the empty list if no matching clause is found.
+@end defun
+
+
+@defun discard-clauses @var{keyword-identifier} @var{clauses}
+Given a list of clauses with the format:
+
+@example
+((<identifier> <thing> ...) ...)
+@end example
+
+@noindent
+look for the ones having @var{keyword-identifier} as car (according to
+@func{free-identifier=?}) and discard them; return all the other clauses
+in a list; return the empty list if all the clauses have
+@var{keyword-identifier} as car.
 @end defun
 
 
@@ -272,14 +294,5 @@ most one can appear in @var{clauses}.
 parse error occurs; it must accept two arguments: the message string,
 the invalid subform.
 @end defun
-
-
-@defmac define-auxiliary-syntax @var{symbol} ...
-@defmacx define-auxiliary-syntaxes @var{symbol} ...
-Define one or more auxiliary syntaxs whose names are the @var{symbol}
-arguments.  The defined syntaxes are meant to be used as keywords in
-definitions, like @code{fields} and @code{protocol} for
-@func{define-record-type}.
-@end defmac
 
 @c end of file

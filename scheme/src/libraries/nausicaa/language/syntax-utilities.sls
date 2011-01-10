@@ -1,4 +1,4 @@
-;;; -*- coding: utf-8 -*-
+;;; -*- coding: utf-8-unix -*-
 ;;;
 ;;;Part of: Nausicaa/Scheme
 ;;;Contents: helper functions for expand time processing
@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2010, 2011 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -37,8 +37,8 @@
     quoted-syntax-object?		syntax=?
 
     ;; identifiers handling
-    all-identifiers?			duplicated-identifiers?
-    delete-duplicated-identifiers	identifier-memq
+    all-identifiers?			duplicate-identifiers?
+    delete-duplicate-identifiers	identifier-memq
     symbol-identifier=?			identifier-subst
 
     ;; common identifier names constructor
@@ -52,9 +52,7 @@
 
     ;; clauses helpers
     validate-list-of-clauses		validate-definition-clauses
-    filter-clauses
-
-    define-auxiliary-syntax		define-auxiliary-syntaxes)
+    filter-clauses			discard-clauses)
   (import (rnrs))
 
 
@@ -108,18 +106,22 @@
     (_
      (syntax-violation 'syntax->vector "expected vector input form" (syntax->datum stx)))))
 
-(define (syntax->list stx tail)
-  ;;Given  a syntax  object STX  holding a  list, return  a  proper list
-  ;;holding the component syntax objects.  TAIL must be null or a proper
-  ;;list which will become the tail of the returned list.
-  ;;
-  (syntax-case stx ()
-    ((?car . ?cdr)
-     ;;Yes, it  is not tail recursive;  "they" say it  is efficient this
-     ;;way.
-     (cons #'?car (syntax->list #'?cdr tail)))
-    (()
-     tail)))
+(define syntax->list
+  (case-lambda
+   ((stx)
+    (syntax->list stx '()))
+   ((stx tail)
+    ;;Given a  syntax object  STX holding a  list, return a  proper list
+    ;;holding  the component  syntax objects.   TAIL must  be null  or a
+    ;;proper list which will become the tail of the returned list.
+    ;;
+    (syntax-case stx ()
+      ((?car . ?cdr)
+       ;;Yes, it  is not tail recursive;  "they" say it  is efficient this
+       ;;way.
+       (cons #'?car (syntax->list #'?cdr tail)))
+      (()
+       tail)))))
 
 
 (define (quoted-syntax-object? stx)
@@ -169,23 +171,27 @@
     (()		#t)
     (_		#f)))
 
-(define (duplicated-identifiers? ell/stx)
+(define duplicate-identifiers?
   ;;Recursive  function.  Search  the  list of  identifiers ELL/STX  for
-  ;;duplicated  identifiers; at  the first  duplicate found,  return it;
+  ;;duplicate  identifiers; at  the  first duplicate  found, return  it;
   ;;return false if no duplications are found.
   ;;
-  (if (null? ell/stx)
-      #f
-    (let loop ((x  (car ell/stx))
-	       (ls (cdr ell/stx)))
-      (if (null? ls)
-	  (duplicated-identifiers? (cdr ell/stx))
-	(if (bound-identifier=? x (car ls))
-	    x
-	  (loop x (cdr ls)))))))
+  (case-lambda
+   ((ell/stx)
+    (duplicate-identifiers? ell/stx bound-identifier=?))
+   ((ell/stx identifier=)
+    (if (null? ell/stx)
+	#f
+      (let loop ((x  (car ell/stx))
+		 (ls (cdr ell/stx)))
+	(if (null? ls)
+	    (duplicate-identifiers? (cdr ell/stx) identifier=)
+	  (if (identifier= x (car ls))
+	      x
+	    (loop x (cdr ls)))))))))
 
-(define (delete-duplicated-identifiers ids)
-  ;;Given the list of  identifiers IDS remove the duplicated identifiers
+(define (delete-duplicate-identifiers ids)
+  ;;Given the  list of identifiers IDS remove  the duplicate identifiers
   ;;and return a proper list of unique identifiers.
   ;;
   (let clean-tail ((ids ids))
@@ -320,9 +326,9 @@
   ;;
   ;;    ((<identifier> <thing> ...) ...)
   ;;
-  ;;look for  the ones having  KEYWORD-IDENTIFIER as car and  return the
-  ;;selected clauses  in a  list; return the  empty list if  no matching
-  ;;clause is found.
+  ;;look  for the ones  having KEYWORD-IDENTIFIER  as car  (according to
+  ;;FREE-IDENTIFIER=?) and return the selected clauses in a list; return
+  ;;the empty list if no matching clause is found.
   ;;
   (assert (identifier? keyword-identifier))
   (let next-clause ((clauses  clauses)
@@ -333,6 +339,26 @@
 		     (if (free-identifier=? keyword-identifier (caar clauses))
 			 (cons (car clauses) selected)
 		       selected)))))
+
+(define (discard-clauses keyword-identifier clauses)
+  ;;Given a list of clauses with the format:
+  ;;
+  ;;    ((<identifier> <thing> ...) ...)
+  ;;
+  ;;look  for the ones  having KEYWORD-IDENTIFIER  as car  (according to
+  ;;FREE-IDENTIFIER=?) and discard them; return all the other clauses in
+  ;;a   list;  return   the  empty   list  if   all  the   clauses  have
+  ;;KEYWORD-IDENTIFIER as car.
+  ;;
+  (assert (identifier? keyword-identifier))
+  (let next-clause ((clauses  clauses)
+		    (selected '()))
+    (if (null? clauses)
+	(reverse selected) ;it is important to keep the order
+	(next-clause (cdr clauses)
+		     (if (free-identifier=? keyword-identifier (caar clauses))
+			 selected
+		       (cons (car clauses) selected))))))
 
 
 (define (validate-definition-clauses mandatory-keywords optional-keywords
@@ -435,25 +461,6 @@
 		(when (< 1 (length err))
 		  (synner "mutually exclusive clauses" err))))
     exclusive-keywords-sets))
-
-
-(define-syntax define-auxiliary-syntax
-  (syntax-rules ()
-    ((_ ?name)
-     (define-syntax ?name (syntax-rules ())))
-    ((_ ?name0 ?name ...)
-     (begin
-       (define-syntax ?name0 (syntax-rules ()))
-       (define-auxiliary-syntax ?name ...)))
-    ((_)	;allows this  syntax to be called with  no arguments and
-		;still expand to a definition
-     (define-syntax dummy (syntax-rules ())))
-    ))
-
-(define-syntax define-auxiliary-syntaxes
-  (syntax-rules ()
-    ((_ . ?args)
-     (define-auxiliary-syntax . ?args))))
 
 
 ;;;; done

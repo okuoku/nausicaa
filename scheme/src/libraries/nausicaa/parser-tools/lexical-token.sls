@@ -59,8 +59,7 @@
   (import (rnrs)
     (nausicaa parser-tools source-location)
     (nausicaa language classes)
-    (nausicaa language makers)
-    (only (nausicaa language syntax-utilities) define-auxiliary-syntaxes))
+    (nausicaa language makers))
 
 
 (define-auxiliary-syntaxes

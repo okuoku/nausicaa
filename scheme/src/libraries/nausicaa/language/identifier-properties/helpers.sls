@@ -1,4 +1,4 @@
-;;; -*- coding: utf-8 -*-
+;;; -*- coding: utf-8-unix -*-
 ;;;
 ;;;Part of: Nausicaa/Scheme
 ;;;Contents: helpers for expand-time identifier properties
@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2010, 2011 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -27,7 +27,10 @@
 
 #!r6rs
 (library (nausicaa language identifier-properties helpers)
-  (export lookup-identifier-property identifier-property-set!)
+  (export
+    (rename (identifier-property-define	define)
+	    (identifier-property-set!	set!)
+	    (lookup-identifier-property	ref)))
   (import (rnrs)
     (nausicaa language identifier-alists))
 
@@ -35,7 +38,38 @@
   ;;keys we have no other choice.
   (define $table-of-property-tables '())
 
+  (define (identifier-property-define subject key value)
+    ;;Associate  KEY to  VALUE in  SUBJECT's table;  raise  an assertion
+    ;;violation if the KEY is already defined.
+    ;;
+    (assert (identifier? subject))
+    (assert (identifier? key))
+    (let ((property-table (identifier-alist-ref $table-of-property-tables key #f)))
+      (set! $table-of-property-tables
+	    (if property-table
+		(identifier-alist-replace key (identifier-alist-new subject value property-table)
+					  $table-of-property-tables)
+	      (identifier-alist-cons key `((,subject . ,value))
+				     $table-of-property-tables)))))
+
+  (define (identifier-property-set! subject key value)
+    ;;Associate  KEY to  VALUE  in SUBJECT's  table;  overwrite the  old
+    ;;value, if any.
+    ;;
+    (assert (identifier? subject))
+    (assert (identifier? key))
+    (let ((property-table (identifier-alist-ref $table-of-property-tables key #f)))
+      (set! $table-of-property-tables
+	    (if property-table
+		(identifier-alist-replace key (identifier-alist-replace subject value property-table)
+					  $table-of-property-tables)
+	      (identifier-alist-cons key `((,subject . ,value))
+				     $table-of-property-tables)))))
+
   (define lookup-identifier-property
+    ;;Return  the value  associated to  KEY in  SUBJECT's  table; return
+    ;;DEFAULT if KEY is not defined.
+    ;;
     (case-lambda
      ((subject key)
       (lookup-identifier-property subject key #f))
@@ -47,16 +81,6 @@
 	    (identifier-alist-ref property-table subject default)
 	  default)))))
 
-  (define (identifier-property-set! subject key value)
-    (assert (identifier? subject))
-    (assert (identifier? key))
-    (let ((property-table (identifier-alist-ref $table-of-property-tables key #f)))
-      (set! $table-of-property-tables
-	    (if property-table
-		(identifier-alist-replace key (identifier-alist-replace subject value property-table)
-					  $table-of-property-tables)
-	      (identifier-alist-cons key `((,subject . ,value))
-				     $table-of-property-tables)))))
   )
 
 ;;; end of file

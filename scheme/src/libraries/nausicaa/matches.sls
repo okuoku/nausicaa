@@ -14,7 +14,7 @@
 ;;;	overall  number of libraries  and to  improve "locality"  in the
 ;;;	reading comprehension of the code.
 ;;;
-;;;Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2009, 2010, 2011 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;Copyright (c) 2006, 2007 Alex Shinn
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
@@ -57,7 +57,7 @@
     match-mismatch-error)
   (import (rnrs)
     (rnrs mutable-pairs)
-    (only (nausicaa language syntax-utilities) define-auxiliary-syntaxes)
+    (only (nausicaa language extensions) define-auxiliary-syntaxes)
     (nausicaa language conditions))
 
 

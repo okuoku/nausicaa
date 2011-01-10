@@ -1,4 +1,4 @@
-;;; -*- coding: utf-8 -*-
+;;; -*- coding: utf-8-unix -*-
 ;;;
 ;;;Part of: Nausicaa/Scheme
 ;;;Contents: let-syntax binding makers for dot notation
@@ -11,7 +11,7 @@
 ;;;	independent library because it  is needed by the generated code,
 ;;;	not by the (classes) library itself.
 ;;;
-;;;Copyright (c) 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2010, 2011 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -36,7 +36,7 @@
     make-setter-getter-bindings)
   (import (rnrs)
     (nausicaa language syntax-utilities)
-    (nausicaa language classes helpers))
+    (prefix (nausicaa language classes helpers) help.))
 
 
 (define (make-field-bindings use-dot-notation? variable-stx clauses-stx synner)
@@ -163,13 +163,13 @@
 	      (list (make-Getter-binding variable-stx Getter-stx)))))
 
   (define (make-Setter-binding variable-stx setter-stx)
-    #`(#,(%variable-name->Setter-name variable-stx)
+    #`(#,(help.variable-name->Setter-name variable-stx)
        (syntax-rules ()
 	 ((_ key0 key (... ...) value)
 	  (#,setter-stx #,variable-stx key0 key (... ...) value)))))
 
   (define (make-Getter-binding variable-stx getter-stx)
-    #`(#,(%variable-name->Getter-name variable-stx)
+    #`(#,(help.variable-name->Getter-name variable-stx)
        (syntax-rules ()
 	 ((_ key0 key (... ...))
 	  (#,getter-stx #,variable-stx key0 key (... ...))))))

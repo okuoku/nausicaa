@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2009, 2010, 2011 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -187,11 +187,10 @@
     define-identifier-accessor-mutator identifier-syntax-accessor-mutator
     with-accessor-and-mutator
     define-inline define-values define-constant define-constant-values
-    define-syntax*)
+    define-syntax* define-auxiliary-syntax define-auxiliary-syntaxes
+    define-for-expansion-evaluation)
   (import (rnrs)
-    (only (nausicaa language syntax-utilities) define-auxiliary-syntaxes)
-    (only (nausicaa language auxiliary-syntaxes) <> <...>)
-    (nausicaa language pretty-print))
+    (only (nausicaa language auxiliary-syntaxes) <> <...>))
 
 
 (define-syntax and-let*
@@ -587,6 +586,34 @@
 		  ((message subform)
 		   (syntax-violation '?name message (syntax->datum ?stx) (syntax->datum subform)))))
 	       ?body0 ?body ...)))))))
+
+(define-syntax define-auxiliary-syntax
+  (syntax-rules ()
+    ((_ ?name)
+     (define-syntax ?name (syntax-rules ())))
+    ((_ ?name0 ?name ...)
+     (begin
+       (define-syntax ?name0 (syntax-rules ()))
+       (define-auxiliary-syntax ?name ...)))
+    ((_)	;allows this  syntax to be called with  no arguments and
+		;still expand to a definition
+     (define-syntax dummy (syntax-rules ())))
+    ))
+
+(define-syntax define-auxiliary-syntaxes
+  (syntax-rules ()
+    ((_ . ?args)
+     (define-auxiliary-syntax . ?args))))
+
+(define-syntax define-for-expansion-evaluation
+  (syntax-rules ()
+    ((_ ?form ...)
+     (begin
+       (define-syntax the-macro
+	 (lambda (stx)
+	   ?form ...
+	   #'(define dummy)))
+       (the-macro)))))
 
 
 ;;;; done

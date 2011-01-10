@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2010, 2011 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -39,15 +39,17 @@
   (import (rnrs)
     (nausicaa language makers)
     (for (prefix (nausicaa language syntax-utilities) synux.) expand run)
-    (only (nausicaa language extensions) define-inline))
+    (only (nausicaa language extensions)
+	  define-inline))
 
 
 ;;;; type assertion definition
 
-(synux.define-auxiliary-syntax predicate)
-(synux.define-auxiliary-syntax type-description)
-(synux.define-auxiliary-syntax value-description)
-(synux.define-auxiliary-syntax make-function)
+(define-auxiliary-syntaxes
+  predicate
+  type-description
+  value-description
+  make-function)
 
 (define-maker (define-type-assertion name)
   %define-type-assertion

@@ -1,4 +1,4 @@
-;;; -*- coding: utf-8 -*-
+;;; -*- coding: utf-8-unix -*-
 ;;;
 ;;;Part of: Nausicaa/Scheme
 ;;;Contents: predefined condition types
@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2009, 2010, 2011 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -51,7 +51,7 @@
     (nausicaa language makers)
     (only (nausicaa language auxiliary-syntaxes) parent fields)
     (for (only (nausicaa language syntax-utilities) all-identifiers?) expand)
-    (for (only (nausicaa language syntax-utilities) define-auxiliary-syntax) run))
+    (for (only (nausicaa language extensions) define-auxiliary-syntaxes) run))
 
 
 (define-maker (define-condition name)
@@ -81,7 +81,7 @@
 	       #'(begin
 		   (define-condition-type ?name ?parent CONSTRUCTOR PREDICATE (?field ACCESSOR) ...)
 
-		   (define-auxiliary-syntax ?field ...)
+		   (define-auxiliary-syntaxes ?field ...)
 
 		   (define-maker (RAISE-STX-NAME who message)
 		     raise-it
