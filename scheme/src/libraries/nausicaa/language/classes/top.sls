@@ -101,18 +101,15 @@
     ((_ ?class-name ?identifier . ?body)
      (begin . ?body))))
 
-(define-syntax define-properties
-  (lambda (stx)
-    (prop.struct-properties-define
-     #'<top>
-     (prop.make-class '()   ;list of supers
-		      '()   ;field specs
-		      '()   ;virtual field specs
-		      '()   ;method specs
-		      '()   ;mixins
-		      '())) ;list of field tags
-    #'(define dummy)))
-(define-properties)
+(define-for-expansion-evaluation
+  (prop.struct-properties-define
+   #'<top>
+   (prop.make-class '()	   ;list of supers
+		    '()	   ;field specs
+		    '()	   ;virtual field specs
+		    '()	   ;method specs
+		    '()	   ;mixins
+		    '()))) ;list of field tags
 
 
 ;;;; done

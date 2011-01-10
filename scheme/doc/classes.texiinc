@@ -1576,11 +1576,11 @@ This clause can be used any number of times in the definition of both
 classes and labels.  Select a number of functions to invoke, at expand
 time, to validate the properties of a class or label.
 
-All the @var{satisfaction} arguments must be identifiers bound to
-functions imported for expand; the functions are applied, at expand
-time, to the class or label name identifier: they can just return
-nothing if the constraints are satisfied or raise an exception if they
-are not.
+All the @var{satisfaction} arguments must be expressions evaluating to
+functions; these expressions are evaluated at expand time.  The
+functions are applied, at expand time, to the class or label name
+identifier: they can just return nothing if the constraints are
+satisfied or raise an exception if they are not.
 
 To validate a class or label definition the satisfaction functions can
 query the identifier properties associated to the class or label name

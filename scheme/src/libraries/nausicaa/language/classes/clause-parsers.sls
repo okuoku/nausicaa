@@ -107,7 +107,7 @@
       superclass-name))
   (let ((clauses (synux.filter-clauses #'inherit clauses)))
     (if (null? clauses)
-	(values #f #t #t #t #t)
+	(values #'<top>-superclass #t #t #t #t)
       (syntax-case (car clauses) (inherit)
 
 	((inherit ?superclass-name)
@@ -1204,9 +1204,8 @@
 	      (synner "satisfaction included multiple times" dup)))
 	  (reverse collected))
       (syntax-case (car clauses) (satisfies)
-	((satisfies ?satisfaction-name ...)
-	 (synux.all-identifiers? #'(?satisfaction-name ...))
-	 (next-clause (cdr clauses) (append (synux.syntax->list #'(?satisfaction-name ...))
+	((satisfies ?satisfaction-expr ...)
+	 (next-clause (cdr clauses) (append (synux.syntax->list #'(?satisfaction-expr ...))
 					    collected)))
 	(_
 	 (synner "invalid satisfactions clause" (car clauses)))))))

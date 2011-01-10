@@ -169,11 +169,10 @@
   (make-record-constructor-descriptor
    rtd
    (let ((parent-rtd (record-type-parent rtd)))
-     (if parent-rtd
-	 (if (eq? 'nausicaa:builtin:<top> (record-type-uid parent-rtd))
-	     (record-constructor-descriptor <top>)
-	   (%make-from-fields-cd parent-rtd (%make-default-protocol parent-rtd)))
-       #f))
+     (and parent-rtd
+	  (if (eq? 'nausicaa:builtin:<top> (record-type-uid parent-rtd))
+	      (record-constructor-descriptor <top>)
+	    (%make-from-fields-cd parent-rtd (%make-default-protocol parent-rtd)))))
    protocol))
 
 
@@ -734,7 +733,7 @@
 	  (if the-parent-is-a-class?
 	      (cons superclass-identifier (prop.class-list-of-supers superclass-properties))
 	    '())))
-
+(write (list class-identifier superclass-identifier))(newline)
       (let-values
 	  (((superclass-identifier parent-rtd parent-cd)
 	    (help.normalise-class-inheritance superclass-identifier parent-name
@@ -1013,12 +1012,13 @@
 		;;
 		(define-for-expansion-evaluation
 		  (prop.struct-properties-define
-		   #'THE-CLASS (prop.make-class (synux.syntax->list #'LIST-OF-SUPERCLASSES)
-						#'FIELD-SPECS
-						#'VIRTUAL-FIELD-SPECS
-						#'METHOD-SPECS
-						#'MIXIN-IDENTIFIERS
-						(synux.syntax->list #'LIST-OF-FIELD-TAGS)))
+		   #'THE-CLASS (prop.make-class
+				(synux.syntax->list #'LIST-OF-SUPERCLASSES)
+				(synux.unwrap-syntax-object #'FIELD-SPECS)
+				(synux.unwrap-syntax-object #'VIRTUAL-FIELD-SPECS)
+				(synux.unwrap-syntax-object #'METHOD-SPECS)
+				(synux.syntax->list #'MIXIN-IDENTIFIERS)
+				(synux.syntax->list #'LIST-OF-FIELD-TAGS)))
 		  (help.detect-circular-tagging #'THE-CLASS #'INPUT-FORM)
 		  (SATISFACTION #'THE-CLASS) ...)
 
@@ -1507,12 +1507,13 @@
 	    ;;the test suite.)
 	    ;;
 	    (define-for-expansion-evaluation
-	      (prop.struct-properties-define #'THE-LABEL
-					     (prop.make-label (synux.syntax->list #'LIST-OF-SUPERLABELS)
-							      #'VIRTUAL-FIELD-SPECS
-							      #'METHOD-SPECS
-							      #'MIXIN-IDENTIFIERS
-							      (synux.syntax->list #'LIST-OF-FIELD-TAGS)))
+	      (prop.struct-properties-define
+	       #'THE-LABEL (prop.make-label
+			    (synux.syntax->list #'LIST-OF-SUPERLABELS)
+			    (synux.unwrap-syntax-object #'VIRTUAL-FIELD-SPECS)
+			    (synux.unwrap-syntax-object #'METHOD-SPECS)
+			    (synux.syntax->list #'MIXIN-IDENTIFIERS)
+			    (synux.syntax->list #'LIST-OF-FIELD-TAGS)))
 	      (help.detect-circular-tagging #'THE-LABEL #'INPUT-FORM)
 	      (SATISFACTION #'THE-LABEL) ...)
 
@@ -1807,13 +1808,13 @@
 	       ;;
 	       (define-for-expansion-evaluation
 		 (prop.struct-properties-define
-		  #'THE-MIXIN (prop.make-class (synux.syntax->list #'LIST-OF-SUPERCLASSES)
-					       #'FIELD-SPECS
-					       #'VIRTUAL-FIELD-SPECS
-					       #'METHOD-SPECS
-					       #'MIXIN-IDENTIFIERS
-					       (synux.syntax->list #'LIST-OF-FIELD-TAGS))))
-
+		  #'THE-MIXIN (prop.make-class
+			       (synux.syntax->list #'LIST-OF-SUPERCLASSES)
+			       (synux.unwrap-syntax-object #'FIELD-SPECS)
+			       (synux.unwrap-syntax-object #'VIRTUAL-FIELD-SPECS)
+			       (synux.unwrap-syntax-object #'METHOD-SPECS)
+			       (synux.syntax->list #'MIXIN-IDENTIFIERS)
+			       (synux.syntax->list #'LIST-OF-FIELD-TAGS))))
 	       )))))))
 
 

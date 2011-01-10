@@ -33,19 +33,28 @@
 (check-set-mode! 'report-failed)
 (display "*** testing class satisfactions\n")
 
+(define-syntax test
+  (syntax-rules ()
+    ((_ . ?body)
+     (check
+	 (eval '(let ()
+		  (begin . ?body)
+		  #t)
+	       (environment '(nausicaa)
+			    '(for (class-satisfactions) expand)
+			    '(for (prefix (nausicaa language classes properties)
+					  prop.)
+				  expand)))
+       => #t))))
+
 
 (parametrise ((check-test-name	'fields)
 	      (debugging	#f))
 
-  (check 	;satisfies has fields
-      (eval '(let ()
-	       (define-class <alpha>
-		 (fields a b c)
-		 (satisfies has-fields-a/b/c))
-	       #t)
-	    (environment '(nausicaa)
-			 '(for (class-satisfactions) expand)))
-    => #t)
+  (test 	;satisfies has fields
+   (define-class <alpha>
+     (fields a b c)
+     (satisfies has-fields-a/b/c)))
 
   (check	;wrong has fields
       (guard (E ((syntax-violation? E)
@@ -90,6 +99,23 @@
 	      (environment '(nausicaa)
 			   '(for (class-satisfactions) expand))))
     => 'b)
+
+  #t)
+
+
+(parametrise ((check-test-name	'inherit))
+
+  (test
+   (define-class <alpha>
+     (inherit <top>)
+     (satisfies
+      (lambda (id)
+	(let ((P (prop.struct-properties-ref id)))
+(write (prop.class-list-of-supers P))(newline)
+	  (unless (free-identifier=? #'<top> (car (prop.class-list-of-supers P)))
+	    (syntax-violation #f
+	      "expected top as superclass"))))
+      )))
 
   #t)
 
