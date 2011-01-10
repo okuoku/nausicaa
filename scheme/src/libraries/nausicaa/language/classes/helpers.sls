@@ -200,20 +200,8 @@
   ;;
   (cond
 
-   ;;The INHERIT clause is present with "<top>" as superclass.
-   ((and superclass-identifier
-	 (free-identifier=? superclass-identifier #'<top>-superclass)
-	 (not parent-name)
-	 (not parent-rtd)
-	 (not parent-cd))
-    (values superclass-identifier
-	    #'(record-type-descriptor <top>)	      ;parent-rtd
-	    #'(record-constructor-descriptor <top>))) ;parent-cd
-
-   ;;The  INHERIT clause  is present  with a  superclass different
-   ;;from "<top>".
-   ((and superclass-identifier
-	 (identifier? superclass-identifier)
+   ;;The INHERIT clause is present or "<top>" was selected by default.
+   ((and superclass-identifier (identifier? superclass-identifier)
 	 (not parent-name)
 	 (not parent-rtd)
 	 (not parent-cd))
@@ -226,7 +214,7 @@
 	 (not superclass-identifier)
 	 (not parent-rtd)
 	 (not parent-cd))
-    (values #'<top>-superclass ;superclass-identifier
+    (values #f	;superclass-identifier
 	    #`(record-type-descriptor        #,parent-name) ;parent-rtd
 	    #`(record-constructor-descriptor #,parent-name))) ;parent-cd
 
@@ -235,16 +223,16 @@
 	 (not parent-name)
 	 parent-rtd
 	 parent-cd)
-    (values #'<top>-superclass parent-rtd parent-cd))
+    (values #f parent-rtd parent-cd))
 
    ;;No inheritance clauses are present.
    ((and (not superclass-identifier)
 	 (not parent-name)
 	 (not parent-rtd)
 	 (not parent-cd))
-    (values #'<top>-superclass		     ;superclass-identifier
-	    #'(record-type-descriptor <top>) ;parent-rtd
-	    #'(record-constructor-descriptor <top>))) ;parent-cd
+    (values #'<top> ;superclass-identifier
+	    #'(<top> :class-record-type-descriptor)	   ;parent-rtd
+	    #'(<top> :superclass-constructor-descriptor))) ;parent-cd
 
    (else
     (synner "invalid selection of superclass" #f))))

@@ -27,16 +27,32 @@
 
 #!r6rs
 (library (nausicaa language classes top)
-  (export <top> <top>-superclass <top>-superlabel <top>-bindings)
+  (export <top> <top>-bindings)
   (import (rnrs)
     (nausicaa language classes internal-auxiliary-syntaxes)
+    (only (nausicaa language extensions)
+	  define-for-expansion-evaluation)
     (prefix (nausicaa language classes properties) prop.))
 
 
-(define-record-type <top>
-  (nongenerative nausicaa:builtin:<top>))
+(define <top>-rtd
+  (make-record-type-descriptor '<top>
+			       #f ;parent-rtd
+			       'nausicaa:builtin:<top>
+			       #f     ;sealed
+			       #f     ;opaque
+			       '#())) ;fields
 
-(define-syntax <top>-superclass
+(define <top>-cd
+  (make-record-constructor-descriptor <top>-rtd #f #f))
+
+(define make-<top>
+  (record-constructor <top>-cd))
+
+(define <top>?
+  (record-predicate <top>-rtd))
+
+(define-syntax <top>
   (lambda (stx)
     (syntax-case stx (:class-record-type-descriptor
 		      :class-type-uid
@@ -49,7 +65,7 @@
 		      :with-class-bindings-of)
 
       ((_ :class-record-type-descriptor)
-       #'(record-type-descriptor <top>))
+       #'<top>-rtd)
 
       ((_ :class-type-uid)
        #'(quote nausicaa:builtin:<top>))
@@ -58,16 +74,16 @@
        #'(quote (nausicaa:builtin:<top>)))
 
       ((_ :public-constructor-descriptor)
-       #'(record-constructor-descriptor <top>))
+       #'<top>-cd)
 
       ((_ :superclass-constructor-descriptor)
-       #'(record-constructor-descriptor <top>))
+       #'<top>-cd)
 
       ((_ :from-fields-constructor-descriptor)
-       #'(record-constructor-descriptor <top>))
+       #'<top>-cd)
 
       ((_ :parent-rtd-list)
-       #'(list (record-type-descriptor <top>)))
+       #'(list <top>-rtd))
 
       ((_ :is-a? ?arg)
        #'(<top>? ?arg))
@@ -80,21 +96,6 @@
 	 "invalid class internal keyword"
 	 (syntax->datum #'(<top> ?keyword . ?rest))
 	 (syntax->datum #'?keyword))))))
-
-(define-syntax <top>-superlabel
-  (syntax-rules (:is-a? :with-class-bindings-of)
-
-    ((_ :is-a? ?arg)
-     #t)
-
-    ((_ :with-class-bindings-of ?inherit-options ?variable-name . ?body)
-     (begin . ?body))
-
-    ((_ ?keyword . ?rest)
-     (syntax-violation '<top>
-       "invalid class internal keyword"
-       (syntax->datum #'(<top> ?keyword . ?rest))
-       (syntax->datum #'?keyword)))))
 
 (define-syntax <top>-bindings
   (syntax-rules ()

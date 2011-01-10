@@ -171,7 +171,7 @@
    (let ((parent-rtd (record-type-parent rtd)))
      (and parent-rtd
 	  (if (eq? 'nausicaa:builtin:<top> (record-type-uid parent-rtd))
-	      (record-constructor-descriptor <top>)
+	      (<top> :superclass-constructor-descriptor)
 	    (%make-from-fields-cd parent-rtd (%make-default-protocol parent-rtd)))))
    protocol))
 
@@ -248,7 +248,7 @@
     ;;qualifying a long list can be time-consuming.
     (cond ((list?	obj)	(class-record-type-descriptor <list>))
 	  (else			(class-record-type-descriptor <pair>))))
-   (else (record-type-descriptor <top>))))
+   (else (<top> :class-record-type-descriptor))))
 
 (define (class-uid-list-of obj)
   ;;Return the list of UIDs in the class hierarchy of OBJ.  The order of
@@ -302,9 +302,7 @@
   ;;Expand into the record type  descriptor (RTD) record associated to a
   ;;class name.
   ;;
-  (syntax-rules (<top>)
-    ((_ <top>)
-     (record-type-descriptor <top>))
+  (syntax-rules ()
     ((_ ?class-name)
      (?class-name :class-record-type-descriptor))))
 
@@ -314,9 +312,7 @@
   ;;Expand into the class' public constructor descriptor associated to a
   ;;class name.
   ;;
-  (syntax-rules (<top>)
-    ((_ <top>)
-     (record-constructor-descriptor <top>))
+  (syntax-rules ()
     ((_ ?class-name)
      (?class-name :public-constructor-descriptor))))
 
@@ -324,9 +320,7 @@
   ;;Expand into the  class' superclass constructor descriptor associated
   ;;to a class name.
   ;;
-  (syntax-rules (<top>)
-    ((_ <top>)
-     (record-constructor-descriptor <top>))
+  (syntax-rules ()
     ((_ ?class-name)
      (?class-name :superclass-constructor-descriptor))))
 
@@ -334,9 +328,7 @@
   ;;Expand into the class' from-fields constructor descriptor associated
   ;;to a class name.
   ;;
-  (syntax-rules (<top>)
-    ((_ <top>)
-     (record-constructor-descriptor <top>))
+  (syntax-rules ()
     ((_ ?class-name)
      (?class-name :from-fields-constructor-descriptor))))
 
@@ -345,9 +337,7 @@
 (define-syntax class-type-uid
   ;;Expand into the class type UID associated to a class name.
   ;;
-  (syntax-rules (<top>)
-    ((_ <top>)
-     (record-type-uid (record-type-descriptor <top>)))
+  (syntax-rules ()
     ((_ ?class-name)
      (?class-name :class-type-uid))))
 
@@ -356,9 +346,7 @@
   ;;The first element is the UID of the class itself, then comes the UID
   ;;of the parent, then the UID of the parent's parent, etc.
   ;;
-  (syntax-rules (<top>)
-    ((_ <top>)
-     (list (record-type-uid (record-type-descriptor <top>))))
+  (syntax-rules ()
     ((_ ?class-name)
      (?class-name :class-uid-list))))
 
@@ -698,12 +686,6 @@
 	 ((satisfactions)
 	  (%collect-clause/satisfies clauses %synner))
 
-	 ;;If the parent is a record,  rather than a class, there are no
-	 ;;superclass properties to be inspected.
-	 ;;
-	 ((the-parent-is-a-class? superclass-properties)
-	  (help.extract-super-properties-if-any superclass-identifier))
-
 	 ;;The full list of method identifiers.
 	 ;;
 	 ((all-methods)
@@ -712,32 +694,37 @@
 	 ;;The full list of method definitions.
 	 ;;
 	 ((all-method-definitions)
-	  (append method-definitions syntax-definitions))
-
-	 ;;List of identifiers representing the field types in both this
-	 ;;class and all its superclasses, if any.
-	 ;;
-	 ((list-of-field-tags)
-	  (help.list-of-unique-field-types fields virtual-fields
-					   (if the-parent-is-a-class?
-					       (prop.class-list-of-field-tags superclass-properties)
-					     '())
-					   %synner))
-
-	 ;;A proper list of identifiers representing the superclasses of
-	 ;;this class.  The  first identifier in the list  is the direct
-	 ;;superclass, then  comes its superclass  and so on.   The last
-	 ;;element in the list is usually "<top>".
-	 ;;
-	 ((list-of-superclasses)
-	  (if the-parent-is-a-class?
-	      (cons superclass-identifier (prop.class-list-of-supers superclass-properties))
-	    '())))
-(write (list class-identifier superclass-identifier))(newline)
-      (let-values
+	  (append method-definitions syntax-definitions)))
+      (let*-values
 	  (((superclass-identifier parent-rtd parent-cd)
 	    (help.normalise-class-inheritance superclass-identifier parent-name
-					      parent-rtd parent-cd %synner)))
+					      parent-rtd parent-cd %synner))
+
+	   ;;If the parent  is a record, rather than  a class, there are
+	   ;;no superclass properties to be inspected.
+	   ;;
+	   ((the-parent-is-a-class? superclass-properties)
+	    (help.extract-super-properties-if-any superclass-identifier))
+
+	   ;;List of  identifiers representing  the field types  in both
+	   ;;this class and all its superclasses, if any.
+	   ;;
+	   ((list-of-field-tags)
+	    (help.list-of-unique-field-types fields virtual-fields
+					     (if the-parent-is-a-class?
+						 (prop.class-list-of-field-tags superclass-properties)
+					       '())
+					     %synner))
+
+	   ;;A proper list  of identifiers representing the superclasses
+	   ;;of this  class.  The  first identifier in  the list  is the
+	   ;;direct  superclass, then  comes its  superclass and  so on.
+	   ;;The last element in the list is usually "<top>".
+	   ;;
+	   ((list-of-superclasses)
+	    (if the-parent-is-a-class?
+		(cons superclass-identifier (prop.class-list-of-supers superclass-properties))
+	      '())))
 
 	(let ((id (synux.duplicate-identifiers? (append (map cadr fields)
 						  (map cadr virtual-fields)
@@ -1578,6 +1565,8 @@
        ;;
        ;;* CUSTOM-PREDICATE is not generated.
        ;;
+       ;;* LIST-OF-FIELD-TAGS is not generated.
+       ;;
        ;;This allows us  to detect errors and also  to fill the property
        ;;record for the  mixin.  Some of the generated  bindings are not
        ;;used,  they  are  there  only  to  validate  the  corresponding
@@ -1755,11 +1744,6 @@
 	    ((satisfactions)
 	     (%collect-clause/satisfies clauses synner))
 
-	    ;;If the parent is a  record, rather than a class, there are
-	    ;;no superclass properties to be inspected.
-	    ((the-parent-is-a-class? superclass-properties)
-	     (help.extract-super-properties-if-any superclass-identifier))
-
 	    ;;The full list of method identifiers.
 	    ((all-methods)
 	     (append methods methods-from-methods syntax-methods))
@@ -1768,14 +1752,10 @@
 	    ((all-method-definitions)
 	     (append method-definitions syntax-definitions))
 
-	    ;;List of  identifiers representing the field  types in both
-	    ;;this class and all its superclasses, if any.
-	    ((list-of-field-tags)
-	     (help.list-of-unique-field-types fields virtual-fields
-					      (if the-parent-is-a-class?
-						  (prop.mixin-list-of-field-tags superclass-properties)
-						'())
-					      synner))
+	    ;;If the parent is a  record, rather than a class, there are
+	    ;;no superclass properties to be inspected.
+	    ((the-parent-is-a-class? superclass-properties)
+	     (help.extract-super-properties-if-any superclass-identifier))
 
 	    ;;A proper list of identifiers representing the superclasses
 	    ;;of this  class.  The first  identifier in the list  is the
@@ -1789,8 +1769,9 @@
 	 (prop.mixin-clauses-define mixin-identifier clauses)
 
 	 (with-syntax
-	     ((THE-MIXIN	mixin-identifier))
-
+	     ((THE-MIXIN		mixin-identifier)
+	      (MIXIN-IDENTIFIERS	requested-mixin-identifiers)
+	      (LIST-OF-SUPERCLASSES	list-of-superclasses))
 	   #'(begin
 	       (define-syntax THE-MIXIN
 		 (lambda (stx)
@@ -1814,7 +1795,8 @@
 			       (synux.unwrap-syntax-object #'VIRTUAL-FIELD-SPECS)
 			       (synux.unwrap-syntax-object #'METHOD-SPECS)
 			       (synux.syntax->list #'MIXIN-IDENTIFIERS)
-			       (synux.syntax->list #'LIST-OF-FIELD-TAGS))))
+			       '() ;list-of-field-tags
+			       )))
 	       )))))))
 
 

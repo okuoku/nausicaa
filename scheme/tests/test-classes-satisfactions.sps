@@ -111,7 +111,6 @@
      (satisfies
       (lambda (id)
 	(let ((P (prop.struct-properties-ref id)))
-(write (prop.class-list-of-supers P))(newline)
 	  (unless (free-identifier=? #'<top> (car (prop.class-list-of-supers P)))
 	    (syntax-violation #f
 	      "expected top as superclass"))))

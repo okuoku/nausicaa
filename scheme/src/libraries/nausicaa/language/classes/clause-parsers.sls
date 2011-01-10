@@ -93,33 +93,34 @@
   ;;INHERIT clause and  parse it; there must be  only one INHERIT clause
   ;;in CLAUSES.
   ;;
-  ;;Return  Five values:  an identifier  representing the  superclass, 4
-  ;;booleans representing the inherit  options.  If no INHERIT clause is
-  ;;found: return false as superclass and all true for the options.
+  ;;Return  Five values:  an identifier  representing the  superclass or
+  ;;false if no  INHERIT clause is present, 4  booleans representing the
+  ;;inherit options.   If no  INHERIT clause is  found: return  false as
+  ;;superclass and all true for the options.
+  ;;
+  ;;When  the returned  superclass  identifier is  false: the  receiving
+  ;;function  will  normalise it  taking  into  account  the PARENT  and
+  ;;PARENT-RTD clauses.
   ;;
   ;;SYNNER must  be the closure  used to raise  a syntax violation  if a
   ;;parse  error  occurs; it  must  accept  two  arguments: the  message
   ;;string, the subform.
   ;;
-  (define (select-superclass superclass-name)
-    (if (free-identifier=? #'<top> superclass-name)
-	#'<top>-superclass
-      superclass-name))
   (let ((clauses (synux.filter-clauses #'inherit clauses)))
     (if (null? clauses)
-	(values #'<top>-superclass #t #t #t #t)
+	(values #f #t #t #t #t)
       (syntax-case (car clauses) (inherit)
 
 	((inherit ?superclass-name)
 	 (identifier? #'?superclass-name)
-	 (values (select-superclass #'?superclass-name) #t #t #t #t))
+	 (values #'?superclass-name #t #t #t #t))
 
 	((inherit ?superclass-name (?inherit-option ...))
 	 (synux.all-identifiers? #'(?superclass-name ?inherit-option ...))
 	 (let-values (((inherit-concrete-fields? inherit-virtual-fields? inherit-methods?
 						 inherit-setter-and-getter?)
 		       (%parse-class-inherit-options #'(?inherit-option ...) synner)))
-	   (values (select-superclass #'?superclass-name)
+	   (values #'?superclass-name
 		   inherit-concrete-fields? inherit-virtual-fields? inherit-methods?
 		   inherit-setter-and-getter?)))
 
@@ -528,26 +529,23 @@
   ;;INHERIT clause and  parse it; there must be  only one INHERIT clause
   ;;in CLAUSES.
   ;;
-  ;;Return  five values:  an identifier  representing the  superlabel, 4
-  ;;booleans representing the inherit  options.  If no INHERIT clause is
-  ;;found: return "<top>-superlabel" and all true.
+  ;;Return  five  values:  an  identifier  representing  the  superlabel
+  ;;defaulting to  <top> when no  INHERIT clause is present,  4 booleans
+  ;;representing the  inherit options.  If  no INHERIT clause  is found:
+  ;;return "<top>-superlabel" and all true.
   ;;
   ;;SYNNER must  be the closure  used to raise  a syntax violation  if a
   ;;parse  error  occurs; it  must  accept  two  arguments: the  message
   ;;string, the subform.
   ;;
-  (define (select-superlabel superlabel-name)
-    (if (free-identifier=? #'<top> superlabel-name)
-	#'<top>-superlabel
-      superlabel-name))
   (let ((clauses (synux.filter-clauses #'inherit clauses)))
     (if (null? clauses)
-	(values #'<top>-superlabel #f #t #t #t)
+	(values #'<top> #f #t #t #t)
       (syntax-case (car clauses) (inherit)
 
 	((inherit ?superlabel-name)
 	 (identifier? #'?superlabel-name)
-	 (values (select-superlabel #'?superlabel-name) #f #t #t #t))
+	 (values #'?superlabel-name #f #t #t #t))
 
 	((inherit ?superlabel-name (?inherit-option ...))
 	 (synux.all-identifiers? #'(?superlabel-name ?inherit-option ...))
@@ -556,7 +554,7 @@
 			inherit-methods?
 			inherit-setter-and-getter?)
 		       (%parse-label-inherit-options #'(?inherit-option ...) synner)))
-	   (values (select-superlabel #'?superlabel-name)
+	   (values #'?superlabel-name
 		   inherit-concrete-fields? inherit-virtual-fields?
 		   inherit-methods? inherit-setter-and-getter?)))
 

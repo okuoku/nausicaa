@@ -42,13 +42,12 @@
 	       (define-syntax doit
 		 (lambda (stx)
 		   #`(quote #,(prop.class-list-of-supers
-			       (prop.struct-properties-ref #'<alpha>)
-			       #;(ip.ref #'<alpha> #':struct-properties)))))
+			       (prop.struct-properties-ref #'<alpha>)))))
 	       (doit))
 	    (environment '(nausicaa)
 			 '(prefix (nausicaa language identifier-properties) ip.)
 			 '(prefix (nausicaa language classes properties) prop.)))
-    => '())
+    => '(<top>))
 
   (check
       (eval '(let ()
@@ -58,13 +57,12 @@
 	       (define-syntax doit
 		 (lambda (stx)
 		   #`(quote #,(prop.class-list-of-supers
-			       (prop.struct-properties-ref #'<beta>)
-			       #;(ip.ref #'<beta> #':struct-properties)))))
+			       (prop.struct-properties-ref #'<beta>)))))
 	       (doit))
 	    (environment '(nausicaa)
 			 '(prefix (nausicaa language identifier-properties) ip.)
 			 '(prefix (nausicaa language classes properties) prop.)))
-    => '(<alpha>))
+    => '(<alpha> <top>))
 
   (check
       (eval '(let ()
@@ -78,13 +76,12 @@
 	       (define-syntax doit
 		 (lambda (stx)
 		   #`(quote #,(prop.class-list-of-supers
-			       (prop.struct-properties-ref #'<gamma>)
-			       #;(ip.ref #'<gamma> #':struct-properties)))))
+			       (prop.struct-properties-ref #'<gamma>)))))
 	       (doit))
 	    (environment '(nausicaa)
 			 '(prefix (nausicaa language identifier-properties) ip.)
 			 '(prefix (nausicaa language classes properties) prop.)))
-    => '(<delta> <beta> <alpha>))
+    => '(<delta> <beta> <alpha> <top>))
 
   #t)
 
@@ -97,8 +94,7 @@
 	       (define-syntax doit
 		 (lambda (stx)
 		   #`(quote #,(prop.class-list-of-field-tags
-			       (prop.struct-properties-ref #'<alpha>)
-			       #;(ip.ref #'<alpha> #':struct-properties)))))
+			       (prop.struct-properties-ref #'<alpha>)))))
 	       (doit))
 	    (environment '(nausicaa)
 			 '(prefix (nausicaa language identifier-properties) ip.)
@@ -112,8 +108,7 @@
 	       (define-syntax doit
 		 (lambda (stx)
 		   #`(quote #,(prop.class-list-of-field-tags
-			       (prop.struct-properties-ref #'<alpha>)
-			       #;(ip.ref #'<alpha> #':struct-properties)))))
+			       (prop.struct-properties-ref #'<alpha>)))))
 	       (doit))
 	    (environment '(nausicaa)
 			 '(prefix (nausicaa language identifier-properties) ip.)
@@ -127,8 +122,7 @@
 	       (define-syntax doit
 		 (lambda (stx)
 		   #`(quote #,(prop.class-list-of-field-tags
-			       (prop.struct-properties-ref #'<alpha>)
-			       #;(ip.ref #'<alpha> #':struct-properties)))))
+			       (prop.struct-properties-ref #'<alpha>)))))
 	       (doit))
 	    (environment '(nausicaa)
 			 '(prefix (nausicaa language identifier-properties) ip.)
@@ -142,8 +136,7 @@
 	       (define-syntax doit
 		 (lambda (stx)
 		   #`(quote #,(prop.class-list-of-field-tags
-			       (prop.struct-properties-ref #'<alpha>)
-			       #;(ip.ref #'<alpha> #':struct-properties)))))
+			       (prop.struct-properties-ref #'<alpha>)))))
 	       (doit))
 	    (environment '(nausicaa)
 			 '(prefix (nausicaa language identifier-properties) ip.)
@@ -158,8 +151,7 @@
 	       (define-syntax doit
 		 (lambda (stx)
 		   #`(quote #,(prop.class-list-of-field-tags
-			       (prop.struct-properties-ref #'<alpha>)
-			       #;(ip.ref #'<alpha> #':struct-properties)))))
+			       (prop.struct-properties-ref #'<alpha>)))))
 	       (doit))
 	    (environment '(nausicaa)
 			 '(prefix (nausicaa language identifier-properties) ip.)
@@ -176,8 +168,7 @@
 	       (define-syntax doit
 		 (lambda (stx)
 		   #`(quote #,(prop.class-list-of-field-tags
-			       (prop.struct-properties-ref #'<beta>)
-			       #;(ip.ref #'<beta> #':struct-properties)))))
+			       (prop.struct-properties-ref #'<beta>)))))
 	       (doit))
 	    (environment '(nausicaa)
 			 '(prefix (nausicaa language identifier-properties) ip.)
@@ -195,8 +186,7 @@
 	       (define-syntax doit
 		 (lambda (stx)
 		   #`(quote #,(prop.class-list-of-field-tags
-			       (prop.struct-properties-ref #'<beta>)
-			       #;(ip.ref #'<beta> #':struct-properties)))))
+			       (prop.struct-properties-ref #'<beta>)))))
 	       (doit))
 	    (environment '(nausicaa)
 			 '(prefix (nausicaa language identifier-properties) ip.)
@@ -214,8 +204,7 @@
 	       (define-syntax doit
 		 (lambda (stx)
 		   #`(quote #,(prop.class-list-of-field-tags
-			       (prop.struct-properties-ref #'<beta>)
-			       #;(ip.ref #'<beta> #':struct-properties)))))
+			       (prop.struct-properties-ref #'<beta>)))))
 	       (doit))
 	    (environment '(nausicaa)
 			 '(prefix (nausicaa language identifier-properties) ip.)
@@ -234,8 +223,7 @@
 	       (define-syntax doit
 		 (lambda (stx)
 		   #`(quote #,(prop.class-list-of-field-tags
-			       (prop.struct-properties-ref #'<beta>)
-			       #;(ip.ref #'<beta> #':struct-properties)))))
+			       (prop.struct-properties-ref #'<beta>)))))
 	       (doit))
 	    (environment '(nausicaa)
 			 '(prefix (nausicaa language identifier-properties) ip.)
@@ -256,8 +244,7 @@
 	       (define-syntax doit
 		 (lambda (stx)
 		   #`(quote #,(prop.label-list-of-field-tags
-			       (prop.struct-properties-ref #'<delta>)
-			       #;(ip.ref #'<delta> #':struct-properties)))))
+			       (prop.struct-properties-ref #'<delta>)))))
 	       (doit))
 	    (environment '(nausicaa)
 			 '(prefix (nausicaa language identifier-properties) ip.)
