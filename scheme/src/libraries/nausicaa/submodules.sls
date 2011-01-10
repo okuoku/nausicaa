@@ -40,7 +40,7 @@
 
 
 (define-auxiliary-syntaxes
-  export prefix
+  export prefix)
 
 (define-syntax submodule
   (lambda (stx)
