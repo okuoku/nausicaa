@@ -57,7 +57,7 @@
     match-mismatch-error)
   (import (rnrs)
     (rnrs mutable-pairs)
-    (only (nausicaa language extension) define-auxiliary-syntaxes)
+    (only (nausicaa language extensions) define-auxiliary-syntaxes)
     (nausicaa language conditions))
 
 

@@ -32,8 +32,8 @@
     validate-class-clauses
     validate-label-clauses
     (rename (validate-class-clauses validate-mixin-clauses))
+    normalise-class-inheritance
     extract-super-properties-if-any
-;;;    specialise-mixin-clauses
     variable-name->Setter-name
     variable-name->Getter-name
     make-fields-accessor-of-transformer
@@ -54,12 +54,13 @@
     (prefix (only (nausicaa language classes clause-parsers)
 		  %collect-clause/mixins)
 	    parser.)
-    (for (nausicaa language auxiliary-syntaxes) (meta -1)))
+    (for (nausicaa language auxiliary-syntaxes) (meta -1))
+    (for (nausicaa language classes top) (meta -1)))
 
 
 (define (filter-and-compose-with-mixin-clauses original-clauses identifier validate-clauses synner)
-  ;;Compose the  clauses from a class,  label or mixin  with the clauses
-  ;;from the requested mixins.
+  ;;Compose the original  clauses from a class, label  or mixin with the
+  ;;clauses from the requested mixins.
   ;;
   ;;In the  original clauses  from a class,  label or  mixin definition:
   ;;separate  the  MIXINS clauses  from  the  other  clauses.  For  each
@@ -168,6 +169,83 @@
 				 (list destination-identifier)
 				 mixin-clauses))
       (synner "undefined mixin identifier" mixin-identifier))))
+
+
+(define (normalise-class-inheritance superclass-identifier parent-name parent-rtd parent-cd synner)
+  ;;Normalise the  inheritance for this  class.  We must end  with sound
+  ;;values  for SUPERCLASS-IDENTIFIER,  PARENT-RTD  and PARENT-CD.   The
+  ;;parse procedure  before the call of  this function has  left us with
+  ;;the following situation:
+  ;;
+  ;;* If the INHERIT clause  is present: SUPERCLASS-IDENTIFIER is set to
+  ;;the identifier  of a superclass macro; PARENT-RTD  and PARENT-CD set
+  ;;to false.
+  ;;
+  ;;*  If  the PARENT  clause  is present:  PARENT-NAME  is  set to  the
+  ;;identifier of the  parent record type; SUPERCLASS-IDENTIFIER, PARENT
+  ;;and PARENT-CD are set to false.
+  ;;
+  ;;* If the PARENT-RTD clause is present: PARENT-RTD is set to a syntax
+  ;;object evaluating  to the parent RTD;  PARENT-CD is set  to a syntax
+  ;;object   evaluating   to    the   parent   constructor   descriptor;
+  ;;SUPERCLASS-IDENTIFIER is set to false.
+  ;;
+  ;;PARENT-NAME must be  false or the identifier of  the parent *record*
+  ;;type (not class type).
+  ;;
+  ;;Return the  3 new  values for SUPERCLASS-IDENTIFIER,  PARENT-RTD and
+  ;;PARENT-CD.
+  ;;
+  (cond
+
+   ;;The INHERIT clause is present with "<top>" as superclass.
+   ((and superclass-identifier
+	 (free-identifier=? superclass-identifier #'<top>-superclass)
+	 (not parent-name)
+	 (not parent-rtd)
+	 (not parent-cd))
+    (values superclass-identifier
+	    #'(record-type-descriptor <top>)	      ;parent-rtd
+	    #'(record-constructor-descriptor <top>))) ;parent-cd
+
+   ;;The  INHERIT clause  is present  with a  superclass different
+   ;;from "<top>".
+   ((and superclass-identifier
+	 (identifier? superclass-identifier)
+	 (not parent-name)
+	 (not parent-rtd)
+	 (not parent-cd))
+    (values superclass-identifier
+	    #`(#,superclass-identifier :class-record-type-descriptor) ;parent-rtd
+	    #`(#,superclass-identifier :superclass-constructor-descriptor))) ;parent-cd
+
+   ;;The PARENT clause is present.
+   ((and parent-name
+	 (not superclass-identifier)
+	 (not parent-rtd)
+	 (not parent-cd))
+    (values #'<top>-superclass ;superclass-identifier
+	    #`(record-type-descriptor        #,parent-name) ;parent-rtd
+	    #`(record-constructor-descriptor #,parent-name))) ;parent-cd
+
+   ;;The PARENT-RTD clause is present.
+   ((and (not superclass-identifier)
+	 (not parent-name)
+	 parent-rtd
+	 parent-cd)
+    (values #'<top>-superclass parent-rtd parent-cd))
+
+   ;;No inheritance clauses are present.
+   ((and (not superclass-identifier)
+	 (not parent-name)
+	 (not parent-rtd)
+	 (not parent-cd))
+    (values #'<top>-superclass		     ;superclass-identifier
+	    #'(record-type-descriptor <top>) ;parent-rtd
+	    #'(record-constructor-descriptor <top>))) ;parent-cd
+
+   (else
+    (synner "invalid selection of superclass" #f))))
 
 
 (define (extract-super-properties-if-any identifier)

@@ -3967,7 +3967,7 @@ where: @code{mutable} and @code{immutable} are the auxiliary syntaxes
 exported by @rsixlibrary{records syntactic}; @var{name} is an identifier
 representing the name of the field; @var{accessor} and @var{mutator} are
 identifiers bound to the accessor and mutator functions for the record.
-@end deffn
+@end defun
 
 
 @deffn {Property Syntax} :virtual-field-specs
