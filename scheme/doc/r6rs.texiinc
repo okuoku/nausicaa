@@ -648,7 +648,7 @@ semantic value is set to the character @code{#\`}.
 @defun make-comma-at-token @var{yygetc} @var{yyungetc} @var{yytext} @var{yyline} @var{yycolumn} @var{yyoffset}
 Return a @class{lexical-token} record representing a comma--at,
 @samp{,@@}.  The category is set to the symbol @code{COMMAAT}; the
-semantic value is set to the string @code{",@"}.
+semantic value is set to the string @code{",@@"}.
 @end defun
 
 
