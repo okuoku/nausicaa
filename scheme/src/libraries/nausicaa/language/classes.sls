@@ -1571,7 +1571,18 @@
      (let ((mixin-identifier	#'?the-mixin)
 	   (original-clauses	(synux.unwrap-syntax-object #'?clauses)))
        (help.validate-mixin-clauses original-clauses synner)
-       (let-values
+
+       ;;We parse  the original clauses  in the same  way we do  for the
+       ;;class clauses, with the following exceptions:
+       ;;
+       ;;* CUSTOM-PREDICATE is not generated.
+       ;;
+       ;;This allows us  to detect errors and also  to fill the property
+       ;;record for the  mixin.  Some of the generated  bindings are not
+       ;;used,  they  are  there  only  to  validate  the  corresponding
+       ;;clauses.
+       ;;
+       (let*-values
 	   ;;The list  of definition  clauses joined with  the requested
 	   ;;mixin clauses; the list of mixin identifiers to be used for
 	   ;;inspection purposes.
@@ -1583,10 +1594,227 @@
 	   ;;
 	   (((clauses requested-mixin-identifiers)
 	     (help.filter-and-compose-with-mixin-clauses original-clauses mixin-identifier
-							 help.validate-mixin-clauses synner)))
+							 help.validate-mixin-clauses synner))
+
+	    ;;The superclass  identifier or false;  the inherit options:
+	    ;;all boolean values.
+	    ((superclass-identifier inherit-concrete-fields? inherit-virtual-fields?
+				    inherit-methods? inherit-setter-and-getter?)
+	     (%collect-clause/class/inherit clauses synner))
+
+	    ;;An identifier representing the UID of the class.
+	    ((uid-symbol)
+	     (%collect-clause/nongenerative mixin-identifier clauses synner))
+
+	    ;;A boolean establishing if the class type is sealed.
+	    ((sealed)
+	     (%collect-clause/sealed clauses synner))
+
+	    ;;A boolean establishing if the class type is opaque.
+	    ((opaque)
+	     (%collect-clause/opaque clauses synner))
+
+	    ;;A syntax  object holding an expression  which evaluates to
+	    ;;the  class' common protocol  function; it  is false  if no
+	    ;;protocol clause was present.
+	    ((common-protocol)
+	     (%collect-clause/protocol clauses synner))
+
+	    ;;A syntax  object holding an expression  which evaluates to
+	    ;;the class' public protocol function.
+	    ((public-protocol)
+	     (%collect-clause/public-protocol clauses synner))
+
+	    ;;A syntax  object holding an expression  which evaluates to
+	    ;;the class' maker protocol function.
+	    ((maker-protocol)
+	     (%collect-clause/maker-protocol clauses synner))
+
+	    ;;False  or  a syntax  object  holding  an expression  which
+	    ;;evaluates to the class' superclass protocol function.
+	    ((superclass-protocol)
+	     (%collect-clause/superclass-protocol clauses synner))
+
+	    ;;False or a syntax object holding the maker transformer.
+	    ((maker-transformer)
+	     (%collect-clause/maker-transformer clauses synner))
+
+	    ;;False/false  or:  a  syntax   object  holding  a  list  of
+	    ;;identifiers representing  the positional arguments  to the
+	    ;;maker;  a syntax object  holding a  list of  maker clauses
+	    ;;representing optional arguments.
+	    ;;
+	    ;;*NOTE*:  when  no  maker  clause is  present,  the  values
+	    ;;false/false  *cannot* be  matched by  WITH-SYNTAX patterns
+	    ;;like:
+	    ;;
+	    ;;    ((POS-ARG ...) maker-positional-args)
+	    ;;    ((OPT-ARG ...) maker-optional-args)
+	    ;;
+	    ;;so we must test the values first.
+	    ((maker-positional-args maker-optional-args)
+	     (%collect-clause/maker clauses synner))
+
+	    ;;False or  an identifier representing the  custom maker for
+	    ;;the class.
+	    ((custom-maker)
+	     (%collect-clause/custom-maker clauses synner))
+
+	    ;;False or  the identifier of the parent  *record* type (not
+	    ;;class type).
+	    ((parent-name)
+	     (%collect-clause/parent clauses synner))
+
+	    ;;False/false  or  an expression  evaluating  to the  parent
+	    ;;record type descriptor and an expression evaluating to the
+	    ;;parent constructor descriptor.
+	    ((parent-rtd parent-cd)
+	     (%collect-clause/parent-rtd clauses synner))
+
+	    ;;False  or an  identifier representing  the setter  for the
+	    ;;class.
+	    ((setter)
+	     (%collect-clause/setter clauses synner))
+
+	    ;;False or an identifier representing the getter for the
+	    ;;class.
+	    ((getter)
+	     (%collect-clause/getter clauses synner))
+
+	    ;;An identifier  representing the custom  bindings macro for
+	    ;;the class.
+	    ((bindings-macro)
+	     (%collect-clause/bindings clauses synner))
+
+	    ;;Null  or  a  validated  list  of  concrete  fields  having
+	    ;;elements with format:
+	    ;;
+	    ;;    (immutable <field name> <field accessor> <field class> ...)
+	    ;;    (mutable   <field name> <field accessor> <field mutator> <field class> ...)
+	    ;;
+	    ;;where  IMMUTABLE and  MUTABLE are  symbols and  the other
+	    ;;elements are identifiers.
+	    ((fields)
+	     (%collect-clause/fields mixin-identifier clauses synner))
+
+	    ;;Null or a validated list of virtual fields having elements
+	    ;;with format:
+	    ;;
+	    ;;    (immutable <field name> <field accessor> <field class> ...)
+	    ;;    (mutable   <field name> <field accessor> <field mutator> <field class> ...)
+	    ;;
+	    ;;where  IMMUTABLE and  MUTABLE  are symbols  and the  other
+	    ;;elements are identifiers.
+	    ((virtual-fields)
+	     (%collect-clause/virtual-fields mixin-identifier clauses synner))
+
+	    ;;Null or a validated list of method specifications from the
+	    ;;METHODS clauses, having elements with format:
+	    ;;
+	    ;;	(<method name> <function or macro identifier>)
+	    ;;
+	    ((methods-from-methods)
+	     (%collect-clause/methods mixin-identifier clauses synner))
+
+	    ;;Null/null  or a  validated list  of  method specifications
+	    ;;from the METHOD clauses, having elements with format:
+	    ;;
+	    ;;    (<method name> <function name>)
+	    ;;
+	    ;;and a list of definitions with the format:
+	    ;;
+	    ;;    (<definition> ...)
+	    ;;
+	    ;;in which each definition has one of the formats:
+	    ;;
+	    ;;    (define (<function name> . <args>) . <body>)
+	    ;;    (define <function name> <expression>)
+	    ;;
+	    ((methods method-definitions)
+	     (%collect-clause/method mixin-identifier clauses synner #'define/with-class))
+
+	    ;;Null/null   or   a  validated   list   of  method   syntax
+	    ;;specifications  from  the  METHOD-SYNTAX  clauses,  having
+	    ;;elements with format:
+	    ;;
+	    ;;    (<method name> <macro identifier>)
+	    ;;
+	    ;;and a list of definitions with the format:
+	    ;;
+	    ;;    (<definition> ...)
+	    ;;
+	    ;;in which each definition has the format:
+	    ;;
+	    ;;    (define-syntax <macro identifier> <expression>)
+	    ;;
+	    ((syntax-methods syntax-definitions)
+	     (%collect-clause/method-syntax mixin-identifier clauses synner))
+
+	    ;;Null or a list of satisfaction function identifiers.
+	    ((satisfactions)
+	     (%collect-clause/satisfies clauses synner))
+
+	    ;;If the parent is a  record, rather than a class, there are
+	    ;;no superclass properties to be inspected.
+	    ((the-parent-is-a-class? superclass-properties)
+	     (help.extract-super-properties-if-any superclass-identifier))
+
+	    ;;The full list of method identifiers.
+	    ((all-methods)
+	     (append methods methods-from-methods syntax-methods))
+
+	    ;;The full list of method definitions.
+	    ((all-method-definitions)
+	     (append method-definitions syntax-definitions))
+
+	    ;;List of  identifiers representing the field  types in both
+	    ;;this class and all its superclasses, if any.
+	    ((list-of-field-tags)
+	     (help.list-of-unique-field-types fields virtual-fields
+					      (if the-parent-is-a-class?
+						  (prop.mixin-list-of-field-tags superclass-properties)
+						'())
+					      synner))
+
+	    ;;A proper list of identifiers representing the superclasses
+	    ;;of this  class.  The first  identifier in the list  is the
+	    ;;direct superclass,  then comes  its superclass and  so on.
+	    ;;The last element in the list is usually "<top>".
+	    ((list-of-superclasses)
+	     (if the-parent-is-a-class?
+		 (cons superclass-identifier (prop.mixin-list-of-supers superclass-properties))
+	       '())))
+
 	 (prop.mixin-clauses-define mixin-identifier clauses)
-;;;AGGIUNGERE PARSING CLAUSES E MIXIN RECORD !!!!!!!!!!!
-	 #'(define dummy))))))
+
+	 (with-syntax
+	     ((THE-MIXIN	mixin-identifier))
+
+	   #'(begin
+	       (define-syntax THE-MIXIN
+		 (lambda (stx)
+		   (syntax-violation #'THE-MIXIN "invalid macro invocation" (syntax->datum stx) #f)))
+
+	       ;;We  must  set the  identifier  properties of  THE-MIXIN
+	       ;;after  THE-MIXIN itself  has been  bound  to something,
+	       ;;else  it will  be  seen as  an  unbound identifier  and
+	       ;;FREE-IDENTIFIER=? will get confused  and not do what we
+	       ;;want.
+	       ;;
+	       ;;Notice   that  we   neither  invoke   the  satisfaction
+	       ;;functions,  nor  try  to  detect  circular  tagging  of
+	       ;;fields.
+	       ;;
+	       (define-for-expansion-evaluation
+		 (prop.struct-properties-define
+		  #'THE-MIXIN (prop.make-class (synux.syntax->list #'LIST-OF-SUPERCLASSES)
+					       #'FIELD-SPECS
+					       #'VIRTUAL-FIELD-SPECS
+					       #'METHOD-SPECS
+					       #'MIXIN-IDENTIFIERS
+					       (synux.syntax->list #'LIST-OF-FIELD-TAGS))))
+
+	       )))))))
 
 
 ;;;; virtual methods
