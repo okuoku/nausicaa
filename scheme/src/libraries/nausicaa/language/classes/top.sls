@@ -29,10 +29,7 @@
 (library (nausicaa language classes top)
   (export <top> <top>-bindings)
   (import (rnrs)
-    (nausicaa language classes internal-auxiliary-syntaxes)
-    (only (nausicaa language extensions)
-	  define-for-expansion-evaluation)
-    (prefix (nausicaa language classes properties) prop.))
+    (nausicaa language classes internal-auxiliary-syntaxes))
 
 
 (define <top>-rtd
@@ -94,23 +91,28 @@
       ((_ ?keyword . ?rest)
        (syntax-violation '<top>
 	 "invalid class internal keyword"
-	 (syntax->datum #'(<top> ?keyword . ?rest))
-	 (syntax->datum #'?keyword))))))
+	 (syntax->datum stx) (syntax->datum #'?keyword))))))
 
 (define-syntax <top>-bindings
   (syntax-rules ()
     ((_ ?class-name ?identifier . ?body)
      (begin . ?body))))
 
-(define-for-expansion-evaluation
-  (prop.struct-properties-define
-   #'<top>
-   (prop.make-class '()	   ;list of supers
-		    '()	   ;field specs
-		    '()	   ;virtual field specs
-		    '()	   ;method specs
-		    '()	   ;mixins
-		    '()))) ;list of field tags
+;;This  should be  here but  is  instead in  (nausicaa language  classes
+;;properties); this is to  circumvent a bug in Ikarus/Vicare precompiled
+;;libraries which  is causing  the property to  be misteriously  not set
+;;when it is queried from the helpers library; the bug shows itself only
+;;when running with precompiled libraries, not when running with a clean
+;;cache (Marco Maggi; Mon Jan 10, 2011).
+;;
+;; (define-for-expansion-evaluation
+;;   (prop.struct-properties-define
+;;    #'<top> (prop.make-class '()	   ;list of supers
+;; 			    '()	   ;field specs
+;; 			    '()	   ;virtual field specs
+;; 			    '()	   ;method specs
+;; 			    '()	   ;mixins
+;; 			    '()))) ;list of field tags
 
 
 ;;;; done

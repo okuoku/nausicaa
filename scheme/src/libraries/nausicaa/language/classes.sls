@@ -248,7 +248,7 @@
     ;;qualifying a long list can be time-consuming.
     (cond ((list?	obj)	(class-record-type-descriptor <list>))
 	  (else			(class-record-type-descriptor <pair>))))
-   (else (<top> :class-record-type-descriptor))))
+   (else (class-record-type-descriptor <top>))))
 
 (define (class-uid-list-of obj)
   ;;Return the list of UIDs in the class hierarchy of OBJ.  The order of
@@ -711,10 +711,10 @@
 	   ;;
 	   ((list-of-field-tags)
 	    (help.list-of-unique-field-types fields virtual-fields
-					     (if the-parent-is-a-class?
-						 (prop.class-list-of-field-tags superclass-properties)
-					       '())
-					     %synner))
+	   				     (if the-parent-is-a-class?
+	   					 (prop.class-list-of-field-tags superclass-properties)
+	   				       '())
+	   				     %synner))
 
 	   ;;A proper list  of identifiers representing the superclasses
 	   ;;of this  class.  The  first identifier in  the list  is the
@@ -723,7 +723,7 @@
 	   ;;
 	   ((list-of-superclasses)
 	    (if the-parent-is-a-class?
-		(cons superclass-identifier (prop.class-list-of-supers superclass-properties))
+	   	(cons superclass-identifier (prop.class-list-of-supers superclass-properties))
 	      '())))
 
 	(let ((id (synux.duplicate-identifiers? (append (map cadr fields)

@@ -28,7 +28,8 @@
 #!r6rs
 (import (nausicaa)
   (rnrs eval)
-  (nausicaa checks))
+  (nausicaa checks)
+  (prefix (nausicaa language classes properties) prop.))
 
 (check-set-mode! 'report-failed)
 (display "*** testing class identifier properties\n")
@@ -36,18 +37,30 @@
 
 (parametrise ((check-test-name	'superclass-list))
 
-  (check 'this
+  (check
       (eval '(let ()
-	       (define-class <alpha1>
-		 ;(inherit <top>)
-		 )
+	       (define-syntax doit
+		 (lambda (stx)
+		   (prop.class? (prop.struct-properties-ref #'<top>))))
+	       (doit))
+	    (environment '(nausicaa)
+			 '(prefix (nausicaa language classes properties) prop.)))
+    => #t)
+
+  #t)
+
+
+(parametrise ((check-test-name	'superclass-list))
+
+  (check
+      (eval '(let ()
+	       (define-class <alpha1>)
 	       (define-syntax doit
 		 (lambda (stx)
 		   (let ((P (prop.struct-properties-ref #'<alpha1>)))
 		     #`(quote #,(prop.class-list-of-supers P)))))
 	       (doit))
 	    (environment '(nausicaa)
-			 '(prefix (nausicaa language identifier-properties) ip.)
 			 '(prefix (nausicaa language classes properties) prop.)))
     => '(<top>))
 
@@ -62,7 +75,6 @@
 			       (prop.struct-properties-ref #'<beta2>)))))
 	       (doit))
 	    (environment '(nausicaa)
-			 '(prefix (nausicaa language identifier-properties) ip.)
 			 '(prefix (nausicaa language classes properties) prop.)))
     => '(<alpha2> <top>))
 
@@ -81,7 +93,6 @@
 			       (prop.struct-properties-ref #'<gamma3>)))))
 	       (doit))
 	    (environment '(nausicaa)
-			 '(prefix (nausicaa language identifier-properties) ip.)
 			 '(prefix (nausicaa language classes properties) prop.)))
     => '(<delta3> <beta3> <alpha3> <top>))
 
@@ -99,7 +110,6 @@
 			       (prop.struct-properties-ref #'<alpha4>)))))
 	       (doit))
 	    (environment '(nausicaa)
-			 '(prefix (nausicaa language identifier-properties) ip.)
 			 '(prefix (nausicaa language classes properties) prop.)))
     => '())
 
@@ -113,7 +123,6 @@
 			       (prop.struct-properties-ref #'<alpha5>)))))
 	       (doit))
 	    (environment '(nausicaa)
-			 '(prefix (nausicaa language identifier-properties) ip.)
 			 '(prefix (nausicaa language classes properties) prop.)))
     => '())
 
@@ -127,7 +136,6 @@
 			       (prop.struct-properties-ref #'<alpha6>)))))
 	       (doit))
 	    (environment '(nausicaa)
-			 '(prefix (nausicaa language identifier-properties) ip.)
 			 '(prefix (nausicaa language classes properties) prop.)))
     => '(<pair>))
 
@@ -141,7 +149,6 @@
 			       (prop.struct-properties-ref #'<alpha7>)))))
 	       (doit))
 	    (environment '(nausicaa)
-			 '(prefix (nausicaa language identifier-properties) ip.)
 			 '(prefix (nausicaa language classes properties) prop.)))
     => '(<pair> <list>))
 
@@ -156,7 +163,6 @@
 			       (prop.struct-properties-ref #'<alpha8>)))))
 	       (doit))
 	    (environment '(nausicaa)
-			 '(prefix (nausicaa language identifier-properties) ip.)
 			 '(prefix (nausicaa language classes properties) prop.)))
     => '(<vector> <number> <pair> <list>))
 
@@ -173,7 +179,6 @@
 			       (prop.struct-properties-ref #'<beta9>)))))
 	       (doit))
 	    (environment '(nausicaa)
-			 '(prefix (nausicaa language identifier-properties) ip.)
 			 '(prefix (nausicaa language classes properties) prop.)))
     => '(<vector> <number> <pair> <list>))
 
@@ -191,7 +196,6 @@
 			       (prop.struct-properties-ref #'<beta10>)))))
 	       (doit))
 	    (environment '(nausicaa)
-			 '(prefix (nausicaa language identifier-properties) ip.)
 			 '(prefix (nausicaa language classes properties) prop.)))
     => '(<vector> <number> <pair> <list>))
 
@@ -209,7 +213,6 @@
 			       (prop.struct-properties-ref #'<beta11>)))))
 	       (doit))
 	    (environment '(nausicaa)
-			 '(prefix (nausicaa language identifier-properties) ip.)
 			 '(prefix (nausicaa language classes properties) prop.)))
     => '(<integer> <vector> <number> <pair> <list>))
 
@@ -228,7 +231,6 @@
 			       (prop.struct-properties-ref #'<beta12>)))))
 	       (doit))
 	    (environment '(nausicaa)
-			 '(prefix (nausicaa language identifier-properties) ip.)
 			 '(prefix (nausicaa language classes properties) prop.)))
     => '(<complex> <integer> <vector> <number> <pair> <list>))
 
@@ -249,7 +251,6 @@
 			       (prop.struct-properties-ref #'<delta13>)))))
 	       (doit))
 	    (environment '(nausicaa)
-			 '(prefix (nausicaa language identifier-properties) ip.)
 			 '(prefix (nausicaa language classes properties) prop.)))
     => '(<complex> <integer> <vector> <number> <pair> <list>))
 

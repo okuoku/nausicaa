@@ -1604,7 +1604,8 @@ function checking that the class definition of
 
   (define (has-fields-a/b/c the-class-identifier)
     (define specs
-      (prop.class-field-specs (prop.struct-properties-ref the-identifier)))
+      (prop.class-field-specs
+       (prop.struct-properties-ref the-identifier)))
     (define (%synner message subform)
       (syntax-violation 'has-fields-a/b/c
         (string-append "checking class identifier "
