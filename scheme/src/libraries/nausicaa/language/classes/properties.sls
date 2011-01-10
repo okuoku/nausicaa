@@ -67,7 +67,8 @@
 	    (struct-list-of-field-tags		label-list-of-field-tags)))
   (import (rnrs)
     (prefix (nausicaa language identifier-properties) ip.)
-    (only (nausicaa language syntax-utilities) define-auxiliary-syntaxes))
+    (only (nausicaa language extensions)
+	  define-auxiliary-syntaxes))
 
 
 (define-auxiliary-syntaxes

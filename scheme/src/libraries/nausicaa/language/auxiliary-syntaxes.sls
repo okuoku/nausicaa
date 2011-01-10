@@ -46,31 +46,38 @@
     ;; miscellaneous
     <> <...>)
   (import (rnrs records syntactic)
-    (only (nausicaa language syntax-utilities) define-auxiliary-syntaxes))
-  (define-auxiliary-syntaxes
-    inherit
-    predicate
-    maker
-    maker-transformer
-    custom-maker
-    setter
-    getter
-    bindings
-    public-protocol
-    maker-protocol
-    superclass-protocol
-    virtual-fields
-    methods
-    method
-    method-syntax
-    mixins
-    satisfies
+    (only (rnrs base) begin define-syntax syntax-rules ...))
+  ;;This library  is imported by  (nausicaa language extensions),  so we
+  ;;cannot import the binding for DEFINE-AUXILIARY-SYNTAXES.
+  (define-syntax def
+    (syntax-rules ()
+      ((_ ?id ...)
+       (begin
+	 (define-syntax ?id (syntax-rules ()))
+	 ...))))
+  (def inherit
+       predicate
+       maker
+       maker-transformer
+       custom-maker
+       setter
+       getter
+       bindings
+       public-protocol
+       maker-protocol
+       superclass-protocol
+       virtual-fields
+       methods
+       method
+       method-syntax
+       mixins
+       satisfies
 
-    <>
-    <...>
+       <>
+       <...>
 
-    view
-    start
-    past))
+       view
+       start
+       past))
 
 ;;; end of file

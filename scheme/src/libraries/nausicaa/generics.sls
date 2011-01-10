@@ -1,4 +1,4 @@
-;;; -*- coding: utf-8 -*-
+;;; -*- coding: utf-8-unix -*-
 ;;;
 ;;;Part of: Nausicaa/Scheme
 ;;;Contents: generic functions
@@ -42,7 +42,7 @@
 		    (<top>		top))
 	    type.)
     (only (nausicaa language extensions)
-	  begin0 begin0-let define-constant)
+	  begin0 begin0-let define-constant define-auxiliary-syntaxes)
     (nausicaa language parameters)
     (nausicaa language syntax-utilities)
     (nausicaa symbols-tree)

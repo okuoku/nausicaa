@@ -9,7 +9,7 @@
 ;;;	This  library   exists  because  the   DEFINE-CONTRACT  and  the
 ;;;	LET-CONTRACT macros make use of the same subroutines.
 ;;;
-;;;Copyright (c) 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2010, 2011 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -41,9 +41,10 @@
   (import (rnrs)
     (nausicaa language conditions)
     (prefix (nausicaa configuration) config.)
-    (only (nausicaa language syntax-utilities) define-auxiliary-syntax))
+    (only (nausicaa language extensions) define-auxiliary-syntaxes))
 
-(define-auxiliary-syntax ->)
+(define-auxiliary-syntaxes
+  ->)
 
 
 (define-condition &contract-violation

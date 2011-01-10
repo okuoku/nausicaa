@@ -47,7 +47,7 @@
     :with-class-bindings-of
     :slot-accessor
     :slot-mutator)
-  (import (only (nausicaa language syntax-utilities) define-auxiliary-syntaxes))
+  (import (only (nausicaa language extensions) define-auxiliary-syntaxes))
   (define-auxiliary-syntaxes
     :class-record-type-descriptor
     :class-type-uid

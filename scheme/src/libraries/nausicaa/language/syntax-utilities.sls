@@ -1,4 +1,4 @@
-;;; -*- coding: utf-8 -*-
+;;; -*- coding: utf-8-unix -*-
 ;;;
 ;;;Part of: Nausicaa/Scheme
 ;;;Contents: helper functions for expand time processing
@@ -37,8 +37,8 @@
     quoted-syntax-object?		syntax=?
 
     ;; identifiers handling
-    all-identifiers?			duplicated-identifiers?
-    delete-duplicated-identifiers	identifier-memq
+    all-identifiers?			duplicate-identifiers?
+    delete-duplicate-identifiers	identifier-memq
     symbol-identifier=?			identifier-subst
 
     ;; common identifier names constructor
@@ -52,9 +52,7 @@
 
     ;; clauses helpers
     validate-list-of-clauses		validate-definition-clauses
-    filter-clauses			discard-clauses
-
-    define-auxiliary-syntax		define-auxiliary-syntaxes)
+    filter-clauses			discard-clauses)
   (import (rnrs))
 
 
@@ -173,27 +171,27 @@
     (()		#t)
     (_		#f)))
 
-(define duplicated-identifiers?
+(define duplicate-identifiers?
   ;;Recursive  function.  Search  the  list of  identifiers ELL/STX  for
-  ;;duplicated  identifiers; at  the first  duplicate found,  return it;
+  ;;duplicate  identifiers; at  the  first duplicate  found, return  it;
   ;;return false if no duplications are found.
   ;;
   (case-lambda
    ((ell/stx)
-    (duplicated-identifiers? ell/stx bound-identifier=?))
+    (duplicate-identifiers? ell/stx bound-identifier=?))
    ((ell/stx identifier=)
     (if (null? ell/stx)
 	#f
       (let loop ((x  (car ell/stx))
 		 (ls (cdr ell/stx)))
 	(if (null? ls)
-	    (duplicated-identifiers? (cdr ell/stx) identifier=)
+	    (duplicate-identifiers? (cdr ell/stx) identifier=)
 	  (if (identifier= x (car ls))
 	      x
 	    (loop x (cdr ls)))))))))
 
-(define (delete-duplicated-identifiers ids)
-  ;;Given the list of  identifiers IDS remove the duplicated identifiers
+(define (delete-duplicate-identifiers ids)
+  ;;Given the  list of identifiers IDS remove  the duplicate identifiers
   ;;and return a proper list of unique identifiers.
   ;;
   (let clean-tail ((ids ids))
@@ -463,25 +461,6 @@
 		(when (< 1 (length err))
 		  (synner "mutually exclusive clauses" err))))
     exclusive-keywords-sets))
-
-
-(define-syntax define-auxiliary-syntax
-  (syntax-rules ()
-    ((_ ?name)
-     (define-syntax ?name (syntax-rules ())))
-    ((_ ?name0 ?name ...)
-     (begin
-       (define-syntax ?name0 (syntax-rules ()))
-       (define-auxiliary-syntax ?name ...)))
-    ((_)	;allows this  syntax to be called with  no arguments and
-		;still expand to a definition
-     (define-syntax dummy (syntax-rules ())))
-    ))
-
-(define-syntax define-auxiliary-syntaxes
-  (syntax-rules ()
-    ((_ . ?args)
-     (define-auxiliary-syntax . ?args))))
 
 
 ;;;; done

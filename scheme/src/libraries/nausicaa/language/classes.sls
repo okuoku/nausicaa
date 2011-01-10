@@ -105,7 +105,7 @@
     <real> <real-valued> <complex> <number>)
   (import (rnrs)
     (for (nausicaa language syntax-utilities)			expand)
-    (for (nausicaa language classes helpers)			expand)
+    (for (prefix (nausicaa language classes helpers) help.)	expand)
     (for (nausicaa language classes binding-makers)		expand)
     (for (nausicaa language classes clause-parsers)		expand)
     (for (prefix (nausicaa language sentinel) sentinel.)	expand)
@@ -491,7 +491,7 @@
 
 (define-syntax* (define-class stx)
   (define (main)
-    (define-values (class-identifier constructor-identifier predicate-identifier clauses)
+    (define-values (class-identifier constructor-identifier predicate-identifier original-clauses)
       (syntax-case stx ()
 	((_ (?name ?constructor ?predicate) ?clause ...)
 	 (all-identifiers? #'(?name ?constructor ?predicate))
@@ -507,20 +507,25 @@
 	((_ ?name-spec . ?clauses)
 	 (%synner "invalid name specification in class definition" #'?name-spec))))
 
-    (define mixin-identifiers (%collect-clause/mixins clauses %synner))
-    (validate-class-clauses clauses %synner)
-    (let loop ((mixins mixin-identifiers))
-      (unless (null? mixins)
-	(set! clauses (append clauses
-			      (%compose-class-with-mixin (car mixins) class-identifier %synner)))
-	;;After each composition validate the clauses.
-	(validate-class-clauses clauses %synner)
-	(loop (cdr mixins))))
+    (help.validate-class-clauses original-clauses %synner)
 
-    (let-values
-	;;The superclass identifier or false; the inherit options: all
-	;;boolean values.
-	(((superclass-identifier inherit-concrete-fields? inherit-virtual-fields?
+    (let*-values
+	;;The list of definition clauses joined with the requested mixin
+	;;clauses; the  list of requested  mixin identifiers to  be used
+	;;for inspection purposes.
+	;;
+	;;In the  original clauses  from the class  definition: separate
+	;;the MIXINS clauses from the other clauses.  For each requested
+	;;mixin: retrieve its clasuses,  specialise them and add them to
+	;;the non-MIXINS original clauses.
+	;;
+	(((clauses mixin-identifiers)
+	  (help.filter-and-compose-with-mixin-clauses original-clauses class-identifier
+						      help.validate-class-clauses %synner))
+
+	 ;;The superclass identifier or false; the inherit options: all
+	 ;;boolean values.
+	 ((superclass-identifier inherit-concrete-fields? inherit-virtual-fields?
 				 inherit-methods? inherit-setter-and-getter?)
 	  (%collect-clause/class/inherit clauses %synner))
 
@@ -686,13 +691,7 @@
       ;;If the  parent is a  record, rather than  a class, there  are no
       ;;superclass properties to be inspected.
       (define-values (the-parent-is-a-class? superclass-properties)
-	(let ((id? (identifier? superclass-identifier)))
-	  (if id?
-	      (let ((props (and id? (prop.struct-properties-ref superclass-identifier))))
-		(if props
-		    (values #t props)
-		  (values #f #f)))
-	    (values #f #f))))
+	(help.extract-super-properties-if-any superclass-identifier))
 
       (define all-methods
 	(append methods methods-from-methods syntax-methods))
@@ -701,7 +700,7 @@
 	;;Build a  list of identifiers  representing the field  types in
 	;;both this class and all its superclasses, if any.
 	;;
-	(%list-of-unique-field-types
+	(help.list-of-unique-field-types
 	 fields virtual-fields
 	 (if the-parent-is-a-class?
 	     ;;struct properties come in syntax objects
@@ -715,11 +714,11 @@
 		  (syntax->list (prop.class-list-of-supers superclass-properties)))
 	  '()))
 
-      (let ((id (duplicated-identifiers? (append (map cadr fields)
+      (let ((id (duplicate-identifiers? (append (map cadr fields)
 						 (map cadr virtual-fields)
 						 (map car  all-methods)))))
 	(when id
-	  (%synner "duplicated field names" id)))
+	  (%synner "duplicate field names" id)))
 
       ;;Normalise  the inheritance  for this  class.  We  must  end with
       ;;sound  values  bound  to SUPERCLASS-IDENTIFIER,  PARENT-RTD  and
@@ -861,11 +860,11 @@
 					       THE-RTD THE-PARENT-CD THE-MAKER-PROTOCOL)
 					  #'THE-PUBLIC-CD))
 	     (SLOT-ACCESSOR-OF-TRANSFORMER
-	      (%make-fields-accessor-of-transformer class-identifier fields virtual-fields %synner))
+	      (help.make-fields-accessor-of-transformer class-identifier fields virtual-fields %synner))
 	     (SLOT-MUTATOR-OF-TRANSFORMER
-	      (%make-fields-mutator-of-transformer class-identifier fields virtual-fields %synner))
+	      (help.make-fields-mutator-of-transformer class-identifier fields virtual-fields %synner))
 	     (WITH-FIELD-CLASS-BINDINGS
-	      (%make-with-field-class-bindings fields virtual-fields %synner)))
+	      (help.make-with-field-class-bindings fields virtual-fields %synner)))
 	  #'(begin
 	      (define the-parent-rtd	PARENT-RTD-FORM)
 	      (define THE-PARENT-CD	PARENT-CD-FORM)
@@ -1065,12 +1064,8 @@
 		  #'(define dummy)))
 	      (define-properties)
 	      (define-dummy-and-detect-circular-tagging THE-CLASS INPUT-FORM)
-	      (define-syntax get-satisfaction
-		(lambda (stx)
-		  (begin
-		    (SATISFACTION #'THE-CLASS) ...
-		    #'(define dummy))))
-	      (get-satisfaction)
+	      (define-for-expansion-evaluation
+		(SATISFACTION #'THE-CLASS) ...)
 
 	      (define-syntax* (with-class-bindings stx)
 		;;This  macro defines  all the  syntaxes to  be  used by
@@ -1297,7 +1292,7 @@
       (syntax->datum stx)
       (syntax->datum subform)))
 
-  (define-values (label-identifier predicate-identifier clauses)
+  (define-values (label-identifier predicate-identifier original-clauses)
     (syntax-case stx ()
       ((_ (?name ?predicate) ?clause ...)
        (all-identifiers? #'(?name ?predicate))
@@ -1310,20 +1305,23 @@
       ((_ ?name-spec . ?clauses)
        (%synner "invalid name specification in label definition" #'?name-spec))))
 
-  (define mixin-identifiers (%collect-clause/mixins clauses %synner))
-  (validate-label-clauses clauses %synner)
-  (let loop ((mixins mixin-identifiers))
-    (unless (null? mixins)
-      (set! clauses (append clauses
-			    (%compose-label-with-mixin (car mixins) label-identifier %synner)))
-      ;;After each composition validate the clauses.
-      (validate-label-clauses clauses %synner)
-      (loop (cdr mixins))))
+  (let*-values
+      ;;The list  of definition clauses joined with  the requested mixin
+      ;;clauses; the list of requested  mixin identifiers to be used for
+      ;;inspection purposes.
+      ;;
+      ;;In the original clauses  from the label definition: separate the
+      ;;MIXINS  clauses  from the  other  clauses.   For each  requested
+      ;;mixin: retrieve  its clasuses, specialise  them and add  them to
+      ;;the non-MIXINS original clauses.
+      ;;
+      (((clauses mixin-identifiers)
+	(help.filter-and-compose-with-mixin-clauses original-clauses label-identifier
+						    help.validate-label-clauses %synner))
 
-  (let-values
-      ;;The  superlabel identifier  or false;  the inherit  options: all
-      ;;boolean values.
-      (((superlabel-identifier
+       ;;The  superlabel identifier  or false;  the inherit  options: all
+       ;;boolean values.
+       ((superlabel-identifier
 	 inherit-concrete-fields? inherit-virtual-fields? inherit-methods? inherit-setter-and-getter?)
 	(%collect-clause/label/inherit clauses %synner))
 
@@ -1405,42 +1403,52 @@
        ;;Null or a list of satisfaction function identifiers.
        ;;
        ((satisfactions)
-	(%collect-clause/satisfies clauses %synner)))
+	(%collect-clause/satisfies clauses %synner))
 
-    (define-values (the-parent-is-a-label? superlabel-properties)
-      (let ((id? (identifier? superlabel-identifier)))
-	(if id?
-	    (let ((props (and id? (prop.struct-properties-ref superlabel-identifier) )))
-	      (if props
-		  (values #t props)
-		(values #f #f)))
-	  (values #f #f))))
+       ;;A boolean, true  if the parent ia a label or  class; false or a
+       ;;record representing superlabel properties.   If the parent is a
+       ;;record, rather than  a class or label, there  are no superclass
+       ;;properties to be inspected.
+       ;;
+       ((the-parent-is-a-label? superlabel-properties)
+	(help.extract-super-properties-if-any superlabel-identifier))
 
-    (define all-methods
-      (append methods methods-from-methods syntax-methods))
+       ;;The full list of method identifiers.
+       ;;
+       ((all-methods)
+	(append methods methods-from-methods syntax-methods))
 
-    (define list-of-field-tags
-      ;;Build a list of identifiers representing the field types in both
-      ;;this label and all its superlabels, if any.
-      ;;
-      (%list-of-unique-field-types
-       '() virtual-fields
-       (if the-parent-is-a-label?
-	   ;;struct properties come in syntax objects
-	   (syntax->list (prop.label-list-of-field-tags superlabel-properties))
-	 '())
-       %synner))
+       ;;The full list of method definitions.
+       ;;
+       ((all-method-definitions)
+	(append method-definitions syntax-definitions))
 
-    (define list-of-superlabels
-      (if the-parent-is-a-label?
-	  (cons superlabel-identifier
-		(syntax->list (prop.label-list-of-supers superlabel-properties)))
-	'()))
+       ;;A  list of identifiers  representing the  field types  in: this
+       ;;label; all its superlabels, if any; all the imported mixins, if
+       ;;any.
+       ;;
+       ((list-of-field-tags)
+	(help.list-of-unique-field-types '() virtual-fields
+					 (if the-parent-is-a-label?
+					     (prop.label-list-of-field-tags superlabel-properties)
+					   '())
+					 %synner))
 
-    (let ((id (duplicated-identifiers? (append (map cadr virtual-fields)
+       ;;A proper  list of identifiers representing  the superlabels and
+       ;;superclasses of  this label.  The first identifier  in the list
+       ;;is the direct superlabel, then  comes its superlabel and so on.
+       ;;The last element in the list is usually "<top>".
+       ;;
+       ((list-of-superlabels)
+	(if the-parent-is-a-label?
+	    (cons superlabel-identifier
+		  (syntax->list (prop.label-list-of-supers superlabel-properties)))
+	  '())))
+
+    (let ((id (duplicate-identifiers? (append (map cadr virtual-fields)
 					       (map car  all-methods)))))
       (when id
-	(%synner "duplicated field names" id)))
+	(%synner "duplicate field names" id)))
 
     (with-syntax
 	((THE-LABEL			label-identifier)
@@ -1448,7 +1456,7 @@
 	 (THE-PREDICATE			predicate-identifier)
 	 (CUSTOM-PREDICATE		custom-predicate)
 	 (CUSTOM-MAKER			custom-maker)
-	 ((METHOD-DEFINITION ...)	(append method-definitions syntax-definitions))
+	 ((METHOD-DEFINITION ...)	all-method-definitions)
 	 (INHERIT-CONCRETE-FIELDS?	inherit-concrete-fields?)
 	 (INHERIT-VIRTUAL-FIELDS?	inherit-virtual-fields?)
 	 (INHERIT-METHODS?		inherit-methods?)
@@ -1461,147 +1469,146 @@
 	 (LIST-OF-FIELD-TAGS		list-of-field-tags)
 	 (LIST-OF-SUPERLABELS		list-of-superlabels)
 	 ((SATISFACTION ...)		satisfactions)
-	 (SLOT-ACCESSOR-OF-TRANSFORMER
-	  (%make-fields-accessor-of-transformer label-identifier '() virtual-fields %synner))
-	 (SLOT-MUTATOR-OF-TRANSFORMER
-	  (%make-fields-mutator-of-transformer label-identifier '() virtual-fields %synner))
-	 (WITH-FIELD-CLASS-BINDINGS
-	  (%make-with-field-class-bindings '() virtual-fields %synner))
 	 (MIXIN-IDENTIFIERS		mixin-identifiers)
 	 (INPUT-FORM			stx))
-      #'(begin
-	  (define THE-PREDICATE
-	    (let ((p CUSTOM-PREDICATE))
-	      (or p (lambda (x) #t))))
+      (with-syntax
+	  ;;Here  we try  to build  and select  at expand  time  what is
+	  ;;possible.
+	  ((SLOT-ACCESSOR-OF-TRANSFORMER
+	    (help.make-fields-accessor-of-transformer label-identifier '() virtual-fields %synner))
+	   (SLOT-MUTATOR-OF-TRANSFORMER
+	    (help.make-fields-mutator-of-transformer label-identifier '() virtual-fields %synner))
+	   (WITH-FIELD-CLASS-BINDINGS
+	    (help.make-with-field-class-bindings '() virtual-fields %synner)))
+	#'(begin
+	    (define THE-PREDICATE
+	      (let ((p CUSTOM-PREDICATE))
+		(or p (lambda (x) #t))))
 
-	  METHOD-DEFINITION ...
+	    METHOD-DEFINITION ...
 
-	  (define-syntax THE-LABEL
-	    (lambda (stx)
-	      (syntax-case stx (:is-a?
-				:predicate
-				:with-class-bindings-of
-				:make
-				:slot-accessor
-				:slot-mutator)
+	    (define-syntax THE-LABEL
+	      (lambda (stx)
+		(syntax-case stx (:is-a?
+				  :predicate
+				  :with-class-bindings-of
+				  :make
+				  :slot-accessor
+				  :slot-mutator)
 
-		((_ :is-a? ?arg)
-		 #'(THE-PREDICATE ?arg))
+		  ((_ :is-a? ?arg)
+		   #'(THE-PREDICATE ?arg))
 
-		((_ :predicate)
-		 #'THE-PREDICATE)
+		  ((_ :predicate)
+		   #'THE-PREDICATE)
 
-		((_ :make . ?args)
-		 (if (syntax->datum #'CUSTOM-MAKER)
-		     #'(CUSTOM-MAKER . ?args)
-		   (syntax-violation 'THE-LABEL
-		     "label has no custom maker" stx)))
+		  ((_ :make . ?args)
+		   (if (syntax->datum #'CUSTOM-MAKER)
+		       #'(CUSTOM-MAKER . ?args)
+		     (syntax-violation 'THE-LABEL
+		       "label has no custom maker" stx)))
 
-		((_ :with-class-bindings-of
-		    (?use-dot-notation ;this comes from WITH-CLASS
-		     ?inherit-concrete-fields
-		     ?inherit-virtual-fields
-		     ?inherit-methods
-		     ?inherit-setter-and-getter)
-		    ?variable-name ?arg (... ...))
-		 (for-all boolean? (syntax->datum #'(?use-dot-notation
-						     ?inherit-concrete-fields
-						     ?inherit-virtual-fields
-						     ?inherit-methods
-						     ?inherit-setter-and-getter)))
-		 #'(with-label-bindings
-		    (?use-dot-notation
-		     ?inherit-concrete-fields
-		     ?inherit-virtual-fields
-		     ?inherit-methods
-		     ?inherit-setter-and-getter)
-		    ?variable-name ?arg (... ...)))
-
-		((_ :slot-accessor ?slot-name)
-		 (identifier? #'?slot-name)
-		 #'(slot-accessor-of ?slot-name))
-
-		((_ :slot-mutator ?slot-name)
-		 (identifier? #'?slot-name)
-		 #'(slot-mutator-of ?slot-name))
-
-		((_ ?keyword . ?rest)
-		 (syntax-violation 'THE-LABEL
-		   "invalid label internal keyword"
-		   (syntax->datum #'(THE-LABEL ?keyword . ?rest))
-		   (syntax->datum #'?keyword)))
-		)))
-
-	  ;;We  must set  the identifier  properties of  THE-LABEL after
-	  ;;THE-LABEL itself  has been bound to something,  else it will
-	  ;;be seen as an  unbound identifier and FREE-IDENTIFIER=? will
-	  ;;get  confused and  not do  what we  want.   (Especially when
-	  ;;evaluating label  definitions with an  EVAL as we do  in the
-	  ;;test suite.)
-	  ;;
-	  (define-syntax define-properties
-	    (lambda (stx)
-	      (prop.struct-properties-define #'THE-LABEL
-					     (prop.make-label #'LIST-OF-SUPERLABELS
-							      #'VIRTUAL-FIELD-SPECS
-							      #'METHOD-SPECS
-							      #'MIXIN-IDENTIFIERS
-							      #'LIST-OF-FIELD-TAGS))
-	      #'(define dummy)))
-	  (define-properties)
-	  (define-dummy-and-detect-circular-tagging THE-LABEL INPUT-FORM)
-	  (define-syntax get-satisfaction
-	    (lambda (stx)
-	      (begin
-		(SATISFACTION #'THE-LABEL) ...
-		#'(define dummy-satisfaction))))
-	  (get-satisfaction)
-
-	  (define-syntax* (with-label-bindings stx)
-	    ;;This  macro  defines all  the  syntaxes  to  be used  by
-	    ;;WITH-CLASS in a single LET-SYNTAX form.
-	    ;;
-	    (define-inline (or-null bool form)
-	      (if (syntax->datum bool) form '()))
-	    (syntax-case stx ()
-	      ((_ (?use-dot-notation
-		   ?inherit-concrete-fields ?inherit-virtual-fields
-		   ?inherit-methods ?inherit-setter-and-getter)
-		  ?variable-name ?body0 ?body (... ...))
-	       (let ((use-dot-notation? (syntax->datum #'?use-dot-notation)))
-		 (with-syntax
-		     ((((VVAR VVAL) (... ...))
-		       (or-null #'?inherit-virtual-fields
-				(make-field-bindings use-dot-notation? #'?variable-name
-						     #'VIRTUAL-FIELD-SPECS synner)))
-		      (((MVAR MVAL) (... ...))
-		       (or-null #'?inherit-methods
-				(make-method-bindings use-dot-notation? #'?variable-name
-						      #'METHOD-SPECS synner)))
-		      (((SVAR SVAL) (... ...))
-		       (or-null #'?inherit-setter-and-getter
-				(make-setter-getter-bindings #'?variable-name #'SETTER #'GETTER))))
-		   #'(THE-SUPERLABEL
-		      :with-class-bindings-of
+		  ((_ :with-class-bindings-of
+		      (?use-dot-notation ;this comes from WITH-CLASS
+		       ?inherit-concrete-fields
+		       ?inherit-virtual-fields
+		       ?inherit-methods
+		       ?inherit-setter-and-getter)
+		      ?variable-name ?arg (... ...))
+		   (for-all boolean? (syntax->datum #'(?use-dot-notation
+						       ?inherit-concrete-fields
+						       ?inherit-virtual-fields
+						       ?inherit-methods
+						       ?inherit-setter-and-getter)))
+		   #'(with-label-bindings
 		      (?use-dot-notation
-		       INHERIT-CONCRETE-FIELDS?
-		       INHERIT-VIRTUAL-FIELDS?
-		       INHERIT-METHODS?
-		       INHERIT-SETTER-AND-GETTER?)
-		      ?variable-name
-		      (let-syntax ((VVAR VVAL) (... ...)
-				   (MVAR MVAL) (... ...)
-				   (SVAR SVAL) (... ...))
-			(BINDINGS-MACRO THE-LABEL ?variable-name
-					(with-field-class ?variable-name
-							  WITH-FIELD-CLASS-BINDINGS
-							  ?body0 ?body (... ...)))))
-		   )))))
+		       ?inherit-concrete-fields
+		       ?inherit-virtual-fields
+		       ?inherit-methods
+		       ?inherit-setter-and-getter)
+		      ?variable-name ?arg (... ...)))
 
-	  (define-syntax slot-accessor-of	SLOT-ACCESSOR-OF-TRANSFORMER)
-	  (define-syntax slot-mutator-of	SLOT-MUTATOR-OF-TRANSFORMER)
+		  ((_ :slot-accessor ?slot-name)
+		   (identifier? #'?slot-name)
+		   #'(slot-accessor-of ?slot-name))
 
-	  ))))
+		  ((_ :slot-mutator ?slot-name)
+		   (identifier? #'?slot-name)
+		   #'(slot-mutator-of ?slot-name))
+
+		  ((_ ?keyword . ?rest)
+		   (syntax-violation 'THE-LABEL
+		     "invalid label internal keyword"
+		     (syntax->datum #'(THE-LABEL ?keyword . ?rest))
+		     (syntax->datum #'?keyword)))
+		  )))
+
+	    ;;We  must set  the identifier  properties of  THE-LABEL after
+	    ;;THE-LABEL itself  has been bound to something,  else it will
+	    ;;be seen as an  unbound identifier and FREE-IDENTIFIER=? will
+	    ;;get  confused and  not do  what we  want.   (Especially when
+	    ;;evaluating label  definitions with an  EVAL as we do  in the
+	    ;;test suite.)
+	    ;;
+	    (define-syntax define-properties
+	      (lambda (stx)
+		(prop.struct-properties-define #'THE-LABEL
+					       (prop.make-label #'LIST-OF-SUPERLABELS
+								#'VIRTUAL-FIELD-SPECS
+								#'METHOD-SPECS
+								#'MIXIN-IDENTIFIERS
+								#'LIST-OF-FIELD-TAGS))
+		#'(define dummy)))
+	    (define-properties)
+	    (define-dummy-and-detect-circular-tagging THE-LABEL INPUT-FORM)
+	    (define-for-expansion-evaluation
+	      (SATISFACTION #'THE-LABEL) ...)
+
+	    (define-syntax* (with-label-bindings stx)
+	      ;;This  macro  defines all  the  syntaxes  to  be used  by
+	      ;;WITH-CLASS in a single LET-SYNTAX form.
+	      ;;
+	      (define-inline (or-null bool form)
+		(if (syntax->datum bool) form '()))
+	      (syntax-case stx ()
+		((_ (?use-dot-notation
+		     ?inherit-concrete-fields ?inherit-virtual-fields
+		     ?inherit-methods ?inherit-setter-and-getter)
+		    ?variable-name ?body0 ?body (... ...))
+		 (let ((use-dot-notation? (syntax->datum #'?use-dot-notation)))
+		   (with-syntax
+		       ((((VVAR VVAL) (... ...))
+			 (or-null #'?inherit-virtual-fields
+				  (make-field-bindings use-dot-notation? #'?variable-name
+						       #'VIRTUAL-FIELD-SPECS synner)))
+			(((MVAR MVAL) (... ...))
+			 (or-null #'?inherit-methods
+				  (make-method-bindings use-dot-notation? #'?variable-name
+							#'METHOD-SPECS synner)))
+			(((SVAR SVAL) (... ...))
+			 (or-null #'?inherit-setter-and-getter
+				  (make-setter-getter-bindings #'?variable-name #'SETTER #'GETTER))))
+		     #'(THE-SUPERLABEL
+			:with-class-bindings-of
+			(?use-dot-notation
+			 INHERIT-CONCRETE-FIELDS?
+			 INHERIT-VIRTUAL-FIELDS?
+			 INHERIT-METHODS?
+			 INHERIT-SETTER-AND-GETTER?)
+			?variable-name
+			(let-syntax ((VVAR VVAL) (... ...)
+				     (MVAR MVAL) (... ...)
+				     (SVAR SVAL) (... ...))
+			  (BINDINGS-MACRO THE-LABEL ?variable-name
+					  (with-field-class ?variable-name
+							    WITH-FIELD-CLASS-BINDINGS
+							    ?body0 ?body (... ...)))))
+		     )))))
+
+	    (define-syntax slot-accessor-of	SLOT-ACCESSOR-OF-TRANSFORMER)
+	    (define-syntax slot-mutator-of	SLOT-MUTATOR-OF-TRANSFORMER)
+
+	    )))))
 
 
 (define-syntax define-dummy-and-detect-circular-tagging
@@ -1640,27 +1647,28 @@
 
 
 (define-syntax* (define-mixin stx)
-  ;;Define a new mixin.
-  ;;
   (syntax-case stx ()
-    ((_ ?mixin-identifier . ?clauses)
-     (let ((clauses (unwrap-syntax-object #'?clauses)))
-       (when (null? clauses)
-	 (synner "at least one clause needed in mixin definition"))
-       (validate-mixin-clauses clauses synner)
-       (let ((submixin-identifiers	(%collect-clause/mixins clauses synner))
-	     (other-clauses		(discard-clauses #'mixins clauses)))
-	 ;;Compose the clauses of this mixin with the clauses of all the
-	 ;;mixins in the MIXIN clauses of this mixin.
-	 (let loop ((mixins submixin-identifiers))
-	   (unless (null? mixins)
-	     (set! other-clauses
-		   (append other-clauses
-			   (%compose-mixin-with-mixin (car mixins) #'?mixin-identifier synner)))
-	     ;;After each composition validate the clauses.
-	     (validate-mixin-clauses other-clauses synner)
-	     (loop (cdr mixins))))
-	 (prop.mixin-clauses-define #'?mixin-identifier other-clauses)
+    ((_ ?the-mixin)
+     (synner "at least one clause needed in mixin definition"))
+    ((_ ?the-mixin . ?clauses)
+     (let ((mixin-identifier	#'?the-mixin)
+	   (original-clauses	(unwrap-syntax-object #'?clauses)))
+       (help.validate-mixin-clauses original-clauses synner)
+       (let-values
+	   ;;The list  of definition  clauses joined with  the requested
+	   ;;mixin clauses; the list of mixin identifiers to be used for
+	   ;;inspection purposes.
+	   ;;
+	   ;;In the original clauses from the mixin definition: separate
+	   ;;the  MIXINS  clauses  from  the other  clauses.   For  each
+	   ;;requested mixin: retrieve its clasuses, specialise them and
+	   ;;add them to the non-MIXINS original clauses.
+	   ;;
+	   (((clauses requested-mixin-identifiers)
+	     (help.filter-and-compose-with-mixin-clauses original-clauses mixin-identifier
+							 help.validate-mixin-clauses synner)))
+	 (prop.mixin-clauses-define mixin-identifier clauses)
+;;;AGGIUNGERE PARSING CLAUSES E MIXIN RECORD !!!!!!!!!!!
 	 #'(define dummy))))))
 
 
@@ -1832,7 +1840,7 @@
 
     ((_ (?variable-name ?key0 ?key ...) ?value)
      (identifier? #'?variable-name)
-     #`(#,(%variable-name->Setter-name #'?variable-name) ?key0 ?key ... ?value))
+     #`(#,(help.variable-name->Setter-name #'?variable-name) ?key0 ?key ... ?value))
 
     ((_ ?variable-name ?value)
      (identifier? #'?variable-name)
@@ -1846,7 +1854,7 @@
 
     ((_ (?variable-name ?key0 ?key ...))
      (identifier? #'?variable-name)
-     #`(#,(%variable-name->Getter-name #'?variable-name) ?key0 ?key ...))
+     #`(#,(help.variable-name->Getter-name #'?variable-name) ?key0 ?key ...))
 
     (_
      (synner "invalid class getter syntax"))))
@@ -1945,9 +1953,9 @@
 		 ((?var1 ?class1 ?class11 ...) ?init1)
 		 ...)
 	?body0 ?body ...)
-     (let ((id (duplicated-identifiers? #'(?var0 ?var1 ...))))
+     (let ((id (duplicate-identifiers? #'(?var0 ?var1 ...))))
        (if id
-	   (synner "duplicated binding names" id)
+	   (synner "duplicate binding names" id)
 	 #'(%let/with-class no-loop (((?var0 ?class0 ?class00 ...) ?init0))
 	     (let*/with-class (((?var1 ?class1 ?class11 ...) ?init1) ...) ?body0 ?body ...))
 	 )))
@@ -1972,7 +1980,7 @@
 
 (define-syntax* (%letrec/with-class stx)
   ;;Produce  output forms  for LETREC  with types.   We rely  on  LET to
-  ;;detect duplicated bindings.
+  ;;detect duplicate bindings.
   ;;
   (syntax-case stx (no-loop)
 
@@ -2009,7 +2017,7 @@
   (syntax-case stx (no-loop)
 
     ((_ no-loop (((?var ?class0 ?class ...) ?init) ...) ?body0 ?body ...)
-     ;;We rely on LET to detect duplicated bindings.
+     ;;We rely on LET to detect duplicate bindings.
      (with-syntax (((C ...) (generate-temporaries #'(?var ...))))
        #'(let ((?var sentinel.undefined) ...)
 	   (with-class ((?var ?class0 ?class ...) ...)

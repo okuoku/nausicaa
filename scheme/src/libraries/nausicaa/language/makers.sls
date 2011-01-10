@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2010, 2011 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -34,9 +34,12 @@
     ;;loaded for  expand, because  the functions are  used by  the newly
     ;;defined macros, not only by DEFINE-MAKER.
     (for (nausicaa language makers helpers) expand)
+    (only (nausicaa language extensions)
+	  define-auxiliary-syntax
+	  define-auxiliary-syntaxes)
     (for (nausicaa language syntax-utilities) expand run))
 
-  (define-auxiliary-syntax mandatory optional with without)
+  (define-auxiliary-syntaxes mandatory optional with without)
 
 
 (define-syntax define-maker

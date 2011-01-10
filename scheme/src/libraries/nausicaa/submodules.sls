@@ -1,4 +1,4 @@
-;;; -*- coding: utf-8 -*-
+;;; -*- coding: utf-8-unix -*-
 ;;;
 ;;;Part of: Nausicaa/Scheme
 ;;;Contents: submodules implementation
@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2010, 2011 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -29,8 +29,9 @@
 (library (nausicaa submodules)
   (export submodule export prefix)
   (import (rnrs)
-    (only (nausicaa language extensions) define-values)
-    (only (nausicaa language syntax-utilities) define-auxiliary-syntax)
+    (only (nausicaa language extensions)
+	  define-values
+	  define-auxiliary-syntaxes)
     (for (only (nausicaa language syntax-utilities)
 	       unwrap-syntax-object
 	       identifier-suffix
@@ -38,8 +39,8 @@
 	       identifier-general-append) expand))
 
 
-(define-auxiliary-syntax export)
-(define-auxiliary-syntax prefix)
+(define-auxiliary-syntaxes
+  export prefix
 
 (define-syntax submodule
   (lambda (stx)

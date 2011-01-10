@@ -28,26 +28,74 @@
 #!r6rs
 (library (nausicaa language classes helpers)
   (export
+    filter-and-compose-with-mixin-clauses
     validate-class-clauses
     validate-label-clauses
     (rename (validate-class-clauses validate-mixin-clauses))
-    %compose-class-with-mixin
-    (rename (%compose-class-with-mixin %compose-label-with-mixin)
-	    (%compose-class-with-mixin %compose-mixin-with-mixin))
-    %variable-name->Setter-name
-    %variable-name->Getter-name
-    %make-fields-accessor-of-transformer
-    %make-fields-mutator-of-transformer
-    %make-with-field-class-bindings
-    %list-of-unique-field-types
-    %detect-recursive-type-in-fields)
+    extract-super-properties-if-any
+;;;    specialise-mixin-clauses
+    variable-name->Setter-name
+    variable-name->Getter-name
+    make-fields-accessor-of-transformer
+    make-fields-mutator-of-transformer
+    make-with-field-class-bindings
+    list-of-unique-field-types)
   (import (rnrs)
     (nausicaa language classes internal-auxiliary-syntaxes)
     (prefix (nausicaa language classes properties) prop.)
-    (nausicaa language syntax-utilities)
+    (prefix (only (nausicaa language syntax-utilities)
+		  delete-duplicate-identifiers
+		  identifier-subst
+		  identifier-suffix
+		  syntax->list
+		  unwrap-syntax-object
+		  validate-definition-clauses)
+	    synux.)
+    (prefix (only (nausicaa language classes clause-parsers)
+		  %collect-clause/mixins)
+	    parser.)
     (for (nausicaa language auxiliary-syntaxes) (meta -1)))
 
 
+(define (filter-and-compose-with-mixin-clauses original-clauses identifier validate-clauses synner)
+  ;;Compose the  clauses from a class,  label or mixin  with the clauses
+  ;;from the requested mixins.
+  ;;
+  ;;In the  original clauses  from a class,  label or  mixin definition:
+  ;;separate  the  MIXINS clauses  from  the  other  clauses.  For  each
+  ;;required mixin: retrieve its  clasuses, specialise them and add them
+  ;;to the non-MIXINS original clauses.
+  ;;
+  ;;Return list of definition clauses joined with the mixin clauses; the
+  ;;list of mixin identifiers to be used for inspection purposes.
+  ;;
+  ;;ORIGINAL-CLAUSES must be an unwrapped syntax object representing the
+  ;;original clauses in the definition of a class, label or mixin.
+  ;;
+  ;;IDENTIFIER must be  the identifier of the receiving  class, label or
+  ;;mixin.
+  ;;
+  ;;VALIDATE-CLAUSES  must be a  function used  to validate  the clauses
+  ;;after each mixin has been joined.
+  ;;
+  ;;SYNNER must  be the closure  used to raise  a syntax violation  if a
+  ;;parse  error  occurs; it  must  accept  two  arguments: the  message
+  ;;string, the subform.
+  ;;
+  (let ((mixin-identifiers (parser.%collect-clause/mixins original-clauses synner)))
+    (let loop ((clauses original-clauses)
+	       (mixins  mixin-identifiers))
+      (if (null? mixins)
+	  (values clauses mixin-identifiers)
+	(let ((clauses (append clauses
+			       (specialise-mixin-clauses (car mixins) identifier synner))))
+	  ;;After each composition validate the clauses.
+	  (validate-clauses clauses synner)
+	  (loop clauses (cdr mixins)))))))
+
+
+;;;; clause definition validation
+
 (define (validate-class-clauses clauses synner)
   ;;Validate the definition clauses  for DEFINE-CLASS; CLAUSES must be a
   ;;syntax object holding the definition clauses.
@@ -56,7 +104,7 @@
   ;;parse  error  occurs; it  must  accept  two  arguments: the  message
   ;;string, the subform.
   ;;
-  (validate-definition-clauses
+  (synux.validate-definition-clauses
    ;; mandatory keywords
    '()
    ;; optional keywords
@@ -85,7 +133,7 @@
   ;;parse  error  occurs; it  must  accept  two  arguments: the  message
   ;;string, the subform.
   ;;
-  (validate-definition-clauses
+  (synux.validate-definition-clauses
    ;; mandatory keywords
    '()
    ;; optional keywords
@@ -100,10 +148,12 @@
    clauses synner))
 
 
-(define (%compose-class-with-mixin mixin-identifier class-identifier synner)
-  ;;Given a mixin identifier name  and a class identifier name: retrieve
-  ;;the clauses  of the mixin,  substitute the occurrences of  the mixin
-  ;;identifier with the  class identifier, return the result.
+(define (specialise-mixin-clauses mixin-identifier destination-identifier synner)
+  ;;Given   a   source  mixin   identifier   name   and  a   destination
+  ;;class/label/mixin  identifier  name:  retrieve  the clauses  of  the
+  ;;mixin, substitute the occurrences  of the source identifier with the
+  ;;destination  identifier, return  the result  as an  unwrapped syntax
+  ;;object.
   ;;
   ;;It is an error if the mixin identifier is undefined.
   ;;
@@ -113,21 +163,42 @@
   ;;
   (let ((mixin-clauses (prop.mixin-clauses-ref mixin-identifier)))
     (if mixin-clauses
-	(unwrap-syntax-object	;the receiving end expects an unwrapped object
-	 (identifier-subst (list mixin-identifier) (list class-identifier) mixin-clauses))
+	(synux.unwrap-syntax-object ;the receiving end expects an unwrapped object
+	 (synux.identifier-subst (list mixin-identifier)
+				 (list destination-identifier)
+				 mixin-clauses))
       (synner "undefined mixin identifier" mixin-identifier))))
 
 
-(define (%variable-name->Setter-name variable-name-stx)
-  (identifier-suffix variable-name-stx ".__nausicaa_private_Setter_identifier_syntax"))
+(define (extract-super-properties-if-any identifier)
+  ;;If the parent of  a class or label is a record,  rather than a class
+  ;;or  label,  there  are  no superclass/superlabel  properties  to  be
+  ;;inspected.
+  ;;
+  ;;Return two values: a boolean, true  if the parent is a superclass or
+  ;;superlabel;  false or a  record representing  the properties  of the
+  ;;superclass or superlabel.  The return  values are both false or both
+  ;;true.
+  ;;
+  (let ((id? (identifier? identifier)))
+    (if id?
+	(let ((props (and id? (prop.struct-properties-ref identifier))))
+	  (if props
+	      (values #t props)
+	    (values #f #f)))
+      (values #f #f))))
 
-(define (%variable-name->Getter-name variable-name-stx)
-  (identifier-suffix variable-name-stx ".__nausicaa_private_Getter_identifier_syntax"))
+
+(define (variable-name->Setter-name variable-name-stx)
+  (synux.identifier-suffix variable-name-stx ".__nausicaa_private_Setter_identifier_syntax"))
+
+(define (variable-name->Getter-name variable-name-stx)
+  (synux.identifier-suffix variable-name-stx ".__nausicaa_private_Getter_identifier_syntax"))
 
 
 ;;;; accessor-of and mutator-of macro transformers generation
 
-(define (%make-fields-accessor-of-transformer class-identifier fields virtual-fields synner)
+(define (make-fields-accessor-of-transformer class-identifier fields virtual-fields synner)
   ;;Build and return  a syntax object holding a  lambda function; this
   ;;lambda function is the transformer used to retrieve field accessor
   ;;functions from the class definition given the field name.
@@ -167,7 +238,7 @@
 	     (fields		#`(#,@fields #,@virtual-fields)))
     (syntax-case fields (mutable immutable)
       (()
-       (%make-field-accessor-or-mutator-transformer-function class-identifier case-branches))
+       (make-field-accessor-or-mutator-transformer-function class-identifier case-branches))
 
       (((mutable ?field ?accessor ?mutator ?field-class ...) . ?clauses)
        (loop (cons #'((?field) #'?accessor) case-branches)
@@ -183,7 +254,7 @@
        (synner "invalid field specification while building \"field accessor of\" transformer"
 		#'?spec)))))
 
-(define (%make-fields-mutator-of-transformer class-identifier fields virtual-fields synner)
+(define (make-fields-mutator-of-transformer class-identifier fields virtual-fields synner)
   ;;Build and return  a syntax object holding a  lambda function; this
   ;;lambda function is the  transformer used to retrieve field mutator
   ;;functions from the class definition given the field name.
@@ -219,7 +290,7 @@
 	     (fields		#`(#,@fields #,@virtual-fields)))
     (syntax-case fields (mutable immutable)
       (()
-       (%make-field-accessor-or-mutator-transformer-function class-identifier case-branches))
+       (make-field-accessor-or-mutator-transformer-function class-identifier case-branches))
 
       (((mutable ?field ?accessor ?mutator ?field-class ...) . ?clauses)
        (loop (cons #'((?field) #'?mutator) case-branches)
@@ -235,9 +306,9 @@
        (synner "invalid field specification while building \"field mutator of\" transformer"
 		#'?spec)))))
 
-(define (%make-field-accessor-or-mutator-transformer-function class-identifier case-branches)
-  ;;Auxiliary  function  for  %MAKE-FIELDS-MUTATOR-OF-TRANSFORMER  and
-  ;;%MAKE-FIELDS-ACCESSOR-OF-TRANSFORMER.  Build and return the actual
+(define (make-field-accessor-or-mutator-transformer-function class-identifier case-branches)
+  ;;Auxiliary   function   for  MAKE-FIELDS-MUTATOR-OF-TRANSFORMER   and
+  ;;MAKE-FIELDS-ACCESSOR-OF-TRANSFORMER.   Build and  return  the actual
   ;;transformer syntax object.
   ;;
   (if (null? case-branches)
@@ -257,7 +328,7 @@
 
 ;;;; field class helpers
 
-(define (%make-with-field-class-bindings fields virtual-fields synner)
+(define (make-with-field-class-bindings fields virtual-fields synner)
   ;;Build and  return the list of  bindings for a  WITH-CLASS use, which
   ;;define the bindings of typed fields.
   ;;
@@ -287,7 +358,7 @@
        (synner "invalid field specification while building typed fields bindings"
 		#'?spec)))))
 
-(define (%list-of-unique-field-types fields virtual-fields tail synner)
+(define (list-of-unique-field-types fields virtual-fields tail synner)
   ;;Build and return a list of identifiers representing all the types of
   ;;fields and virtual  fields in a class or  label defintion; this list
   ;;is used to detect recursive  types.  The returned list is guaranteed
@@ -299,44 +370,30 @@
   ;;    (mutable   ?field ?accessor ?mutator ?field-class ...)
   ;;    (immutable ?field ?accessor ?field-class ...)
   ;;
-  ;;TAIL must be  null or a proper list  of identifiers representing the
-  ;;field types of the superclass or superlabel; it will become the tail
-  ;;of the returned list.
+  ;;TAIL must be null, or a wrapped or unwrapped syntax object holding a
+  ;;proper  list of  identifiers  representing the  field  types of  the
+  ;;superclass or  superlabel; it will  become the tail of  the returned
+  ;;list.
   ;;
   ;;SYNNER must  be the closure  used to raise  a syntax violation  if a
   ;;parse  error happens;  it  must accept  two  arguments: the  message
   ;;string, the subform.
   ;;
   (let loop ((fields	#`(#,@fields #,@virtual-fields))
-	     (types	tail))
+	     (types	(synux.syntax->list tail)))
     (syntax-case fields (mutable immutable)
       (()
-       (begin
-	 (delete-duplicated-identifiers types)))
+       (synux.delete-duplicate-identifiers types))
 
       (((mutable ?field ?accessor ?mutator . ?field-classes) . ?fields)
-       (loop #'?fields (syntax->list #'?field-classes types)))
+       (loop #'?fields (synux.syntax->list #'?field-classes types)))
 
       (((immutable ?field ?accessor . ?field-classes) . ?fields)
-       (loop #'?fields (syntax->list #'?field-classes types)))
+       (loop #'?fields (synux.syntax->list #'?field-classes types)))
 
       ((?spec . ?fields)
        (synner "invalid field specification while verifying recursive types" #'?spec))
       )))
-
-(define (%detect-recursive-type-in-fields thing field-classes synner)
-  ;;Look  for   the  identifier  THING   in  the  list   of  identifiers
-  ;;FIELD-CLASSES; if it is there raise a syntax violation.
-  ;;
-  ;;SYNNER must  be the closure  used to raise  a syntax violation  if a
-  ;;parse  error happens;  it  must accept  two  arguments: the  message
-  ;;string, the subform.
-  ;;
-  (let ((c (exists (lambda (c)
-		     (and (free-identifier=? c thing) c))
-	     field-classes)))
-    (when c
-      (synner "detected recursive type" c))))
 
 
 ;;;; done

@@ -1,4 +1,4 @@
-;;; -*- coding: utf-8 -*-
+;;; -*- coding: utf-8-unix -*-
 ;;;
 ;;;Part of: Nausicaa/Scheme
 ;;;Contents: times and dates handling
@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2010, 2011 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -129,7 +129,7 @@
     (rnrs mutable-strings)
     (nausicaa generics)
     (nausicaa formations)
-    (only (nausicaa language syntax-utilities) define-auxiliary-syntax)
+    (only (nausicaa language extensions) define-auxiliary-syntax)
     (nausicaa times-and-dates seconds-and-subseconds)
     (nausicaa times-and-dates gregorian)
     (nausicaa times-and-dates julian-calendar)
