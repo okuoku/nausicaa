@@ -39,12 +39,14 @@
     make-fields-accessor-of-transformer
     make-fields-mutator-of-transformer
     make-with-field-class-bindings
-    list-of-unique-field-types)
+    list-of-unique-field-types
+    detect-circular-tagging)
   (import (rnrs)
     (nausicaa language classes internal-auxiliary-syntaxes)
     (prefix (nausicaa language classes properties) prop.)
     (prefix (only (nausicaa language syntax-utilities)
 		  delete-duplicate-identifiers
+		  identifier-memq
 		  identifier-subst
 		  identifier-suffix
 		  syntax->list
@@ -472,6 +474,34 @@
       ((?spec . ?fields)
        (synner "invalid field specification while verifying recursive types" #'?spec))
       )))
+
+(define (detect-circular-tagging thing-identifier input-form)
+  ;;Inspect the properties of THING-IDENTIFIER, which must be a class or
+  ;;label identifier, and detect circular tagging of fields.
+  ;;
+  ;;We  consider THING-IDENTIFIER  as a  node in  a graph  in  which the
+  ;;supers identifiers and the field tag identifiers are outgoing nodes;
+  ;;we look for a cycle in the graph by doing depth first search looking
+  ;;for THING-IDENTIFIER itself.
+  ;;
+  ;;INPUT-FORM  must  be the  original  input  form  to DEFINE-CLASS  or
+  ;;DEFINE-LABEL; it is used for syntax error reporting.
+  ;;
+  (define (synner)
+    (syntax-violation #f "detected circular tagging"
+      (syntax->datum input-form) (syntax->datum thing-identifier)))
+  (let search ((current	thing-identifier)
+	       (thing	thing-identifier))
+    (define field-tags ;includes the ones of the superclasses
+      (let ((p (prop.struct-properties-ref current)))
+	(if p
+	    (prop.struct-list-of-field-tags p)
+	  '())))
+    (when (synux.identifier-memq thing field-tags)
+      (synner))
+    (for-each (lambda (tag)
+		(search tag thing))
+      field-tags)))
 
 
 ;;;; done

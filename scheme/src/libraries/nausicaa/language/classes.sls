@@ -104,7 +104,18 @@
     <fixnum> <flonum> <integer> <integer-valued> <rational> <rational-valued>
     <real> <real-valued> <complex> <number>)
   (import (rnrs)
-    (for (nausicaa language syntax-utilities)			expand)
+    (for (prefix (only (nausicaa language syntax-utilities)
+		       all-identifiers?
+		       duplicate-identifiers?
+		       identifier-prefix
+		       syntax-dot-notation-identifier
+		       syntax-maker-identifier
+		       syntax-method-identifier
+		       syntax-predicate-identifier
+		       syntax->list
+		       unwrap-syntax-object)
+		 synux.)
+	 expand)
     (for (prefix (nausicaa language classes helpers) help.)	expand)
     (for (nausicaa language classes binding-makers)		expand)
     (for (nausicaa language classes clause-parsers)		expand)
@@ -494,15 +505,15 @@
     (define-values (class-identifier constructor-identifier predicate-identifier original-clauses)
       (syntax-case stx ()
 	((_ (?name ?constructor ?predicate) ?clause ...)
-	 (all-identifiers? #'(?name ?constructor ?predicate))
-	 (values #'?name #'?constructor #'?predicate (unwrap-syntax-object #'(?clause ...))))
+	 (synux.all-identifiers? #'(?name ?constructor ?predicate))
+	 (values #'?name #'?constructor #'?predicate (synux.unwrap-syntax-object #'(?clause ...))))
 
 	((_ ?name ?clause ...)
 	 (identifier? #'?name)
 	 (values #'?name
-		 (syntax-maker-identifier #'?name)
-		 (syntax-predicate-identifier #'?name)
-		 (unwrap-syntax-object #'(?clause ...))))
+		 (synux.syntax-maker-identifier #'?name)
+		 (synux.syntax-predicate-identifier #'?name)
+		 (synux.unwrap-syntax-object #'(?clause ...))))
 
 	((_ ?name-spec . ?clauses)
 	 (%synner "invalid name specification in class definition" #'?name-spec))))
@@ -729,7 +740,7 @@
 	    (help.normalise-class-inheritance superclass-identifier parent-name
 					      parent-rtd parent-cd %synner)))
 
-	(let ((id (duplicate-identifiers? (append (map cadr fields)
+	(let ((id (synux.duplicate-identifiers? (append (map cadr fields)
 						  (map cadr virtual-fields)
 						  (map car  all-methods)))))
 	  (when id
@@ -739,23 +750,23 @@
 	    ((THE-CLASS			class-identifier)
 	     (THE-SUPERCLASS		superclass-identifier)
 	     (THE-RTD			#'the-rtd
-					#;(identifier-prefix "rtd-of-" class-identifier))
+					#;(synux.identifier-prefix "rtd-of-" class-identifier))
 	     (THE-PARENT-CD		#'the-parent-cd
-					#;(identifier-prefix "parent-cd-of-" class-identifier))
+					#;(synux.identifier-prefix "parent-cd-of-" class-identifier))
 	     (THE-PUBLIC-CD		#'the-public-cd
-					#;(identifier-prefix "public-cd-of-" class-identifier))
+					#;(synux.identifier-prefix "public-cd-of-" class-identifier))
 	     (THE-PUBLIC-CONSTRUCTOR	constructor-identifier)
 	     (THE-MAKER-CONSTRUCTOR	#'the-maker-constructor
-					#;(identifier-prefix "maker-constructor-of-" class-identifier))
+					#;(synux.identifier-prefix "maker-constructor-of-" class-identifier))
 	     (THE-FROM-FIELDS-PROTOCOL	#'the-from-fields-protocol
-					#;(identifier-prefix "from-fields-protocol-of-" class-identifier))
+					#;(synux.identifier-prefix "from-fields-protocol-of-" class-identifier))
 	     (THE-COMMON-PROTOCOL	#'the-common-protocol
-					#;(identifier-prefix "common-protocol-of-" class-identifier))
+					#;(synux.identifier-prefix "common-protocol-of-" class-identifier))
 	     (THE-MAKER-PROTOCOL	#'the-maker-protocol
-					#;(identifier-prefix "maker-protocol-of-" class-identifier))
+					#;(synux.identifier-prefix "maker-protocol-of-" class-identifier))
 	     (THE-PREDICATE		predicate-identifier)
 	     (THE-MAKER			#'the-maker
-					#;(identifier-prefix "maker-of-" class-identifier))
+					#;(synux.identifier-prefix "maker-of-" class-identifier))
 
 	     (PARENT-RTD-FORM		parent-rtd)
 	     (PARENT-CD-FORM		parent-cd)
@@ -993,26 +1004,22 @@
 			 (syntax->datum #'?keyword)))
 		      )))
 
-		;;We must set the identifier properties of THE-CLASS after
-		;;THE-CLASS itself  has been  bound to something,  else it
-		;;will   be   seen    as   an   unbound   identifier   and
-		;;FREE-IDENTIFIER=? will  get confused and not  do what we
-		;;want.   (Especially  when  evaluating class  definitions
+		;;We  must set  the identifier  properties  of THE-CLASS
+		;;after  THE-CLASS itself has  been bound  to something,
+		;;else  it will  be seen  as an  unbound  identifier and
+		;;FREE-IDENTIFIER=? will get confused and not do what we
+		;;want.   (Especially when evaluating  class definitions
 		;;with an EVAL as we do in the test suite.)
 		;;
-		(define-syntax define-properties
-		  (lambda (stx)
-		    (prop.struct-properties-define #'THE-CLASS
-						   (prop.make-class (syntax->list #'LIST-OF-SUPERCLASSES)
-								    #'FIELD-SPECS
-								    #'VIRTUAL-FIELD-SPECS
-								    #'METHOD-SPECS
-								    #'MIXIN-IDENTIFIERS
-								    #'LIST-OF-FIELD-TAGS))
-		    #'(define dummy)))
-		(define-properties)
-		(define-dummy-and-detect-circular-tagging THE-CLASS INPUT-FORM)
 		(define-for-expansion-evaluation
+		  (prop.struct-properties-define
+		   #'THE-CLASS (prop.make-class (synux.syntax->list #'LIST-OF-SUPERCLASSES)
+						#'FIELD-SPECS
+						#'VIRTUAL-FIELD-SPECS
+						#'METHOD-SPECS
+						#'MIXIN-IDENTIFIERS
+						(synux.syntax->list #'LIST-OF-FIELD-TAGS)))
+		  (help.detect-circular-tagging #'THE-CLASS #'INPUT-FORM)
 		  (SATISFACTION #'THE-CLASS) ...)
 
 		(define-syntax* (with-class-bindings stx)
@@ -1243,12 +1250,13 @@
   (define-values (label-identifier predicate-identifier original-clauses)
     (syntax-case stx ()
       ((_ (?name ?predicate) ?clause ...)
-       (all-identifiers? #'(?name ?predicate))
-       (values #'?name #'?predicate (unwrap-syntax-object #'(?clause ...))))
+       (synux.all-identifiers? #'(?name ?predicate))
+       (values #'?name #'?predicate (synux.unwrap-syntax-object #'(?clause ...))))
 
       ((_ ?name ?clause ...)
        (identifier? #'?name)
-       (values #'?name (syntax-predicate-identifier #'?name) (unwrap-syntax-object #'(?clause ...))))
+       (values #'?name (synux.syntax-predicate-identifier #'?name)
+	       (synux.unwrap-syntax-object #'(?clause ...))))
 
       ((_ ?name-spec . ?clauses)
        (%synner "invalid name specification in label definition" #'?name-spec))))
@@ -1393,7 +1401,7 @@
 		  (prop.label-list-of-supers superlabel-properties))
 	  '())))
 
-    (let ((id (duplicate-identifiers? (append (map cadr virtual-fields)
+    (let ((id (synux.duplicate-identifiers? (append (map cadr virtual-fields)
 					      (map car  all-methods)))))
       (when id
 	(%synner "duplicate field names" id)))
@@ -1491,25 +1499,21 @@
 		     (syntax->datum #'?keyword)))
 		  )))
 
-	    ;;We  must set  the identifier  properties of  THE-LABEL after
-	    ;;THE-LABEL itself  has been bound to something,  else it will
-	    ;;be seen as an  unbound identifier and FREE-IDENTIFIER=? will
-	    ;;get  confused and  not do  what we  want.   (Especially when
-	    ;;evaluating label  definitions with an  EVAL as we do  in the
-	    ;;test suite.)
+	    ;;We must  set the identifier properties  of THE-LABEL after
+	    ;;THE-LABEL itself has been bound to something, else it will
+	    ;;be  seen as  an unbound  identifier  and FREE-IDENTIFIER=?
+	    ;;will get  confused and not  do what we  want.  (Especially
+	    ;;when evaluating label definitions with an EVAL as we do in
+	    ;;the test suite.)
 	    ;;
-	    (define-syntax define-properties
-	      (lambda (stx)
-		(prop.struct-properties-define #'THE-LABEL
-					       (prop.make-label (syntax->list #'LIST-OF-SUPERLABELS)
-								#'VIRTUAL-FIELD-SPECS
-								#'METHOD-SPECS
-								#'MIXIN-IDENTIFIERS
-								#'LIST-OF-FIELD-TAGS))
-		#'(define dummy)))
-	    (define-properties)
-	    (define-dummy-and-detect-circular-tagging THE-LABEL INPUT-FORM)
 	    (define-for-expansion-evaluation
+	      (prop.struct-properties-define #'THE-LABEL
+					     (prop.make-label (synux.syntax->list #'LIST-OF-SUPERLABELS)
+							      #'VIRTUAL-FIELD-SPECS
+							      #'METHOD-SPECS
+							      #'MIXIN-IDENTIFIERS
+							      (synux.syntax->list #'LIST-OF-FIELD-TAGS)))
+	      (help.detect-circular-tagging #'THE-LABEL #'INPUT-FORM)
 	      (SATISFACTION #'THE-LABEL) ...)
 
 	    (define-syntax* (with-label-bindings stx)
@@ -1559,48 +1563,13 @@
 	    )))))
 
 
-(define-syntax define-dummy-and-detect-circular-tagging
-  (lambda (stx)
-    (syntax-case stx ()
-      ((_ ?thing ?input-form)
-       ;;Inspect  the properties  of ?THING,  which must  be a  class or
-       ;;label identifier, and detect circular tagging of fields.
-       ;;
-       ;;We consider THING as a node  in a graph in which the superclass
-       ;;identifiers and  the field tag identifiers  are outgoing nodes;
-       ;;we look  for a cycle in  the graph by doing  depth first search
-       ;;looking for THING itself.
-       ;;
-       ;;INPUT-FORM must  be the original input form  to DEFINE-CLASS or
-       ;;DEFINE-LABEL; it is used for syntax error reporting.
-       ;;
-       (let ((synner (lambda ()
-		       (syntax-violation #f
-			 "detected circular tagging"
-			 (syntax->datum #'?input-form) (syntax->datum #'?thing)))))
-	 (let search ((current	#'?thing)
-		      (thing	#'?thing))
-	   (define field-tags	;includes the ones of the superclasses
-	     (let ((p (prop.struct-properties-ref current)))
-	       (if p
-		   (syntax->list (prop.struct-list-of-field-tags p))
-		 '())))
-	   (when (identifier-memq thing field-tags)
-	     (synner))
-	   (for-each (lambda (tag)
-	   	       (search tag thing))
-	     field-tags))
-          #'(define dummy)))
-      )))
-
-
 (define-syntax* (define-mixin stx)
   (syntax-case stx ()
     ((_ ?the-mixin)
      (synner "at least one clause needed in mixin definition"))
     ((_ ?the-mixin . ?clauses)
      (let ((mixin-identifier	#'?the-mixin)
-	   (original-clauses	(unwrap-syntax-object #'?clauses)))
+	   (original-clauses	(synux.unwrap-syntax-object #'?clauses)))
        (help.validate-mixin-clauses original-clauses synner)
        (let-values
 	   ;;The list  of definition  clauses joined with  the requested
@@ -1636,7 +1605,7 @@
 
     ;;Define a method without implementation.
     ((_ ?class ?name)
-     (all-identifiers? #'(?class ?name))
+     (synux.all-identifiers? #'(?class ?name))
      #'(define-virtual-method ?class ?name #f))
 
     ;;Define a  method with implementation.   Being a method:  the first
@@ -1663,7 +1632,7 @@
 	       (when f
 		 (hashtable-set! the-table (class-type-uid ?class) f))
 	       f))
-	   (define-syntax #,(syntax-method-identifier #'?class #'?name)
+	   (define-syntax #,(synux.syntax-method-identifier #'?class #'?name)
 	     (syntax-rules ()
 	       ;;This  is  a method,  so  we  know  that ?SELF  is  an
 	       ;;identifier bound to the class instance: we can safely
@@ -1768,13 +1737,13 @@
 
     ;;detect fully untyped fields
     ((_ ?var ((?field) ...) . ?body)
-     (all-identifiers? #'(?field ...))
+     (synux.all-identifiers? #'(?field ...))
      #'(begin . ?body))
 
     ((_ ?var ((?field ?class ...) ...) . ?body)
      (with-syntax (((VAR ...) (map (lambda (field)
-				     (syntax-dot-notation-identifier #'?var field))
-				(unwrap-syntax-object #'(?field ...)))))
+				     (synux.syntax-dot-notation-identifier #'?var field))
+				(synux.unwrap-syntax-object #'(?field ...)))))
        #'(with-class ((VAR ?class ...) ...) . ?body)))
 
     ((_ ?var (?field-clause . ?field-clauses) . ?body)
@@ -1831,19 +1800,19 @@
 
       ;;Ordinary LET, all bindings are without types.
       ((_ ?let ?let/with-class no-loop ((?var ?init) ...) ?body0 ?body ...)
-       (all-identifiers? #'(?var ...)) ;no types if this is true
+       (synux.all-identifiers? #'(?var ...)) ;no types if this is true
        #'(?let ((?var ?init) ...) ?body0 ?body ...))
 
       ;;Named LET, all bindings are without types.
       ((_ ?let ?let/with-class ?loop   ((?var ?init) ...) ?body0 ?body ...)
-       (all-identifiers? #'(?var ...)) ;no types if this is true
+       (synux.all-identifiers? #'(?var ...)) ;no types if this is true
        #'(?let ?loop ((?var ?init) ...) ?body0 ?body ...))
 
       ;;At least one binding has types.
       ((_ ?let ?let/with-class ?loop   ((?var ?init) ...) ?body0 ?body ...)
        (with-syntax (((VAR ...) (map (lambda (var)
 				       (if (pair? var) var (list var #'<top>)))
-				  (unwrap-syntax-object #'(?var ...)))))
+				  (synux.unwrap-syntax-object #'(?var ...)))))
 	 #'(?let/with-class ?loop ((VAR ?init) ...) ?body0 ?body ...)))
 
       (_
@@ -1901,7 +1870,7 @@
 		 ((?var1 ?class1 ?class11 ...) ?init1)
 		 ...)
 	?body0 ?body ...)
-     (let ((id (duplicate-identifiers? #'(?var0 ?var1 ...))))
+     (let ((id (synux.duplicate-identifiers? #'(?var0 ?var1 ...))))
        (if id
 	   (synner "duplicate binding names" id)
 	 #'(%let/with-class no-loop (((?var0 ?class0 ?class00 ...) ?init0))
@@ -2012,7 +1981,7 @@
        (identifier? #'?id)
        #'?id)
       ((?id ?class ...)
-       (all-identifiers? #'(?id ?class ...))
+       (synux.all-identifiers? #'(?id ?class ...))
        #'?id)
       (_
        (synner "invalid binding declaration"))))
@@ -2020,7 +1989,7 @@
     ((_ ((?var ?init ?step ...) ...)
 	(?test ?expr ...)
 	?form ...)
-     (with-syntax (((ID ...) (map %parse-var (unwrap-syntax-object #'(?var ...)))))
+     (with-syntax (((ID ...) (map %parse-var (synux.unwrap-syntax-object #'(?var ...)))))
        #'(let-syntax ((the-expr (syntax-rules ()
 				  ((_)
 				   (values))
@@ -2112,7 +2081,7 @@
     (syntax-case stx ()
       ((_ ?class (?method-name . ?args) ?body0 ?body ...)
        (with-syntax
-	   ((FUNCNAME	(syntax-method-identifier #'?class #'?method-name))
+	   ((FUNCNAME	(synux.syntax-method-identifier #'?class #'?method-name))
 	    (THIS	(datum->syntax #'?method-name 'this)))
 	 ;;This output form must be kept in sync with the output form of
 	 ;;DEFMETHOD-VIRTUAL below.
@@ -2135,7 +2104,7 @@
 	 ;;
 	 ;;where FUNCNAME  is built with:
 	 ;;
-	 ;;  (syntax-method-identifier #'?class #'?method-name)
+	 ;;  (synux.syntax-method-identifier #'?class #'?method-name)
 	 ;;
 	 ;;this  is because  DEFMETHOD  and DEFINE-VIRTUAL-METHOD  would
 	 ;;create a procedure  and a macro bound to  the same identifier
@@ -2147,9 +2116,9 @@
 	 ;;   (defmethod ?class (the-method . ?args) ?body0 ?body ...)
 	 ;;   (define-virtual-method ?class ?method-name FUNCNAME))
 	 ;;
-	 ;;where FUNCNAME  is built with:
+	 ;;where FUNCNAME is built with:
 	 ;;
-	 ;;  (syntax-method-identifier #'?class #'the-method)
+	 ;;  (synux.syntax-method-identifier #'?class #'the-method)
 	 ;;
 	 ;;because  the expander  renames "the-method"  before expanding
 	 ;;DEFMETHOD, so the generated procedure name is not FUNCNAME.
@@ -2189,7 +2158,7 @@
 	 (identifier? #'?car)
 	 (loop #'?cdr (cons #'?car args) (cons #'(<top>) cls)))
 	(((?id ?cls0 ?cls ...) . ?cdr)
-	 (all-identifiers? #'(?id ?cls0 ?cls ...))
+	 (synux.all-identifiers? #'(?id ?cls0 ?cls ...))
 	 (loop #'?cdr (cons #'?id args) (cons #'(?cls0 ?cls ...) cls)))
 	(_
 	 (synner "invalid formals in lambda definition" formals)))))
@@ -2224,7 +2193,7 @@
   (define (main stx)
     (syntax-case stx ()
       ((_ (?formals . ?body) ...)
-       #`(case-lambda #,@(map %process-clause (unwrap-syntax-object #'((?formals . ?body) ...)))))
+       #`(case-lambda #,@(map %process-clause (synux.unwrap-syntax-object #'((?formals . ?body) ...)))))
       (_
        (synner "invalid syntax in case-lambda definition"))))
 
@@ -2268,7 +2237,7 @@
 	 (identifier? #'?car)
 	 (loop #'?cdr (cons #'?car args) (cons #'(<top>) cls)))
 	(((?id ?cls0 ?cls ...) . ?cdr)
-	 (all-identifiers? #'(?id ?cls0 ?cls ...))
+	 (synux.all-identifiers? #'(?id ?cls0 ?cls ...))
 	 (loop #'?cdr (cons #'?id args) (cons #'(?cls0 ?cls ...) cls)))
 	(_
 	 (synner "invalid formals in lambda definition" formals)))))
@@ -2303,7 +2272,7 @@
   (syntax-case stx (else)
 
     ((_ ?thing ((?class) . ?body) ... (else . ?else-body))
-     (all-identifiers? #'(?thing ?class ...))
+     (synux.all-identifiers? #'(?thing ?class ...))
      #'(cond ((is-a? ?thing ?class)
 	      (with-class ((?thing ?class))
 		. ?body))
@@ -2311,7 +2280,7 @@
 	     (else . ?else-body)))
 
     ((_ ?thing ((?class) . ?body) ...)
-     (all-identifiers? #'(?thing ?class ...))
+     (synux.all-identifiers? #'(?thing ?class ...))
      #'(cond ((is-a? ?thing ?class)
 	      (with-class ((?thing ?class))
 		. ?body))
@@ -2332,7 +2301,7 @@
       ((_ ?class-name ?clause ...)
        #`(define-foreign-class ?class-name
 	   (inherit <builtin>)
-	   (nongenerative #,(identifier-prefix "nausicaa:builtin:" #'?class-name))
+	   (nongenerative #,(synux.identifier-prefix "nausicaa:builtin:" #'?class-name))
 	   ?clause ...)))))
 
 (define-builtin-class <pair>
