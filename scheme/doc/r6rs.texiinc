@@ -47,8 +47,8 @@ built on top of the @library{nausicaa silex} parser generator;
 
 
 The full @rnrs{6} source code lexer makes heavy use of parametrised
-functions to allow customisation of the tokens.  The following bindings
-are exported by the @library{nausicaa r6rs lexer} library.
+functions to allow customisation of tokens.  The following bindings are
+exported by the @library{nausicaa r6rs lexer} library.
 
 
 @defvr Constant r6rs-lexer-table
@@ -60,66 +60,48 @@ details.
 @end defvr
 
 
-@defun make-token-lexer @var{IS}
-@defunx make-token-lexer @var{IS} @var{lexer-table}
-A lexer function generator for full @rnrs{6} source code reading.  Given
-an input system @var{IS} build and return a lexer function using the
-@var{lexer-table}, which defaults to @code{r6rs-lexer-table}.  Tokens of
-category @code{WHITESPACE} and @code{LINEENDING} are discarded.
-
-The definition of this function is a good example of full table usage;
-notice that strings and nested comments are read with
-@func{read-string*} and @func{read-nested-comment*} respectively:
-
-@example
-(define make-token-lexer
-  (case-lambda
-   ((IS)
-    (make-token-lexer IS r6rs-lexer-table))
-   ((IS lexer-table)
-    (let ((lexer (lexer-make-lexer lexer-table IS)))
-      (lambda ()
-        (let next (((T <lexical-token>) (lexer)))
-          (define (%string-token)
-            (let ((S (read-string* IS)))
-              (if (string? S)
-                  ((string-token-maker)
-                     (lexer-get-func-getc IS)
-                     (lexer-get-func-ungetc IS)
-                     S T.location.line
-                     T.location.column T.location.offset)
-                S)))
-          (define (%nested-comment-token)
-            (let ((S (read-nested-comment* IS)))
-              (if (string? S)
-                  ((nested-comment-token-maker)
-                     (lexer-get-func-getc IS)
-                     (lexer-get-func-ungetc IS)
-                     S T.location.line
-                     T.location.column T.location.offset)
-                S)))
-          (cond (T.special? T)
-                ((eq? T.category 'WHITESPACE)
-                 (next (lexer)))
-                ((eq? T.category 'LINEENDING)
-                 (next (lexer)))
-                ((eq? T.category 'DOUBLEQUOTE)
-                 (%string-token))
-                ((eq? T.category 'ONESTEDCOMMENT)
-                 (%nested-comment-token))
-                (else T))))))))
-@end example
-@end defun
+@deffn Syntax make-token-lexer @var{IS} @var{CLAUSE} ...
+@deffnx {Auxiliary Syntax} table @var{table}
+@deffnx {Auxiliary Syntax} comments @var{boolean}
+@deffnx {Auxiliary Syntax} blanks @var{boolean}
+@deffnx {Auxiliary Syntax} sharpbang @var{boolean}
+A lexer thunk generator for full @rnrs{6} source code reading.  Given an
+input system @var{IS}: build and return a lexer thunk; the optional
+clauses allow configuration of the lexer behaviour.
+@end deffn
 
 
-@defun make-token-lexer* @var{IS}
-@defunx make-token-lexer* @var{IS} @var{lexer-table}
-A lexer function generator for full @rnrs{6} source code reading.  Given
-an input system @var{IS} build and return a lexer function using the
-@var{lexer-table}, which defaults to @code{r6rs-lexer-table}.  It is
-like @func{make-token-lexer} but the returned lexer thunk does not
-discard tokens with category @code{WHITESPACE} and @code{LINEENDING}.
-@end defun
+@deffn {Auxiliary Syntax} table @var{table}
+Allow the selection of the lexer table to use; the default is
+@code{r6rs-lexer-table}.  Selecting a custom table should be considered
+with care because it involves generating a table with the same interface
+of @code{r6rs-lexer-table}; it can be done by modifying the source code
+of @code{r6rs-lexer-table} itself.
+@end deffn
+
+
+@deffn {Auxiliary Syntax} comments @var{boolean}
+If @var{boolean} is false: the lexer thunk discards tokens with category
+@code{LINECOMMENT} and the results of calling the function referenced by
+the @func{nested-comment-token-maker} parameter used to read nested
+comments.  The default value is false.
+
+Notice that the sharp-semicolon token @samp{#;} (which precedes
+commented datums) is still returned by the lexer thunk: it is impossible
+to discard datums at the lexer level, it has to be done by the parser.
+@end deffn
+
+
+@deffn {Auxiliary Syntax} blanks @var{boolean}
+If @var{boolean} is false: the lexer thunk discards tokens with category
+@code{WHITESPACE} and @code{LINEENDING}.  The default value is false.
+@end deffn
+
+
+@deffn {Auxiliary Syntax} sharpbang @var{boolean}
+If @var{boolean} is false: the lexer thunk discards tokens with category
+@code{SHARPBANG} and @code{SHARPBANGR6RS}.  The default value is false.
+@end deffn
 
 
 Here is how to test the lexer function maker:
@@ -127,7 +109,7 @@ Here is how to test the lexer function maker:
 @example
 #!r6rs
 (import (nausicaa)
-  (nausicaa r6rs lexer)
+  (prefix (nausicaa r6rs lexer) r6.)
   (nausicaa silex lexer)
   (nausicaa silex lexeme-processing)
   (nausicaa parser-tools lexical-token)
@@ -136,7 +118,7 @@ Here is how to test the lexer function maker:
 (define (tokenise string)
   (let* ((IS     (lexer-make-IS (string: string)
                                 (counters: 'all)))
-         (lexer  (make-token-lexer IS)))
+         (lexer  (r6.make-token-lexer IS)))
     (let next (((T <lexical-token>) (lexer))
                (result              '()))
       (cond (T.lexer-error?

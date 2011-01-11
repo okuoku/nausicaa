@@ -1,4 +1,4 @@
-;;; -*- coding: utf-8 -*-
+;;; -*- coding: utf-8-unix -*-
 ;;;
 ;;;Part of: Nausicaa/Scheme
 ;;;Contents: lexer for R6RS programs and libraries
@@ -28,17 +28,16 @@
 #!r6rs
 (library (nausicaa r6rs lexer)
   (export
-    r6rs-lexer-table
-    r6rs-nested-comment-lexer-table r6rs-line-comment-lexer-table
-    r6rs-string-lexer-table r6rs-character-lexer-table
-    r6rs-identifier-lexer-table r6rs-number-lexer-table
+    r6rs-lexer-table make-token-lexer table comments sharpbang blanks
 
-    read-character read-identifier read-number
-    read-string read-string*
-    read-nested-comment read-nested-comment*
-    read-line-comment
+    r6rs-nested-comment-lexer-table	r6rs-line-comment-lexer-table
+    r6rs-string-lexer-table		r6rs-character-lexer-table
+    r6rs-identifier-lexer-table		r6rs-number-lexer-table
 
-    make-token-lexer make-token-lexer*)
+    read-character			read-identifier
+    read-number				read-line-comment
+    read-string				read-string*
+    read-nested-comment			read-nested-comment*)
   (import (nausicaa)
     (nausicaa r6rs lexer-table)
     (nausicaa r6rs nested-comment-lexer-table)
@@ -52,6 +51,73 @@
     (nausicaa silex lexer))
 
 
+;;;; lexer thunk makers
+
+(define-auxiliary-syntaxes
+  table
+  comments
+  sharpbang
+  blanks)
+
+(define-maker (make-token-lexer IS)
+  %make-token-lexer
+  ((table	r6rs-lexer-table)
+   (comments	#f)
+   (sharpbang	#f)
+   (blanks	#f)))
+
+(define (%make-token-lexer IS lexer-table comments? sharpbang? blanks?)
+  ;;This is  a full R6RS lexer  function maker.  Given  an input system,
+  ;;return  a lexer  function producing  tokens.  The  boolean arguments
+  ;;allow the selection of tokens to discard.
+  ;;
+  ;;If COMMENTS?  is true: discard tokens with  category LINECOMMENT and
+  ;;the   result   of   calling   the   function   referenced   by   the
+  ;;NESTED-COMMENT-TOKEN-MAKER parameter  used to read  nested comments.
+  ;;The default value is false.
+  ;;
+  ;;If SHARPBANG?  is false:  discard tokens with category SHARPBANGR6RS
+  ;;and SHARPBANG.  The default value is false.
+  ;;
+  ;;If BLANKS?   is false: discard  tokens with category  WHITESPACE and
+  ;;LINEENDING.  The default value is false.
+  ;;
+  ;;Notice that the sharp-semicolon token is still returned by the lexer
+  ;;thunk: it is impossible to discard datums at the lexer level, it has
+  ;;to be done by the parser.
+  ;;
+  (let ((lexer (lexer-make-lexer lexer-table IS)))
+    (lambda ()
+      (let next (((T <lexical-token>) (lexer)))
+	(define (%string-token)
+	  (let ((S (read-string* IS)))
+	    (if (string? S)
+		((string-token-maker) (lexer-get-func-getc IS) (lexer-get-func-ungetc IS)
+		 S T.location.line T.location.column T.location.offset)
+	      S)))
+	(define (%nested-comment-token)
+	  (let ((S (read-nested-comment* IS)))
+	    (if (string? S)
+		((nested-comment-token-maker) (lexer-get-func-getc IS) (lexer-get-func-ungetc IS)
+		 S T.location.line T.location.column T.location.offset)
+	      S)))
+	(cond (T.special? T)
+	      ((eq? T.category 'DOUBLEQUOTE)
+	       (%string-token))
+	      ((memq T.category '(WHITESPACE LINEENDING))
+	       (if blanks? T (next (lexer))))
+	      ((memq T.category '(SHARPBANGR6RS SHARPBANG))
+	       (if sharpbang? T (next (lexer))))
+	      ((eq? T.category 'LINECOMMENT)
+	       (if comments? T (next (lexer))))
+	      ((eq? T.category 'ONESTEDCOMMENT)
+	       (let ((T (%nested-comment-token)))
+		 (if comments? T (next (lexer)))))
+	      (else T))))))
+
+
+;;;; reading strings
+
 (define (read-string IS)
   ;;Given  an input  system  from  which a  double  quote character  has
   ;;already  been consumed,  read  characters composing  an R6RS  string
@@ -84,6 +150,33 @@
 	     (display T port)
 	     (next (lexer)))))))
 
+(define (read-string* IS)
+  ;;Like READ-STRING but do not raise exceptions.  Given an input system
+  ;;from which a double quote  character has already been consumed, read
+  ;;characters composing  an R6RS string  stopping at the  ending double
+  ;;quote.  Return the Scheme string.
+  ;;
+  ;;If an  error occurs reading the  string: return the  return value of
+  ;;the function referenced  by the parameter LEXICAL-ERROR-TOKEN-MAKER,
+  ;;which must be a <lexical-token> having *lexer-error* as category.
+  ;;
+  ;;If the end  of input is found reading the  string: return the return
+  ;;value of  the function referenced by  the parameter EOF-TOKEN-MAKER,
+  ;;which must be a <lexical-token> having *eoi* as category.
+  ;;
+  (let-values (((port getter)	(open-string-output-port))
+	       ((lexer)		(lexer-make-lexer r6rs-string-lexer-table IS)))
+    (let next (((T <lexical-token>) (lexer)))
+      (cond (T.end-of-input?	T)
+	    (T.lexer-error?	T)
+	    ((eq? T 'STRING)	(getter))
+	    (else
+	     (display T port)
+	     (next (lexer)))))))
+
+
+;;;; reading characters
+
 (define (read-character IS)
   ;;Given an input system, read  a single character datum compliant with
   ;;R6RS.  Return the Scheme character.
@@ -109,6 +202,9 @@
 	  (T.lexer-error?
 	   (%error "lexical violation while reading character"))
 	  (else T))))
+
+
+;;;; reading identifiers
 
 (define (read-identifier IS)
   ;;Given an input system, read an identifier datum compliant with R6RS.
@@ -136,6 +232,9 @@
 	   (%error "lexical violation while reading identifier"))
 	  (else T))))
 
+
+;;;; reading numbers
+
 (define (read-number IS)
   ;;Given  an input  system, read  a number  datum compliant  with R6RS.
   ;;Return the Scheme number.
@@ -160,6 +259,9 @@
 	  (T.lexer-error?
 	   (%error "lexical violation while reading number"))
 	  (else T))))
+
+
+;;;; reading nested comments
 
 (define (read-nested-comment IS)
   ;;Given  an input  system from  which the  opening sequence  of nested
@@ -206,124 +308,6 @@
 	     (display T port)
 	     (next (lexer)))))))
 
-(define (read-line-comment IS)
-  ;;Given  an  input system,  read  characters  composing  an R6RS  line
-  ;;comment.  Return the string representing the comment.
-  ;;
-  ;;If an error  occurs reading the line comment:  a condition object is
-  ;;raised  with components  &lexical, &message,  &who,  &irritants; the
-  ;;single value  in the &irritants list  is the string  that caused the
-  ;;error.
-  ;;
-  ;;If  end of  input is  found reading  the line  comment:  a condition
-  ;;object   is  raised  with   components  &lexical,   &message,  &who,
-  ;;&irritants.   The single  value in  the  irritants list  is the  EOF
-  ;;object.
-  ;;
-  (let (((T <lexical-token>) ((lexer-make-lexer r6rs-line-comment-lexer-table IS))))
-    (define (%error message)
-      (raise
-       (condition (make-lexical-violation)
-		  (make-message-condition message)
-		  (make-who-condition 'read-line-comment)
-		  (make-irritants-condition (list T.value)))))
-    (cond (T.end-of-input?
-	   (%error "end of input found while reading line comment"))
-	  (T.lexer-error?
-	   (%error "lexical violation while reading line comment"))
-	  (else T))))
-
-
-(define make-token-lexer
-  ;;This is  a full R6RS lexer  function maker.  Given  an input system,
-  ;;return a  lexer function  producing tokens.  Discard  WHITESPACE and
-  ;;LINEENDING tokens.
-  ;;
-  (case-lambda
-   ((IS)
-    (make-token-lexer IS r6rs-lexer-table))
-   ((IS lexer-table)
-    (let ((lexer (lexer-make-lexer lexer-table IS)))
-      (lambda ()
-	(let next (((T <lexical-token>) (lexer)))
-	  (define (%string-token)
-	    (let ((S (read-string* IS)))
-	      (if (string? S)
-		  ((string-token-maker) (lexer-get-func-getc IS) (lexer-get-func-ungetc IS)
-		   S T.location.line T.location.column T.location.offset)
-		S)))
-	  (define (%nested-comment-token)
-	    (let ((S (read-nested-comment* IS)))
-	      (if (string? S)
-		  ((nested-comment-token-maker) (lexer-get-func-getc IS) (lexer-get-func-ungetc IS)
-		   S T.location.line T.location.column T.location.offset)
-		S)))
-	  (cond (T.special? T)
-		((eq? T.category 'WHITESPACE)
-		 (next (lexer)))
-                ((eq? T.category 'LINEENDING)
-                 (next (lexer)))
-		((eq? T.category 'DOUBLEQUOTE)
-		 (%string-token))
-		((eq? T.category 'ONESTEDCOMMENT)
-		 (%nested-comment-token))
-		(else T))))))))
-
-(define make-token-lexer*
-  ;;Like MAKE-TOKEN-LEXER*  but do not  discard blanks.  This is  a full
-  ;;R6RS lexer  function maker.  Given  an input system, return  a lexer
-  ;;function producing tokens.
-  ;;
-  (case-lambda
-   ((IS)
-    (make-token-lexer* IS r6rs-lexer-table))
-   ((IS lexer-table)
-    (let ((lexer (lexer-make-lexer lexer-table IS)))
-      (lambda ()
-	(let next (((T <lexical-token>) (lexer)))
-	  (define (%string-token)
-	    (let ((S (read-string* IS)))
-	      (if (string? S)
-		  ((string-token-maker) (lexer-get-func-getc IS) (lexer-get-func-ungetc IS)
-		   S T.location.line T.location.column T.location.offset)
-		S)))
-	  (define (%nested-comment-token)
-	    (let ((S (read-nested-comment* IS)))
-	      (if (string? S)
-		  ((nested-comment-token-maker) (lexer-get-func-getc IS) (lexer-get-func-ungetc IS)
-		   S T.location.line T.location.column T.location.offset)
-		S)))
-	  (cond (T.special? T)
-		((eq? T.category 'DOUBLEQUOTE)
-		 (%string-token))
-		((eq? T.category 'ONESTEDCOMMENT)
-		 (%nested-comment-token))
-		(else T))))))))
-
-(define (read-string* IS)
-  ;;Like READ-STRING but do not raise exceptions.  Given an input system
-  ;;from which a double quote  character has already been consumed, read
-  ;;characters composing  an R6RS string  stopping at the  ending double
-  ;;quote.  Return the Scheme string.
-  ;;
-  ;;If an  error occurs reading the  string: return the  return value of
-  ;;the function referenced  by the parameter LEXICAL-ERROR-TOKEN-MAKER,
-  ;;which must be a <lexical-token> having *lexer-error* as category.
-  ;;
-  ;;If the end  of input is found reading the  string: return the return
-  ;;value of  the function referenced by  the parameter EOF-TOKEN-MAKER,
-  ;;which must be a <lexical-token> having *eoi* as category.
-  ;;
-  (let-values (((port getter)	(open-string-output-port))
-	       ((lexer)		(lexer-make-lexer r6rs-string-lexer-table IS)))
-    (let next (((T <lexical-token>) (lexer)))
-      (cond (T.end-of-input?	T)
-	    (T.lexer-error?	T)
-	    ((eq? T 'STRING)	(getter))
-	    (else
-	     (display T port)
-	     (next (lexer)))))))
-
 (define (read-nested-comment* IS)
   ;;Like  READ-NESTED-COMMENT but  do  not raise  exceptions.  Given  an
   ;;input system from which the opening sequence of nested comments "#|"
@@ -359,6 +343,36 @@
 	    (else
 	     (display T port)
 	     (next (lexer)))))))
+
+
+;;;; reading line comments
+
+(define (read-line-comment IS)
+  ;;Given  an  input system,  read  characters  composing  an R6RS  line
+  ;;comment.  Return the string representing the comment.
+  ;;
+  ;;If an error  occurs reading the line comment:  a condition object is
+  ;;raised  with components  &lexical, &message,  &who,  &irritants; the
+  ;;single value  in the &irritants list  is the string  that caused the
+  ;;error.
+  ;;
+  ;;If  end of  input is  found reading  the line  comment:  a condition
+  ;;object   is  raised  with   components  &lexical,   &message,  &who,
+  ;;&irritants.   The single  value in  the  irritants list  is the  EOF
+  ;;object.
+  ;;
+  (let (((T <lexical-token>) ((lexer-make-lexer r6rs-line-comment-lexer-table IS))))
+    (define (%error message)
+      (raise
+       (condition (make-lexical-violation)
+		  (make-message-condition message)
+		  (make-who-condition 'read-line-comment)
+		  (make-irritants-condition (list T.value)))))
+    (cond (T.end-of-input?
+	   (%error "end of input found while reading line comment"))
+	  (T.lexer-error?
+	   (%error "lexical violation while reading line comment"))
+	  (else T))))
 
 
 ;;;; done

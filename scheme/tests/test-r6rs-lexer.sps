@@ -32,7 +32,7 @@
   (nausicaa silex lexer)
   (nausicaa parser-tools lexical-token)
   (nausicaa parser-tools source-location)
-  (nausicaa r6rs lexer)
+  (prefix (nausicaa r6rs lexer) r6.)
   (nausicaa r6rs lexeme-processing)
   (nausicaa checks))
 
@@ -98,7 +98,7 @@
 
   (define (tokenise string)
     (let* ((IS		(lexer-make-IS (string: string) (counters: 'all)))
-	   (lexer	(lexer-make-lexer r6rs-string-lexer-table IS))
+	   (lexer	(lexer-make-lexer r6.r6rs-string-lexer-table IS))
 	   (result	'()))
       (do (((T <lexical-token>) (lexer) (lexer)))
 	  (T.special?
@@ -277,7 +277,7 @@ bc" STRING *eoi*))
 (parametrise ((check-test-name	'string-reader))
 
   (define (parse string)
-    (read-string (lexer-make-IS (string: string) (counters: 'all))))
+    (r6.read-string (lexer-make-IS (string: string) (counters: 'all))))
 
 ;;; All the test strings must end with a double-quote char.
 
@@ -455,7 +455,7 @@ mamma\"")
 
   (define (tokenise string)
     (let* ((IS		(lexer-make-IS (string: string) (counters: 'all)))
-	   (lexer	(lexer-make-lexer r6rs-nested-comment-lexer-table IS))
+	   (lexer	(lexer-make-lexer r6.r6rs-nested-comment-lexer-table IS))
 	   (result	'()))
       (do (((T <lexical-token>) (lexer) (lexer)))
 	  (T.special?
@@ -495,7 +495,7 @@ mamma\"")
 (parametrise ((check-test-name	'nested-comment-reader))
 
   (define (parse string)
-    (read-nested-comment (lexer-make-IS (string: string) (counters: 'all))))
+    (r6.read-nested-comment (lexer-make-IS (string: string) (counters: 'all))))
 
   (define-syntax identity
     (syntax-rules ()
@@ -532,7 +532,7 @@ mamma\"")
 
   (define (tokenise string)
     (let* ((IS		(lexer-make-IS (string: string) (counters: 'all)))
-	   (lexer	(lexer-make-lexer r6rs-line-comment-lexer-table IS))
+	   (lexer	(lexer-make-lexer r6.r6rs-line-comment-lexer-table IS))
 	   (result	'()))
       (do (((T <lexical-token>) (lexer) (lexer)))
 	  (T.special?
@@ -574,7 +574,7 @@ mamma\"")
 (parametrise ((check-test-name	'line-comment-reader))
 
   (define (parse string)
-    (read-line-comment (lexer-make-IS (string: string) (counters: 'all))))
+    (r6.read-line-comment (lexer-make-IS (string: string) (counters: 'all))))
 
   (define-syntax identity
     (syntax-rules ()
@@ -604,7 +604,7 @@ mamma\"")
 
   (define (tokenise string)
     (let* ((IS		(lexer-make-IS (string: string) (counters: 'all)))
-	   (lexer	(lexer-make-lexer r6rs-character-lexer-table IS))
+	   (lexer	(lexer-make-lexer r6.r6rs-character-lexer-table IS))
 	   (result	'()))
       (do (((T <lexical-token>) (lexer) (lexer)))
 	  (T.special?
@@ -713,7 +713,7 @@ mamma\"")
 (parametrise ((check-test-name	'character-reader))
 
   (define (parse string)
-    (read-character (lexer-make-IS (string: string) (counters: 'all))))
+    (r6.read-character (lexer-make-IS (string: string) (counters: 'all))))
 
   (check
       (parse "#\\1")
@@ -821,7 +821,7 @@ mamma\"")
 
   (define (tokenise string)
     (let* ((IS		(lexer-make-IS (string: string) (counters: 'all)))
-	   (lexer	(lexer-make-lexer r6rs-identifier-lexer-table IS))
+	   (lexer	(lexer-make-lexer r6.r6rs-identifier-lexer-table IS))
 	   (result	'()))
       (do (((T <lexical-token>) (lexer) (lexer)))
 	  (T.special?
@@ -915,7 +915,7 @@ mamma\"")
 (parametrise ((check-test-name	'identifier-reader))
 
   (define (parse string)
-    (read-identifier (lexer-make-IS (string: string) (counters: 'all))))
+    (r6.read-identifier (lexer-make-IS (string: string) (counters: 'all))))
 
   (check
       (parse "c")
@@ -1014,7 +1014,7 @@ mamma\"")
 
   (define (tokenise string)
     (let* ((IS		(lexer-make-IS (string: string) (counters: 'all)))
-	   (lexer	(lexer-make-lexer r6rs-number-lexer-table IS))
+	   (lexer	(lexer-make-lexer r6.r6rs-number-lexer-table IS))
 	   (result	'()))
       (do (((T <lexical-token>) (lexer) (lexer)))
 	  (T.special?
@@ -1046,7 +1046,7 @@ mamma\"")
 (parametrise ((check-test-name	'number-reader))
 
   (define (parse string)
-    (read-number (lexer-make-IS (string: string) (counters: 'all))))
+    (r6.read-number (lexer-make-IS (string: string) (counters: 'all))))
 
   (define (generated-tests)
     ;;DO NOT TRY TO CONVERT THIS FUNCTION TO A MACRO!!!  I already tried
@@ -1363,7 +1363,7 @@ mamma\"")
 
   (define (tokenise string)
     (let* ((IS		(lexer-make-IS (string: string) (counters: 'all)))
-	   (lexer	(lexer-make-lexer r6rs-lexer-table IS))
+	   (lexer	(lexer-make-lexer r6.r6rs-lexer-table IS))
 	   (result	'()))
       (do (((T <lexical-token>) (lexer) (lexer)))
 	  (T.special?
@@ -1455,7 +1455,7 @@ mamma\"")
 
   (define (tokenise string)
     (let* ((IS		(lexer-make-IS (string: string) (counters: 'all)))
-	   (lexer	(lexer-make-lexer r6rs-lexer-table IS))
+	   (lexer	(lexer-make-lexer r6.r6rs-lexer-table IS))
 	   (result	'()))
       (do (((T <lexical-token>) (lexer) (lexer)))
 	  (T.special?
@@ -1559,7 +1559,7 @@ mamma\"")
 
   (define (tokenise string)
     (let* ((IS		(lexer-make-IS (string: string) (counters: 'all)))
-	   (lexer	(lexer-make-lexer r6rs-lexer-table IS))
+	   (lexer	(lexer-make-lexer r6.r6rs-lexer-table IS))
 	   (result	'()))
       (do (((T <lexical-token>) (lexer) (lexer)))
 	  (T.special?
@@ -1840,7 +1840,7 @@ mamma\"")
 
   (define (tokenise string)
     (let* ((IS		(lexer-make-IS (string: string) (counters: 'all)))
-	   (lexer	(lexer-make-lexer r6rs-lexer-table IS))
+	   (lexer	(lexer-make-lexer r6.r6rs-lexer-table IS))
 	   (result	'()))
       (do (((T <lexical-token>) (lexer) (lexer)))
 	  (T.special?
@@ -1882,7 +1882,7 @@ mamma\"")
 
   (define (tokenise string)
     (let* ((IS		(lexer-make-IS (string: string) (counters: 'all)))
-	   (lexer	(lexer-make-lexer r6rs-lexer-table IS))
+	   (lexer	(lexer-make-lexer r6.r6rs-lexer-table IS))
 	   (result	'()))
       (do (((T <lexical-token>) (lexer) (lexer)))
 	  (T.special?
@@ -1935,12 +1935,72 @@ mamma\"")
   #t)
 
 
-(parametrise ((check-test-name	'full-lexer-misc)
+(parametrise ((check-test-name	'full-lexer-discard-misc)
 	      (debugging	#f))
+
+;;;Use the lexer that discards blanks and comments.
 
   (define (tokenise string)
     (let* ((IS		(lexer-make-IS (string: string) (counters: 'all)))
-	   (lexer	(make-token-lexer IS)))
+	   (lexer	(r6.make-token-lexer IS)))
+      (let next (((T <lexical-token>)	(lexer))
+		 (result		'()))
+	(cond (T.lexer-error?
+	       (reverse `((,T.category ,T.value) . ,result)))
+	      (T.end-of-input?
+	       (reverse `(*eoi* . ,result)))
+	      (else
+	       (next (lexer) `((,T.category ,T.value) . ,result)))))))
+
+;;; --------------------------------------------------------------------
+
+  (check (tokenise "#t") => '((BOOLEAN #t) *eoi*))
+  (check (tokenise "#T") => '((BOOLEAN #t) *eoi*))
+  (check (tokenise "#f") => '((BOOLEAN #f) *eoi*))
+  (check (tokenise "#F") => '((BOOLEAN #f) *eoi*))
+
+  (check (tokenise "#t(") => '((BOOLEAN #t) (OPAREN #\() *eoi*))
+  (check (tokenise "#f(") => '((BOOLEAN #f) (OPAREN #\() *eoi*))
+  (check (tokenise "#t)") => '((BOOLEAN #t) (CPAREN #\)) *eoi*))
+  (check (tokenise "#f)") => '((BOOLEAN #f) (CPAREN #\)) *eoi*))
+
+  (test-lexical-error tokenise "#tciao")
+  (test-lexical-error tokenise "#fciao")
+
+;;; --------------------------------------------------------------------
+
+  (check (tokenise "(")		=> '((OPAREN		#\() *eoi*))
+  (check (tokenise ")")		=> '((CPAREN		#\)) *eoi*))
+  (check (tokenise "[")		=> '((OBRACKET		#\[) *eoi*))
+  (check (tokenise "]")		=> '((CBRACKET		#\]) *eoi*))
+  (check (tokenise "'")		=> '((TICK		#\') *eoi*))
+  (check (tokenise "`")		=> '((BACKTICK		#\`) *eoi*))
+  (check (tokenise ",")		=> '((COMMA		#\,) *eoi*))
+  (check (tokenise ",@")	=> '((COMMAAT		",@") *eoi*))
+  (check (tokenise ".")		=> '((DOT		#\.) *eoi*))
+  (check (tokenise "#(")	=> '((SHARPPAREN	"#(") *eoi*))
+  (check (tokenise "#vu8(")	=> '((SHARPVU8PAREN	"#vu8(") *eoi*))
+  (check (tokenise "#'")	=> '((SHARPTICK		"#'") *eoi*))
+  (check (tokenise "#`")	=> '((SHARPBACKTICK	"#`") *eoi*))
+  (check (tokenise "#,")	=> '((SHARPCOMMA	"#,") *eoi*))
+  (check (tokenise "#,@")	=> '((SHARPCOMMAAT	"#,@") *eoi*))
+  (check (tokenise "#;")	=> '((SHARPSEMICOLON	"#;") *eoi*))
+
+  ;; try discarded tokesn
+  (check (tokenise "#!r6rs")	=> '(*eoi*))
+  (check (tokenise "#!ciao")	=> '(*eoi*))
+
+  #t)
+
+
+(parametrise ((check-test-name	'full-lexer-no-discard-misc)
+	      (debugging	#f))
+
+;;;Use the lexer that DOES NOT discard blanks and comments.
+
+  (define (tokenise string)
+    (let* ((IS		(lexer-make-IS (string: string) (counters: 'all)))
+	   (lexer	(r6.make-token-lexer IS (r6.comments #t) (r6.blanks #t) (r6.sharpbang #t))))
       (let next (((T <lexical-token>)	(lexer))
 		 (result		'()))
 	(cond (T.lexer-error?
@@ -1990,12 +2050,14 @@ mamma\"")
   #t)
 
 
-(parametrise ((check-test-name	'full-sexp)
+(parametrise ((check-test-name	'full-lexer-discard-sexp)
 	      (debugging	#f))
+
+;;;Use the lexer that discards blanks and comments.
 
   (define (tokenise string)
     (let* ((IS		(lexer-make-IS (string: string) (counters: 'all)))
-	   (lexer	(make-token-lexer IS)))
+	   (lexer	(r6.make-token-lexer IS)))
       (let next (((T <lexical-token>)	(lexer))
 		 (result		'()))
 	(cond (T.lexer-error?
@@ -2047,7 +2109,6 @@ mamma\"")
   (check
       (tokenise "ciao#| per la |#mamma")
     => '((IDENTIFIER "ciao")
-	 (NESTED-COMMENT "#| per la |#")
 	 (IDENTIFIER "mamma")
 	 *eoi*))
 
@@ -2123,14 +2184,14 @@ mamma\"")
   #t)
 
 
-(parametrise ((check-test-name	'full-sexp-no-discard)
+(parametrise ((check-test-name	'full-sexp-no-discard-sexp)
 	      (debugging	#f))
 
-;;;use a lexer thunk which does not discard blanks
+;;;Use the lexer that DOES NOT discard blanks and comments.
 
   (define (tokenise string)
     (let* ((IS		(lexer-make-IS (string: string) (counters: 'all)))
-	   (lexer	(make-token-lexer* IS)))
+	   (lexer	(r6.make-token-lexer IS (r6.comments #t) (r6.blanks #t) (r6.sharpbang #t))))
       (let next (((T <lexical-token>)	(lexer))
 		 (result		'()))
 	(cond (T.lexer-error?
@@ -2141,19 +2202,6 @@ mamma\"")
 	       (next (lexer) `((,T.category ,T.value) . ,result)))))))
 
 ;;; --------------------------------------------------------------------
-
-  (check
-      (tokenise "( \"ciao\" ciao 123 )")
-    => '((OPAREN #\()
-	 (WHITESPACE " ")
-	 (STRING "ciao")
-	 (WHITESPACE " ")
-	 (IDENTIFIER "ciao")
-	 (WHITESPACE " ")
-	 (NUMBER 123)
-	 (WHITESPACE " ")
-	 (CPAREN #\))
-	 *eoi*))
 
   (check
       (tokenise "(\"ciao\"ciao)")
