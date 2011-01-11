@@ -131,7 +131,11 @@
 			  SHARPBANGR6RS		SHARPBANG))
 
  (lalr.rules:
-  '((datum
+  '((datums
+     (*eoi*)			: '()
+     (datum datums)		: (cons $1 $2))
+
+    (datum
      (identifier)		: $1
      (boolean)			: $1
      (number)			: $1
@@ -177,9 +181,11 @@
      (OBRACKET bracket-list-tail)	: ((list-datum-maker) yypushback yycustom $2))
     (paren-list-tail
      (CPAREN)				: '()
+     (datum DOT datum CPAREN)		: (cons $1 $3)
      (datum paren-list-tail)		: (cons $1 $2))
     (bracket-list-tail
      (CBRACKET)				: '()
+     (datum DOT datum CBRACKET)		: (cons $1 $3)
      (datum bracket-list-tail)		: (cons $1 $2))
 
     (vector
@@ -237,7 +243,8 @@
      (SHARPBANGR6RS)			: ((sharp-bang-r6rs-datum-maker) yypushback yycustom $1)
      (SHARPBANG)			: ((sharp-bang-datum-maker)      yypushback yycustom $1)
      (SHARPSEMICOLON
-      interlexeme-space datum)		: ((sharp-semicolon-datum-maker) yypushback yycustom $3))
+      interlexeme-space datum)		: ((sharp-semicolon-datum-maker) yypushback yycustom $3)
+     (SHARPSEMICOLON datum)		: ((sharp-semicolon-datum-maker) yypushback yycustom $2))
 
 ;;; --------------------------------------------------------------------
 

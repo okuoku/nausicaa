@@ -55,6 +55,7 @@
     sharp-bang-datum-maker		make-sharp-bang-datum
     sharp-bang-r6rs-datum-maker		make-sharp-bang-r6rs-datum)
   (import (nausicaa)
+    (nausicaa language sentinel)
     (nausicaa parser-tools lexical-token)
     (nausicaa parser-tools source-location)
     (prefix (nausicaa r6rs fixed-strings) string.))
@@ -108,7 +109,7 @@
   (list 'quote datum))
 
 (define (make-quasiquoted-datum yypushback yycustom datum)
-  (list 'quasiquoted datum))
+  (list 'quasiquote datum))
 
 (define (make-unquoted-datum yypushback yycustom datum)
   (list 'unquote datum))
@@ -145,7 +146,7 @@
   the-comment-string)
 
 (define (make-sharp-semicolon-datum yypushback yycustom the-datum)
-  string.sharp-bang-r6rs)
+  sentinel)
 
 (define (make-sharp-bang-datum yypushback yycustom the-sharp-bang-string)
   the-sharp-bang-string)

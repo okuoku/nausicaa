@@ -246,7 +246,7 @@
   (make* <lexical-token> 'STRING (input-source) yytext (string-length yytext)))
 
 (define (make-nested-comment-token yygetc yyungetc yytext yyline yycolumn yyoffset)
-  (make* <lexical-token> 'NESTED-COMMENT (input-source) yytext (string-length yytext)))
+  (make* <lexical-token> 'NESTEDCOMMENT (input-source) yytext (string-length yytext)))
 
 
 ;;;; token maker parameters

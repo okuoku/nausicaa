@@ -4,7 +4,14 @@
 
 The libraries under the @library{nausicaa r6rs ---} hierarchy provide
 tools to manipulate Scheme source code compliant with the @rnrs{6}
-standard.
+standard.  It is suggested to import the libraries in this hiearchy with
+the prefix @code{r6.}:
+
+@example
+(import ---
+  (prefix (nausicaa r6rs lexer)  r6.)
+  (prefix (nausicaa r6rs parser) r6.))
+@end example
 
 @menu
 * r6rs lexer::                  Tokenising @rnrs{6} source code.
@@ -112,8 +119,10 @@ Here is how to test the lexer function maker:
   (prefix (nausicaa r6rs lexer) r6.)
   (nausicaa silex lexer)
   (nausicaa silex lexeme-processing)
-  (nausicaa parser-tools lexical-token)
-  (nausicaa parser-tools source-location))
+  (only (nausicaa parser-tools lexical-token)
+        <lexical-token>)
+  (only (nausicaa parser-tools source-location)
+        <source-location>))
 
 (define (tokenise string)
   (let* ((IS     (lexer-make-IS (string: string)

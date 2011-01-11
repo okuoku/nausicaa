@@ -34,7 +34,11 @@ CLOSE			\|#
 ;;Note that  we cannot  define the following  pattern as .+  because its
 ;;match would be  longer than the two-characters #|  and |#; SILex gives
 ;;precedence to the longest match.
-CHAR			.
+;;
+;;Note that the dot matches  all the characters except the newline; also
+;;the dot cannot be used in the [...] regex.
+;;
+CHAR			.|\10
 
 %%
 

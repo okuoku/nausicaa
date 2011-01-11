@@ -30,8 +30,8 @@
 #!r6rs
 (import (nausicaa)
   (nausicaa silex lexer)
-  (nausicaa parser-tools lexical-token)
-  (nausicaa parser-tools source-location)
+  (only (nausicaa parser-tools lexical-token) <lexical-token>)
+  (only (nausicaa parser-tools source-location) <source-location>)
   (prefix (nausicaa r6rs lexer) r6.)
   (nausicaa r6rs lexeme-processing)
   (nausicaa checks))
@@ -480,6 +480,10 @@ mamma\"")
   (check
       (tokenise "#|ciao|#")
     => '(OPEN #\c #\i #\a #\o CLOSE *eoi*))
+
+  (check
+      (tokenise "#|ciao\nmamma|#")
+    => '(OPEN #\c #\i #\a #\o #\newline #\m #\a #\m #\m #\a CLOSE *eoi*))
 
   (check
       (tokenise "#|#|#|#|")
@@ -2238,7 +2242,7 @@ mamma\"")
   (check
       (tokenise "ciao#| per la |#mamma")
     => '((IDENTIFIER "ciao")
-	 (NESTED-COMMENT "#| per la |#")
+	 (NESTEDCOMMENT "#| per la |#")
 	 (IDENTIFIER "mamma")
 	 *eoi*))
 

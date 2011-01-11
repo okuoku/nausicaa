@@ -28,8 +28,8 @@
 #!r6rs
 (import (nausicaa)
   (nausicaa silex lexer)
-  (nausicaa parser-tools lexical-token)
-  (nausicaa parser-tools source-location)
+  (only (nausicaa parser-tools lexical-token) <lexical-token>)
+  (only (nausicaa parser-tools source-location) <source-location>)
   (prefix (nausicaa r6rs lexer) r6.)
   (prefix (nausicaa r6rs parser) r6.)
   (nausicaa checks))
@@ -57,31 +57,31 @@
 
   (check
       (parse "ciao")
-    => 'ciao)
+    => '(ciao))
 
   (check
       (parse "\"ciao\"")
-    => "ciao")
+    => '("ciao"))
 
   (check
       (parse "123")
-    => 123)
+    => '(123))
 
   (check
       (parse "#t")
-    => #t)
+    => '(#t))
 
   (check
       (parse "#f")
-    => #f)
+    => '(#f))
 
   (check
       (parse "#\\newline")
-    => #\newline)
+    => '(#\newline))
 
   (check
       (parse "#\\A")
-    => #\A)
+    => '(#\A))
 
   #t)
 
@@ -109,73 +109,73 @@
 
   (check
       (parse "(1 . 2)")
-    => '(1 . 2))
+    => '((1 . 2)))
 
   (check
       (parse "(ciao . \"mamma\")")
-    => '(ciao . "mamma"))
+    => '((ciao . "mamma")))
 
   (check
       (parse "[1 . 2]")
-    => '[1 . 2])
+    => '([1 . 2]))
 
   (check
       (parse "(ciao . \"mamma\")")
-    => '[ciao . "mamma"])
+    => '([ciao . "mamma"]))
 
 ;;; --------------------------------------------------------------------
 ;;; lists
 
   (check
       (parse "()")
-    => '())
+    => '(()))
 
   (check
       (parse "(#t)")
-    => '(#t))
+    => '((#t)))
 
   (check
       (parse "(1 2 3)")
-    => '(1 2 3))
+    => '((1 2 3)))
 
   (check
       (parse "(ciao \"mamma\" #\\A)")
-    => '(ciao "mamma" #\A))
+    => '((ciao "mamma" #\A)))
 
   (check
       (parse "[]")
-    => '())
+    => '(()))
 
   (check
       (parse "[#t]")
-    => '(#t))
+    => '((#t)))
 
   (check
       (parse "[1 2 3]")
-    => '(1 2 3))
+    => '((1 2 3)))
 
   (check
       (parse "[ciao \"mamma\" #\\A]")
-    => '(ciao "mamma" #\A))
+    => '((ciao "mamma" #\A)))
 
 ;;; --------------------------------------------------------------------
 ;;; vectors
 
   (check
       (parse "#()")
-    => '#())
+    => '(#()))
 
   (check
       (parse "#(#t)")
-    => '#(#t))
+    => '(#(#t)))
 
   (check
       (parse "#(1 2 3)")
-    => '#(1 2 3))
+    => '(#(1 2 3)))
 
   (check
       (parse "#(ciao \"mamma\" #\\A)")
-    => '#(ciao "mamma" #\A))
+    => '(#(ciao "mamma" #\A)))
 
 ;;; --------------------------------------------------------------------
 ;;; bytevectors
@@ -185,15 +185,15 @@
 
   (check
       (parse "#vu8()")
-    => '#vu8())
+    => '(#vu8()))
 
   (check
       (parse "#vu8(1)")
-    => '#vu8(1))
+    => '(#vu8(1)))
 
   (check
       (parse "#vu8(1 2 3)")
-    => '#vu8(1 2 3))
+    => '(#vu8(1 2 3)))
 
   (check
       (guard (E ((lexical-violation? E)
@@ -231,15 +231,15 @@
 
   (check
       (parse "'1")
-    => '(quote 1))
+    => '((quote 1)))
 
   (check
       (parse "'()")
-    => '(quote ()))
+    => '((quote ())))
 
   (check
       (parse "'(1 . 2)")
-    => '(quote (1 . 2)))
+    => '((quote (1 . 2))))
 
   #t)
 
@@ -309,24 +309,25 @@
 ;;; --------------------------------------------------------------------
 ;;; comments
 
-;;Notice that we are using a lexer built by MAKE-TOKEN-LEXER* which does
-;;not discard WHITESPACE and LINENEDING tokens.
-
   (check	;single line comment
       (parse ";; ciao")
-    => '(";; ciao"))
+    => '((";; ciao")))
 
   (check	;multiple line comments
       (parse ";; ciao\n;; mamma\n;; sto bene")
-    => '(";; ciao\n" ";; mamma\n" ";; sto bene"))
+    => '((";; ciao\n" ";; mamma\n" ";; sto bene")))
 
   (check
       (parse "#!r6rs")
-    => '("#!r6rs"))
+    => '(("#!r6rs")))
 
   (check	;mixed sharpbangs
       (parse "#!r6rs #!ciao #!mamma")
-    => '("#!r6rs" "#!ciao" "#!mamma"))
+    => '(("#!r6rs" "#!ciao" "#!mamma")))
+
+  (check	;nested comment
+      (parse "#| ciao\nmamma |#")
+    => '(("#| ciao\nmamma |#")))
 
   #t)
 

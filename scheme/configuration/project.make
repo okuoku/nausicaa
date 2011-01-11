@@ -7,7 +7,7 @@
 #
 #
 #
-# Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
+# Copyright (c) 2009, 2010, 2011 Marco Maggi <marco.maggi-ipsu@poste.it>
 #
 # This program is  free software: you can redistribute  it and/or modify
 # it under the  terms of the GNU General Public  License as published by
@@ -250,6 +250,22 @@ test-ypsilon-compat:
 
 test-compat: test-ypsilon-compat
 endif
+
+#page
+## --------------------------------------------------------------------
+## Special test rules.
+## --------------------------------------------------------------------
+
+.PHONY: vtest-r6rs-parser ptest-r6rs-parser mtest-r6rs-parser
+
+vtest-r6rs-parser:
+	$(nau_vtest_RUN) $(srcdir)/proofs/r6rs-parser.sps $(file)
+
+ptest-r6rs-parser:
+	$(nau_ptest_RUN) $(srcdir)/proofs/r6rs-parser.sps $(file)
+
+mtest-r6rs-parser:
+	$(nau_mtest_RUN) $(srcdir)/proofs/r6rs-parser.sps $(file)
 
 #page
 ## --------------------------------------------------------------------

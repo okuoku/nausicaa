@@ -4817,7 +4817,7 @@ and output port), @false{} otherwise.
 
 
 @deffn Procedure {flush-output-port} @var{output-port}
-Flushe any buffered output from the buffer of @var{output-port} to the
+Flushes any buffered output from the buffer of @var{output-port} to the
 underlying file, device, or object.  The @func{flush-output-port}
 procedure returns unspecified values.
 @end deffn
