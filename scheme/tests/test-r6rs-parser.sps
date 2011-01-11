@@ -32,6 +32,7 @@
   (only (nausicaa parser-tools source-location) <source-location>)
   (prefix (nausicaa r6rs lexer) r6.)
   (prefix (nausicaa r6rs parser) r6.)
+  (prefix (nausicaa r6rs datum-processing) r6.)
   (nausicaa checks))
 
 (check-set-mode! 'report-failed)
@@ -306,28 +307,35 @@
 	   (parser	(r6.make-r6rs-parser)))
       (parser lexer error-handler #f)))
 
+  (define (doit string)
+    (let ((L (parse string)))
+      (if (is-a? (car L) r6.<interlexeme-space>)
+	  (let (((T r6.<interlexeme-space>) (car L)))
+	    T.atmospheres)
+	L)))
+
 ;;; --------------------------------------------------------------------
 ;;; comments
 
   (check	;single line comment
-      (parse ";; ciao")
-    => '((";; ciao")))
+      (doit ";; ciao")
+    => '(";; ciao"))
 
   (check	;multiple line comments
-      (parse ";; ciao\n;; mamma\n;; sto bene")
-    => '((";; ciao\n" ";; mamma\n" ";; sto bene")))
+      (doit ";; ciao\n;; mamma\n;; sto bene")
+    => '(";; ciao\n" ";; mamma\n" ";; sto bene"))
 
   (check
-      (parse "#!r6rs")
-    => '(("#!r6rs")))
+      (doit "#!r6rs")
+    => '("#!r6rs"))
 
   (check	;mixed sharpbangs
-      (parse "#!r6rs #!ciao #!mamma")
-    => '(("#!r6rs" "#!ciao" "#!mamma")))
+      (doit "#!r6rs #!ciao #!mamma")
+    => '("#!r6rs" "#!ciao" "#!mamma"))
 
   (check	;nested comment
-      (parse "#| ciao\nmamma |#")
-    => '(("#| ciao\nmamma |#")))
+      (doit "#| ciao\nmamma |#")
+    => '("#| ciao\nmamma |#"))
 
   #t)
 

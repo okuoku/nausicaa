@@ -28,13 +28,15 @@
 #!r6rs
 (import (nausicaa)
   (rnrs eval)
-  (nausicaa language sentinel)
   (nausicaa formations)
   (nausicaa debugging)
   (nausicaa checks)
   (prefix (nausicaa silex lexer) lex.)
   (only (nausicaa parser-tools lexical-token) <lexical-token>)
   (only (nausicaa parser-tools source-location) <source-location>)
+  (only (nausicaa r6rs datum-processing)
+	<interlexeme-space>
+	remove-interlexeme-space)
   (prefix (nausicaa r6rs lexer)  r6.)
   (prefix (nausicaa r6rs parser) r6.))
 
@@ -388,32 +390,13 @@
 			(with
 			 (close-port port))))
 		(sexp2 (parse port)))
-	(let ((sexp2 (filter-sentinel sexp2)))
+	(let ((sexp2 (remove-interlexeme-space sexp2)))
 	  (when #f
 	    (pretty-print sexp1)
 	    (pretty-print sexp2))
 	  (same? sexp1 (car sexp2))
 	  (format #t "ok\n")
 	  )))))
-
-(define (filter-sentinel sexp)
-  (cond ((pair? sexp)
-	 (cond ((and (list? (car sexp))
-		     (= 1 (length (car sexp)))
-		     (sentinel? (caar sexp)))
-		(filter-sentinel (cdr sexp)))
-	       ((sentinel? (car sexp))
-		(filter-sentinel (cdr sexp)))
-	       (else
-		(cons (filter-sentinel (car sexp))
-		      (filter-sentinel (cdr sexp))))))
-	((vector? sexp)
-	 (list->vector (filter-sentinel (vector->list sexp))))
-	((sentinel? sexp);this  should happen only when  the sentinel is
-			 ;the tail of an improper list
-	 '())
-	(else
-	 sexp)))
 
 (parametrise ((debugging #f))
   (let ((cl (cdr (command-line))))

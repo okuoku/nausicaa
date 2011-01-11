@@ -227,24 +227,26 @@
 ;;; --------------------------------------------------------------------
 
     (interlexeme-space
-     (atmosphere)			: ((interlexeme-datum-maker) yypushback yycustom (list $1))
-     (atmosphere atmosphere-tail)	: ((interlexeme-datum-maker) yypushback yycustom (cons $1 $2)))
+     (atmosphere)		: ((interlexeme-space-datum-maker) yypushback yycustom (list $1))
+     (atmosphere
+      atmosphere-tail)		: ((interlexeme-space-datum-maker) yypushback yycustom (cons $1 $2)))
     (atmosphere
-     (WHITESPACE)			: ((whitespace-datum-maker) yypushback yycustom $1)
-     (LINEENDING)			: ((whitespace-datum-maker) yypushback yycustom $1)
-     (comment)				: $1)
+     (WHITESPACE)		: ((whitespace-datum-maker) yypushback yycustom $1)
+     (LINEENDING)		: ((whitespace-datum-maker) yypushback yycustom $1)
+     (comment)			: $1)
     (atmosphere-tail
-     (atmosphere)			: (list $1)
-     (atmosphere atmosphere-tail)	: (cons $1 $2))
+     (atmosphere)		: (list $1)
+     (atmosphere
+      atmosphere-tail)		: (cons $1 $2))
 
     (comment
-     (LINECOMMENT)			: ((line-comment-datum-maker)    yypushback yycustom $1)
-     (NESTEDCOMMENT)			: ((nested-comment-datum-maker)  yypushback yycustom $1)
-     (SHARPBANGR6RS)			: ((sharp-bang-r6rs-datum-maker) yypushback yycustom $1)
-     (SHARPBANG)			: ((sharp-bang-datum-maker)      yypushback yycustom $1)
+     (LINECOMMENT)		: ((line-comment-datum-maker)    yypushback yycustom $1)
+     (NESTEDCOMMENT)		: ((nested-comment-datum-maker)  yypushback yycustom $1)
+     (SHARPBANGR6RS)		: ((sharp-bang-r6rs-datum-maker) yypushback yycustom $1)
+     (SHARPBANG)		: ((sharp-bang-datum-maker)      yypushback yycustom $1)
      (SHARPSEMICOLON
-      interlexeme-space datum)		: ((sharp-semicolon-datum-maker) yypushback yycustom $3)
-     (SHARPSEMICOLON datum)		: ((sharp-semicolon-datum-maker) yypushback yycustom $2))
+      interlexeme-space datum)	: ((sharp-semicolon-datum-maker) yypushback yycustom $2 $3)
+     (SHARPSEMICOLON datum)	: ((sharp-semicolon-datum-maker) yypushback yycustom #f $2))
 
 ;;; --------------------------------------------------------------------
 

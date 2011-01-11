@@ -28,6 +28,9 @@
 #!r6rs
 (library (nausicaa r6rs datum-processing)
   (export
+    <commented-datum>			<interlexeme-space>
+    remove-interlexeme-space
+
     identifier-datum-maker		make-identifier-datum
     boolean-datum-maker			make-boolean-datum
     number-datum-maker			make-number-datum
@@ -47,7 +50,7 @@
     unsyntax-datum-maker		make-unsyntax-datum
     unsyntax-splicing-datum-maker	make-unsyntax-splicing-datum
 
-    interlexeme-datum-maker		make-interlexeme-datum
+    interlexeme-space-datum-maker	make-interlexeme-space-datum
     whitespace-datum-maker		make-whitespace-datum
     line-comment-datum-maker		make-line-comment-datum
     nested-comment-datum-maker		make-nested-comment-datum
@@ -59,6 +62,35 @@
     (nausicaa parser-tools lexical-token)
     (nausicaa parser-tools source-location)
     (prefix (nausicaa r6rs fixed-strings) string.))
+
+
+(define-class <commented-datum>
+  (nongenerative nausicaa:r6rs:<commented-datum>)
+  (fields
+   ;;false or <interlexeme-space> instance
+   (immutable interlexeme-space)
+   ;;any datum
+   (immutable datum)))
+
+(define-class <interlexeme-space>
+  (nongenerative nausicaa:r6rs:<interlexeme-space>)
+  (fields (immutable atmospheres)))
+
+(define (remove-interlexeme-space sexp)
+  (cond ((pair? sexp)
+	 (cond ((is-a? (car sexp) <interlexeme-space>)
+		(remove-interlexeme-space (cdr sexp)))
+	       (else
+		(cons (remove-interlexeme-space (car sexp))
+		      (remove-interlexeme-space (cdr sexp))))))
+	((vector? sexp)
+	 (list->vector (remove-interlexeme-space (vector->list sexp))))
+	;;This should  happen only when the  sentinel is the  tail of an
+	;;improper list.
+	((is-a? sexp <interlexeme-space>)
+	 '())
+	(else
+	 sexp)))
 
 
 ;;;; datum makers
@@ -133,8 +165,9 @@
 
 ;;; --------------------------------------------------------------------
 
-(define (make-interlexeme-datum yypushback yycustom the-list-of-atmospheres)
-  the-list-of-atmospheres)
+(define (make-interlexeme-space-datum yypushback yycustom the-list-of-atmospheres)
+  (make* <interlexeme-space>
+    the-list-of-atmospheres))
 
 (define (make-whitespace-datum yypushback yycustom the-whitespace-string)
   the-whitespace-string)
@@ -145,8 +178,10 @@
 (define (make-nested-comment-datum yypushback yycustom the-comment-string)
   the-comment-string)
 
-(define (make-sharp-semicolon-datum yypushback yycustom the-datum)
-  sentinel)
+(define (make-sharp-semicolon-datum yypushback yycustom the-interlexeme-space the-datum)
+  (make* <commented-datum>
+    the-interlexeme-space
+    the-datum))
 
 (define (make-sharp-bang-datum yypushback yycustom the-sharp-bang-string)
   the-sharp-bang-string)
@@ -187,7 +222,7 @@
 (define-datum-processor-parameter unsyntax-datum-maker		make-unsyntax-datum)
 (define-datum-processor-parameter unsyntax-splicing-datum-maker	make-unsyntax-splicing-datum)
 
-(define-datum-processor-parameter interlexeme-datum-maker	make-interlexeme-datum)
+(define-datum-processor-parameter interlexeme-space-datum-maker	make-interlexeme-space-datum)
 (define-datum-processor-parameter whitespace-datum-maker	make-whitespace-datum)
 (define-datum-processor-parameter line-comment-datum-maker	make-line-comment-datum)
 (define-datum-processor-parameter nested-comment-datum-maker	make-nested-comment-datum)
