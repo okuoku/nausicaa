@@ -15,6 +15,7 @@ the prefix @code{r6.}:
 
 @menu
 * r6rs lexer::                  Tokenising @rnrs{6} source code.
+* r6rs parser::                 Parsing a stream of @rnrs{6} tokens.
 * r6rs fixed-strings::          A collection of common strings.
 @end menu
 
@@ -1406,6 +1407,797 @@ The implementation of this function is a useful example of usage for
            "lexical violation while reading line comment"))
           (else T))))
 @end example
+@end defun
+
+@c page
+@node r6rs parser
+@section Parsing a stream of @rnrs{6} tokens
+
+
+The library @library{nausicaa r6rs parser} implements a lexer compliant
+with the @rnrs{6} specification for Scheme source code.  The lexer is
+built on top of the @library{nausicaa lalr} parser generator (@ref{lalr}
+for details) and it is meant to be used with the lexer @api{} exported
+by the @library{nausicaa r6rs lexer} library (@ref{r6rs lexer} for
+details).
+
+@menu
+* r6rs parser parsing::         Parsing source code.
+* r6rs parser inter::           Interlexeme spaces.
+* r6rs parser params::          Parser semantic actions parameters.
+* r6rs parser makers::          Parser datum makers.
+@end menu
+
+@c page
+@node r6rs parser parsing
+@subsection Parsing source code
+
+
+The following bindings are exported by the @library{nausicaa r6rs
+parser} library.
+
+
+@defun make-r6rs-parser
+Build and return a parser function exposing the @api{} of @acronym{LALR}
+parsers; @ref{lalr parser} for details.
+
+The returned parser function accepts 3 arguments: a lexer thunk
+returning @class{lexical-token} instances; an error handler thunk; a
+custom value which is made available to the parser semantic actions
+bound to @code{yycustom}.  Its return value is the @strong{list} of
+datums parsed from the lexer.
+
+The semantic actions of the parser table make use of the functions
+referenced by the parameters exported by the @library{nausicaa r6rs
+parser} library; @ref{r6rs parser params} for details.  The default
+parameter functions build an S--expression almost as the @func{read}
+function from @rsixlibrary{io simple} does.
+
+Notice that the returned lexer function is @strong{not} equivalent to
+@func{read} or @func{get-datum} as defined in the @rnrs{6} document.
+First, the returned lexer consumes characters from its input system
+until the end--of--input is found; second, the commented datums cannot
+be removed by the parser and so are returned in instances of the
+@class{interlexeme-space} class, @ref{r6rs parser inter} for details.
+@end defun
+
+
+The following example shows: the libraries to import; a simple error
+handler function, making no use of the source location @code{input}
+field; the definition of a function that directly parses a string:
+
+@example
+#!r6rs
+(import (nausicaa)
+  (nausicaa silex lexer)
+  (only (nausicaa parser-tools lexical-token)
+        <lexical-token>)
+  (only (nausicaa parser-tools source-location)
+        <source-location>)
+  (prefix (nausicaa r6rs lexer) r6.)
+  (prefix (nausicaa r6rs parser) r6.))
+
+(define (error-handler message (T <lexical-token>))
+  (raise
+   (condition (make-lexical-violation)
+              (make-message-condition
+               (string-append message
+                " line "   (number->string T.location.line)
+                " column " (number->string T.location.column)))
+              (make-irritants-condition `(,T.value)))))
+
+(define (parse string)
+  (let* ((IS      (lexer-make-IS
+                     (string: string)
+                     (counters: 'all)))
+         (lexer   (r6.make-token-lexer IS))
+         (parser  (r6.make-r6rs-parser)))
+    (parser lexer error-handler #f)))
+
+(parse "(ciao \"mamma\" #\\A)")
+@result{} ((ciao "mamma" #\A))
+@end example
+
+@c page
+@node r6rs parser inter
+@subsection Interlexeme spaces
+
+
+If we build the lexer thunk as follows:
+
+@example
+(import (nausicaa)
+  (prefix (nausicaa silex lexer) lex.)
+  (prefix (nausicaa r6rs lexer)  r6.))
+
+(define IS
+  (lex.lexer-make-IS
+    (lex.string: string)
+    (lex.counters: 'all)))
+
+(define lexer
+ (r6.make-token-lexer IS))
+@end example
+
+@noindent
+it will return tokens from the input system, but it will discard the
+ones representing blanks and comments (including sharp--bang
+identifiers); the sharp--semicolon sequence of characters @samp{#;} will
+be returned in a token with category @code{SHARPSEMICOLON}, when using
+the default token maker functions.
+
+If we build the lexer thunk as follows:
+
+@example
+#!r6rs
+(import (nausicaa)
+  (prefix (nausicaa silex lexer) lex.)
+  (prefix (nausicaa r6rs lexer)  r6.))
+
+(define IS
+  (lex.lexer-make-IS
+    (lex.string: string)
+    (lex.counters: 'all)))
+
+(define lexer
+ (r6.make-token-lexer IS
+   (r6.comments  #t)
+   (r6.sharpbang #t)
+   (r6.blanks    #t)))
+@end example
+
+@noindent
+it will return tokens from the input system, discarding nothing.
+
+According to the @rnrs{6} grammar for Scheme source code: comments,
+sharp--bang identifiers, blanks and commented datums are ``interlexeme
+spaces''.  The parser table of @library{nausicaa r6rs parser} allows us
+to retrieve those lexeme embedded in the return value of the parser
+function; whenever a sequence of lexems composing an interlexeme space
+is found, an instance of the class @class{interlexeme-space} is built.
+
+The following bindings are exported by the @library{nausicaa r6rs
+parser} library.
+
+
+@deftp Class @aclass{interlexeme-space}
+Used to embed a sequence of interlexeme space lexemes.
+@end deftp
+
+
+@defvr {Immutable Field} @aclass{interlexeme-space} atmospheres
+A list of values representing comments, blanks, sharp--bang identifiers,
+commented datums.  This field is tagged as @class{list}.
+
+When using the default functions for the semantic action parameters:
+comments, blanks and sharp--bang identifiers are represented by strings,
+while commented datums are represented by instances of
+@class{commented-datum}.
+@end defvr
+
+
+@deftp Class @aclass{commented-datum}
+Used to represent a commented datum, that is any datum preceded by the
+@samp{#;} token.  According to the @rnrs{6} grammar, a commented datum
+is the sequence: @samp{#;}, optional interlexeme space, any datum.
+@end deftp
+
+
+@defvr {Immutable Field} @aclass{commented-datum} interlexeme-space
+It is meant to be whatever the function referenced by the
+@func{interlexeme-space-datum-maker} parameter returned when processing
+the optional interlexeme space between the @samp{#;} and the datum.
+When using the default parameter value: it is @false{} or an instance of
+@class{interlexeme-space}.
+
+This field is tagged as @class{interlexeme-space}.
+@end defvr
+
+
+@defvr {Immutable Field} @aclass{commented-datum} datum
+It is meant to be the return value of the parametrised function used to
+parser the commented datum.  When using the default parametrised
+functions: it is the datum as a Scheme S--expression.
+@end defvr
+
+
+@defun remove-interlexeme-space @var{sexp}
+Scan @var{sexp} looking for instances of @class{interlexeme-space} and
+remove them; return the result.
+@end defun
+
+
+For example, let's say we build a lexer and parser as follows with the
+specific purpose of parsing interlexeme spaces with the default datum
+maker functions; we have to remember that the parser function returns
+the list of datums:
+
+@example
+#!r6rs
+(import (nausicaa)
+  (nausicaa silex lexer)
+  (only (nausicaa parser-tools lexical-token)
+        <lexical-token>)
+  (only (nausicaa parser-tools source-location)
+        <source-location>)
+  (prefix (nausicaa r6rs lexer) r6.)
+  (prefix (nausicaa r6rs parser) r6.))
+
+(define (error-handler message (T <lexical-token>))
+  (raise
+   (condition (make-lexical-violation)
+              (make-message-condition
+               (string-append message
+                " line " (number->string T.location.line)
+                " column " (number->string T.location.column)))
+              (make-irritants-condition `(,T.value)))))
+
+(define (parse string)
+  (let* ((IS      (lexer-make-IS
+                    (string: string)
+                    (counters: 'all)))
+         (lexer   (r6.make-token-lexer IS
+                    (r6.comments  #t)
+                    (r6.blanks    #t)
+                    (r6.sharpbang #t)))
+         (parser  (r6.make-r6rs-parser)))
+    (parser lexer error-handler #f)))
+
+(define (doit string)
+  (let (((T r6.<interlexeme-space>) (parse string)))
+    T.atmospheres))
+
+(list-of-datums-maker
+  (lambda (yypushback yycustom datums)
+    datums))
+
+;; a line comment results in the comment
+;; string itself
+(doit ";; ciao")
+@result{} (";; ciao")
+
+;; a multi-line comment results in the
+;; list of line comments
+(doit ";; ciao\n;; mamma\n;; sto bene")
+@result{} (";; ciao\n"
+    ";; mamma\n"
+    ";; sto bene")
+
+;; a nested comment results in the comment
+;; string itself
+(doit "#| ciao\nmamma |#")
+@result{} ("#| ciao\nmamma |#")
+
+;; sharp-bang identifiers result in
+;; the strings interspersed by blanks
+(doit "#!r6rs #!ciao #!mamma")
+@result{} ("#!r6rs" " "
+    "#!ciao" " "
+    "#!mamma")
+
+;; a commented identifier results in the
+;; <interlexeme-space> instance holding a
+;; <commented-datum> instance
+(let* (((L <list>)                 (parse "#;ciao"))
+       ((R r6.<interlexeme-space>) L.car)
+       ((C r6.<commented-datum>)   R.atmospheres.car))
+  (check C.datum => 'ciao)
+  (check C.interlexeme-space => #f)
+  )
+
+;; a commented identifier with interlexeme space
+;; results in the <interlexeme-space> instance holding a
+;; <commented-datum> instance
+(let* (((L <list>)                 (parse "#;\tciao"))
+       ((R r6.<interlexeme-space>) L.car)
+       ((C r6.<commented-datum>)   R.atmospheres.car))
+  (check C.datum => 'ciao)
+  (check C.interlexeme-space.atmospheres => '("\t"))
+  )
+@end example
+
+@c page
+@node r6rs parser params
+@subsection Parser semantic actions parameters
+
+
+Some of the bindings exported by the @library{nausicaa r6rs parser}
+library reference parameter functions as defined by @library{nausicaa
+language parameters}.  The semantic action forms in the @rnrs{6} parser
+table invoke the functions referenced by the parameters to produce
+datums, or equivalent values.
+
+Unless otherwise specified, all the parameters whose name has the
+@code{-datum-maker} suffix are used as follows in the semantic action
+forms:
+
+@example
+((identifier-datum-maker) yypushback yycustom @var{value})
+@end example
+
+@noindent
+and they must be set to functions with the following (or equivalent)
+behaviour:
+
+@example
+(lambda (yypushback yycustom @var{value})
+  (make-datum @var{value}))
+@end example
+
+@noindent
+where: @code{yypushback} and @code{yycustom} are the bindings handed by
+@library{nausicaa lalr lr-driver} to the semantic action forms;
+@var{value} is the semantic value from the lexical token.
+
+@menu
+* r6rs parser params general::  General datum makers.
+* r6rs parser params scheme::   Scheme value datum makers.
+* r6rs parser params quote::    Quoted and syntax datum makers.
+* r6rs parser params inter::    Interlexeme datum makers.
+@end menu
+
+@c page
+@node r6rs parser params general
+@subsubsection General datum makers
+
+
+@deffn Parameter list-of-datums-maker @var{yypushback} @var{yycustom} @var{list-of-datums}
+Set to a function returning a value representing whose input.  The
+default is @func{make-list-of-datums}.  @var{list-of-datums} is the list
+of values produced by the functions referenced by the other parameters.
+@end deffn
+
+@c page
+@node r6rs parser params scheme
+@subsubsection Scheme value datum makers
+
+
+The following bindings are exported by the @library{nausicaa r6rs
+parser} library.
+
+
+@deffn Parameter identifier-datum-maker
+Set to a function returning a value representing an identifier.  The
+default is @func{make-identifier-datum}.
+@end deffn
+
+
+@deffn Parameter boolean-datum-maker
+Set to a function returning a value representing a boolean.  The default
+is @func{make-boolean-datum}.
+@end deffn
+
+
+@deffn Parameter number-datum-maker
+Set to a function returning a value representing a number.  The default
+is @func{make-number-datum}.
+@end deffn
+
+
+@deffn Parameter string-datum-maker
+Set to a function returning a value representing a string.  The default
+is @func{make-string-datum}.
+@end deffn
+
+
+@deffn Parameter character-datum-maker
+Set to a function returning a value representing a character.  The
+default is @func{make-character-datum}.
+@end deffn
+
+
+@deffn Parameter pair-datum-maker
+Set to a function returning a value representing a pair.  The default is
+@func{make-pair-datum}.  This parameter is used as follows:
+
+@example
+((pair-datum-maker)  yypushback yycustom @var{car} @var{cdr})
+@end example
+@end deffn
+
+
+@deffn Parameter list-datum-maker
+Set to a function returning a value representing a list.  The default is
+@func{make-list-datum}.
+
+The semantic value handed to the referenced function is a proper or
+improper list of datums (that is: the list of values returned by the
+functions referenced by the parameters).
+@end deffn
+
+
+@deffn Parameter vector-datum-maker
+Set to a function returning a value representing a vector.  The default
+is @func{make-vector-datum}.
+
+The semantic value handed to the referenced function is a proper list of
+datums (that is: the list of values returned by the functions referenced
+by the parameters).
+@end deffn
+
+
+@deffn Parameter bytevector-datum-maker
+Set to a function returning a value representing a bytevector.  The
+default is @func{make-bytevector-datum}.
+
+The semantic value handed to the referenced function is the list of
+datums (that is: the list of values returned by the functions referenced
+by the parameters); it is responsibility of the referenced function to
+make sure that all the datums in the list are unsigned exact integers in
+the range @math{[0, 255]}.
+@end deffn
+
+@c page
+@node r6rs parser params quote
+@subsubsection Quoted and syntax datum makers
+
+
+The following bindings are exported by the @library{nausicaa r6rs
+parser} library.
+
+
+@deffn Parameter quoted-datum-maker
+Set to a function returning a value representing a datum quoted with a
+tick.  The default is @func{make-quoted-datum}.  The semantic value
+handed to the referenced function is the datum.
+
+Notice that a list whose first datum is the @code{quoted} identifier is
+handled like a normal list.
+@end deffn
+
+
+@deffn Parameter quasiquoted-datum-maker
+Set to a function returning a value representing a datum quoted with a
+back tick.  The default is @func{make-quasiquoted-datum}.  The semantic
+value handed to the referenced function is the datum.
+
+Notice that a list whose first datum is the @code{quasiquote} identifier
+is handled like a normal list.
+@end deffn
+
+
+@deffn Parameter unquoted-datum-maker
+Set to a function returning a value representing an datum unquoted with
+a comma.  The default is @func{make-unquoted-datum}.  The semantic value
+handed to the referenced function is the datum.
+
+Notice that a list whose first datum is the @code{unquote} identifier is
+handled like a normal list.
+@end deffn
+
+
+@deffn Parameter unquoted-splicing-datum-maker
+Set to a function returning a value representing a datum unquoted with a
+comma--at.  The default is @func{make-unquoted-splicing-datum}.  The
+semantic value handed to the referenced function is the datum.
+
+Notice that a list whose first datum is the @code{unquote-splicing}
+identifier is handled like a normal list.
+@end deffn
+
+
+@deffn Parameter syntax-datum-maker
+Set to a function returning a value representing a datum quoted with a
+sharp--tick.  The default is @func{make-syntax-datum}.  The semantic
+value handed to the referenced function is the datum.
+
+Notice that a list whose first datum is the @code{syntax} identifier is
+handled like a normal list.
+@end deffn
+
+
+@deffn Parameter quasisyntax-datum-maker
+Set to a function returning a value representing a datum quoted with
+sharp--back--tick.  The default is @func{make-quasisyntax-datum-datum}.
+The semantic value handed to the referenced function is the datum.
+
+Notice that a list whose first datum is the @code{quasisyntax}
+identifier is handled like a normal list.
+@end deffn
+
+
+@deffn Parameter unsyntax-datum-maker
+Set to a function returning a value representing a datum quoted with a
+sharp--comma.  The default is @func{make-unsyntax-datum}.  The semantic
+value handed to the referenced function is the datum.
+
+Notice that a list whose first datum is the @code{unsyntax} identifier
+is handled like a normal list.
+@end deffn
+
+
+@deffn Parameter unsyntax-splicing-datum-maker
+Set to a function returning a value representing a datum unquoted with a
+sharp--comma--at.  The default is @func{make-unsyntax-splicing-datum}.
+The semantic value handed to the referenced function is the datum.
+
+Notice that a list whose first datum is the @code{unsyntax-splicing}
+identifier is handled like a normal list.
+@end deffn
+
+@c page
+@node r6rs parser params inter
+@subsubsection Interlexeme datum makers
+
+
+The following bindings are exported by the @library{nausicaa r6rs
+parser} library.
+
+
+@deffn Parameter interlexeme-space-datum-maker
+Set to a function returning a value representing an interlexeme space.
+The default is @func{make-interlexeme-space-datum}.  The semantic value
+handed to the referenced function is a list of datums representing
+comments, blanks, sharp--bang identifiers, commented datums.
+@end deffn
+
+
+@deffn Parameter whitespace-datum-maker
+Set to a function returning a value representing a white space.  The
+default is @func{make-whitespace-datum}.
+@end deffn
+
+
+@deffn Parameter line-comment-datum-maker
+Set to a function returning a value representing a line comment.  The
+default is @func{make-line-comment-datum}.
+@end deffn
+
+
+@deffn Parameter nested-comment-datum-maker
+Set to a function returning a value representing a nested comment.  The
+default is @func{make-nested-comment-datum}.
+@end deffn
+
+
+@deffn Parameter sharp-semicolon-datum-maker
+Set to a function returning a value representing a sharp--semicolon
+@samp{#;}.  The default is @func{make-sharp-semicolon-datum}.
+
+This parameter is used as follows:
+
+@example
+((sharp-semicolon-datum-maker) yypushback yycustom
+    @var{interlexeme-space} @var{datum})
+@end example
+
+@noindent
+where @var{interlexeme-space} is @false{} or a value representing the
+optional interlexeme space, @var{datum} is the commented datum.
+@end deffn
+
+
+@deffn Parameter sharp-bang-datum-maker
+Set to a function returning a value representing a sharp--bang
+identifier.  The default is @func{make-sharp-bang-datum}.
+@end deffn
+
+
+@deffn Parameter sharp-bang-r6rs-datum-maker
+Set to a function returning a value representing a @code{#!r6rs}
+identifier.  The default is @func{make-sharp-bang-r6rs-datum}.
+@end deffn
+
+@c page
+@node r6rs parser makers
+@subsection Parser datum makers
+
+
+@menu
+* r6rs parser makers general::  General datum makers.
+* r6rs parser makers scheme::   Scheme value datum makers.
+* r6rs parser makers quote::    Quoted and syntax datum makers.
+* r6rs parser makers inter::    Interlexeme datum makers.
+@end menu
+
+@c page
+@node r6rs parser makers general
+@subsubsection General datum makers
+
+
+@defun make-list-of-datums @var{yypushback} @var{yycustom} @var{value}
+Default function for the @func{list-of-datums-maker} parameter.  Accept
+as @var{value} the list of values produced by the functions referenced
+by the other parameters; process the list with
+@func{remove-interlexeme-space} and return the result.
+@end defun
+
+@c page
+@node r6rs parser makers scheme
+@subsubsection Scheme value datum makers
+
+
+The following bindings are exported by the @library{nausicaa r6rs
+parser} library.
+
+
+@defun make-identifier-datum @var{yypushback} @var{yycustom} @var{value}
+Default function for the @func{identifier-datum-maker} parameter.
+Accept as @var{value} the string representing the identifier; return the
+corresponding symbol.
+@end defun
+
+
+@defun make-boolean-datum @var{yypushback} @var{yycustom} @var{value}
+Default function for the @func{boolean-datum-maker} parameter.  Accept
+as @var{value} the boolean value itself; return the boolean value
+itself.
+@end defun
+
+
+@defun make-number-datum @var{yypushback} @var{yycustom} @var{value}
+Default function for the @func{number-datum-maker} parameter.  Accept as
+@var{value} the number itself; return the number itself.
+@end defun
+
+
+@defun make-string-datum @var{yypushback} @var{yycustom} @var{value}
+Default function for the @func{string-datum-maker} parameter.  Accept as
+@var{value} the string itself; return the string itself.
+@end defun
+
+
+@defun make-character-datum @var{yypushback} @var{yycustom} @var{value}
+Default function for the @func{character-datum-maker} parameter.  Accept
+as @var{value} the character itself; return the character itself.
+@end defun
+
+
+@defun make-pair-datum @var{yypushback} @var{yycustom} @var{car} @var{cdr}
+Default function for the @func{identifier-datum-maker} parameter.
+Accept as @var{car} and @var{cdr} the car and cdr datums; return the
+corresponding pair.
+@end defun
+
+
+@defun make-list-datum @var{yypushback} @var{yycustom} @var{value}
+Default function for the @func{lits-datum-maker} parameter.  Accept as
+@var{value} the list of datums; return the list itself.
+@end defun
+
+
+@defun make-vector-datum @var{yypushback} @var{yycustom} @var{value}
+Default function for the @func{vector-datum-maker} parameter.  Accept as
+@var{value} the list of datums; return the corresponding vector.
+@end defun
+
+
+@defun make-bytevector-datum @var{yypushback} @var{yycustom} @var{value}
+Default function for the @func{bytevector-datum-maker} parameter.
+Accept as @var{value} the list of datums; return the corresponding
+bytevector.
+
+If one of the datums is not an exact integer in the range @math{[0,
+255]} an exception is raised with condition object having components:
+@condition{lexical}, @condition{who}, @condition{message},
+@condition{irritants}.  The single element in the irritants list is the
+offending value.
+@end defun
+
+@c page
+@node r6rs parser makers quote
+@subsubsection Quoted and syntax datum makers
+
+
+The following bindings are exported by the @library{nausicaa r6rs
+parser} library.
+
+
+@defun make-quoted-datum @var{yypushback} @var{yycustom} @var{value}
+Default function for the @func{quoted-datum-maker} parameter.  Accept as
+@var{value} the quoted datum; return a list of two elements whose car is
+the symbol @code{quote} and whose cadr is the datum itself.
+@end defun
+
+
+@defun make-quasiquoted-datum @var{yypushback} @var{yycustom} @var{value}
+Default function for the @func{quasiquoted-datum-maker} parameter.
+Accept as @var{value} the quoted datum; return a list of two elements
+whose car is the symbol @code{quasiquote} and whose cadr is the datum
+itself.
+@end defun
+
+
+@defun make-unquoted-datum @var{yypushback} @var{yycustom} @var{value}
+Default function for the @func{unquoted-datum-maker} parameter.  Accept
+as @var{value} the quoted datum; return a list of two elements whose car
+is the symbol @code{unquote} and whose cadr is the datum itself.
+@end defun
+
+
+@defun make-unquoted-splicing-datum @var{yypushback} @var{yycustom} @var{value}
+Default function for the @func{unquoted-splicing-datum-maker} parameter.
+Accept as @var{value} the quoted datum; return a list of two elements
+whose car is the symbol @code{unquote-splicing} and whose cadr is the
+datum itself.
+@end defun
+
+
+@defun make-syntax-datum @var{yypushback} @var{yycustom} @var{value}
+Default function for the @func{syntax-datum-maker} parameter.  Accept as
+@var{value} the quoted datum; return a list of two elements whose car is
+the symbol @code{syntax} and whose cadr is the datum itself.
+@end defun
+
+
+@defun make-quasisyntax-datum @var{yypushback} @var{yycustom} @var{value}
+Default function for the @func{quasisyntax-datum-maker} parameter.
+Accept as @var{value} the quoted datum; return a list of two elements
+whose car is the symbol @code{quasisyntax} and whose cadr is the datum
+itself.
+@end defun
+
+
+@defun make-unsyntax-datum @var{yypushback} @var{yycustom} @var{value}
+Default function for the @func{unsyntax-datum-maker} parameter.  Accept
+as @var{value} the quoted datum; return a list of two elements whose car
+is the symbol @code{unsyntax} and whose cadr is the datum itself.
+@end defun
+
+
+@defun make-unsyntax-splicing-datum @var{yypushback} @var{yycustom} @var{value}
+Default function for the @func{unsyntax-splicing-datum-maker} parameter.
+Accept as @var{value} the quoted datum; return a list of two elements
+whose car is the symbol @code{unsyntax-splicing} and whose cadr is the
+datum itself.
+@end defun
+
+@c page
+@node r6rs parser makers inter
+@subsubsection Interlexeme datum makers
+
+
+The following bindings are exported by the @library{nausicaa r6rs
+parser} library.
+
+
+@defun make-interlexeme-space-datum @var{yypushback} @var{yycustom} @var{value}
+Default function for the @func{interlexeme-space-datum-maker} parameter.
+Accept as @var{value} a list of values representing the interlexeme
+spaces.
+@end defun
+
+
+@defun make-whitespace-datum @var{yypushback} @var{yycustom} @var{value}
+Default function for the @func{whitespace-datum-maker} parameter.
+Accept as @var{value} the string representing the white space; return
+the string itself.
+@end defun
+
+
+@defun make-line-comment-datum @var{yypushback} @var{yycustom} @var{value}
+Default function for the @func{line-comment-datum-maker} parameter.
+Accept as @var{value} the string representing the line comment; return
+the string itself.
+@end defun
+
+
+@defun make-nested-comment-datum @var{yypushback} @var{yycustom} @var{value}
+Default function for the @func{nested-comment-datum-maker} parameter.
+Accept as @var{value} the string representing the nested comment; return
+the string itself.
+@end defun
+
+
+@defun make-sharp-semicolon-datum @var{yypushback} @var{yycustom} @var{interlexeme-space} @var{datum}
+Default function for the @func{sharp-semicolon-datum-maker} parameter.
+Accept as argument @var{interlexeme-space} @false{} or a value
+representing the optional interlexeme space, as @var{datum} the
+commented datum.  @ref{r6rs parser inter} for details.
+@end defun
+
+
+@defun make-sharp-bang-datum @var{yypushback} @var{yycustom} @var{value}
+Default function for the @func{sharp-bang-datum-maker} parameter.
+Accept as @var{value} the string representing the sharp--bang
+identifier; return the string itself.
+@end defun
+
+
+@defun make-sharp-bang-r6rs-datum @var{yypushback} @var{yycustom} @var{value}
+Default function for the @func{sharp-bang-r6rs-datum-maker} parameter.
+Accept as @var{value} the string representing the @code{#!r6rs}
+identifier; return the string itself.
 @end defun
 
 @c page

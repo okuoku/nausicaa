@@ -132,8 +132,11 @@
 
  (lalr.rules:
   '((datums
-     (*eoi*)			: '()
-     (datum datums)		: (cons $1 $2))
+     (datums-tail)		: ((list-of-datums-maker)	yypushback yycustom $1))
+
+    (datums-tail
+     (datum)			: (list $1)
+     (datum datums-tail)	: (cons $1 $2))
 
     (datum
      (identifier)		: $1

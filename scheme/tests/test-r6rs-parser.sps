@@ -32,7 +32,6 @@
   (only (nausicaa parser-tools source-location) <source-location>)
   (prefix (nausicaa r6rs lexer) r6.)
   (prefix (nausicaa r6rs parser) r6.)
-  (prefix (nausicaa r6rs datum-processing) r6.)
   (nausicaa checks))
 
 (check-set-mode! 'report-failed)
@@ -83,6 +82,12 @@
   (check
       (parse "#\\A")
     => '(#\A))
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (parse "ciao 123 #\\A")
+    => '(ciao 123 #\A))
 
   #t)
 
@@ -285,8 +290,10 @@
   #t)
 
 
-(parametrise ((check-test-name	'comments)
-	      (debugging	#f))
+(parametrise ((check-test-name		'comments)
+	      (debugging		#f)
+	      (r6.list-of-datums-maker	(lambda (yypushback yycustom datums)
+					  datums)))
 
   (define (error-handler message (T <lexical-token>))
     (raise
@@ -299,7 +306,10 @@
 
   (define (parse string)
     (let* ((IS		(lexer-make-IS (string: string) (counters: 'all)))
-	   (true-lexer	(r6.make-token-lexer IS (r6.comments #t) (r6.sharpbang #t)))
+	   (true-lexer	(r6.make-token-lexer IS
+			  (r6.comments #t)
+			  (r6.blanks #t)
+			  (r6.sharpbang #t)))
 	   (lexer	(lambda ()
 			  (let (((T <lexical-token>) (true-lexer)))
 			    (debug "c: ~s, v: ~s" T.category T.value)
@@ -331,11 +341,30 @@
 
   (check	;mixed sharpbangs
       (doit "#!r6rs #!ciao #!mamma")
-    => '("#!r6rs" "#!ciao" "#!mamma"))
+    => '("#!r6rs" " " "#!ciao" " " "#!mamma"))
 
   (check	;nested comment
       (doit "#| ciao\nmamma |#")
     => '("#| ciao\nmamma |#"))
+
+;;; --------------------------------------------------------------------
+;;; commented datums
+
+  ;; commented identifier
+  (let* (((L <list>)                 (parse "#;ciao"))
+	 ((R r6.<interlexeme-space>) L.car)
+	 ((C r6.<commented-datum>)   R.atmospheres.car))
+    (check C.datum => 'ciao)
+    (check C.interlexeme-space => #f)
+    #f)
+
+  ;; commented identifier, with space
+  (let* (((L <list>)                 (parse "#;\tciao"))
+	 ((R r6.<interlexeme-space>) L.car)
+	 ((C r6.<commented-datum>)   R.atmospheres.car))
+    (check C.datum => 'ciao)
+    (check C.interlexeme-space.atmospheres => '("\t"))
+    #f)
 
   #t)
 

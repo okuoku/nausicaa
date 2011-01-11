@@ -34,14 +34,11 @@
   (prefix (nausicaa silex lexer) lex.)
   (only (nausicaa parser-tools lexical-token) <lexical-token>)
   (only (nausicaa parser-tools source-location) <source-location>)
-  (only (nausicaa r6rs datum-processing)
-	<interlexeme-space>
-	remove-interlexeme-space)
   (prefix (nausicaa r6rs lexer)  r6.)
   (prefix (nausicaa r6rs parser) r6.))
 
 
-(define-constant rootdir
+(define-constant library-rootdir
   "/home/marco/src/devel/scheme/nausicaa/scheme/src/libraries")
 
 (define-constant library-files
@@ -291,6 +288,160 @@
     ))
 
 
+(define-constant test-rootdir
+  "/home/marco/src/devel/scheme/nausicaa/scheme/tests")
+
+(define-constant test-files
+  '("test-csv.sps"
+    "test-gensym.sps"
+    "test-packrat.sps"
+    "test-times-and-dates-lib.sps"
+    "test-nausicaa.sps"
+    "make-lalr-calc.sps"
+    "test-ffi-memory-conditions.sps"
+    "test-times-and-dates-seconds.sps"
+    "test-lists-fun.sps"
+    "test-strings-mutable-strings.sps"
+    "make-silex-calc.sps"
+    "test-classes-labels-and-interfaces.sps"
+    "test-assertions.sps"
+    "test-strings-low.sps"
+    "test-ffi-access.sps"
+    "test-stacks.sps"
+    "test-classes-foreign.sps"
+    "test-email-addresses-lexer.sps"
+    "test-nausicaa-infix.sps"
+    "test-one-dimension-co.sps"
+    "test-classes-tagged-fields.sps"
+    "test-classes-sequence-ops.sps"
+    "test-net-ipv4-address.sps"
+    "test-armor-ascii85.sps"
+    "test-silex-online.sps"
+    "test-parser-tools-lexical-token.sps"
+    "test-parser-tools-location.sps"
+    "test-json.sps"
+    "test-ffi-memory-buffers.sps"
+    "test-ffi-memory-refcount.sps"
+    "test-unimplemented.sps"
+    "test-classes-identifier-properties.sps"
+    "test-classes-overloading.sps"
+    "test-libraries-import-spec.sps"
+    "test-bytevectors-u8-low.sps"
+    "test-generics.sps"
+    "test-armor-base91.sps"
+    "test-uri.sps"
+    "test-ffi-memory-mempool.sps"
+    "test-email-addresses-parser.sps"
+    "r6rs/run-via-eval.sps"
+    "r6rs/run.sps"
+    "r6rs/run/control.sps"
+    "r6rs/run/base.sps"
+    "r6rs/run/io/ports.sps"
+    "r6rs/run/io/simple.sps"
+    "r6rs/run/eval.sps"
+    "r6rs/run/syntax-case.sps"
+    "r6rs/run/mutable-strings.sps"
+    "r6rs/run/records/procedural.sps"
+    "r6rs/run/records/syntactic.sps"
+    "r6rs/run/conditions.sps"
+    "r6rs/run/hashtables.sps"
+    "r6rs/run/programs.sps"
+    "r6rs/run/contrib.sps"
+    "r6rs/run/unicode.sps"
+    "r6rs/run/test.sps"
+    "r6rs/run/run.sps"
+    "r6rs/run/r5rs.sps"
+    "r6rs/run/reader.sps"
+    "r6rs/run/mutable-pairs.sps"
+    "r6rs/run/lists.sps"
+    "r6rs/run/arithmetic/fixnums.sps"
+    "r6rs/run/arithmetic/bitwise.sps"
+    "r6rs/run/arithmetic/flonums.sps"
+    "r6rs/run/bytevectors.sps"
+    "r6rs/run/exceptions.sps"
+    "r6rs/run/enums.sps"
+    "r6rs/run/sorting.sps"
+    "test-condition-objects.sps"
+    "test-format-round.sps"
+    "test-r6rs-parser.sps"
+    "test-comparisons.sps"
+    "test-lists-low.sps"
+    "test-evaluations.sps"
+    "test-vectors-high.sps"
+    "test-asciis.sps"
+    "test-deferred-exceptions.sps"
+    "test-strings-high.sps"
+    "test-loops.sps"
+    "test-makers.sps"
+    "test-sentinel.sps"
+    "test-matches.sps"
+    "test-bytevectors-u8-high.sps"
+    "test-libraries-references.sps"
+    "test-compensations.sps"
+    "test-armor-qprint.sps"
+    "test-classes-satisfactions.sps"
+    "test-lists-stx.sps"
+    "test-classes-defmethod.sps"
+    "test-msgcat.sps"
+    "test-cond-expand.sps"
+    "test-ffi-memory-memblocks.sps"
+    "test-checks.sps"
+    "test-interps.sps"
+    "test-language-extensions.sps"
+    "test-ffi-core.sps"
+    "test-libraries-names.sps"
+    "test-lalr-lr.sps"
+    "test-classes-mixins.sps"
+    "test-strings-xstring.sps"
+    "test-classes-core.sps"
+    "test-variables.sps"
+    "test-armor-base64.sps"
+    "test-enumerations.sps"
+    "test-lists-xlists.sps"
+    "test-libraries-high.sps"
+    "test-symbols-tree.sps"
+    "test-email-addresses-data.sps"
+    "test-times-and-dates-types.sps"
+    "test-streams.sps"
+    "test-times-and-dates-julian.sps"
+    "test-getopts.sps"
+    "test-identifier-properties.sps"
+    "test-ffi-memory-cache.sps"
+    "test-armor-base16.sps"
+    "test-ffi-memory-alloc.sps"
+    "test-kmp.sps"
+    "test-classes-virtual-methods.sps"
+    "test-object-property.sps"
+    "test-armor-base32.sps"
+    "test-infix.sps"
+    "test-ffi-memory-bytevectors.sps"
+    "test-one-dimension-cc.sps"
+    "test-nausicaa-mutable-pairs.sps"
+    "test-silex-file.sps"
+    "test-vectors-xvectors.sps"
+    "test-net-ipv6-address.sps"
+    "test-r6rs-lexer.sps"
+    "test-lalr-calc.sps"
+    "test-syntax-utilities.sps"
+    "test-format-lib.sps"
+    "test-arrays.sps"
+    "test-ffi-pointers.sps"
+    "test-random.sps"
+    "test-char-sets.sps"
+    "test-classes-label.sps"
+    "test-pregexp.sps"
+    "test-queues.sps"
+    "test-lalr-glr.sps"
+    "test-irregex.sps"
+    "test-times-and-dates-gregorian.sps"
+    "test-contracts.sps"
+    "test-ffi-cstrings.sps"
+    "test-armor-newlines.sps"
+    "test-keywords.sps"
+    "test-submodules.sps"
+    "test-getenv.sps"))
+
+
 (define (same-error sexp1 sexp2)
   (error 'same? "wrong tokens" sexp1 sexp2))
 
@@ -390,7 +541,8 @@
 			(with
 			 (close-port port))))
 		(sexp2 (parse port)))
-	(let ((sexp2 (remove-interlexeme-space sexp2)))
+;;;	(let ((sexp2 (r6.remove-interlexeme-space sexp2)))
+	(let ((sexp2 sexp2))
 	  (when #f
 	    (pretty-print sexp1)
 	    (pretty-print sexp2))
@@ -401,10 +553,15 @@
 (parametrise ((debugging #f))
   (let ((cl (cdr (command-line))))
     (if (null? cl)
-	(for-each compare
-	  (map (lambda (pathname)
-		 (string-append rootdir "/" pathname))
-	    library-files))
+	(begin
+	  (for-each compare
+	    (map (lambda (pathname)
+		   (string-append library-rootdir "/" pathname))
+	      library-files))
+	  (for-each compare
+	    (map (lambda (pathname)
+		   (string-append test-rootdir "/" pathname))
+	      test-files)))
       (compare (car cl)))))
 
 ;;; end of file

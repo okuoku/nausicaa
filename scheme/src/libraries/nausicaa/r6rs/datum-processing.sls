@@ -31,6 +31,8 @@
     <commented-datum>			<interlexeme-space>
     remove-interlexeme-space
 
+    list-of-datums-maker		make-list-of-datums
+
     identifier-datum-maker		make-identifier-datum
     boolean-datum-maker			make-boolean-datum
     number-datum-maker			make-number-datum
@@ -68,13 +70,13 @@
   (nongenerative nausicaa:r6rs:<commented-datum>)
   (fields
    ;;false or <interlexeme-space> instance
-   (immutable interlexeme-space)
+   (immutable (interlexeme-space <interlexeme-space>))
    ;;any datum
    (immutable datum)))
 
 (define-class <interlexeme-space>
   (nongenerative nausicaa:r6rs:<interlexeme-space>)
-  (fields (immutable atmospheres)))
+  (fields (immutable (atmospheres <list>))))
 
 (define (remove-interlexeme-space sexp)
   (cond ((pair? sexp)
@@ -94,6 +96,9 @@
 
 
 ;;;; datum makers
+
+(define (make-list-of-datums yypushback yycustom datums)
+  (remove-interlexeme-space datums))
 
 (define (make-identifier-datum yypushback yycustom the-identifier-string)
   (string->symbol the-identifier-string))
@@ -202,6 +207,8 @@
 	       obj
 	     (assertion-violation '?param
 	       "expected procedure as parameter value" obj))))))))
+
+(define-datum-processor-parameter list-of-datums-maker		make-list-of-datums)
 
 (define-datum-processor-parameter identifier-datum-maker	make-identifier-datum)
 (define-datum-processor-parameter boolean-datum-maker		make-boolean-datum)
