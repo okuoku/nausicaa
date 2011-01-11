@@ -111,8 +111,8 @@
 	      ((eq? T.category 'LINECOMMENT)
 	       (if comments? T (next (lexer))))
 	      ((eq? T.category 'ONESTEDCOMMENT)
-	       (let ((T (%nested-comment-token)))
-		 (if comments? T (next (lexer)))))
+	       (let (((R <lexical-token>) (%nested-comment-token)))
+		 (if (or R.special? comments?) R (next (lexer)))))
 	      (else T))))))
 
 

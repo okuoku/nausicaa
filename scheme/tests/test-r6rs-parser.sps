@@ -30,8 +30,8 @@
   (nausicaa silex lexer)
   (nausicaa parser-tools lexical-token)
   (nausicaa parser-tools source-location)
-  (nausicaa r6rs lexer)
-  (nausicaa r6rs parser)
+  (prefix (nausicaa r6rs lexer) r6.)
+  (prefix (nausicaa r6rs parser) r6.)
   (nausicaa checks))
 
 (check-set-mode! 'report-failed)
@@ -51,8 +51,8 @@
 
   (define (parse string)
     (let* ((IS		(lexer-make-IS (string: string) (counters: 'all)))
-	   (lexer	(make-token-lexer IS))
-	   (parser	(make-r6rs-parser)))
+	   (lexer	(r6.make-token-lexer IS))
+	   (parser	(r6.make-r6rs-parser)))
       (parser lexer error-handler #f)))
 
   (check
@@ -100,8 +100,8 @@
 
   (define (parse string)
     (let* ((IS		(lexer-make-IS (string: string) (counters: 'all)))
-	   (lexer	(make-token-lexer IS))
-	   (parser	(make-r6rs-parser)))
+	   (lexer	(r6.make-token-lexer IS))
+	   (parser	(r6.make-r6rs-parser)))
       (parser lexer error-handler #f)))
 
 ;;; --------------------------------------------------------------------
@@ -222,8 +222,8 @@
 
   (define (parse string)
     (let* ((IS		(lexer-make-IS (string: string) (counters: 'all)))
-	   (lexer	(make-token-lexer IS))
-	   (parser	(make-r6rs-parser)))
+	   (lexer	(r6.make-token-lexer IS))
+	   (parser	(r6.make-r6rs-parser)))
       (parser lexer error-handler #f)))
 
 ;;; --------------------------------------------------------------------
@@ -258,8 +258,8 @@
 
   (define (parse string)
     (let* ((IS		(lexer-make-IS (string: string) (counters: 'all)))
-	   (lexer	(make-token-lexer IS))
-	   (parser	(make-r6rs-parser)))
+	   (lexer	(r6.make-token-lexer IS))
+	   (parser	(r6.make-r6rs-parser)))
       (parser lexer error-handler #f)))
 
   (define-syntax test-lexical-error
@@ -298,12 +298,12 @@
 
   (define (parse string)
     (let* ((IS		(lexer-make-IS (string: string) (counters: 'all)))
-	   (true-lexer	(make-token-lexer* IS))
+	   (true-lexer	(r6.make-token-lexer IS (r6.comments #t) (r6.sharpbang #t)))
 	   (lexer	(lambda ()
 			  (let (((T <lexical-token>) (true-lexer)))
 			    (debug "c: ~s, v: ~s" T.category T.value)
 			    T)))
-	   (parser	(make-r6rs-parser)))
+	   (parser	(r6.make-r6rs-parser)))
       (parser lexer error-handler #f)))
 
 ;;; --------------------------------------------------------------------
@@ -324,9 +324,9 @@
       (parse "#!r6rs")
     => '("#!r6rs"))
 
-  (check	;mixed comments
+  (check	;mixed sharpbangs
       (parse "#!r6rs #!ciao #!mamma")
-    => '("#!r6rs" " " "#!ciao" " " "#!mamma"))
+    => '("#!r6rs" "#!ciao" "#!mamma"))
 
   #t)
 
