@@ -2,6 +2,10 @@
 @chapter Messages catalog for internationalisation
 
 
+@cindex @library{nausicaa msgcat}, library
+@cindex Library @library{nausicaa msgcat}
+
+
 The @library{nausicaa msgcat} allows to translate Scheme strings from
 the @code{en_GB} locale to other locales.
 

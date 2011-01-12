@@ -2,6 +2,10 @@
 @chapter Search tree for lists of symbols
 
 
+@cindex @library{nausicaa symbols-tree}, library
+@cindex Library @library{nausicaa symbols-tree}
+
+
 The library @library{nausicaa symbols-tree} handles search trees in
 which keys are lists of Scheme symbols and values can be anything; the
 tree has the structure of nested alists.  Inserting the following keys

@@ -2,6 +2,10 @@
 @chapter Enumeration sets utilities
 
 
+@cindex @library{nausicaa enumerations}, library
+@cindex Library @library{nausicaa enumerations}
+
+
 The @library{nausicaa enumerations} library defines utilities for
 enumeration sets.
 

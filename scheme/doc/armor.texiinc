@@ -32,6 +32,10 @@ classes} library.
 @section Condition objects
 
 
+@cindex @library{nausicaa armor conditions}, library
+@cindex Library @library{nausicaa armor conditions}
+
+
 All the functions in the @ascii{} armor libraries raise exceptions when
 an error occurs; all the exception types are described here.  The
 bindings described in this section are exported by the @library{nausicaa
@@ -122,6 +126,10 @@ Constructor and predicate for condition objects of type
 @c page
 @node armor base16
 @section Base 16 encoder/decoder
+
+
+@cindex @library{nausicaa armor base16}, library
+@cindex Library @library{nausicaa armor base16}
 
 
 The bindings documented in this section are exported by the
@@ -444,6 +452,10 @@ according to @func{char->integer}, of an @ascii{} character in the
 @c page
 @node armor base32
 @section Base 32 encoder/decoder
+
+
+@cindex @library{nausicaa armor base32}, library
+@cindex Library @library{nausicaa armor base32}
 
 
 The bindings documented in this section are exported by the
@@ -954,6 +966,10 @@ according to @func{char->integer}, of an @ascii{} character in the
 @section Base 64 encoder/decoder
 
 
+@cindex @library{nausicaa armor base64}, library
+@cindex Library @library{nausicaa armor base64}
+
+
 The bindings documented in this section are exported by the
 @library{nausicaa armor base64} library.  Base64 encoding produces
 @math{8} bits of output every @math{6} bits of input, @math{4} bytes of
@@ -1402,6 +1418,10 @@ according to @func{char->integer}, of an @ascii{} character in the
 @section Base 91 encoder/decoder
 
 
+@cindex @library{nausicaa armor base91}, library
+@cindex Library @library{nausicaa armor base91}
+
+
 The bindings documented in this section are exported by the
 @library{nausicaa armor base91} library.  The base91 encoding
 specification is by Joachim Henke, published in the basE91 C language
@@ -1679,6 +1699,10 @@ according to @func{char->integer}, of an @ascii{} character in the
 @c page
 @node armor ascii85
 @section @ascii{} 85 encoder/decoder
+
+
+@cindex @library{nausicaa armor ascii85}, library
+@cindex Library @library{nausicaa armor ascii85}
 
 
 The bindings documented in this section are exported by the
@@ -2173,6 +2197,10 @@ enough room in @var{dst-bv}.
 @section Quoted--printable encoder/decoder
 
 
+@cindex @library{nausicaa armor qprint}, library
+@cindex Library @library{nausicaa armor qprint}
+
+
 The bindings documented in this section are exported by the
 @library{nausicaa armor quoted-printable} library.
 
@@ -2444,6 +2472,10 @@ Return true if @var{byte-integer} would be encoded as is by the
 @c page
 @node armor newlines
 @section Newline insertion/removal
+
+
+@cindex @library{nausicaa armor newlines}, library
+@cindex Library @library{nausicaa armor newlines}
 
 
 The bindings documented in this section are exported by the

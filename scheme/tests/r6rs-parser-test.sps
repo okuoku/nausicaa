@@ -36,9 +36,8 @@
   (nausicaa formations)
   (nausicaa debugging)
   (nausicaa checks)
+  (nausicaa parser-tools)
   (prefix (nausicaa silex lexer) lex.)
-  (only (nausicaa parser-tools lexical-token) <lexical-token>)
-  (only (nausicaa parser-tools source-location) <source-location>)
   (prefix (nausicaa r6rs lexer)  r6.)
   (prefix (nausicaa r6rs parser) r6.))
 

@@ -2,6 +2,10 @@
 @chapter Evaluating code as in an interpreter
 
 
+@cindex @library{nausicaa interps}, library
+@cindex Library @library{nausicaa interps}
+
+
 The @library{nausicaa interps} library exports an interface to
 @rsixlibrary{eval} which allows evaluation of code in chunks with
 retention of global variables; @library{nausicaa interps} uses the

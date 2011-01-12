@@ -2,8 +2,12 @@
 @chapter Organising assertions
 
 
-The library @library{nausicaa assertions} defines functions and macros
-to handle the definition and usage of assertions.
+@cindex @library{nausicaa language assertions}, library
+@cindex Library @library{nausicaa language assertions}
+
+
+The library @library{nausicaa language assertions} defines functions and
+macros to handle the definition and usage of assertions.
 
 @menu
 * assertions macros::           Assertion macros.

@@ -2,6 +2,10 @@
 @chapter Streams
 
 
+@cindex @library{nausicaa streams}, library
+@cindex Library @library{nausicaa streams}
+
+
 The @library{nausicaa streams} library implements @dfn{streams};
 sometimes called ``lazy lists'', streams are a sequential data structure
 containing elements computed only on demand.  A stream is either null or

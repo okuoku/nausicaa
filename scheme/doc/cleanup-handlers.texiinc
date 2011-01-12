@@ -2,6 +2,10 @@
 @chapter Cleaning up
 
 
+@cindex @library{nausicaa cleanup-handlers}, library
+@cindex Library @library{nausicaa cleanup-handlers}
+
+
 On Scheme implementations that provide guardians there is the need to
 invoke the guardian function, every now and then, to release guarded
 resources that were garbage collected.  For example: if the program

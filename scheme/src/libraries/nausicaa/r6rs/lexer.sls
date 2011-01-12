@@ -37,7 +37,51 @@
     read-character			read-identifier
     read-number				read-line-comment
     read-string				read-string*
-    read-nested-comment			read-nested-comment*)
+    read-nested-comment			read-nested-comment*
+
+;;;all the following are reexported from (nausicaa r6rs lexeme-processing)
+    current-input-source
+
+    ;; token maker parameters		 default token makers
+    lexical-error-token-maker		make-lexical-error-token
+    eoi-token-maker			make-eoi-token
+
+    open-paren-token-maker		make-open-paren-token
+    close-paren-token-maker		make-close-paren-token
+    open-bracket-token-maker		make-open-bracket-token
+    close-bracket-token-maker		make-close-bracket-token
+    tick-token-maker			make-tick-token
+    back-tick-token-maker		make-back-tick-token
+    comma-at-token-maker		make-comma-at-token
+    comma-token-maker			make-comma-token
+    dot-token-maker			make-dot-token
+    double-quote-token-maker		make-double-quote-token
+    sharp-paren-token-maker		make-sharp-paren-token
+    sharp-vu8-paren-token-maker		make-sharp-vu8-paren-token
+    sharp-tick-token-maker		make-sharp-tick-token
+    sharp-back-tick-token-maker		make-sharp-back-tick-token
+    sharp-comma-at-token-maker		make-sharp-comma-at-token
+    sharp-comma-token-maker		make-sharp-comma-token
+    sharp-semicolon-token-maker		make-sharp-semicolon-token
+
+    line-comment-token-maker		make-line-comment-token
+    line-comment-noend-token-maker	make-line-comment-noend-token
+    open-nested-comment-token-maker	make-open-nested-comment-token
+    sharp-bang-r6rs-token-maker		make-sharp-bang-r6rs-token
+    sharp-bang-token-maker		make-sharp-bang-token
+    white-space-token-maker		make-white-space-token
+    line-ending-token-maker		make-line-ending-token
+
+    identifier-token-maker		make-identifier-token
+    boolean-token-maker			make-boolean-token
+    named-character-token-maker		make-named-character-token
+    hex-character-token-maker		make-hex-character-token
+    literal-character-token-maker	make-literal-character-token
+    number-token-maker			make-number-token
+    string-token-maker			make-string-token
+    nested-comment-token-maker		make-nested-comment-token
+
+    )
   (import (nausicaa)
     (nausicaa r6rs lexer-table)
     (nausicaa r6rs nested-comment-lexer-table)
@@ -47,7 +91,7 @@
     (nausicaa r6rs identifier-lexer-table)
     (nausicaa r6rs number-lexer-table)
     (nausicaa r6rs lexeme-processing)
-    (nausicaa parser-tools lexical-token)
+    (nausicaa parser-tools)
     (nausicaa silex lexer))
 
 

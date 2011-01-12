@@ -2,6 +2,10 @@
 @chapter Defining storage locations
 
 
+@cindex @library{nausicaa variables}, library
+@cindex Library @library{nausicaa variables}
+
+
 The @library{nausicaa variables} library provides a way to define simple
 storage locations similar to the variables used in many languages.  The
 @dfn{variable} type of value is disjoint from the other types.

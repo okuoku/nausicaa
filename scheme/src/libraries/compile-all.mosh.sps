@@ -98,6 +98,7 @@
 
   (only (nausicaa parser-tools source-location))
   (only (nausicaa parser-tools lexical-token))
+  (only (nausicaa parser-tools))
 
   (only (nausicaa silex lexer))
   (only (nausicaa silex))
@@ -128,6 +129,7 @@
   (only (nausicaa email addresses))
 
   (only (nausicaa r6rs lexer))
+  (only (nausicaa r6rs parser))
 
   (only (nausicaa getopts))
   (only (nausicaa json))

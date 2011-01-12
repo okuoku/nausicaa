@@ -2,6 +2,10 @@
 @chapter Simple queue
 
 
+@cindex @library{nausicaa queues}, library
+@cindex Library @library{nausicaa queues}
+
+
 The functions in this section are exported by the @library{nausicaa
 queues} library; the library implements queues holding arbitrary scheme
 objects and designed for efficient first--in/first--out operations.  The

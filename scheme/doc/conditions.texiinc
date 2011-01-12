@@ -2,6 +2,10 @@
 @chapter More condition types
 
 
+@cindex @library{nausicaa language conditions}, library
+@cindex Library @library{nausicaa language conditions}
+
+
 The @library{nausicaa language conditions} library defines a set of
 condition types to be used by the Nausicaa libraries.  It re--exports
 all the bindings from the @library{nausicaa language unimplemented}

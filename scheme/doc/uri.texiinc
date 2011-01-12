@@ -2,6 +2,10 @@
 @chapter Uniform resource identifiers
 
 
+@cindex @library{nausicaa uri}, library
+@cindex Library @library{nausicaa uri}
+
+
 The @library{nausicaa uri} library implements a parser and class type to
 handle @uri{}s compliant with @rfc{} 3986.@footnote{@aurl{} last
 verified Thu Jun 17, 2010:

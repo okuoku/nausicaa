@@ -2,6 +2,10 @@
 @chapter Object properties
 
 
+@cindex @library{nausicaa object-properties}, library
+@cindex Library @library{nausicaa object-properties}
+
+
 An @dfn{object property} is a convenient interface to an @func{eq?}
 hashtable.  It is a function that can be called with one or two
 arguments.  When called with two arguments: the first is an object and

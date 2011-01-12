@@ -2,6 +2,10 @@
 @chapter The sentinel value
 
 
+@cindex @library{nausicaa language sentinel}, library
+@cindex Library @library{nausicaa language sentinel}
+
+
 The @library{nausicaa language sentinel} library defines a unique value
 and a predicate to test it.  The sentinel value can be used as
 terminator for sequences or as value for uninitialised storage

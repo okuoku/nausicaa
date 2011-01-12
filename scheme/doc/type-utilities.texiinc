@@ -2,6 +2,10 @@
 @chapter Type utilities
 
 
+@cindex @library{nausicaa type-utilities}, library
+@cindex Library @library{nausicaa type-utilities}
+
+
 The following bindings are exported by the @library{nausicaa
 type-utilities} library.
 

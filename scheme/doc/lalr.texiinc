@@ -2,6 +2,10 @@
 @chapter A LALR(1) parser generator
 
 
+@cindex @library{nausicaa lalr}, library
+@cindex Library @library{nausicaa lalr}
+
+
 The @library{nausicaa lalr} library is a LALR(1) parser tables
 generator.  The @library{nausicaa lalr lr-driver} and @library{nausicaa
 lalr glr-driver} libraries generate instances of a parser using a

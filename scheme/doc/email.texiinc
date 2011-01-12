@@ -11,17 +11,22 @@
 @section Parsing email addresses
 
 
+@cindex @library{nausicaa email addresses}, library
+@cindex Library @library{nausicaa email addresses}
+
+
 The @library{nausicaa email addresses} library implements a lexer and
 parser for email addresses.  The parser tries to be compliant to @rfc{}
 2822 ``Internet Message Format''
-(@url{http://www.ietf.org/rfc/rfc2822.txt}).
+(@url{http://www.ietf.org/rfc/rfc2822.txt}).  This library is built on
+top of @library{nausicaa language classes} and @library{nausicaa
+generics}.
 
+@quotation
 This library would not exist without the work Peter Simons did for the
 C++ library @samp{librfc822} (@url{http://cryp.to/librfc2822/}, @aurl{}
 last verified Mon Aug 24, 2009).
-
-This library is built on top of @library{nausicaa language classes} and
-@library{nausicaa generics}.
+@end quotation
 
 @menu
 * email addresses components::  Parsed components.

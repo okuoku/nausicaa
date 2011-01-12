@@ -30,10 +30,10 @@
 #!r6rs
 (import (nausicaa)
   (nausicaa silex lexer)
-  (only (nausicaa parser-tools lexical-token) <lexical-token>)
-  (only (nausicaa parser-tools source-location) <source-location>)
+  (only (nausicaa parser-tools)
+	<lexical-token>
+	<source-location>)
   (prefix (nausicaa r6rs lexer) r6.)
-  (nausicaa r6rs lexeme-processing)
   (nausicaa checks))
 
 (check-set-mode! 'report-failed)
@@ -2120,10 +2120,10 @@ mamma\"")
 	      (make* <lexical-token>
 		'THE-IDENTIFIER
 		(make* <source-location>
-		  (current-input-source) yyline yycolumn yyoffset)
+		  (r6.current-input-source) yyline yycolumn yyoffset)
 		(string->symbol yytext)
 		(string-length yytext)))))
-    (parametrise ((identifier-token-maker mt))
+    (parametrise ((r6.identifier-token-maker mt))
       (check
 	  (tokenise "( \"ciao\" ciao 123 )")
 	=> '((OPAREN #\()
@@ -2250,10 +2250,10 @@ mamma\"")
 	      (make* <lexical-token>
 		'THE-IDENTIFIER
 		(make* <source-location>
-		  (current-input-source) yyline yycolumn yyoffset)
+		  (r6.current-input-source) yyline yycolumn yyoffset)
 		(string->symbol yytext)
 		(string-length yytext)))))
-    (parametrise ((identifier-token-maker mt))
+    (parametrise ((r6.identifier-token-maker mt))
       (check
 	  (tokenise "( \"ciao\" ciao 123 )")
 	=> '((OPAREN #\()

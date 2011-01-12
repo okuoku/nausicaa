@@ -2,6 +2,10 @@
 @chapter Packrat parser
 
 
+@cindex @library{nausicaa packrat}, library
+@cindex Library @library{nausicaa packrat}
+
+
 The @library{nausicaa packrat} library implements parsing combinators
 using the Packrat parsing algorithm: A memoizing, backtracking,
 recursive descent parsing technique that runs in time and space linear

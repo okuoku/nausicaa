@@ -2,7 +2,11 @@
 @chapter Pretty printing
 
 
-The following bindings are exported by the @library{nausicaa
+@cindex @library{nausicaa language pretty-print}, library
+@cindex Library @library{nausicaa language pretty-print}
+
+
+The following bindings are exported by the @library{nausicaa language
 pretty-print} library.
 
 

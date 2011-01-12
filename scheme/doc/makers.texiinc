@@ -2,9 +2,13 @@
 @chapter Maker syntaxes
 
 
-The @library{nausicaa makers} library provides a constructor for macro
-definitions; its nominal purpose is to define macros which wrap
-constructors for records and similar entities, allowing the use of
+@cindex @library{nausicaa language makers}, library
+@cindex Library @library{nausicaa language makers}
+
+
+The @library{nausicaa language makers} library provides a constructor
+for macro definitions; its nominal purpose is to define macros which
+wrap constructors for records and similar entities, allowing the use of
 ``keywords'' to specify non--positional arguments.
 
 @menu

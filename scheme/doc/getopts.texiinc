@@ -2,6 +2,10 @@
 @chapter Parsing command line arguments
 
 
+@cindex @library{nausicaa getopts}, library
+@cindex Library @library{nausicaa getopts}
+
+
 The @library{nausicaa getopts} library implements basic parsing of
 Unix--style command line arguments.  It is meant to be used as
 low--level module in an infrastructure for command line interfaces

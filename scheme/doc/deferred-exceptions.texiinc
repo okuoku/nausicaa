@@ -2,6 +2,10 @@
 @chapter Deferred exceptions
 
 
+@cindex @library{nausicaa deferred-exceptions}, library
+@cindex Library @library{nausicaa deferred-exceptions}
+
+
 The @library{nausicaa deferred-exceptions} library implements a
 mechanism to handle nested exceptions.
 

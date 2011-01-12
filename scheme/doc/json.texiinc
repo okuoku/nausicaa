@@ -2,6 +2,10 @@
 @chapter Parsing and generating @json{} text
 
 
+@cindex @library{nausicaa json}, library
+@cindex Library @library{nausicaa json}
+
+
 The @library{nausicaa json} library implements a parser which converts
 @json{} text to Scheme S-expressions and a set of functions to generate
 @json{} text from Scheme values.

@@ -2,6 +2,10 @@
 @chapter Nested modules
 
 
+@cindex @library{nausicaa submodules}, library
+@cindex Library @library{nausicaa submodules}
+
+
 The library @library{nausicaa submodules} provides nested namespaces to
 be used inside of libraries and programs.  Example:
 

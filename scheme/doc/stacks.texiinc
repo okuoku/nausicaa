@@ -2,6 +2,10 @@
 @chapter Simple stacks
 
 
+@cindex @library{nausicaa stacks}, library
+@cindex Library @library{nausicaa stacks}
+
+
 The functions in this section are exported by the @library{nausicaa
 stacks} library; the library implements stacks holding arbitrary scheme
 objects and designed for efficient last--in/first--out operations.  The

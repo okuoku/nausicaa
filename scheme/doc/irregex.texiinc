@@ -2,6 +2,10 @@
 @chapter IrRegular expressions
 
 
+@cindex @library{nausicaa irregex}, library
+@cindex Library @library{nausicaa irregex}
+
+
 The @library{nausicaa irregex} library is an implementation of regular
 expressions; it supports both @posix{} syntax with various (irregular)
 Perl--Compatible Regular Expressions (@acronym{PCRE}) extensions, as

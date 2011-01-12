@@ -2,6 +2,12 @@
 @chapter One dimensional extended ranges
 
 
+@cindex @library{nausicaa one-dimension-co}, library
+@cindex Library @library{nausicaa one-dimension-co}
+@cindex @library{nausicaa one-dimension-cc}, library
+@cindex Library @library{nausicaa one-dimension-cc}
+
+
 The one--dimension libraries implement low level operations over
 generalised ranges of a coordinate.  They can be used to operate on
 ranges of numbers or characters or whatever objects upon which we can

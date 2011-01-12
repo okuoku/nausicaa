@@ -10,11 +10,16 @@ used by @library{nausicaa silex} and @library{nausicaa lalr}.
 @menu
 * parser-tools location::       Source location records.
 * parser-tools token::          Lexical token records.
+* parser-tools convenience::    Convenience library.
 @end menu
 
 @c page
 @node parser-tools location
 @section Source location records
+
+
+@cindex @library{nausicaa parser-tools source-location}, library
+@cindex Library @library{nausicaa parser-tools source-location}
 
 
 Location records are meant to store informations about the position of a
@@ -302,6 +307,10 @@ Return a string representation of @var{o}.  It is a wrapper for
 @section Lexical token records
 
 
+@cindex @library{nausicaa parser-tools lexical-token}, library
+@cindex Library @library{nausicaa parser-tools lexical-token}
+
+
 Lexical token records are meant to store informations about a token from
 the input stream; they should be produced by the lexer and consumed by
 the parser.  For example, when the lexer tokenises the number @math{123}
@@ -461,5 +470,18 @@ category @func{eq?} to the symbol @samp{*eoi*} or @samp{*lexer-error*}.
 @defunx <lexical-token>-length @var{tok}
 Accessors for the fields of @class{lexical-token} records.
 @end defun
+
+@c page
+@node parser-tools convenience
+@section Convenience library
+
+
+The library @library{nausicaa parser-tools} reexports the following
+bindings from the other libraries in the parser tools collection:
+
+@example
+<lexical-token>
+<source-location>
+@end example
 
 @c end of file

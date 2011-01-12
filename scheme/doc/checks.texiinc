@@ -2,6 +2,10 @@
 @chapter Lightweight testing
 
 
+@cindex @library{nausicaa checks}, library
+@cindex Library @library{nausicaa checks}
+
+
 The @library{nausicaa checks} library provides a simple mechanism for
 testing Scheme programs.  This library re--exports all the bindings from
 the @library{nausicaa debugging} library.  As a primitive example, the

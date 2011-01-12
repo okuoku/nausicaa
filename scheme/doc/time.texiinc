@@ -2,6 +2,10 @@
 @chapter Time data types and procedures
 
 
+@cindex @library{nausicaa times-and-dates}, library
+@cindex Library @library{nausicaa times-and-dates}
+
+
 The @library{nausicaa times-and-dates} library implements procedures and
 data types to manipulate timestamps and dates; the library is built on
 top of the facilities of the @library{nausicaa language classes}
@@ -120,6 +124,8 @@ The count of seconds is always in the range @math{[0, 59]} because the
 @cindex Coordinated Universal Time, @utc{}
 @cindex @utc{}, Coordinated Universal Time
 @cindex Leap seconds
+@cindex @library{nausicaa times-and-dates leap-second-table}, library
+@cindex Library @library{nausicaa times-and-dates leap-second-table}
 
 
 Another realisation of Terrestrial Time is the
@@ -671,6 +677,10 @@ integral part representing the Julian Day Number.
 @c page
 @node time system
 @section Interface to the system
+
+
+@cindex @library{nausicaa times-and-dates compat}, library
+@cindex Library @library{nausicaa times-and-dates compat}
 
 
 The following bindings are required from the underlying Scheme
@@ -1474,6 +1484,10 @@ Like invoking the @code{week-number} method of @var{date}.
 @subsection Type predicates and assertions
 
 
+@cindex @library{nausicaa times-and-dates types}, library
+@cindex Library @library{nausicaa times-and-dates types}
+
+
 Before using the assertions proposed here consider using directly the
 predicate with @func{assert}: the only advantage of these assertions is
 an error message a bit more explicative.  The following bindings are
@@ -1774,6 +1788,10 @@ count of nanoseconds.
 @subsection Seconds and nanoseconds utilities
 
 
+@cindex @library{nausicaa times-and-dates seconds}, library
+@cindex Library @library{nausicaa times-and-dates seconds}
+
+
 @menu
 * time utils secs constants::   Constant values for seconds and
                                 subseconds units.
@@ -2018,6 +2036,10 @@ and vice versa.
 @subsection Gregorian years and weeks
 
 
+@cindex @library{nausicaa times-and-dates years-and-weeks}, library
+@cindex Library @library{nausicaa times-and-dates years-and-weeks}
+
+
 @menu
 * time utils year const::       Constants.
 * time utils year year::        Year utility functions.
@@ -2191,6 +2213,10 @@ in which the year starts on Friday (index 5) the results are as follows:
 @c page
 @node time utils julian
 @subsection Julian calendar utilities
+
+
+@cindex @library{nausicaa times-and-dates julian-calendar}, library
+@cindex Library @library{nausicaa times-and-dates julian-calendar}
 
 
 The following bindings are exported by the @library{nausicaa

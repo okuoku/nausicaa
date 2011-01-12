@@ -2,6 +2,10 @@
 @chapter Evaluating code in a limited  environment
 
 
+@cindex @library{nausicaa evaluations}, library
+@cindex Library @library{nausicaa evaluations}
+
+
 The @library{nausicaa evaluations} library exports an interface to
 @rsixlibrary{eval} which allows evaluation of code in chunks with
 retention of bindings.  @library{nausicaa evaluations} uses the

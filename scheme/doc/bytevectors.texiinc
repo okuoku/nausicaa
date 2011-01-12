@@ -10,6 +10,12 @@
 @section Bytevectors of unsigned bytes
 
 
+@cindex @library{nausicaa bytevectors u8}, library
+@cindex Library @library{nausicaa bytevectors u8}
+@cindex @library{nausicaa bytevectors u8low}, library
+@cindex Library @library{nausicaa bytevectors u8low}
+
+
 The @library{nausicaa bytevectors u8} and @library{nausicaa bytevectors
 u8low} libraries extend the bytevector operations available in the base
 library; @nauref{stdlib bytevector, Bytevectors}.  While

@@ -2,6 +2,10 @@
 @chapter Alist of identifiers
 
 
+@cindex @library{nausicaa language identifier-alists}, library
+@cindex Library @library{nausicaa language identifier-alists}
+
+
 The library @library{nausicaa language identifier-alists} exports an
 interface to association lists having identifiers as keys; the
 identifiers are compared using @func{free-identifier=?}.

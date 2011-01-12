@@ -2,6 +2,10 @@
 @chapter Infix notation utilities
 
 
+@cindex @library{nausicaa infix}, library
+@cindex Library @library{nausicaa infix}
+
+
 The @library{nausicaa infix} library provides utilities to convert infix
 notation expressions to prefix notation expressions; the library is
 built upon @library{nausicaa}, @library{nausicaa silex lexer} and

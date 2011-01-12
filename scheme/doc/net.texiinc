@@ -12,6 +12,10 @@
 @section Ipv4 address objects
 
 
+@cindex @library{nausicaa net ipv4address}, library
+@cindex Library @library{nausicaa net ipv4address}
+
+
 The library @library{nausicaa net ipv4addresses} exports utilities to
 handle IPv4 addresses specifications, according to @rfc{} 5735.
 
@@ -361,6 +365,10 @@ The string representation of the address prefix.
 @c page
 @node net ipv6address
 @section IPv6 address objects
+
+
+@cindex @library{nausicaa net ipv6address}, library
+@cindex Library @library{nausicaa net ipv6address}
 
 
 The library @library{nausicaa net ipv6addresses} exports utilities to

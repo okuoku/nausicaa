@@ -2,6 +2,10 @@
 @chapter Comma--separated values (@acronym{CSV}) utilities
 
 
+@cindex @library{nausicaa csv}, library
+@cindex Library @library{nausicaa csv}
+
+
 The @library{nausicaa csv} library provides lexers and parsers to read
 data from ``comma--separated value'' (@csv{}) files.  This format is not
 well defined, so the library provides both high level parsers and low

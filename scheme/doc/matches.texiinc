@@ -2,6 +2,10 @@
 @chapter Pattern matching
 
 
+@cindex @library{nausicaa matches}, library
+@cindex Library @library{nausicaa matches}
+
+
 The @library{nausicaa matches} library implements @dfn{pattern
 matching}, also known as @dfn{destructuring bind}.  The library creates
 simple generative pattern matchers; each pattern is expanded into the

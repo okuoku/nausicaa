@@ -2,6 +2,10 @@
 @chapter Syntax utilities
 
 
+@cindex @library{nausicaa language syntax-utilities}, library
+@cindex Library @library{nausicaa language syntax-utilities}
+
+
 The library @library{nausicaa language syntax-utilities} defines
 functions and macros to automate common tasks in new syntax definitions.
 

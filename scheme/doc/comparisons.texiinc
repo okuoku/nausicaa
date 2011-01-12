@@ -2,6 +2,10 @@
 @chapter Comparison functions
 
 
+@cindex @library{nausicaa comparisons}, library
+@cindex Library @library{nausicaa comparisons}
+
+
 The @library{nausicaa comparisons} library implements an infrastructure
 for comparison functions; it can be seen as an extension of the standard
 procedures @func{=}, @func{<}, @func{char<?} etc.  The primary design

@@ -2,6 +2,10 @@
 @chapter Foreign--functions interface
 
 
+@cindex @library{nausicaa ffi}, library
+@cindex Library @library{nausicaa ffi}
+
+
 Nausicaa implements a foreign--functions interface (@ffi{}) towards C
 language libraries built upon the interfaces provided by the underlying
 Scheme implementations.  The @api{} is exported by the following
@@ -103,6 +107,10 @@ of shared libraries and constructors of callout and callback functions.
 @c page
 @node ffi core conditions
 @subsection Condition objects
+
+
+@cindex @library{nausicaa ffi conditions}, library
+@cindex Library @library{nausicaa ffi conditions}
 
 
 The bindings described in this section are exported by the
@@ -557,6 +565,10 @@ documentation for details.
 @subsection Sizes and limits
 
 
+@cindex @library{nausicaa ffi sizeof}, library
+@cindex Library @library{nausicaa ffi sizeof}
+
+
 The @library{nausicaa ffi sizeof} library exports a set of bindings to
 allow interface libraries to be aware of C language type sizes and
 limits.  When using this library, it is suggested to import it with
@@ -640,6 +652,10 @@ or @math{64} bits respectively.
 @c page
 @node ffi core pointers
 @subsection Pointer objects
+
+
+@cindex @library{nausicaa ffi pointers}, library
+@cindex Library @library{nausicaa ffi pointers}
 
 
 Pointer objects are values that the Scheme implementation uses to
@@ -744,6 +760,10 @@ With the single exception of @func{pointer<>?}: All the functions return
 @c page
 @node ffi core access
 @subsection Direct access to memory blocks
+
+
+@cindex @library{nausicaa ffi peekers-and-pokers}, library
+@cindex Library @library{nausicaa ffi peekers-and-pokers}
 
 
 A rich set of procedures is implemented to access directly memory blocks
@@ -1396,6 +1416,10 @@ Interfaces to the @func{make-c-callout*} and
 @c page
 @node ffi core call platform
 @subsubsection Low level interface
+
+
+@cindex @library{nausicaa ffi compat}, library
+@cindex Library @library{nausicaa ffi compat}
 
 
 The following bindings are exported by the @library{nausicaa ffi compat}
@@ -2538,6 +2562,10 @@ EKEYREJECTED    EOWNERDEAD      ENOTRECOVERABLE
 @subsection Generating an interface
 
 
+@cindex @library{nausicaa ffi inspector-maker}, library
+@cindex Library @library{nausicaa ffi inspector-maker}
+
+
 This section documents the @library{nausicaa ffi inspector-maker}
 library, which provides some automation in the generation of the
 infrastructure required by interfaces to foreign, C language, libraries.
@@ -2876,6 +2904,10 @@ introduced with @func{sizeof-lib}.  Example:
 @c page
 @node ffi memory
 @section Low level memory handling
+
+
+@cindex @library{nausicaa ffi memory}, library
+@cindex Library @library{nausicaa ffi memory}
 
 
 The @library{nausicaa ffi memory} library exports a low level @api{} for
@@ -4161,6 +4193,10 @@ Field accessors for condition objects of type
 @subsection Guarded memory allocation
 
 
+@cindex @library{nausicaa ffi memory guarded-malloc}, library
+@cindex Library @library{nausicaa ffi memory guarded-malloc}
+
+
 The functions described in this section are usable only when the Scheme
 implementation provides guardians.  The following bindings are exported
 by @library{nausicaa ffi memory guarded-malloc}.
@@ -4186,6 +4222,10 @@ Like @func{malloc/guarded} but makes use of @func{calloc}.
 @c page
 @node ffi cstrings
 @section C language strings handling
+
+
+@cindex @library{nausicaa ffi cstrings}, library
+@cindex Library @library{nausicaa ffi cstrings}
 
 
 A @dfn{C string} is a block of memory holding a string of characters
@@ -4427,6 +4467,10 @@ strings.
 @c page
 @node ffi errno
 @section C language system errors
+
+
+@cindex @library{nausicaa ffi errno}, library
+@cindex Library @library{nausicaa ffi errno}
 
 
 The bindings described in this chapter are exported by the

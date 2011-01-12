@@ -2,6 +2,10 @@
 @chapter Unimplemented error condition
 
 
+@cindex @library{nausicaa unimplemented}, library
+@cindex Library @library{nausicaa unimplemented}
+
+
 The following bindings are exported by the @library{nausicaa language
 unimplemented} library.
 

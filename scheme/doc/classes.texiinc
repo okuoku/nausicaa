@@ -2,6 +2,10 @@
 @chapter Record utilities
 
 
+@cindex @library{nausicaa language classes}, library
+@cindex Library @library{nausicaa language classes}
+
+
 The @library{nausicaa language classes} library is an alternative to the
 @rsixlibrary{records syntactic} library; it is built upon
 @rsixlibrary{records procedural} but adds some features like dot
@@ -3943,6 +3947,10 @@ Conventional type for objects satisfying @func{record?}.
 @c page
 @node classes properties
 @section Class, label, mixin properties
+
+
+@cindex @library{nausicaa language classes properties}, library
+@cindex Library @library{nausicaa language classes properties}
 
 
 The library @library{nausicaa language classes properties} exports an

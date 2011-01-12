@@ -2,6 +2,16 @@
 @chapter List library
 
 
+@cindex @library{nausicaa lists}, library
+@cindex Library @library{nausicaa lists}
+@cindex @library{nausicaa lists low}, library
+@cindex Library @library{nausicaa lists low}
+@cindex @library{nausicaa lists stx}, library
+@cindex Library @library{nausicaa lists stx}
+@cindex @library{nausicaa lists xlists}, library
+@cindex Library @library{nausicaa lists xlists}
+
+
 The @library{nausicaa lists} and @library{nausicaa lists stx} libraries
 implement a collection of functions and macros to manipulate lists;
 additionally, @library{nausicaa lists low} implements a collection of

@@ -24,6 +24,10 @@ the prefix @code{r6.}:
 @section Tokenising @rnrs{6} source code
 
 
+@cindex @library{nausicaa r6rs lexer}, library
+@cindex Library @library{nausicaa r6rs lexer}
+
+
 The library @library{nausicaa r6rs lexer} implements a lexer compliant
 with the @rnrs{6} specification for Scheme source code.  The lexer is
 built on top of the @library{nausicaa silex} parser generator;
@@ -117,17 +121,16 @@ Here is how to test the lexer function maker:
 @example
 #!r6rs
 (import (nausicaa)
-  (prefix (nausicaa r6rs lexer) r6.)
-  (nausicaa silex lexer)
-  (nausicaa silex lexeme-processing)
+  (prefix (nausicaa r6rs lexer)  r6.)
+  (prefix (nausicaa silex lexer) lex.)
   (only (nausicaa parser-tools lexical-token)
-        <lexical-token>)
-  (only (nausicaa parser-tools source-location)
+        <lexical-token>
         <source-location>))
 
 (define (tokenise string)
-  (let* ((IS     (lexer-make-IS (string: string)
-                                (counters: 'all)))
+  (let* ((IS     (lex.lexer-make-IS
+                   (lex.string: string)
+                   (lex.counters: 'all)))
          (lexer  (r6.make-token-lexer IS)))
     (let next (((T <lexical-token>) (lexer))
                (result              '()))
@@ -152,11 +155,11 @@ Here is how to test the lexer function maker:
             (make* <lexical-token>
               'THE-IDENTIFIER
               (make* <source-location>
-                (current-input-source)
+                (r6.current-input-source)
                 yyline yycolumn yyoffset)
               (string->symbol yytext)
               (string-length yytext)))))
-  (parametrise ((identifier-token-maker mt))
+  (parametrise ((r6.identifier-token-maker mt))
     (tokenise "( \"ciao\" ciao 123 )")))
 @result{} ((OPAREN #\()
     (STRING "ciao")
@@ -172,10 +175,10 @@ Here is how to test the lexer function maker:
 
 
 Some of the bindings exported by the library @library{nausicaa r6rs
-lexeme-processing} reference parameter functions as defined by
-@library{nausicaa language parameters}.  The semantic action forms in
-the full @rnrs{6} lexer table, @code{r6rs-lexer-table}, invoke the
-functions referenced by the parameters to produce lexical tokens.
+lexer} reference parameter functions as defined by @library{nausicaa
+language parameters}.  The semantic action forms in the full @rnrs{6}
+lexer table, @code{r6rs-lexer-table}, invoke the functions referenced by
+the parameters to produce lexical tokens.
 
 All the parameters whose name has the @code{-token-maker} suffix are
 used as follows in the semantic action forms:
@@ -222,7 +225,7 @@ code.
 
 
 The following bindings are exported by the library @library{nausicaa
-r6rs lexeme-processing}.
+r6rs lexer}.
 
 
 @deffn Parameter current-input-source
@@ -250,7 +253,7 @@ a lexical error.  The default is @func{make-lexical-error-token}.
 
 
 The following bindings are exported by the library @library{nausicaa
-r6rs lexeme-processing}.
+r6rs lexer}.
 
 
 @deffn Parameter open-paren-token-maker
@@ -386,7 +389,7 @@ a @samp{#!r6rs} token.  The default is
 
 
 The following bindings are exported by the library @library{nausicaa
-r6rs lexeme-processing}.
+r6rs lexer}.
 
 
 @deffn Parameter line-comment-token-maker
@@ -428,7 +431,7 @@ a sharp--bang plus identifier, @samp{#!---}.  The default is
 
 
 The following bindings are exported by the library @library{nausicaa
-r6rs lexeme-processing}.
+r6rs lexer}.
 
 
 @deffn Parameter identifier-token-maker
@@ -484,8 +487,8 @@ for example using @func{read-string} and @func{read-nested-comment} from
 @library{nausicaa r6rs lexer}.
 
 The following bindings are exported by the library @library{nausicaa
-r6rs lexeme-processing}.  See @func{make-token-lexer} for an example
-usage of these parameters.
+r6rs lexer}.  See @func{make-token-lexer} for an example usage of these
+parameters.
 
 
 @deffn Parameter string-token-maker
@@ -505,9 +508,9 @@ a nested comment.  The default is @func{make-nested-comment-token}.
 
 
 The bindings documented in this section are exported by the
-@library{nausicaa r6rs lexeme-processing} library; the functions are the
-default token makers, used to build @class{lexical-token} records
-representing lexemes from the input.
+@library{nausicaa r6rs lexer} library; the functions are the default
+token makers, used to build @class{lexical-token} records representing
+lexemes from the input.
 
 All the functions build and return instances of @class{lexical-token}
 records; all the functions make use of the @func{current-input-source}
@@ -567,7 +570,7 @@ WHITESPACE
 
 
 The following bindings are exported by the library @library{nausicaa
-r6rs lexeme-processing}.
+r6rs lexer}.
 
 
 @defun make-eoi-token @var{yygetc} @var{yyungetc} @var{yytext} @var{yyline} @var{yycolumn} @var{yyoffset}
@@ -590,9 +593,9 @@ error.
 
 
 The following bindings are exported by the library @library{nausicaa
-r6rs lexeme-processing}.  All the functions make use of the fixed
-strings from @library{nausicaa r6rs fixed-strings} as semantic values;
-@ref{r6rs fixed-strings} for details.
+r6rs lexer}.  All the functions make use of the fixed strings from
+@library{nausicaa r6rs fixed-strings} as semantic values; @ref{r6rs
+fixed-strings} for details.
 
 
 @defun make-open-paren-token @var{yygetc} @var{yyungetc} @var{yytext} @var{yyline} @var{yycolumn} @var{yyoffset}
@@ -736,7 +739,7 @@ semantic value is set to the string @code{"#!r6rs"}.
 
 
 The following bindings are exported by the library @library{nausicaa
-r6rs lexeme-processing}.
+r6rs lexer}.
 
 
 @defun make-line-comment-token @var{yygetc} @var{yyungetc} @var{yytext} @var{yyline} @var{yycolumn} @var{yyoffset}
@@ -792,7 +795,7 @@ identifier, @samp{#!---}.  The category is set to the symbol
 
 
 The following bindings are exported by the library @library{nausicaa
-r6rs lexeme-processing}.
+r6rs lexer}.
 
 
 @defun make-identifier-token @var{yygetc} @var{yyungetc} @var{yytext} @var{yyline} @var{yycolumn} @var{yyoffset}
@@ -842,7 +845,7 @@ to the number itself.
 
 
 The following bindings are exported by the library @library{nausicaa
-r6rs lexeme-processing}.
+r6rs lexer}.
 
 
 @defun make-string-token @var{yygetc} @var{yyungetc} @var{yytext} @var{yyline} @var{yycolumn} @var{yyoffset}
@@ -913,7 +916,7 @@ Given an input system from which a double quote character has already
 been consumed, read characters composing an @rnrs{6} string stopping at
 the ending double quote; return the Scheme string.  This function
 expects the default functions to be in the parameters of
-@library{nausicaa r6rs lexeme-processing}.
+@library{nausicaa r6rs lexer}.
 
 If an error occurs reading the string: a condition object is raised with
 components @condition{lexical}, @condition{message}, @condition{who},
@@ -1012,7 +1015,7 @@ input system.
 Given an input system, read a single character datum compliant with
 @rnrs{6}; return the Scheme character.  This function expects the
 default functions to be in the parameters of @library{nausicaa r6rs
-lexeme-processing}.
+lexer}.
 
 If an error occurs reading the character: a condition object is raised
 with components @condition{lexical}, @condition{message},
@@ -1090,7 +1093,7 @@ input system.
 Given an input system, read a single identifier datum compliant with
 @rnrs{6}; return the identifier as a Scheme string.  This function
 expects the default functions to be in the parameters of
-@library{nausicaa r6rs lexeme-processing}.
+@library{nausicaa r6rs lexer}.
 
 If an error occurs reading the identifier: a condition object is raised
 with components @condition{lexical}, @condition{message},
@@ -1167,8 +1170,7 @@ input system.
 @defun read-number @var{IS}
 Given an input system, read a single number datum compliant with
 @rnrs{6}; return the Scheme number.  This function expects the default
-functions to be in the parameters of @library{nausicaa r6rs
-lexeme-processing}.
+functions to be in the parameters of @library{nausicaa r6rs lexer}.
 
 If an error occurs reading the number: a condition object is raised with
 components @condition{lexical}, @condition{message}, @condition{who},
@@ -1257,7 +1259,7 @@ Given an input system from which the opening sequence of nested comments
 @rnrs{6} nested comment matching sequence @samp{|#}.  Return the comment
 as Scheme string enclosed in @samp{#|} and @samp{|#} sequences.  This
 function expects the default functions to be in the parameters of
-@library{nausicaa r6rs lexeme-processing}.
+@library{nausicaa r6rs lexer}.
 
 If an error occurs reading the nested comment: a condition object is
 raised with components @condition{lexical}, @condition{message},
@@ -1374,7 +1376,7 @@ input system.
 Given an input system, read characters composing an @rnrs{6} line
 comment; return the string representing the comment.  This function
 expects the default functions to be in the parameters of
-@library{nausicaa r6rs lexeme-processing}.
+@library{nausicaa r6rs lexer}.
 
 If an error occurs reading the line comment: a condition object is
 raised with components @condition{lexical}, @condition{message},
@@ -1412,6 +1414,10 @@ The implementation of this function is a useful example of usage for
 @c page
 @node r6rs parser
 @section Parsing a stream of @rnrs{6} tokens
+
+
+@cindex @library{nausicaa r6rs parser}, library
+@cindex Library @library{nausicaa r6rs parser}
 
 
 The library @library{nausicaa r6rs parser} implements a lexer compliant
@@ -2203,6 +2209,10 @@ identifier; return the string itself.
 @c page
 @node r6rs fixed-strings
 @section A collection of common strings
+
+
+@cindex @library{nausicaa r6rs fixed-strings}, library
+@cindex Library @library{nausicaa r6rs fixed-strings}
 
 
 The library @library{nausicaa r6rs fixed-strings} exports bindings to

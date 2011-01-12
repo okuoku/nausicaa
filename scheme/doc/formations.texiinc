@@ -2,6 +2,10 @@
 @chapter Formatting strings
 
 
+@cindex @library{nausicaa formations}, library
+@cindex Library @library{nausicaa formations}
+
+
 The @library{nausicaa formations} library is a distribution of the
 @func{format} function written by Dirk Lutzebaeck
 (@email{lutzeb@@cs.tu-berlin.de}), originally by Ken Dickey and Aubrey

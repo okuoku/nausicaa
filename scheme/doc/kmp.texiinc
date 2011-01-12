@@ -2,6 +2,10 @@
 @chapter Knuth--Morris--Pratt searching
 
 
+@cindex @library{nausicaa knuth-morris-pratt}, library
+@cindex Library @library{nausicaa knuth-morris-pratt}
+
+
 The Knuth--Morris--Pratt (@acronym{KMP}) sequence--search algorithm is a
 method of rapidly scanning a sequence of values for the occurrence of
 some fixed pattern.  It has the advantage of never requiring

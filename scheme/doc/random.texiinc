@@ -2,6 +2,10 @@
 @chapter Sources of random bits
 
 
+@cindex @library{nausicaa randomisations}, library
+@cindex Library @library{nausicaa randomisations}
+
+
 The @library{nausicaa randomisations} library provides an @api{} to
 access sources of random and pseudo--random bits, or ``randomness
 sources'' for brevity.  Other, auxiliary libraries provide access to
@@ -788,6 +792,10 @@ vector of length @var{n} for the images of the points.
 @subsection Specialised list functions
 
 
+@cindex @library{nausicaa randomisations lists}, library
+@cindex Library @library{nausicaa randomisations lists}
+
+
 The auxiliary library @library{nausicaa randomisations lists} exports
 bindings specialised to handle lists and randomness sources; it is based
 on @library{nausicaa randomisations} only.
@@ -821,6 +829,10 @@ from @var{source}.
 @c page
 @node random utils vectors
 @subsection Specialised vector functions
+
+
+@cindex @library{nausicaa randomisations vectors}, library
+@cindex Library @library{nausicaa randomisations vectors}
 
 
 The auxiliary library @library{nausicaa randomisations vectors} exports
@@ -893,6 +905,10 @@ their sum equals approximately @var{requested-sum} with @var{tolerance}:
 @c page
 @node random utils strings
 @subsection Specialised string functions
+
+
+@cindex @library{nausicaa randomisations strings}, library
+@cindex Library @library{nausicaa randomisations strings}
 
 
 The auxiliary library @library{nausicaa randomisations strings} exports
@@ -975,6 +991,10 @@ of @var{str}, using randomness from @var{source}.
 @subsection The Mersenne twister
 
 
+@cindex @library{nausicaa randomisations mersenne}, library
+@cindex Library @library{nausicaa randomisations mersenne}
+
+
 The Mersenne twister is a pseudorandom number generator developed in
 1997 by Makoto Matsumoto and Takuji Nishimura:
 
@@ -1021,6 +1041,10 @@ L'Ecuyer's MRG32k3a generator}
 @c page
 @node random generators marsaglia
 @subsection George Marsaglia's generators
+
+
+@cindex @library{nausicaa randomisations marsaglia}, library
+@cindex Library @library{nausicaa randomisations marsaglia}
 
 
 The generators described here were posted by George Marsaglia in a
@@ -1395,6 +1419,10 @@ With this seeding it is known that the millionth integer is
 @subsection Blum--Blum--Shub generator
 
 
+@cindex @library{nausicaa randomisations blum-blum-shub}, library
+@cindex Library @library{nausicaa randomisations blum-blum-shub}
+
+
 Blum--Blum--Shub is a @acronym{PRNG} proposed in:
 
 @quotation
@@ -1506,6 +1534,10 @@ modulo @math{2}.
 @subsection Borosh generator
 
 
+@cindex @library{nausicaa randomisations borosh}, library
+@cindex Library @library{nausicaa randomisations borosh}
+
+
 This generator is called @dfn{Borosh--Niederreiter}.  It was taken from:
 
 @quotation
@@ -1552,6 +1584,10 @@ N' = (A * N) mod M
 @c page
 @node random generators cmrg
 @subsection Combined multiple recursive generator
+
+
+@cindex @library{nausicaa randomisations cmrg}, library
+@cindex Library @library{nausicaa randomisations cmrg}
 
 
 This is a combined multiple recursive generator.  The algorithm was
@@ -1638,6 +1674,10 @@ generator until it is @math{0 < X < M1} and @math{0 < Y < M2}.
 @c page
 @node random dist
 @section Random numbers from known distributions
+
+
+@cindex @library{nausicaa randomisations distributions}, library
+@cindex Library @library{nausicaa randomisations distributions}
 
 
 The following functions are exported by the @library{nausicaa

@@ -2,6 +2,10 @@
 @chapter Accessing system environment variables
 
 
+@cindex @library{nausicaa language getenv}, library
+@cindex Library @library{nausicaa language getenv}
+
+
 The library @library{nausicaa language getenv} exports a simple
 interface to access system environment variables.  This library exists
 with the purpose of providing a lightweight interface for the expansion

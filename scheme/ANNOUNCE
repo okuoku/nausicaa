@@ -96,6 +96,9 @@ Notes for --- tag 0.2a0
   the basic  libraries and added INFIX bindings  to the list
   of reexports from (nausicaa).
 
+* Added R6RS lexer built upon SILex and R6RS parser built on
+  LALR.
+
 
 Notes for 2010-03-28 tag 0.1a11
 -------------------------------

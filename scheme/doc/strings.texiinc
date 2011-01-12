@@ -2,6 +2,12 @@
 @chapter Strings library
 
 
+@cindex @library{nausicaa strings}, library
+@cindex Library @library{nausicaa strings}
+@cindex @library{nausicaa strings low}, library
+@cindex Library @library{nausicaa strings low}
+
+
 The @library{nausicaa strings} library extends the string operations
 available in the base library.  @nauref{baselib strings, Strings}.
 While @library{nausicaa strings} is a high level interface,

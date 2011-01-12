@@ -2,6 +2,10 @@
 @chapter Debugging utilities
 
 
+@cindex @library{nausicaa debugging}, library
+@cindex Library @library{nausicaa debugging}
+
+
 The @library{nausicaa debugging} library provide simple utilities to
 help debugging.  All the following bindings are re--exported by the
 @library{nausicaa checks} library.

@@ -2,6 +2,10 @@
 @chapter External representation for data with shared structure
 
 
+@cindex @library{nausicaa language shared-structures}, library
+@cindex Library @library{nausicaa language shared-structures}
+
+
 The following bindings are exported by the @library{nausicaa language
 shared-structures} library.
 

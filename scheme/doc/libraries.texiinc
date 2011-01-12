@@ -2,6 +2,10 @@
 @chapter Libraries inspection
 
 
+@cindex @library{nausicaa libraries}, library
+@cindex Library @library{nausicaa libraries}
+
+
 The @library{nausicaa libraries} library implements routines to inspect
 @func{library} forms as defined by @rnrs{6}.
 

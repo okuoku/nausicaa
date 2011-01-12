@@ -2,6 +2,10 @@
 @chapter Feature--based conditional expansion
 
 
+@cindex @library{nausicaa language cond-expand}, library
+@cindex Library @library{nausicaa language cond-expand}
+
+
 It is desirable that programs which depend on additions to the standard
 Scheme language name those additions.  For example the @srfi{}s provide
 the specifications of some additions (``features'').  The

@@ -2,6 +2,8 @@
 @chapter Overall configuration
 
 
+@cindex @library{nausicaa configuration}, library
+@cindex Library @library{nausicaa configuration}
 @cindex @env{NAUSICAA_ENABLE_ASSERTIONS}, environment variable
 @cindex @env{NAUSICAA_ENABLE_ARGUMENTS_VALIDATION}, environment variable
 @cindex Environment variable @env{NAUSICAA_ENABLE_ASSERTIONS}

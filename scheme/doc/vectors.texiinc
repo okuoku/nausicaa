@@ -2,6 +2,14 @@
 @chapter Vectors library
 
 
+@cindex @library{nausicaa vectors}, library
+@cindex Library @library{nausicaa vectors}
+@cindex @library{nausicaa vectors low}, library
+@cindex Library @library{nausicaa vectors low}
+@cindex @library{nausicaa vectors xvectors}, library
+@cindex Library @library{nausicaa vectors xvectors}
+
+
 The @library{nausicaa vectors} library extends the vector operations
 available in the base library.  @nauref{baselib vectors, Vectors}.
 While @library{nausicaa vectors} is a high level interface,

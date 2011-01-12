@@ -2,6 +2,12 @@
 @chapter A lexical analyser generator
 
 
+@cindex @library{nausicaa silex}, library
+@cindex Library @library{nausicaa silex}
+@cindex @library{nausicaa silex lexer}, library
+@cindex Library @library{nausicaa silex lexer}
+
+
 The @library{nausicaa silex} library generates a lexical analyser table
 from a Lex--like specification file.  The @library{nausicaa silex lexer}
 library generates a Scheme lexical analyser using a supplied table.

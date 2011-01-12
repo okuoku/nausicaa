@@ -2,6 +2,10 @@
 @chapter Portable regular expressions for Scheme
 
 
+@cindex @library{nausicaa pregexp}, library
+@cindex Library @library{nausicaa pregexp}
+
+
 The @library{nausicaa pregexp} library implements regular expressions
 parsing modeled on Perl's, and includes such powerful directives as
 numeric and non--greedy quantifiers, capturing and non--capturing

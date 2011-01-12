@@ -2,6 +2,10 @@
 @chapter Character sets
 
 
+@cindex @library{nausicaa char-sets}, library
+@cindex Library @library{nausicaa char-sets}
+
+
 The @library{nausicaa char-sets} library handles sets of characters.
 
 A ``character'' is every value for which the application of @func{char?}

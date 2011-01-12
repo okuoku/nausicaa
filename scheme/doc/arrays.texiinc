@@ -2,6 +2,10 @@
 @chapter Multidimensional arrays
 
 
+@cindex @library{nausicaa arrays}, library
+@cindex Library @library{nausicaa arrays}
+
+
 The @library{nausicaa arrays} library implements mutidimensional arrays
 on top of builtin Scheme vectors.
 

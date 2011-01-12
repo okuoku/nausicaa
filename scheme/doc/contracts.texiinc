@@ -2,6 +2,10 @@
 @chapter Function call contracts
 
 
+@cindex @library{nausicaa contracts}, library
+@cindex Library @library{nausicaa contracts}
+
+
 The library @library{nausicaa contracts} provides ways to use macro
 identifiers to validate the arguments and return values of functions;
 the concept is to include the validation code at the call site (rather

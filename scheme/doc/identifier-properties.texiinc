@@ -2,6 +2,10 @@
 @chapter Expand--time identifier properties
 
 
+@cindex @library{nausicaa language identifier-properties}, library
+@cindex Library @library{nausicaa language identifier-properties}
+
+
 The library @library{nausicaa language identifier-properties} allows the
 association of objects to identifiers at expand time, using other
 identifiers as keywords.  To avoid name collisions, it is suggested to
