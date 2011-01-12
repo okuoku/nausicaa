@@ -259,13 +259,13 @@ endif
 .PHONY: vtest-r6rs-parser ptest-r6rs-parser mtest-r6rs-parser
 
 vtest-r6rs-parser:
-	$(nau_vtest_RUN) $(srcdir)/proofs/r6rs-parser.sps $(file)
+	$(nau_vtest_RUN) $(srcdir)/tests/r6rs-parser-test.sps $(file)
 
 ptest-r6rs-parser:
-	$(nau_ptest_RUN) $(srcdir)/proofs/r6rs-parser.sps $(file)
+	$(nau_ptest_RUN) $(srcdir)/tests/r6rs-parser-test.sps $(file)
 
 mtest-r6rs-parser:
-	$(nau_mtest_RUN) $(srcdir)/proofs/r6rs-parser.sps $(file)
+	$(nau_mtest_RUN) $(srcdir)/tests/r6rs-parser-test.sps $(file)
 
 #page
 ## --------------------------------------------------------------------

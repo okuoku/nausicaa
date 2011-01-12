@@ -6,7 +6,12 @@
 ;;;
 ;;;Abstract
 ;;;
-;;;	Read the Nausicaa/Scheme libraries under "./src/libraries"
+;;;	When run with no  arguments: parse the Nausicaa/Scheme libraries
+;;;	under "./src/libraries" and the  test programs under ".tests" in
+;;;	the source tree of Nausicaa/Scheme on Marco's home directory.
+;;;
+;;;	When  run with file  pathnames as  arguments: parses  those file
+;;;	names.
 ;;;
 ;;;Copyright (C) 2011 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
@@ -534,8 +539,8 @@
 		      (with
 		       (close-port port))))
 	      (sexp1 (read port)))
-      (format #t "parsing: ~a ... " pathname)
-      (flush-output-port (current-output-port))
+      (format (current-error-port) "parsing: ~a ... " pathname)
+      (flush-output-port (current-error-port))
       (letrec* ((port (compensate
 			  (open-input-file pathname)
 			(with
@@ -547,7 +552,7 @@
 	    (pretty-print sexp1)
 	    (pretty-print sexp2))
 	  (same? sexp1 (car sexp2))
-	  (format #t "ok\n")
+	  (format (current-error-port) "ok\n")
 	  )))))
 
 (parametrise ((debugging #f))
@@ -562,6 +567,6 @@
 	    (map (lambda (pathname)
 		   (string-append test-rootdir "/" pathname))
 	      test-files)))
-      (compare (car cl)))))
+      (for-each compare (cdr cl)))))
 
 ;;; end of file
