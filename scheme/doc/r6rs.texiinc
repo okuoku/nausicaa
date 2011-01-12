@@ -5,7 +5,7 @@
 The libraries under the @library{nausicaa r6rs ---} hierarchy provide
 tools to manipulate Scheme source code compliant with the @rnrs{6}
 standard.  It is suggested to import the libraries in this hiearchy with
-the prefix @code{r6.}:
+@code{r6.} as prefix:
 
 @example
 (import ---
@@ -35,7 +35,8 @@ built on top of the @library{nausicaa silex} parser generator;
 
 @menu
 * r6rs lexer full::             Full lexer table.
-* r6rs lexer params::           Full lexer semantic action parameters.
+* r6rs lexer params::           Full lexer--tabl semantic--action
+                                parameters.
 * r6rs lexer makers::           Full lexer token makers.
 * r6rs lexer strings::          Reading strings.
 * r6rs lexer characters::       Reading characters.
@@ -43,6 +44,7 @@ built on top of the @library{nausicaa silex} parser generator;
 * r6rs lexer numbers::          Reading numbers.
 * r6rs lexer nested comments::  Reading nested comments.
 * r6rs lexer line comments::    Reading line comments.
+* r6rs lexer custom::           Customising the lexer.
 @end menu
 
 @c page
@@ -64,11 +66,25 @@ exported by the @library{nausicaa r6rs lexer} library.
 
 
 @defvr Constant r6rs-lexer-table
-A lexer table to parse @rnrs{6} compliant Scheme source code.  This
-table needs an input system configured with @code{(counters: 'all)}.
-The semantic action forms make use of the parameters documented in this
+A lexer table to parse @rnrs{6} compliant Scheme source code.  The
+semantic action forms make use of the parameters documented in this
 chapter to build the lexical tokens; @ref{r6rs lexer params} for
 details.
+
+This table needs an input system configured with counters @code{all},
+for example:
+
+@example
+(import (nausicaa)
+  (prefix (nausicaa silex lexer) lex.))
+
+(define port ---)
+
+(define IS
+  (lex.lexer-make-IS
+    (lex.port: port)
+    (lex.counters: 'all)))
+@end example
 @end defvr
 
 
@@ -78,17 +94,19 @@ details.
 @deffnx {Auxiliary Syntax} blanks @var{boolean}
 @deffnx {Auxiliary Syntax} sharpbang @var{boolean}
 A lexer thunk generator for full @rnrs{6} source code reading.  Given an
-input system @var{IS}: build and return a lexer thunk; the optional
-clauses allow configuration of the lexer behaviour.
+input system @var{IS} build and return a lexer thunk; the optional
+clauses allow configuration of the lexer behaviour.  The thunk returns
+instances of @class{lexical-token} as defined by @library{nausicaa
+parser-tools lexical-token}.
 @end deffn
 
 
 @deffn {Auxiliary Syntax} table @var{table}
-Allow the selection of the lexer table to use; the default is
+Allow the selection of the lexer table; the default is
 @code{r6rs-lexer-table}.  Selecting a custom table should be considered
 with care because it involves generating a table with the same interface
 of @code{r6rs-lexer-table}; it can be done by modifying the source code
-of @code{r6rs-lexer-table} itself.
+of @code{r6rs-lexer-table} itself (@pxref{r6rs lexer custom}).
 @end deffn
 
 
@@ -121,11 +139,9 @@ Here is how to test the lexer function maker:
 @example
 #!r6rs
 (import (nausicaa)
-  (prefix (nausicaa r6rs lexer)  r6.)
+  (prefix (nausicaa r6rs  lexer) r6.)
   (prefix (nausicaa silex lexer) lex.)
-  (only (nausicaa parser-tools lexical-token)
-        <lexical-token>
-        <source-location>))
+  (nausicaa parser-tools))
 
 (define (tokenise string)
   (let* ((IS     (lex.lexer-make-IS
@@ -143,6 +159,15 @@ Here is how to test the lexer function maker:
              (next (lexer) `((,T.category ,T.value)
                              . ,result)))))))
 
+(define (mt yygetc yyungetc yytext
+            yyline yycolumn yyoffset)
+  (make* <lexical-token> 'THE-IDENTIFIER
+    (make* <source-location>
+      (r6.current-input-source)
+      yyline yycolumn yyoffset)
+    (string->symbol yytext)
+    (string-length yytext)))
+
 (tokenise "( \"ciao\" ciao 123 )")
 @result{} ((OPAREN #\()
     (STRING "ciao")
@@ -151,16 +176,8 @@ Here is how to test the lexer function maker:
     (CPAREN #\))
     *eoi*)
 
-(let ((mt (lambda (yygetc yyungetc yytext yyline yycolumn yyoffset)
-            (make* <lexical-token>
-              'THE-IDENTIFIER
-              (make* <source-location>
-                (r6.current-input-source)
-                yyline yycolumn yyoffset)
-              (string->symbol yytext)
-              (string-length yytext)))))
-  (parametrise ((r6.identifier-token-maker mt))
-    (tokenise "( \"ciao\" ciao 123 )")))
+(parametrise ((r6.identifier-token-maker mt))
+  (tokenise "( \"ciao\" ciao 123 )"))
 @result{} ((OPAREN #\()
     (STRING "ciao")
     (THE-IDENTIFIER ciao)
@@ -171,14 +188,31 @@ Here is how to test the lexer function maker:
 
 @c page
 @node r6rs lexer params
-@subsection Full lexer table semantic action parameters
+@subsection Full lexer--table semantic--action parameters
 
 
-Some of the bindings exported by the library @library{nausicaa r6rs
-lexer} reference parameter functions as defined by @library{nausicaa
-language parameters}.  The semantic action forms in the full @rnrs{6}
-lexer table, @code{r6rs-lexer-table}, invoke the functions referenced by
-the parameters to produce lexical tokens.
+Some of the bindings exported by @library{nausicaa r6rs lexer} reference
+parameter functions as defined by @library{nausicaa language
+parameters}.  The semantic action forms in the @code{r6rs-lexer-table}
+invoke the functions referenced by the parameters to produce lexical
+tokens.
+
+@menu
+* r6rs lexer params intro::     Introduction to lexer parameters.
+* r6rs lexer params general::   General token--maker parameters.
+* r6rs lexer params fixed::     Fixed--semantic--value token--maker
+                                parameters.
+* r6rs lexer params variable::  Variable--semantic--value token--maker
+                                parameters.
+* r6rs lexer params scheme::    Scheme--semantic--value token--maker
+                                parameters.
+* r6rs lexer params special::   Special token--maker parameters.
+@end menu
+
+@c page
+@node r6rs lexer params intro
+@subsubsection Introduction to lexer parameters
+
 
 All the parameters whose name has the @code{-token-maker} suffix are
 used as follows in the semantic action forms:
@@ -199,29 +233,48 @@ behaviour:
 
 @noindent
 where the arguments are the bindings handed by @library{nausicaa silex
-lexer} to the semantic action forms; @ref{silex semantics action} for
-details.
+lexer} to the semantic action forms (@pxref{silex semantics action}).
 
-Notice that it is perfectly possible to subclass @class{lexical-token}
-and make the functions return instances of the subclass.  Also, it is
-not strictly needed to return @class{lexical-token} records, altough
-they help at least in tracking the location of values in the source
-code.
+Notice that it is fine to subclass @class{lexical-token} and make the
+functions return instances of the subclass.  Also, it is not strictly
+needed to return @class{lexical-token} records, altough they help at
+least in tracking the location of values in the source code.
 
-@menu
-* r6rs lexer params general::   General token maker parameters.
-* r6rs lexer params fixed::     Fixed semantic value token maker
-                                parameters.
-* r6rs lexer params variable::  Variable semantic value token maker
-                                parameters.
-* r6rs lexer params scheme::    Scheme semantic value token maker
-                                parameters.
-* r6rs lexer params special::   Special token maker parameters.
-@end menu
+Finally, we must remember that we can choose the semantic value in
+@class{lexical-token} instances to be any value we need.  For example,
+we could to:
+
+@example
+(import (nausicaa)
+  (prefix (nausicaa r6rs lexer) r6.)
+  (nausicaa parser-tools))
+
+(define-class <lexeme>
+  (nongenerative my:<lexeme>)
+  (fields (source-location <source-location>)))
+
+(define-class <identifier>
+  (nongenerative my:<identifier>)
+  (inherit <lexeme>)
+  (fields (datum <string>)))
+
+(define (my-identifier-token yygetc yyungetc yytext
+                             yyline yycolumn yyoffset)
+  (let ((P (make* <source-location>
+             (r6.current-input-source)
+             yyline yycolumn yyoffset)))
+    (make* <lexical-token> 'IDENTIFIER P
+      (make* <identifier> P yytext)
+      (string-length yytext))))
+@end example
+
+@noindent
+and use @func{my-identifier-token} as value for the
+@func{identifier-token-maker} parameter.
 
 @c page
 @node r6rs lexer params general
-@subsubsection General token maker parameters
+@subsubsection General token--maker parameters
 
 
 The following bindings are exported by the library @library{nausicaa
@@ -230,9 +283,9 @@ r6rs lexer}.
 
 @deffn Parameter current-input-source
 Hold the value representing the current input source; to be used to fill
-the @code{input} field of @class{source-location} records.  The default
-value is @false{}.  Currently there are no constraints on this value: it
-can be anything.
+the @code{input} field of @class{source-location} instances.  The
+default value is @false{}.  Currently there are no constraints on this
+value: it can be anything.
 @end deffn
 
 
@@ -249,7 +302,7 @@ a lexical error.  The default is @func{make-lexical-error-token}.
 
 @c page
 @node r6rs lexer params fixed
-@subsubsection Fixed semantic value token maker parameters
+@subsubsection Fixed--semantic--value token--maker parameters
 
 
 The following bindings are exported by the library @library{nausicaa
@@ -279,7 +332,7 @@ an open bracket, @samp{[}.  The default is
 
 @deffn Parameter close-bracket-token-maker
 Set to a function returning a @class{lexical-token} record representing
-a close bracket, @samp{[}.  The default is
+a close bracket, @samp{]}.  The default is
 @func{make-close-bracket-token}.
 @end deffn
 
@@ -317,8 +370,8 @@ a dot, @samp{.}.  The default is @func{make-dot-token}.
 @deffn Parameter double-quote-token-maker
 Set to a function returning a @class{lexical-token} record representing
 a double quote, @samp{"}; double quotes open strings, which must be read
-with a separate lexer table.  The default is
-@func{make-double-quote-token}.
+with a separate lexer table (@pxref{r6rs lexer strings}).  The default
+is @func{make-double-quote-token}.
 @end deffn
 
 
@@ -372,20 +425,21 @@ a sharp--semicolon, @samp{#;}.  The default is
 
 @deffn Parameter open-nested-comment-token-maker
 Set to a function returning a @class{lexical-token} record representing
-the opening of a nested comment, @samp{#|}.  The default is
-@func{make-open-nested-comment-token}.
+the opening of a nested comment, @samp{#|}; nested comments must be read
+with a separate lexer table (@pxref{r6rs lexer nested comments}).  The
+default is @func{make-open-nested-comment-token}.
 @end deffn
 
 
 @deffn Parameter sharp-bang-r6rs-token-maker
 Set to a function returning a @class{lexical-token} record representing
-a @samp{#!r6rs} token.  The default is
+a @samp{#!r6rs} comment.  The default is
 @func{make-sharp-bang-r6rs-token}.
 @end deffn
 
 @c page
 @node r6rs lexer params variable
-@subsubsection Variable semantic value token maker parameters
+@subsubsection Variable--semantic--value token--maker parameters
 
 
 The following bindings are exported by the library @library{nausicaa
@@ -421,13 +475,13 @@ a line ending.  The default is @func{make-line-ending-token}.
 
 @deffn Parameter sharp-bang-token-maker
 Set to a function returning a @class{lexical-token} record representing
-a sharp--bang plus identifier, @samp{#!---}.  The default is
+a sharp--bang comment, @samp{#!---}.  The default is
 @func{make-sharp-bang-token}.
 @end deffn
 
 @c page
 @node r6rs lexer params scheme
-@subsubsection Scheme semantic value token maker parameters
+@subsubsection Scheme--semantic--value token--maker parameters
 
 
 The following bindings are exported by the library @library{nausicaa
@@ -474,21 +528,19 @@ a number.  The default is @func{make-number-token}.
 
 @c page
 @node r6rs lexer params special
-@subsubsection Special token maker parameters
+@subsubsection Special token--maker parameters
 
 
 The following parameters are @strong{not} used directly by the semantic
-action forms of @code{r6rs-lexer-table}: this table directly process
-neither strings nor nested comments; rather is produces lexical tokens
+action forms of @code{r6rs-lexer-table}: this table directly processes
+neither strings nor nested comments; instead it produces lexical tokens
 for double quote characters (which open strings) and nested comment
 opening sequences, @samp{#|}.  A full @rnrs{6} lexer must recognise such
 opening tokens and switch table to process strings and nested comments,
-for example using @func{read-string} and @func{read-nested-comment} from
-@library{nausicaa r6rs lexer}.
+for example using @func{read-string} and @func{read-nested-comment}.
 
 The following bindings are exported by the library @library{nausicaa
-r6rs lexer}.  See @func{make-token-lexer} for an example usage of these
-parameters.
+r6rs lexer}.
 
 
 @deffn Parameter string-token-maker
@@ -504,13 +556,13 @@ a nested comment.  The default is @func{make-nested-comment-token}.
 
 @c page
 @node r6rs lexer makers
-@subsection Full lexer table token makers
+@subsection Full lexer table token--makers
 
 
 The bindings documented in this section are exported by the
 @library{nausicaa r6rs lexer} library; the functions are the default
 token makers, used to build @class{lexical-token} records representing
-lexemes from the input.
+lexemes from the input (@pxref{parser-tools token}).
 
 All the functions build and return instances of @class{lexical-token}
 records; all the functions make use of the @func{current-input-source}
@@ -532,8 +584,7 @@ All the functions have the following behaviour:
 
 @noindent
 where the arguments are the bindings handed by @library{nausicaa silex
-lexer} to the semantic action forms; @ref{silex semantics action} for
-details.
+lexer} to the semantic action forms (@pxref{silex semantics action}).
 
 Here is a summary of the lexical token categories:
 
@@ -545,7 +596,7 @@ COMMA                   COMMAAT
 CPAREN                  DOT
 DOUBLEQUOTE             IDENTIFIER
 LINECOMMENT             LINEENDING
-NESTED-COMMENT          NUMBER
+NESTEDCOMMENT           NUMBER
 OBRACKET                ONESTEDCOMMENT
 OPAREN                  SHARPBACKTICK
 SHARPBANG               SHARPBANGR6RS
@@ -557,16 +608,16 @@ WHITESPACE
 @end example
 
 @menu
-* r6rs lexer makers general::   General token makers.
-* r6rs lexer makers fixed::     Fixed semantic value token makers.
-* r6rs lexer makers variable::  Variable semantic value token makers.
-* r6rs lexer makers scheme::    Scheme semantic value token makers.
-* r6rs lexer makers special::   Special token makers.
+* r6rs lexer makers general::   General token--makers.
+* r6rs lexer makers fixed::     Fixed--semantic--value token--makers.
+* r6rs lexer makers variable::  Variable--semantic--value token--makers.
+* r6rs lexer makers scheme::    Scheme--semantic--value token--makers.
+* r6rs lexer makers special::   Special token--makers.
 @end menu
 
 @c page
 @node r6rs lexer makers general
-@subsubsection General token makers
+@subsubsection General token--makers
 
 
 The following bindings are exported by the library @library{nausicaa
@@ -575,7 +626,7 @@ r6rs lexer}.
 
 @defun make-eoi-token @var{yygetc} @var{yyungetc} @var{yytext} @var{yyline} @var{yycolumn} @var{yyoffset}
 Return a @class{lexical-token} record representing the end--of--input.
-The category is set to the symbol @code{*value*}; the semantic value is
+The category is set to the symbol @code{*eoi*}; the semantic value is
 set to @code{(eof-object)}.
 @end defun
 
@@ -589,13 +640,13 @@ error.
 
 @c page
 @node r6rs lexer makers fixed
-@subsubsection Fixed semantic value token makers
+@subsubsection Fixed--semantic--value token--makers
 
 
 The following bindings are exported by the library @library{nausicaa
 r6rs lexer}.  All the functions make use of the fixed strings from
-@library{nausicaa r6rs fixed-strings} as semantic values; @ref{r6rs
-fixed-strings} for details.
+@library{nausicaa r6rs fixed-strings} as semantic values (@pxref{r6rs
+fixed-strings}).
 
 
 @defun make-open-paren-token @var{yygetc} @var{yyungetc} @var{yytext} @var{yyline} @var{yycolumn} @var{yyoffset}
@@ -621,7 +672,7 @@ semantic value is set to the character @code{#\[}.
 
 @defun make-close-bracket-token @var{yygetc} @var{yyungetc} @var{yytext} @var{yyline} @var{yycolumn} @var{yyoffset}
 Return a @class{lexical-token} record representing a close bracket,
-@samp{[}.  The category is set to the symbol @code{CBRACKET}; the
+@samp{]}.  The category is set to the symbol @code{CBRACKET}; the
 semantic value is set to the character @code{#\]}.
 @end defun
 
@@ -692,7 +743,7 @@ semantic value is set to the string @code{"#'"}.
 
 
 @defun make-sharp-back-tick-token @var{yygetc} @var{yyungetc} @var{yytext} @var{yyline} @var{yycolumn} @var{yyoffset}
-Return a @class{lexical-token} record representing a sharp--back tick,
+Return a @class{lexical-token} record representing a sharp--back--tick,
 @samp{#`}.  The category is set to the symbol @code{SHARPBACKTICK}; the
 semantic value is set to the string @code{"#`"}.
 @end defun
@@ -735,7 +786,7 @@ semantic value is set to the string @code{"#!r6rs"}.
 
 @c page
 @node r6rs lexer makers variable
-@subsubsection Variable semantic value token makers
+@subsubsection Variable--semantic--value token--makers
 
 
 The following bindings are exported by the library @library{nausicaa
@@ -783,15 +834,15 @@ set to the string representing the line ending character or characters.
 
 
 @defun make-sharp-bang-token @var{yygetc} @var{yyungetc} @var{yytext} @var{yyline} @var{yycolumn} @var{yyoffset}
-Return a @class{lexical-token} record representing a sharp--bang plus
-identifier, @samp{#!---}.  The category is set to the symbol
+Return a @class{lexical-token} record representing a sharp--bang
+comment, @samp{#!---}.  The category is set to the symbol
 @code{SHARPBANG}; the semantic value is set to a string whose prefix is
 @code{#!} followed by the identifier.
 @end defun
 
 @c page
 @node r6rs lexer makers scheme
-@subsubsection Scheme semantic value token makers
+@subsubsection Scheme--semantic--value token--makers
 
 
 The following bindings are exported by the library @library{nausicaa
@@ -816,6 +867,10 @@ to the boolean value.
 Return a @class{lexical-token} record representing a named character,
 for example @samp{#\newline}.  The category is set to the symbol
 @code{CHARACTER}; the semantic value is set to the character itself.
+
+If the @var{yytext} string does not represent a named character
+compliant with @rnrs{6}: an assertion violation is raised.  This should
+not happen if the lexer table is correct.
 @end defun
 
 
@@ -830,6 +885,11 @@ example @samp{#\x005C}.  The category is set to the symbol
 Return a @class{lexical-token} record representing a literal character,
 for example @samp{#\A}.  The category is set to the symbol
 @code{CHARACTER}; the semantic value is set to the character itself.
+
+If @var{yytext} does not represent a hex character compliant with
+@rnrs{6}: the function referenced by the
+@func{lexical-error-token-maker} parameter is applied to the same
+arguments handed to this function.
 @end defun
 
 
@@ -841,7 +901,7 @@ to the number itself.
 
 @c page
 @node r6rs lexer makers special
-@subsubsection Special token makers
+@subsubsection Special token--makers
 
 
 The following bindings are exported by the library @library{nausicaa
@@ -858,7 +918,7 @@ value is set to the string itself.
 @defun make-nested-comment-token @var{yygetc} @var{yyungetc} @var{yytext} @var{yyline} @var{yycolumn} @var{yyoffset}
 Set to a function returning a @class{lexical-token} record representing
 a nested comment.  The category is set to the symbol
-@code{NESTED-COMMENT}; the semantic value is set to the string
+@code{NESTEDCOMMENT}; the semantic value is set to the string
 representing the nested comment.
 @end defun
 
@@ -915,7 +975,7 @@ input system.
 Given an input system from which a double quote character has already
 been consumed, read characters composing an @rnrs{6} string stopping at
 the ending double quote; return the Scheme string.  This function
-expects the default functions to be in the parameters of
+expects the functions with default behaviour to be in the parameters of
 @library{nausicaa r6rs lexer}.
 
 If an error occurs reading the string: a condition object is raised with
@@ -1014,8 +1074,8 @@ input system.
 @defun read-character @var{IS}
 Given an input system, read a single character datum compliant with
 @rnrs{6}; return the Scheme character.  This function expects the
-default functions to be in the parameters of @library{nausicaa r6rs
-lexer}.
+functions with default behaviour to be in the parameters of
+@library{nausicaa r6rs lexer}.
 
 If an error occurs reading the character: a condition object is raised
 with components @condition{lexical}, @condition{message},
@@ -1092,7 +1152,7 @@ input system.
 @defun read-identifier @var{IS}
 Given an input system, read a single identifier datum compliant with
 @rnrs{6}; return the identifier as a Scheme string.  This function
-expects the default functions to be in the parameters of
+expects the functions with default behaviour to be in the parameters of
 @library{nausicaa r6rs lexer}.
 
 If an error occurs reading the identifier: a condition object is raised
@@ -1169,8 +1229,9 @@ input system.
 
 @defun read-number @var{IS}
 Given an input system, read a single number datum compliant with
-@rnrs{6}; return the Scheme number.  This function expects the default
-functions to be in the parameters of @library{nausicaa r6rs lexer}.
+@rnrs{6}; return the Scheme number.  This function expects the functions
+with default behaviour to be in the parameters of @library{nausicaa r6rs
+lexer}.
 
 If an error occurs reading the number: a condition object is raised with
 components @condition{lexical}, @condition{message}, @condition{who},
@@ -1256,10 +1317,10 @@ input system.
 @defun read-nested-comment @var{IS}
 Given an input system from which the opening sequence of nested comments
 @samp{#|} has already been consumed, read characters composing an
-@rnrs{6} nested comment matching sequence @samp{|#}.  Return the comment
-as Scheme string enclosed in @samp{#|} and @samp{|#} sequences.  This
-function expects the default functions to be in the parameters of
-@library{nausicaa r6rs lexer}.
+@rnrs{6} nested comment until the matching sequence @samp{|#}.  Return
+the comment as Scheme string enclosed in @samp{#|} and @samp{|#}
+sequences.  This function expects the functions with default behaviour
+to be in the parameters of @library{nausicaa r6rs lexer}.
 
 If an error occurs reading the nested comment: a condition object is
 raised with components @condition{lexical}, @condition{message},
@@ -1317,8 +1378,9 @@ The implementation of this function is a useful example of usage for
 Like @func{read-nested-comment} but do not raise exceptions.  Given an
 input system from which the opening sequence of nested comments
 @samp{#|} has already been consumed, read characters composing an
-@rnrs{6} nested comment matching sequence @samp{|#}.  Return the comment
-as Scheme string enclosed in @samp{#|} and @samp{|#} sequences.
+@rnrs{6} nested comment until the matching sequence @samp{|#}.  Return
+the comment as Scheme string enclosed in @samp{#|} and @samp{|#}
+sequences.
 
 If an error occurs reading the comment: return the return value of the
 function referenced by the parameter @func{lexical-error-token-maker},
@@ -1375,7 +1437,7 @@ input system.
 @defun read-line-comment @var{IS}
 Given an input system, read characters composing an @rnrs{6} line
 comment; return the string representing the comment.  This function
-expects the default functions to be in the parameters of
+expects the functions with default behaviour to be in the parameters of
 @library{nausicaa r6rs lexer}.
 
 If an error occurs reading the line comment: a condition object is
@@ -1412,6 +1474,26 @@ The implementation of this function is a useful example of usage for
 @end defun
 
 @c page
+@node r6rs lexer custom
+@subsection Customising the lexer
+
+
+Setting the parameters exported by @library{nausicaa r6rs lexer} is the
+easier way to obtain custom behaviour; if this is not enough, we have to
+modify the lexer table.
+
+All the source files composing the @rnrs{6} lexer are in the directory
+@file{src/libraries/nausicaa/r6rs} of @value{PACKAGE} source tree.  The
+files with extension @code{.l} are input tables for SILex, the script
+@file{make-tables.sps} is used to rebuild the tables.
+
+To run the script we must first configure and build the @value{PACKAGE}
+package, then change the current directory to
+@file{src/libraries/nausicaa/r6rs} and run the script with an @rnrs{6}
+implementation; take care of setting the environment in such a way that
+the libraries under @file{src/libraries} can be found.
+
+@c page
 @node r6rs parser
 @section Parsing a stream of @rnrs{6} tokens
 
@@ -1422,10 +1504,9 @@ The implementation of this function is a useful example of usage for
 
 The library @library{nausicaa r6rs parser} implements a lexer compliant
 with the @rnrs{6} specification for Scheme source code.  The lexer is
-built on top of the @library{nausicaa lalr} parser generator (@ref{lalr}
-for details) and it is meant to be used with the lexer @api{} exported
-by the @library{nausicaa r6rs lexer} library (@ref{r6rs lexer} for
-details).
+built on top of the @library{nausicaa lalr} parser generator
+(@pxref{lalr}) and it is meant to be used with the lexer @api{} exported
+by the @library{nausicaa r6rs lexer} library (@pxref{r6rs lexer}).
 
 @menu
 * r6rs parser parsing::         Parsing source code.
@@ -1445,26 +1526,24 @@ parser} library.
 
 @defun make-r6rs-parser
 Build and return a parser function exposing the @api{} of @acronym{LALR}
-parsers; @ref{lalr parser} for details.
+parsers (@pxref{lalr parser}).
 
 The returned parser function accepts 3 arguments: a lexer thunk
-returning @class{lexical-token} instances; an error handler thunk; a
+returning @class{lexical-token} instances; an error handler function; a
 custom value which is made available to the parser semantic actions
 bound to @code{yycustom}.  Its return value is the @strong{list} of
 datums parsed from the lexer.
 
 The semantic actions of the parser table make use of the functions
 referenced by the parameters exported by the @library{nausicaa r6rs
-parser} library; @ref{r6rs parser params} for details.  The default
-parameter functions build an S--expression almost as the @func{read}
-function from @rsixlibrary{io simple} does.
+parser} library (@pxref{r6rs parser params}).  The default parameter
+functions build an S--expression almost as the @func{read} function from
+@rsixlibrary{io simple} does.
 
 Notice that the returned lexer function is @strong{not} equivalent to
-@func{read} or @func{get-datum} as defined in the @rnrs{6} document.
-First, the returned lexer consumes characters from its input system
-until the end--of--input is found; second, the commented datums cannot
-be removed by the parser and so are returned in instances of the
-@class{interlexeme-space} class, @ref{r6rs parser inter} for details.
+@func{read} or @func{get-datum} as defined by @rnrs{6}: the returned
+lexer consumes characters from its input system until the end--of--input
+is found.
 @end defun
 
 
@@ -1475,12 +1554,9 @@ field; the definition of a function that directly parses a string:
 @example
 #!r6rs
 (import (nausicaa)
-  (nausicaa silex lexer)
-  (only (nausicaa parser-tools lexical-token)
-        <lexical-token>)
-  (only (nausicaa parser-tools source-location)
-        <source-location>)
-  (prefix (nausicaa r6rs lexer) r6.)
+  (nausicaa parser-tools)
+  (prefix (nausicaa silex lexer) lex.)
+  (prefix (nausicaa r6rs lexer)  r6.)
   (prefix (nausicaa r6rs parser) r6.))
 
 (define (error-handler message (T <lexical-token>))
@@ -1493,9 +1569,9 @@ field; the definition of a function that directly parses a string:
               (make-irritants-condition `(,T.value)))))
 
 (define (parse string)
-  (let* ((IS      (lexer-make-IS
-                     (string: string)
-                     (counters: 'all)))
+  (let* ((IS      (lex.lexer-make-IS
+                     (lex.string: string)
+                     (lex.counters: 'all)))
          (lexer   (r6.make-token-lexer IS))
          (parser  (r6.make-r6rs-parser)))
     (parser lexer error-handler #f)))
@@ -1527,10 +1603,8 @@ If we build the lexer thunk as follows:
 
 @noindent
 it will return tokens from the input system, but it will discard the
-ones representing blanks and comments (including sharp--bang
-identifiers); the sharp--semicolon sequence of characters @samp{#;} will
-be returned in a token with category @code{SHARPSEMICOLON}, when using
-the default token maker functions.
+ones representing blanks and comments (including sharp--bang identifiers
+and commented datums) when using the default maker functions.
 
 If we build the lexer thunk as follows:
 
@@ -1555,12 +1629,13 @@ If we build the lexer thunk as follows:
 @noindent
 it will return tokens from the input system, discarding nothing.
 
-According to the @rnrs{6} grammar for Scheme source code: comments,
-sharp--bang identifiers, blanks and commented datums are ``interlexeme
-spaces''.  The parser table of @library{nausicaa r6rs parser} allows us
-to retrieve those lexeme embedded in the return value of the parser
-function; whenever a sequence of lexems composing an interlexeme space
-is found, an instance of the class @class{interlexeme-space} is built.
+According to the @rnrs{6} grammar (@pxref{scheme lex syntax formal
+account}) for Scheme source code: comments, sharp--bang identifiers,
+blanks and commented datums are ``interlexeme spaces''.  The parser
+table of @library{nausicaa r6rs parser} allows us to retrieve these
+lexemes embedded in the return value of the parser function; whenever a
+sequence of lexemes composing an interlexeme space is found, an instance
+of the class @class{interlexeme-space} is built.
 
 The following bindings are exported by the @library{nausicaa r6rs
 parser} library.
@@ -1571,7 +1646,7 @@ Used to embed a sequence of interlexeme space lexemes.
 @end deftp
 
 
-@defvr {Immutable Field} @aclass{interlexeme-space} atmospheres
+@defcv {Immutable Field} @aclass{interlexeme-space} atmospheres
 A list of values representing comments, blanks, sharp--bang identifiers,
 commented datums.  This field is tagged as @class{list}.
 
@@ -1579,17 +1654,18 @@ When using the default functions for the semantic action parameters:
 comments, blanks and sharp--bang identifiers are represented by strings,
 while commented datums are represented by instances of
 @class{commented-datum}.
-@end defvr
+@end defcv
 
 
 @deftp Class @aclass{commented-datum}
-Used to represent a commented datum, that is any datum preceded by the
-@samp{#;} token.  According to the @rnrs{6} grammar, a commented datum
-is the sequence: @samp{#;}, optional interlexeme space, any datum.
+Used to represent a commented datum: any datum preceded by the @samp{#;}
+token.  According to the @rnrs{6} grammar (@pxref{scheme lex syntax
+formal account}), a commented datum is the sequence: @samp{#;}, optional
+interlexeme space, any datum.
 @end deftp
 
 
-@defvr {Immutable Field} @aclass{commented-datum} interlexeme-space
+@defcv {Immutable Field} @aclass{commented-datum} interlexeme-space
 It is meant to be whatever the function referenced by the
 @func{interlexeme-space-datum-maker} parameter returned when processing
 the optional interlexeme space between the @samp{#;} and the datum.
@@ -1597,14 +1673,14 @@ When using the default parameter value: it is @false{} or an instance of
 @class{interlexeme-space}.
 
 This field is tagged as @class{interlexeme-space}.
-@end defvr
+@end defcv
 
 
-@defvr {Immutable Field} @aclass{commented-datum} datum
+@defcv {Immutable Field} @aclass{commented-datum} datum
 It is meant to be the return value of the parametrised function used to
-parser the commented datum.  When using the default parametrised
+parse the commented datum.  When using the default parametrised
 functions: it is the datum as a Scheme S--expression.
-@end defvr
+@end defcv
 
 
 @defun remove-interlexeme-space @var{sexp}
@@ -1613,7 +1689,7 @@ remove them; return the result.
 @end defun
 
 
-For example, let's say we build a lexer and parser as follows with the
+For example, let's say we build a lexer and parser as follows, with the
 specific purpose of parsing interlexeme spaces with the default datum
 maker functions; we have to remember that the parser function returns
 the list of datums:
@@ -1621,12 +1697,9 @@ the list of datums:
 @example
 #!r6rs
 (import (nausicaa)
-  (nausicaa silex lexer)
-  (only (nausicaa parser-tools lexical-token)
-        <lexical-token>)
-  (only (nausicaa parser-tools source-location)
-        <source-location>)
-  (prefix (nausicaa r6rs lexer) r6.)
+  (prefix (nausicaa silex lexer) lex.)
+  (nausicaa parser-tools)
+  (prefix (nausicaa r6rs lexer)  r6.)
   (prefix (nausicaa r6rs parser) r6.))
 
 (define (error-handler message (T <lexical-token>))
@@ -1634,14 +1707,14 @@ the list of datums:
    (condition (make-lexical-violation)
               (make-message-condition
                (string-append message
-                " line " (number->string T.location.line)
+                " line "   (number->string T.location.line)
                 " column " (number->string T.location.column)))
               (make-irritants-condition `(,T.value)))))
 
 (define (parse string)
-  (let* ((IS      (lexer-make-IS
-                    (string: string)
-                    (counters: 'all)))
+  (let* ((IS      (lex.lexer-make-IS
+                    (lex.string: string)
+                    (lex.counters: 'all)))
          (lexer   (r6.make-token-lexer IS
                     (r6.comments  #t)
                     (r6.blanks    #t)
@@ -1687,8 +1760,8 @@ the list of datums:
 (let* (((L <list>)                 (parse "#;ciao"))
        ((R r6.<interlexeme-space>) L.car)
        ((C r6.<commented-datum>)   R.atmospheres.car))
-  (check C.datum => 'ciao)
-  (check C.interlexeme-space => #f)
+  C.datum @result{} ciao
+  C.interlexeme-space @result{} #f
   )
 
 ;; a commented identifier with interlexeme space
@@ -1697,8 +1770,8 @@ the list of datums:
 (let* (((L <list>)                 (parse "#;\tciao"))
        ((R r6.<interlexeme-space>) L.car)
        ((C r6.<commented-datum>)   R.atmospheres.car))
-  (check C.datum => 'ciao)
-  (check C.interlexeme-space.atmospheres => '("\t"))
+  C.datum @result{} ciao
+  C.interlexeme-space.atmospheres @result{} ("\t")
   )
 @end example
 
@@ -1732,8 +1805,9 @@ behaviour:
 
 @noindent
 where: @code{yypushback} and @code{yycustom} are the bindings handed by
-@library{nausicaa lalr lr-driver} to the semantic action forms;
-@var{value} is the semantic value from the lexical token.
+@library{nausicaa lalr lr-driver} to the semantic action forms
+(@pxref{lalr grammar clauses}); @var{value} is the semantic value from
+the lexical token.
 
 @menu
 * r6rs parser params general::  General datum makers.
@@ -1748,7 +1822,7 @@ where: @code{yypushback} and @code{yycustom} are the bindings handed by
 
 
 @deffn Parameter list-of-datums-maker @var{yypushback} @var{yycustom} @var{list-of-datums}
-Set to a function returning a value representing whose input.  The
+Set to a function returning a value representing whole input.  The
 default is @func{make-list-of-datums}.  @var{list-of-datums} is the list
 of values produced by the functions referenced by the other parameters.
 @end deffn
@@ -1894,8 +1968,8 @@ handled like a normal list.
 
 @deffn Parameter quasisyntax-datum-maker
 Set to a function returning a value representing a datum quoted with
-sharp--back--tick.  The default is @func{make-quasisyntax-datum-datum}.
-The semantic value handed to the referenced function is the datum.
+sharp--back--tick.  The default is @func{make-quasisyntax-datum}.  The
+semantic value handed to the referenced function is the datum.
 
 Notice that a list whose first datum is the @code{quasisyntax}
 identifier is handled like a normal list.
@@ -1974,14 +2048,14 @@ optional interlexeme space, @var{datum} is the commented datum.
 
 
 @deffn Parameter sharp-bang-datum-maker
-Set to a function returning a value representing a sharp--bang
-identifier.  The default is @func{make-sharp-bang-datum}.
+Set to a function returning a value representing a sharp--bang comment.
+The default is @func{make-sharp-bang-datum}.
 @end deffn
 
 
 @deffn Parameter sharp-bang-r6rs-datum-maker
 Set to a function returning a value representing a @code{#!r6rs}
-identifier.  The default is @func{make-sharp-bang-r6rs-datum}.
+comment.  The default is @func{make-sharp-bang-r6rs-datum}.
 @end deffn
 
 @c page
@@ -2005,7 +2079,8 @@ identifier.  The default is @func{make-sharp-bang-r6rs-datum}.
 Default function for the @func{list-of-datums-maker} parameter.  Accept
 as @var{value} the list of values produced by the functions referenced
 by the other parameters; process the list with
-@func{remove-interlexeme-space} and return the result.
+@func{remove-interlexeme-space} and return the result (@pxref{r6rs
+parser inter, remove-interlexeme-space}).
 @end defun
 
 @c page
@@ -2057,7 +2132,7 @@ corresponding pair.
 
 
 @defun make-list-datum @var{yypushback} @var{yycustom} @var{value}
-Default function for the @func{lits-datum-maker} parameter.  Accept as
+Default function for the @func{list-datum-maker} parameter.  Accept as
 @var{value} the list of datums; return the list itself.
 @end defun
 
@@ -2078,6 +2153,10 @@ If one of the datums is not an exact integer in the range @math{[0,
 @condition{lexical}, @condition{who}, @condition{message},
 @condition{irritants}.  The single element in the irritants list is the
 offending value.
+
+Instances of @class{interlexeme-space} are removed from the list before
+building the bytevector (@pxref{r6rs parser inter,
+@class{interlexeme-space}}).
 @end defun
 
 @c page
@@ -2160,7 +2239,8 @@ parser} library.
 @defun make-interlexeme-space-datum @var{yypushback} @var{yycustom} @var{value}
 Default function for the @func{interlexeme-space-datum-maker} parameter.
 Accept as @var{value} a list of values representing the interlexeme
-spaces.
+spaces; return an instance of @class{interlexeme-space} (@pxref{r6rs
+parser inter, @class{interlexeme-space}}).
 @end defun
 
 
@@ -2187,23 +2267,23 @@ the string itself.
 
 @defun make-sharp-semicolon-datum @var{yypushback} @var{yycustom} @var{interlexeme-space} @var{datum}
 Default function for the @func{sharp-semicolon-datum-maker} parameter.
-Accept as argument @var{interlexeme-space} @false{} or a value
+Accept as @var{interlexeme-space} argument @false{} or a value
 representing the optional interlexeme space, as @var{datum} the
-commented datum.  @ref{r6rs parser inter} for details.
+commented datum (@ref{r6rs parser inter}).
 @end defun
 
 
 @defun make-sharp-bang-datum @var{yypushback} @var{yycustom} @var{value}
 Default function for the @func{sharp-bang-datum-maker} parameter.
-Accept as @var{value} the string representing the sharp--bang
-identifier; return the string itself.
+Accept as @var{value} the string representing the sharp--bang comment;
+return the string itself.
 @end defun
 
 
 @defun make-sharp-bang-r6rs-datum @var{yypushback} @var{yycustom} @var{value}
 Default function for the @func{sharp-bang-r6rs-datum-maker} parameter.
-Accept as @var{value} the string representing the @code{#!r6rs}
-identifier; return the string itself.
+Accept as @var{value} the string representing the @code{#!r6rs} comment;
+return the string itself.
 @end defun
 
 @c page

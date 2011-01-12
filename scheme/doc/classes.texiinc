@@ -1570,6 +1570,12 @@ same definition.
 @subsection Verifying definition constraints
 
 
+@cindex Satisfaction functions for classes and labels
+@cindex Satisfying constraints in classes and labels
+@cindex Classes, satisfaction functions
+@cindex Labels, satisfaction functions
+
+
 It is useful to validate the definition of classes and labels against a
 set of requirements; this allows, for example, to verify if a class
 implements an @api{}.

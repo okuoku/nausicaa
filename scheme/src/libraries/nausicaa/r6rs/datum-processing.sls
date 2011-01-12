@@ -125,13 +125,14 @@
   (list->vector the-list-of-items))
 
 (define (make-bytevector-datum yypushback yycustom the-list-of-u8-integers)
-  (let ((wrong (exists (lambda (n)
-			 (if (and (integer? n)
-				  (exact?   n)
-				  (<= 0 n 255))
-			     #f
-			   n))
-		 the-list-of-u8-integers)))
+  (let* ((ell (remove-interlexeme-space the-list-of-u8-integers))
+	 (wrong (exists (lambda (n)
+			  (if (and (integer? n)
+				   (exact?   n)
+				   (<= 0 n 255))
+			      #f
+			    n))
+		  ell)))
     (if wrong
 	(raise
 	 (condition (make-lexical-violation)
