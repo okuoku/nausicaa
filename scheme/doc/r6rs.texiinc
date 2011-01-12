@@ -1513,6 +1513,7 @@ by the @library{nausicaa r6rs lexer} library (@pxref{r6rs lexer}).
 * r6rs parser inter::           Interlexeme spaces.
 * r6rs parser params::          Parser semantic actions parameters.
 * r6rs parser makers::          Parser datum makers.
+* r6rs parser custom::          Customising the parser.
 @end menu
 
 @c page
@@ -2285,6 +2286,26 @@ Default function for the @func{sharp-bang-r6rs-datum-maker} parameter.
 Accept as @var{value} the string representing the @code{#!r6rs} comment;
 return the string itself.
 @end defun
+
+@c page
+@node r6rs parser custom
+@subsection Customising the parser
+
+
+Setting the parameters exported by @library{nausicaa r6rs parser} is the
+easier way to obtain custom behaviour; if this is not enough, we have to
+modify the parser table.
+
+All the source files composing the @rnrs{6} parser are in the directory
+@file{src/libraries/nausicaa/r6rs} of @value{PACKAGE} source tree.  The
+script @file{make-tables.sps} is used to rebuild the tables; the parser
+table is defined in the script itself..
+
+To run the script we must first configure and build the @value{PACKAGE}
+package, then change the current directory to
+@file{src/libraries/nausicaa/r6rs} and run the script with an @rnrs{6}
+implementation; take care of setting the environment in such a way that
+the libraries under @file{src/libraries} can be found.
 
 @c page
 @node r6rs fixed-strings
