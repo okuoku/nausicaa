@@ -38,10 +38,17 @@
     : :list :string :vector :integers :range :real-range :char-range
     :port :dispatched :do :let :parallel :while :until
     :-dispatch-ref :-dispatch-set! make-initial-:-dispatch
-    dispatch-union :generator-proc)
+    dispatch-union :generator-proc
+    nested)
   (import (rnrs)
-    (nausicaa language parameters))
+    (nausicaa language parameters)
+    (only (nausicaa language extensions) define-auxiliary-syntaxes))
 
+
+(define-auxiliary-syntaxes
+  nested)
+
+
 ; (do-ec q ... cmd)
 ;   handles nested, if/not/and/or, begin, :let, and calls generator
 ;   macros in CPS to transform them into fully decorated :do.

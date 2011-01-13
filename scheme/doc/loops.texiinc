@@ -21,10 +21,10 @@ language to loop over general sequences of values.
 @section Introduction
 
 
-An eager comprehension is a convenient notation for one or more nested
-or parallel loops generating a sequence of values, and accumulating this
-sequence into a result.  In its most simple form, a comprehension looks
-like this:
+An @dfn{eager comprehension} is a convenient notation for one or more
+nested or parallel loops generating a sequence of values, and
+accumulating this sequence into a result.  In its most simple form, a
+comprehension looks like this:
 
 @example
 (list-ec (: i 5)
@@ -50,7 +50,7 @@ respect to nesting and syntax:
 the variable @var{n} is first bound to 1 then to 2 and finally to 3, and
 for each binding of @var{n} the variable @var{i} is bound to the values
 0, 1, ..., @var{n}-1 in turn.  The expression @code{(list n i)}
-constructs a two--element list for each binding, and the comprehension
+constructs a two--elements list for each binding, and the comprehension
 @func{list-ec} collects all these results in a list.
 
 @c page
@@ -391,19 +391,17 @@ may want to consider:
 
 @deffn Syntax any?-ec @meta{qualifier} ... @var{test}
 Tests whether any value of @var{test} in the sequence of bindings
-specified by the qualifiers is non--@false{}.  If this is the case:
-@true{} is returned, otherwise @false{}.  If there are no bindings at
-all, in the sequence specified by the qualifiers, then the result is
-@false{}.  The enumeration of values stops after the first non--@false{}
-encountered.
+specified by the qualifiers is true.  If this is the case: @true{} is
+returned, otherwise @false{}.  If there are no bindings at all, in the
+sequence specified by the qualifiers, then the result is @false{}.  The
+enumeration of values stops after the first true value encountered.
 @end deffn
 
 
 @deffn Syntax every?-ec @meta{qualifier} ... @var{test}
-Tests whether all values of @var{test} are non--@false{}.  If this is
-the case: @true{} is returned, otherwise @false{}.  If the sequence is
-empty the result is @true{}.  Enumeration stops after the first
-@false{}.
+Tests whether all values of @var{test} are true.  If this is the case:
+@true{} is returned, otherwise @false{}.  If the sequence is empty the
+result is @true{}.  Enumeration stops after the first @false{}.
 @end deffn
 
 
@@ -596,14 +594,14 @@ The syntax @meta{qualifier} consists of the following alternatives.
 @deffn {Qualifier Syntax} @meta{generator}
 Enumerate a sequence of bindings of one or more variables.  The region
 of the variables starts at the generator and extends over all subsequent
-qualifiers and expressions in the comprehension.  @ref{loops generators,
-Generators}
+qualifiers and expressions in the comprehension (@pxref{loops
+generators}).
 @end deffn
 
 
 @deffn {Qualifier Syntax} if @var{test}
 Filter the sequence of bindings by testing if @var{test} evaluates to
-non--@false{}.  Only for those bindings for which this is the case, the
+true.  Only for those bindings for which this is the case, the
 subsequent qualifiers of the comprehension are evaluated.
 
 @example
@@ -720,13 +718,13 @@ part of.
 The variables defined by the generators are specified using the syntax:
 
 @example
-<vars> -> <variable1>
-       |  <variable1> (index <variable2>)
+@meta{vars} -> @metai{variable}
+       |  @metai{variable} (index @metaii{variable})
 @end example
 
 @noindent
-where @var{variable1} runs through the values in the sequence defined by
-the generator, and the optional @var{variable2} is an exact
+where @metai{variable} runs through the values in the sequence defined
+by the generator, and the optional @metaii{variable} is an exact
 integer--valued index variable counting the values (starting from
 @math{0}).  The names of the variables must be distinct.  The following
 example illustrates the index variable:
@@ -1283,8 +1281,8 @@ the various generators must be distinct.
 
 
 @deffn {Generator Syntax} :while @meta{generator} @var{expression}
-Run @meta{generator} while @var{expression} evaluates to non--@false{}.
-The guarding expression is included in the region of the variables
+Run @meta{generator} while @var{expression} evaluates to true.  The
+guarding expression is included in the region of the variables
 introduced by the generator.
 
 Note the distinction between the filter @code{if} and the modified
@@ -1293,10 +1291,11 @@ generator expressed by @code{:while}.
 
 
 @deffn {Generator Syntax} :until @meta{generator} @var{expression}
-Run @meta{generator} until after @var{expression} has evaluated to
-non--@false{}.  The guarding expression is included in the region of the
-variables introduced by the generator.
+Run @meta{generator} until after @var{expression} has evaluated to true.
+The guarding expression is included in the region of the variables
+introduced by the generator.
 @end deffn
+
 
 Note the distinction between @code{:while}, stopping at a certain
 condition, and @code{:until}, stopping after a certain condition has
