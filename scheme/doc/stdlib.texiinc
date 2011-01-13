@@ -1672,7 +1672,7 @@ number of arguments is the same as the number of formal parameters in
 @meta{formals} has the form:
 
 @example
-(@hyperi{variable} @dots{} @hypern{variable} . @meta{variable_(n+1)})
+(@metai{variable} @dots{} @metan{variable} . @metani{variable})
 @end example
 
 @noindent
