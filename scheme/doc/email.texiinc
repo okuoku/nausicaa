@@ -180,7 +180,8 @@ A boolean, true if the domain is composed of four numeric components.
 
 
 @defcv {Immutable Field} @aclass{domain} subdomains
-The list of strings representing the domain components.
+The list of strings representing the domain components.  This field is
+tagged as @class{list}.
 @end defcv
 
 
@@ -223,7 +224,7 @@ but for parsing reasons it is accumulated as a list of strings.
 
 
 @defcv {Immutable Field} @aclass{local-part} subparts
-A list of strings.
+A list of strings.  This field is tagged as @class{list}.
 @end defcv
 
 
@@ -247,12 +248,13 @@ Holds an address specification: a local part and a domain.
 
 
 @defcv {Immutable Field} @aclass{addr-spec} local-part
-Holds a @class{local-part} record.
+Holds a @class{local-part} record.  This field is tagged as
+@class{local-part}.
 @end defcv
 
 
 @defcv {Immutable Field} @aclass{addr-spec} domain
-Holds a @class{domain} record.
+Holds a @class{domain} record.  This field is tagged as @class{domain}.
 @end defcv
 
 
@@ -278,7 +280,7 @@ destination.
 
 
 @defcv {Immutable Field} @aclass{route} domains
-A list of @class{domain} records.
+A list of @class{domain} records.  This field is tagged as @class{list}.
 @end defcv
 
 
@@ -297,17 +299,19 @@ Hold a mailbox specification.
 
 
 @defcv {Immutable Field} @aclass{mailbox} display-name
-Holds the phrase string.
+Holds the phrase string.  This field is tagged as @class{string}.
 @end defcv
 
 
 @defcv {Immutable Field} @aclass{mailbox} route
-Holds @false{} or a @class{route} record.
+Holds @false{} or a @class{route} record.  This field is tagged as
+@class{mailbox}.
 @end defcv
 
 
 @defcv {Immutable Field} @aclass{mailbox} addr-spec
-Holds an @class{addr-spec} record.
+Holds an @class{addr-spec} record.  This field is tagged as
+@class{addr-spec}.
 @end defcv
 
 
@@ -333,12 +337,13 @@ Holds a list of mailboxes and a phrase.
 
 
 @defcv {Immutable Field} @aclass{group} display-name
-Holds the phrase string.
+Holds the phrase string.  This field is tagged as @class{string}.
 @end defcv
 
 
 @defcv {Immutable Field} @aclass{group} mailboxes
-Holds a list of @class{mailbox} records.
+Holds a list of @class{mailbox} records.  This field is tagged as
+@class{mailbox}.
 @end defcv
 
 

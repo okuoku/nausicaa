@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2009, 2010, 2011 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -127,18 +127,17 @@
 
 (define-class <domain>
   (nongenerative nausicaa:email:addresses:common:<domain>)
-  (fields (immutable literal?)		;boolean
-	  (immutable subdomains)))	;list of strings
+  (fields (immutable literal?)		    ;boolean
+	  (immutable (subdomains <list>)))) ;list of strings
 
 (define (<domain>?/or-false obj)
   (or (not obj) (<domain>? obj)))
 
-(define (assert-<domain> obj)
-  (assert (<domain>? obj))
-  (assert (boolean? (<domain>-literal? obj)))
-  (let ((v (<domain>-subdomains obj)))
-    (assert (list? v))
-    (assert (for-all string? v))))
+(define (assert-<domain> (D <domain>))
+  (assert (is-a? D <domain>))
+  (assert (boolean? D.literal?))
+  (assert (list? D.subdomains))
+  (assert (for-all string? D.subdomains)))
 
 (define (assert-<domain>/or-false obj)
   (unless (not obj)
@@ -157,7 +156,7 @@
 
 (define-class <local-part>
   (nongenerative nausicaa:email:addresses:common:<local-part>)
-  (fields (immutable subparts)))
+  (fields (immutable (subparts <list>))))
 
 (define-method (object->string (o <local-part>))
   (string-join o.subparts %dot-string))
@@ -167,8 +166,8 @@
 
 (define-class <addr-spec>
   (nongenerative nausicaa:email:addresses:common:<addr-spec>)
-  (fields (immutable local-part)
-	  (immutable domain)))
+  (fields (immutable (local-part <local-part>))
+	  (immutable (domain <domain>))))
 
 (define-method (object->string (o <addr-spec>))
   (string-append (object->string o.local-part)
@@ -180,7 +179,7 @@
 
 (define-class <route>
   (nongenerative nausicaa:email:addresses:common:<route>)
-  (fields (immutable domains)))
+  (fields (immutable (domains <list>))))
 
 (define-method (object->string (o <route>))
   (call-with-string-output-port
@@ -205,9 +204,9 @@
 
 (define-class <mailbox>
   (nongenerative nausicaa:email:addresses:common:<mailbox>)
-  (fields (immutable display-name) ;string or #f
-	  (immutable route)	   ;route record or #f
-	  (immutable addr-spec)))  ;addr-spec record
+  (fields (immutable (display-name <string>))	;string or #f
+	  (immutable (route <route>))		;route record or #f
+	  (immutable (addr-spec <addr-spec>))))	;addr-spec record
 
 (define-method (object->string (o <mailbox>))
   (string-append (if o.display-name
@@ -227,8 +226,8 @@
 
 (define-class <group>
   (nongenerative nausicaa:email:addresses:common:<group>)
-  (fields (immutable display-name)
-	  (immutable mailboxes)))
+  (fields (immutable (display-name <string>))
+	  (immutable (mailboxes <list>))))
 
 (define-method (object->string (o <group>))
   (string-append (object->string o.display-name)

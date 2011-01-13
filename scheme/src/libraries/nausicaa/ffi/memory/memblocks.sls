@@ -11,7 +11,7 @@
 ;;;	independent library so  that they can be made  available in both
 ;;;	the run and expand phases.
 ;;;
-;;;Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2009, 2010, 2011 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -59,9 +59,9 @@
 		((make-<top>) pointer size #f))
 	       ((pointer size alloc-size)
 		((make-<top>) pointer size alloc-size)))))
-  (fields (mutable pointer)	 ;pointer to the allocated block
-	  (mutable size)	 ;official number of bytes
-	  (mutable alloc-size))) ;number of allocated bytes
+  (fields (mutable (pointer <pointer>))	;pointer to the allocated block
+	  (mutable size)		;official number of bytes
+	  (mutable alloc-size)))	;number of allocated bytes
 
 (define (memblock-null)
   (make-<memblock> pointer-null 0 0))
@@ -75,17 +75,15 @@
     (make-<memblock> ptr mb.size mb.size)))
 
 
-(define (memblock->string-hex mb)
+(define (memblock->string-hex (mb <memblock>))
   ;;Slow but fine for debugging purposes.
   ;;
-  (let* ((ptr (<memblock>-pointer mb))
-	 (len (<memblock>-size    mb))
-	 (str (make-string (* 2 len))))
+  (let ((str (make-string (* 2 mb.size))))
     (do ((i 0 (+ 1 i))
 	 (j 0 (+ 1 j)))
-	((= i len)
+	((= i mb.size)
 	 (string-upcase str))
-      (let ((hex (number->string (pointer-c-ref uint8_t ptr i) 16)))
+      (let ((hex (number->string (pointer-c-ref uint8_t mb.pointer i) 16)))
 	(if (= 1 (string-length hex))
 	    (begin
 	      (string-set! str j #\0)
@@ -114,30 +112,36 @@
 
 (define (memblock-tail (block <memblock>) tail.size)
   (assert (<= tail.size block.size))
-  (make-<memblock> (pointer-add block.pointer (- block.size tail.size)) tail.size #f))
+  (make* <memblock>
+    (block.pointer.add (- block.size tail.size))
+    tail.size #f))
 
 (define (memblock-head (block <memblock>) head.size)
   (assert (<= head.size block.size))
-  (make-<memblock> block.pointer head.size))
+  (make* <memblock> block.pointer head.size))
 
 (define (memblock-tail? (block <memblock>) (tail <memblock>))
-  (and (pointer<=? block.pointer tail.pointer)
-       (pointer=? (pointer-add block.pointer block.size)
-		  (pointer-add tail.pointer  tail.size))))
+  (and (block.pointer.<=? tail.pointer)
+       (pointer=? (block.pointer.add block.size)
+		  (tail.pointer.add  tail.size))))
 
 (define (memblock-head? (block <memblock>) (head <memblock>))
-  (and (pointer=? block.pointer head.pointer)
+  (and (block.pointer.=? head.pointer)
        (<= head.size block.size)))
 
 (define (memblock&head-tail (block <memblock>) (head <memblock>))
-  (assert (pointer=? block.pointer head.pointer))
+  (assert (block.pointer.=? head.pointer))
   (assert (<= head.size block.size))
-  (make-<memblock> (pointer-add block.pointer head.size) (- block.size head.size)))
+  (make* <memblock>
+    (block.pointer.add head.size)
+    (- block.size head.size)))
 
 (define (memblock&tail-head (block <memblock>) (tail <memblock>))
-  (assert (pointer<=? block.pointer tail.pointer))
+  (assert (block.pointer.<=? tail.pointer))
   (assert (<= tail.size block.size))
-  (make-<memblock> block.pointer (- block.size tail.size)))
+  (make* <memblock>
+    block.pointer
+    (- block.size tail.size)))
 
 
 ;;;; done

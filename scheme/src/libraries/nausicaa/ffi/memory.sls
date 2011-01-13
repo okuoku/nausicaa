@@ -7,7 +7,7 @@
 ;;;
 ;;;	Notice that this library avoids using (ffi).
 ;;;
-;;;Copyright (c) 2008-2010 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2008-2011 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -64,6 +64,7 @@
     memset		memmove		memcpy		memcmp
 
     ;; bindings from (ffi pointers)
+    <pointer>
     pointer?
     pointer-null		pointer-null?
     integer->pointer		pointer->integer

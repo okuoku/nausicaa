@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2009, 2010, 2011 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -74,9 +74,9 @@
 	      (lambda (pointer size alloc-size pointer-used pointer-free)
 		((make-<memblock> pointer size alloc-size)
 		 pointer-used pointer-free))))
-  (fields (mutable pointer-used)	;pointer to first used byte
-	  (mutable pointer-free))	;pointer to first free byte
-  (virtual-fields (immutable pointer	<memblock>-pointer)
+  (fields (mutable (pointer-used <pointer>)) ;pointer to first used byte
+	  (mutable (pointer-free <pointer>))) ;pointer to first free byte
+  (virtual-fields (immutable (pointer <pointer>) <memblock>-pointer)
 		  (immutable size	<memblock>-size)
 		  (immutable empty?	%buffer-empty?)
 		  (immutable full?	%buffer-full?)
@@ -84,16 +84,16 @@
 		  (immutable free-size	%buffer-free-size)))
 
 (define (%buffer-empty? (buf <buffer>))
-  (pointer=? buf.pointer-used buf.pointer-free))
+  (buf.pointer-used.=? buf.pointer-free))
 
 (define (%buffer-full? (buf <buffer>))
-  (= buf.size (pointer-diff buf.pointer-free buf.pointer-used)))
+  (= buf.size (buf.pointer-free.diff buf.pointer-used)))
 
 (define (%buffer-free-size (buf <buffer>))
-  (- buf.size (pointer-diff buf.pointer-free buf.pointer-used)))
+  (- buf.size (buf.pointer-free.diff buf.pointer-used)))
 
 (define (%buffer-used-size (buf <buffer>))
-  (pointer-diff buf.pointer-free buf.pointer-used))
+  (buf.pointer-free.diff buf.pointer-used))
 
 
 (define-condition-type &membuffer-incomplete-push
@@ -160,8 +160,7 @@
     (if (= src.start src.past)
 	src.past
       (begin
-	(when (or membuf.empty? (let (((m <buffer>) (membuf.rear)))
-				  m.full?))
+	(when (or membuf.empty? (slot-ref (membuf.rear) full? <buffer>))
 	  (with-exception-handler
 	      (lambda (E)
 		(raise-continuable

@@ -663,6 +663,16 @@ reference memory blocks; they are a disjoint type defined by the
 predicate @func{pointer?}.  The only pointer constructor is
 @func{integer->pointer}.
 
+@menu
+* ffi core pointers proc::      Procedural interface.
+* ffi core pointers label::     Label interface.
+@end menu
+
+@c page
+@node ffi core pointers proc
+@subsubsection Procedural interface
+
+
 The following bindings are exported by the @library{nausicaa ffi
 pointers} library and reexported by @library{nausicaa ffi} and
 @library{nausicaa ffi memory}.
@@ -756,6 +766,64 @@ different.
 With the single exception of @func{pointer<>?}: All the functions return
 @true{} when applied to a single argument.
 @end defun
+
+@c page
+@node ffi core pointers label
+@subsubsection Label interface
+
+
+The following bindings are exported by the @library{nausicaa ffi
+pointers} library and reexported by @library{nausicaa ffi} and
+@library{nausicaa ffi memory}.
+
+
+@deftp Label @aclass{pointer}
+Label interface to pointer values.
+@end deftp
+
+
+@defcv {Immutable Virtual Field} @aclass{pointer} null?
+@true{} if the pointer represents a null pointer according to the
+underlying Scheme implementation, @false{} otherwise.
+@end defcv
+
+
+@defcv {Immutable Virtual Field} @aclass{pointer} integer
+Return an exact integer representing the pointer value.
+@end defcv
+
+
+@defmethod @aclass{pointer} diff @var{pointer}
+Return the difference between the instance and @var{pointer}.
+@end defmethod
+
+
+@defmethod @aclass{pointer} add @var{offset}
+Add an offset to a pointer and return the resulting pointer.
+@end defmethod
+
+
+@defmethod @aclass{pointer} incr! @var{expr}
+@defmethodx @aclass{pointer} decr! @var{expr}
+Increment or decrement the pointer by the result of @var{expr}.
+@end defmethod
+
+
+@defmethod @aclass{pointer} =? @var{pointer} ...
+@defmethodx @aclass{pointer} <? @var{pointer} ...
+@defmethodx @aclass{pointer} >? @var{pointer} ...
+@defmethodx @aclass{pointer} <=? @var{pointer} ...
+@defmethodx @aclass{pointer} >=? @var{pointer} ...
+@defmethodx @aclass{pointer} <>? @var{pointer} ...
+All the arguments must be pointer values and are internally converted to
+integers.  Return @true{} if the integers satisfy the selected predicate
+(@code{=}, @code{<}, @code{>}, @code{<=}, @code{>=}), otherwise return
+@false{}.  @func{pointer<>?} returns @true{} if all the pointers are
+different.
+
+With the single exception of @func{pointer<>?}: all the methods return
+@true{} when applied to no arguments.
+@end defmethod
 
 @c page
 @node ffi core access
@@ -3312,7 +3380,8 @@ Type of record used to represent memory blocks.
 
 
 @defcv {Mutable Field} @aclass{memblock} pointer
-A pointer value referencing a memory block.
+A pointer value referencing a memory block.  This field is tagged as
+@class{pointer}.
 @end defcv
 
 

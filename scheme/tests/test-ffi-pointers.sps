@@ -7,7 +7,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2008-2010 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2008-2011 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -52,6 +52,23 @@
       (pointer-null? (integer->pointer 0))
     => #t)
 
+;;; --------------------------------------------------------------------
+
+  (check
+      (let (((p <pointer>) pointer-null))
+	(is-a? p <pointer>))
+    => #t)
+
+  (check
+      (let (((p <pointer>) pointer-null))
+	p.null?)
+    => #t)
+
+  (check
+      (let-make ((p <pointer> 123))
+	p.null?)
+    => #f)
+
   #t)
 
 
@@ -72,6 +89,13 @@
   (check
       (pointer->integer (integer->pointer 0))
     => 0)
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (let-make ((p <pointer> 123))
+	p.integer)
+    => 123)
 
   #t)
 
@@ -95,6 +119,19 @@
   (check
       (pointer-add (integer->pointer 100) -23)
     (=> pointer=?) (integer->pointer 77))
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (let-make ((p <pointer> 100))
+	(p.diff (make <pointer> 51)))
+    => 49)
+
+  (check
+      (let-make ((p <pointer> 100))
+	(p.add 23))
+    (=> pointer=?)
+    (make <pointer> 123))
 
   #t)
 
@@ -121,6 +158,12 @@
 		 (integer->pointer 456)
 		 (integer->pointer 456))
     => #f)
+
+  (check
+      (let-make ((p <pointer> 123)
+		 (q <pointer> 123))
+	(p.=? q))
+    => #t)
 
 ;;; --------------------------------------------------------------------
 

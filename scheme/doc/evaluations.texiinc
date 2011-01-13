@@ -91,13 +91,15 @@ Hold the context required to evaluate expressions.
 
 @defcv {Immutable Field} @aclass{environment} imports
 The list of import specifications, in the same format accepted by
-@code{import} in the @code{library} form.
+@code{import} in the @code{library} form.  This field is tagged as
+@class{list}.
 @end defcv
 
 
 @defcv {Immutable Field} @aclass{environment} bindings
 An alist of symbols and constants, represents the bindings to create
-before the evaluation of expressions.
+before the evaluation of expressions.  This field is tagged as
+@class{list}.
 @end defcv
 
 

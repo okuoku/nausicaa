@@ -7,7 +7,7 @@
 ;;;
 ;;;	This is the core of the foreign functions interface.
 ;;;
-;;;Copyright (c) 2008-2010 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2008-2011 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -56,6 +56,7 @@
     raise-shared-object-lookup-error
 
 ;;; bindings from (ffi pointers)
+    <pointer>
     pointer?
     pointer-null			pointer-null?
     integer->pointer			pointer->integer
