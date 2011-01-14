@@ -862,9 +862,11 @@
 ;;according to  the original documentation.  To recreate  the table with
 ;;the (silex) API and format "code" do this:
 ;;
-;;   (lex :input-file "class.l" :output-file "class.l.scm"
-;;        :counters 'all :table-name 'class-tables
-;;        :lexer-format 'code)
+;; (lex.lex (lex.input-file:	"class.l")
+;; 	 (lex.output-file:	"class.l.sls")
+;; 	 (lex.counters:		'all)
+;; 	 (lex.table-name:	'class-tables)
+;; 	 (lex.lexer-format:	'code))
 ;;
 ;;while  the original  version  appears  to have  been  created with  an
 ;;equivalent of:
@@ -879,47 +881,52 @@
    'all
    (lambda (yycontinue yygetc yyungetc)
      (lambda (yytext yyline yycolumn yyoffset)
-              (make-tok eof-tok    yytext yyline yycolumn)
+       			(make-tok eof-tok    yytext yyline yycolumn)
        ))
    (lambda (yycontinue yygetc yyungetc)
      (lambda (yytext yyline yycolumn yyoffset)
-       (assertion-violation #f "invalid token" yytext)
+       (assertion-violation #f "invalid token")
        ))
    (vector
     #t
     (lambda (yycontinue yygetc yyungetc)
       (lambda (yytext yyline yycolumn yyoffset)
-              (make-tok rbrack-tok yytext yyline yycolumn)
+   			(make-tok rbrack-tok yytext yyline yycolumn)
         ))
     #t
     (lambda (yycontinue yygetc yyungetc)
       (lambda (yytext yyline yycolumn yyoffset)
-              (make-tok minus-tok  yytext yyline yycolumn)
+   			(make-tok minus-tok  yytext yyline yycolumn)
         ))
     #t
     (lambda (yycontinue yygetc yyungetc)
       (lambda (yytext yyline yycolumn yyoffset)
-              (parse-spec-char     yytext yyline yycolumn)
+     			(parse-spec-char     yytext yyline yycolumn)
         ))
     #t
     (lambda (yycontinue yygetc yyungetc)
       (lambda (yytext yyline yycolumn yyoffset)
-              (parse-digits-char   yytext yyline yycolumn)
+            		(parse-digits-char   yytext yyline yycolumn)
         ))
     #t
     (lambda (yycontinue yygetc yyungetc)
       (lambda (yytext yyline yycolumn yyoffset)
-              (parse-digits-char   yytext yyline yycolumn)
+             		(parse-digits-char   yytext yyline yycolumn)
         ))
     #t
     (lambda (yycontinue yygetc yyungetc)
       (lambda (yytext yyline yycolumn yyoffset)
-              (parse-quoted-char   yytext yyline yycolumn)
+                     	(parse-hex-digits-char yytext yyline yycolumn)
         ))
     #t
     (lambda (yycontinue yygetc yyungetc)
       (lambda (yytext yyline yycolumn yyoffset)
-              (parse-ordinary-char yytext yyline yycolumn)
+       			(parse-quoted-char   yytext yyline yycolumn)
+        ))
+    #t
+    (lambda (yycontinue yygetc yyungetc)
+      (lambda (yytext yyline yycolumn yyoffset)
+   			(parse-ordinary-char yytext yyline yycolumn)
         )))
    'code
    (lambda (<<EOF>>-pre-action
@@ -936,6 +943,7 @@
           (user-action-4 #f)
           (user-action-5 #f)
           (user-action-6 #f)
+          (user-action-7 #f)
           (start-go-to-end    (:input-system-start-go-to-end	IS))
           (end-go-to-point    (:input-system-end-go-to-point	IS))
           (init-lexeme        (:input-system-init-lexeme	IS))
@@ -989,65 +997,107 @@
              (let ((yytext (get-start-end-text)))
                (start-go-to-end)
                (user-action-6 yytext yyline yycolumn yyoffset))))
+          (action-7
+           (lambda (yyline yycolumn yyoffset)
+             (let ((yytext (get-start-end-text)))
+               (start-go-to-end)
+               (user-action-7 yytext yyline yycolumn yyoffset))))
           (state-0
            (lambda (action)
              (let ((c (read-char)))
                (if c
-                   (if (< c 92)
-                       (if (= c 45)
-                           (state-3 action)
-                           (state-1 action))
+                   (if (< c 46)
+                       (if (< c 36)
+                           (if (< c 35)
+                               (state-1 action)
+                               (state-2 action))
+                           (if (< c 45)
+                               (state-1 action)
+                               (state-4 action)))
                        (if (< c 93)
-                           (state-2 action)
+                           (if (< c 92)
+                               (state-1 action)
+                               (state-3 action))
                            (if (< c 94)
-                               (state-4 action)
+                               (state-5 action)
                                (state-1 action))))
                    action))))
           (state-1
            (lambda (action)
              (end-go-to-point)
-             action-6))
+             action-7))
           (state-2
+           (lambda (action)
+             (end-go-to-point)
+             (let ((c (read-char)))
+               (if c
+                   (if (< c 89)
+                       (if (< c 88)
+                           action-7
+                           (state-6 action-7))
+                       (if (= c 120)
+                           (state-6 action-7)
+                           action-7))
+                   action-7))))
+          (state-3
            (lambda (action)
              (end-go-to-point)
              (let ((c (read-char)))
                (if c
                    (if (< c 48)
                        (if (= c 45)
-                           (state-6 action-6)
-                           (state-5 action-6))
+                           (state-8 action-7)
+                           (state-7 action-7))
                        (if (< c 110)
                            (if (< c 58)
-                               (state-7 action-6)
-                               (state-5 action-6))
+                               (state-9 action-7)
+                               (state-7 action-7))
                            (if (< c 111)
-                               (state-8 action-6)
-                               (state-5 action-6))))
-                   action-6))))
-          (state-3
-           (lambda (action)
-             (end-go-to-point)
-             action-1))
+                               (state-10 action-7)
+                               (state-7 action-7))))
+                   action-7))))
           (state-4
            (lambda (action)
              (end-go-to-point)
-             action-0))
+             action-1))
           (state-5
            (lambda (action)
              (end-go-to-point)
-             action-5))
+             action-0))
           (state-6
+           (lambda (action)
+             (let ((c (read-char)))
+               (if c
+                   (if (< c 65)
+                       (if (< c 48)
+                           action
+                           (if (< c 58)
+                               (state-11 action)
+                               action))
+                       (if (< c 97)
+                           (if (< c 71)
+                               (state-11 action)
+                               action)
+                           (if (< c 103)
+                               (state-11 action)
+                               action)))
+                   action))))
+          (state-7
+           (lambda (action)
+             (end-go-to-point)
+             action-6))
+          (state-8
            (lambda (action)
              (end-go-to-point)
              (let ((c (read-char)))
                (if c
                    (if (< c 48)
-                       action-5
+                       action-6
                        (if (< c 58)
-                           (state-9 action-5)
-                           action-5))
-                   action-5))))
-          (state-7
+                           (state-12 action-6)
+                           action-6))
+                   action-6))))
+          (state-9
            (lambda (action)
              (end-go-to-point)
              (let ((c (read-char)))
@@ -1055,14 +1105,33 @@
                    (if (< c 48)
                        action-3
                        (if (< c 58)
-                           (state-10 action-3)
+                           (state-13 action-3)
                            action-3))
                    action-3))))
-          (state-8
+          (state-10
            (lambda (action)
              (end-go-to-point)
              action-2))
-          (state-9
+          (state-11
+           (lambda (action)
+             (end-go-to-point)
+             (let ((c (read-char)))
+               (if c
+                   (if (< c 65)
+                       (if (< c 48)
+                           action-5
+                           (if (< c 58)
+                               (state-11 action-5)
+                               action-5))
+                       (if (< c 97)
+                           (if (< c 71)
+                               (state-11 action-5)
+                               action-5)
+                           (if (< c 103)
+                               (state-11 action-5)
+                               action-5)))
+                   action-5))))
+          (state-12
            (lambda (action)
              (end-go-to-point)
              (let ((c (read-char)))
@@ -1070,10 +1139,10 @@
                    (if (< c 48)
                        action-4
                        (if (< c 58)
-                           (state-9 action-4)
+                           (state-12 action-4)
                            action-4))
                    action-4))))
-          (state-10
+          (state-13
            (lambda (action)
              (end-go-to-point)
              (let ((c (read-char)))
@@ -1081,7 +1150,7 @@
                    (if (< c 48)
                        action-3
                        (if (< c 58)
-                           (state-10 action-3)
+                           (state-13 action-3)
                            action-3))
                    action-3))))
           (start-automaton
@@ -1114,8 +1183,12 @@
                             final-lexer user-getc user-ungetc))
        (set! user-action-6 ((vector-ref rules-pre-action 13)
                             final-lexer user-getc user-ungetc))
+       (set! user-action-7 ((vector-ref rules-pre-action 15)
+                            final-lexer user-getc user-ungetc))
        final-lexer))))
 
+;;; --------------------------------------------------------------------
+;;; below is the original table
 
 ;; (define class-tables
 ;;   (vector
@@ -1731,7 +1804,7 @@
 ;;       (0 . 0)   (0 . 0)   (#f . #f) (3 . 3)   (2 . 2)   (0 . 0)   (3 . 3))))
 
 
-;;;; module regexp.l.scm
+;;;; module regexp.l.sls
 ;;
 ;;This table has  been produced by applying the  lexer builder itself to
 ;;the file "regexp.l".  If you  change this remember that the version in
@@ -1744,9 +1817,11 @@
 ;;according to  the original documentation.  To recreate  the table with
 ;;the (silex) API and format "code" do this:
 ;;
-;;   (lex :input-file "regexp.l" :output-file "regexp.l.scm"
-;;        :counters 'all :table-name 'regexp-tables
-;;        :lexer-format 'code)
+;; (lex.lex (lex.input-file:	"regexp.l")
+;; 	 (lex.output-file:	"regexp.l.sls")
+;; 	 (lex.counters:		'all)
+;; 	 (lex.table-name:	'regexp-tables)
+;; 	 (lex.lexer-format:	'code))
 ;;
 ;;while  the original  version  appears  to have  been  created with  an
 ;;equivalent of:
@@ -1765,7 +1840,7 @@
        ))
    (lambda (yycontinue yygetc yyungetc)
      (lambda (yytext yyline yycolumn yyoffset)
-       (assertion-violation #f "invalid token" yytext)
+       (assertion-violation #f "invalid token")
        ))
    (vector
     #t
@@ -1881,6 +1956,11 @@
     #t
     (lambda (yycontinue yygetc yyungetc)
       (lambda (yytext yyline yycolumn yyoffset)
+                          (parse-hex-digits-char      yytext yyline yycolumn)
+        ))
+    #t
+    (lambda (yycontinue yygetc yyungetc)
+      (lambda (yytext yyline yycolumn yyoffset)
                           (parse-quoted-char          yytext yyline yycolumn)
         ))
     #t
@@ -1944,6 +2024,7 @@
           (user-action-25 #f)
           (user-action-26 #f)
           (user-action-27 #f)
+          (user-action-28 #f)
           (start-go-to-end    (:input-system-start-go-to-end	IS))
           (end-go-to-point    (:input-system-end-go-to-point	IS))
           (init-lexeme        (:input-system-init-lexeme	IS))
@@ -2102,6 +2183,11 @@
              (let ((yytext (get-start-end-text)))
                (start-go-to-end)
                (user-action-27 yytext yyline yycolumn yyoffset))))
+          (action-28
+           (lambda (yyline yycolumn yyoffset)
+             (let ((yytext (get-start-end-text)))
+               (start-go-to-end)
+               (user-action-28 yytext yyline yycolumn yyoffset))))
           (state-0
            (lambda (action)
              (let ((c (read-char)))
@@ -2112,58 +2198,58 @@
                                (if (< c 9)
                                    (state-2 action)
                                    (if (< c 10)
-                                       (state-18 action)
-                                       (state-16 action)))
+                                       (state-19 action)
+                                       (state-17 action)))
                                (if (< c 33)
                                    (if (< c 32)
                                        (state-2 action)
-                                       (state-18 action))
+                                       (state-19 action))
                                    (if (< c 34)
                                        (state-2 action)
-                                       (state-6 action))))
+                                       (state-7 action))))
                            (if (< c 41)
                                (if (< c 37)
                                    (if (< c 36)
-                                       (state-2 action)
+                                       (state-5 action)
                                        (state-3 action))
                                    (if (< c 40)
                                        (state-2 action)
-                                       (state-11 action)))
+                                       (state-12 action)))
                                (if (< c 43)
                                    (if (< c 42)
-                                       (state-10 action)
-                                       (state-12 action))
+                                       (state-11 action)
+                                       (state-13 action))
                                    (if (< c 44)
-                                       (state-13 action)
+                                       (state-14 action)
                                        (state-2 action)))))
                        (if (< c 91)
                            (if (< c 60)
                                (if (< c 47)
-                                   (state-9 action)
+                                   (state-10 action)
                                    (if (< c 59)
                                        (state-2 action)
-                                       (state-17 action)))
+                                       (state-18 action)))
                                (if (< c 63)
                                    (if (< c 61)
                                        (state-1 action)
                                        (state-2 action))
                                    (if (< c 64)
-                                       (state-14 action)
+                                       (state-15 action)
                                        (state-2 action))))
                            (if (< c 95)
                                (if (< c 93)
                                    (if (< c 92)
-                                       (state-8 action)
-                                       (state-5 action))
+                                       (state-9 action)
+                                       (state-6 action))
                                    (if (< c 94)
                                        (state-2 action)
                                        (state-4 action)))
                                (if (< c 124)
                                    (if (< c 123)
                                        (state-2 action)
-                                       (state-7 action))
+                                       (state-8 action))
                                    (if (< c 125)
-                                       (state-15 action)
+                                       (state-16 action)
                                        (state-2 action))))))
                    action))))
           (state-1
@@ -2172,43 +2258,56 @@
              (let ((c (read-char)))
                (if c
                    (if (= c 60)
-                       (state-19 action-25)
-                       action-25)
-                   action-25))))
+                       (state-20 action-26)
+                       action-26)
+                   action-26))))
           (state-2
            (lambda (action)
              (end-go-to-point)
-             action-25))
+             action-26))
           (state-3
            (lambda (action)
              (end-go-to-point)
-             action-24))
+             action-25))
           (state-4
            (lambda (action)
              (end-go-to-point)
-             action-23))
+             action-24))
           (state-5
+           (lambda (action)
+             (end-go-to-point)
+             (let ((c (read-char)))
+               (if c
+                   (if (< c 89)
+                       (if (< c 88)
+                           action-26
+                           (state-21 action-26))
+                       (if (= c 120)
+                           (state-21 action-26)
+                           action-26))
+                   action-26))))
+          (state-6
            (lambda (action)
              (end-go-to-point)
              (let ((c (read-char)))
                (if c
                    (if (< c 48)
                        (if (= c 45)
-                           (state-21 action-25)
-                           (state-20 action-25))
+                           (state-23 action-26)
+                           (state-22 action-26))
                        (if (< c 110)
                            (if (< c 58)
-                               (state-22 action-25)
-                               (state-20 action-25))
+                               (state-24 action-26)
+                               (state-22 action-26))
                            (if (< c 111)
-                               (state-23 action-25)
-                               (state-20 action-25))))
-                   action-25))))
-          (state-6
+                               (state-25 action-26)
+                               (state-22 action-26))))
+                   action-26))))
+          (state-7
            (lambda (action)
              (end-go-to-point)
              action-18))
-          (state-7
+          (state-8
            (lambda (action)
              (end-go-to-point)
              (let ((c (read-char)))
@@ -2217,124 +2316,142 @@
                        (if (< c 43)
                            (if (< c 36)
                                (if (= c 33)
-                                   (state-27 action-17)
+                                   (state-29 action-17)
                                    action-17)
                                (if (< c 39)
-                                   (state-27 action-17)
+                                   (state-29 action-17)
                                    (if (< c 42)
                                        action-17
-                                       (state-27 action-17))))
+                                       (state-29 action-17))))
                            (if (< c 46)
                                (if (= c 44)
                                    action-17
-                                   (state-26 action-17))
+                                   (state-28 action-17))
                                (if (< c 47)
-                                   (state-25 action-17)
+                                   (state-27 action-17)
                                    (if (< c 48)
-                                       (state-27 action-17)
-                                       (state-24 action-17)))))
+                                       (state-29 action-17)
+                                       (state-26 action-17)))))
                        (if (< c 94)
                            (if (< c 64)
                                (if (= c 59)
                                    action-17
-                                   (state-27 action-17))
+                                   (state-29 action-17))
                                (if (< c 65)
                                    action-17
                                    (if (< c 91)
-                                       (state-27 action-17)
+                                       (state-29 action-17)
                                        action-17)))
                            (if (< c 123)
                                (if (= c 96)
                                    action-17
-                                   (state-27 action-17))
+                                   (state-29 action-17))
                                (if (= c 126)
-                                   (state-27 action-17)
+                                   (state-29 action-17)
                                    action-17))))
                    action-17))))
-          (state-8
+          (state-9
            (lambda (action)
              (end-go-to-point)
              (let ((c (read-char)))
                (if c
                    (if (< c 93)
                        (if (= c 45)
-                           (state-28 action-9)
+                           (state-30 action-9)
                            action-9)
                        (if (< c 94)
-                           (state-30 action-9)
+                           (state-32 action-9)
                            (if (< c 95)
-                               (state-29 action-9)
+                               (state-31 action-9)
                                action-9)))
                    action-9))))
-          (state-9
-           (lambda (action)
-             (end-go-to-point)
-             action-8))
           (state-10
            (lambda (action)
              (end-go-to-point)
-             action-7))
+             action-8))
           (state-11
            (lambda (action)
              (end-go-to-point)
-             action-6))
+             action-7))
           (state-12
            (lambda (action)
              (end-go-to-point)
-             action-5))
+             action-6))
           (state-13
            (lambda (action)
              (end-go-to-point)
-             action-4))
+             action-5))
           (state-14
            (lambda (action)
              (end-go-to-point)
-             action-3))
+             action-4))
           (state-15
            (lambda (action)
              (end-go-to-point)
-             action-2))
+             action-3))
           (state-16
            (lambda (action)
              (end-go-to-point)
-             action-1))
+             action-2))
           (state-17
+           (lambda (action)
+             (end-go-to-point)
+             action-1))
+          (state-18
            (lambda (action)
              (end-go-to-point)
              (let ((c (read-char)))
                (if c
                    (if (= c 10)
                        action-0
-                       (state-31 action-0))
+                       (state-33 action-0))
                    action-0))))
-          (state-18
+          (state-19
            (lambda (action)
              (end-go-to-point)
              action-0))
-          (state-19
+          (state-20
            (lambda (action)
              (let ((c (read-char)))
                (if c
                    (if (= c 69)
-                       (state-32 action)
+                       (state-34 action)
                        action)
                    action))))
-          (state-20
+          (state-21
+           (lambda (action)
+             (let ((c (read-char)))
+               (if c
+                   (if (< c 65)
+                       (if (< c 48)
+                           action
+                           (if (< c 58)
+                               (state-35 action)
+                               action))
+                       (if (< c 97)
+                           (if (< c 71)
+                               (state-35 action)
+                               action)
+                           (if (< c 103)
+                               (state-35 action)
+                               action)))
+                   action))))
+          (state-22
            (lambda (action)
              (end-go-to-point)
-             action-22))
-          (state-21
+             action-23))
+          (state-23
            (lambda (action)
              (end-go-to-point)
              (let ((c (read-char)))
                (if c
                    (if (< c 48)
-                       action-22
+                       action-23
                        (if (< c 58)
-                           (state-33 action-22)
-                           action-22))
-                   action-22))))
-          (state-22
+                           (state-36 action-23)
+                           action-23))
+                   action-23))))
+          (state-24
            (lambda (action)
              (end-go-to-point)
              (let ((c (read-char)))
@@ -2342,46 +2459,46 @@
                    (if (< c 48)
                        action-20
                        (if (< c 58)
-                           (state-34 action-20)
+                           (state-37 action-20)
                            action-20))
                    action-20))))
-          (state-23
+          (state-25
            (lambda (action)
              (end-go-to-point)
              action-19))
-          (state-24
+          (state-26
            (lambda (action)
              (let ((c (read-char)))
                (if c
                    (if (< c 48)
                        (if (= c 44)
-                           (state-35 action)
+                           (state-38 action)
                            action)
                        (if (< c 125)
                            (if (< c 58)
-                               (state-24 action)
+                               (state-26 action)
                                action)
                            (if (< c 126)
-                               (state-36 action)
+                               (state-39 action)
                                action)))
                    action))))
-          (state-25
+          (state-27
            (lambda (action)
              (let ((c (read-char)))
                (if c
                    (if (= c 46)
-                       (state-37 action)
+                       (state-40 action)
                        action)
                    action))))
-          (state-26
+          (state-28
            (lambda (action)
              (let ((c (read-char)))
                (if c
                    (if (= c 125)
-                       (state-38 action)
+                       (state-41 action)
                        action)
                    action))))
-          (state-27
+          (state-29
            (lambda (action)
              (let ((c (read-char)))
                (if c
@@ -2390,73 +2507,92 @@
                            (if (< c 34)
                                (if (< c 33)
                                    action
-                                   (state-27 action))
+                                   (state-29 action))
                                (if (< c 36)
                                    action
                                    (if (< c 39)
-                                       (state-27 action)
+                                       (state-29 action)
                                        action)))
                            (if (< c 45)
                                (if (< c 44)
-                                   (state-27 action)
+                                   (state-29 action)
                                    action)
                                (if (= c 59)
                                    action
-                                   (state-27 action))))
+                                   (state-29 action))))
                        (if (< c 97)
                            (if (< c 91)
                                (if (< c 65)
                                    action
-                                   (state-27 action))
+                                   (state-29 action))
                                (if (< c 94)
                                    action
                                    (if (< c 96)
-                                       (state-27 action)
+                                       (state-29 action)
                                        action)))
                            (if (< c 125)
                                (if (< c 123)
-                                   (state-27 action)
+                                   (state-29 action)
                                    action)
                                (if (< c 126)
-                                   (state-38 action)
+                                   (state-41 action)
                                    (if (< c 127)
-                                       (state-27 action)
+                                       (state-29 action)
                                        action)))))
                    action))))
-          (state-28
-           (lambda (action)
-             (end-go-to-point)
-             action-12))
-          (state-29
-           (lambda (action)
-             (end-go-to-point)
-             action-11))
           (state-30
            (lambda (action)
              (end-go-to-point)
-             action-10))
+             action-12))
           (state-31
+           (lambda (action)
+             (end-go-to-point)
+             action-11))
+          (state-32
+           (lambda (action)
+             (end-go-to-point)
+             action-10))
+          (state-33
            (lambda (action)
              (end-go-to-point)
              (let ((c (read-char)))
                (if c
                    (if (= c 10)
                        action-0
-                       (state-31 action-0))
+                       (state-33 action-0))
                    action-0))))
-          (state-32
+          (state-34
            (lambda (action)
              (let ((c (read-char)))
                (if c
                    (if (< c 80)
                        (if (< c 79)
                            action
-                           (state-40 action))
+                           (state-43 action))
                        (if (= c 82)
-                           (state-39 action)
+                           (state-42 action)
                            action))
                    action))))
-          (state-33
+          (state-35
+           (lambda (action)
+             (end-go-to-point)
+             (let ((c (read-char)))
+               (if c
+                   (if (< c 65)
+                       (if (< c 48)
+                           action-22
+                           (if (< c 58)
+                               (state-35 action-22)
+                               action-22))
+                       (if (< c 97)
+                           (if (< c 71)
+                               (state-35 action-22)
+                               action-22)
+                           (if (< c 103)
+                               (state-35 action-22)
+                               action-22)))
+                   action-22))))
+          (state-36
            (lambda (action)
              (end-go-to-point)
              (let ((c (read-char)))
@@ -2464,10 +2600,10 @@
                    (if (< c 48)
                        action-21
                        (if (< c 58)
-                           (state-33 action-21)
+                           (state-36 action-21)
                            action-21))
                    action-21))))
-          (state-34
+          (state-37
            (lambda (action)
              (end-go-to-point)
              (let ((c (read-char)))
@@ -2475,95 +2611,75 @@
                    (if (< c 48)
                        action-20
                        (if (< c 58)
-                           (state-34 action-20)
+                           (state-37 action-20)
                            action-20))
                    action-20))))
-          (state-35
-           (lambda (action)
-             (let ((c (read-char)))
-               (if c
-                   (if (< c 58)
-                       (if (< c 48)
-                           action
-                           (state-41 action))
-                       (if (= c 125)
-                           (state-42 action)
-                           action))
-                   action))))
-          (state-36
-           (lambda (action)
-             (end-go-to-point)
-             action-14))
-          (state-37
-           (lambda (action)
-             (let ((c (read-char)))
-               (if c
-                   (if (= c 46)
-                       (state-26 action)
-                       action)
-                   action))))
           (state-38
            (lambda (action)
-             (end-go-to-point)
-             action-13))
-          (state-39
-           (lambda (action)
-             (let ((c (read-char)))
-               (if c
-                   (if (= c 82)
-                       (state-43 action)
-                       action)
-                   action))))
-          (state-40
-           (lambda (action)
-             (let ((c (read-char)))
-               (if c
-                   (if (= c 70)
-                       (state-44 action)
-                       action)
-                   action))))
-          (state-41
-           (lambda (action)
              (let ((c (read-char)))
                (if c
                    (if (< c 58)
                        (if (< c 48)
                            action
-                           (state-41 action))
+                           (state-44 action))
                        (if (= c 125)
                            (state-45 action)
                            action))
                    action))))
-          (state-42
+          (state-39
            (lambda (action)
              (end-go-to-point)
-             action-15))
+             action-14))
+          (state-40
+           (lambda (action)
+             (let ((c (read-char)))
+               (if c
+                   (if (= c 46)
+                       (state-28 action)
+                       action)
+                   action))))
+          (state-41
+           (lambda (action)
+             (end-go-to-point)
+             action-13))
+          (state-42
+           (lambda (action)
+             (let ((c (read-char)))
+               (if c
+                   (if (= c 82)
+                       (state-46 action)
+                       action)
+                   action))))
           (state-43
            (lambda (action)
              (let ((c (read-char)))
                (if c
-                   (if (= c 79)
-                       (state-46 action)
+                   (if (= c 70)
+                       (state-47 action)
                        action)
                    action))))
           (state-44
            (lambda (action)
              (let ((c (read-char)))
                (if c
-                   (if (= c 62)
-                       (state-47 action)
-                       action)
+                   (if (< c 58)
+                       (if (< c 48)
+                           action
+                           (state-44 action))
+                       (if (= c 125)
+                           (state-48 action)
+                           action))
                    action))))
           (state-45
            (lambda (action)
              (end-go-to-point)
-             action-16))
+             action-15))
           (state-46
            (lambda (action)
              (let ((c (read-char)))
                (if c
-                   (if (= c 82)
-                       (state-48 action)
+                   (if (= c 79)
+                       (state-49 action)
                        action)
                    action))))
           (state-47
@@ -2571,33 +2687,53 @@
              (let ((c (read-char)))
                (if c
                    (if (= c 62)
-                       (state-49 action)
+                       (state-50 action)
                        action)
                    action))))
           (state-48
            (lambda (action)
-             (let ((c (read-char)))
-               (if c
-                   (if (= c 62)
-                       (state-50 action)
-                       action)
-                   action))))
+             (end-go-to-point)
+             action-16))
           (state-49
            (lambda (action)
-             (end-go-to-point)
-             action-26))
+             (let ((c (read-char)))
+               (if c
+                   (if (= c 82)
+                       (state-51 action)
+                       action)
+                   action))))
           (state-50
            (lambda (action)
              (let ((c (read-char)))
                (if c
                    (if (= c 62)
-                       (state-51 action)
+                       (state-52 action)
                        action)
                    action))))
           (state-51
            (lambda (action)
+             (let ((c (read-char)))
+               (if c
+                   (if (= c 62)
+                       (state-53 action)
+                       action)
+                   action))))
+          (state-52
+           (lambda (action)
              (end-go-to-point)
              action-27))
+          (state-53
+           (lambda (action)
+             (let ((c (read-char)))
+               (if c
+                   (if (= c 62)
+                       (state-54 action)
+                       action)
+                   action))))
+          (state-54
+           (lambda (action)
+             (end-go-to-point)
+             action-28))
           (start-automaton
            (lambda ()
              (if (peek-char)
@@ -2670,7 +2806,12 @@
                              final-lexer user-getc user-ungetc))
        (set! user-action-27 ((vector-ref rules-pre-action 55)
                              final-lexer user-getc user-ungetc))
+       (set! user-action-28 ((vector-ref rules-pre-action 57)
+                             final-lexer user-getc user-ungetc))
        final-lexer))))
+
+;;; --------------------------------------------------------------------
+;;; below is the original table
 
 ;; (define regexp-tables
 ;;   (vector
@@ -3260,6 +3401,10 @@
 (define (parse-digits-char lexeme line column)
   (let* ((num (substring lexeme 1 (string-length lexeme)))
 	 (n (string->number num)))
+    (make-tok char-tok lexeme line column n)))
+
+(define (parse-hex-digits-char lexeme line column)
+  (let ((n (string->number lexeme)))
     (make-tok char-tok lexeme line column n)))
 
 (define (parse-quoted-char lexeme line column)

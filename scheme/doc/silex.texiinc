@@ -604,6 +604,8 @@ or any white space.
 
 @item \n
 @itemx \@var{integer}
+@itemx #x@var{hex-integer}
+@itemx #X@var{hex-integer}
 @itemx \@var{c}
 @dfn{Backslash}.  The backslash is used for two things: protect a
 character from special meaning; generating non-printable characters.
@@ -617,6 +619,10 @@ implementation.  Notice that @samp{\9} represents the horizontal
 tabulation @samp{#\tab}, @samp{\10} the newline character
 @samp{#\newline}, and @samp{\13} the carriage return character
 @samp{#\return}.
+
+The expressions @code{#x@var{hex-integer}} and
+@code{#X@var{hex-integer}} match the character that has hex number
+@var{hex-integer} (in the sense of @func{string->number}).
 
 The expression @code{\@var{c}} matches the character @var{c} if @var{c}
 is not @samp{n}, @samp{-} nor a digit.

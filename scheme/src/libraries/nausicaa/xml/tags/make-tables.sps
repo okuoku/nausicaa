@@ -53,16 +53,19 @@
 
  (lalr.rules:
   '((document
-     (prolog element misc)	: ((document-datum-maker) yypushback yycustom $1 $2 $3))
+     (prolog element Misc)	: ((document-datum-maker) yypushback yycustom $1 $2 $3))
+
+    (prolog
+     (OTAG)			: $1)
+
+    (element
+     (OTAG)			: $1)
 
     (Misc
      (Misc-tail)		: ((misc-datum-maker)	yypushback yycustom $1))
     (Misc-tail
-     (stuff)			: $1
-     (stuff Misc-tail)		: (cons $1 $2))
-
-    (tag
-     (OTAG CTAG)		: ((tag-token-maker)	yypushback yycustom $1))
+     (OTAG)			: $1
+     (OTAG Misc-tail)		: (cons $1 $2))
 
     )))
 

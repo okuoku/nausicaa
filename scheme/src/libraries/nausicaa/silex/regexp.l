@@ -21,6 +21,9 @@ comment ";".*
 hblank  {space}|{tab}|{comment}
 vblank  "\n"
 
+hexradix	(#x)|(#X)
+hexdigit	[0123456789abcdefABCDEF]
+
 digit   [0123456789]
 letter  [abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ]
 specini "!"|"$"|"%"|"&"|"*"|"/"|":"|"<"|"="|">"|"?"|"~"|"_"|"^"
@@ -54,6 +57,7 @@ id      {initial}{subseq}*|{peculid}
 "\\n"                     (parse-spec-char            yytext yyline yycolumn)
 "\\"{digit}+              (parse-digits-char          yytext yyline yycolumn)
 "\\-"{digit}+             (parse-digits-char          yytext yyline yycolumn)
+{hexradix}{hexdigit}+     (parse-hex-digits-char      yytext yyline yycolumn)
 "\\"[^]                   (parse-quoted-char          yytext yyline yycolumn)
 "^"                       (make-tok caret-tok         yytext yyline yycolumn)
 "$"                       (make-tok dollar-tok        yytext yyline yycolumn)
