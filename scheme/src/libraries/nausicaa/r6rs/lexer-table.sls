@@ -1,7 +1,7 @@
 (library (nausicaa r6rs lexer-table)
   (export
     r6rs-lexer-table)
-  (import (rnrs) (nausicaa silex lexer)(nausicaa parser-tools lexical-token)(nausicaa parser-tools source-location)(nausicaa r6rs lexeme-processing))
+  (import (rnrs)(nausicaa silex lexer)(nausicaa parser-tools lexical-token)(nausicaa parser-tools source-location)(nausicaa r6rs lexeme-processing))
 
 ;
 ; Table generated from the file lexer-table.l by SILex 1.0

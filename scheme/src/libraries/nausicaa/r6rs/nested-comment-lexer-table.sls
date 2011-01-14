@@ -1,7 +1,7 @@
 (library (nausicaa r6rs nested-comment-lexer-table)
   (export
     r6rs-nested-comment-lexer-table)
-  (import (rnrs) (nausicaa silex lexer)(nausicaa r6rs lexeme-processing)(nausicaa parser-tools lexical-token)(nausicaa parser-tools source-location))
+  (import (rnrs)(nausicaa silex lexer)(nausicaa r6rs lexeme-processing)(nausicaa parser-tools lexical-token)(nausicaa parser-tools source-location))
 
 ;
 ; Table generated from the file nested-comment-lexer-table.l by SILex 1.0
