@@ -46,6 +46,7 @@
   (export
     lalr-parser (rename (lalr-parser make-lalr-parser))
     library-spec:
+    library-language:
     library-imports:
     parser-type:
     parser-name:
@@ -208,6 +209,7 @@
 
 (define-auxiliary-syntax
   library-spec:
+  library-language:
   library-imports:
   parser-type:
   parser-name:
@@ -222,6 +224,7 @@
 (define-maker lalr-parser
   %lalr-parser
   ((library-spec:	#f)
+   (library-language:	'(rnrs))
    (library-imports:	'())
    (parser-type:	'lr)
    (parser-name:	#f)
@@ -236,7 +239,7 @@
    (rules:		#f)
    (terminals:		#f)))
 
-(define (%lalr-parser library-spec library-imports parser-type parser-name
+(define (%lalr-parser library-spec library-language library-imports parser-type parser-name
 		      output-value output-port output-file
 		      dump-table
 		      expect rules terminals)
@@ -259,12 +262,12 @@
       (when dump-table
 	(with-output-to-new-file dump-table debug:print-states))
 
-      (let* ((imports	(append `((rnrs)
-				  (nausicaa lalr ,driver-name)
-				  (nausicaa parser-tools source-location)
-				  (nausicaa parser-tools lexical-token)
-				  (nausicaa language sentinel))
-				library-imports))
+      (let* ((imports	`(,library-language
+			  (nausicaa lalr ,driver-name)
+			  (nausicaa parser-tools source-location)
+			  (nausicaa parser-tools lexical-token)
+			  (nausicaa language sentinel)
+			  . ,library-imports))
 	     (exports	`(,parser-name))
 	     (code	(cond (library-spec ;generate a library
 			       (unless parser-name

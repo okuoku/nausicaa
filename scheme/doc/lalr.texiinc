@@ -1140,6 +1140,14 @@ used for the @samp{parser-name:} option:
 @end deffn
 
 
+@deffn {Auxiliary Syntax} {library-language:} @var{lang}
+Instruct @func{lalr-parser} to use @var{lang} as language for the
+library; the language is the first import specification after
+@code{import} in the @code{library} form.  By default the language is
+@library{rnrs}.
+@end deffn
+
+
 @deffn {Auxiliary Syntax} {library-imports:} @var{imports}
 Instruct @func{lalr-parser} to add @var{imports} to the list of Scheme
 libraries required by the parser definition.  @var{imports} must be a
@@ -1161,9 +1169,9 @@ driver's library @library{nausicaa lalr lr-driver} or @library{nausicaa
 lalr glr-driver} and the following libraries:
 
 @example
-(parser-tools source-location)
-(parser-tools lexical-token)
-(sentinel)
+(nausicaa parser-tools source-location)
+(nausicaa parser-tools lexical-token)
+(nausicaa sentinel)
 @end example
 @end deffn
 
