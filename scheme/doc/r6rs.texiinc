@@ -30,8 +30,8 @@ standard.  It is suggested to import the libraries in this hiearchy with
 
 The library @library{nausicaa r6rs lexer} implements a lexer compliant
 with the @rnrs{6} specification for Scheme source code.  The lexer is
-built on top of the @library{nausicaa silex} parser generator;
-@ref{silex} for details.
+built on top of the @library{nausicaa silex} parser generator
+(@pxref{silex}).
 
 @menu
 * r6rs lexer full::             Full lexer table.
@@ -2299,7 +2299,7 @@ modify the parser table.
 All the source files composing the @rnrs{6} parser are in the directory
 @file{src/libraries/nausicaa/r6rs} of @value{PACKAGE} source tree.  The
 script @file{make-tables.sps} is used to rebuild the tables; the parser
-table is defined in the script itself..
+table is defined in the script itself.
 
 To run the script we must first configure and build the @value{PACKAGE}
 package, then change the current directory to
@@ -2323,141 +2323,141 @@ common strings which are meant to be comparable using @func{eq?}.
 
 @subsubheading Scheme source strings
 
-@defun comma-at
+@defvr Constant comma-at
 Bound to the string @samp{",@@"}.
-@end defun
+@end defvr
 
 
-@defun sharp-paren
+@defvr Constant sharp-paren
 Bound to the string @samp{"#("}.
-@end defun
+@end defvr
 
 
-@defun sharp-vu8-paren
+@defvr Constant sharp-vu8-paren
 Bound to the string @samp{"#vu8("}.
-@end defun
+@end defvr
 
 
-@defun sharp-tick
+@defvr Constant sharp-tick
 Bound to the string @samp{"#'"}.
-@end defun
+@end defvr
 
 
-@defun sharp-back-tick
+@defvr Constant sharp-back-tick
 Bound to the string @samp{"#`"}.
-@end defun
+@end defvr
 
 
-@defun sharp-comma-at
+@defvr Constant sharp-comma-at
 Bound to the string @samp{"#,@@"}.
-@end defun
+@end defvr
 
 
-@defun sharp-comma-
+@defvr Constant sharp-comma-
 Bound to the string @samp{"#,"}.
-@end defun
+@end defvr
 
 
-@defun sharp-semicolon
+@defvr Constant sharp-semicolon
 Bound to the string @samp{"#;"}.
-@end defun
+@end defvr
 
 
-@defun sharp-bang-r6rs
+@defvr Constant sharp-bang-r6rs
 Bound to the string @samp{"#!r6rs"}.
-@end defun
+@end defvr
 
 
-@defun sharp-bang
+@defvr Constant sharp-bang
 Bound to the string @samp{"#!"}.
-@end defun
+@end defvr
 
 
-@defun open-nested-comment
+@defvr Constant open-nested-comment
 Bound to the string @samp{"#|"}.
-@end defun
+@end defvr
 
 
-@defun true-small
+@defvr Constant true-small
 Bound to the string @samp{"#t"}.
-@end defun
+@end defvr
 
 
-@defun true-capital
+@defvr Constant true-capital
 Bound to the string @samp{"#T"}.
-@end defun
+@end defvr
 
 
-@defun false-small
+@defvr Constant false-small
 Bound to the string @samp{"#f"}.
-@end defun
+@end defvr
 
 
-@defun false-capital
+@defvr Constant false-capital
 Bound to the string @samp{"#F"}.
-@end defun
+@end defvr
 
 @c ------------------------------------------------------------
 
 @subsubheading Named character strings
 
-@defun named-character-nul
+@defvr Constant named-character-nul
 Bound to the string @samp{"#\\nul"}.
-@end defun
+@end defvr
 
 
-@defun named-character-alarm
+@defvr Constant named-character-alarm
 Bound to the string @samp{"#\\alarm"}.
-@end defun
+@end defvr
 
 
-@defun named-character-backspace
+@defvr Constant named-character-backspace
 Bound to the string @samp{"#\\backspace"}.
-@end defun
+@end defvr
 
 
-@defun named-character-tab
+@defvr Constant named-character-tab
 Bound to the string @samp{"#\\tab"}.
-@end defun
+@end defvr
 
 
-@defun named-character-linefeed
+@defvr Constant named-character-linefeed
 Bound to the string @samp{"#\\linefeed"}.
-@end defun
+@end defvr
 
 
-@defun named-character-newline
+@defvr Constant named-character-newline
 Bound to the string @samp{"#\\newline"}.
-@end defun
+@end defvr
 
 
-@defun named-character-vtab
+@defvr Constant named-character-vtab
 Bound to the string @samp{"#\\vtab"}.
-@end defun
+@end defvr
 
 
-@defun named-character-page
+@defvr Constant named-character-page
 Bound to the string @samp{"#\\page"}.
-@end defun
+@end defvr
 
 
-@defun named-character-return
+@defvr Constant named-character-return
 Bound to the string @samp{"#\\return"}.
-@end defun
+@end defvr
 
 
-@defun named-character-esc
+@defvr Constant named-character-esc
 Bound to the string @samp{"#\\esc"}.
-@end defun
+@end defvr
 
 
-@defun named-character-space
+@defvr Constant named-character-space
 Bound to the string @samp{"#\\space"}.
-@end defun
+@end defvr
 
 
-@defun named-character-delete
+@defvr Constant named-character-delete
 Bound to the string @samp{"#\\delete")}.
-@end defun
+@end defvr
 
 @c end of file

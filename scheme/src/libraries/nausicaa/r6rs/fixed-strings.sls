@@ -1,6 +1,6 @@
 ;;; -*- coding: utf-8-unix -*-
 ;;;
-;;;Part of: MMUX Home Directory
+;;;Part of: Nausicaa/Scheme
 ;;;Contents: collection of strings
 ;;;Date: Fri Jan  7, 2011
 ;;;
