@@ -247,6 +247,13 @@ It is mandatory to use the option @samp{table-name:} along with
 @end deffn
 
 
+@deffn {Auxiliary Syntax} {library-language:} @var{lang}
+Select @var{lang} as language to use for the library; the language is
+the first import specification after @code{import} in the @code{library}
+form.  By default the language is @library{rnrs}.
+@end deffn
+
+
 @deffn {Auxiliary Syntax} library-imports: @var{import-list}
 Select a list of libraries which must be imported when using the
 generated lexer.  @var{import-list} must be a list of library

@@ -53,6 +53,7 @@
     input-port:
     input-string:
     library-spec:
+    library-language:
     library-imports:
     table-name:
     pretty-print:
@@ -88,6 +89,7 @@
   input-port:
   input-string:
   library-spec:
+  library-language:
   library-imports:
   table-name:
   pretty-print:
@@ -103,6 +105,7 @@
 	(input-string:		#f)
 
 	(library-spec:		#f)
+	(library-language:	'(rnrs))
 	(library-imports:	'())
 	(table-name:		#f)
 	(pretty-print:		#f)
@@ -115,7 +118,8 @@
 	))
 
 (define (%lex input-file input-port input-string
-	      library-spec library-imports table-name pretty? counters-type lexer-format
+	      library-spec library-language library-imports
+	      table-name pretty? counters-type lexer-format
 	      output-value output-file output-port)
 
   (when (and library-spec (not table-name))
@@ -166,7 +170,8 @@
 				    (nfa2dfa nl-start no-nl-start arcs acc)))
 			(prep-set-rules-yytext? rules)
 			(output input-file
-				library-spec library-imports table-name pretty? counters-type lexer-format
+				library-spec library-language library-imports
+				table-name pretty? counters-type lexer-format
 				output-file output-port output-value
 				<<EOF>>-action <<ERROR>>-action
 				rules nl-start no-nl-start arcs acc)))))))))
@@ -4714,7 +4719,8 @@
 ;;;; module output.scm
 
 (define (output input-file
-		library-spec library-imports table-name pretty? counters-type lexer-format
+		library-spec library-language library-imports
+		table-name pretty? counters-type lexer-format
 		output-file output-port output-value
 		<<EOF>>-action <<ERROR>>-action rules nl-start no-nl-start arcs acc)
   ;;Print the output code.
@@ -4742,8 +4748,10 @@
 				      "\n"
 				      "  (export\n"
 				      "    " (table-name->export-name table-name) ")\n"
-				      "  (import (rnrs) (nausicaa silex lexer)")
+				      "  (import ")
 		       output-port)
+	      (write library-language output-port)
+	      (display "(nausicaa silex lexer)" output-port)
 	      (for-each (lambda (spec)
 			  (write spec output-port))
 		library-imports)
@@ -4760,8 +4768,8 @@
 	  ;;Make the output value.
 	  (let ((ell (read (open-string-input-port (value-getter)))))
 	    (eval ell (if (eq? lexer-format 'code)
-			  (apply environment '(rnrs) '(nausicaa silex lexer) library-imports)
-			(apply environment '(rnrs) library-imports)))))))
+			  (apply environment library-language '(nausicaa silex lexer) library-imports)
+			(apply environment library-language library-imports)))))))
 
   (define (library-spec->string-spec spec)
     ;;We allow the library specification  to be: a string, including the
