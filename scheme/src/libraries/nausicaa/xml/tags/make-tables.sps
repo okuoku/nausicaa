@@ -46,14 +46,23 @@
  (lalr.output-file:	"parser-table.sls")
  (lalr.parser-name:	'make-xml-parser)
  (lalr.library-spec:	'(nausicaa xml tags parser-table))
- (lalr.library-imports:	'((nausicaa xmltags datum-processing)))
+ (lalr.library-imports:	'((nausicaa xml tags datum-processing)))
 
  (lalr.terminals:	'( ;;
-			  SHARPBANGR6RS		SHARPBANG))
+			  OTAG		CTAG))
 
  (lalr.rules:
-  '((datums
-     (datums-tail)		: ((list-of-datums-maker)	yypushback yycustom $1))
+  '((document
+     (prolog element misc)	: ((document-datum-maker) yypushback yycustom $1 $2 $3))
+
+    (Misc
+     (Misc-tail)		: ((misc-datum-maker)	yypushback yycustom $1))
+    (Misc-tail
+     (stuff)			: $1
+     (stuff Misc-tail)		: (cons $1 $2))
+
+    (tag
+     (OTAG CTAG)		: ((tag-token-maker)	yypushback yycustom $1))
 
     )))
 

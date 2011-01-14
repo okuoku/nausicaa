@@ -4,15 +4,18 @@
 
 The libraries under the @library{nausicaa xml tags ---} hierarchy
 provide tools to manipulate @axml{} documents compliant with the
-``Extensible Markup Language (@axml{}) 1.0 (Fifth Edition)'', W3C
-Recommendation 26 November
-2008@footnote{@url{http://www.w3.org/TR/REC-xml/}}.  It is suggested to
-import the libraries in this hiearchy with @code{r6.} as prefix:
+``Extensible Markup Language (@axml{}) 1.0 (Fifth Edition)'',
+@acronym{W3C} Recommendation 26 November 2008@footnote{Find the document
+and its errata at:
+
+@center @url{http://www.w3.org/TR/REC-xml/}
+@center @url{http://www.w3.org/XML/xml-V10-5e-errata}}.  It is suggested to
+import the libraries in this hiearchy with @code{xml.} as prefix:
 
 @example
 (import ---
-  (prefix (nausicaa xml tags lexer)  tags.)
-  (prefix (nausicaa xml tags parser) tags.))
+  (prefix (nausicaa xml tags lexer)  xml.)
+  (prefix (nausicaa xml tags parser) xml.))
 @end example
 
 @menu
@@ -31,7 +34,7 @@ import the libraries in this hiearchy with @code{r6.} as prefix:
 
 
 The library @library{nausicaa tags lexer} implements a lexer compliant
-with the @axml{} specification version 1.0.  The lexer is built on top
+with the @axml{} recommendation version 1.0.  The lexer is built on top
 of the @library{nausicaa silex} parser generator (@pxref{silex}).
 
 @menu
@@ -89,7 +92,7 @@ way that the libraries under @file{src/libraries} can be found.
 
 
 The library @library{nausicaa xml tags parser} implements a lexer
-compliant with the @axml{} specification version 1.0.  The lexer is
+compliant with the @axml{} recommendation version 1.0.  The lexer is
 built on top of the @library{nausicaa lalr} parser generator
 (@pxref{lalr}) and it is meant to be used with the lexer @api{} exported
 by the @library{nausicaa xml tags lexer} library (@pxref{tags lexer}).
