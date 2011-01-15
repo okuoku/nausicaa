@@ -13,6 +13,8 @@
 ;;;		http://www.w3.org/TR/REC-xml/
 ;;;		http://www.w3.org/XML/xml-V10-5e-errata
 ;;;
+;;;SONO ARRIVATO A "2.9 Standalone Document Declaration"
+;;;
 ;;;Copyright (c) 2011 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
@@ -55,7 +57,7 @@ NameStartChar		":"|[A-Z]|"_"|[a-z]|[#xC0-#xD6]|[#xD8-#xF6]|[#xF8-#x2FF]|[#x370-#
 NameChar		{NameStartChar}|"-"|"."|[0-9]|#xB7|[#x0300-#x036F]|[#x203F-#x2040]
 
 ;; [5]
-Name			{NameStartChar}({NameChar})*
+Name			{NameStartChar}{NameChar}*
 
 ;; [6]
 Names			{Name}(#x20{Name})*
@@ -67,31 +69,22 @@ Nmtoken			({NameChar})+
 Nmtokens		{Nmtoken}(#x20{Nmtoken})*
 
 ;;page
-;;;In  this page  we  produce  "NameNoXML", which  must  be like  "Name"
-;;;without "[Xx][Mm][Ll]" in any position.
-;;;
-
-;;Like NameStartChar, NameChar  but without "x" and "X",  which are #x78
-;;and #x58.
+;;Like "NameStartChar" but without "l", "L", "m", "M", "x", "X".
 ;;
-NameStartCharNoX	":"|[A-WYZ]|"_"|[a-wyz]|[#xC0-#xD6]|[#xD8-#xF6]|[#xF8-#x2FF]|[#x370-#x37D]|[#x37F-#x1FFF]|[#x200C-#x200D]|[#x2070-#x218F]|[#x2C00-#x2FEF]|[#x3001-#xD7FF]|[#xF900-#xFDCF]|[#xFDF0-#xFFFD]|[#x10000-#xEFFFF]
-NameCharNoX		{NameStartCharNoX}|"-"|"."|[0-9]|#xB7|[#x0300-#x036F]|[#x203F-#x2040]
+NameStartCharNoXML	":"|[A-KN-WYZ]|"_"|[a-kn-wyz]|[#xC0-#xD6]|[#xD8-#xF6]|[#xF8-#x2FF]|[#x370-#x37D]|[#x37F-#x1FFF]|[#x200C-#x200D]|[#x2070-#x218F]|[#x2C00-#x2FEF]|[#x3001-#xD7FF]|[#xF900-#xFDCF]|[#xFDF0-#xFFFD]|[#x10000-#xEFFFF]
 
-;;A Name with neither "x" nor "X".
-NAMENOXML1		{NameStartCharNoX}({NameCharNoX})*
+;;Like "NameChar" but without "l", "L", "m", "M", "x", "X".
+;;
+NameCharNoXML		{NameStartCharNoXML}|"-"|"."|[0-9]|#xB7|[#x0300-#x036F]|[#x203F-#x2040]
 
-;;A Name without "[Xx][Mm][Ll]"  inside but allowing "[Xx][Mm]", but not
-;;as prefix.
-NameNoXML2		({NameStartCharNoX}{NameCharNoX}*[Xx][Mm][^Ll]{NameCharNoX}*)*|({NameStartCharNoX}{NameCharNoX}*[Xx][Mm])*
+;;All the sequences with "l", "L", "m", "M", "x", "X" not forming "[Xx][Mm][Ll]"
+;;
+NameNoXML1		(([Xx][^Mm]?)|([Mm][Ll]?)|[Ll]|([Xx][Mm][^Ll]?)|([Xx][^Mm]?[Ll])|([^Xx]?[Mm][Ll]))
 
-;;A Name without "[Xx][Mm][Ll]" inside, having "[Xx][Mm]" as prefix.
-NameNoXML3		[Xx][Mm]([^Ll]|{NameNoXML2})
-
-;;A Name without "[Xx][Mm][Ll]" in any position.
-NameNoXML		{NameNoXML1}|{NameNoXML2}|{NameNoXML3}
+;;Like "Name" but without "[Xx][Mm][Ll]" in any position.
+NameNoXML		({NameStartCharNoXML1}|{NameNoXML1})|({NameStartCharNoXML2}|{NameNoXML1})*
 
 ;;page
-
 ;; [9]
 EntityValue		\"([^%&\"]|{PEReference}|{Reference})*\"|"'"([^%&']|{PEReference}|{Reference})*"'"
 
@@ -117,18 +110,26 @@ PubidCharNoTick		#x20|#xD|#xA|[a-zA-Z0-9]|[\-\(\)\+,\./:=\?\;!\*#@\$_%]
 PubidLiteral	      	\"{PubidChar}*\"|"'"{PubidCharNoTick}*"'"
 
 ;;page
+;;;; character data and comments
 
 ;;The original production [14] is:
 ;;
 ;;  CharData	   ::=   	[^<&]* - ([^<&]* ']]>' [^<&]*)
 ;;
-;;which means: any number of characters  except "<" and "&", but not the
-;;sequence "x]]>x" where "x" is any char except "<" and "&".
+;;which means:  any sequence of  chars except "<"  and "&", but  not the
+;;sequence "x]]>x"  where "x"  is any char  except "<" and  "&".
 ;;
-;;FIXME The regexp below will include the forbidden sequences "x]]>x".
+;;*** NOTE ***
 ;;
+;;The empty  string matches  production [14]!!!  We  modify it  below to
+;;require at least one character.
+;;
+
+CharData1		[^<>&\]]
+CharData2		((\][^\]]?)|(\]\][^>]?))
+
 ;; [14]
-CharData		[^<&]*
+CharData		({CharData1}|{CharData2})+
 
 ;;The original production [15] is:
 ;;
@@ -138,31 +139,115 @@ CharData		[^<&]*
 Comment			"<!--"({CharNoDash}|("-"{CharNoDash}))*"-->"
 
 ;;page
-;;;In this page we produece "CharNoPiEnd", which is like "Char" but with
-;;;no "?>" in any position.
+;;;; processor instructions sections
 
 ;;Like  "Char" but  with  neither  question marks,  which  is #x3F,  nor
-;;greater than chars, which are #x3E.
+;;greater than  chars, which  are #x3E.  It  is used in  the productions
+;;below when the XML Recommendatation uses:
 ;;
-CharNoPiEnd1	#x9|#xA|#xD|[#x20-#x3D][#x40-#xD7FF]|[#xE000-#xFFFD]|[#x10000-#x10FFFF]
-
-CharNoPiEnd2	\?|>|\?[^>]
-CharNoPiEnd	{CharNoPiEnd1}|{CharNoPiEnd2}
-
-;;;; 2.6 Processing Instructions
-
-;;page
+;;  (Char* - (Char* '?>' Char*))*
+;;
+;;which  means  a  sequence of  one  or  more  "Char" but  without  "?>"
+;;sequences.
+;;
+CharNoPiEnd1		#x9|#xA|#xD|[#x20-#x3D][#x40-#xD7FF]|[#xE000-#xFFFD]|[#x10000-#x10FFFF]
+CharNoPiEnd2		\?|>|\?[^>]
+CharNoPiEnd		({CharNoPiEnd1}|{CharNoPiEnd2})+
 
 ;; [17]
 PITarget		{NameNoXML}
 
-;; [16]	FIXME CharNoPiEnd
-PI			"<?"{PITarget}({S}(Char - (Char* '?>' Char*)))?"?>"
+;; [16]
+PI			"<?"{PITarget}({S}{CharNoPiEnd}*)?"?>"
+
+;;page
+;;;; CDATA sections
+
+;;The original production [20] is:
+;;
+;;  CData	   ::=   	(Char* - (Char* ']]>' Char*))
+;;
+;;which means: like "Char" but without sequences "]]>".
+;;
+
+;;Like "Char" but with neither ">" which is #x3E, nor "]" which is #x5D.
+;;
+CData1			#x9|#xA|#xD|[#x20#x3D][#x3F-#x5C][#x5E-#xD7FF]|[#xE000-#xFFFD]|[#x10000-#x10FFFF]
+
+;;All the allowed sequences with "]" and ">".
+;;
+CData2			((\][^\]]?)|(\]\][^>]?))
+
+;; [20]
+CData			({CData1}|{CData2})*
+
+;; [19]
+CDStart			"<![CDATA["
+
+;; [21]
+CDEnd			"]]>"
+
+;; [18]
+CDSect			{CDStart}{CData}{CDEnd}
+
+;;page
+;;;; external subset
+;;
+;;We put  it here as reference,  but it is  NOT used by this  lexer: the
+;;external subset is... external.
+;;
+
+;; [31]
+extSubsetDecl		({markupdecl}|{conditionalSect}|{DeclSep})*
+
+;; [30]
+extSubset		{TextDecl}?{extSubsetDecl}
+
+;;page
+;;;; document type definition
+
+;; [28]
+doctypedecl		"<!DOCTYPE"{S}{Name}({S}{ExternalID})?{S}?("["{intSubset}"]"{S}?)?">"
+
+;; [28a]
+DeclSep			{PEReference}|{S}
+
+;; [28b]
+intSubset		({markupdecl}|{DeclSep})*
+
+;; [29]
+markupdecl		{elementdecl}|{AttlistDecl}|{EntityDecl}|{NotationDecl}|{PI}|{Comment}
+
+;;page
+;;;; prolog
+
+;; [25]
+Eq			{S}?"="{S}?
+
+;; [26]
+VersionNum		"1."[0-9]+
+
+;; [27]
+Misc			{Comment}|{PI}|{S}
+
+;; [24]
+VersionInfo		{S}"version"{Eq}(("'"{VersionNum}"'")|(\"{VersionNum}\"))
+
+;; [23]
+XMLDecl			"<?xml"{VersionInfo}{EncodingDecl}?{SDDecl}?{S}?"?>"
+
+;; [22]
+prolog			{XMLDecl}?{Misc}*({doctypedecl}{Misc}*)?
 
 ;;page
 %%
 
-{Char}		((open-paren-token-maker)	yygetc yyungetc yytext yyline yycolumn yyoffset)
+{CharData}		((char-data-token-maker)	yygetc yyungetc yytext yyline yycolumn yyoffset)
+{Comment}		((comment-token-maker)		yygetc yyungetc yytext yyline yycolumn yyoffset)
+{CDSect}		((cdsect-token-maker)		yygetc yyungetc yytext yyline yycolumn yyoffset)
+{PI}			((pi-token-maker)		yygetc yyungetc yytext yyline yycolumn yyoffset)
+
+{prolog}		((prolog-token-maker)		yygetc yyungetc yytext yyline yycolumn yyoffset)
 
 ;;page
 ;;;; done

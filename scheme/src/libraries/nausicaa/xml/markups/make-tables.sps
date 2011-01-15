@@ -49,24 +49,31 @@
  (lalr.library-imports:	'((nausicaa xml markups datum-processing)))
 
  (lalr.terminals:	'( ;;
-			  OTAG		CTAG))
+			  PROLOG
+			  OTAG		CTAG
+			  CHARDATA	COMMENT
+			  CDSECT	PI
+			  ))
 
  (lalr.rules:
   '((document
-     (prolog element Misc)	: ((document-datum-maker) yypushback yycustom $1 $2 $3))
+     (PROLOG element Misc)	: ((document-datum-maker)	yypushback yycustom $1 $2 $3))
 
     (prolog
      (OTAG)			: $1)
 
     (element
-     (OTAG)			: $1)
+     (CHARDATA)			: ((chardata-datum-maker)	yypushback yycustom $1)
+     (COMMENT)			: ((comment-datum-maker)	yypushback yycustom $1)
+     (CDSECT)			: ((cdsect-datum-maker)		yypushback yycustom $1)
+     (PI)			: ((pi-datum-maker)		yypushback yycustom $1))
 
     (Misc
-     (Misc-tail)		: ((misc-datum-maker)	yypushback yycustom $1))
+     (Misc-tail)		: ((misc-datum-maker)		yypushback yycustom $1))
     (Misc-tail
      (OTAG)			: $1
      (OTAG Misc-tail)		: (cons $1 $2))
 
-    )))
+     )))
 
 ;;; end of file
