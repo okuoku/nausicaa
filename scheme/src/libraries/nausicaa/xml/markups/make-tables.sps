@@ -32,10 +32,10 @@
 
 (lex.lex (lex.input-file:	"lexer-table.l")
 	 (lex.output-file:	"lexer-table.sls")
-	 (lex.library-spec:	"(nausicaa xml tags lexer-table)")
+	 (lex.library-spec:	"(nausicaa xml markups lexer-table)")
 	 (lex.library-imports:	'((nausicaa parser-tools lexical-token)
 				  (nausicaa parser-tools source-location)
-				  (nausicaa xml tags lexeme-processing)))
+				  (nausicaa xml markups lexeme-processing)))
 	 (lex.table-name:	'xml-lexer-table)
 	 (lex.lexer-format:	'decision-tree) ;this format makes the library 123KB in size
 	 (lex.counters:		'all))
@@ -45,8 +45,8 @@
 
  (lalr.output-file:	"parser-table.sls")
  (lalr.parser-name:	'make-xml-parser)
- (lalr.library-spec:	'(nausicaa xml tags parser-table))
- (lalr.library-imports:	'((nausicaa xml tags datum-processing)))
+ (lalr.library-spec:	'(nausicaa xml markups parser-table))
+ (lalr.library-imports:	'((nausicaa xml markups datum-processing)))
 
  (lalr.terminals:	'( ;;
 			  OTAG		CTAG))

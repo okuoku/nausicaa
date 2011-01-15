@@ -541,7 +541,7 @@ endif
 .PHONY: XML_LEXER
 
 xml-lexer:
-	cd $(srcdir)/src/libraries/nausicaa/xml/tags && $(XML_LEXER_RUNNER) $(XML_LEXER_PROGRAM)
+	cd $(srcdir)/src/libraries/nausicaa/xml/markups && $(XML_LEXER_RUNNER) $(XML_LEXER_PROGRAM)
 
 
 

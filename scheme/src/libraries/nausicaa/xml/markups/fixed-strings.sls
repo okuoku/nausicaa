@@ -27,7 +27,7 @@
 
 
 #!r6rs
-(library (nausicaa xml tags fixed-strings)
+(library (nausicaa xml markups fixed-strings)
   (export
     tag-open			tag-close
     processor-instructions-open	processor-instructions-close

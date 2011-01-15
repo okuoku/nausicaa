@@ -141,15 +141,15 @@ Comment			"<!--"({CharNoDash}|("-"{CharNoDash}))*"-->"
 ;;;In this page we produece "CharNoPiEnd", which is like "Char" but with
 ;;;no "?>" in any position.
 
-;;Like "Char" but without question mark, which is #x3F.
+;;Like  "Char" but  with  neither  question marks,  which  is #x3F,  nor
+;;greater than chars, which are #x3E.
 ;;
-CharNoQuestion	#x9|#xA|#xD|[#x20-#x3E][#x40-#xD7FF]|[#xE000-#xFFFD]|[#x10000-#x10FFFF]
+CharNoPiEnd1	#x9|#xA|#xD|[#x20-#x3D][#x40-#xD7FF]|[#xE000-#xFFFD]|[#x10000-#x10FFFF]
 
-;;FIXME left unfinished
-CharNoPiEnd1
-CharNoPiEnd2	(\?|\?[^>]{CharNoPiEnd1}*|\?{CharNoPiEnd1}*)
+CharNoPiEnd2	\?|>|\?[^>]
+CharNoPiEnd	{CharNoPiEnd1}|{CharNoPiEnd2}
 
-CharNoPiEnd	(CharNoQuestion|)
+;;;; 2.6 Processing Instructions
 
 ;;page
 

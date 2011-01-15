@@ -680,7 +680,7 @@ More libraries
 * interps::                     Evaluating code as in an interpreter.
 * evaluations::                 Evaluating code in a limited environment.
 * r6rs::                        Tools for handling @rnrs{6} source code.
-* tags::                        Processing @axml{} documents.
+* markups::                     Processing @axml{} documents.
 
 Low level libraries
 
@@ -789,7 +789,7 @@ Indexes
 @include interps.texiinc
 @include evaluations.texiinc
 @include r6rs.texiinc
-@include tags.texiinc
+@include markups.texiinc
 
 @c chapters on low level libraries
 

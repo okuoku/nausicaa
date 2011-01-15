@@ -26,12 +26,12 @@
 
 
 #!r6rs
-(library (nausicaa xml tags lexer)
+(library (nausicaa xml markups lexer)
   (export xml-lexer-table)
   (import (nausicaa)
     (prefix (nausicaa silex lexer) lex.)
     (nausicaa parser-tools)
-    (nausicaa xml tags lexer-table))
+    (nausicaa xml markups lexer-table))
 
 
 

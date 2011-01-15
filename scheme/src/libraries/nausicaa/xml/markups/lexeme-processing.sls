@@ -29,7 +29,7 @@
 
 
 #!r6rs
-(library (nausicaa xml tags lexeme-processing)
+(library (nausicaa xml markups lexeme-processing)
   (export
     current-input-source
 
