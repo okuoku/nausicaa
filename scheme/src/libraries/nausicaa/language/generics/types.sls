@@ -43,7 +43,7 @@
 
 
 #!r6rs
-(library (nausicaa generics types)
+(library (nausicaa language generics types)
   (export uid-list uid-list-of method-lambda top)
   (import (rename (only (nausicaa language classes)
 			class-uid-list

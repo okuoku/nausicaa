@@ -32,54 +32,54 @@ the bindings from the following libraries:
 @table @library
 @item nausicaa language cond-expand
 Feature--based conditional expansion; provides the @func{cond-expand}
-syntax.  @ref{cond-expand, Feature--based conditional expansion}.
+syntax (@pxref{cond-expand, Feature--based conditional expansion}).
 
 @item nausicaa language unimplemented
-Definition of the condition object type @condition{unimplemented}.
-@ref{unimplemented, Unimplemented error condition}.
+Definition of the condition object type @condition{unimplemented}
+(@pxref{unimplemented, Unimplemented error condition}).
 
 @item nausicaa language conditions
 Provides basic condition types and utilities for condition types
-definition.  @ref{conditions, More condition types}.
+definition (@pxref{conditions, More condition types}).
 
 @item nausicaa language extension
-Simple language extensions, mostly syntaxes.  @ref{lang, Simple language
-extensions}.  Notice that @func{receive} and @func{do*} are @strong{not}
-reexported, rather the corresponding bindings from @library{classes} are
-used and renamed to @func{receive} and @func{do*}.
+Simple language extensions, mostly syntaxes (@pxref{lang, Simple
+language extensions}).  Notice that @func{receive} and @func{do*} are
+@strong{not} reexported, rather the corresponding bindings from
+@library{classes} are used and renamed to @func{receive} and @func{do*}.
 
 @item nausicaa language pretty-print
-Provides the @func{pretty-print} function.  @ref{pretty-print, Pretty
-printing}.
+Provides the @func{pretty-print} function (@pxref{pretty-print, Pretty
+printing}).
 
 @item nausicaa language parameters
-Parameter objects.  @ref{parameters, Parameter objects}.
+Parameter objects (@pxref{parameters, Parameter objects}).
 
 @item nausicaa language shared-structures
-Reading and writing shared structures.  @ref{shared-structures, External
-representation for data with shared structure}.
+Reading and writing shared structures (@pxref{shared-structures,
+External representation for data with shared structure}).
 
 @item nausicaa language sentinel
-Sentinel values.  @ref{sentinel, The sentinel value}.
+Sentinel values (@pxref{sentinel, The sentinel value}).
 
 @item nausicaa language makers
-Defining functions and macros with optional arguments.  @ref{makers,
-Maker syntaxes}.
+Defining functions and macros with optional arguments (@pxref{makers,
+Maker syntaxes}).
 
 @item nausicaa language classes
-Provides record type extensions.  @ref{classes, Record utilities}.
+Provides record type extensions (@pxref{classes, Record utilities}).
 Notice that @func{receive/with-class} and @func{do*/with-class} are
 reexported with their name and also as @func{receive} and @func{do*}.
 
+@item nausicaa language generics
+Provides generic functions (@pxref{generics, Multimethod dispatching}).
+
 @item nausicaa language compensations
-Compensation stacks.  @ref{compensations, Compensation stacks}.
+Compensation stacks (@pxref{compensations, Compensation stacks}).
 
 @item nausicaa language deferred-exceptions
-Handling deferred exceptions.  @ref{deferred exceptions, Deferred
-exceptions}.
-
-@c @item nausicaa generics
-@c Provides generic functions.  @ref{generics, Multimethod dispatching}.
+Handling deferred exceptions (@pxref{deferred exceptions, Deferred
+exceptions}).
 @end table
 
 @c page

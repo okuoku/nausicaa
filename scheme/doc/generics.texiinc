@@ -2,18 +2,18 @@
 @chapter Multimethods dispatching
 
 
-@cindex @library{nausicaa generics}, library
-@cindex Library @library{nausicaa generics}
+@cindex @library{nausicaa language generics}, library
+@cindex Library @library{nausicaa language generics}
 
 
-In the context of the @library{nausicaa generics} library, @dfn{generic
-functions} are interfaces to procedures that can be specialised to the
-(possibly conventional) data types of their arguments; each
-specialisation of a generic function is called @dfn{method}.  When
-applying a generic function to a set of arguments, the most specific
-method with respect to the arguments' types is chosen.
+In the context of the @library{nausicaa language generics} library,
+@dfn{generic functions} are interfaces to procedures that can be
+specialised to the (possibly conventional) data types of their
+arguments; each specialisation of a generic function is called
+@dfn{method}.  When applying a generic function to a set of arguments,
+the most specific method with respect to the arguments' types is chosen.
 
-The @library{nausicaa generics} library is built on top of the
+The @library{nausicaa language generics} library is built on top of the
 @library{nausicaa language classes} library, but its interface to types
 is (statically) customisable: look at the source code.
 
@@ -33,7 +33,7 @@ is (statically) customisable: look at the source code.
 
 
 Here we show with some examples what we have to expect from the
-multimethod dispatching of @library{nausicaa generics}.  In the
+multimethod dispatching of @library{nausicaa language generics}.  In the
 following examples the string @code{%apple} is written in place of the
 value bound to the symbol @class{apple}.
 
@@ -144,9 +144,10 @@ function we gain a bit of speed in function calls.
 @section How generic functions and methods are invoked
 
 
-@library{nausicaa generics} is designed to work with class definitions
-from the @library{nausicaa language classes} library; when a generic
-function is applied to a tuple of arguments, the following happens:
+@library{nausicaa language generics} is designed to work with class
+definitions from the @library{nausicaa language classes} library; when a
+generic function is applied to a tuple of arguments, the following
+happens:
 
 @enumerate
 @item

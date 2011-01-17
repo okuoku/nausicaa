@@ -27,7 +27,6 @@
 #!r6rs
 (import (nausicaa)
   (nausicaa checks)
-  (nausicaa generics)
   (nausicaa generics object-to-string)
   (rnrs eval))
 
@@ -47,7 +46,7 @@
 		 (define-method (a b) #f)
 		 (define-method (a b c) #f)
                  #f)
-	      (environment '(nausicaa) '(nausicaa generics))))
+	      (environment '(nausicaa))))
     => '((nausicaa:builtin:<top>) (nausicaa:builtin:<top>)))
 
   #t)

@@ -27,14 +27,14 @@
 
 
 #!r6rs
-(library (nausicaa generics)
+(library (nausicaa language generics)
   (export
     define-generic define-method add-method define-generic/merge
     call-next-method next-method?
     (rename (:uid-list-of uid-list-of:)))
   (import (rnrs)
     ;;See the source file for the customisable interface to types.
-    (prefix (nausicaa generics types) type.)
+    (prefix (nausicaa language generics types) type.)
     (nausicaa language parameters)
     (only (nausicaa language extensions)
 	  define-auxiliary-syntaxes

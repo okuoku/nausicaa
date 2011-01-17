@@ -126,7 +126,7 @@ unique identifier.
 @c Foreign classes can be used in the hierarchy of concrete classes:
 @c foreign classes can have a proper superclass constructor protocol.
 @c foreign classes can be used to dispatch generic functions defined by
-@c the @library{nausicaa generics} library.
+@c the @library{nausicaa language generics} library.
 
 @c It is meaningful, but not mandatory, to define a foreign class only if
 @c we use the @func{predicate} clause described below; else there is no way
@@ -1090,8 +1090,8 @@ class can be overridden by implementations in subclasses.  For example:
 
 A virtual method call is much slower than a concrete method call, but
 mostly it is still faster than a call to a generic function as
-implemented by the @library{nausicaa language classes} library;
-@ref{generics, Multimethod dispatching}.
+implemented by the @library{nausicaa language classes} library
+(@pxref{generics, Multimethod dispatching}).
 
 A virtual method must be declared in the definition of @var{class-name}
 as an ordinary method with the @code{methods} clause; @var{method-name}
@@ -1196,10 +1196,10 @@ Like @func{defmethod} but defines a virtual method as if
 
 There is no support for methods overloading in the @library{nausicaa
 language classes} library, but we can do it using the facilities of the
-@library{nausicaa generics} library.  Example:
+@library{nausicaa language generics} library.  Example:
 
 @example
-(import (nausicaa) (nausicaa generics))
+(import (nausicaa))
 
 (define-class <alpha>
   (fields a)
@@ -1335,7 +1335,7 @@ define new identifiers representing virtual fields, methods, a setter
 and a getter, a parent label or class.  Labels can inherit from a class,
 but not vice versa.  Labels can be used by @func{with-class} and all its
 derived syntaxes; labels @strong{cannot} be used to dispatch generic
-functions defined by the @library{nausicaa generics} library.
+functions defined by the @library{nausicaa language generics} library.
 
 
 @defmac define-label @var{name} @var{clause} ...
@@ -1433,8 +1433,8 @@ it can be used as follows:
 @end example
 
 The following meaningless example shows how labels and generic functions
-from @library{nausicaa generics} can be used to define ``interfaces''
-and classes implementing them:
+from @library{nausicaa language generics} can be used to define
+``interfaces'' and classes implementing them:
 
 @example
 ;; the interface <iface> has two methods
@@ -3164,10 +3164,10 @@ Builtin Scheme values have no @rtd{}, so @library{nausicaa language
 classes} assigns a conventional one to them.  Conventional @rtd{}s have
 two purposes: to provide an interface for identifier macros defined by
 @func{with-class}; to be used in multimethod dispatching by the
-@library{nausicaa generics} library.  The conventional @rtd{}s can be
-used neither to instantiate builtin objects nor as parents for other
-class types; for example: @func{make-<string>} does @strong{not} return
-a builtin Scheme string object.
+@library{nausicaa language generics} library.  The conventional @rtd{}s
+can be used neither to instantiate builtin objects nor as parents for
+other class types; for example: @func{make-<string>} does @strong{not}
+return a builtin Scheme string object.
 
 A record is described by its record type descriptor (@rtd{});
 unfortunately we cannot rely on @rtd{}s describing the same record type

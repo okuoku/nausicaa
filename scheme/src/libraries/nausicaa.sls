@@ -760,7 +760,7 @@
     zero?
 
 
-;;;; bindings from (language-extensions)
+;;;; bindings from (nausicaa language extensions)
 
     ;; predicates
     non-negative? non-positive?
@@ -796,7 +796,8 @@
     pretty-print define-maker
     define-auxiliary-syntax define-auxiliary-syntaxes
 
-;;;; bindings from (conditions)
+
+;;;; bindings from (nausicaa language conditions)
 
     define-condition
 
@@ -819,7 +820,7 @@
     infix
 
 
-;;;; bindings from (classes)
+;;;; bindings from (nausicaa language classes)
 
     (rename
      (let/with-class		let)
@@ -892,6 +893,12 @@
     with-deferred-exceptions-handler
     defer-exceptions run-deferred-exceptions-handler
 
+
+;;;; bindings from (nausicaa language generics)
+
+    define-generic define-method add-method define-generic/merge
+    call-next-method next-method? uid-list-of:
+
   )
 
 
@@ -914,6 +921,7 @@
     (for (nausicaa language pretty-print)		expand run)
     (for (nausicaa language shared-structures)		expand run)
     (for (nausicaa language classes)			expand run)
+    (for (nausicaa language generics)			expand run)
     (for (nausicaa language compensations)		expand run)
     (for (nausicaa language deferred-exceptions)	expand run)
     (for (nausicaa language makers)			expand run)

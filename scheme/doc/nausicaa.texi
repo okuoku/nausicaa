@@ -623,13 +623,13 @@ Basic libraries
 * identifier alists::           Alist of identifiers.
 * identifier properties::       Expand--time identifier properties.
 * classes::                     Record utilities.
+* generics::                    Multimethods dispatching.
 * compensations::               Compensation stacks.
 * deferred exceptions::         Deferred exceptions.
 
 More libraries
 
 * ffi::                         Foreign functions interface.
-* generics::                    Multimethods dispatching.
 * type utils::                  Type utilities.
 * enumerations::                Enumeration sets utilities.
 * lists::                       Lists library.
@@ -731,13 +731,13 @@ Indexes
 @include identifier-alists.texiinc
 @include identifier-properties.texiinc
 @include classes.texiinc
+@include generics.texiinc
 @include compensations.texiinc
 @include deferred-exceptions.texiinc
 
 @c chapters on more libraries
 
 @include ffi.texiinc
-@include generics.texiinc
 @include type-utilities.texiinc
 @include enumerations.texiinc
 @include lists.texiinc
