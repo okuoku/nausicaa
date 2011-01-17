@@ -26,7 +26,8 @@
 
 
 #!r6rs
-(import (nausicaa)
+(import (nausicaa))
+#|
   (nausicaa parser-tools)
   (prefix (nausicaa silex lexer) lex.)
   (prefix (nausicaa xml tags lexer) xml.)
@@ -56,7 +57,7 @@
     ))
 
 
-(parametrise ((check-test-name	'string-tokeniser))
+#;(parametrise ((check-test-name	'string-tokeniser))
 
   (define (tokenise string)
     (let* ((IS		(lex.lexer-make-IS
@@ -86,4 +87,5 @@
 
 (check-report)
 
+|#
 ;;; end of file
