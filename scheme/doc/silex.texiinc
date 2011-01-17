@@ -597,15 +597,15 @@ following characters:
 @end example
 
 @noindent
-or any white space.
+or any white space.  If @var{c} is the @samp{#} character: notice that
+it could match a hex character specification (explained below); remember
+that SILex gives precedence to the longest match.
 
 @item .
 @dfn{Wild card}.  It matches any character except the newline character.
 
 @item \n
 @itemx \@var{integer}
-@itemx #x@var{hex-integer}
-@itemx #X@var{hex-integer}
 @itemx \@var{c}
 @dfn{Backslash}.  The backslash is used for two things: protect a
 character from special meaning; generating non-printable characters.
@@ -620,12 +620,14 @@ tabulation @samp{#\tab}, @samp{\10} the newline character
 @samp{#\newline}, and @samp{\13} the carriage return character
 @samp{#\return}.
 
-The expressions @code{#x@var{hex-integer}} and
-@code{#X@var{hex-integer}} match the character that has hex number
-@var{hex-integer} (in the sense of @func{string->number}).
-
 The expression @code{\@var{c}} matches the character @var{c} if @var{c}
 is not @samp{n}, @samp{-} nor a digit.
+
+@item #x@var{<hex-integer>}
+@itemx #X@var{<hex-integer>}
+@dfn{Hex characters}.  The expressions @code{#x@var{<hex-integer>}} and
+@code{#X@var{<hex-integer>}} match the character that has hex number
+@var{<hex-integer>} (in the sense of @func{string->number}).
 
 @item @{@var{name}@}
 @dfn{Macro reference}.  This expression matches the same lexemes as
@@ -635,9 +637,13 @@ expression.  However, it works as if parentheses had been added to
 protect the substituting expression.
 
 @item "@var{some text}"
-@dfn{String}.  A string matches a lexeme identical to its contents.  In
-a string, the only special characters are @samp{"}, which closes the
+@dfn{String}.  A string matches a lexeme identical to its contents.  The
+format of the string is the same defined by @rnrs{6}, including the
+quoted line wrapping.
+@ignore
+In a string, the only special characters are @samp{"}, which closes the
 string, and @samp{\} which keeps the effect mentioned above.
+@end ignore
 
 @item [@var{list of characters}]
 @itemx []@var{list of characters}]

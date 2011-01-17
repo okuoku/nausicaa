@@ -39,6 +39,7 @@
     get-tok-attr	get-tok-2nd-attr
 
     ;; fonctions auxilliaires du lexer
+    parse-escaped-char
     parse-spec-char		parse-digits-char
     parse-hex-digits-char	parse-quoted-char
     parse-ordinary-char		extract-id
@@ -169,8 +170,16 @@
     (make-tok char-tok lexeme line column n)))
 
 (define (parse-quoted-char lexeme line column)
+  ;;This is the  original function to parse "escaped"  characters in the
+  ;;string; escaped characters are the ones quoted with a backslash.
+  ;;
   (let ((c (string-ref lexeme 1)))
     (make-tok char-tok lexeme line column (char->integer c))))
+
+(define (parse-escaped-char lexeme ch line column)
+  ;;This function was added to parse escaped characters in R6RS strings.
+  ;;
+  (make-tok char-tok lexeme line column (char->integer ch)))
 
 (define (parse-ordinary-char lexeme line column)
   (let ((c (string-ref lexeme 0)))
