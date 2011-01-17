@@ -68,7 +68,7 @@
     (rnrs mutable-pairs)
     (rnrs mutable-strings)
     (rnrs eval)
-    (only (nausicaa language extensions) begin0)
+    (only (nausicaa language extensions) begin0 define-constant)
     (nausicaa language parameters)
     (nausicaa language makers)
     (nausicaa silex lexer)
@@ -137,7 +137,6 @@
   (when (and output-value table-name)
     (assertion-violation 'lex
       "requested output as value, but a table name was also given"))
-
   (let ((close-port? #f))
     (dynamic-wind
 	(lambda ()
@@ -238,14 +237,14 @@
     (:regexp-make re-type attr1 attr2))))
 
 ;;The following are used as indexes into vectors.
-(define epsilon-re  0)
-(define or-re       1)
-(define conc-re     2)
-(define star-re     3)
-(define plus-re     4)
-(define question-re 5)
-(define class-re    6)
-(define char-re     7)
+(define-constant epsilon-re  0)
+(define-constant or-re       1)
+(define-constant conc-re     2)
+(define-constant star-re     3)
+(define-constant plus-re     4)
+(define-constant question-re 5)
+(define-constant class-re    6)
+(define-constant char-re     7)
 
 
 ;;; Fonctions de manipulation des ensembles d'etats
@@ -1806,6 +1805,21 @@ by the "make-tables.sps" program in this directory.
 		 "white space expected"))))
 
 (define (parse-macro macros)
+  ;;Parse  the   lexer  table  opening  section:  the   one  with  macro
+  ;;definitions; a  single call to  this function should parse  the next
+  ;;macro definition, then return.
+  ;;
+  ;;MACROS is null or an alist  of the already defined macros with macro
+  ;;names as keywords and parsed as values.
+  ;;
+  ;;If  the macro  is successfully  parsed: return  a pair  being  a new
+  ;;element for the MACROS alist.
+  ;;
+  ;;If the "%%" identifier is found: return false.
+  ;;
+  ;;It  is an  error  if EOF  is found:  the  table must  have the  "%%"
+  ;;separator followed by at least one semantic action definition.
+  ;;
   (push-lexer (macro-lexer))
   (parse-hv-blanks)
   (let* ((tok (lexer))
@@ -1837,6 +1851,10 @@ by the "make-tables.sps" program in this directory.
 		      "end of file found before %%.")))))
 
 (define (parse-macros)
+  ;;Call PARSE-MACRO to  parse the next macro definition  from the input
+  ;;table, until it returns  false.  Accumulate the macro definitions in
+  ;;an alist and return it.
+  ;;
   (let loop ((macros '()))
     (let ((macro (parse-macro macros)))
       (if macro
@@ -3587,7 +3605,7 @@ by the "make-tables.sps" program in this directory.
 	(%display "       final-lexer))"))))
 
 
-;;;End of the OUTPUT function.
+;;;; end of the OUTPUT function
 
   (main))
 

@@ -69,7 +69,9 @@
     dot-class			default-action
     default-<<EOF>>-action	default-<<ERROR>>-action
     )
-  (import (rnrs))
+  (import (rnrs)
+    (only (nausicaa language extensions)
+	  define-constant))
 
 
 ;;; Fonctions de manipulation des tokens
@@ -97,59 +99,58 @@
 ;;Quelques definitions de constantes
 ;;
 
-(define eof-tok              0)
-(define hblank-tok           1)
-(define vblank-tok           2)
-(define pipe-tok             3)
-(define question-tok         4)
-(define plus-tok             5)
-(define star-tok             6)
-(define lpar-tok             7)
-(define rpar-tok             8)
-(define dot-tok              9)
-(define lbrack-tok          10)
-(define lbrack-rbrack-tok   11)
-(define lbrack-caret-tok    12)
-(define lbrack-minus-tok    13)
-(define subst-tok           14)
-(define power-tok           15)
-(define doublequote-tok     16)
-(define char-tok            17)
-(define caret-tok           18)
-(define dollar-tok          19)
-(define <<EOF>>-tok         20)
-(define <<ERROR>>-tok       21)
-(define percent-percent-tok 22)
-(define id-tok              23)
-(define rbrack-tok          24)
-(define minus-tok           25)
-(define illegal-tok         26)
+(define-constant eof-tok              0)
+(define-constant hblank-tok           1)
+(define-constant vblank-tok           2)
+(define-constant pipe-tok             3)
+(define-constant question-tok         4)
+(define-constant plus-tok             5)
+(define-constant star-tok             6)
+(define-constant lpar-tok             7)
+(define-constant rpar-tok             8)
+(define-constant dot-tok              9)
+(define-constant lbrack-tok          10)
+(define-constant lbrack-rbrack-tok   11)
+(define-constant lbrack-caret-tok    12)
+(define-constant lbrack-minus-tok    13)
+(define-constant subst-tok           14)
+(define-constant power-tok           15)
+(define-constant doublequote-tok     16)
+(define-constant char-tok            17)
+(define-constant caret-tok           18)
+(define-constant dollar-tok          19)
+(define-constant <<EOF>>-tok         20)
+(define-constant <<ERROR>>-tok       21)
+(define-constant percent-percent-tok 22)
+(define-constant id-tok              23)
+(define-constant rbrack-tok          24)
+(define-constant minus-tok           25)
+(define-constant illegal-tok         26)
 ; Tokens agreges
-(define class-tok           27)
-(define string-tok          28)
+(define-constant class-tok           27)
+(define-constant string-tok          28)
 
-(define number-of-tokens 29)
+(define-constant number-of-tokens 29)
 
-(define newline-ch   (char->integer #\newline))
-(define tab-ch       (char->integer #\	))
-(define dollar-ch    (char->integer #\$))
-(define minus-ch     (char->integer #\-))
-(define rbrack-ch    (char->integer #\]))
-(define caret-ch     (char->integer #\^))
+(define-constant newline-ch   (char->integer #\newline))
+(define-constant tab-ch       (char->integer #\	))
+(define-constant dollar-ch    (char->integer #\$))
+(define-constant minus-ch     (char->integer #\-))
+(define-constant rbrack-ch    (char->integer #\]))
+(define-constant caret-ch     (char->integer #\^))
 
-(define dot-class
+(define-constant dot-class
   (list (cons 'inf- (- newline-ch 1))
 	(cons (+ newline-ch 1) 'inf+)))
 
-(define default-action
-  (string-append "        (yycontinue)" "\n"))
+(define-constant default-action
+  "        (yycontinue)\n")
 
-(define default-<<EOF>>-action
+(define-constant default-<<EOF>>-action
   (string-append "       (eof-object)" "\n"))
 
-(define default-<<ERROR>>-action
-  (string-append "       (assertion-violation #f \"invalid token\")\n"))
-
+(define-constant default-<<ERROR>>-action
+  "       (assertion-violation #f \"invalid token\")\n")
 
 
 ;;;; module lexparser.scm
