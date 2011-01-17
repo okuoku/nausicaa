@@ -1,3 +1,8 @@
+(library (nausicaa silex regexp.l)
+  (export
+    regexp-tables)
+  (import (rnrs)(nausicaa silex lexer)(nausicaa silex semantic))
+
 ;
 ; Table generated from the file regexp.l by SILex 1.0
 ;
@@ -980,3 +985,6 @@
        (set! user-action-28 ((vector-ref rules-pre-action 57)
                              final-lexer user-getc user-ungetc))
        final-lexer))))
+
+) ; end of library
+

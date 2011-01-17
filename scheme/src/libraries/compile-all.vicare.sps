@@ -41,6 +41,7 @@
   (only (nausicaa language makers))
   (only (nausicaa language identifier-properties))
   (only (nausicaa language classes))
+  (only (nausicaa language generics))
   (only (nausicaa language deferred-exceptions))
   (only (nausicaa language compensations))
   (only (nausicaa))
@@ -48,7 +49,6 @@
   (only (nausicaa mutable-strings))
 
   ;; Basic libraries
-  (only (nausicaa generics))
   (only (nausicaa generics object-to-string))
   (only (nausicaa profiling))
   (only (nausicaa enumerations))
