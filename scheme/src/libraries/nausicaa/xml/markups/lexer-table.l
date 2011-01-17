@@ -13,8 +13,6 @@
 ;;;		http://www.w3.org/TR/REC-xml/
 ;;;		http://www.w3.org/XML/xml-V10-5e-errata
 ;;;
-;;;SONO ARRIVATO A "2.9 Standalone Document Declaration"
-;;;
 ;;;Copyright (c) 2011 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
@@ -82,7 +80,22 @@ NameCharNoXML		{NameStartCharNoXML}|"-"|"."|[0-9]|#xB7|[#x0300-#x036F]|[#x203F-#
 NameNoXML1		(([Xx][^Mm]?)|([Mm][Ll]?)|[Ll]|([Xx][Mm][^Ll]?)|([Xx][^Mm]?[Ll])|([^Xx]?[Mm][Ll]))
 
 ;;Like "Name" but without "[Xx][Mm][Ll]" in any position.
-NameNoXML		({NameStartCharNoXML1}|{NameNoXML1})|({NameStartCharNoXML2}|{NameNoXML1})*
+NameNoXML		({NameStartCharNoXML}|{NameNoXML1})|({NameStartCharNoXML}|{NameNoXML1})*
+
+;;page
+;;;; character and entity references
+
+;; [66]
+CharRef			("&#"[0-9]+";")|("&#x"[0-9a-fA-F]+";")
+
+;; [68]
+EntityRef		"&"{Name}";"
+
+;; [69]
+PEReference		"%"{Name}";"
+
+;; [67]
+Reference		{EntityRef}|{CharRef}
 
 ;;page
 ;; [9]
@@ -191,6 +204,68 @@ CDEnd			"]]>"
 CDSect			{CDStart}{CData}{CDEnd}
 
 ;;page
+;;;; element type declarations
+;;
+;;FIXME There are recursive macros here!!!
+
+;; [75]
+ExternalID	("SYSTEM"{S}{SystemLiteral})|("PUBLIC"{S}{PubidLiteral}{S}{SystemLiteral})
+
+;; [76]
+NDataDecl	{S}"NDATA"{S}{Name}
+
+;; [48]
+cp		({Name}|{choice}|{seq})("?"|"*"|"+")?
+
+;; [50]
+seq		"("{S}?{cp}({S}?","{S}?{cp})*{S}?")"
+
+;; [49]
+choice		"("{S}?{cp}({S}?"|"{S}?{cp})+{S}?")"
+
+;; [47]
+children	({choice}|{seq})("?"|"*"|"+")?
+
+;; [51]
+Mixed		("("{S}?"#PCDATA"({S}?"|"{S}?{Name})*{S}?")*")|("("{S}?"#PCDATA"{S}?")")
+
+;; [46]
+contentspec	"EMPTY"|"ANY"|{Mixed}|{children}
+
+;; [45]
+elementdecl	"<!ELEMENT"{S}{Name}{S}{contentspec}{S}?">"
+
+;;page
+;;;; attribute list declarations
+
+;; [55]
+StringType	"CDATA"
+
+;; [56]
+TokenizedType	"ID"|"IDREF"|"IDREFS"|"ENTITY"|"ENTITIES"|"NMTOKEN"|"NMTOKENS"
+
+;; [58]
+NotationType	"NOTATION"{S}"("{S}?{Name}({S}?"|"{S}?{Name})*{S}?")"
+
+;; [59]
+Enumeration	"("{S}?{Nmtoken}({S}?"|"{S}?{Nmtoken})*{S}?")"
+
+;; [57]
+EnumeratedType	{NotationType}|{Enumeration}
+
+;; [54]
+AttType		{StringType}|{TokenizedType}|{EnumeratedType}
+
+;; [60]
+DefaultDecl	"#REQUIRED"|"#IMPLIED"|(("#FIXED"{S})?{AttValue})
+
+;; [53]
+AttDef		{S}{Name}{S}{AttType}{S}{DefaultDecl}
+
+;; [52]
+AttlistDecl	"<!ATTLIST"{S}{Name}{AttDef}*{S}?">"
+
+;;page
 ;;;; external subset
 ;;
 ;;We put  it here as reference,  but it is  NOT used by this  lexer: the
@@ -198,10 +273,73 @@ CDSect			{CDStart}{CData}{CDEnd}
 ;;
 
 ;; [31]
-extSubsetDecl		({markupdecl}|{conditionalSect}|{DeclSep})*
+;;extSubsetDecl		({markupdecl}|{conditionalSect}|{DeclSep})*
+
+;; [62]
+;;includeSect		"<!["{S}?"INCLUDE"{S}?"["{extSubsetDecl}"]]>"
+
+;; [65] for this we must define a special "Char" macro
+;;Ignore		{Char}* - (Char* ('<![' | ']]>') Char*)
+
+;; [64] This is recursive!!!
+;; ignoreSectContents	{Ignore}("<!["{ignoreSectContents}"]]>"{Ignore})*
+
+;; [63]
+;;ignoreSect		"<!["{S}?"IGNORE"{S}?"["{ignoreSectContents}*"]]>"
+
+;; [61]
+;;conditionalSect		{includeSect}|{ignoreSect}
 
 ;; [30]
-extSubset		{TextDecl}?{extSubsetDecl}
+;;extSubset		{TextDecl}?{extSubsetDecl}
+
+;;page
+;;;; parsed entities
+
+;; [77]
+TextDecl	"<?xml"{VersionInfo}?{EncodingDecl}{S}?"?>"
+
+;; [78]
+extParsedEnt	{TextDecl}?{content}
+
+;; [81]
+EncName		[A-Za-z]([A-Za-z0-9._]|"-")*
+
+;; [80]
+EncodingDecl	{S}"encoding"{Eq}(("\""{EncName}"\"")|("'"{EncName}"'"))
+
+;;page
+;;;; notation declarations
+
+;; [83]
+PublicID	"PUBLIC"{S}{PubidLiteral}
+
+;; [82]
+NotationDecl	"<!NOTATION"{S}{Name}{S}({ExternalID}|{PublicID}){S}?">"
+
+;;page
+;;;; entity declarations
+
+;; [73]
+EntityDef	{EntityValue}|({ExternalID}{NDataDecl}?)
+
+;; [71]
+GEDecl		"<!ENTITY"{S}{Name}{S}{EntityDef}{S}?">"
+
+;; [74]
+PEDef		{EntityValue}|{ExternalID}
+
+;; [72]
+PEDecl		"<!ENTITY"{S}"%"{S}{Name}{S}{PEDef}{S}?">"
+
+;; [70]
+EntityDecl	{GEDecl}|{PEDecl}
+
+;;page
+;;;; standalone document declaration
+
+;; [32]
+SDDecl		{S}"standalone"{Eq}(("'"("yes"|"no")"'")|(\"("yes"|"no")\"))
 
 ;;page
 ;;;; document type definition
@@ -238,6 +376,27 @@ XMLDecl			"<?xml"{VersionInfo}{EncodingDecl}?{SDDecl}?{S}?"?>"
 
 ;; [22]
 prolog			{XMLDecl}?{Misc}*({doctypedecl}{Misc}*)?
+
+;;page
+;;;; elements
+
+;; [41]
+Attribute	{Name}{Eq}{AttValue}
+
+;; [40]
+STag		"<"{Name}({S}{Attribute})*{S}?">"
+
+;; [42]
+ETag		"</"{Name}{S}?">"
+
+;; [43]
+content		{CharData}?(({element}|{Reference}|{CDSect}|{PI}|{Comment}){CharData}?)*
+
+;; [44]
+EmptyElemTag	"<"{Name}({S}{Attribute})*{S}?"/>"
+
+;; [39]
+element		{EmptyElemTag}|({STag}{content}{ETag})
 
 ;;page
 %%

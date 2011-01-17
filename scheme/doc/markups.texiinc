@@ -9,8 +9,9 @@ provide tools to manipulate @axml{} documents compliant with the
 and its errata at:
 
 @center @url{http://www.w3.org/TR/REC-xml/}
-@center @url{http://www.w3.org/XML/xml-V10-5e-errata}}.  It is suggested to
-import the libraries in this hiearchy with @code{xml.} as prefix:
+@center @url{http://www.w3.org/XML/xml-V10-5e-errata}
+}.  It is suggested to import the libraries in this hiearchy with
+@code{xml.} as prefix:
 
 @example
 (import ---

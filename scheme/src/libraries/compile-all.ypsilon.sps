@@ -149,8 +149,8 @@
   (only (nausicaa armor newlines))
   (only (nausicaa armor quoted-printable))
 
-  (only (nausicaa xml tags lexer))
-  (only (nausicaa xml tags parser))
+  ;; (only (nausicaa xml markups lexer))
+  ;; (only (nausicaa xml markups parser))
 
   (only (nausicaa ffi))
 
