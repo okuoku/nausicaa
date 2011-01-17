@@ -19,7 +19,7 @@
 ;;;	the options given to LEX and produces a proper Scheme library or
 ;;;	just  the lexer  table.   The output  can  be saved  to a  file,
 ;;;	printed to a supplied port or (only for the raw table) evaluated
-;;;	and returned as a Schemme value.
+;;;	and returned as a Scheme value.
 ;;;
 ;;;	OUT-PRINT-TABLE  - This  function prints  the lexer  table  to a
 ;;;	given  output  port.   This  function  is the  one  to  read  to
@@ -49,6 +49,8 @@
 (library (nausicaa silex)
   (export
     lex
+
+    ;; auxiliary syntaxes
     input-file:
     input-port:
     input-string:
@@ -69,7 +71,8 @@
     (only (nausicaa language extensions) begin0)
     (nausicaa language parameters)
     (nausicaa language makers)
-    (nausicaa silex lexer))
+    (nausicaa silex lexer)
+    (nausicaa silex semantic))
 
 
 ;;;; helpers
@@ -144,12 +147,12 @@
 	(lambda ()
 	  (let ((IS (lexer-make-IS (port: input-port) (counters: 'all))))
 	    (parameterize ((action-lexer	(lexer-make-lexer action-tables IS))
-			   (class-lexer	(lexer-make-lexer class-tables  IS))
-			   (macro-lexer	(lexer-make-lexer macro-tables  IS))
+			   (class-lexer		(lexer-make-lexer class-tables  IS))
+			   (macro-lexer		(lexer-make-lexer macro-tables  IS))
 			   (regexp-lexer	(lexer-make-lexer regexp-tables IS))
 			   (string-lexer	(lexer-make-lexer string-tables IS))
 			   (lexer-raw		#f)
-			   (lexer-stack	'())
+			   (lexer-stack		'())
 			   (lexer-buffer-empty? #t)
 			   (lexer-buffer	#f)
 			   (lexer-history	'())
@@ -182,61 +185,6 @@
 
 ;;;; module util.scm
 
-;;Quelques definitions de constantes
-
-(define eof-tok              0)
-(define hblank-tok           1)
-(define vblank-tok           2)
-(define pipe-tok             3)
-(define question-tok         4)
-(define plus-tok             5)
-(define star-tok             6)
-(define lpar-tok             7)
-(define rpar-tok             8)
-(define dot-tok              9)
-(define lbrack-tok          10)
-(define lbrack-rbrack-tok   11)
-(define lbrack-caret-tok    12)
-(define lbrack-minus-tok    13)
-(define subst-tok           14)
-(define power-tok           15)
-(define doublequote-tok     16)
-(define char-tok            17)
-(define caret-tok           18)
-(define dollar-tok          19)
-(define <<EOF>>-tok         20)
-(define <<ERROR>>-tok       21)
-(define percent-percent-tok 22)
-(define id-tok              23)
-(define rbrack-tok          24)
-(define minus-tok           25)
-(define illegal-tok         26)
-; Tokens agreges
-(define class-tok           27)
-(define string-tok          28)
-
-(define number-of-tokens 29)
-
-(define newline-ch   (char->integer #\newline))
-(define tab-ch       (char->integer #\	))
-(define dollar-ch    (char->integer #\$))
-(define minus-ch     (char->integer #\-))
-(define rbrack-ch    (char->integer #\]))
-(define caret-ch     (char->integer #\^))
-
-(define dot-class
-  (list (cons 'inf- (- newline-ch 1))
-	(cons (+ newline-ch 1) 'inf+)))
-
-(define default-action
-  (string-append "        (yycontinue)" "\n"))
-
-(define default-<<EOF>>-action
-  (string-append "       (eof-object)" "\n"))
-
-(define default-<<ERROR>>-action
-  (string-append "       (assertion-violation #f \"invalid token\")\n"))
-
 (define (make-dispatch-table size alist default)
   ;;Fabrication de tables de dispatch.
   ;;
@@ -247,26 +195,6 @@
 	(begin
 	  (vector-set! v (caar alist) (cdar alist))
 	  (loop (cdr alist)))))))
-
-
-;;; Fonctions de manipulation des tokens
-
-(define-record-type (:tok :tok-make tok?)
-  (nongenerative nausicaa:silex::tok)
-  (fields (immutable type		get-tok-type)
-	  (immutable line		get-tok-line)
-	  (immutable column		get-tok-column)
-	  (immutable lexeme		get-tok-lexeme)
-	  (immutable attr		get-tok-attr)
-	  (immutable second-attr	get-tok-2nd-attr)))
-
-(define (make-tok tok-type lexeme line column . attr)
-  (cond ((null? attr)
-	 (:tok-make tok-type line column lexeme #f         #f))
-	((null? (cdr attr))
-	 (:tok-make tok-type line column lexeme (car attr) #f))
-	(else
-	 (:tok-make tok-type line column lexeme (car attr) (cadr attr)))))
 
 
 ;;; Fonctions de manipulations des regles
@@ -3388,70 +3316,6 @@
 ;;       (((#f #\0 #\1 #\2 #\3 #\4 #\5 #\6 #\7 #\8 #\9) . 9)))
 ;;    '#((#f . #f) (5 . 5)   (5 . 5)   (0 . 0)   (4 . 4)   (4 . 4)   (2 . 2)
 ;;       (1 . 1)   (3 . 3)   (2 . 2))))
-
-
-;;;; module lexparser.scm
-;;
-;;Fonctions auxilliaires du lexer.
-;;
-
-(define (parse-spec-char lexeme line column)
-  (make-tok char-tok lexeme line column newline-ch))
-
-(define (parse-digits-char lexeme line column)
-  (let* ((num (substring lexeme 1 (string-length lexeme)))
-	 (n (string->number num)))
-    (make-tok char-tok lexeme line column n)))
-
-(define (parse-hex-digits-char lexeme line column)
-  (let ((n (string->number lexeme)))
-    (make-tok char-tok lexeme line column n)))
-
-(define (parse-quoted-char lexeme line column)
-  (let ((c (string-ref lexeme 1)))
-    (make-tok char-tok lexeme line column (char->integer c))))
-
-(define (parse-ordinary-char lexeme line column)
-  (let ((c (string-ref lexeme 0)))
-    (make-tok char-tok lexeme line column (char->integer c))))
-
-(define (extract-id s)
-  (let ((len (string-length s)))
-    (substring s 1 (- len 1))))
-
-(define (parse-id lexeme line column)
-  (make-tok id-tok lexeme line column (string-downcase lexeme) lexeme))
-
-(define (parse-id-ref lexeme line column)
-  (let* ((orig-name (extract-id lexeme))
-	 (name (string-downcase orig-name)))
-    (make-tok subst-tok lexeme line column name orig-name)))
-
-(define (parse-power-m lexeme line column)
-  (let* ((len    (string-length lexeme))
-	 (substr (substring lexeme 1 (- len 1)))
-	 (m      (string->number substr))
-	 (range  (cons m m)))
-    (make-tok power-tok lexeme line column range)))
-
-(define (parse-power-m-inf lexeme line column)
-  (let* ((len (string-length lexeme))
-	 (substr (substring lexeme 1 (- len 2)))
-	 (m (string->number substr))
-	 (range (cons m 'inf)))
-    (make-tok power-tok lexeme line column range)))
-
-(define (parse-power-m-n lexeme line column)
-  (let ((len (string-length lexeme)))
-    (let loop ((comma 2))
-      (if (char=? (string-ref lexeme comma) #\,)
-	  (let* ((sub1  (substring lexeme 1 comma))
-		 (sub2  (substring lexeme (+ comma 1) (- len 1)))
-		 (m     (string->number sub1))
-		 (n     (string->number sub2))
-		 (range (cons m n)))
-	    (make-tok power-tok lexeme line column range))
-	(loop (+ comma 1))))))
 
 
 
