@@ -296,7 +296,7 @@
       'beta-three)
 
     (let ()
-      (define-generic/merge gamma alpha beta)
+      (define-generic/merge gamma (alpha beta))
 
       (let ((a (make-<one> 1 10 100))
 	    (b (make-<two> 0 0 0 2 20 200))

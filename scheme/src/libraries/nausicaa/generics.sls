@@ -26,46 +26,24 @@
 ;;;
 
 
+#!r6rs
 (library (nausicaa generics)
   (export
     define-generic define-method add-method define-generic/merge
-    call-next-method next-method?)
+    call-next-method next-method?
+    (rename (:uid-list-of uid-list-of:)))
   (import (rnrs)
-    (prefix (rename (only (nausicaa language classes)
-			  class-uid-list
-			  class-uid-list-of
-			  lambda/with-class
-			  <top>)
-		    (class-uid-list	uid-list)
-		    (class-uid-list-of	uid-list-of)
-		    (lambda/with-class	method-lambda)
-		    (<top>		top))
-	    type.)
-    (only (nausicaa language extensions)
-	  begin0 begin0-let define-constant define-auxiliary-syntaxes)
+    ;;See the source file for the customisable interface to types.
+    (prefix (nausicaa generics types) type.)
     (nausicaa language parameters)
-    (nausicaa language syntax-utilities)
-    (nausicaa symbols-tree)
+    (only (nausicaa language extensions)
+	  define-auxiliary-syntaxes
+	  define-syntax*)
+    (only (nausicaa language makers)
+	  define-maker)
+    (only (nausicaa symbols-tree)
+	  tree-cons treeq)
     (rnrs mutable-pairs (6)))
-
-;;;We need to define or import four bindings:
-;;;
-;;;type.uid-list - A syntax which, applied to a type identifier, expands
-;;;into a list of symbols  representing the type hierarchy from subclass
-;;;to  parent class.   All the  expansions of  this macro  for  the same
-;;;identifier must yield the same list in the sense of EQ?.
-;;;
-;;;type.uid-list-of - A function which,  applied to any value, returns a
-;;;list  of symbols  representing the  type hierarchy  from  subclass to
-;;;parent class.   The returned value  must be EQ? to  the corresponding
-;;;expansion of TYPE.UID-LIST.
-;;;
-;;;type.method-lambda  -  A  syntax  which  must work  like  LAMBDA  but
-;;;recognise arguments tagged with types.
-;;;
-;;;type.top - An identifier representing the topmost parent type for all
-;;;the classes.
-;;;
 
 
 ;;;; helpers
@@ -78,9 +56,16 @@
 	   (cons (car ell) (loop (cdr ell)))
 	 ell)))))
 
+(define-auxiliary-syntaxes
+  :method-add
+  :methods-alist
+  :number-of-arguments
+  :uid-list-of)
+
+
 #|  The  following bindings  are  needed  by  the cache  implemented  as
 hashtable; currently  it is implemented  as a symbols-tree, so  they are
-commented out.
+commented out and kept here as reference.
 
  (define-constant $gf
    (greatest-fixnum))
@@ -156,10 +141,11 @@ these should go in the expansion of DEFINE-GENERIC:
 ;;		;third argument
 ;;
 
-(define-auxiliary-syntaxes
-  :method-add :methods-alist :number-of-arguments)
+(define-maker (define-generic name)
+  %define-generic ((:uid-list-of	type.uid-list-of)
+		   (:methods-alist	'())))
 
-(define-syntax define-generic
+(define-syntax %define-generic
   (lambda (stx)
     (syntax-case stx ()
 
@@ -169,10 +155,7 @@ these should go in the expansion of DEFINE-GENERIC:
 	 "expected identifier as generic function name"
 	 (syntax->datum stx) (syntax->datum #'?name)))
 
-      ((_ ?name)
-       #'(define-generic ?name '()))
-
-      ((_ ?name ?methods-alist)
+      ((_ ?name ?uid-list-of ?methods-alist)
        #'(begin
 	   (define methods-alist ?methods-alist)
 	   (define number-of-arguments
@@ -201,7 +184,7 @@ these should go in the expansion of DEFINE-GENERIC:
 	     (set! methods-alist (%add-method-to-methods-alist methods-alist signature closure)))
 	   (define (implementation . arguments)
 	     (generic-function-implementation '?name methods-alist cache-ref cache-store
-					      number-of-arguments arguments))
+					      ?uid-list-of number-of-arguments arguments))
 	   (define-syntax ?name
 	     (lambda (stx)
 	       (syntax-case stx (:method-add :methods-alist :number-of-arguments)
@@ -223,16 +206,18 @@ these should go in the expansion of DEFINE-GENERIC:
 
       )))
 
+
 (define (generic-function-implementation who methods-alist cache-ref cache-store
-					 number-of-arguments arguments)
+					 uid-list-of number-of-arguments arguments)
 
   (define signature
-    (map type.uid-list-of arguments))
+    (map uid-list-of arguments))
 
   (define applicable-methods
     (or (cache-ref signature)
-	(begin0-let ((methods (%compute-applicable-methods signature methods-alist)))
-	  (cache-store signature methods))))
+	(let ((methods (%compute-applicable-methods signature methods-alist)))
+	  (cache-store signature methods)
+	  methods)))
 
   (define method-called? #f)
 
@@ -267,64 +252,40 @@ these should go in the expansion of DEFINE-GENERIC:
 
 ;;;; syntaxes to define and add methods
 
-(define-syntax define-method
+(define-syntax* (define-method stx)
   ;;Define a new method and store it in the given generic function.
   ;;
-  (syntax-rules ()
-
-    ;;This is for the syntax:
-    ;;
-    ;;	(define-method (doit (a <alpha>) (b <beta>))
-    ;;	  ---)
-    ;;
-    ((_ (?generic-function . ?args) . ?body)
-     (define dummy	;to make it a definition
-       (%collect-types-and-arguments ?generic-function ?args () () . ?body)))
-
-    ;;This is for the syntax:
-    ;;
-    ;;	(define-method doit ((a <alpha>) (b <beta>))
-    ;;	  ---)
-    ;;
-    ((_ ?generic-function ?args . ?body)
-     (define dummy	;to make it a definition
-       (%collect-types-and-arguments ?generic-function ?args () () . ?body)))))
-
-(define-syntax %collect-types-and-arguments
-  ;;Analyse the list of method  arguments collecting a list of names and
-  ;;a  list of types.   Finally call  the ADD-METHOD  syntax to  add the
-  ;;method.
-  ;;
-  (syntax-rules ()
-
-    ;;Matches  the form when  the next  argument to  be processed  has a
-    ;;type.
-    ((_ ?generic-function ((?next-arg-name ?next-type-name) . ?args)
-	(?type-name ...)
-	(?arg-name  ...) . ?body)
-     (%collect-types-and-arguments ?generic-function ?args
-				   (?type-name ... ?next-type-name)
-				   (?arg-name  ... ?next-arg-name)
-				   . ?body))
-
-    ;;Matches the  form when  the next argument  to be processed  has no
-    ;;type.
-    ((_ ?generic-function (?next-arg-name . ?args) (?type-name ...) (?arg-name ...) . ?body)
-     (%collect-types-and-arguments ?generic-function ?args
-				   (?type-name ... type.top)
-				   (?arg-name  ... ?next-arg-name)
-				   . ?body))
-
-    ;;Matches the form when all the arguments have been processed.
-    ((_ ?generic-function () (?type-name ...) (?arg-name ...) . ?body)
-     (add-method ?generic-function (?type-name ...)
-		 (type.method-lambda ((?arg-name ?type-name) ...) . ?body)))))
+  (define (main generic-function-id formals-stx body-stx)
+    (let loop ((formals		formals-stx)
+	       (arg-ids		'())
+	       (type-ids	'()))
+      (syntax-case formals ()
+	(()
+	 (with-syntax ((GF		generic-function-id)
+		       ((ARG ...)	(reverse arg-ids))
+		       ((TYPE ...)	(reverse type-ids))
+		       (BODY		body-stx))
+	   #'(define dummy ;to make it a definition
+	       (add-method GF (TYPE ...) (type.method-lambda ((ARG TYPE) ...) . BODY)))))
+	(((?arg ?type) . ?formals)
+	 (loop #'?formals (cons #'?arg arg-ids) (cons #'?type    type-ids)))
+	((?arg . ?formals)
+	 (loop #'?formals (cons #'?arg arg-ids) (cons #'type.top type-ids)))
+	(?stuff
+	 (synner "invalid formal arguments in method definition" #'?stuff)))))
+  (syntax-case stx ()
+    ((_ (?generic-function . ?formals) . ?body)
+     (main #'?generic-function #'?formals #'?body))
+    ((_ ?generic-function ?formals . ?body)
+     (main #'?generic-function #'?formals #'?body))
+    (_
+     (synner "invalid syntax in method definition"))))
 
 (define-syntax add-method
   (syntax-rules ()
-    ((_ ?generic-function (?type-name ...) ?closure)
+    ((_ ?generic-function (?type-id ...) ?closure)
      (?generic-function :method-add
-			(list (type.uid-list ?type-name) ...) ;this is the signature
+			(list (type.uid-list ?type-id) ...) ;this is the signature
 			?closure))))
 
 
@@ -408,13 +369,18 @@ these should go in the expansion of DEFINE-GENERIC:
 
 ;;;; generic functions merging
 
-(define-syntax define-generic/merge
+(define-maker (define-generic/merge name list-of-generic-functions)
+  %define-generic/merge ((:uid-list-of		type.uid-list-of)
+			 (:methods-alist	'())))
+
+(define-syntax %define-generic/merge
   (syntax-rules ()
-    ((_ ?name ?gf0 ?gf ...)
+    ((_ ?name (?gf0 ?gf ...) ?uid-list-of ?methods-alist)
      (define-generic ?name
-       (merge-methods-alists (?gf0 :methods-alist)
-			    (?gf  :methods-alist)
-			    ...)))))
+       (:uid-list-of	?uid-list-of)
+       (:methods-alist	(merge-methods-alists (?gf0 :methods-alist)
+					      (?gf  :methods-alist)
+					      ...))))))
 
 (define (merge-methods-alists methods-alist . list-of-methods-alists)
   (let loop ((methods-alist		(list-copy methods-alist))

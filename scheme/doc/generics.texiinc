@@ -14,7 +14,8 @@ applying a generic function to a set of arguments, the most specific
 method with respect to the arguments' types is chosen.
 
 The @library{nausicaa generics} library is built on top of the
-@library{nausicaa language classes} library.
+@library{nausicaa language classes} library, but its interface to types
+is (statically) customisable: look at the source code.
 
 @menu
 * generics examples::           Examples of method dispatching.
@@ -230,14 +231,16 @@ is more specific than @var{B}.
 @section Defining generic functions and methods
 
 
-@deffn Syntax define-generic @ameta{name}
+@deffn Syntax define-generic @ameta{name} @meta{clause} ...
+@deffnx {Auxiliary Syntax} uid-list-of: @meta{func}
 Define a new generic function (a macro) and bind it to @meta{name}.  The
 number of arguments is unspecified: it will be established by the first
 @func{define-method} or @func{add-method} applied to @meta{name}.
 @end deffn
 
 
-@deffn Syntax define-generic/merge @ameta{name} @ametao{generic} @ameta{generic} ...
+@deffn Syntax define-generic/merge @ameta{name} (@ametao{generic} @ameta{generic} ...) @var{clause} ...
+@deffnx {Auxiliary Syntax} uid-list-of: @meta{func}
 Define a new generic function and bind it to @meta{name}.  The internal
 collection of methods holds the union of the method collections from the
 @meta{generic} arguments, which must be generic function identifiers.
@@ -248,6 +251,28 @@ function has precedence.
 
 Merging methods is useful when two different libraries export generic
 functions bound to the same identifier.
+@end deffn
+
+
+@deffn {Auxiliary Syntax} uid-list-of: @meta{func}
+The optional clause @code{uid-list-of:} allows us to specify a custom
+function to extract a unique symbol representing the type of the
+arguments in calls to the generic function; the default value is
+@func{class-uid-list-of} exported by @func{nausicaa language classes}.
+@meta{func} can be any expression evaluating to a function.
+
+When merging generic functions: the type inspector function is
+@func{class-uid-list-of} if we do not use this clause.
+
+Usually the @code{uid-list-of:} clause selects a wrapper for
+@func{class-uid-list-of}; for example:
+
+@example
+(define (new-uid-list-of obj)
+  (if (pointer? obj)
+      '(nausicaa:ffi:pointer <top>)
+   (class-uid-list-of obj)))
+@end example
 @end deffn
 
 
@@ -276,11 +301,11 @@ method: the old method is overwritten by the new one.
 @end deffn
 
 
-@deffn Syntax add-method @ameta{generic} @ameta{classes} @ameta{closure}
+@deffn Syntax add-method @ameta{generic} @ameta{types} @ameta{closure}
 Add a new method to an already existent generic function,
-@meta{generic}.  @meta{classes} must be a list of class names for which
-this method specialises the generic function.  @meta{closure} must be
-the method's closure.
+@meta{generic}.  @meta{types} must be a list of type identifiers for
+which this method specialises the generic function.  @meta{closure} must
+be the method's closure.
 @end deffn
 
 @c page

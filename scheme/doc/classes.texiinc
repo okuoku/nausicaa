@@ -1889,7 +1889,7 @@ Expand to the quoted symbol representing the class' @acronym{UID}.
 @end defmac
 
 
-@defmac class-uid-list @var{class name}
+@defmac class-uid-list @var{class-name}
 Expand into the list of type @acronym{UID}s of the parents of
 @var{class-name}.  The first element is the @acronym{UID} of the class
 itself, then comes the @acronym{UID} of the parent, then the
