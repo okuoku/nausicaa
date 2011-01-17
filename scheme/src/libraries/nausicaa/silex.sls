@@ -1804,54 +1804,6 @@ by the "make-tables.sps" program in this directory.
 		 (get-tok-column tok)
 		 "white space expected"))))
 
-(define (parse-macro macros)
-  ;;Parse  the   lexer  table  opening  section:  the   one  with  macro
-  ;;definitions; a  single call to  this function should parse  the next
-  ;;macro definition, then return.
-  ;;
-  ;;MACROS is null or an alist  of the already defined macros with macro
-  ;;names as keywords and parsed as values.
-  ;;
-  ;;If  the macro  is successfully  parsed: return  a pair  being  a new
-  ;;element for the MACROS alist.
-  ;;
-  ;;If the "%%" identifier is found: return false.
-  ;;
-  ;;It  is an  error  if EOF  is found:  the  table must  have the  "%%"
-  ;;separator followed by at least one semantic action definition.
-  ;;
-  (push-lexer (macro-lexer))
-  (parse-hv-blanks)
-  (let* ((tok (lexer))
-	 (tok-type (get-tok-type tok)))
-    (cond ((= tok-type id-tok)
-	   (let* ((name (get-tok-attr tok))
-		  (ass (assoc name macros)))
-	     (if ass
-		 (lex-error 'lex:parse-macro
-			    (get-tok-line tok)
-			    (get-tok-column tok)
-			    "the macro \"" (get-tok-2nd-attr tok) "\" has already been defined.")
-	       (let* ((tok-list (parse-white-space-one-regexp))
-		      (regexp (tokens->regexp tok-list macros)))
-		 (pop-lexer)
-		 (cons name regexp)))))
-	  ((= tok-type percent-percent-tok)
-	   (pop-lexer)
-	   #f)
-	  ((= tok-type percent-include-tok)
-	   (get-tok-attr tok))
-	  ((= tok-type illegal-tok)
-	   (lex-error 'lex:parse-macro
-		      (get-tok-line tok)
-		      (get-tok-column tok)
-		      "macro name expected."))
-	  ((= tok-type eof-tok)
-	   (lex-error 'lex:parse-macro
-		      (get-tok-line tok)
-		      #f
-		      "end of file found before %%.")))))
-
 (define parse-macros
   (case-lambda
    (()
@@ -1861,22 +1813,73 @@ by the "make-tables.sps" program in this directory.
     ;;table, until  it returns false.  Accumulate  the macro definitions
     ;;in an alist and return it.
     ;;
-    (let loop ((macros macros-already-defined))
-      (let ((macro (parse-macro macros)))
-	(cond ((string? macro)
-	       ;;We have  received a file inclusion request  with a string
-	       ;;of the format:
-	       ;;
-	       ;;	%[pathname]
-	       ;;
-	       (let ((len (string-length macro)))
-		 ;;A file pathname has at least one char.
-		 (unless (< 3 len)
-		   (error 'lex:parse-macros
-		     "invalid table file include directive" macro))
-		 (parse-external-macro-file (substring macro 2 (- len 1)))))
-	      (macro	(loop (cons macro macros)))
-	      (else	macros)))))))
+    (define (main macros-already-defined)
+      (let loop ((macros macros-already-defined))
+	(let ((macro (%parse-macro macros)))
+	  (cond ((string? macro)
+		 ;;We have  received a file inclusion request  with a string
+		 ;;of the format:
+		 ;;
+		 ;;	%[pathname]
+		 ;;
+		 (let ((len (string-length macro)))
+		   ;;A file pathname has at least one char.
+		   (unless (< 3 len)
+		     (error 'lex:parse-macros
+		       "invalid table file include directive" macro))
+		   (parse-external-macro-file (substring macro 2 (- len 1)) macros)))
+		(macro	(loop (cons macro macros)))
+		(else	macros)))))
+
+    (define (%parse-macro macros)
+      ;;Parse  the  lexer table  opening  section:  the  one with  macro
+      ;;definitions;  a single call  to this  function should  parse the
+      ;;next macro definition, then return.
+      ;;
+      ;;MACROS is  null or an alist  of the already  defined macros with
+      ;;macro names as keywords and parsed as values.
+      ;;
+      ;;If the macro  is successfully parsed: return a  pair being a new
+      ;;element for the MACROS alist.
+      ;;
+      ;;If the "%%" identifier is found: return false.
+      ;;
+      ;;It is  an error if  EOF is found:  the table must have  the "%%"
+      ;;separator followed by at least one semantic action definition.
+      ;;
+      (push-lexer (macro-lexer))
+      (parse-hv-blanks)
+      (let* ((tok (lexer))
+	     (tok-type (get-tok-type tok)))
+	(cond ((= tok-type id-tok)
+	       (let* ((name (get-tok-attr tok))
+		      (ass (assoc name macros)))
+		 (if ass
+		     (lex-error 'lex:parse-macro
+				(get-tok-line tok)
+				(get-tok-column tok)
+				"the macro \"" (get-tok-2nd-attr tok) "\" has already been defined.")
+		   (let* ((tok-list (parse-white-space-one-regexp))
+			  (regexp (tokens->regexp tok-list macros)))
+		     (pop-lexer)
+		     (cons name regexp)))))
+	      ((= tok-type percent-percent-tok)
+	       (pop-lexer)
+	       #f)
+	      ((= tok-type percent-include-tok)
+	       (get-tok-lexeme tok))
+	      ((= tok-type illegal-tok)
+	       (lex-error 'lex:parse-macro
+			  (get-tok-line tok)
+			  (get-tok-column tok)
+			  "macro name expected."))
+	      ((= tok-type eof-tok)
+	       (lex-error 'lex:parse-macro
+			  (get-tok-line tok)
+			  #f
+			  "end of file found before %%.")))))
+
+    (main macros-already-defined))))
 
 (define (parse-external-macro-file pathname macros-already-defined)
   ;;Parse  the file in  PATHNAME reading  macro definitions;  only macro
@@ -1887,13 +1890,10 @@ by the "make-tables.sps" program in this directory.
   ;;one  built   by  PARSE-MACROS:  it  is  used   to  detect  duplicate
   ;;definitions.
   ;;
-  (let ((close-port? #f)
-	(input-port  #f))
+  (let ((input-port  #f))
     (dynamic-wind
 	(lambda ()
-	  (set! input-port (begin0
-			       (open-input-file pathname)
-			     (set! close-port? #t))))
+	  (set! input-port (open-input-file pathname)))
 	(lambda ()
 	  (let ((IS (lexer-make-IS (port: input-port) (counters: 'all))))
 	    (parameterize ((action-lexer	(lexer-make-lexer action-tables IS))
@@ -1909,8 +1909,7 @@ by the "make-tables.sps" program in this directory.
 			   (lexer-history-interp #f))
 	      (parse-macros macros-already-defined))))
 	(lambda ()
-	  (when close-port?
-	    (close-input-port input-port))))))
+	  (close-input-port input-port)))))
 
 (define (parse-action-end <<EOF>>-action? <<ERROR>>-action? action?)
   (let ((act (lexer-get-history)))
