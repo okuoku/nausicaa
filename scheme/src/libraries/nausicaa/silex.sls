@@ -1839,6 +1839,8 @@ by the "make-tables.sps" program in this directory.
 	  ((= tok-type percent-percent-tok)
 	   (pop-lexer)
 	   #f)
+	  ((= tok-type percent-include-tok)
+	   (get-tok-attr tok))
 	  ((= tok-type illegal-tok)
 	   (lex-error 'lex:parse-macro
 		      (get-tok-line tok)
@@ -1850,16 +1852,65 @@ by the "make-tables.sps" program in this directory.
 		      #f
 		      "end of file found before %%.")))))
 
-(define (parse-macros)
-  ;;Call PARSE-MACRO to  parse the next macro definition  from the input
-  ;;table, until it returns  false.  Accumulate the macro definitions in
-  ;;an alist and return it.
+(define parse-macros
+  (case-lambda
+   (()
+    (parse-macros '()))
+   ((macros-already-defined)
+    ;;Call PARSE-MACRO to parse the next macro definition from the input
+    ;;table, until  it returns false.  Accumulate  the macro definitions
+    ;;in an alist and return it.
+    ;;
+    (let loop ((macros macros-already-defined))
+      (let ((macro (parse-macro macros)))
+	(cond ((string? macro)
+	       ;;We have  received a file inclusion request  with a string
+	       ;;of the format:
+	       ;;
+	       ;;	%[pathname]
+	       ;;
+	       (let ((len (string-length macro)))
+		 ;;A file pathname has at least one char.
+		 (unless (< 3 len)
+		   (error 'lex:parse-macros
+		     "invalid table file include directive" macro))
+		 (parse-external-macro-file (substring macro 2 (- len 1)))))
+	      (macro	(loop (cons macro macros)))
+	      (else	macros)))))))
+
+(define (parse-external-macro-file pathname macros-already-defined)
+  ;;Parse  the file in  PATHNAME reading  macro definitions;  only macro
+  ;;definitions must be  there: the format of the file  must be the same
+  ;;of the header of an ordinary silex table.
   ;;
-  (let loop ((macros '()))
-    (let ((macro (parse-macro macros)))
-      (if macro
-	  (loop (cons macro macros))
-	macros))))
+  ;;MACROS-ALREADY-DEFINED must  be an alist  in the same format  as the
+  ;;one  built   by  PARSE-MACROS:  it  is  used   to  detect  duplicate
+  ;;definitions.
+  ;;
+  (let ((close-port? #f)
+	(input-port  #f))
+    (dynamic-wind
+	(lambda ()
+	  (set! input-port (begin0
+			       (open-input-file pathname)
+			     (set! close-port? #t))))
+	(lambda ()
+	  (let ((IS (lexer-make-IS (port: input-port) (counters: 'all))))
+	    (parameterize ((action-lexer	(lexer-make-lexer action-tables IS))
+			   (class-lexer		(lexer-make-lexer class-tables  IS))
+			   (macro-lexer		(lexer-make-lexer macro-tables  IS))
+			   (regexp-lexer	(lexer-make-lexer regexp-tables IS))
+			   (string-lexer	(lexer-make-lexer string-tables IS))
+			   (lexer-raw		#f)
+			   (lexer-stack		'())
+			   (lexer-buffer-empty? #t)
+			   (lexer-buffer	#f)
+			   (lexer-history	'())
+			   (lexer-history-interp #f))
+	      (parse-macros macros-already-defined))))
+	(lambda ()
+	  (when close-port?
+	    (close-input-port input-port))))))
 
 (define (parse-action-end <<EOF>>-action? <<ERROR>>-action? action?)
   (let ((act (lexer-get-history)))

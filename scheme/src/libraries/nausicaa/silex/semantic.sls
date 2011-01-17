@@ -62,6 +62,7 @@
     percent-percent-tok		id-tok
     rbrack-tok			minus-tok
     illegal-tok			class-tok
+    percent-include-tok
     string-tok			number-of-tokens
     newline-ch			tab-ch
     dollar-ch			minus-ch
@@ -130,7 +131,8 @@
 (define-constant class-tok           27)
 (define-constant string-tok          28)
 
-(define-constant number-of-tokens 29)
+(define-constant percent-include-tok 29)
+(define-constant number-of-tokens 30)
 
 (define-constant newline-ch   (char->integer #\newline))
 (define-constant tab-ch       (char->integer #\	))
