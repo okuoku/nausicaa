@@ -603,7 +603,7 @@ the list of original documents and their authors.  See also the
 * stdlib::                      Standard libraries.
 * nausicaa::                    The @library{nausicaa} language.
 
-Basic libraries
+Libraries in the @library{nausicaa} language
 
 * cond-expand::                 Feature-based conditional expansion.
 * unimplemented::               Unimplemented error condition.
