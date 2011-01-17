@@ -10,7 +10,7 @@
 ;;;	parser.   It is meant  to be  used by  all the  parser libraries
 ;;;	distributed with Nausicaa.
 ;;;
-;;;Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2009, 2010, 2011 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;Copyright (c) 2005-2008 Dominique Boucher
 ;;;
 ;;;Original  code  by Dominique  Boucher.   Port  to  R6RS and  Nausicaa
@@ -61,7 +61,6 @@
 
     source-location-honor-return)
   (import (nausicaa)
-    (nausicaa generics)
     (nausicaa generics object-to-string))
 
 

@@ -72,7 +72,6 @@
     <group>-display-name
     <group>-mailboxes)
   (import (nausicaa)
-    (nausicaa generics)
     (nausicaa generics object-to-string)
     (nausicaa strings)
     (nausicaa lists))

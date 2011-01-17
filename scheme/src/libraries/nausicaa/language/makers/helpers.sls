@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2010, 2011 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -44,8 +44,8 @@
   ;;INPUT-FORM-STX must be the original full input form; to be used when
   ;;raising syntax violation errors.
   ;;
-  ;;ARGUMENTS-STX must be a syntax  objects holding a list of clauses in
-  ;;the form:
+  ;;ARGUMENTS-STX must  be an  syntax object holding  null or a  list of
+  ;;clauses in the form:
   ;;
   ;;	((?keyword ?value0 ?value ...) ...)
   ;;

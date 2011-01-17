@@ -57,6 +57,7 @@ $(eval $(call nau-libraries,ffi_peekers_and_pokers,nausicaa/ffi/peekers-and-poke
 $(eval $(call nau-libraries,ffi_memory,nausicaa/ffi/memory))
 $(eval $(call nau-libraries,ffi_memory_alloc,nausicaa/ffi/memory/alloc))
 $(eval $(call nau-libraries,generics,nausicaa/generics))
+$(eval $(call nau-libraries,generics_language,nausicaa/language/generics))
 $(eval $(call nau-libraries,identifier_properties,nausicaa/language/identifier-properties))
 $(eval $(call nau-libraries,infix,nausicaa/infix))
 $(eval $(call nau-libraries,interps,nausicaa/interps))

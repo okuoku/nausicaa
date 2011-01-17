@@ -27,7 +27,8 @@ token in the input stream; they should be produced by the lexer and
 either discarded or consumed by the parser's error handler.  All the
 bindings are exported by the @library{nausicaa parser-tools
 source-location} library; this library is built on top of
-@library{nausicaa language classes} and @library{nausicaa generics}.
+@library{nausicaa language classes} and @library{nausicaa language
+generics}.
 
 It is cleaner to implement the parser in such a way that location
 records are used only by client--supplied error handlers, not by the
@@ -275,7 +276,7 @@ a @samp{#\return} character or not.
 @subsection Miscellaneous functions
 
 
-The procedures described here make use of the @library{nausicaa
+The procedures described here make use of the @library{nausicaa language
 generics} library; @ref{generics, Multimethod dispatching}.
 
 

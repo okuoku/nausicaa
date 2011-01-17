@@ -127,7 +127,6 @@
     )
   (import (nausicaa)
     (rnrs mutable-strings)
-    (nausicaa generics)
     (nausicaa formations)
     (only (nausicaa language extensions) define-auxiliary-syntax)
     (nausicaa times-and-dates seconds-and-subseconds)

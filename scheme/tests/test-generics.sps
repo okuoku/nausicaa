@@ -27,7 +27,6 @@
 #!r6rs
 (import (nausicaa)
   (nausicaa checks)
-  (nausicaa generics)
   (nausicaa generics object-to-string)
   (rnrs eval))
 
@@ -47,7 +46,7 @@
 		 (define-method (a b) #f)
 		 (define-method (a b c) #f)
                  #f)
-	      (environment '(nausicaa) '(nausicaa generics))))
+	      (environment '(nausicaa))))
     => '((nausicaa:builtin:<top>) (nausicaa:builtin:<top>)))
 
   #t)
@@ -296,7 +295,7 @@
       'beta-three)
 
     (let ()
-      (define-generic/merge gamma alpha beta)
+      (define-generic/merge gamma (alpha beta))
 
       (let ((a (make-<one> 1 10 100))
 	    (b (make-<two> 0 0 0 2 20 200))

@@ -20,7 +20,7 @@ parser for email addresses.  The parser tries to be compliant to @rfc{}
 2822 ``Internet Message Format''
 (@url{http://www.ietf.org/rfc/rfc2822.txt}).  This library is built on
 top of @library{nausicaa language classes} and @library{nausicaa
-generics}.
+language generics}.
 
 @quotation
 This library would not exist without the work Peter Simons did for the
