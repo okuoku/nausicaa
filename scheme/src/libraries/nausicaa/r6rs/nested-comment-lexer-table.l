@@ -1,7 +1,7 @@
 ;;; -*- mode: scheme; coding: utf-8 -*-
 ;;;
 ;;;Part of: Nausicaa/Scheme
-;;;Contents: nested comment lexer
+;;;Contents: nested comment lexer table
 ;;;Date: Tue Dec 28, 2010
 ;;;
 ;;;Abstract

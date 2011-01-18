@@ -1,7 +1,7 @@
 ;;; -*- mode: scheme; coding: utf-8 -*-
 ;;;
 ;;;Part of: Nausicaa/Scheme
-;;;Contents: line comment lexer
+;;;Contents: line comment lexer table
 ;;;Date: Tue Jan  4, 2011
 ;;;
 ;;;Abstract

@@ -128,7 +128,6 @@
     "nausicaa/ffi/sizeof.sls"
     "nausicaa/ffi/syntax-helpers.sls"
     "nausicaa/formations.sls"
-    "nausicaa/generics.sls"
     "nausicaa/generics/object-to-string.sls"
     "nausicaa/getopts.sls"
     "nausicaa/infix.sls"
@@ -174,6 +173,7 @@
     "nausicaa/language/conditions.sls"
     "nausicaa/language/deferred-exceptions.sls"
     "nausicaa/language/extensions.sls"
+    "nausicaa/language/generics.sls"
     "nausicaa/language/gensym.mosh.sls"
     "nausicaa/language/gensym.petite.sls"
     "nausicaa/language/gensym.vicare.sls"
@@ -532,27 +532,27 @@
     (parser lexer error-handler #f)))
 
 (define (compare pathname)
-  (with-compensations
-    (letrec* ((port (compensate
-			(open-input-file pathname)
-		      (with
-		       (close-port port))))
-	      (sexp1 (read port)))
-      (format (current-error-port) "parsing: ~a ... " pathname)
-      (flush-output-port (current-error-port))
+  (if (not (file-exists? pathname))
+      (format (current-error-port) "*** skipping unexistent: ~a" pathname)
+    (with-compensations
       (letrec* ((port (compensate
 			  (open-input-file pathname)
 			(with
 			 (close-port port))))
-		(sexp2 (parse port)))
-;;;	(let ((sexp2 (r6.remove-interlexeme-space sexp2)))
-	(let ((sexp2 sexp2))
-	  (when #f
-	    (pretty-print sexp1)
-	    (pretty-print sexp2))
-	  (same? sexp1 (car sexp2))
-	  (format (current-error-port) "ok\n")
-	  )))))
+		(sexp1 (read port)))
+	(format (current-error-port) "parsing: ~a ... " pathname)
+	(flush-output-port (current-error-port))
+	(letrec* ((port (compensate
+			    (open-input-file pathname)
+			  (with
+			   (close-port port))))
+		  (sexp2 (parse port)))
+	  (let ((sexp2 sexp2))
+	    (when #f
+	      (pretty-print sexp1)
+	      (pretty-print sexp2))
+	    (same? sexp1 (car sexp2))
+	    (format (current-error-port) "ok\n")))))))
 
 (parametrise ((debugging #f))
   (let ((cl (cdr (command-line))))

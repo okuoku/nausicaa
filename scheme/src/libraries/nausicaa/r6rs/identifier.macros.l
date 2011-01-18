@@ -1,7 +1,7 @@
 ;;; -*- mode: scheme; coding: utf-8-unix; page-delimiter: "^;;page" -*-
 ;;;
 ;;;Part of: Nausicaa/Scheme
-;;;Contents: SILex macro definitions to parse r6rs identifiers
+;;;Contents: SILex macro definitions to parse R6RS identifiers
 ;;;Date: Tue Jan 18, 2011
 ;;;
 ;;;Abstract

@@ -1,3 +1,5 @@
+;;; -*- mode: scheme; coding: utf-8-unix; page-delimiter: "^;;page" -*-
+;;;
 ;;;SILex - Scheme Implementation of Lex
 ;;;
 ;;;Copyright (C) 2011 by Marco Maggi <marco.maggi-ipsu@poste.it>
@@ -51,7 +53,3 @@ percent-percent		"%%"
 <<EOF>>			(make-tok eof-tok		yytext yyline yycolumn)
 
 ;;; end of file
-;; Local Variables:
-;; mode: scheme
-;; coding: utf-8-unix
-;; End:

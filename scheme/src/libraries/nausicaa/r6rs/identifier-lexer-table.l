@@ -1,7 +1,7 @@
 ;;; -*- mode: scheme; coding: utf-8 -*-
 ;;;
 ;;;Part of: Nausicaa/Scheme
-;;;Contents: character lexer
+;;;Contents: R6RS identifier lexer table
 ;;;Date: Tue Jan  4, 2011
 ;;;
 ;;;Abstract
