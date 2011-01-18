@@ -1,7 +1,9 @@
 (library (nausicaa silex action.l)
   (export
     action-tables)
-  (import (rnrs)(nausicaa silex lexer)(nausicaa silex semantic))
+  (import (rnrs)(nausicaa silex lexer)
+(nausicaa silex semantic)
+)
 
 ;
 ; Table generated from the file action.l by SILex 1.0

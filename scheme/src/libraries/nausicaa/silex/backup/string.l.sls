@@ -1,7 +1,9 @@
 (library (nausicaa silex string.l)
   (export
     string-tables)
-  (import (rnrs)(nausicaa silex lexer)(nausicaa silex semantic))
+  (import (rnrs)(nausicaa silex lexer)
+(nausicaa silex semantic)
+)
 
 ;
 ; Table generated from the file string.l by SILex 1.0
@@ -15,9 +17,6 @@
        			(make-tok eof-tok         yytext yyline yycolumn)
 
 ;;; end of file
-;; Local Variables:
-;; mode: scheme
-;; End:
        ))
    (lambda (yycontinue yygetc yyungetc)
      (lambda (yytext yyline yycolumn yyoffset)

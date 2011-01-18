@@ -273,6 +273,7 @@ mtest-r6rs-parser:
 ## Special rules: SILex lexers building.
 ## --------------------------------------------------------------------
 
+SILEX_SRCDIR		= $(srcdir)/src/libraries/nausicaa/silex
 SILEX_TEST_PROGRAMS	= $(wildcard $(srcdir)/tests/make-silex-*.sps)
 SILEX_LIBPATH		= $(abspath $(srcdir)/tests):$(abspath $(nau_sls_BUILDDIR))
 
@@ -290,10 +291,13 @@ SILEX_ENV	= YPSILON_SITELIB=$(SILEX_LIBPATH):$(YPSILON_SITELIB)
 SILEX_RUNNER	= $(SILEX_ENV) $(YPSILON)
 endif
 
-.PHONY: silex-internals silex silex-test silex-custom
+.PHONY: silex-internals silex-backup silex silex-test silex-custom
 
 silex-internals:
-	cd $(srcdir)/src/libraries/nausicaa/silex && $(SILEX_RUNNER) make-tables.sps
+	cd $(SILEX_SRCDIR) && $(SILEX_RUNNER) make-tables.sps
+
+silex-backup:
+	$(CP) $(SILEX_SRCDIR)/*.l.sls $(SILEX_SRCDIR)/backup
 
 silex: silex-test
 
@@ -498,15 +502,15 @@ net:
 R6RS_LEXER_PROGRAM	= make-tables.sps
 R6RS_LEXER_LIBPATH	= $(abspath $(nau_sls_BUILDDIR))
 
-ifeq (yes,$(nausicaa_ENABLE_VICARE))
+ifeq (yes,$(nausicaa_ENABLE_PETITE))
+R6RS_LEXER_ENV		= PETITE_LIBPATH=$(R6RS_LEXER_LIBPATH):$(CHEZSCHEMELIBDIRS)
+R6RS_LEXER_RUNNER	= export $(R6RS_LEXER_ENV); $(PETITE) --libdirs $${PETITE_LIBPATH} --program
+else ifeq (yes,$(nausicaa_ENABLE_VICARE))
 R6RS_LEXER_ENV		= VICARE_LIBRARY_PATH=$(R6RS_LEXER_LIBPATH):$(VICARE_LIBRARY_PATH)
 R6RS_LEXER_RUNNER	= $(R6RS_LEXER_ENV) $(VICARE) --debug --r6rs-script
 else ifeq (yes,$(nausicaa_ENABLE_MOSH))
 R6RS_LEXER_ENV		= MOSH_LOADPATH=$(R6RS_LEXER_LIBPATH):$(MOSH_LOADPATH)
 R6RS_LEXER_RUNNER	= $(R6RS_LEXER_ENV) $(MOSH)
-else ifeq (yes,$(nausicaa_ENABLE_PETITE))
-R6RS_LEXER_ENV		= PETITE_LIBPATH=$(R6RS_LEXER_LIBPATH):$(CHEZSCHEMELIBDIRS)
-R6RS_LEXER_RUNNER	= export $(R6RS_LEXER_ENV); $(PETITE) --libdirs $${PETITE_LIBPATH} --program
 else ifeq (yes,$(nausicaa_ENABLE_YPSILON))
 R6RS_LEXER_ENV		= YPSILON_SITELIB=$(R6RS_LEXER_LIBPATH):$(YPSILON_SITELIB)
 R6RS_LEXER_RUNNER	= $(R6RS_LEXER_ENV) $(YPSILON)

@@ -150,7 +150,7 @@
   "        (yycontinue)\n")
 
 (define-constant default-<<EOF>>-action
-  (string-append "       (eof-object)" "\n"))
+  "       (eof-object)\n")
 
 (define-constant default-<<ERROR>>-action
   "       (assertion-violation #f \"invalid token\")\n")

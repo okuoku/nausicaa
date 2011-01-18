@@ -24,18 +24,14 @@ comment			";".*
 hblank			{space}|{tab}|{comment}
 vblank			"\n"
 
-digit			[0123456789]
-letter			[abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ]
-specini			"!"|"$"|"%"|"&"|"*"|"/"|":"|"<"|"="|">"|"?"|"~"|"_"|"^"
-specsub			"."|"+"|"-"
-initial			{letter}|{specini}
-subseq			{letter}|{digit}|{specini}|{specsub}
-peculid			"+"|"-"|"..."
-id			{initial}{subseq}*|{peculid}
+%[identifier.macros.l]
+id			{IDENTIFIER}|{PECULIAR_IDENTIFIER}
 
 open-include		"%["
 close-include		"]"
 percent-include		{open-include}[^\]]+{close-include}
+
+percent-percent		"%%"
 
 %%
 
@@ -45,7 +41,7 @@ percent-include		{open-include}[^\]]+{close-include}
 
 {percent-include}	(parse-percent-include		yytext yyline yycolumn)
 
-"%%"			(make-tok percent-percent-tok	yytext yyline yycolumn)
+{percent-percent}	(make-tok percent-percent-tok	yytext yyline yycolumn)
 
 {id}			(parse-id			yytext yyline yycolumn)
 

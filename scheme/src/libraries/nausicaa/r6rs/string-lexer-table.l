@@ -1,4 +1,4 @@
-;;; -*- mode: scheme; coding: utf-8 -*-
+;;; -*- mode: scheme; coding: utf-8; page-delimiter: "^;;page" -*-
 ;;;
 ;;;Part of: Nausicaa/Scheme
 ;;;Contents: R6RS string lexer table
@@ -24,60 +24,8 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
-DOUBLEQUOTE		\"
-
-ESCAPED-A		\\a
-ESCAPED-B		\\b
-ESCAPED-T		\\t
-ESCAPED-N		\\n
-ESCAPED-V		\\v
-ESCAPED-F		\\f
-ESCAPED-R		\\r
-ESCAPED-DOUBLEQUOTE	\\\"
-ESCAPED-BACKSLASH	\\\\
-
-;;<line ending> is:
-;;
-;;		\10		line feed
-;;		\13		carriage return
-;;		\133		next line
-;;		\10\13		carriage return, line feed
-;;		\13\133		carriage return, next line
-;;		\8232		line separator
-;;
-LINEENDING		[\10\13\133\8232]|(\13\10)|(\13\133)
-
-;;<intraline whitespace> is: char tabulation \9, any char whose Unicode
-;;category is Zs.
-;;
-;;Zs		#x0020		\32
-;;		#x00A0		\160
-;;		#x1680		\5760
-;;		#x180E		\6158
-;;		#x2000		\8192
-;;		#x2001		\8193
-;;		#x2002		\8194
-;;		#x2003		\8195
-;;		#x2004		\8196
-;;		#x2005		\8197
-;;		#x2006		\8198
-;;		#x2007		\8199
-;;		#x2008		\8200
-;;		#x2009		\8201
-;;		#x200A		\8202
-;;		#x202F		\8239
-;;		#x205F		\8287
-;;		#x3000		\12288
-;;
-INTRALINE-WHITESPACE	[\9\32\160\5760\6158\8192\8193\8194\8195\8196\8197\8198\8199\8200\8201\8202\8239\8287\12288]
-
-LINE-WRAP-TO-IGNORE	\\{INTRALINE-WHITESPACE}*{LINEENDING}{INTRALINE-WHITESPACE}*
-
-
-DIGIT			[0-9]
-HEXDIGIT		{DIGIT}|[a-fA-F]
-HEX-SCALAR-VALUE	{HEXDIGIT}+
-INLINE-HEX-ESCAPE	\\x{HEX-SCALAR-VALUE}\;
+;;page
+%[string.macros.l]
 
 STRING-ELEMENT		[^\"\\]+
 

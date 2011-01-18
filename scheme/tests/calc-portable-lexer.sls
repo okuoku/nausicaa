@@ -1,7 +1,8 @@
 (library (calc-portable-lexer)
   (export
     calc-lexer-table/portable)
-  (import (rnrs)(nausicaa silex lexer))
+  (import (rnrs)(nausicaa silex lexer)
+)
 
 ;
 ; Table generated from the file #f by SILex 1.0

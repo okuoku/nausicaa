@@ -1,7 +1,11 @@
 (library (nausicaa r6rs nested-comment-lexer-table)
   (export
     r6rs-nested-comment-lexer-table)
-  (import (rnrs)(nausicaa silex lexer)(nausicaa r6rs lexeme-processing)(nausicaa parser-tools lexical-token)(nausicaa parser-tools source-location))
+  (import (rnrs)(nausicaa silex lexer)
+(nausicaa r6rs lexeme-processing)
+(nausicaa parser-tools lexical-token)
+(nausicaa parser-tools source-location)
+)
 
 ;
 ; Table generated from the file nested-comment-lexer-table.l by SILex 1.0
@@ -84,42 +88,42 @@
                (if c
                    (if (< c 36)
                        (if (< c 35)
-                           (state-1 action)
-                           (state-3 action))
+                           (state-3 action)
+                           (state-1 action))
                        (if (= c 124)
                            (state-2 action)
-                           (state-1 action)))
+                           (state-3 action)))
                    action))))
           (state-1
            (lambda (action)
              (end-go-to-point)
-             action-2))
+             (let ((c (read-char)))
+               (if c
+                   (if (= c 124)
+                       (state-4 action-2)
+                       action-2)
+                   action-2))))
           (state-2
            (lambda (action)
              (end-go-to-point)
              (let ((c (read-char)))
                (if c
                    (if (= c 35)
-                       (state-4 action-2)
+                       (state-5 action-2)
                        action-2)
                    action-2))))
           (state-3
            (lambda (action)
              (end-go-to-point)
-             (let ((c (read-char)))
-               (if c
-                   (if (= c 124)
-                       (state-5 action-2)
-                       action-2)
-                   action-2))))
+             action-2))
           (state-4
            (lambda (action)
              (end-go-to-point)
-             action-1))
+             action-0))
           (state-5
            (lambda (action)
              (end-go-to-point)
-             action-0))
+             action-1))
           (start-automaton
            (lambda ()
              (if (peek-char)

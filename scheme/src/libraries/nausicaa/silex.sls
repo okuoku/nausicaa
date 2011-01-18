@@ -86,8 +86,8 @@
 (define (lex-error who line column . message-strings)
   (assertion-violation who
     (apply string-append "lex error in "
-	   (or (input-source) "anonymous source") ": "
-	   "line "   (if line   (number->string line)   "?")
+	   (or (input-source) "anonymous source") ":"
+	   " line "   (if line   (number->string line)   "?")
 	   " column " (if column (number->string column) "?")
 	   ": " message-strings)))
 
@@ -152,18 +152,18 @@
 			 "missing input method for lexer")))))
 	(lambda ()
 	  (let ((IS (lexer-make-IS (port: input-port) (counters: 'all))))
-	    (parameterize ((input-source	(or input-file #f))
-			   (action-lexer	(lexer-make-lexer action-tables IS))
-			   (class-lexer		(lexer-make-lexer class-tables  IS))
-			   (macro-lexer		(lexer-make-lexer macro-tables  IS))
-			   (regexp-lexer	(lexer-make-lexer regexp-tables IS))
-			   (string-lexer	(lexer-make-lexer string-tables IS))
-			   (lexer-raw		#f)
-			   (lexer-stack		'())
-			   (lexer-buffer-empty? #t)
-			   (lexer-buffer	#f)
-			   (lexer-history	'())
-			   (lexer-history-interp #f))
+	    (parametrise ((input-source		(or input-file #f))
+			  (action-lexer		(lexer-make-lexer action-tables IS))
+			  (class-lexer		(lexer-make-lexer class-tables  IS))
+			  (macro-lexer		(lexer-make-lexer macro-tables  IS))
+			  (regexp-lexer		(lexer-make-lexer regexp-tables IS))
+			  (string-lexer		(lexer-make-lexer string-tables IS))
+			  (lexer-raw		#f)
+			  (lexer-stack		'())
+			  (lexer-buffer-empty?	#t)
+			  (lexer-buffer		#f)
+			  (lexer-history	'())
+			  (lexer-history-interp	#f))
 	      (let-values (((<<EOF>>-action <<ERROR>>-action rules)
 			    (adapt-rules (parse-rules (parse-macros)))))
 
@@ -1798,19 +1798,6 @@ by the "make-tables.sps" program in this directory.
 	       (action (vector-ref action-table tok-type)))
 	  (action tok loop))))))
 
-(define (parse-white-space-one-regexp)
-  ;;Request a blank char between the name and the RE of a macro.
-  ;;
-  (let* ((tok      (lexer))
-	 (tok-type (get-tok-type tok)))
-    (if (or (= tok-type hblank-tok)
-	    (= tok-type vblank-tok))
-	(parse-regexp)
-      (lex-error 'lex:parse-white-space-one-regexp ; percent-percent-tok, id-tok or illegal-tok
-		 (get-tok-line tok)
-		 (get-tok-column tok)
-		 "white space expected"))))
-
 (define parse-macros
   ;;Parse the header of a  SILex table definition.  Accumulate the macro
   ;;definitions in an alist and  return it.  Tokens are acquired calling
@@ -1818,18 +1805,18 @@ by the "make-tables.sps" program in this directory.
   ;;
   (case-lambda
    (()
-    (parse-macros '()))
-   ((macros-already-defined)
-    (define (main macros-already-defined)
+    (parse-macros '() #t))
+   ((macros-already-defined parsing-full-table?)
+    (define (main macros-already-defined parsing-full-table?)
       (let loop ((macros-already-defined macros-already-defined))
-	(let ((result (%parse-macro macros-already-defined)))
+	(let ((result (%parse-macro macros-already-defined parsing-full-table?)))
 	  ;;If RESULT is a string: it is a file pathname to be parsed as
 	  ;;table of  macro definitions.  If RESULT  is a pair:  it is a
 	  ;;macros alist entry.  If RESULT  is false: it signals the end
 	  ;;of macros header in the table file.
 	  ;;
 	  (cond ((string? result)
-		 (parse-external-macro-file result macros-already-defined))
+		 (loop (%parse-external-macro-file result macros-already-defined)))
 		((pair? result)
 		 (loop (cons result macros-already-defined)))
 		(result
@@ -1838,7 +1825,7 @@ by the "make-tables.sps" program in this directory.
 		(else
 		 macros-already-defined)))))
 
-    (define (%parse-macro macros-already-defined)
+    (define (%parse-macro macros-already-defined parsing-full-table?)
       ;;Parse the next macro definition in the table.
       ;;
       ;;MACROS-ALREADY-DEFINED  is  null  or  an alist  of  the  already
@@ -1869,59 +1856,95 @@ by the "make-tables.sps" program in this directory.
       (let* ((tok	(lexer))
 	     (tok-type	(get-tok-type tok)))
 	(define (%error . message-strings)
-	  (lex-error 'lex:parse-macro (get-tok-line tok) (get-tok-column tok) message-strings))
+	  (apply lex-error 'lex:parse-macro (get-tok-line tok) (get-tok-column tok) message-strings))
 	(cond ((= tok-type id-tok)
 	       (let ((name (get-tok-attr tok)))
 		 (if (assoc name macros-already-defined)
 		     (%error "the macro \"" (get-tok-2nd-attr tok) "\" has already been defined")
-		   (let* ((tok-list (parse-white-space-one-regexp))
+		   (let* ((tok-list (%parse-white-space-one-regexp))
 			  (regexp (tokens->regexp tok-list macros-already-defined)))
 		     (pop-lexer)
 		     (cons name regexp)))))
 	      ((= tok-type percent-percent-tok)
 	       (pop-lexer)
-	       #f)
+	       (if parsing-full-table?
+		   #f
+		 (%error "invalid %% mark found while parsing macro file")))
 	      ((= tok-type percent-include-tok)
+	       (%parse-white-space-separator)
 	       ;;Tokens of type "percent include" have the file pathname
 	       ;;as string in the attribute slot.
 	       (get-tok-attr tok))
 	      ((= tok-type illegal-tok)
 	       (%error "macro name expected"))
 	      ((= tok-type eof-tok)
-	       (%error "end of file found before %%")))))
+	       (if parsing-full-table?
+		   (%error "end of file found before %%")
+		 #f)))))
 
-    (main macros-already-defined))))
+    (define (%parse-white-space-one-regexp)
+      ;;After a  macro identifier has been successfully  parsed, parse a
+      ;;horizontal  or  vertical white  space  followed  by the  regexp.
+      ;;Return the result of parsing the regexp.
+      ;;
+      ;;It is an error if the next token is not a white space.
+      ;;
+      (let* ((tok	(lexer))
+	     (tok-type	(get-tok-type tok)))
+	(if (or (= tok-type hblank-tok)
+		(= tok-type vblank-tok))
+	    (parse-regexp)
+	  (lex-error 'lex:%parse-white-space-one-regexp ; percent-percent-tok, id-tok or illegal-tok
+		     (get-tok-line tok) (get-tok-column tok) "white space expected"))))
 
-(define (parse-external-macro-file pathname macros-already-defined)
-  ;;Parse  the file in  PATHNAME reading  macro definitions;  only macro
-  ;;definitions must be  there: the format of the file  must be the same
-  ;;of the header of an ordinary silex table.
-  ;;
-  ;;MACROS-ALREADY-DEFINED must  be an alist  in the same format  as the
-  ;;one  built   by  PARSE-MACROS:  it  is  used   to  detect  duplicate
-  ;;definitions.
-  ;;
-  (let ((input-port  #f))
-    (dynamic-wind
-	(lambda ()
-	  (set! input-port (open-input-file pathname)))
-	(lambda ()
-	  (let ((IS (lexer-make-IS (port: input-port) (counters: 'all))))
-	    (parameterize ((input-source	pathname)
-			   (action-lexer	(lexer-make-lexer action-tables IS))
-			   (class-lexer		(lexer-make-lexer class-tables  IS))
-			   (macro-lexer		(lexer-make-lexer macro-tables  IS))
-			   (regexp-lexer	(lexer-make-lexer regexp-tables IS))
-			   (string-lexer	(lexer-make-lexer string-tables IS))
-			   (lexer-raw		#f)
-			   (lexer-stack		'())
-			   (lexer-buffer-empty? #t)
-			   (lexer-buffer	#f)
-			   (lexer-history	'())
-			   (lexer-history-interp #f))
-	      (parse-macros macros-already-defined))))
-	(lambda ()
-	  (close-input-port input-port)))))
+    (define (%parse-white-space-separator)
+      ;;After a percent include  directive has been successfully parsed,
+      ;;parse a horizontal or vertical white space as separator.
+      ;;
+      ;;It is an error if the next token is not a white space.
+      ;;
+      (let* ((tok	(lexer))
+	     (tok-type	(get-tok-type tok)))
+	(unless (or (= tok-type hblank-tok)
+		    (= tok-type vblank-tok))
+	  (lex-error 'lex:%parse-white-space-separator (get-tok-line tok) (get-tok-column tok)
+		     "white space expected"))))
+
+    (define (%parse-external-macro-file pathname macros-already-defined)
+      ;;Parse the file in PATHNAME reading macro definitions; only macro
+      ;;definitions must  be there: the format  of the file  must be the
+      ;;same  of the  header of  an  ordinary silex  table, without  the
+      ;;trailing "%%".
+      ;;
+      ;;MACROS-ALREADY-DEFINED must  be an alist  in the same  format as
+      ;;the one  built by PARSE-MACROS:  it is used to  detect duplicate
+      ;;definitions.
+      ;;
+      ;;Return  the  alist  of   defined  macros,  already  joined  with
+      ;;MACROS-ALREADY-DEFINED.
+      ;;
+      (let ((input-port (open-input-file pathname)))
+	(dynamic-wind
+	    (lambda () #f)
+	    (lambda ()
+	      (let ((IS (lexer-make-IS (port: input-port) (counters: 'all))))
+		(parametrise ((input-source		pathname)
+			      (action-lexer		(lexer-make-lexer action-tables IS))
+			      (class-lexer		(lexer-make-lexer class-tables  IS))
+			      (macro-lexer		(lexer-make-lexer macro-tables  IS))
+			      (regexp-lexer		(lexer-make-lexer regexp-tables IS))
+			      (string-lexer		(lexer-make-lexer string-tables IS))
+			      (lexer-raw		#f)
+			      (lexer-stack		'())
+			      (lexer-buffer-empty?	#t)
+			      (lexer-buffer		#f)
+			      (lexer-history		'())
+			      (lexer-history-interp	#f))
+		  (parse-macros macros-already-defined #f))))
+	    (lambda ()
+	      (close-input-port input-port)))))
+
+    (main macros-already-defined parsing-full-table?))))
 
 (define (parse-action-end <<EOF>>-action? <<ERROR>>-action? action?)
   (let ((act (lexer-get-history)))
@@ -2758,9 +2781,10 @@ by the "make-tables.sps" program in this directory.
 				      "  (import ")
 		       output-port)
 	      (write library-language output-port)
-	      (display "(nausicaa silex lexer)" output-port)
+	      (display "(nausicaa silex lexer)\n" output-port)
 	      (for-each (lambda (spec)
-			  (write spec output-port))
+			  (write spec output-port)
+			  (newline output-port))
 		library-imports)
 	      (display ")\n\n" output-port))
 	    (out-print-table input-file table-name pretty? counters-type lexer-format
@@ -2770,7 +2794,9 @@ by the "make-tables.sps" program in this directory.
 	    (when library-spec
 	      (display "\n) ; end of library\n\n" output-port)))
 	  (lambda ()
-	    ((if opened-file? close-output-port flush-output-port) output-port)))
+	    (flush-output-port output-port)
+	    (when opened-file?
+	      (close-output-port output-port))))
       (or (not value-getter)
 	  ;;Make the output value.
 	  (let ((ell (read (open-string-input-port (value-getter)))))

@@ -498,8 +498,8 @@ its input.
 
 
 A specification for a lexical analyser contains two parts: the
-@dfn{macro definitions part} and the @dfn{rules part}.  The two parts
-are separated by the mark @code{%%}.  Example:
+@dfn{macro definitions part}, or @dfn{header}, and the @dfn{rules part}.
+The two parts are separated by the mark @code{%%}.  Example:
 
 @example
 blanks          [ \9\10\13]+
@@ -539,18 +539,31 @@ entire line when writing a regular expression matching a semicolon.
 
 The first part of a specification contains zero or more macro
 definitions.  A definition consists of a name and a regular expression,
-separated by white space.  It looks better when each definition is
-written on a separate line.
+separated by white spaces (meaning: horizontal blank characters,
+vertical blank characters like newlines and comments).  It looks better
+when each definition is written on a separate line.
 
-The syntax for a macro name is that of a Scheme symbol.  The case of the
-letters is not significant.  For example, @code{abcd}, @code{+},
-@code{...}, @code{Digit} and @code{digit} are all valid macro names; the
-last two being the same.  We cannot write two macro definitions with the
-same name.
+The syntax for a macro name is that of an @rnrs{6} symbol.  For example,
+@code{abcd}, @code{+}, @code{...}, @code{Digit} and @code{digit} are all
+valid macro names; the last two being different.  It is an error to
+write two macro definitions with the same name.
+
+The special syntax:
+
+@example
+%[@meta{pathname}]
+@end example
+
+@noindent
+can be used to include a macro definition file whose pathname is
+@meta{pathname}, which must be an absolute pathname or a pathname
+relative to the current working directory; @meta{pathname} is handed as
+is to @func{open-input-file}; @meta{pathname} can be any string not
+including the @samp{]} character.
 
 The defined macro can be referenced in regular expressions using the
 syntax @code{@{@var{name}@}}.  The scope of a macro definition includes
-the remaining definitions and the rules part.  It is analogous to the
+the remaining definitions and the rules part; it is analogous to
 @code{let*} is Scheme, where the macro definitions correspond to the
 bindings and the rules part correspond to the body.
 
