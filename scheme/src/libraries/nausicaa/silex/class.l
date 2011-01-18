@@ -20,7 +20,7 @@
 
 hexradix	(#x)|(#X)
 hexdigit	[0123456789abcdefABCDEF]
-digit [0123456789]
+digit		[0123456789]
 
 %%
 

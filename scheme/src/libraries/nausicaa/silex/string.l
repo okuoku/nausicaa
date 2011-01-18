@@ -97,27 +97,20 @@ INLINE-HEX-ESCAPE	\\x{HEX-SCALAR-VALUE}\;
 
 {DOUBLEQUOTE}		(make-tok doublequote-tok yytext yyline yycolumn)
 
-{ESCAPED-A}		(parse-escaped-char yytext #\x7 yyline yycolumn)
-{ESCAPED-B}		(parse-escaped-char yytext #\x8 yyline yycolumn)
-{ESCAPED-T}		(parse-escaped-char yytext #\x9 yyline yycolumn)
+{ESCAPED-A}		(parse-escaped-char yytext yyline yycolumn #\x7)
+{ESCAPED-B}		(parse-escaped-char yytext yyline yycolumn #\x8)
+{ESCAPED-T}		(parse-escaped-char yytext yyline yycolumn #\x9)
 ;;Newline is special for SILex.
 {ESCAPED-N}		(parse-spec-char yytext yyline yycolumn)
-{ESCAPED-V}		(parse-escaped-char yytext #\xB yyline yycolumn)
-{ESCAPED-F}		(parse-escaped-char yytext #\xC yyline yycolumn)
-{ESCAPED-R}		(parse-escaped-char yytext #\xD yyline yycolumn)
-{ESCAPED-DOUBLEQUOTE}	(parse-escaped-char yytext #\x22 yyline yycolumn)
-{ESCAPED-BACKSLASH}	(parse-escaped-char yytext #\x5C yyline yycolumn)
-
+{ESCAPED-V}		(parse-escaped-char yytext yyline yycolumn #\xB)
+{ESCAPED-F}		(parse-escaped-char yytext yyline yycolumn #\xC)
+{ESCAPED-R}		(parse-escaped-char yytext yyline yycolumn #\xD)
+{ESCAPED-DOUBLEQUOTE}	(parse-escaped-char yytext yyline yycolumn #\x22)
+{ESCAPED-BACKSLASH}	(parse-escaped-char yytext yyline yycolumn #\x5C)
 
 {LINE-WRAP-TO-IGNORE}	;;ignored
 
-{INLINE-HEX-ESCAPE}	(let* ((len (string-length yytext))
-			       (num (string->number (substring yytext 2 (- len 1)) 16)))
-			  (if (or (<= 0 num #xD7FF) (<= #xE000 num #x10FFFF))
-			      (make-tok char-tok yytext yyline yycolumn (integer->char num))
-			    (assertion-violation #f
-			      "invalid inline hex escape while parsing string in SILex table"
-			      yytext)))
+{INLINE-HEX-ESCAPE}	(parse-inline-hex-escape yytext yyline yycolumn)
 
 [^]			(parse-ordinary-char      yytext yyline yycolumn)
 <<EOF>>			(make-tok eof-tok         yytext yyline yycolumn)

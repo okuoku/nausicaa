@@ -42,10 +42,11 @@
     parse-escaped-char
     parse-spec-char		parse-digits-char
     parse-hex-digits-char	parse-quoted-char
-    parse-ordinary-char		extract-id
+    parse-ordinary-char
     parse-id			parse-id-ref
     parse-power-m		parse-power-m-inf
-    parse-power-m-n
+    parse-power-m-n		parse-percent-include
+    parse-inline-hex-escape
 
     ;; constants
     eof-tok			hblank-tok
@@ -161,44 +162,82 @@
 ;;
 
 (define (parse-spec-char lexeme line column)
+  ;;This is used to parse  lexemes holding the newline character.  It is
+  ;;special  because it  signals the  end of  the regexps  in  the macro
+  ;;header of table files.
+  ;;
   (make-tok char-tok lexeme line column newline-ch))
 
 (define (parse-digits-char lexeme line column)
-  (let* ((num (substring lexeme 1 (string-length lexeme)))
-	 (n (string->number num)))
-    (make-tok char-tok lexeme line column n)))
+  ;;Parse lexemes holding character specifications as backslash-integer.
+  ;;
+  (make-tok char-tok lexeme line column
+	    (string->number (substring lexeme 1 (string-length lexeme)))))
 
 (define (parse-hex-digits-char lexeme line column)
-  (let ((n (string->number lexeme)))
-    (make-tok char-tok lexeme line column n)))
+  ;;Parse  lexemes  holding   character  specifications  as  hexadecimal
+  ;;numbers prefixed by "#x" or "#X".
+  ;;
+  (make-tok char-tok lexeme line column (string->number lexeme)))
 
 (define (parse-quoted-char lexeme line column)
   ;;This is the  original function to parse "escaped"  characters in the
   ;;string; escaped characters are the ones quoted with a backslash.
   ;;
-  (let ((c (string-ref lexeme 1)))
-    (make-tok char-tok lexeme line column (char->integer c))))
+  (make-tok char-tok lexeme line column (char->integer (string-ref lexeme 1))))
 
-(define (parse-escaped-char lexeme ch line column)
-  ;;This function was added to parse escaped characters in R6RS strings.
+(define (parse-escaped-char lexeme line column ch)
+  ;;Parse escaped  characters in  R6RS strings.  CH  must be  the Scheme
+  ;;character itself.
   ;;
   (make-tok char-tok lexeme line column (char->integer ch)))
 
-(define (parse-ordinary-char lexeme line column)
-  (let ((c (string-ref lexeme 0)))
-    (make-tok char-tok lexeme line column (char->integer c))))
+(define (parse-inline-hex-escape lexeme line column)
+  ;;Parse  an  "inline  hex  escape" character  specification  inside  a
+  ;;string.  These are the "\\xH;" ones,  where "H" is a sequence of hex
+  ;;digits.
+  ;;
+  (let* ((len (string-length lexeme))
+	 (num (string->number (substring lexeme 2 (- len 1)) 16)))
+    (if (or (<= 0 num #xD7FF) (<= #xE000 num #x10FFFF))
+	(make-tok char-tok lexeme line column (integer->char num))
+      (assertion-violation #f
+	"invalid inline hex escape while parsing string in SILex table"
+	lexeme))))
 
-(define (extract-id s)
-  (let ((len (string-length s)))
-    (substring s 1 (- len 1))))
+(define (parse-ordinary-char lexeme line column)
+  (make-tok char-tok lexeme line column (char->integer (string-ref lexeme 0))))
 
 (define (parse-id lexeme line column)
-  (make-tok id-tok lexeme line column (string-downcase lexeme) lexeme))
+  ;;Parse the identifier in a macro definition.
+  ;;
+  ;;(Marco Maggi; Tue  Jan 18, 2011) The one below  is the original code
+  ;;from SILex 1.0.  Notice that  the string is converted to downcase in
+  ;;the attribute of  the token: the attribute is  the unique value used
+  ;;to  compare macro  names.  Converting  it to  downcase  means having
+  ;;case-insensitive  macro names;  we have  removed this  conversion to
+  ;;have  case-sensitive  macro  names,  which is  consistent  with  the
+  ;;convention of R6RS symbols.
+  ;;
+  ;;	(make-tok id-tok lexeme line column (string-downcase lexeme) lexeme)
+  ;;
+  (make-tok id-tok lexeme line column lexeme lexeme))
 
 (define (parse-id-ref lexeme line column)
-  (let* ((orig-name (extract-id lexeme))
-	 (name (string-downcase orig-name)))
-    (make-tok subst-tok lexeme line column name orig-name)))
+  ;;Parse a macro reference.  LEXEME must be a string with the format:
+  ;;
+  ;;	{IDENTIFIER}
+  ;;
+  ;;and we extract IDENTIFIER to build a subst token.
+  ;;
+  ;;(Marco Maggi;  Tue Jan  18, 2011) The  original code had  a downcase
+  ;;ORIG-NAME in the attribute slot of the token record; it was meant to
+  ;;match   the  old   code  in   PARSE-ID,  making   macro  identifiers
+  ;;case-insensitive.  The  code has been  changed to make it  match the
+  ;;new code in PARSE-ID.
+  ;;
+  (let ((orig-name (substring lexeme 1 (- (string-length lexeme) 1))))
+    (make-tok subst-tok lexeme line column orig-name orig-name)))
 
 (define (parse-power-m lexeme line column)
   (let* ((len    (string-length lexeme))
@@ -225,6 +264,19 @@
 		 (range (cons m n)))
 	    (make-tok power-tok lexeme line column range))
 	(loop (+ comma 1))))))
+
+(define (parse-percent-include lexeme line column)
+  ;;Parse a file  inclusion directive from a table  file; return a token
+  ;;record.  We expect LEXEME to be a string of the format:
+  ;;
+  ;;	%[<PATHNAME>]
+  ;;
+  ;;with  <PATHNAME>  being  a  non-empty  string  representing  a  file
+  ;;pathname.  We  extract the  pathname and store  it as string  in the
+  ;;attribute of the returned token record.
+  ;;
+  (make-tok percent-include-tok lexeme line column
+  	    (substring lexeme 2 (- (string-length lexeme) 1))))
 
 
 ;;;; done
