@@ -17,10 +17,6 @@
        			(make-tok eof-tok		yytext yyline yycolumn)
 
 ;;; end of file
-;; Local Variables:
-;; mode: scheme
-;; coding: utf-8-unix
-;; End:
        ))
    (lambda (yycontinue yygetc yyungetc)
      (lambda (yytext yyline yycolumn yyoffset)

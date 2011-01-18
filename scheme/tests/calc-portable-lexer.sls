@@ -1,7 +1,8 @@
 (library (calc-portable-lexer)
   (export
     calc-lexer-table/portable)
-  (import (rnrs)(nausicaa silex lexer)
+  (import (rnrs)
+(nausicaa silex lexer)
 )
 
 ;

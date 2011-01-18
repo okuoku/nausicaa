@@ -86,7 +86,7 @@
 (define (lex-error who line column . message-strings)
   (assertion-violation who
     (apply string-append "lex error in "
-	   (or (input-source) "anonymous source") ":"
+	   (or (string-append "\"" (input-source) "\"") "anonymous source")
 	   " line "   (if line   (number->string line)   "?")
 	   " column " (if column (number->string column) "?")
 	   ": " message-strings)))
@@ -206,19 +206,19 @@
 
 ;;; Fonctions de manipulations des regles
 
-(define-record-type (:rule :rule-make rule?)
-  (nongenerative nausicaa:silex::rule)
-  (fields (immutable line	get-rule-line)
-	  (immutable eof?	get-rule-eof?)
-	  (immutable error?	get-rule-error?)
-	  (immutable bol?	get-rule-bol?)
-	  (immutable eol?	get-rule-eol?)
-	  (mutable regexp	get-rule-regexp		set-rule-regexp)
-	  (mutable action	get-rule-action		set-rule-action)
-	  (mutable yytext?	get-rule-yytext?	set-rule-yytext?)))
-
-(define (make-rule line eof? error? bol? eol? regexp action)
-  (:rule-make line eof? error? bol? eol? regexp action #f))
+(define-record-type <rule>
+  (nongenerative nausicaa:silex:<rule>)
+  (protocol (lambda (make-rule)
+	      (lambda (line eof? error? bol? eol? regexp action)
+		(make-rule line eof? error? bol? eol? regexp action #f))))
+  (fields (immutable line)
+	  (immutable eof?)
+	  (immutable error?)
+	  (immutable bol?)
+	  (immutable eol?)
+	  (mutable regexp)
+	  (mutable action)
+	  (mutable yytext?)))
 
 
 ;;; Noeuds des regexp
@@ -589,7 +589,7 @@ by the "make-tables.sps" program in this directory.
 ;;    (lambda (yycontinue yygetc yyungetc)
 ;;      (lambda (yytext yyline yycolumn yyoffset)
 ;;        (begin
-;; 	 (display "Error: Invalid token.")
+;; 	 (display "Error: Invalid token")
 ;; 	 (newline)
 ;; 	 'error)
 ;;        ))
@@ -660,7 +660,7 @@ the "make-tables.sps" program in this directory.
 ;;    (lambda (yycontinue yygetc yyungetc)
 ;;      (lambda (yytext yyline yycolumn yyoffset)
 ;;        (begin
-;; 	 (display "Error: Invalid token.")
+;; 	 (display "Error: Invalid token")
 ;; 	 (newline)
 ;; 	 'error)
 ;;        ))
@@ -756,7 +756,7 @@ the "make-tables.sps" program in this directory.
 ;;    (lambda (yycontinue yygetc yyungetc)
 ;;      (lambda (yytext yyline yycolumn yyoffset)
 ;;        (begin
-;; 	 (display "Error: Invalid token.")
+;; 	 (display "Error: Invalid token")
 ;; 	 (newline)
 ;; 	 'error)
 ;;        ))
@@ -894,7 +894,7 @@ by the "make-tables.sps" program in this directory.
 ;;    (lambda (yycontinue yygetc yyungetc)
 ;;      (lambda (yytext yyline yycolumn yyoffset)
 ;;        (begin
-;; 	 (display "Error: Invalid token.")
+;; 	 (display "Error: Invalid token")
 ;; 	 (newline)
 ;; 	 'error)
 ;;        ))
@@ -1182,7 +1182,7 @@ by the "make-tables.sps" program in this directory.
 ;;    (lambda (yycontinue yygetc yyungetc)
 ;;      (lambda (yytext yyline yycolumn yyoffset)
 ;;        (begin
-;; 	 (display "Error: Invalid token.")
+;; 	 (display "Error: Invalid token")
 ;; 	 (newline)
 ;; 	 'error)
 ;;        ))
@@ -1237,7 +1237,6 @@ by the "make-tables.sps" program in this directory.
 ;;       (1 . 1)   (3 . 3)   (2 . 2))))
 
 
-
 ;;Whenever a SILex table or macro file is parsed, this parameter must be
 ;;set to #f or a string representing a human readable description of the
 ;;input source.  It is used to report errors.
@@ -1249,9 +1248,8 @@ by the "make-tables.sps" program in this directory.
 (define regexp-lexer	(make-parameter #f))
 (define string-lexer	(make-parameter #f))
 
-;
-; Lexer generique
-;
+
+;;;; lexer generique
 
 (define lexer-raw
   (make-parameter #f))
@@ -1335,9 +1333,8 @@ by the "make-tables.sps" program in this directory.
     (lexer-history '())
     str2))
 
-;
-; Traitement des listes de tokens
-;
+
+;;;; traitement des listes de tokens
 
 (define de-anchor-tokens
   (let ((not-anchor-toks (make-dispatch-table number-of-tokens
@@ -1349,28 +1346,24 @@ by the "make-tables.sps" program in this directory.
     (lambda (tok-list)
       (if (null? tok-list)
 	  '()
-	  (let* ((tok (car tok-list))
-		 (tok-type (get-tok-type tok))
-		 (toks (cdr tok-list))
-		 (new-toks (de-anchor-tokens toks)))
-	    (cond ((vector-ref not-anchor-toks tok-type)
-		   (cons tok new-toks))
-		  ((or (= tok-type caret-tok) (= tok-type dollar-tok))
-		   (let* ((line (get-tok-line tok))
-			  (column (get-tok-column tok))
-			  (attr (if (= tok-type caret-tok) caret-ch dollar-ch))
-			  (new-tok (make-tok char-tok "" line column attr)))
-		     (cons new-tok new-toks)))
-		  ((= tok-type <<EOF>>-tok)
-		   (lex-error 'lex:de-anchor-tokens
-			      (get-tok-line tok)
-			      (get-tok-column tok)
-			      "the <<EOF>> anchor must be used alone and only after %%."))
-		  ((= tok-type <<ERROR>>-tok)
-		   (lex-error 'lex:de-anchor-tokens
-			      (get-tok-line tok)
-			      (get-tok-column tok)
-			      "the <<ERROR>> anchor must be used alone and only after %%."))))))))
+	(let* ((tok (car tok-list))
+	       (tok-type (get-tok-type tok))
+	       (toks (cdr tok-list))
+	       (new-toks (de-anchor-tokens toks)))
+	  (cond ((vector-ref not-anchor-toks tok-type)
+		 (cons tok new-toks))
+		((or (= tok-type caret-tok) (= tok-type dollar-tok))
+		 (let* ((line (get-tok-line tok))
+			(column (get-tok-column tok))
+			(attr (if (= tok-type caret-tok) caret-ch dollar-ch))
+			(new-tok (make-tok char-tok "" line column attr)))
+		   (cons new-tok new-toks)))
+		((= tok-type <<EOF>>-tok)
+		 (lex-error 'lex:de-anchor-tokens (get-tok-line tok) (get-tok-column tok)
+			    "the <<EOF>> anchor must be used alone and only after %%"))
+		((= tok-type <<ERROR>>-tok)
+		 (lex-error 'lex:de-anchor-tokens (get-tok-line tok) (get-tok-column tok)
+			    "the <<ERROR>> anchor must be used alone and only after %%"))))))))
 
 (define (strip-end l)
   (if (null? (cdr l))
@@ -1382,14 +1375,14 @@ by the "make-tables.sps" program in this directory.
 	 (line (get-tok-line tok1))
 	 (tok1-type (get-tok-type tok1)))
     (cond ((and (= tok1-type <<EOF>>-tok) (null? (cdr tok-list)))
-	   (make-rule line #t #f #f #f '() #f))
+	   (make-<rule> line #t #f #f #f '() #f))
 	  ((and (= tok1-type <<ERROR>>-tok) (null? (cdr tok-list)))
-	   (make-rule line #f #t #f #f '() #f))
+	   (make-<rule> line #f #t #f #f '() #f))
 	  (else
 	   (let* ((bol? (= tok1-type caret-tok))
 		  (tok-list2 (if bol? (cdr tok-list) tok-list)))
 	     (if (null? tok-list2)
-		 (make-rule line #f #f bol? #f tok-list2 #f)
+		 (make-<rule> line #f #f bol? #f tok-list2 #f)
 	       (let* ((len (length tok-list2))
 		      (tok2 (list-ref tok-list2 (- len 1)))
 		      (tok2-type (get-tok-type tok2))
@@ -1397,7 +1390,7 @@ by the "make-tables.sps" program in this directory.
 		      (tok-list3 (if eol?
 				     (strip-end tok-list2)
 				   tok-list2)))
-		 (make-rule line #f #f bol? eol? tok-list3 #f))))))))
+		 (make-<rule> line #f #f bol? eol? tok-list3 #f))))))))
 
 (define (char-list->conc char-list)
   (if (null? char-list)
@@ -1426,11 +1419,8 @@ by the "make-tables.sps" program in this directory.
 			  (if ass
 			      (cons (cdr ass) (cdr tok-list))
 			    (lex-error 'lex:parse-tokens-atom
-				       (get-tok-line tok)
-				       (get-tok-column tok)
-				       "unknown macro \""
-				       (get-tok-2nd-attr tok)
-				       "\".")))))
+				       (get-tok-line tok) (get-tok-column tok)
+				       "unknown macro \"" (get-tok-2nd-attr tok) "\"")))))
 		(cons char-tok
 		      (lambda (tok tok-list macros)
 			(let ((c (get-tok-attr tok)))
@@ -1445,10 +1435,8 @@ by the "make-tables.sps" program in this directory.
 			       (re (char-list->conc char-list)))
 			  (cons re (cdr tok-list))))))
 	  (lambda (tok tok-list macros)
-	    (lex-error 'lex:parse-tokens-atom
-		       (get-tok-line tok)
-		       (get-tok-column tok)
-		       "syntax error in regular expression.")))))
+	    (lex-error 'lex:parse-tokens-atom (get-tok-line tok) (get-tok-column tok)
+		       "syntax error in regular expression")))))
     (lambda (tok-list macros)
       (let* ((tok (car tok-list))
 	     (tok-type (get-tok-type tok))
@@ -1461,10 +1449,8 @@ by the "make-tables.sps" program in this directory.
 	 (end (cdr range)))
     (if (or (eq? 'inf end) (<= start end))
 	range
-      (lex-error 'lex:check-power-tok
-		 (get-tok-line tok)
-		 (get-tok-column tok)
-		 "incorrect power specification."))))
+      (lex-error 'lex:check-power-tok (get-tok-line tok) (get-tok-column tok)
+		 "incorrect power specification"))))
 
 (define (power->star-plus re range)
   (power->star-plus-rec re (car range) (cdr range)))
@@ -1561,22 +1547,19 @@ by the "make-tables.sps" program in this directory.
     (cons re tok-list4)))
 
 (define (parse-tokens-match tok-list line)
+  (define (%error)
+    (lex-error 'lex:parse-tokens-match line #f "mismatched parentheses"))
   (let loop ((tl tok-list) (count 0))
     (if (null? tl)
 	(when (> count 0)
-	  (lex-error 'lex:parse-tokens-match
-		     line
-		     #f
-		     "mismatched parentheses."))
+	  (%error))
       (let* ((tok (car tl))
 	     (tok-type (get-tok-type tok)))
 	(cond ((= tok-type lpar-tok)
 	       (loop (cdr tl) (+ count 1)))
 	      ((= tok-type rpar-tok)
-	       (if (zero? count)
-		   (lex-error line
-			      #f
-			      "mismatched parentheses."))
+	       (when (zero? count)
+		 (%error))
 	       (loop (cdr tl) (- count 1)))
 	      (else
 	       (loop (cdr tl) count)))))))
@@ -1601,10 +1584,10 @@ by the "make-tables.sps" program in this directory.
 
 (define (tokens->rule tok-list macros)
   (let* ((rule (extract-anchors tok-list))
-	 (tok-list2 (get-rule-regexp rule))
+	 (tok-list2 (<rule>-regexp rule))
 	 (tok-list3 (de-anchor-tokens tok-list2))
 	 (re (parse-tokens tok-list3 macros)))
-    (set-rule-regexp rule re)
+    (<rule>-regexp-set! rule re)
     rule))
 
 ; Retourne une paire: <<EOF>>-action et vecteur des regles ordinaires
@@ -1615,188 +1598,21 @@ by the "make-tables.sps" program in this directory.
 		(or <<ERROR>>-action default-<<ERROR>>-action)
 		(list->vector (reverse revr)))
       (let ((r1 (car r)))
-	(cond ((get-rule-eof? r1)
+	(cond ((<rule>-eof? r1)
 	       (if <<EOF>>-action
-		   (lex-error 'lex:adapt-rules
-			      (get-rule-line r1)
-			      #f
-			      "the <<EOF>> anchor can be used at most once.")
-		 (loop (cdr r) revr (get-rule-action r1) <<ERROR>>-action)))
-	      ((get-rule-error? r1)
+		   (lex-error 'lex:adapt-rules (<rule>-line r1) #f
+			      "the <<EOF>> anchor can be used at most once")
+		 (loop (cdr r) revr (<rule>-action r1) <<ERROR>>-action)))
+	      ((<rule>-error? r1)
 	       (if <<ERROR>>-action
-		   (lex-error 'lex:adapt-rules
-			      (get-rule-line r1)
-			      #f
-			      "the <<ERROR>> anchor can be used at most once.")
-		 (loop (cdr r) revr <<EOF>>-action (get-rule-action r1))))
+		   (lex-error 'lex:adapt-rules (<rule>-line r1) #f
+			      "the <<ERROR>> anchor can be used at most once")
+		 (loop (cdr r) revr <<EOF>>-action (<rule>-action r1))))
 	      (else
 	       (loop (cdr r) (cons r1 revr) <<EOF>>-action <<ERROR>>-action)))))))
 
-;
-; Analyseur de fichier lex
-;
-
-(define (parse-horiz-and-vertical-blanks)
-  (let* ((tok (lexer))
-	 (tok-type (get-tok-type tok)))
-    (if (or (= tok-type hblank-tok)
-	    (= tok-type vblank-tok))
-	(parse-horiz-and-vertical-blanks)
-      (lexer-unget tok))))
-
-(define (parse-class-range)
-  (let* ((tok (lexer))
-	 (tok-type (get-tok-type tok)))
-    (cond ((= tok-type char-tok)
-	   (let* ((c (get-tok-attr tok))
-		  (tok2 (lexer))
-		  (tok2-type (get-tok-type tok2)))
-	     (if (not (= tok2-type minus-tok))
-		 (begin
-		   (lexer-unget tok2)
-		   (cons c c))
-	       (let* ((tok3 (lexer))
-		      (tok3-type (get-tok-type tok3)))
-		 (cond ((= tok3-type char-tok)
-			(let ((c2 (get-tok-attr tok3)))
-			  (if (> c c2)
-			      (lex-error 'lex:parse-class-range
-					 (get-tok-line tok3)
-					 (get-tok-column tok3)
-					 "bad range specification in "
-					 "character class;"
-					 #\newline
-					 "the start character is "
-					 "higher than the end one.")
-			    (cons c c2))))
-		       ((or (= tok3-type rbrack-tok)
-			    (= tok3-type minus-tok))
-			(lex-error 'lex:parse-class-range
-				   (get-tok-line tok3)
-				   (get-tok-column tok3)
-				   "bad range specification in "
-				   "character class; a specification"
-				   #\newline
-				   "like \"-x\", \"x--\" or \"x-]\" has "
-				   "been used."))
-		       ((= tok3-type eof-tok)
-			(lex-error 'lex:parse-class-range
-				   (get-tok-line tok3)
-				   #f
-				   "eof of file found while parsing "
-				   "a character class.")))))))
-	  ((= tok-type minus-tok)
-	   (lex-error 'lex:parse-class-range
-		      (get-tok-line tok)
-		      (get-tok-column tok)
-		      "bad range specification in character class; a "
-		      "specification"
-		      #\newline
-		      "like \"-x\", \"x--\" or \"x-]\" has been used."))
-	  ((= tok-type rbrack-tok)
-	   #f)
-	  ((= tok-type eof-tok)
-	   (lex-error 'lex:parse-class-range
-		      (get-tok-line tok)
-		      #f
-		      "eof of file found while parsing "
-		      "a character class.")))))
-
-(define (parse-class initial-class negative-class? line column)
-  (push-lexer (class-lexer))
-  (let loop ((class initial-class))
-    (let ((new-range (parse-class-range)))
-      (if new-range
-	  (loop (class-union (list new-range) class))
-	(let ((class (if negative-class?
-			 (class-compl class)
-		       class)))
-	  (pop-lexer)
-	  (make-tok class-tok "" line column class))))))
-
-(define (parse-string line column)
-  (push-lexer (string-lexer))
-  (let ((char-list (let loop ()
-		     (let* ((tok (lexer))
-			    (tok-type (get-tok-type tok)))
-		       (cond ((= tok-type char-tok)
-			      (cons (get-tok-attr tok) (loop)))
-			     ((= tok-type doublequote-tok)
-			      (pop-lexer)
-			      '())
-			     (else ; eof-tok
-			      (lex-error 'lex:parse-string
-					 (get-tok-line tok)
-					 #f
-					 "end of file found while "
-					 "parsing a string.")))))))
-    (make-tok string-tok "" line column char-list)))
-
-(define parse-regexp
-  (let* ((end-action
-	  (lambda (tok loop)
-	    (lexer-unget tok)
-	    (pop-lexer)
-	    (lexer-set-blank-history #f)
-	    `()))
-	 (action-table
-	  (make-dispatch-table
-	   number-of-tokens
-	   (list (cons eof-tok end-action)
-		 (cons hblank-tok end-action)
-		 (cons vblank-tok end-action)
-		 (cons lbrack-tok
-		       (lambda (tok loop)
-			 (let ((tok1 (parse-class (list)
-						  #f
-						  (get-tok-line tok)
-						  (get-tok-column tok))))
-			   (cons tok1 (loop)))))
-		 (cons lbrack-rbrack-tok
-		       (lambda (tok loop)
-			 (let ((tok1 (parse-class
-				      (list (cons rbrack-ch rbrack-ch))
-				      #f
-				      (get-tok-line tok)
-				      (get-tok-column tok))))
-			   (cons tok1 (loop)))))
-		 (cons lbrack-caret-tok
-		       (lambda (tok loop)
-			 (let ((tok1 (parse-class (list)
-						  #t
-						  (get-tok-line tok)
-						  (get-tok-column tok))))
-			   (cons tok1 (loop)))))
-		 (cons lbrack-minus-tok
-		       (lambda (tok loop)
-			 (let ((tok1 (parse-class
-				      (list (cons minus-ch minus-ch))
-				      #f
-				      (get-tok-line tok)
-				      (get-tok-column tok))))
-			   (cons tok1 (loop)))))
-		 (cons doublequote-tok
-		       (lambda (tok loop)
-			 (let ((tok1 (parse-string (get-tok-line tok)
-						   (get-tok-column tok))))
-			   (cons tok1 (loop)))))
-		 (cons illegal-tok
-		       (lambda (tok loop)
-			 (lex-error 'lex:parse-regexp
-				    (get-tok-line tok)
-				    (get-tok-column tok)
-				    "syntax error in macro reference."))))
-	   (lambda (tok loop)
-	     (cons tok (loop))))))
-    (lambda ()
-      (push-lexer (regexp-lexer))
-      (lexer-set-blank-history #t)
-      (parse-horiz-and-vertical-blanks)
-      (let loop ()
-	(let* ((tok (lexer))
-	       (tok-type (get-tok-type tok))
-	       (action (vector-ref action-table tok-type)))
-	  (action tok loop))))))
+
+;;;; parser functions for SILex tables
 
 (define parse-macros
   ;;Parse the header of a  SILex table definition.  Accumulate the macro
@@ -1946,64 +1762,228 @@ by the "make-tables.sps" program in this directory.
 
     (main macros-already-defined parsing-full-table?))))
 
-(define (parse-action-end <<EOF>>-action? <<ERROR>>-action? action?)
-  (let ((act (lexer-get-history)))
-    (cond (action?
-	   act)
-	  (<<EOF>>-action?
-	   (string-append act default-<<EOF>>-action))
-	  (<<ERROR>>-action?
-	   (string-append act default-<<ERROR>>-action))
-	  (else
-	   (string-append act default-action)))))
-
-(define (parse-action <<EOF>>-action? <<ERROR>>-action?)
-  (push-lexer (action-lexer))
-  (let loop ((action? #f))
-    (let* ((tok (lexer))
-	   (tok-type (get-tok-type tok)))
-      (cond ((= tok-type char-tok)
-	     (loop #t))
-	    ((= tok-type hblank-tok)
-	     (loop action?))
-	    ((= tok-type vblank-tok)
-	     (push-lexer (regexp-lexer))
-	     (let* ((tok (lexer))
-		    (tok-type (get-tok-type tok))
-		    (bidon (lexer-unget tok)))
-	       (pop-lexer)
-	       (if (or (= tok-type hblank-tok)
-		       (= tok-type vblank-tok))
-		   (loop action?)
-		 (begin
-		   (pop-lexer)
-		   (parse-action-end <<EOF>>-action?
-				     <<ERROR>>-action?
-				     action?)))))
-	    (else ; eof-tok
-	     (lexer-unget tok)
-	     (pop-lexer)
-	     (parse-action-end <<EOF>>-action?
-			       <<ERROR>>-action?
-			       action?))))))
-
-(define (parse-rule macros)
-  (let ((tok-list (parse-regexp)))
-    (if (null? tok-list)
-	#f
-      (let* ((rule	(tokens->rule tok-list macros))
-	     (action	(parse-action (get-rule-eof?   rule)
-				      (get-rule-error? rule))))
-	(set-rule-action rule action)
-	rule))))
-
-(define (parse-rules macros)
-  (parse-action #f #f)
-  (let loop ()
-    (let ((rule (parse-rule macros)))
+(define (parse-rules available-macros)
+  ;;Parse the rules section of a  SILex table; return the list of <rule>
+  ;;records.   AVAILABLE-MACROS  is  the  alist of  macros  returned  by
+  ;;PARSE-MACRO.
+  ;;
+  (define (main available-macros)
+    (%parse-action #f #f)
+    (let loop ((rule (%parse-rule available-macros)))
       (if rule
-	  (cons rule (loop))
-	'()))))
+	  (cons rule (loop (%parse-rule available-macros)))
+	'())))
+
+  (define (%parse-rule available-macros)
+    (let ((tok-list (parse-regexp)))
+      (if (null? tok-list)
+	  #f
+	(let* ((rule	(tokens->rule tok-list available-macros))
+	       (action	(%parse-action (<rule>-eof?   rule)
+				       (<rule>-error? rule))))
+	  (<rule>-action-set! rule action)
+	  rule))))
+
+  (define (%parse-action <<EOF>>-action? <<ERROR>>-action?)
+    (define (main <<EOF>>-action? <<ERROR>>-action?)
+      (push-lexer (action-lexer))
+      (let loop ((action? #f))
+	(let* ((tok (lexer))
+	       (tok-type (get-tok-type tok)))
+	  (cond ((= tok-type char-tok)
+		 (loop #t))
+		((= tok-type hblank-tok)
+		 (loop action?))
+		((= tok-type vblank-tok)
+		 (push-lexer (regexp-lexer))
+		 (let* ((tok (lexer))
+			(tok-type (get-tok-type tok))
+			(bidon (lexer-unget tok)))
+		   (pop-lexer)
+		   (if (or (= tok-type hblank-tok)
+			   (= tok-type vblank-tok))
+		       (loop action?)
+		     (begin
+		       (pop-lexer)
+		       (%parse-action-end <<EOF>>-action? <<ERROR>>-action? action?)))))
+		(else ; eof-tok
+		 (lexer-unget tok)
+		 (pop-lexer)
+		 (%parse-action-end <<EOF>>-action? <<ERROR>>-action? action?))))))
+
+    (define (%parse-action-end <<EOF>>-action? <<ERROR>>-action? action?)
+      (let ((act (lexer-get-history)))
+	(cond (action?
+	       act)
+	      (<<EOF>>-action?
+	       (string-append act default-<<EOF>>-action))
+	      (<<ERROR>>-action?
+	       (string-append act default-<<ERROR>>-action))
+	      (else
+	       (string-append act default-action)))))
+
+    (main <<EOF>>-action? <<ERROR>>-action?))
+
+  (main available-macros))
+
+(define parse-regexp
+  ;;Parse a regexp.
+  ;;
+  (let ()
+    (define (end-action	tok loop)
+      (lexer-unget tok)
+      (pop-lexer)
+      (lexer-set-blank-history #f)
+      `())
+    (define action-table
+      (make-dispatch-table
+       number-of-tokens
+       `((,eof-tok	. ,end-action)
+	 (,hblank-tok	. ,end-action)
+	 (,vblank-tok	. ,end-action)
+	 ;; "["
+	 (,lbrack-tok	. ,(lambda (tok loop)
+			     (let ((tok1 (%parse-class (list) #f (get-tok-line tok) (get-tok-column tok))))
+			       (cons tok1 (loop)))))
+	 ;; "[]"
+	 (,lbrack-rbrack-tok . ,(lambda (tok loop)
+				  (let ((tok1 (%parse-class (list (cons rbrack-ch rbrack-ch)) #f
+							   (get-tok-line tok) (get-tok-column tok))))
+				    (cons tok1 (loop)))))
+	 ;; "[^"
+	 (,lbrack-caret-tok . ,(lambda (tok loop)
+				 (let ((tok1 (%parse-class (list) #t
+							  (get-tok-line tok) (get-tok-column tok))))
+				   (cons tok1 (loop)))))
+	 ;; "[-"
+	 (,lbrack-minus-tok . ,(lambda (tok loop)
+				 (let ((tok1 (%parse-class (list (cons minus-ch minus-ch)) #f
+							  (get-tok-line tok) (get-tok-column tok))))
+				   (cons tok1 (loop)))))
+	 (,doublequote-tok . ,(lambda (tok loop)
+			       (let ((tok1 (parse-string (get-tok-line tok) (get-tok-column tok))))
+				 (cons tok1 (loop)))))
+	 (,illegal-tok . ,(lambda (tok loop)
+			    (lex-error 'lex:parse-regexp (get-tok-line tok) (get-tok-column tok)
+				       "syntax error in macro reference"))))
+       (lambda (tok loop)
+	 (cons tok (loop)))))
+
+    (define (%parse-class initial-class negative-class? line column)
+      ;;Parse a character class in a regexp.
+      ;;
+      (define (main initial-class negative-class? line column)
+	(push-lexer (class-lexer))
+	(let loop ((class initial-class))
+	  (let ((new-range (%parse-class-range)))
+	    (if new-range
+		(loop (class-union (list new-range) class))
+	      (let ((class (if negative-class?
+			       (class-compl class)
+			     class)))
+		(pop-lexer)
+		(make-tok class-tok "" line column class))))))
+
+      (define (%parse-class-range)
+	;;Parse the next character range in a character class regexp.  A
+	;;character class like:
+	;;
+	;;	[ABCD-HIL-N]
+	;;
+	;;is split into the single character "ranges":
+	;;
+	;;	A  B  C  D-H  I  L-N
+	;;
+	;;each of which is parsed with a single call to this function.
+	;;
+	;;If the  next class range is  a single character  C: return the
+	;;pair (C  . C).  If the next  class range is a  dash range C-K:
+	;;return the pair (C . K).
+	;;
+	;;If LEXER returns the close bracket token: return false.
+	;;
+	;;It is an error if LEXER  returns the EOF token: the class must
+	;;end with a close bracket.
+	;;
+	(define (%error tok . message-strings)
+	  (apply lex-error 'lex:%parse-class-range (get-tok-line tok) (get-tok-column tok)
+		 message-strings))
+	(let* ((tok		(lexer))
+	       (tok-type	(get-tok-type tok)))
+	  (cond ((= tok-type char-tok)
+		 (let* ((c		(get-tok-attr tok))
+			(tok2		(lexer))
+			(tok2-type	(get-tok-type tok2)))
+		   (if (not (= tok2-type minus-tok))
+		       (begin
+			 (lexer-unget tok2)
+			 (cons c c))
+		     (let* ((tok3		(lexer))
+			    (tok3-type	(get-tok-type tok3)))
+		       (cond ((= tok3-type char-tok)
+			      (let ((c2 (get-tok-attr tok3)))
+				(if (> c c2)
+				    (%error tok3
+					    "bad range specification in character class; "
+					    "the start character is higher than the end one")
+				  (cons c c2))))
+			     ((or (= tok3-type rbrack-tok)
+				  (= tok3-type minus-tok))
+			      (%error tok3
+				      "bad range specification in character class; a specification "
+				      "like \"-x\", \"x--\" or \"x-]\" has been used"))
+			     ((= tok3-type eof-tok)
+			      (%error tok3 "eof of file found while parsing a character class")))))))
+		((= tok-type minus-tok)
+		 (%error tok
+			 "bad range specification in character class; a specification "
+			 "like \"-x\", \"x--\" or \"x-]\" has been used"))
+		((= tok-type rbrack-tok)
+		 #f)
+		((= tok-type eof-tok)
+		 (%error tok "eof found while parsing a regexp character class")))))
+
+      (main initial-class negative-class? line column))
+
+    (define (parse-string line column)
+      ;;Parse a string in a regexp.  This function must be invoked after
+      ;;the opening doublequote has been consumed.
+      ;;
+      (push-lexer (string-lexer))
+      (let ((char-list (let loop ()
+			 (let* ((tok      (lexer))
+				(tok-type (get-tok-type tok)))
+			   (cond ((= tok-type char-tok)
+				  (cons (get-tok-attr tok) (loop)))
+				 ((= tok-type doublequote-tok)
+				  (pop-lexer)
+				  '())
+				 (else
+				  (assert (= tok-type eof-tok))
+				  (lex-error 'lex:parse-string (get-tok-line tok) #f
+					     "end of file found while parsing a string")))))))
+	(make-tok string-tok "" line column char-list)))
+
+    (lambda ()	;this is the PARSE-REGEXP function
+      (push-lexer (regexp-lexer))
+      (lexer-set-blank-history #t)
+      (parse-horiz-and-vertical-blanks)
+      (let loop ()
+	(let* ((tok	 (lexer))
+	       (tok-type (get-tok-type tok))
+	       (action	 (vector-ref action-table tok-type)))
+	  (action tok loop))))))
+
+(define (parse-horiz-and-vertical-blanks)
+  ;;Consume and  discard tokens  from LEXER until  a non-blank  is read;
+  ;;unget the first non-blank token with LEXER-UNGET, then return.
+  ;;
+  (let* ((tok		(lexer))
+	 (tok-type	(get-tok-type tok)))
+    (if (or (= tok-type hblank-tok)
+	    (= tok-type vblank-tok))
+	(parse-horiz-and-vertical-blanks)
+      (lexer-unget tok))))
 
 
 ;;;; module re2nfa.scm
@@ -2135,9 +2115,9 @@ by the "make-tables.sps" program in this directory.
 
   ;; Construction de l'automate relatif a une regle
   (define (r2n-build-rule rule ruleno nl-start no-nl-start)
-    (let* ((re		(get-rule-regexp rule))
-	   (bol?		(get-rule-bol? rule))
-	   (eol?		(get-rule-eol? rule))
+    (let* ((re		(<rule>-regexp rule))
+	   (bol?		(<rule>-bol? rule))
+	   (eol?		(<rule>-eol? rule))
 	   (rule-start	(r2n-get-state #f))
 	   (rule-end	(r2n-get-state (if eol?
 					   (cons ruleno #f)
@@ -2733,8 +2713,8 @@ by the "make-tables.sps" program in this directory.
 (define (prep-set-rule-yytext? rule)
   ;;Note dans une regle si son action a besoin de yytext.
   ;;
-  (let ((action (get-rule-action rule)))
-    (set-rule-yytext? rule (prep-detect-yytext action))))
+  (let ((action (<rule>-action rule)))
+    (<rule>-yytext?-set! rule (prep-detect-yytext action))))
 
 (define (prep-set-rules-yytext? rules)
   ;;Note dans toutes les regles si leurs actions ont besoin de yytext.
@@ -2781,6 +2761,7 @@ by the "make-tables.sps" program in this directory.
 				      "  (import ")
 		       output-port)
 	      (write library-language output-port)
+	      (newline output-port)
 	      (display "(nausicaa silex lexer)\n" output-port)
 	      (for-each (lambda (spec)
 			  (write spec output-port)
@@ -3228,10 +3209,10 @@ by the "make-tables.sps" program in this directory.
 	   (clean-eof-action	(out-clean-action <<EOF>>-action))
 	   (clean-error-action	(out-clean-action <<ERROR>>-action))
 	   (rule-op		(lambda (rule)
-				  (out-clean-action (get-rule-action rule))))
+				  (out-clean-action (<rule>-action rule))))
 	   (rules-l		(vector->list rules))
 	   (clean-actions-l	(map rule-op rules-l))
-	   (yytext?-l		(map get-rule-yytext? rules-l)))
+	   (yytext?-l		(map <rule>-yytext? rules-l)))
 
       ;;Preamble of comments.
       (%display ";\n")
