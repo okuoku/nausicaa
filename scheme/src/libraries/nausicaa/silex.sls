@@ -223,20 +223,19 @@
 
 ;;; Noeuds des regexp
 
-(define-record-type (:regexp :regexp-make :regexp?)
-  (nongenerative nausicaa:silex::regexp)
-  (fields (immutable type	get-re-type)
-	  (immutable attr1	get-re-attr1)
-	  (immutable attr2	get-re-attr2)))
-
-(define make-re
-  (case-lambda
-   ((re-type)
-    (make-re re-type #f #f))
-   ((re-type attr1)
-    (make-re re-type attr1 #f))
-   ((re-type attr1 attr2)
-    (:regexp-make re-type attr1 attr2))))
+(define-record-type <regexp>
+  (nongenerative nausicaa:silex:<regexp>)
+  (protocol (lambda (make-regexp)
+	      (case-lambda
+	       ((re-type)
+		(make-regexp re-type #f #f))
+	       ((re-type attr1)
+		(make-regexp re-type attr1 #f))
+	       ((re-type attr1 attr2)
+		(make-regexp re-type attr1 attr2)))))
+  (fields (immutable type)
+	  (immutable attr1)
+	  (immutable attr2)))
 
 ;;The following are used as indexes into vectors.
 (define-constant epsilon-re  0)
@@ -1394,13 +1393,13 @@ by the "make-tables.sps" program in this directory.
 
 (define (char-list->conc char-list)
   (if (null? char-list)
-      (make-re epsilon-re)
+      (make-<regexp> epsilon-re)
     (let loop ((cl char-list))
       (let* ((c (car cl))
 	     (cl2 (cdr cl)))
 	(if (null? cl2)
-	    (make-re char-re c)
-	  (make-re conc-re (make-re char-re c) (loop cl2)))))))
+	    (make-<regexp> char-re c)
+	  (make-<regexp> conc-re (make-<regexp> char-re c) (loop cl2)))))))
 
 (define parse-tokens-atom
   (let ((action-table
@@ -1411,7 +1410,7 @@ by the "make-tables.sps" program in this directory.
 			(parse-tokens-sub tok-list macros)))
 		(cons dot-tok
 		      (lambda (tok tok-list macros)
-			(cons (make-re class-re dot-class) (cdr tok-list))))
+			(cons (make-<regexp> class-re dot-class) (cdr tok-list))))
 		(cons subst-tok
 		      (lambda (tok tok-list macros)
 			(let* ((name (get-tok-attr tok))
@@ -1424,11 +1423,11 @@ by the "make-tables.sps" program in this directory.
 		(cons char-tok
 		      (lambda (tok tok-list macros)
 			(let ((c (get-tok-attr tok)))
-			  (cons (make-re char-re c) (cdr tok-list)))))
+			  (cons (make-<regexp> char-re c) (cdr tok-list)))))
 		(cons class-tok
 		      (lambda (tok tok-list macros)
 			(let ((class (get-tok-attr tok)))
-			  (cons (make-re class-re class) (cdr tok-list)))))
+			  (cons (make-<regexp> class-re class) (cdr tok-list)))))
 		(cons string-tok
 		      (lambda (tok tok-list macros)
 			(let* ((char-list (get-tok-attr tok))
@@ -1458,27 +1457,27 @@ by the "make-tables.sps" program in this directory.
 (define (power->star-plus-rec re start end)
   (cond ((eq? end 'inf)
 	 (cond ((= start 0)
-		(make-re star-re re))
+		(make-<regexp> star-re re))
 	       ((= start 1)
-		(make-re plus-re re))
+		(make-<regexp> plus-re re))
 	       (else
-		(make-re conc-re
+		(make-<regexp> conc-re
 			 re
 			 (power->star-plus-rec re (- start 1) 'inf)))))
 	((= start 0)
 	 (cond ((= end 0)
-		(make-re epsilon-re))
+		(make-<regexp> epsilon-re))
 	       ((= end 1)
-		(make-re question-re re))
+		(make-<regexp> question-re re))
 	       (else
-		(make-re question-re
+		(make-<regexp> question-re
 			 (power->star-plus-rec re 1 end)))))
 	((= start 1)
 	 (if (= end 1)
 	     re
-	   (make-re conc-re re (power->star-plus-rec re 0 (- end 1)))))
+	   (make-<regexp> conc-re re (power->star-plus-rec re 0 (- end 1)))))
 	(else
-	 (make-re conc-re
+	 (make-<regexp> conc-re
 		  re
 		  (power->star-plus-rec re (- start 1) (- end 1))))))
 
@@ -1499,11 +1498,11 @@ by the "make-tables.sps" program in this directory.
 	    (cond ((vector-ref not-op-toks tok-type)
 		   (cons re tok-list3))
 		  ((= tok-type question-tok)
-		   (loop (make-re question-re re) (cdr tok-list3)))
+		   (loop (make-<regexp> question-re re) (cdr tok-list3)))
 		  ((= tok-type plus-tok)
-		   (loop (make-re plus-re re) (cdr tok-list3)))
+		   (loop (make-<regexp> plus-re re) (cdr tok-list3)))
 		  ((= tok-type star-tok)
-		   (loop (make-re star-re re) (cdr tok-list3)))
+		   (loop (make-<regexp> star-re re) (cdr tok-list3)))
 		  ((= tok-type power-tok)
 		   (loop (power->star-plus re (check-power-tok tok))
 			 (cdr tok-list3))))))))))
@@ -1521,7 +1520,7 @@ by the "make-tables.sps" program in this directory.
 	   (let* ((result2 (parse-tokens-conc tok-list2 macros))
 		  (re2 (car result2))
 		  (tok-list3 (cdr result2)))
-	     (cons (make-re conc-re re1 re2) tok-list3))))))
+	     (cons (make-<regexp> conc-re re1 re2) tok-list3))))))
 
 (define (parse-tokens-or tok-list macros)
   (let* ((result1 (parse-tokens-conc tok-list macros))
@@ -1534,7 +1533,7 @@ by the "make-tables.sps" program in this directory.
 		  (result2 (parse-tokens-or tok-list3 macros))
 		  (re2 (car result2))
 		  (tok-list4 (cdr result2)))
-	     (cons (make-re or-re re1 re2) tok-list4)))
+	     (cons (make-<regexp> or-re re1 re2) tok-list4)))
 	  (else ; rpar-tok
 	   result1))))
 
@@ -1567,7 +1566,7 @@ by the "make-tables.sps" program in this directory.
 ; Ne traite pas les anchors
 (define (parse-tokens tok-list macros)
   (if (null? tok-list)
-      (make-re epsilon-re)
+      (make-<regexp> epsilon-re)
     (let ((line (get-tok-line (car tok-list))))
       (parse-tokens-match tok-list line)
       (let* ((begin-par (make-tok lpar-tok "" line 1))
@@ -1768,6 +1767,9 @@ by the "make-tables.sps" program in this directory.
   ;;PARSE-MACRO.
   ;;
   (define (main available-macros)
+    ;;(Marco Maggi; Tue Jan 18,  2011) Guess: this call to %PARSE-ACTION
+    ;;removes  the blanks  after  the  "%%" mark,  which  was parsed  by
+    ;;PARSE-MACROS.
     (%parse-action #f #f)
     (let loop ((rule (%parse-rule available-macros)))
       (if rule
@@ -2055,20 +2057,20 @@ by the "make-tables.sps" program in this directory.
     (r2n-add-arc start 'eps end))
 
   (define (r2n-build-or re start end)
-    (let ((re1 (get-re-attr1 re))
-	  (re2 (get-re-attr2 re)))
+    (let ((re1 (<regexp>-attr1 re))
+	  (re2 (<regexp>-attr2 re)))
       (r2n-build-re re1 start end)
       (r2n-build-re re2 start end)))
 
   (define (r2n-build-conc re start end)
-    (let* ((re1 (get-re-attr1 re))
-	   (re2 (get-re-attr2 re))
+    (let* ((re1 (<regexp>-attr1 re))
+	   (re2 (<regexp>-attr2 re))
 	   (inter (r2n-get-state #f)))
       (r2n-build-re re1 start inter)
       (r2n-build-re re2 inter end)))
 
   (define (r2n-build-star re start end)
-    (let* ((re1 (get-re-attr1 re))
+    (let* ((re1 (<regexp>-attr1 re))
 	   (inter1 (r2n-get-state #f))
 	   (inter2 (r2n-get-state #f)))
       (r2n-add-arc start  'eps inter1)
@@ -2077,7 +2079,7 @@ by the "make-tables.sps" program in this directory.
       (r2n-build-re re1 inter2 inter1)))
 
   (define (r2n-build-plus re start end)
-    (let* ((re1 (get-re-attr1 re))
+    (let* ((re1 (<regexp>-attr1 re))
 	   (inter1 (r2n-get-state #f))
 	   (inter2 (r2n-get-state #f)))
       (r2n-add-arc start 'eps inter1)
@@ -2086,16 +2088,16 @@ by the "make-tables.sps" program in this directory.
       (r2n-build-re re1 inter1 inter2)))
 
   (define (r2n-build-question re start end)
-    (let ((re1 (get-re-attr1 re)))
+    (let ((re1 (<regexp>-attr1 re)))
       (r2n-add-arc start 'eps end)
       (r2n-build-re re1 start end)))
 
   (define (r2n-build-class re start end)
-    (let ((class (get-re-attr1 re)))
+    (let ((class (<regexp>-attr1 re)))
       (r2n-add-arc start class end)))
 
   (define (r2n-build-char re start end)
-    (let* ((c (get-re-attr1 re))
+    (let* ((c (<regexp>-attr1 re))
 	   (class (list (cons c c))))
       (r2n-add-arc start class end)))
 
@@ -2109,7 +2111,7 @@ by the "make-tables.sps" program in this directory.
 				  r2n-build-class
 				  r2n-build-char)))
       (lambda (re start end)
-	(let* ((re-type (get-re-type re))
+	(let* ((re-type (<regexp>-type re))
 	       (sub-f (vector-ref sub-function-v re-type)))
 	  (sub-f re start end)))))
 
