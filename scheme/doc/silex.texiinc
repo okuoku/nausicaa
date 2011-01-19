@@ -644,8 +644,8 @@ tabulation @samp{#\tab}, @samp{\10} the newline character
 The expression @code{\@var{c}} matches the character @var{c} if @var{c}
 is not @samp{n}, @samp{-} nor a digit.
 
-@item #x@var{HEX}}
-@itemx #X@var{HEX}}
+@item #x@var{HEX}
+@itemx #X@var{HEX}
 @dfn{Hexadecimal characters}.  The expressions @code{#x@var{HEX}} and
 @code{#X@var{HEX}} match the character that has hex number @var{HEX} (in
 the sense of @func{string->number}).  Remembering that SILex lexerts
