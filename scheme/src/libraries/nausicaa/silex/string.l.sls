@@ -1,7 +1,8 @@
 (library (nausicaa silex string.l)
   (export
     string-tables)
-  (import (rnrs)(nausicaa silex lexer)
+  (import (rnrs)
+(nausicaa silex lexer)
 (nausicaa silex semantic)
 )
 

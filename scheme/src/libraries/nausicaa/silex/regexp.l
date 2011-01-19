@@ -27,9 +27,9 @@ hblank			{space}|{tab}|{comment}
 vblank			"\n"
 
 digit			[0123456789]
-hexradix		(#x)|(#X)
 hexdigit		[0123456789abcdefABCDEF]
 
+%[unicode.macros.l]
 %[identifier.macros.l]
 id			{IDENTIFIER}|{PECULIAR_IDENTIFIER}
 
@@ -57,7 +57,7 @@ id			{IDENTIFIER}|{PECULIAR_IDENTIFIER}
 "\\n"                     (parse-spec-char            yytext yyline yycolumn)
 "\\"{digit}+              (parse-digits-char          yytext yyline yycolumn)
 "\\-"{digit}+             (parse-digits-char          yytext yyline yycolumn)
-{hexradix}{hexdigit}+     (parse-hex-digits-char      yytext yyline yycolumn)
+"#x"{hexdigit}+";"	  (parse-hex-digits-char      yytext yyline yycolumn)
 "\\"[^]                   (parse-quoted-char          yytext yyline yycolumn)
 "^"                       (make-tok caret-tok         yytext yyline yycolumn)
 "$"                       (make-tok dollar-tok        yytext yyline yycolumn)

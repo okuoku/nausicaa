@@ -153,6 +153,7 @@
 	(lambda ()
 	  (let ((IS (lexer-make-IS (port: input-port) (counters: 'all))))
 	    (parametrise ((input-source		(or input-file #f))
+			  (include-files	(if input-file `(,input-file) '()))
 			  (action-lexer		(lexer-make-lexer action-tables IS))
 			  (class-lexer		(lexer-make-lexer class-tables  IS))
 			  (macro-lexer		(lexer-make-lexer macro-tables  IS))
@@ -246,6 +247,35 @@
 (define-constant question-re 5)
 (define-constant class-re    6)
 (define-constant char-re     7)
+
+(define (regexp=? a b)
+  (define (== x y)
+    (cond ((<regexp>? x)
+	   (and (<regexp>? y) (regexp=?  x y)))
+	  ((boolean? x)
+	   (and (boolean? y)  (boolean=? x y)))
+	  ((integer? x)
+	   (and (integer? y)  (=         x y)))
+	  ((pair? x)
+	   (and (pair? y)     (ell=?     x y)))
+	  ((null? x)
+	   (null? y))
+	  (else
+	   (= a b))))
+  (define (ell=? p q)
+    (cond ((null? p)
+	   (null? q))
+	  ((pair? p)
+	   (and (pair? q)
+		(ell=? (car p) (car q))
+		(ell=? (cdr p) (cdr q))))
+	  ((<regexp>? p)
+	   (and (<regexp>? q) (regexp=? p q)))
+	  (else
+	   (= p q))))
+  (and (=  (<regexp>-type  a) (<regexp>-type  b))
+       (== (<regexp>-attr1 a) (<regexp>-attr1 b))
+       (== (<regexp>-attr2 a) (<regexp>-attr2 b))))
 
 
 ;;; Fonctions de manipulation des ensembles d'etats
@@ -1247,6 +1277,10 @@ by the "make-tables.sps" program in this directory.
 (define regexp-lexer	(make-parameter #f))
 (define string-lexer	(make-parameter #f))
 
+;;Values of this  parameter are lists of macro  file pathnames; they are
+;;used to detect recursive inclusion of files.
+(define include-files	(make-parameter #f))
+
 
 ;;;; lexer generique
 
@@ -1673,11 +1707,14 @@ by the "make-tables.sps" program in this directory.
 	(define (%error . message-strings)
 	  (apply lex-error 'lex:parse-macro (get-tok-line tok) (get-tok-column tok) message-strings))
 	(cond ((= tok-type id-tok)
-	       (let ((name (get-tok-attr tok)))
-		 (if (assoc name macros-already-defined)
-		     (%error "the macro \"" (get-tok-2nd-attr tok) "\" has already been defined")
-		   (let* ((tok-list (%parse-white-space-one-regexp))
-			  (regexp (tokens->regexp tok-list macros-already-defined)))
+	       (let* ((name	(get-tok-attr tok))
+		      (tok-list	(%parse-white-space-one-regexp))
+		      (regexp	(tokens->regexp tok-list macros-already-defined))
+		      (old	(assoc name macros-already-defined)))
+		 (if (and old (not (regexp=? regexp (cdr old))))
+		     (%error "the macro \"" (get-tok-2nd-attr tok) "\" has already been defined"
+			     " with different regexp specification")
+		   (begin
 		     (pop-lexer)
 		     (cons name regexp)))))
 	      ((= tok-type percent-percent-tok)
@@ -1688,8 +1725,13 @@ by the "make-tables.sps" program in this directory.
 	      ((= tok-type percent-include-tok)
 	       (%parse-white-space-separator)
 	       ;;Tokens of type "percent include" have the file pathname
-	       ;;as string in the attribute slot.
-	       (get-tok-attr tok))
+	       ;;as string in the attribute slot.  We test for recursive
+	       ;;inclusion of files here, so that we have the token line
+	       ;;and column available.
+	       (let ((pathname (get-tok-attr tok)))
+		 (if (member pathname (include-files))
+		     (%error "recursive inclusion of macro file: \"" pathname "\"")
+		   pathname)))
 	      ((= tok-type illegal-tok)
 	       (%error "macro name expected"))
 	      ((= tok-type eof-tok)
@@ -1738,26 +1780,27 @@ by the "make-tables.sps" program in this directory.
       ;;Return  the  alist  of   defined  macros,  already  joined  with
       ;;MACROS-ALREADY-DEFINED.
       ;;
-      (let ((input-port (open-input-file pathname)))
-	(dynamic-wind
-	    (lambda () #f)
-	    (lambda ()
-	      (let ((IS (lexer-make-IS (port: input-port) (counters: 'all))))
-		(parametrise ((input-source		pathname)
-			      (action-lexer		(lexer-make-lexer action-tables IS))
-			      (class-lexer		(lexer-make-lexer class-tables  IS))
-			      (macro-lexer		(lexer-make-lexer macro-tables  IS))
-			      (regexp-lexer		(lexer-make-lexer regexp-tables IS))
-			      (string-lexer		(lexer-make-lexer string-tables IS))
-			      (lexer-raw		#f)
-			      (lexer-stack		'())
-			      (lexer-buffer-empty?	#t)
-			      (lexer-buffer		#f)
-			      (lexer-history		'())
-			      (lexer-history-interp	#f))
-		  (parse-macros macros-already-defined #f))))
-	    (lambda ()
-	      (close-input-port input-port)))))
+      (parametrise ((include-files (cons pathname (include-files))))
+	(let ((input-port (open-input-file pathname)))
+	  (dynamic-wind
+	      (lambda () #f)
+	      (lambda ()
+		(let ((IS (lexer-make-IS (port: input-port) (counters: 'all))))
+		  (parametrise ((input-source		pathname)
+				(action-lexer		(lexer-make-lexer action-tables IS))
+				(class-lexer		(lexer-make-lexer class-tables  IS))
+				(macro-lexer		(lexer-make-lexer macro-tables  IS))
+				(regexp-lexer		(lexer-make-lexer regexp-tables IS))
+				(string-lexer		(lexer-make-lexer string-tables IS))
+				(lexer-raw		#f)
+				(lexer-stack		'())
+				(lexer-buffer-empty?	#t)
+				(lexer-buffer		#f)
+				(lexer-history		'())
+				(lexer-history-interp	#f))
+		    (parse-macros macros-already-defined #f))))
+	      (lambda ()
+		(close-input-port input-port))))))
 
     (main macros-already-defined parsing-full-table?))))
 

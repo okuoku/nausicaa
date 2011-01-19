@@ -1,7 +1,8 @@
 (library (nausicaa silex action.l)
   (export
     action-tables)
-  (import (rnrs)(nausicaa silex lexer)
+  (import (rnrs)
+(nausicaa silex lexer)
 (nausicaa silex semantic)
 )
 

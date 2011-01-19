@@ -50,6 +50,8 @@ SHARPSEMICOLON		#\;
 ;;page
 ;;;; whitespace and comments
 
+%[unicode.macros.l]
+
 %[whitespaces-and-comments.macros.l]
 
 ;; this is defined only for reference, it is not used

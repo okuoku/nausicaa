@@ -25,6 +25,7 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
+%[unicode.macros.l]
 %[identifier.macros.l]
 
 ;;When a valid lexeme is followed by this tail it is wrong.  This is the

@@ -26,6 +26,7 @@ comment			";".*
 hblank			{space}|{tab}|{comment}
 vblank			"\n"
 
+%[unicode.macros.l]
 %[identifier.macros.l]
 id			{IDENTIFIER}|{PECULIAR_IDENTIFIER}
 
