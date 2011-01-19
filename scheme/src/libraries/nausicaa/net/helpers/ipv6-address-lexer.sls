@@ -1,7 +1,12 @@
 (library (nausicaa net helpers ipv6-address-lexer)
   (export
     ipv6-address-lexer-table)
-  (import (rnrs) (nausicaa silex lexer)(nausicaa silex default-error-handler)(nausicaa parser-tools lexical-token)(nausicaa parser-tools source-location))
+  (import (rnrs)
+(nausicaa silex lexer)
+(nausicaa silex default-error-handler)
+(nausicaa parser-tools lexical-token)
+(nausicaa parser-tools source-location)
+)
 
 ;
 ; Table generated from the file ipv6-address-lexer.l by SILex 1.0

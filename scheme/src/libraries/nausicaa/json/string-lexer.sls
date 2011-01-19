@@ -1,7 +1,12 @@
 (library (nausicaa json string-lexer)
   (export
     json-string-lexer-table)
-  (import (rnrs)(nausicaa silex lexer)(nausicaa silex default-error-handler)(nausicaa parser-tools lexical-token)(nausicaa parser-tools source-location))
+  (import (rnrs)
+(nausicaa silex lexer)
+(nausicaa silex default-error-handler)
+(nausicaa parser-tools lexical-token)
+(nausicaa parser-tools source-location)
+)
 
 ;
 ; Table generated from the file string-lexer.l by SILex 1.0

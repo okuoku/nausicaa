@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2010, 2011 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -58,19 +58,19 @@ THE_TRUE		"true"
 
 ;;; numbers
 
-decint			[0-9]
-integer			{decint}+
-exponent		([eE][+\-]?[0-9]+)
-real			{decint}+\.|{decint}*\.{decint}+{exponent}?|{decint}+{exponent}
-number			{real}|{integer}
+DECINT			[0-9]
+INTEGER			{DECINT}+
+EXPONENT		([eE][+\-]?[0-9]+)
+REAL			{DECINT}+\.|{DECINT}*\.{DECINT}+{EXPONENT}?|{DECINT}+{EXPONENT}
+NUMBER			{REAL}|{INTEGER}
 
 ;;This is just in case we decide to support binary, octal and hex
 ;;numbers
 ;;
-;;binint          #[bB][01]+
-;;octint          #[oO][0-7]+
-;;hexint          #[xX][0-9A-Fa-f]+
-;;integer	{decint}|{binint}|{octint}|{hexint}
+;;BININT          #[bB][01]+
+;;OCTINT          #[oO][0-7]+
+;;HEXINT          #[xX][0-9A-Fa-f]+
+;;INTEGER	{DECINT}|{BININT}|{OCTINT}|{HEXINT}
 
 %%
 

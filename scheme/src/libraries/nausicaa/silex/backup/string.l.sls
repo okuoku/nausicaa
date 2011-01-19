@@ -15,7 +15,7 @@
    'all
    (lambda (yycontinue yygetc yyungetc)
      (lambda (yytext yyline yycolumn yyoffset)
-       			(make-tok eof-tok         yytext yyline yycolumn)
+       			(make-tok eof-tok	yytext yyline yycolumn)
 
 ;;; end of file
        ))
@@ -32,54 +32,53 @@
     #t
     (lambda (yycontinue yygetc yyungetc)
       (lambda (yytext yyline yycolumn yyoffset)
-           		(parse-escaped-char yytext yyline yycolumn #\x7)
+           		(parse-escaped-char	yytext yyline yycolumn #\x7)
         ))
     #t
     (lambda (yycontinue yygetc yyungetc)
       (lambda (yytext yyline yycolumn yyoffset)
-           		(parse-escaped-char yytext yyline yycolumn #\x8)
+           		(parse-escaped-char	yytext yyline yycolumn #\x8)
         ))
     #t
     (lambda (yycontinue yygetc yyungetc)
       (lambda (yytext yyline yycolumn yyoffset)
-           		(parse-escaped-char yytext yyline yycolumn #\x9)
-;;Newline is special for SILex.
+           		(parse-escaped-char	yytext yyline yycolumn #\x9)
+;;newline is special for SILex
         ))
     #t
     (lambda (yycontinue yygetc yyungetc)
       (lambda (yytext yyline yycolumn yyoffset)
-           		(parse-spec-char yytext yyline yycolumn)
+           		(parse-spec-char	yytext yyline yycolumn)
         ))
     #t
     (lambda (yycontinue yygetc yyungetc)
       (lambda (yytext yyline yycolumn yyoffset)
-           		(parse-escaped-char yytext yyline yycolumn #\xB)
+           		(parse-escaped-char	yytext yyline yycolumn #\xB)
         ))
     #t
     (lambda (yycontinue yygetc yyungetc)
       (lambda (yytext yyline yycolumn yyoffset)
-           		(parse-escaped-char yytext yyline yycolumn #\xC)
+           		(parse-escaped-char	yytext yyline yycolumn #\xC)
         ))
     #t
     (lambda (yycontinue yygetc yyungetc)
       (lambda (yytext yyline yycolumn yyoffset)
-           		(parse-escaped-char yytext yyline yycolumn #\xD)
+           		(parse-escaped-char	yytext yyline yycolumn #\xD)
         ))
     #t
     (lambda (yycontinue yygetc yyungetc)
       (lambda (yytext yyline yycolumn yyoffset)
-                     	(parse-escaped-char yytext yyline yycolumn #\x22)
+                     	(parse-escaped-char	yytext yyline yycolumn #\x22)
         ))
     #t
     (lambda (yycontinue yygetc yyungetc)
       (lambda (yytext yyline yycolumn yyoffset)
-                   	(parse-escaped-char yytext yyline yycolumn #\x5C)
+                   	(parse-escaped-char	yytext yyline yycolumn #\x5C)
         ))
     #f
     (lambda (yycontinue yygetc yyungetc)
       (lambda (yyline yycolumn yyoffset)
                      	;;ignored
-
         (yycontinue)
         ))
     #t
@@ -90,7 +89,7 @@
     #t
     (lambda (yycontinue yygetc yyungetc)
       (lambda (yytext yyline yycolumn yyoffset)
-   			(parse-ordinary-char      yytext yyline yycolumn)
+   			(parse-ordinary-char	yytext yyline yycolumn)
         )))
    'code
    (lambda (<<EOF>>-pre-action

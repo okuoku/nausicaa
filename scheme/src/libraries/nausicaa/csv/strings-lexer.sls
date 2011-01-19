@@ -1,7 +1,9 @@
 (library (nausicaa csv strings-lexer)
   (export
     csv-strings-table)
-  (import (rnrs) (nausicaa silex lexer))
+  (import (rnrs)
+(nausicaa silex lexer)
+)
 
 ;
 ; Table generated from the file strings.l by SILex 1.0
