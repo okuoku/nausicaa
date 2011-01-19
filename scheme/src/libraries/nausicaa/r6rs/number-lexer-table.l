@@ -28,7 +28,7 @@
 ;;Notice that where the R6RS syntax specifies the <empty> lexeme, we use
 ;;the R? regular expression operator.
 
-%[unicode.macros.l]
+%[../silex/unicode.macros.l]
 %[whitespaces-and-comments.macros.l]
 %[number.macros.l]
 

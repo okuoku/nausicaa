@@ -16,6 +16,8 @@
    (lambda (yycontinue yygetc yyungetc)
      (lambda (yytext yyline yycolumn yyoffset)
        			(make-tok eof-tok    yytext yyline yycolumn)
+
+;;; end of file
        ))
    (lambda (yycontinue yygetc yyungetc)
      (lambda (yytext yyline yycolumn yyoffset)

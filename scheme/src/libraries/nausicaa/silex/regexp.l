@@ -1,4 +1,4 @@
-;;; -*- mode: scheme; coding: utf-8-unix; page-delimiter: "^;;page" -*-
+;;; -*- mode: scheme; coding: utf-8-unix -*-
 ;;;
 ;;;SILex - Scheme Implementation of Lex
 ;;;
@@ -20,26 +20,20 @@
 ;;;Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
 ;;;USA.
 
-;;space		" "
-;;tab		"	"
-;;comment	";".*
-;;hblank	{space}|{tab}|{comment}
-
 %[unicode.macros.l]
 %[whitespaces-and-comments.macros.l]
 %[identifier.macros.l]
 
 hblank			{WHITESPACE-NO-NEWLINE}|{LINECOMMENT-NOEND}
 vblank			"\n"
-
 digit			[0123456789]
 hexdigit		[0123456789abcdefABCDEF]
-
 id			{IDENTIFIER}|{PECULIAR_IDENTIFIER}
 
 %%
 
-{hblank}                  (make-tok hblank-tok        yytext yyline yycolumn)
+{hblank}			(make-tok hblank-tok        yytext yyline yycolumn)
+{ONESTEDCOMMENT}		(make-tok open-comment-tok  yytext yyline yycolumn)
 {vblank}                  (make-tok vblank-tok        yytext yyline yycolumn)
 "|"                       (make-tok pipe-tok          yytext yyline yycolumn)
 "?"                       (make-tok question-tok      yytext yyline yycolumn)

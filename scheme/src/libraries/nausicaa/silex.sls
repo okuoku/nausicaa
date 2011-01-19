@@ -1847,18 +1847,24 @@ by the "make-tables.sps" program in this directory.
 		 (loop #t))
 		((= tok-type hblank-tok)
 		 (loop action?))
+		((= tok-type open-comment-tok)
+		 (parse-nested-comment)
+		 (loop action?))
 		((= tok-type vblank-tok)
 		 (push-lexer (regexp-lexer))
 		 (let* ((tok (lexer))
 			(tok-type (get-tok-type tok))
 			(bidon (lexer-unget tok)))
 		   (pop-lexer)
-		   (if (or (= tok-type hblank-tok)
-			   (= tok-type vblank-tok))
-		       (loop action?)
-		     (begin
-		       (pop-lexer)
-		       (%parse-action-end <<EOF>>-action? <<ERROR>>-action? action?)))))
+		   (cond ((or (= tok-type hblank-tok)
+			      (= tok-type vblank-tok))
+			  (loop action?))
+			 ;; ((= tok-type open-comment-tok)
+			 ;;  (parse-nested-comment)
+			 ;;  (loop action?))
+			 (else
+			  (pop-lexer)
+			  (%parse-action-end <<EOF>>-action? <<ERROR>>-action? action?)))))
 		(else ; eof-tok
 		 (lexer-unget tok)
 		 (pop-lexer)
@@ -1896,26 +1902,46 @@ by the "make-tables.sps" program in this directory.
 	 (,vblank-tok	. ,end-action)
 	 ;; "["
 	 (,lbrack-tok	. ,(lambda (tok loop)
+			     ;;*** KEEP THE LET ***
+			     ;;
+			     ;;It   imposes  evaluation   order  calling
+			     ;;%PARSE-CLASS before LOOP.
 			     (let ((tok1 (%parse-class (list) #f (get-tok-line tok) (get-tok-column tok))))
 			       (cons tok1 (loop)))))
 	 ;; "[]"
 	 (,lbrack-rbrack-tok . ,(lambda (tok loop)
+				  ;;*** KEEP THE LET ***
+				  ;;
+				  ;;It imposes  evaluation order calling
+				  ;;%PARSE-CLASS before LOOP.
 				  (let ((tok1 (%parse-class (list (cons rbrack-ch rbrack-ch)) #f
-							   (get-tok-line tok) (get-tok-column tok))))
+							    (get-tok-line tok) (get-tok-column tok))))
 				    (cons tok1 (loop)))))
 	 ;; "[^"
 	 (,lbrack-caret-tok . ,(lambda (tok loop)
+				 ;;*** KEEP THE LET ***
+				 ;;
+				 ;;It  imposes evaluation  order calling
+				 ;;%PARSE-CLASS before LOOP.
 				 (let ((tok1 (%parse-class (list) #t
-							  (get-tok-line tok) (get-tok-column tok))))
+							   (get-tok-line tok) (get-tok-column tok)) ))
 				   (cons tok1 (loop)))))
 	 ;; "[-"
 	 (,lbrack-minus-tok . ,(lambda (tok loop)
+				 ;;*** KEEP THE LET ***
+				 ;;
+				 ;;It  imposes evaluation  order calling
+				 ;;%PARSE-CLASS before LOOP.
 				 (let ((tok1 (%parse-class (list (cons minus-ch minus-ch)) #f
-							  (get-tok-line tok) (get-tok-column tok))))
+							   (get-tok-line tok) (get-tok-column tok))))
 				   (cons tok1 (loop)))))
 	 (,doublequote-tok . ,(lambda (tok loop)
-			       (let ((tok1 (parse-string (get-tok-line tok) (get-tok-column tok))))
-				 (cons tok1 (loop)))))
+				;;*** KEEP THE LET ***
+				;;
+				;;It  imposes  evaluation order  calling
+				;;%PARSE-CLASS before LOOP.
+				(let ((tok1 (parse-string (get-tok-line tok) (get-tok-column tok))))
+				  (cons tok1 (loop)))))
 	 (,illegal-tok . ,(lambda (tok loop)
 			    (lex-error 'lex:parse-regexp (get-tok-line tok) (get-tok-column tok)
 				       "syntax error in macro reference"))))
@@ -1994,7 +2020,11 @@ by the "make-tables.sps" program in this directory.
 		((= tok-type rbrack-tok)
 		 #f)
 		((= tok-type eof-tok)
-		 (%error tok "eof found while parsing a regexp character class")))))
+		 (%error tok "eof found while parsing a regexp character class"))
+		(else
+		 (assertion-violation 'lex:%parse-class-range
+		   "internal error, unexpected token type while parsing character class in regexp"
+		   tok)))))
 
       (main initial-class negative-class? line column))
 

@@ -1,4 +1,4 @@
-;;; -*- mode: scheme; coding: utf-8 -*-
+;;; -*- mode: scheme; coding: utf-8-unix -*-
 ;;;
 ;;;Part of: Nausicaa/Scheme
 ;;;Contents: nested comment lexer table

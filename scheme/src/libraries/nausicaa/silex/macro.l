@@ -20,45 +20,28 @@
 ;;;Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
 ;;;USA.
 
-#|
-space			" "
-tab			"	"
-comment			";".*
-hblank			{space}|{tab}|{comment}
-|#
-
 %[unicode.macros.l]
 %[whitespaces-and-comments.macros.l]
 %[identifier.macros.l]
 
 hblank			{WHITESPACE-NO-NEWLINE}|{LINECOMMENT-NOEND}
 vblank			"\n"
-
 id			{IDENTIFIER}|{PECULIAR_IDENTIFIER}
-
 open-include		"%["
 close-include		"]"
 percent-include		{open-include}[^\]]+{close-include}
-
 percent-percent		"%%"
 
 %%
 
 {hblank}		(make-tok hblank-tok		yytext yyline yycolumn)
-
-{vblank}		(make-tok vblank-tok		yytext yyline yycolumn)
-
-{percent-include}	(parse-percent-include		yytext yyline yycolumn)
-
-{percent-percent}	(make-tok percent-percent-tok	yytext yyline yycolumn)
-
-{id}			(parse-id			yytext yyline yycolumn)
-
 {ONESTEDCOMMENT}	(make-tok open-comment-tok	yytext yyline yycolumn)
-
-;; everything else is invalid
+{vblank}		(make-tok vblank-tok		yytext yyline yycolumn)
+{percent-include}	(parse-percent-include		yytext yyline yycolumn)
+{percent-percent}	(make-tok percent-percent-tok	yytext yyline yycolumn)
+{id}			(parse-id			yytext yyline yycolumn)
+#| everything else is invalid |#
 [^]			(make-tok illegal-tok		yytext yyline yycolumn)
-
 <<EOF>>			(make-tok eof-tok		yytext yyline yycolumn)
 
 ;;; end of file

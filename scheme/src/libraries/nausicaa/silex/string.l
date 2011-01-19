@@ -1,4 +1,4 @@
-;;; -*- mode: scheme; coding: utf-8; page-delimiter: "^;;page" -*-
+;;; -*- mode: scheme; coding: utf-8-unix-*-
 ;;;
 ;;;SILex - Scheme Implementation of Lex
 ;;;
@@ -20,30 +20,25 @@
 ;;;Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
 ;;;USA.
 
-;;page
 ;; this is the same string specification of the R6RS lexer
 %[string.macros.l]
 
 %%
 
 {DOUBLEQUOTE}		(make-tok doublequote-tok yytext yyline yycolumn)
-
-{ESCAPED-A}		(parse-escaped-char yytext yyline yycolumn #\x7)
-{ESCAPED-B}		(parse-escaped-char yytext yyline yycolumn #\x8)
-{ESCAPED-T}		(parse-escaped-char yytext yyline yycolumn #\x9)
-;;Newline is special for SILex.
-{ESCAPED-N}		(parse-spec-char yytext yyline yycolumn)
-{ESCAPED-V}		(parse-escaped-char yytext yyline yycolumn #\xB)
-{ESCAPED-F}		(parse-escaped-char yytext yyline yycolumn #\xC)
-{ESCAPED-R}		(parse-escaped-char yytext yyline yycolumn #\xD)
-{ESCAPED-DOUBLEQUOTE}	(parse-escaped-char yytext yyline yycolumn #\x22)
-{ESCAPED-BACKSLASH}	(parse-escaped-char yytext yyline yycolumn #\x5C)
-
+{ESCAPED-A}		(parse-escaped-char	yytext yyline yycolumn #\x7)
+{ESCAPED-B}		(parse-escaped-char	yytext yyline yycolumn #\x8)
+{ESCAPED-T}		(parse-escaped-char	yytext yyline yycolumn #\x9)
+;;newline is special for SILex
+{ESCAPED-N}		(parse-spec-char	yytext yyline yycolumn)
+{ESCAPED-V}		(parse-escaped-char	yytext yyline yycolumn #\xB)
+{ESCAPED-F}		(parse-escaped-char	yytext yyline yycolumn #\xC)
+{ESCAPED-R}		(parse-escaped-char	yytext yyline yycolumn #\xD)
+{ESCAPED-DOUBLEQUOTE}	(parse-escaped-char	yytext yyline yycolumn #\x22)
+{ESCAPED-BACKSLASH}	(parse-escaped-char	yytext yyline yycolumn #\x5C)
 {LINE-WRAP-TO-IGNORE}	;;ignored
-
 {INLINE-HEX-ESCAPE}	(parse-inline-hex-escape yytext yyline yycolumn)
-
-[^]			(parse-ordinary-char      yytext yyline yycolumn)
-<<EOF>>			(make-tok eof-tok         yytext yyline yycolumn)
+[^]			(parse-ordinary-char	yytext yyline yycolumn)
+<<EOF>>			(make-tok eof-tok	yytext yyline yycolumn)
 
 ;;; end of file

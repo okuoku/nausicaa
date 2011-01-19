@@ -50,12 +50,15 @@ SHARPSEMICOLON		#\;
 ;;page
 ;;;; whitespace and comments
 
-%[unicode.macros.l]
+%[../silex/unicode.macros.l]
 
 %[whitespaces-and-comments.macros.l]
 
-;; this is defined only for reference, it is not used
-DELIMITER		{OPAREN}|{CPAREN}|{OBRACKET}|{CBRACKET}|{DOUBLEQUOTE}|{SEMICOLON}|{SHARP}|{WHITESPACE-CHARS}
+#| this is defined here only for reference, it is not used
+
+DELIMITER {OPAREN}|{CPAREN}|{OBRACKET}|{CBRACKET}|{DOUBLEQUOTE}|{SEMICOLON}|{SHARP}|{WHITESPACE-CHARS}
+
+|#
 
 ;;page
 ;;;; identifiers

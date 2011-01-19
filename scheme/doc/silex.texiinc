@@ -517,10 +517,12 @@ regular expressions with which the input will have to match, and the
 @dfn{actions} associated with each expression.
 
 Comments can be inserted any place where white space is allowed and is
-considered as white space itself.  Comments begin with a semicolon
-@samp{;} and extend up to the end of a line.  The semicolon is a valid
+considered as white space itself.  Line comments begin with a semicolon
+@samp{;} and extend up to the end of a line; the semicolon is a valid
 token in many languages, so we should take care not to comment out an
 entire line when writing a regular expression matching a semicolon.
+Nested comments begin with a @samp{#|} sequence and extend up to the
+corresponding @samp{|#} sequence.
 
 @menu
 * silex syntax macros::         Syntax of the macro definitions.
