@@ -20,10 +20,12 @@
 ;;;Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
 ;;;USA.
 
-;; space			" "
-;; tab			"	"
-;; comment			";".*
-;; hblank			{space}|{tab}|{comment}
+#|
+space			" "
+tab			"	"
+comment			";".*
+hblank			{space}|{tab}|{comment}
+|#
 
 %[unicode.macros.l]
 %[whitespaces-and-comments.macros.l]
@@ -52,7 +54,9 @@ percent-percent		"%%"
 
 {id}			(parse-id			yytext yyline yycolumn)
 
-;;everything else is invalid
+{ONESTEDCOMMENT}	(make-tok open-comment-tok	yytext yyline yycolumn)
+
+;; everything else is invalid
 [^]			(make-tok illegal-tok		yytext yyline yycolumn)
 
 <<EOF>>			(make-tok eof-tok		yytext yyline yycolumn)

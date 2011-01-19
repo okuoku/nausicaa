@@ -78,6 +78,7 @@
     (nausicaa silex macro.l)
     (nausicaa silex regexp.l)
     (nausicaa silex string.l)
+    (nausicaa silex nested-comment.l)
     )
 
 
@@ -90,6 +91,24 @@
 	   " line "   (if line   (number->string line)   "?")
 	   " column " (if column (number->string column) "?")
 	   ": " message-strings)))
+
+(define-syntax with-context-to-lex-file
+  (syntax-rules ()
+    ((_ ?IS . ?body)
+     (let ((IS ?IS))
+       (parametrise ((action-lexer		(lexer-make-lexer action-tables IS))
+		     (class-lexer		(lexer-make-lexer class-tables  IS))
+		     (macro-lexer		(lexer-make-lexer macro-tables  IS))
+		     (regexp-lexer		(lexer-make-lexer regexp-tables IS))
+		     (string-lexer		(lexer-make-lexer string-tables IS))
+		     (nested-comment-lexer	(lexer-make-lexer nested-comment-tables IS))
+		     (lexer-raw			#f)
+		     (lexer-stack		'())
+		     (lexer-buffer-empty?	#t)
+		     (lexer-buffer		#f)
+		     (lexer-history		'())
+		     (lexer-history-interp	#f))
+	 . ?body)))))
 
 
 ;;;; module main.scm
@@ -124,8 +143,7 @@
 
 	(output-value:		#f)
 	(output-file:		#f)
-	(output-port:		#f)
-	))
+	(output-port:		#f)))
 
 (define (%lex input-file input-port input-string
 	      library-spec library-language library-imports
@@ -153,39 +171,30 @@
 	(lambda ()
 	  (let ((IS (lexer-make-IS (port: input-port) (counters: 'all))))
 	    (parametrise ((input-source		(or input-file #f))
-			  (include-files	(if input-file `(,input-file) '()))
-			  (action-lexer		(lexer-make-lexer action-tables IS))
-			  (class-lexer		(lexer-make-lexer class-tables  IS))
-			  (macro-lexer		(lexer-make-lexer macro-tables  IS))
-			  (regexp-lexer		(lexer-make-lexer regexp-tables IS))
-			  (string-lexer		(lexer-make-lexer string-tables IS))
-			  (lexer-raw		#f)
-			  (lexer-stack		'())
-			  (lexer-buffer-empty?	#t)
-			  (lexer-buffer		#f)
-			  (lexer-history	'())
-			  (lexer-history-interp	#f))
-	      (let-values (((<<EOF>>-action <<ERROR>>-action rules)
-			    (adapt-rules (parse-rules (parse-macros)))))
+			  (include-files	(if input-file `(,input-file) '())))
+	      (with-context-to-lex-file
+	       IS
+	       (let-values (((<<EOF>>-action <<ERROR>>-action rules)
+			     (adapt-rules (parse-rules (parse-macros)))))
 
-		(let-values (((nl-start no-nl-start arcs acc)
-			      (re2nfa rules)))
+		 (let-values (((nl-start no-nl-start arcs acc)
+			       (re2nfa rules)))
 
-		  (let-values (((nl-start no-nl-start arcs acc)
-				(noeps nl-start no-nl-start arcs acc)))
+		   (let-values (((nl-start no-nl-start arcs acc)
+				 (noeps nl-start no-nl-start arcs acc)))
 
-		    (let-values (((nl-start no-nl-start arcs acc)
-				  (sweep nl-start no-nl-start arcs acc)))
+		     (let-values (((nl-start no-nl-start arcs acc)
+				   (sweep nl-start no-nl-start arcs acc)))
 
-		      (let-values (((nl-start no-nl-start arcs acc)
-				    (nfa2dfa nl-start no-nl-start arcs acc)))
-			(prep-set-rules-yytext? rules)
-			(output input-file
-				library-spec library-language library-imports
-				table-name pretty? counters-type lexer-format
-				output-file output-port output-value
-				<<EOF>>-action <<ERROR>>-action
-				rules nl-start no-nl-start arcs acc)))))))))
+		       (let-values (((nl-start no-nl-start arcs acc)
+				     (nfa2dfa nl-start no-nl-start arcs acc)))
+			 (prep-set-rules-yytext? rules)
+			 (output input-file
+				 library-spec library-language library-imports
+				 table-name pretty? counters-type lexer-format
+				 output-file output-port output-value
+				 <<EOF>>-action <<ERROR>>-action
+				 rules nl-start no-nl-start arcs acc))))))))))
 	(lambda ()
 	  (when close-port?
 	    (close-input-port input-port))))))
@@ -1276,6 +1285,7 @@ by the "make-tables.sps" program in this directory.
 (define macro-lexer	(make-parameter #f))
 (define regexp-lexer	(make-parameter #f))
 (define string-lexer	(make-parameter #f))
+(define nested-comment-lexer	(make-parameter #f))
 
 ;;Values of this  parameter are lists of macro  file pathnames; they are
 ;;used to detect recursive inclusion of files.
@@ -1748,11 +1758,15 @@ by the "make-tables.sps" program in this directory.
       ;;
       (let* ((tok	(lexer))
 	     (tok-type	(get-tok-type tok)))
-	(if (or (= tok-type hblank-tok)
-		(= tok-type vblank-tok))
-	    (parse-regexp)
-	  (lex-error 'lex:%parse-white-space-one-regexp ; percent-percent-tok, id-tok or illegal-tok
-		     (get-tok-line tok) (get-tok-column tok) "white space expected"))))
+	(cond ((or (= tok-type hblank-tok)
+		   (= tok-type vblank-tok))
+	       (parse-regexp))
+	      ((= tok-type open-comment-tok)
+	       (parse-nested-comment)
+	       (parse-regexp))
+	      (else
+	       (lex-error 'lex:%parse-white-space-one-regexp ; percent-percent-tok, id-tok or illegal-tok
+			  (get-tok-line tok) (get-tok-column tok) "white space expected")))))
 
     (define (%parse-white-space-separator)
       ;;After a percent include  directive has been successfully parsed,
@@ -1762,10 +1776,15 @@ by the "make-tables.sps" program in this directory.
       ;;
       (let* ((tok	(lexer))
 	     (tok-type	(get-tok-type tok)))
-	(unless (or (= tok-type hblank-tok)
-		    (= tok-type vblank-tok))
-	  (lex-error 'lex:%parse-white-space-separator (get-tok-line tok) (get-tok-column tok)
-		     "white space expected"))))
+        (cond ((or (= tok-type hblank-tok)
+		   (= tok-type vblank-tok))
+	       #t)
+	      ((= tok-type open-comment-tok)
+	       (parse-nested-comment)
+	       #t)
+	      (else
+	       (lex-error 'lex:%parse-white-space-separator (get-tok-line tok) (get-tok-column tok)
+			  "white space expected")))))
 
     (define (%parse-external-macro-file pathname macros-already-defined)
       ;;Parse the file in PATHNAME reading macro definitions; only macro
@@ -1786,19 +1805,8 @@ by the "make-tables.sps" program in this directory.
 	      (lambda () #f)
 	      (lambda ()
 		(let ((IS (lexer-make-IS (port: input-port) (counters: 'all))))
-		  (parametrise ((input-source		pathname)
-				(action-lexer		(lexer-make-lexer action-tables IS))
-				(class-lexer		(lexer-make-lexer class-tables  IS))
-				(macro-lexer		(lexer-make-lexer macro-tables  IS))
-				(regexp-lexer		(lexer-make-lexer regexp-tables IS))
-				(string-lexer		(lexer-make-lexer string-tables IS))
-				(lexer-raw		#f)
-				(lexer-stack		'())
-				(lexer-buffer-empty?	#t)
-				(lexer-buffer		#f)
-				(lexer-history		'())
-				(lexer-history-interp	#f))
-		    (parse-macros macros-already-defined #f))))
+		  (parametrise ((input-source pathname))
+		    (with-context-to-lex-file IS (parse-macros macros-already-defined #f)))))
 	      (lambda ()
 		(close-input-port input-port))))))
 
@@ -2025,10 +2033,34 @@ by the "make-tables.sps" program in this directory.
   ;;
   (let* ((tok		(lexer))
 	 (tok-type	(get-tok-type tok)))
-    (if (or (= tok-type hblank-tok)
-	    (= tok-type vblank-tok))
-	(parse-horiz-and-vertical-blanks)
-      (lexer-unget tok))))
+    (cond ((or (= tok-type hblank-tok)
+	       (= tok-type vblank-tok))
+	   (parse-horiz-and-vertical-blanks))
+	  ((= tok-type open-comment-tok)
+	   (parse-nested-comment)
+	   (parse-horiz-and-vertical-blanks))
+	  (else
+	   (lexer-unget tok)))))
+
+(define (parse-nested-comment)
+  ;;Parse a  nested comment.   This function must  be invoked  after the
+  ;;opening comment token has been parsed.
+  ;;
+  (push-lexer (nested-comment-lexer))
+  (let loop ((count 1))
+    (if (zero? count)
+	(pop-lexer)
+      (let* ((tok	(lexer))
+	     (tok-type	(get-tok-type tok)))
+	(cond ((= tok-type open-comment-tok)
+	       (loop (+ +1 count)))
+	      ((= tok-type close-comment-tok)
+	       (loop (+ -1 count)))
+	      ((= tok-type eof-tok)
+	       (lex-error 'lex:parse-nested-comment (get-tok-line tok) (get-tok-column tok)
+			  "end of input found while parsing nested comment"))
+	      (else ;any char
+	       (loop count)))))))
 
 
 ;;;; module re2nfa.scm

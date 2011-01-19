@@ -69,4 +69,12 @@
 	 (lex.table-name:	'string-tables)
 	 (lex.lexer-format:	'code))
 
+(lex.lex (lex.input-file:	"nested-comment.l")
+	 (lex.output-file:	"nested-comment.l.sls")
+	 (lex.counters:		'all)
+	 (lex.library-spec:	"(nausicaa silex nested-comment.l)")
+	 (lex.library-imports:	'((nausicaa silex semantic)))
+	 (lex.table-name:	'nested-comment-tables)
+	 (lex.lexer-format:	'code))
+
 ;;; end of file
