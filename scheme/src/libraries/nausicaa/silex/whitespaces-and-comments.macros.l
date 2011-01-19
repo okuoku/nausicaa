@@ -1,7 +1,7 @@
 ;;; -*- mode: scheme; coding: utf-8; page-delimiter: "^;;page" -*-
 ;;;
 ;;;Part of: Nausicaa/Scheme
-;;;Contents: macros R6RS whitespace and comment lexers
+;;;Contents: SILex macros for  whitespace and comment in SILex tables
 ;;;Date: Tue Jan 18, 2011
 ;;;
 ;;;Abstract
@@ -25,43 +25,22 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
-;;page
-;;A <whitespace> character is one among:
+;;A whitespace character is one among:
 ;;
 ;;		\9	char tabulation
-;;		\10	linefeed
 ;;		\11	line tabulation
 ;;		\12	form feed
 ;;		\13	carriage return
 ;;		\133	next line
 ;;
-;;and any char whose Unicode category is Zs, Zl or Zp.
+;;and  any char  whose Unicode  category is  Zs, Zl  or Zp.   Notice the
+;;absence of newline (\10), which is special for SILex.
 ;;
+WHITESPACE-NO-NEWLINE	([\9\11\12\13\133]|{UNICODE-Zs}|{UNICODE-Zl}|{UNICODE-Zp})+
 
-WHITESPACE-CHARS	[\9\10\11\12\13\133]|{UNICODE-Zs}|{UNICODE-Zl}|{UNICODE-Zp}
-
-WHITESPACE		{WHITESPACE-CHARS}+
-
-;;<line ending> is:
-;;
-;;		\10		line feed
-;;		\13		carriage return
-;;		\133		next line
-;;		\10\13		carriage return, line feed
-;;		\13\133		carriage return, next line
-;;		\8232		line separator
-;;
-LINEENDING		[\10\13\133\8232]|(\13\10)|(\13\133)
-
-;;When a valid  R6RS lexeme is followed by this tail  it is wrong.  This
-;;is the negation of the <delimiter> element.
-TAIL_OF_WRONG		[^\9\10\11\12\13\32\160\5760\6158\8192\8193\8194\8195\8196\8197\8198\8199\8200\8201\8202\8239\8287\12288\8232\8233\(\)\[\]\"\;#]+
-
-;;page
 ;;A simple comment is everything between a semicolon and a LINEENDING or
 ;;a paragraph separator (#x2029 = \8233).
 ;;
-LINECOMMENT		";".*({LINEENDING}|\8233)
 LINECOMMENT-NOEND	";"[^\10\13\133\8232\8233]*
 
 ;;Multiline comments can contain nested multiline comments, so we need a

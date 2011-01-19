@@ -20,17 +20,21 @@
 ;;;Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
 ;;;USA.
 
-space			" "
-tab			"	"
-comment			";".*
-hblank			{space}|{tab}|{comment}
+;;space		" "
+;;tab		"	"
+;;comment	";".*
+;;hblank	{space}|{tab}|{comment}
+
+%[unicode.macros.l]
+%[whitespaces-and-comments.macros.l]
+%[identifier.macros.l]
+
+hblank			{WHITESPACE-NO-NEWLINE}|{LINECOMMENT-NOEND}
 vblank			"\n"
 
 digit			[0123456789]
 hexdigit		[0123456789abcdefABCDEF]
 
-%[unicode.macros.l]
-%[identifier.macros.l]
 id			{IDENTIFIER}|{PECULIAR_IDENTIFIER}
 
 %%

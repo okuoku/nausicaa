@@ -20,14 +20,18 @@
 ;;;Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
 ;;;USA.
 
-space			" "
-tab			"	"
-comment			";".*
-hblank			{space}|{tab}|{comment}
-vblank			"\n"
+;; space			" "
+;; tab			"	"
+;; comment			";".*
+;; hblank			{space}|{tab}|{comment}
 
 %[unicode.macros.l]
+%[whitespaces-and-comments.macros.l]
 %[identifier.macros.l]
+
+hblank			{WHITESPACE-NO-NEWLINE}|{LINECOMMENT-NOEND}
+vblank			"\n"
+
 id			{IDENTIFIER}|{PECULIAR_IDENTIFIER}
 
 open-include		"%["
