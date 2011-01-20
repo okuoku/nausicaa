@@ -27,7 +27,7 @@
 
 #!r6rs
 (import (nausicaa)
-  (nausicaa silex lexer)
+  (prefix (nausicaa silex lexer) lex.)
   (only (nausicaa parser-tools)
 	<lexical-token>
 	<source-location>)
@@ -51,7 +51,7 @@
 		(make-irritants-condition `(,T.value)))))
 
   (define (parse string)
-    (let* ((IS		(lexer-make-IS (string: string) (counters: 'all)))
+    (let* ((IS		(lex.make-IS (lex.string: string) (lex.counters: 'all)))
 	   (lexer	(r6.make-token-lexer IS))
 	   (parser	(r6.make-r6rs-parser)))
       (parser lexer error-handler #f)))
@@ -106,7 +106,7 @@
 		(make-irritants-condition `(,T.value)))))
 
   (define (parse string)
-    (let* ((IS		(lexer-make-IS (string: string) (counters: 'all)))
+    (let* ((IS		(lex.make-IS (lex.string: string) (lex.counters: 'all)))
 	   (lexer	(r6.make-token-lexer IS))
 	   (parser	(r6.make-r6rs-parser)))
       (parser lexer error-handler #f)))
@@ -228,7 +228,7 @@
 		(make-irritants-condition `(,T.value)))))
 
   (define (parse string)
-    (let* ((IS		(lexer-make-IS (string: string) (counters: 'all)))
+    (let* ((IS		(lex.make-IS (lex.string: string) (lex.counters: 'all)))
 	   (lexer	(r6.make-token-lexer IS))
 	   (parser	(r6.make-r6rs-parser)))
       (parser lexer error-handler #f)))
@@ -264,7 +264,7 @@
 		(make-irritants-condition `(,T.value)))))
 
   (define (parse string)
-    (let* ((IS		(lexer-make-IS (string: string) (counters: 'all)))
+    (let* ((IS		(lex.make-IS (lex.string: string) (lex.counters: 'all)))
 	   (lexer	(r6.make-token-lexer IS))
 	   (parser	(r6.make-r6rs-parser)))
       (parser lexer error-handler #f)))
@@ -306,7 +306,7 @@
 		(make-irritants-condition `(,T.value)))))
 
   (define (parse string)
-    (let* ((IS		(lexer-make-IS (string: string) (counters: 'all)))
+    (let* ((IS		(lex.make-IS (lex.string: string) (lex.counters: 'all)))
 	   (true-lexer	(r6.make-token-lexer IS
 			  (r6.comments #t)
 			  (r6.blanks #t)

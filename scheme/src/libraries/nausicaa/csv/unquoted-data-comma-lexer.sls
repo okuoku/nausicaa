@@ -2,7 +2,7 @@
   (export
     csv-unquoted-data-table/comma)
   (import (rnrs)
-(nausicaa silex lexer)
+(nausicaa silex input-system)
 )
 
 ;

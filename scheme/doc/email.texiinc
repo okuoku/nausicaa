@@ -448,14 +448,13 @@ Given the helper functions:
 @example
 (import (rnrs)
   (nausicaa email addresses)
-  (nausicaa silex))
+  (prefix (nausicaa silex lexer) lex.))
 
 (define (error-handler message token)
   (error #f message token))
 
 (define (doit string)
-  (let* ((IS      (lexer-make-IS (string: string)
-                                 (counters: 'all)))
+  (let* ((IS      (lex.make-IS (string: string)))
          (lexer   (make-address-lexer IS))
          (parser  (make-address-parser)))
     (parser lexer error-handler)))

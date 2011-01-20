@@ -548,7 +548,24 @@ endif
 xml-lexer:
 	cd $(srcdir)/src/libraries/nausicaa/xml/markups && $(XML_LEXER_RUNNER) $(XML_LEXER_PROGRAM)
 
+#page
+## --------------------------------------------------------------------
+## Rebuiding all SILex tables.
+## --------------------------------------------------------------------
 
+.PHONY:	silex-all-tables
+
+silex-all-tables:
+	$(MAKE) silex
+	$(MAKE) lalr
+	$(MAKE) csv
+	$(MAKE) infix
+	$(MAKE) email
+	$(MAKE) json
+	$(MAKE) uri
+	$(MAKE) net
+	$(MAKE) r6rs-lexer
+#	$(MAKE) xml-lexer
 
 ### end of file
 # Local Variables:

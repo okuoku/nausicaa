@@ -2,7 +2,7 @@
   (export
     comments-table)
   (import (rnrs)
-(nausicaa silex lexer)
+(nausicaa silex input-system)
 (nausicaa email addresses common)
 (nausicaa parser-tools lexical-token)
 (nausicaa parser-tools source-location)

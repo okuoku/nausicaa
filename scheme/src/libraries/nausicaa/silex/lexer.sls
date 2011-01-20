@@ -21,475 +21,34 @@
 #!r6rs
 (library (nausicaa silex lexer)
   (export
-    lexer-make-lexer		lexer-make-IS
+    make-lexer
+
+;;; bindings from (nausicaa silex input-system)
+    make-IS			lexer-get-func-offset
     lexer-get-func-getc		lexer-get-func-ungetc
     lexer-get-func-line		lexer-get-func-column
-    lexer-get-func-offset
 
     ;; auxiliary syntaxes
-    counters:
-    port:
-    procedure:
-    string:
-
-    ;;Low level getters for the ":input-system" record fields.  They are
-    ;;needed in the output tables with the "code" format.
-    :input-system-start-go-to-end
-    :input-system-end-go-to-point
-    :input-system-init-lexeme
-    :input-system-get-start-line
-    :input-system-get-start-column
-    :input-system-get-start-offset
-    :input-system-peek-left-context
-    :input-system-peek-char
-    :input-system-read-char
-    :input-system-get-start-end-text
-    :input-system-get-user-line
-    :input-system-get-user-column
-    :input-system-get-user-offset
-    :input-system-user-getc
-    :input-system-user-ungetc)
+    counters:		port:
+    procedure:		string:)
   (import (rnrs)
-    (rnrs mutable-strings)
-    (nausicaa language makers))
+    (nausicaa silex input-system))
 
 
-(define lexer-init-buffer-len 1024)
-(define lexer-integer-newline (char->integer #\newline))
-
-(define-record-type (:input-system :input-system-make lexer?)
-  (nongenerative nausicaa:silex:lexer::input-system)
-  (fields (immutable start-go-to-end)
-	  (immutable end-go-to-point)
-	  (immutable init-lexeme)
-	  (immutable get-start-line)
-	  (immutable get-start-column)
-	  (immutable get-start-offset)
-	  (immutable peek-left-context)
-	  (immutable peek-char)
-	  (immutable read-char)
-	  (immutable get-start-end-text)
-	  (immutable get-user-line)
-	  (immutable get-user-column)
-	  (immutable get-user-offset)
-	  (immutable user-getc)
-	  (immutable user-ungetc)))
-
-
-(define (%lexer-make-IS counters-type input-port input-procedure input-string)
-  (define who 'lexer-make-IS)
-  (let-values (((buffer read-ptr input-function)
-		(cond ((and input-string (string? input-string))
-		       (values (string-append (string #\newline) input-string)
-			       (+ 1 (string-length input-string))
-			       (lambda () (eof-object))))
-		      ((and input-port (input-port? input-port))
-		       (values (make-string lexer-init-buffer-len #\newline)
-			       1
-			       (lambda () (read-char input-port))))
-		      ((and input-procedure (procedure? input-procedure))
-		       (values (make-string lexer-init-buffer-len #\newline)
-			       1
-			       input-procedure))
-		      (else
-		       (assertion-violation who "input source was not specified")))))
-    (lexer-raw-IS-maker buffer read-ptr input-function
-			(if (memq counters-type '(none line all))
-			    counters-type
-			  (assertion-violation who "invalid selection of counters type" counters-type)))))
-
-(define-auxiliary-syntax
-  counters:
-  port:
-  procedure:
-  string:)
-
-(define-maker lexer-make-IS
-  %lexer-make-IS
-  ((counters:	'line)
-   (port:	#f (without procedure: string:))
-   (procedure:	#f (without port: string:))
-   (string:	#f (without port: procedure:))))
-
-(define (lexer-make-lexer tables IS)
+(define (make-lexer tables IS)
   (case (vector-ref tables 4) ; automaton type
     ((decision-trees)
-     (lexer-make-tree-lexer tables IS))
+     (make-tree-lexer tables IS))
     ((tagged-chars-lists)
-     (lexer-make-char-lexer tables IS))
+     (make-char-lexer tables IS))
     ((code)
-     (lexer-make-code-lexer tables IS))))
+     (make-code-lexer tables IS))))
+
+(define lexer-integer-newline
+  (char->integer #\newline))
 
 
-(define (lexer-raw-IS-maker buffer read-ptr input-f counters)
-  (let ((input-f          input-f) ; Entree reelle
-	(buffer           buffer)  ; Buffer
-	(buflen           (string-length buffer))
-	(read-ptr         read-ptr)
-	(start-ptr        1) ; Marque de debut de lexeme
-	(start-line       1)
-	(start-column     1)
-	(start-offset     0)
-	(end-ptr          1) ; Marque de fin de lexeme
-	(point-ptr        1) ; Le point
-	(user-ptr         1) ; Marque de l'usager
-	(user-line        1)
-	(user-column      1)
-	(user-offset      0)
-	(user-up-to-date? #t)) ; Concerne la colonne seul.
-    (letrec
-	((start-go-to-end-none ; Fonctions de depl. des marques
-	  (lambda ()
-	    (set! start-ptr end-ptr)))
-	 (start-go-to-end-line
-	  (lambda ()
-	    (let loop ((ptr start-ptr) (line start-line))
-	      (if (= ptr end-ptr)
-		  (begin
-		    (set! start-ptr ptr)
-		    (set! start-line line))
-		(if (char=? (string-ref buffer ptr) #\newline)
-		    (loop (+ ptr 1) (+ line 1))
-		  (loop (+ ptr 1) line))))))
-	 (start-go-to-end-all
-	  (lambda ()
-	    (set! start-offset (+ start-offset (- end-ptr start-ptr)))
-	    (let loop ((ptr start-ptr)
-		       (line start-line)
-		       (column start-column))
-	      (if (= ptr end-ptr)
-		  (begin
-		    (set! start-ptr ptr)
-		    (set! start-line line)
-		    (set! start-column column))
-		(if (char=? (string-ref buffer ptr) #\newline)
-		    (loop (+ ptr 1) (+ line 1) 1)
-		  (loop (+ ptr 1) line (+ column 1)))))))
-	 (start-go-to-user-none
-	  (lambda ()
-	    (set! start-ptr user-ptr)))
-	 (start-go-to-user-line
-	  (lambda ()
-	    (set! start-ptr user-ptr)
-	    (set! start-line user-line)))
-	 (start-go-to-user-all
-	  (lambda ()
-	    (set! start-line user-line)
-	    (set! start-offset user-offset)
-	    (if user-up-to-date?
-		(begin
-		  (set! start-ptr user-ptr)
-		  (set! start-column user-column))
-	      (let loop ((ptr start-ptr) (column start-column))
-		(if (= ptr user-ptr)
-		    (begin
-		      (set! start-ptr ptr)
-		      (set! start-column column))
-		  (if (char=? (string-ref buffer ptr) #\newline)
-		      (loop (+ ptr 1) 1)
-		    (loop (+ ptr 1) (+ column 1))))))))
-	 (end-go-to-point
-	  (lambda ()
-	    (set! end-ptr point-ptr)))
-	 (point-go-to-start
-	  (lambda ()
-	    (set! point-ptr start-ptr)))
-	 (user-go-to-start-none
-	  (lambda ()
-	    (set! user-ptr start-ptr)))
-	 (user-go-to-start-line
-	  (lambda ()
-	    (set! user-ptr start-ptr)
-	    (set! user-line start-line)))
-	 (user-go-to-start-all
-	  (lambda ()
-	    (set! user-ptr start-ptr)
-	    (set! user-line start-line)
-	    (set! user-column start-column)
-	    (set! user-offset start-offset)
-	    (set! user-up-to-date? #t)))
-	 (init-lexeme-none ; Debute un nouveau lexeme
-	  (lambda ()
-	    (if (< start-ptr user-ptr)
-		(start-go-to-user-none))
-	    (point-go-to-start)))
-	 (init-lexeme-line
-	  (lambda ()
-	    (if (< start-ptr user-ptr)
-		(start-go-to-user-line))
-	    (point-go-to-start)))
-	 (init-lexeme-all
-	  (lambda ()
-	    (if (< start-ptr user-ptr)
-		(start-go-to-user-all))
-	    (point-go-to-start)))
-	 (get-start-line ; Obtention des stats du debut du lxm
-	  (lambda ()
-	    start-line))
-	 (get-start-column
-	  (lambda ()
-	    start-column))
-	 (get-start-offset
-	  (lambda ()
-	    start-offset))
-	 (peek-left-context ; Obtention de caracteres (#f si EOF)
-	  (lambda ()
-	    (char->integer (string-ref buffer (- start-ptr 1)))))
-	 (peek-char
-	  (lambda ()
-	    (if (< point-ptr read-ptr)
-		(char->integer (string-ref buffer point-ptr))
-	      (let ((c (input-f)))
-		(if (char? c)
-		    (begin
-		      (if (= read-ptr buflen)
-			  (reorganize-buffer))
-		      (string-set! buffer point-ptr c)
-		      (set! read-ptr (+ point-ptr 1))
-		      (char->integer c))
-		  (begin
-		    (set! input-f (lambda () (eof-object)))
-		    #f))))))
-	 (read-char
-	  (lambda ()
-	    (if (< point-ptr read-ptr)
-		(let ((c (string-ref buffer point-ptr)))
-		  (set! point-ptr (+ point-ptr 1))
-		  (char->integer c))
-	      (let ((c (input-f)))
-		(if (char? c)
-		    (begin
-		      (if (= read-ptr buflen)
-			  (reorganize-buffer))
-		      (string-set! buffer point-ptr c)
-		      (set! read-ptr (+ point-ptr 1))
-		      (set! point-ptr read-ptr)
-		      (char->integer c))
-		  (begin
-		    (set! input-f (lambda () (eof-object)))
-		    #f))))))
-	 (get-start-end-text ; Obtention du lexeme
-	  (lambda ()
-	    (substring buffer start-ptr end-ptr)))
-	 (get-user-line-line ; Fonctions pour l'usager
-	  (lambda ()
-	    (if (< user-ptr start-ptr)
-		(user-go-to-start-line))
-	    user-line))
-	 (get-user-line-all
-	  (lambda ()
-	    (if (< user-ptr start-ptr)
-		(user-go-to-start-all))
-	    user-line))
-	 (get-user-column-all
-	  (lambda ()
-	    (cond ((< user-ptr start-ptr)
-		   (user-go-to-start-all)
-		   user-column)
-		  (user-up-to-date?
-		   user-column)
-		  (else
-		   (let loop ((ptr start-ptr) (column start-column))
-		     (if (= ptr user-ptr)
-			 (begin
-			   (set! user-column column)
-			   (set! user-up-to-date? #t)
-			   column)
-		       (if (char=? (string-ref buffer ptr) #\newline)
-			   (loop (+ ptr 1) 1)
-			 (loop (+ ptr 1) (+ column 1)))))))))
-	 (get-user-offset-all
-	  (lambda ()
-	    (if (< user-ptr start-ptr)
-		(user-go-to-start-all))
-	    user-offset))
-	 (user-getc-none
-	  (lambda ()
-	    (if (< user-ptr start-ptr)
-		(user-go-to-start-none))
-	    (if (< user-ptr read-ptr)
-		(let ((c (string-ref buffer user-ptr)))
-		  (set! user-ptr (+ user-ptr 1))
-		  c)
-	      (let ((c (input-f)))
-		(if (char? c)
-		    (begin
-		      (if (= read-ptr buflen)
-			  (reorganize-buffer))
-		      (string-set! buffer user-ptr c)
-		      (set! read-ptr (+ read-ptr 1))
-		      (set! user-ptr read-ptr)
-		      c)
-		  (begin
-		    (set! input-f (lambda () (eof-object)))
-		    (eof-object)))))))
-	 (user-getc-line
-	  (lambda ()
-	    (if (< user-ptr start-ptr)
-		(user-go-to-start-line))
-	    (if (< user-ptr read-ptr)
-		(let ((c (string-ref buffer user-ptr)))
-		  (set! user-ptr (+ user-ptr 1))
-		  (if (char=? c #\newline)
-		      (set! user-line (+ user-line 1)))
-		  c)
-	      (let ((c (input-f)))
-		(if (char? c)
-		    (begin
-		      (if (= read-ptr buflen)
-			  (reorganize-buffer))
-		      (string-set! buffer user-ptr c)
-		      (set! read-ptr (+ read-ptr 1))
-		      (set! user-ptr read-ptr)
-		      (if (char=? c #\newline)
-			  (set! user-line (+ user-line 1)))
-		      c)
-		  (begin
-		    (set! input-f (lambda () (eof-object)))
-		    (eof-object)))))))
-	 (user-getc-all
-	  (lambda ()
-	    (if (< user-ptr start-ptr)
-		(user-go-to-start-all))
-	    (if (< user-ptr read-ptr)
-		(let ((c (string-ref buffer user-ptr)))
-		  (set! user-ptr (+ user-ptr 1))
-		  (if (char=? c #\newline)
-		      (begin
-			(set! user-line (+ user-line 1))
-			(set! user-column 1))
-		    (set! user-column (+ user-column 1)))
-		  (set! user-offset (+ user-offset 1))
-		  c)
-	      (let ((c (input-f)))
-		(if (char? c)
-		    (begin
-		      (if (= read-ptr buflen)
-			  (reorganize-buffer))
-		      (string-set! buffer user-ptr c)
-		      (set! read-ptr (+ read-ptr 1))
-		      (set! user-ptr read-ptr)
-		      (if (char=? c #\newline)
-			  (begin
-			    (set! user-line (+ user-line 1))
-			    (set! user-column 1))
-			(set! user-column (+ user-column 1)))
-		      (set! user-offset (+ user-offset 1))
-		      c)
-		  (begin
-		    (set! input-f (lambda () (eof-object)))
-		    (eof-object)))))))
-	 (user-ungetc-none
-	  (lambda ()
-	    (when (> user-ptr start-ptr)
-	      (set! user-ptr (- user-ptr 1)))))
-	 (user-ungetc-line
-	  (lambda ()
-	    (when (> user-ptr start-ptr)
-	      (set! user-ptr (- user-ptr 1))
-	      (let ((c (string-ref buffer user-ptr)))
-		(if (char=? c #\newline)
-		    (set! user-line (- user-line 1)))))))
-	 (user-ungetc-all
-	  (lambda ()
-	    (when (> user-ptr start-ptr)
-	      (set! user-ptr (- user-ptr 1))
-	      (let ((c (string-ref buffer user-ptr)))
-		(if (char=? c #\newline)
-		    (begin
-		      (set! user-line (- user-line 1))
-		      (set! user-up-to-date? #f))
-		  (set! user-column (- user-column 1)))
-		(set! user-offset (- user-offset 1))))))
-	 (reorganize-buffer ; Decaler ou agrandir le buffer
-	  (lambda ()
-	    (if (< (* 2 start-ptr) buflen)
-		(let* ((newlen (* 2 buflen))
-		       (newbuf (make-string newlen))
-		       (delta (- start-ptr 1)))
-		  (let loop ((from (- start-ptr 1)))
-		    (if (< from buflen)
-			(begin
-			  (string-set! newbuf
-				       (- from delta)
-				       (string-ref buffer from))
-			  (loop (+ from 1)))))
-		  (set! buffer    newbuf)
-		  (set! buflen    newlen)
-		  (set! read-ptr  (- read-ptr delta))
-		  (set! start-ptr (- start-ptr delta))
-		  (set! end-ptr   (- end-ptr delta))
-		  (set! point-ptr (- point-ptr delta))
-		  (set! user-ptr  (- user-ptr delta)))
-	      (let ((delta (- start-ptr 1)))
-		(let loop ((from (- start-ptr 1)))
-		  (if (< from buflen)
-		      (begin
-			(string-set! buffer
-				     (- from delta)
-				     (string-ref buffer from))
-			(loop (+ from 1)))))
-		(set! read-ptr  (- read-ptr delta))
-		(set! start-ptr (- start-ptr delta))
-		(set! end-ptr   (- end-ptr delta))
-		(set! point-ptr (- point-ptr delta))
-		(set! user-ptr  (- user-ptr delta)))))))
-      (:input-system-make
-       (case counters
-	 ((none) start-go-to-end-none)
-	 ((line) start-go-to-end-line)
-	 ((all)  start-go-to-end-all))
-       end-go-to-point
-       (case counters
-	 ((none) init-lexeme-none)
-	 ((line) init-lexeme-line)
-	 ((all)  init-lexeme-all))
-       get-start-line
-       get-start-column
-       get-start-offset
-       peek-left-context
-       peek-char
-       read-char
-       get-start-end-text
-       (case counters
-	 ((none) #f)
-	 ((line) get-user-line-line)
-	 ((all)  get-user-line-all))
-       (case counters
-	 ((none) #f)
-	 ((line) #f)
-	 ((all)  get-user-column-all))
-       (case counters
-	 ((none) #f)
-	 ((line) #f)
-	 ((all)  get-user-offset-all))
-       (case counters
-	 ((none) user-getc-none)
-	 ((line) user-getc-line)
-	 ((all)  user-getc-all))
-       (case counters
-	 ((none) user-ungetc-none)
-	 ((line) user-ungetc-line)
-	 ((all)  user-ungetc-all))))))
-
-
-(define (lexer-get-func-getc IS)
-  (:input-system-user-getc IS))
-
-(define (lexer-get-func-ungetc IS)
-  (:input-system-user-ungetc IS))
-
-(define (lexer-get-func-line IS)
-  (:input-system-get-user-line IS))
-
-(define (lexer-get-func-column IS)
-  (:input-system-get-user-column IS))
-
-(define (lexer-get-func-offset IS)
-  (:input-system-get-user-offset IS))
-
-
-(define (lexer-make-tree-lexer tables IS)
+(define (make-tree-lexer tables IS)
   ;;Fabrication de lexer a partir d'arbres de decision.
   ;;
   (letrec
@@ -504,21 +63,21 @@
        (acc-v                (vector-ref tables 8))
 
 		; Contenu du IS
-       (IS-start-go-to-end    (:input-system-start-go-to-end	IS))
-       (IS-end-go-to-point    (:input-system-end-go-to-point	IS))
-       (IS-init-lexeme        (:input-system-init-lexeme	IS))
-       (IS-get-start-line     (:input-system-get-start-line	IS))
-       (IS-get-start-column   (:input-system-get-start-column	IS))
-       (IS-get-start-offset   (:input-system-get-start-offset	IS))
-       (IS-peek-left-context  (:input-system-peek-left-context	IS))
-       (IS-peek-char          (:input-system-peek-char		IS))
-       (IS-read-char          (:input-system-read-char		IS))
-       (IS-get-start-end-text (:input-system-get-start-end-text IS))
-       (IS-get-user-line      (:input-system-get-user-line	IS))
-       (IS-get-user-column    (:input-system-get-user-column	IS))
-       (IS-get-user-offset    (:input-system-get-user-offset	IS))
-       (IS-user-getc          (:input-system-user-getc		IS))
-       (IS-user-ungetc        (:input-system-user-ungetc	IS))
+       (IS-start-go-to-end    (<input-system>-start-go-to-end	IS))
+       (IS-end-go-to-point    (<input-system>-end-go-to-point	IS))
+       (IS-init-lexeme        (<input-system>-init-lexeme	IS))
+       (IS-get-start-line     (<input-system>-get-start-line	IS))
+       (IS-get-start-column   (<input-system>-get-start-column	IS))
+       (IS-get-start-offset   (<input-system>-get-start-offset	IS))
+       (IS-peek-left-context  (<input-system>-peek-left-context	IS))
+       (IS-peek-char          (<input-system>-peek-char		IS))
+       (IS-read-char          (<input-system>-read-char		IS))
+       (IS-get-start-end-text (<input-system>-get-start-end-text IS))
+       (IS-get-user-line      (<input-system>-get-user-line	IS))
+       (IS-get-user-column    (<input-system>-get-user-column	IS))
+       (IS-get-user-offset    (<input-system>-get-user-offset	IS))
+       (IS-user-getc          (<input-system>-user-getc		IS))
+       (IS-user-ungetc        (<input-system>-user-ungetc	IS))
 
 		; Resultats
        (<<EOF>>-action   #f)
@@ -965,7 +524,7 @@
     final-lexer))
 
 
-(define lexer-make-char-lexer
+(define make-char-lexer
   ;; Fabrication de lexer a partir de listes de caracteres taggees
   ;;
   (let* ((char->class
@@ -1144,7 +703,7 @@
 		(begin
 		  (vector-set! v i (charcs->tree (vector-ref charcs-v i)))
 		  (loop (- i 1)))
-		(lexer-make-tree-lexer
+		(make-tree-lexer
 		 (vector counters
 			 <<EOF>>-action
 			 <<ERROR>>-action
@@ -1157,7 +716,7 @@
 		 IS))))))))
 
 
-(define (lexer-make-code-lexer tables IS)
+(define (make-code-lexer tables IS)
   ;; Fabrication d'un lexer a partir de code pre-genere
   (let ((<<EOF>>-pre-action   (vector-ref tables 1))
 	(<<ERROR>>-pre-action (vector-ref tables 2))

@@ -7,7 +7,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2009, 2010, 2011 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -28,7 +28,7 @@
 (import (nausicaa)
   (nausicaa checks)
   (nausicaa language sentinel)
-  (nausicaa silex lexer)
+  (prefix (nausicaa silex lexer) lex.)
   (silex-test)
   (calc-code-lexer)
   (calc-portable-lexer)
@@ -42,10 +42,10 @@
 (test-calc calc-lexer-table/tree)
 
 ;;Test getting the chars until the end.
-(let* ((IS		(lexer-make-IS (string: "1+2+3") (counters: 'line)))
-       (lexer		(lexer-make-lexer calc-lexer-table/code IS))
-       (lexer-getc	(lexer-get-func-getc IS))
-       (lexer-ungetc	(lexer-get-func-ungetc IS)))
+(let* ((IS		(lex.make-IS (lex.string: "1+2+3") (lex.counters: 'line)))
+       (lexer		(lex.make-lexer calc-lexer-table/code IS))
+       (lexer-getc	(lex.lexer-get-func-getc IS))
+       (lexer-ungetc	(lex.lexer-get-func-ungetc IS)))
 
   (check
       (and (char=? #\1 (lexer-getc))

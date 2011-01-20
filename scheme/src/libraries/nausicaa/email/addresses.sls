@@ -69,25 +69,24 @@
     <group>?
     <group>-display-name	<group>-mailboxes)
   (import (nausicaa)
-    (nausicaa silex lexer)
     (nausicaa email addresses common)
     (nausicaa email addresses quoted-text-lexer)
     (nausicaa email addresses comments-lexer)
     (nausicaa email addresses domain-literals-lexer)
     (nausicaa email addresses lexer)
     (nausicaa email addresses parser)
-    (nausicaa parser-tools lexical-token)
-    (nausicaa parser-tools source-location))
+    (prefix (nausicaa silex lexer) lex.)
+    (nausicaa parser-tools))
 
 
 (define (make-address-lexer IS)
-  (let ((lexers		(list (lexer-make-lexer address-table IS)))
+  (let ((lexers		(list (lex.make-lexer address-table IS)))
 	(dispatchers	'())
 	(allow-comments	(address-lexer-allows-comments)))
 
     (define (main-dispatch lexer)
-      (let ((token (lexer)))
-	(case (<lexical-token>-category token)
+      (let (((token <lexical-token>) (lexer)))
+	(case token.category
 	  ((QUOTED-TEXT-OPEN)
 	   (lex-quoted-text-token IS token))
 	  ((COMMENT-OPEN)
@@ -96,15 +95,15 @@
 		 comment-token
 	       (main-dispatch lexer))))
 	  ((DOMAIN-LITERAL-OPEN)
-	   (push-lexer-and-dispatcher (lexer-make-lexer domain-literals-table IS)
+	   (push-lexer-and-dispatcher (lex.make-lexer domain-literals-table IS)
 				      domain-literal-dispatch)
 	   token)
 	  (else
 	   token))))
 
     (define (domain-literal-dispatch lexer)
-      (let ((token (lexer)))
-	(case (<lexical-token>-category token)
+      (let (((token <lexical-token>) (lexer)))
+	(case token.category
 	  ((DOMAIN-LITERAL-CLOSE *lexer-error*)
 	   (pop-lexer-and-dispatcher)
 	   token)
@@ -119,41 +118,39 @@
       ;;including the nested comments.   Return the whole comment as a
       ;;string.
       ;;
-      (let* ((lexer	(lexer-make-lexer comments-table IS))
+      (let* ((lexer	(lex.make-lexer comments-table IS))
 	     (text  ""))
 	(do ((token  (lexer) (lexer)))
 	    ((eq? token 'COMMENT-CLOSE)
-	     (make-<lexical-token> 'COMMENT
-				   (make-<source-location> #f
-							   ((lexer-get-func-line   IS))
-							   ((lexer-get-func-column IS))
-							   ((lexer-get-func-offset IS)))
-				   text (string-length text)))
+	     (make* <lexical-token> 'COMMENT
+		    (make* <source-location>
+		      #f
+		      ((lex.lexer-get-func-line   IS))
+		      ((lex.lexer-get-func-column IS))
+		      ((lex.lexer-get-func-offset IS)))
+		    text (string-length text)))
 	  (set! text (string-append
 		      text
 		      (if (eq? token 'COMMENT-OPEN)
 			  (string-append "(" (lex-comment-token IS token) ")")
 			token))))))
 
-    (define (lex-quoted-text-token IS opening-token)
+    (define (lex-quoted-text-token IS (opening-token <lexical-token>))
       ;;To  be  called after  the  lexer  returned a  "QUOTED-TEXT-OPEN"
       ;;lexical token, which must be in OPENING-TOKEN.
       ;;
       ;;Accumulate the quoted text into  a string.  Return a new lexical
       ;;token record with category QUOTED-TEXT.
       ;;
-      (let ((lexer (lexer-make-lexer quoted-text-table IS))
+      (let ((lexer (lex.make-lexer quoted-text-table IS))
 	    (text  ""))
 	(do ((token (lexer) (lexer)))
 	    ((eq? token 'QUOTED-TEXT-CLOSE)
-	     (let ((pos (<lexical-token>-location opening-token)))
-	       (make-<lexical-token> 'QUOTED-TEXT
-				     (make-<source-location>
-				      (<source-location>-input  pos)
-				      (<source-location>-line   pos)
-				      (<source-location>-column pos)
-				      (<source-location>-offset pos))
-				     text (string-length text))))
+	     (let (((pos <source-location>) opening-token.location))
+	       (make* <lexical-token> 'QUOTED-TEXT
+		      (make* <source-location>
+			pos.input pos.line pos.column pos.offset)
+		      text (string-length text))))
 	  (set! text (string-append text token)))))
 
     (define-inline (push-lexer-and-dispatcher lex disp)
@@ -176,11 +173,11 @@
 
 (define (address->tokens IS)
   (let ((lexer (make-address-lexer IS)))
-    (let loop ((token		(lexer))
-	       (list-of-tokens	'()))
-      (if (<lexical-token>?/special token)
+    (let loop (((T <lexical-token>)	(lexer))
+	       (list-of-tokens		'()))
+      (if T.special?
 	  (reverse list-of-tokens)
-	(loop (lexer) (cons token list-of-tokens))))))
+	(loop (lexer) (cons T list-of-tokens))))))
 
 
 ;;;; done

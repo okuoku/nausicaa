@@ -95,12 +95,12 @@
   (syntax-rules ()
     ((_ ?IS . ?body)
      (let ((IS ?IS))
-       (parametrise ((action-lexer		(lexer-make-lexer action-tables IS))
-		     (class-lexer		(lexer-make-lexer class-tables  IS))
-		     (macro-lexer		(lexer-make-lexer macro-tables  IS))
-		     (regexp-lexer		(lexer-make-lexer regexp-tables IS))
-		     (string-lexer		(lexer-make-lexer string-tables IS))
-		     (nested-comment-lexer	(lexer-make-lexer nested-comment-tables IS))
+       (parametrise ((action-lexer		(make-lexer action-tables IS))
+		     (class-lexer		(make-lexer class-tables  IS))
+		     (macro-lexer		(make-lexer macro-tables  IS))
+		     (regexp-lexer		(make-lexer regexp-tables IS))
+		     (string-lexer		(make-lexer string-tables IS))
+		     (nested-comment-lexer	(make-lexer nested-comment-tables IS))
 		     (lexer-raw			#f)
 		     (lexer-stack		'())
 		     (lexer-buffer-empty?	#t)
@@ -168,7 +168,7 @@
 		       (assertion-violation 'lex
 			 "missing input method for lexer")))))
 	(lambda ()
-	  (let ((IS (lexer-make-IS (port: input-port) (counters: 'all))))
+	  (let ((IS (make-IS (port: input-port) (counters: 'all))))
 	    (parametrise ((input-source		(or input-file #f))
 			  (include-files	(if input-file `(,input-file) '())))
 	      (with-context-to-lex-file
@@ -1120,7 +1120,7 @@
 	  (dynamic-wind
 	      (lambda () #f)
 	      (lambda ()
-		(let ((IS (lexer-make-IS (port: input-port) (counters: 'all))))
+		(let ((IS (make-IS (port: input-port) (counters: 'all))))
 		  (parametrise ((input-source pathname))
 		    (with-context-to-lex-file IS (parse-macros macros-already-defined #f)))))
 	      (lambda ()
@@ -2185,7 +2185,7 @@
 		       output-port)
 	      (write library-language output-port)
 	      (newline output-port)
-	      (display "(nausicaa silex lexer)\n" output-port)
+	      (display "(nausicaa silex input-system)\n" output-port)
 	      (for-each (lambda (spec)
 			  (write spec output-port)
 			  (newline output-port))
@@ -2205,7 +2205,8 @@
 	  ;;Make the output value.
 	  (let ((ell (read (open-string-input-port (value-getter)))))
 	    (eval ell (if (eq? lexer-format 'code)
-			  (apply environment library-language '(nausicaa silex lexer) library-imports)
+			  (apply environment library-language
+				 '(nausicaa silex input-system) library-imports)
 			(apply environment library-language library-imports)))))))
 
   (define (library-spec->string-spec spec)
@@ -2948,18 +2949,18 @@
 
 	(%display (string-append
 		   ;;Ecrire l'extraction des fonctions du IS.
-		   "          (start-go-to-end    (:input-system-start-go-to-end	IS))\n"
-		   "          (end-go-to-point    (:input-system-end-go-to-point	IS))\n"
-		   "          (init-lexeme        (:input-system-init-lexeme	IS))\n"
-		   "          (get-start-line     (:input-system-get-start-line	IS))\n"
-		   "          (get-start-column   (:input-system-get-start-column	IS))\n"
-		   "          (get-start-offset   (:input-system-get-start-offset	IS))\n"
-		   "          (peek-left-context  (:input-system-peek-left-context	IS))\n"
-		   "          (peek-char          (:input-system-peek-char		IS))\n"
-		   "          (read-char          (:input-system-read-char		IS))\n"
-		   "          (get-start-end-text (:input-system-get-start-end-text IS))\n"
-		   "          (user-getc          (:input-system-user-getc		IS))\n"
-		   "          (user-ungetc        (:input-system-user-ungetc	IS))\n"
+		   "          (start-go-to-end    (<input-system>-start-go-to-end	IS))\n"
+		   "          (end-go-to-point    (<input-system>-end-go-to-point	IS))\n"
+		   "          (init-lexeme        (<input-system>-init-lexeme	IS))\n"
+		   "          (get-start-line     (<input-system>-get-start-line	IS))\n"
+		   "          (get-start-column   (<input-system>-get-start-column	IS))\n"
+		   "          (get-start-offset   (<input-system>-get-start-offset	IS))\n"
+		   "          (peek-left-context  (<input-system>-peek-left-context	IS))\n"
+		   "          (peek-char          (<input-system>-peek-char		IS))\n"
+		   "          (read-char          (<input-system>-read-char		IS))\n"
+		   "          (get-start-end-text (<input-system>-get-start-end-text IS))\n"
+		   "          (user-getc          (<input-system>-user-getc		IS))\n"
+		   "          (user-ungetc        (<input-system>-user-ungetc	IS))\n"
 		   ;;Ecrire les variables d'actions.
 		   "          (action-<<EOF>>\n"
 		   "           (lambda (" counters-params-short "\n"

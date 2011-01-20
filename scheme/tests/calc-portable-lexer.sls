@@ -2,7 +2,7 @@
   (export
     calc-lexer-table/portable)
   (import (rnrs)
-(nausicaa silex lexer)
+(nausicaa silex input-system)
 )
 
 ;

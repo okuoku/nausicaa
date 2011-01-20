@@ -520,7 +520,7 @@
 	      (make-irritants-condition `(,T.value)))))
 
 (define (parse port)
-  (let* ((IS		(lex.lexer-make-IS
+  (let* ((IS		(lex.make-IS
 			 (lex.port: port)
 			 (lex.counters: 'all)))
 	 (true-lexer	(r6.make-token-lexer IS))

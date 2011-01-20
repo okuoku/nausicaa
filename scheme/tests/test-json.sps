@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2010, 2011 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -30,7 +30,7 @@
   (nausicaa json)
   (nausicaa json string-lexer)
   (nausicaa parser-tools lexical-token)
-  (nausicaa silex lexer)
+  (prefix (nausicaa silex lexer) lex.)
   (nausicaa checks))
 
 (check-set-mode! 'report-failed)
@@ -42,8 +42,8 @@
   (define (tokenise-string string)
     ;;This  is just  a  lexer, it  does  not check  for the  terminating
     ;;double-quote.
-    (let* ((IS		(lexer-make-IS (string: string) (counters: 'all)))
-	   (lexer	(lexer-make-lexer json-string-lexer-table IS))
+    (let* ((IS		(lex.make-IS (lex.string: string) (lex.counters: 'all)))
+	   (lexer	(lex.make-lexer json-string-lexer-table IS))
 	   (out		'()))
       (do ((token (lexer) (lexer)))
 	  ((<lexical-token>?/special token)
@@ -136,7 +136,7 @@
     (map (lambda (token)
 	   (cons (<lexical-token>-category token)
 		 (<lexical-token>-value    token)))
-      (json->tokens (lexer-make-IS (string: string) (counters: 'all)))))
+      (json->tokens (lex.make-IS (lex.string: string) (lex.counters: 'all)))))
 
 ;;; --------------------------------------------------------------------
 
@@ -245,7 +245,7 @@
 (parameterise ((check-test-name 'rfc-lexer-parser))
 
   (define (doit string)
-    (let* ((IS		(lexer-make-IS (string: string) (counters: 'all)))
+    (let* ((IS		(lex.make-IS (lex.string: string) (lex.counters: 'all)))
 	   (lexer	(make-json-rfc-lexer IS))
 	   (parser	(make-json-sexp-parser)))
       (parser (lambda ()
@@ -368,7 +368,7 @@
 (parameterise ((check-test-name 'extended-lexer-parser))
 
   (define (doit string)
-    (let* ((IS		(lexer-make-IS (string: string) (counters: 'all)))
+    (let* ((IS		(lex.make-IS (lex.string: string) (lex.counters: 'all)))
 	   (lexer	(make-json-extended-lexer IS))
 	   (parser	(make-json-sexp-parser))
 	   (handler	(lambda (msg tok) (list 'error-handler msg tok))))
@@ -490,7 +490,7 @@
 (parameterise ((check-test-name 'event-lexer-parser))
 
   (define (doit string)
-    (let* ((IS		(lexer-make-IS (string: string) (counters: 'all)))
+    (let* ((IS		(lex.make-IS (lex.string: string) (lex.counters: 'all)))
 	   (lexer	(make-json-rfc-lexer IS))
 	   (result	'())
 	   (handler	(lambda args

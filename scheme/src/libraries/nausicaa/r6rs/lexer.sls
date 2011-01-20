@@ -92,7 +92,7 @@
     (nausicaa r6rs number-lexer-table)
     (nausicaa r6rs lexeme-processing)
     (nausicaa parser-tools)
-    (nausicaa silex lexer))
+    (prefix (nausicaa silex lexer) lex.))
 
 
 ;;;; lexer thunk makers
@@ -130,19 +130,19 @@
   ;;thunk: it is impossible to discard datums at the lexer level, it has
   ;;to be done by the parser.
   ;;
-  (let ((lexer (lexer-make-lexer lexer-table IS)))
+  (let ((lexer (lex.make-lexer lexer-table IS)))
     (lambda ()
       (let next (((T <lexical-token>) (lexer)))
 	(define (%string-token)
 	  (let ((S (read-string* IS)))
 	    (if (string? S)
-		((string-token-maker) (lexer-get-func-getc IS) (lexer-get-func-ungetc IS)
+		((string-token-maker) (lex.lexer-get-func-getc IS) (lex.lexer-get-func-ungetc IS)
 		 S T.location.line T.location.column T.location.offset)
 	      S)))
 	(define (%nested-comment-token)
 	  (let ((S (read-nested-comment* IS)))
 	    (if (string? S)
-		((nested-comment-token-maker) (lexer-get-func-getc IS) (lexer-get-func-ungetc IS)
+		((nested-comment-token-maker) (lex.lexer-get-func-getc IS) (lex.lexer-get-func-ungetc IS)
 		 S T.location.line T.location.column T.location.offset)
 	      S)))
 	(cond (T.special? T)
@@ -176,7 +176,7 @@
   ;;single value in the irritants list is the EOF object.
   ;;
   (let-values (((port getter)	(open-string-output-port))
-	       ((lexer)		(lexer-make-lexer r6rs-string-lexer-table IS)))
+	       ((lexer)		(lex.make-lexer r6rs-string-lexer-table IS)))
     (let next (((T <lexical-token>) (lexer)))
       (define (%error message)
 	(raise
@@ -209,7 +209,7 @@
   ;;which must be a <lexical-token> having *eoi* as category.
   ;;
   (let-values (((port getter)	(open-string-output-port))
-	       ((lexer)		(lexer-make-lexer r6rs-string-lexer-table IS)))
+	       ((lexer)		(lex.make-lexer r6rs-string-lexer-table IS)))
     (let next (((T <lexical-token>) (lexer)))
       (cond (T.end-of-input?	T)
 	    (T.lexer-error?	T)
@@ -234,7 +234,7 @@
   ;;is raised with components &lexical, &message, &who, &irritants.  The
   ;;single value in the irritants list is the EOF object.
   ;;
-  (let (((T <lexical-token>) ((lexer-make-lexer r6rs-character-lexer-table IS))))
+  (let (((T <lexical-token>) ((lex.make-lexer r6rs-character-lexer-table IS))))
     (define (%error message)
       (raise
        (condition (make-lexical-violation)
@@ -263,7 +263,7 @@
   ;;is raised with components &lexical, &message, &who, &irritants.  The
   ;;single value in the irritants list is the EOF object.
   ;;
-  (let (((T <lexical-token>) ((lexer-make-lexer r6rs-identifier-lexer-table IS))))
+  (let (((T <lexical-token>) ((lex.make-lexer r6rs-identifier-lexer-table IS))))
     (define (%error message)
       (raise
        (condition (make-lexical-violation)
@@ -291,7 +291,7 @@
   ;;raised  with components &lexical,  &message, &who,  &irritants.  The
   ;;single value in the irritants list is the EOF object.
   ;;
-  (let (((T <lexical-token>) ((lexer-make-lexer r6rs-number-lexer-table IS))))
+  (let (((T <lexical-token>) ((lex.make-lexer r6rs-number-lexer-table IS))))
     (define (%error message)
       (raise
        (condition (make-lexical-violation)
@@ -324,7 +324,7 @@
   ;;object.
   ;;
   (let-values (((port getter)	(open-string-output-port))
-	       ((lexer)		(lexer-make-lexer r6rs-nested-comment-lexer-table IS))
+	       ((lexer)		(lex.make-lexer r6rs-nested-comment-lexer-table IS))
 	       ((count)		1))
     (put-char port #\#)
     (put-char port #\|)
@@ -371,7 +371,7 @@
   ;;which must be a <lexical-token> having *eoi* as category.
   ;;
   (let-values (((port getter)	(open-string-output-port))
-	       ((lexer)		(lexer-make-lexer r6rs-nested-comment-lexer-table IS))
+	       ((lexer)		(lex.make-lexer r6rs-nested-comment-lexer-table IS))
 	       ((count)		1))
     (put-char port #\#)
     (put-char port #\|)
@@ -411,7 +411,7 @@
   ;;&irritants.   The single  value in  the  irritants list  is the  EOF
   ;;object.
   ;;
-  (let (((T <lexical-token>) ((lexer-make-lexer r6rs-line-comment-lexer-table IS))))
+  (let (((T <lexical-token>) ((lex.make-lexer r6rs-line-comment-lexer-table IS))))
     (define (%error message)
       (raise
        (condition (make-lexical-violation)

@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2010, 2011 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -28,11 +28,10 @@
 #!r6rs
 (import (nausicaa)
   (nausicaa net ipv4-addresses)
-  (nausicaa silex lexer)
-  (nausicaa parser-tools lexical-token)
-  (nausicaa parser-tools source-location)
+  (prefix (nausicaa silex lexer) lex.)
+  (nausicaa parser-tools)
   (nausicaa net helpers ipv4-address-lexer)
-  (prefix (nausicaa net helpers ipv4-address-parser) parser:)
+  (prefix (nausicaa net helpers ipv4-address-parser) parser.)
   (nausicaa checks))
 
 (check-set-mode! 'report-failed)
@@ -42,13 +41,13 @@
 (parametrise ((check-test-name	'lexing))
 
   (define (tokenise-address string)
-    (let* ((IS		(lexer-make-IS (string: string) (counters: 'all)))
-	   (lexer	(lexer-make-lexer ipv4-address-lexer-table IS))
+    (let* ((IS		(lex.make-IS (lex.string: string) (lex.counters: 'all)))
+	   (lexer	(lex.make-lexer ipv4-address-lexer-table IS))
 	   (out		'()))
       (define (push-token! (T <lexical-token>))
 	(set-cons! out (cons T.category T.value)))
-      (do ((token (lexer) (lexer)))
-	  ((<lexical-token>?/special token)
+      (do (((token <lexical-token>) (lexer) (lexer)))
+	  (token.special?
 	   (push-token! token)
 	   (reverse out))
 ;;;(write token)(newline)
@@ -175,9 +174,9 @@
 	(make-irritants-condition (list string token.value))))))
 
   (define (parse-address string)
-    (let* ((IS		(lexer-make-IS (string: string) (counters: 'all)))
-	   (lexer	(lexer-make-lexer ipv4-address-lexer-table IS))
-	   (parser	(parser:make-ipv4-address-parser)))
+    (let* ((IS		(lex.make-IS (lex.string: string) (lex.counters: 'all)))
+	   (lexer	(lex.make-lexer ipv4-address-lexer-table IS))
+	   (parser	(parser.make-ipv4-address-parser)))
       (parser lexer (make-ipv4-address-parser-error-handler 'parse-address string))))
 
 ;;; --------------------------------------------------------------------

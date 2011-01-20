@@ -29,10 +29,8 @@
 
 #!r6rs
 (import (nausicaa)
-  (nausicaa silex lexer)
-  (only (nausicaa parser-tools)
-	<lexical-token>
-	<source-location>)
+  (prefix (nausicaa silex lexer) lex.)
+  (nausicaa parser-tools)
   (prefix (nausicaa r6rs lexer) r6.)
   (nausicaa checks))
 
@@ -97,8 +95,8 @@
 (parametrise ((check-test-name	'string-tokeniser))
 
   (define (tokenise string)
-    (let* ((IS		(lexer-make-IS (string: string) (counters: 'all)))
-	   (lexer	(lexer-make-lexer r6.r6rs-string-lexer-table IS))
+    (let* ((IS		(lex.make-IS (lex.string: string) (lex.counters: 'all)))
+	   (lexer	(lex.make-lexer r6.r6rs-string-lexer-table IS))
 	   (result	'()))
       (do (((T <lexical-token>) (lexer) (lexer)))
 	  (T.special?
@@ -277,7 +275,7 @@ bc" STRING *eoi*))
 (parametrise ((check-test-name	'string-reader))
 
   (define (parse string)
-    (r6.read-string (lexer-make-IS (string: string) (counters: 'all))))
+    (r6.read-string (lex.make-IS (lex.string: string) (lex.counters: 'all))))
 
 ;;; All the test strings must end with a double-quote char.
 
@@ -454,8 +452,8 @@ mamma\"")
 (parametrise ((check-test-name	'nested-comment-tokeniser))
 
   (define (tokenise string)
-    (let* ((IS		(lexer-make-IS (string: string) (counters: 'all)))
-	   (lexer	(lexer-make-lexer r6.r6rs-nested-comment-lexer-table IS))
+    (let* ((IS		(lex.make-IS (lex.string: string) (lex.counters: 'all)))
+	   (lexer	(lex.make-lexer r6.r6rs-nested-comment-lexer-table IS))
 	   (result	'()))
       (do (((T <lexical-token>) (lexer) (lexer)))
 	  (T.special?
@@ -499,7 +497,7 @@ mamma\"")
 (parametrise ((check-test-name	'nested-comment-reader))
 
   (define (parse string)
-    (r6.read-nested-comment (lexer-make-IS (string: string) (counters: 'all))))
+    (r6.read-nested-comment (lex.make-IS (lex.string: string) (lex.counters: 'all))))
 
   (define-syntax identity
     (syntax-rules ()
@@ -535,8 +533,8 @@ mamma\"")
 (parametrise ((check-test-name	'line-comment-tokeniser))
 
   (define (tokenise string)
-    (let* ((IS		(lexer-make-IS (string: string) (counters: 'all)))
-	   (lexer	(lexer-make-lexer r6.r6rs-line-comment-lexer-table IS))
+    (let* ((IS		(lex.make-IS (lex.string: string) (lex.counters: 'all)))
+	   (lexer	(lex.make-lexer r6.r6rs-line-comment-lexer-table IS))
 	   (result	'()))
       (do (((T <lexical-token>) (lexer) (lexer)))
 	  (T.special?
@@ -578,7 +576,7 @@ mamma\"")
 (parametrise ((check-test-name	'line-comment-reader))
 
   (define (parse string)
-    (r6.read-line-comment (lexer-make-IS (string: string) (counters: 'all))))
+    (r6.read-line-comment (lex.make-IS (lex.string: string) (lex.counters: 'all))))
 
   (define-syntax identity
     (syntax-rules ()
@@ -607,8 +605,8 @@ mamma\"")
 (parametrise ((check-test-name	'character-tokeniser))
 
   (define (tokenise string)
-    (let* ((IS		(lexer-make-IS (string: string) (counters: 'all)))
-	   (lexer	(lexer-make-lexer r6.r6rs-character-lexer-table IS))
+    (let* ((IS		(lex.make-IS (lex.string: string) (lex.counters: 'all)))
+	   (lexer	(lex.make-lexer r6.r6rs-character-lexer-table IS))
 	   (result	'()))
       (do (((T <lexical-token>) (lexer) (lexer)))
 	  (T.special?
@@ -717,7 +715,7 @@ mamma\"")
 (parametrise ((check-test-name	'character-reader))
 
   (define (parse string)
-    (r6.read-character (lexer-make-IS (string: string) (counters: 'all))))
+    (r6.read-character (lex.make-IS (lex.string: string) (lex.counters: 'all))))
 
   (check
       (parse "#\\1")
@@ -824,8 +822,8 @@ mamma\"")
 (parametrise ((check-test-name	'identifier-tokeniser))
 
   (define (tokenise string)
-    (let* ((IS		(lexer-make-IS (string: string) (counters: 'all)))
-	   (lexer	(lexer-make-lexer r6.r6rs-identifier-lexer-table IS))
+    (let* ((IS		(lex.make-IS (lex.string: string) (lex.counters: 'all)))
+	   (lexer	(lex.make-lexer r6.r6rs-identifier-lexer-table IS))
 	   (result	'()))
       (do (((T <lexical-token>) (lexer) (lexer)))
 	  (T.special?
@@ -919,7 +917,7 @@ mamma\"")
 (parametrise ((check-test-name	'identifier-reader))
 
   (define (parse string)
-    (r6.read-identifier (lexer-make-IS (string: string) (counters: 'all))))
+    (r6.read-identifier (lex.make-IS (lex.string: string) (lex.counters: 'all))))
 
   (check
       (parse "c")
@@ -1017,8 +1015,8 @@ mamma\"")
 (parametrise ((check-test-name	'number-tokeniser))
 
   (define (tokenise string)
-    (let* ((IS		(lexer-make-IS (string: string) (counters: 'all)))
-	   (lexer	(lexer-make-lexer r6.r6rs-number-lexer-table IS))
+    (let* ((IS		(lex.make-IS (lex.string: string) (lex.counters: 'all)))
+	   (lexer	(lex.make-lexer r6.r6rs-number-lexer-table IS))
 	   (result	'()))
       (do (((T <lexical-token>) (lexer) (lexer)))
 	  (T.special?
@@ -1050,7 +1048,7 @@ mamma\"")
 (parametrise ((check-test-name	'number-reader))
 
   (define (parse string)
-    (r6.read-number (lexer-make-IS (string: string) (counters: 'all))))
+    (r6.read-number (lex.make-IS (lex.string: string) (lex.counters: 'all))))
 
   (define (generated-tests)
     ;;DO NOT TRY TO CONVERT THIS FUNCTION TO A MACRO!!!  I already tried
@@ -1366,8 +1364,8 @@ mamma\"")
 	      (debugging	#f))
 
   (define (tokenise string)
-    (let* ((IS		(lexer-make-IS (string: string) (counters: 'all)))
-	   (lexer	(lexer-make-lexer r6.r6rs-lexer-table IS))
+    (let* ((IS		(lex.make-IS (lex.string: string) (lex.counters: 'all)))
+	   (lexer	(lex.make-lexer r6.r6rs-lexer-table IS))
 	   (result	'()))
       (do (((T <lexical-token>) (lexer) (lexer)))
 	  (T.special?
@@ -1458,8 +1456,8 @@ mamma\"")
 	      (debugging	#f))
 
   (define (tokenise string)
-    (let* ((IS		(lexer-make-IS (string: string) (counters: 'all)))
-	   (lexer	(lexer-make-lexer r6.r6rs-lexer-table IS))
+    (let* ((IS		(lex.make-IS (lex.string: string) (lex.counters: 'all)))
+	   (lexer	(lex.make-lexer r6.r6rs-lexer-table IS))
 	   (result	'()))
       (do (((T <lexical-token>) (lexer) (lexer)))
 	  (T.special?
@@ -1562,8 +1560,8 @@ mamma\"")
 	      (debugging	#f))
 
   (define (tokenise string)
-    (let* ((IS		(lexer-make-IS (string: string) (counters: 'all)))
-	   (lexer	(lexer-make-lexer r6.r6rs-lexer-table IS))
+    (let* ((IS		(lex.make-IS (lex.string: string) (lex.counters: 'all)))
+	   (lexer	(lex.make-lexer r6.r6rs-lexer-table IS))
 	   (result	'()))
       (do (((T <lexical-token>) (lexer) (lexer)))
 	  (T.special?
@@ -1843,8 +1841,8 @@ mamma\"")
 	      (debugging	#f))
 
   (define (tokenise string)
-    (let* ((IS		(lexer-make-IS (string: string) (counters: 'all)))
-	   (lexer	(lexer-make-lexer r6.r6rs-lexer-table IS))
+    (let* ((IS		(lex.make-IS (lex.string: string) (lex.counters: 'all)))
+	   (lexer	(lex.make-lexer r6.r6rs-lexer-table IS))
 	   (result	'()))
       (do (((T <lexical-token>) (lexer) (lexer)))
 	  (T.special?
@@ -1885,8 +1883,8 @@ mamma\"")
 	      (debugging	#f))
 
   (define (tokenise string)
-    (let* ((IS		(lexer-make-IS (string: string) (counters: 'all)))
-	   (lexer	(lexer-make-lexer r6.r6rs-lexer-table IS))
+    (let* ((IS		(lex.make-IS (lex.string: string) (lex.counters: 'all)))
+	   (lexer	(lex.make-lexer r6.r6rs-lexer-table IS))
 	   (result	'()))
       (do (((T <lexical-token>) (lexer) (lexer)))
 	  (T.special?
@@ -1945,7 +1943,7 @@ mamma\"")
 ;;;Use the lexer that discards blanks and comments.
 
   (define (tokenise string)
-    (let* ((IS		(lexer-make-IS (string: string) (counters: 'all)))
+    (let* ((IS		(lex.make-IS (lex.string: string) (lex.counters: 'all)))
 	   (lexer	(r6.make-token-lexer IS)))
       (let next (((T <lexical-token>)	(lexer))
 		 (result		'()))
@@ -2003,7 +2001,7 @@ mamma\"")
 ;;;Use the lexer that DOES NOT discard blanks and comments.
 
   (define (tokenise string)
-    (let* ((IS		(lexer-make-IS (string: string) (counters: 'all)))
+    (let* ((IS		(lex.make-IS (lex.string: string) (lex.counters: 'all)))
 	   (lexer	(r6.make-token-lexer IS (r6.comments #t) (r6.blanks #t) (r6.sharpbang #t))))
       (let next (((T <lexical-token>)	(lexer))
 		 (result		'()))
@@ -2060,7 +2058,7 @@ mamma\"")
 ;;;Use the lexer that discards blanks and comments.
 
   (define (tokenise string)
-    (let* ((IS		(lexer-make-IS (string: string) (counters: 'all)))
+    (let* ((IS		(lex.make-IS (lex.string: string) (lex.counters: 'all)))
 	   (lexer	(r6.make-token-lexer IS)))
       (let next (((T <lexical-token>)	(lexer))
 		 (result		'()))
@@ -2194,7 +2192,7 @@ mamma\"")
 ;;;Use the lexer that DOES NOT discard blanks and comments.
 
   (define (tokenise string)
-    (let* ((IS		(lexer-make-IS (string: string) (counters: 'all)))
+    (let* ((IS		(lex.make-IS (lex.string: string) (lex.counters: 'all)))
 	   (lexer	(r6.make-token-lexer IS (r6.comments #t) (r6.blanks #t) (r6.sharpbang #t))))
       (let next (((T <lexical-token>)	(lexer))
 		 (result		'()))

@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2010, 2011 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -65,12 +65,10 @@
   (import (nausicaa)
     (nausicaa language sentinel)
     (nausicaa language makers)
-    (nausicaa silex lexer)
     (nausicaa net helpers ipv4-address-lexer)
-    (prefix (nausicaa net helpers ipv4-address-parser) parser:)
-    (nausicaa parser-tools lexical-token)
-    (nausicaa parser-tools source-location)
-    )
+    (prefix (nausicaa net helpers ipv4-address-parser) parser.)
+    (prefix (nausicaa silex lexer) lex.)
+    (nausicaa parser-tools))
 
 
 ;;;; conditions and error handlers
@@ -110,16 +108,16 @@
     (syntax-case stx (sentinel)
 
       ((_ ?string sentinel sentinel)
-       #'(lexer-make-lexer ipv4-address-lexer-table
-			 (lexer-make-IS (string: ?string) (counters: 'all))))
+       #'(lex.make-lexer ipv4-address-lexer-table
+			 (lex.make-IS (lex.string: ?string) (lex.counters: 'all))))
 
       ((_ sentinel ?port sentinel)
-       #'(lexer-make-lexer ipv4-address-lexer-table
-			   (lexer-make-IS (port: ?port) (counters: 'all))))
+       #'(lex.make-lexer ipv4-address-lexer-table
+			 (lex.make-IS (lex.port: ?port) (lex.counters: 'all))))
 
       ((_ sentinel sentinel ?procedure)
-       #'(lexer-make-lexer ipv4-address-lexer-table
-			   (lexer-make-IS (procedure: ?procedure) (counters: 'all))))
+       #'(lex.make-lexer ipv4-address-lexer-table
+			 (lex.make-IS (lex.procedure: ?procedure) (lex.counters: 'all))))
 
       ((_ sentinel sentinel ?procedure)
        (syntax-violation 'make-ipv4-address-lexer
@@ -128,7 +126,7 @@
 
 (define (make-ipv4-address-parser who lexer irritants)
   (lambda ()
-    ((parser:make-ipv4-address-parser) lexer
+    ((parser.make-ipv4-address-parser) lexer
      (make-ipv4-address-parser-error-handler who irritants))))
 
 (define (ipv4-address-parse the-string)

@@ -106,12 +106,12 @@ tokenise strings as follows:
 
 @example
 (import (rnrs)
-  (nausicaa silex lexer)
+  (prefix (nausicaa silex lexer) lex.)
   (nausicaa csv strings-lexer))
 
 (define (tokenise string)
-  (let* ((IS    (lexer-make-IS (string: string) (counters: 'all)))
-         (lexer (lexer-make-lexer csv-strings-table IS)))
+  (let* ((IS    (lex.make-IS (lex.string: string)))
+         (lexer (lex.make-lexer csv-strings-table IS)))
     (do ((token (lexer) (lexer))
          (ell   '()))
         ((not token)
@@ -150,8 +150,8 @@ notice that the input system has to be created with @samp{:counters
   (nausicaa csv strings-lexer))
 
 (define (tokenise string)
-  (let* ((IS    (lexer-make-IS (string: string)))
-         (lexer (lexer-make-lexer csv-strings-table IS)))
+  (let* ((IS    (lex.make-IS (lex.string: string)))
+         (lexer (lex.make-lexer csv-strings-table IS)))
     (let-values (((port the-string) (open-string-output-port)))
       (do ((token (lexer) (lexer)))
           ((not token)
@@ -220,8 +220,8 @@ We can take advantage of this to tokenise unquoted data as follows:
   (nausicaa csv unquoted-data-lexer))
 
 (define (tokenise string)
-  (let* ((IS    (lexer-make-IS (string: string) (counters: 'all)))
-         (lexer (lexer-make-lexer csv-unquoted-data-table IS)))
+  (let* ((IS    (lex.make-IS (lex.string: string)))
+         (lexer (lex.make-lexer csv-unquoted-data-table IS)))
     (do ((token (lexer) (lexer))
          (ell   '()))
         ((or (not token) (eq? token 'string))
@@ -268,11 +268,10 @@ check for the number of fields on each line.
     (csv->list/comma port (lambda (field) field)))
 
    ((port swirl-field)
-    (let* ((IS            (lexer-make-IS (port: port)
-                                         (counters: 'all)))
-           (string-lexer  (lexer-make-lexer
+    (let* ((IS            (lex.make-IS (port: port)))
+           (string-lexer  (lex.make-lexer
                             csv-strings-table IS))
-           (data-lexer    (lexer-make-lexer
+           (data-lexer    (lex.make-lexer
                             csv-unquoted-data-table/comma IS))
            (result        '())
            (record        '()))
@@ -351,11 +350,10 @@ The following is a variant that allows to specify, via the
     (csv->list port separators (lambda (field) field)))
 
    ((port separators swirl-field)
-    (let* ((IS            (lexer-make-IS (port: port)
-                                         (counters: 'all)))
-           (string-lexer  (lexer-make-lexer
+    (let* ((IS            (lex.make-IS (port: port)))
+           (string-lexer  (lex.make-lexer
                             csv-strings-table IS))
-           (data-lexer    (lexer-make-lexer
+           (data-lexer    (lex.make-lexer
                             csv-unquoted-data-table/comma IS))
            (result        '())
            (record        '()))

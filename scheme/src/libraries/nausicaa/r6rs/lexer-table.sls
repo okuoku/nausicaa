@@ -2,7 +2,7 @@
   (export
     r6rs-lexer-table)
   (import (rnrs)
-(nausicaa silex lexer)
+(nausicaa silex input-system)
 (nausicaa parser-tools lexical-token)
 (nausicaa parser-tools source-location)
 (nausicaa r6rs lexeme-processing)

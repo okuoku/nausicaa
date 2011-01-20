@@ -2,7 +2,7 @@
   (export
     ipv4-address-lexer-table)
   (import (rnrs)
-(nausicaa silex lexer)
+(nausicaa silex input-system)
 (nausicaa silex default-error-handler)
 (nausicaa parser-tools lexical-token)
 (nausicaa parser-tools source-location)

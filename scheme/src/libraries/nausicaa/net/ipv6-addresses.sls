@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2010, 2011 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -72,12 +72,10 @@
     <ipv6-address-prefix>-string
     )
   (import (nausicaa)
-    (nausicaa silex lexer)
     (nausicaa net helpers ipv6-address-lexer)
-    (prefix (nausicaa net helpers ipv6-address-parser) parser:)
-    (nausicaa parser-tools lexical-token)
-    (nausicaa parser-tools source-location)
-    )
+    (prefix (nausicaa net helpers ipv6-address-parser) parser.)
+    (prefix (nausicaa silex lexer) lex.)
+    (nausicaa parser-tools))
 
 
 ;;;; conditions and error handlers
@@ -117,16 +115,16 @@
     (syntax-case stx (sentinel)
 
       ((_ ?string sentinel sentinel)
-       #'(lexer-make-lexer ipv6-address-lexer-table
-			 (lexer-make-IS (string: ?string) (counters: 'all))))
+       #'(lex.make-lexer ipv6-address-lexer-table
+			 (lex.make-IS (lex.string: ?string) (lex.counters: 'all))))
 
       ((_ sentinel ?port sentinel)
-       #'(lexer-make-lexer ipv6-address-lexer-table
-			   (lexer-make-IS (port: ?port) (counters: 'all))))
+       #'(lex.make-lexer ipv6-address-lexer-table
+			 (lex.make-IS (lex.port: ?port) (lex.counters: 'all))))
 
       ((_ sentinel sentinel ?procedure)
-       #'(lexer-make-lexer ipv6-address-lexer-table
-			   (lexer-make-IS (procedure: ?procedure) (counters: 'all))))
+       #'(lex.make-lexer ipv6-address-lexer-table
+			 (lex.make-IS (lex.procedure: ?procedure) (lex.counters: 'all))))
 
       ((_ sentinel sentinel ?procedure)
        (syntax-violation 'make-ipv6-address-lexer
@@ -135,7 +133,7 @@
 
 (define (make-ipv6-address-parser who lexer irritants)
   (lambda ()
-    ((parser:make-ipv6-address-parser) lexer
+    ((parser.make-ipv6-address-parser) lexer
      (make-ipv6-address-parser-error-handler who irritants))))
 
 (define (ipv6-address-parse the-string)

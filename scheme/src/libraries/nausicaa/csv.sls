@@ -7,7 +7,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2009, 2010, 2011 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -29,7 +29,7 @@
   (export
     csv->list/comma		csv->list)
   (import (nausicaa)
-    (nausicaa silex lexer)
+    (prefix (nausicaa silex lexer) lex.)
     (nausicaa csv unquoted-data-lexer)
     (nausicaa csv unquoted-data-comma-lexer)
     (nausicaa csv strings-lexer))
@@ -41,9 +41,9 @@
     (csv->list/comma port (lambda (field) field)))
 
    ((port swirl-field)
-    (let* ((IS			(lexer-make-IS (port: port) (counters: 'all)))
-	   (string-lexer	(lexer-make-lexer csv-strings-table IS))
-	   (data-lexer		(lexer-make-lexer csv-unquoted-data-table/comma IS))
+    (let* ((IS			(lex.make-IS (lex.port: port) (lex.counters: 'all)))
+	   (string-lexer	(lex.make-lexer csv-strings-table IS))
+	   (data-lexer		(lex.make-lexer csv-unquoted-data-table/comma IS))
 	   (result		'())
 	   (record		'()))
       (let-values (((port field) (open-string-output-port)))
@@ -91,9 +91,9 @@
     (csv->list port separators (lambda (field) field)))
 
    ((port separators swirl-field)
-    (let* ((IS			(lexer-make-IS (port: port) (counters: 'all)))
-	   (string-lexer	(lexer-make-lexer csv-strings-table IS))
-	   (data-lexer		(lexer-make-lexer csv-unquoted-data-table/comma IS))
+    (let* ((IS			(lex.make-IS (lex.port: port) (lex.counters: 'all)))
+	   (string-lexer	(lex.make-lexer csv-strings-table IS))
+	   (data-lexer		(lex.make-lexer csv-unquoted-data-table/comma IS))
 	   (result		'())
 	   (record		'()))
       (let-values (((port field) (open-string-output-port)))

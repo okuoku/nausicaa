@@ -1211,7 +1211,8 @@ closure we do:
 
 @example
 (import (rnrs)
-  (calc-parser))
+  (calc-parser)
+  (prefix (nausicaa silex lexer) lex.))
 
 (define parser (make-calc-parser))
 @end example
@@ -1226,9 +1227,8 @@ silex} library, using a table in @samp{calc-lexer-table} to parse
 @var{input-string}, we do:
 
 @example
-(let* ((IS        (lexer-make-IS (string: @var{input-string})
-                                 (counters: 'all)))
-       (lexer     (lexer-make-lexer calc-lexer-table IS))
+(let* ((IS        (lex.make-IS (string: @var{input-string})))
+       (lexer     (lex.make-lexer calc-lexer-table IS))
        (error-hnd (lambda (message token) ---))
        (yycustom  #f))
   (parser lexer error-hnd yycustom))

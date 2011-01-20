@@ -81,7 +81,7 @@ for example:
 (define port ---)
 
 (define IS
-  (lex.lexer-make-IS
+  (lex.make-IS
     (lex.port: port)
     (lex.counters: 'all)))
 @end example
@@ -144,7 +144,7 @@ Here is how to test the lexer function maker:
   (nausicaa parser-tools))
 
 (define (tokenise string)
-  (let* ((IS     (lex.lexer-make-IS
+  (let* ((IS     (lex.make-IS
                    (lex.string: string)
                    (lex.counters: 'all)))
          (lexer  (r6.make-token-lexer IS)))
@@ -995,7 +995,7 @@ The implementation of this function is a useful example of usage for
 (define (read-string IS)
   (let-values
       (((port getter) (open-string-output-port))
-       ((lexer) (lexer-make-lexer r6rs-string-lexer-table IS)))
+       ((lexer) (lex.make-lexer r6rs-string-lexer-table IS)))
     (let next (((T <lexical-token>) (lexer)))
       (define (%error message)
         (raise
@@ -1093,7 +1093,7 @@ The implementation of this function is a useful example of usage for
 @example
 (define (read-character IS)
   (let (((T <lexical-token>)
-        ((lexer-make-lexer r6rs-character-lexer-table IS))))
+        ((lex.make-lexer r6rs-character-lexer-table IS))))
     (define (%error message)
       (raise
        (condition (make-lexical-violation)
@@ -1171,7 +1171,7 @@ The implementation of this function is a useful example of usage for
 @example
 (define (read-identifier IS)
   (let (((T <lexical-token>)
-        ((lexer-make-lexer r6rs-identifier-lexer-table IS))))
+        ((lex.make-lexer r6rs-identifier-lexer-table IS))))
     (define (%error message)
       (raise
        (condition (make-lexical-violation)
@@ -1249,7 +1249,7 @@ The implementation of this function is a useful example of usage for
 @example
 (define (read-number IS)
   (let (((T <lexical-token>)
-        ((lexer-make-lexer r6rs-number-lexer-table IS))))
+        ((lex.make-lexer r6rs-number-lexer-table IS))))
     (define (%error message)
       (raise
        (condition (make-lexical-violation)
@@ -1340,7 +1340,7 @@ The implementation of this function is a useful example of usage for
 (define (read-nested-comment IS)
   (let-values
       (((port getter) (open-string-output-port))
-       ((lexer) (lexer-make-lexer
+       ((lexer) (lex.make-lexer
                    r6rs-nested-comment-lexer-table IS))
        ((count) 1))
     (display "#|" port)
@@ -1456,7 +1456,7 @@ The implementation of this function is a useful example of usage for
 @example
 (define (read-line-comment IS)
   (let (((T <lexical-token>)
-        ((lexer-make-lexer r6rs-line-comment-lexer-table IS))))
+        ((lex.make-lexer r6rs-line-comment-lexer-table IS))))
     (define (%error message)
       (raise
        (condition (make-lexical-violation)
@@ -1570,7 +1570,7 @@ field; the definition of a function that directly parses a string:
               (make-irritants-condition `(,T.value)))))
 
 (define (parse string)
-  (let* ((IS      (lex.lexer-make-IS
+  (let* ((IS      (lex.make-IS
                      (lex.string: string)
                      (lex.counters: 'all)))
          (lexer   (r6.make-token-lexer IS))
@@ -1594,7 +1594,7 @@ If we build the lexer thunk as follows:
   (prefix (nausicaa r6rs lexer)  r6.))
 
 (define IS
-  (lex.lexer-make-IS
+  (lex.make-IS
     (lex.string: string)
     (lex.counters: 'all)))
 
@@ -1616,7 +1616,7 @@ If we build the lexer thunk as follows:
   (prefix (nausicaa r6rs lexer)  r6.))
 
 (define IS
-  (lex.lexer-make-IS
+  (lex.make-IS
     (lex.string: string)
     (lex.counters: 'all)))
 
@@ -1713,7 +1713,7 @@ the list of datums:
               (make-irritants-condition `(,T.value)))))
 
 (define (parse string)
-  (let* ((IS      (lex.lexer-make-IS
+  (let* ((IS      (lex.make-IS
                     (lex.string: string)
                     (lex.counters: 'all)))
          (lexer   (r6.make-token-lexer IS

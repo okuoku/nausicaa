@@ -34,7 +34,7 @@
   (nausicaa email addresses domain-literals-lexer)
   (nausicaa email addresses lexer)
   (nausicaa parser-tools lexical-token)
-  (nausicaa silex lexer))
+  (prefix (nausicaa silex lexer) lex.))
 
 (check-set-mode! 'report-failed)
 (display "*** testing email addresses\n")
@@ -45,8 +45,8 @@
   (define (tokenise-string string)
     ;;This  is just  a  lexer, it  does  not check  for the  terminating
     ;;double-quote.
-    (let* ((IS		(lexer-make-IS (string: string) (counters: 'all)))
-	   (lexer	(lexer-make-lexer quoted-text-table IS)))
+    (let* ((IS		(lex.make-IS (lex.string: string) (lex.counters: 'all)))
+	   (lexer	(lex.make-lexer quoted-text-table IS)))
       ;; (do ((token (lexer) (lexer)))
       ;; 	  ((<lexical-token>?/end-of-input token)
       ;; 	   (reverse out))
@@ -98,7 +98,7 @@
 
   (define (tokenise-comment string)
     ((recursion (lex IS)
-       (let ((lexer (lexer-make-lexer comments-table IS))
+       (let ((lexer (lex.make-lexer comments-table IS))
 	     (text  ""))
 	 (do ((token  (lexer) (lexer)))
 	     ((eq? token 'COMMENT-CLOSE)
@@ -108,7 +108,7 @@
 		       (if (eq? token 'COMMENT-OPEN)
 			   (string-append "(" (lex IS) ")")
 			 token))))))
-     (lexer-make-IS (string: string) (counters: 'all))))
+     (lex.make-IS (lex.string: string) (lex.counters: 'all))))
 
 ;;; --------------------------------------------------------------------
 
@@ -134,8 +134,8 @@
 (parameterise ((check-test-name 'domain-literal-lexer))
 
   (define (tokenise-domain-literal string)
-    (let* ((IS    (lexer-make-IS (string: string) (counters: 'all)))
-	   (lexer (lexer-make-lexer domain-literals-table IS)))
+    (let* ((IS    (lex.make-IS (lex.string: string) (lex.counters: 'all)))
+	   (lexer (lex.make-lexer domain-literals-table IS)))
       (let loop (((token <lexical-token>) (lexer))
 		 (toks  '()))
 	(if token.end-of-input?
@@ -173,7 +173,7 @@
     (map (lambda (token)
 	   (cons (<lexical-token>-category token)
 		 (<lexical-token>-value    token)))
-      (address->tokens (lexer-make-IS (string: string) (counters: 'all)))))
+      (address->tokens (lex.make-IS (lex.string: string) (lex.counters: 'all)))))
 
   (check	;a folding white space
       (doit "\r\n ")

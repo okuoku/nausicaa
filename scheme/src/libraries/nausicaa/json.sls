@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2010, 2011 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -50,13 +50,12 @@
     (nausicaa language makers)
     (nausicaa language conditions)
     (for (nausicaa language syntax-utilities) run expand)
-    (nausicaa silex lexer)
     (nausicaa json string-lexer)
     (nausicaa json rfc-lexer)
     (nausicaa json extended-lexer)
     (nausicaa json sexp-parser)
-    (nausicaa parser-tools lexical-token)
-    (nausicaa parser-tools source-location))
+    (prefix (nausicaa silex lexer) lex.)
+    (nausicaa parser-tools))
 
 
 (define-condition &json-parser-error
@@ -101,7 +100,7 @@
   (%make-json-lexer IS json-extended-lexer-table))
 
 (define (%make-json-lexer IS table)
-  (let ((lexer (lexer-make-lexer table IS)))
+  (let ((lexer (lex.make-lexer table IS)))
     (lambda ()
       (let (((token <lexical-token>) (lexer)))
 	(if (eq? 'QUOTED-TEXT-OPEN token.category)
@@ -109,18 +108,19 @@
 	  token)))))
 
 (define (%lex-string IS (opening-token <lexical-token>))
-  (let-values (((lexer)		(lexer-make-lexer json-string-lexer-table IS))
+  (let-values (((lexer)		(lex.make-lexer json-string-lexer-table IS))
 	       ((port getter)	(open-string-output-port)))
-    (let loop ((token (lexer)))
+    (let loop (((token <lexical-token>) (lexer)))
       (cond ((eq? token 'QUOTED-TEXT-CLOSE)
 	     (let ((text (getter)))
-	       (make-<lexical-token> 'STRING opening-token.location text (string-length text))))
-	    ((<lexical-token>?/end-of-input token)
+	       (make* <lexical-token> 'STRING
+		      opening-token.location text (string-length text))))
+	    (token.end-of-input?
 	     ;;Unexpected end of input while parsing string.
 	     (let ((text (string-append "\"" (getter))))
-	       (make-<lexical-token> '*lexer-error* opening-token.location
-				     text (string-length text))))
-	    ((<lexical-token>?/lexer-error token)
+	       (make* <lexical-token> '*lexer-error*
+		      opening-token.location text (string-length text))))
+	    (token.lexer-error?
 	     token)
 	    (else
 	     (display token port)
@@ -128,11 +128,11 @@
 
 (define (json->tokens IS)
   (let ((lexer (make-json-rfc-lexer IS)))
-    (let loop ((token		(lexer))
+    (let loop (((T <lexical-token>) (lexer))
 	       (list-of-tokens	'()))
-      (if (<lexical-token>?/special token)
-	  (reverse (cons token list-of-tokens))
-	(loop (lexer) (cons token list-of-tokens))))))
+      (if T.special?
+	  (reverse (cons T list-of-tokens))
+	(loop (lexer) (cons T list-of-tokens))))))
 
 
 ;;;; event parser
@@ -337,13 +337,13 @@
     (getter)))
 
 (define (json-decode-string in-string)
-  (let* ((IS	(lexer-make-IS (string: in-string) (counters: 'all)))
-	 (lexer	(lexer-make-lexer json-string-lexer-table IS)))
+  (let* ((IS	(lex.make-IS (lex.string: in-string) (lex.counters: 'all)))
+	 (lexer	(lex.make-lexer json-string-lexer-table IS)))
     (let-values (((port getter) (open-string-output-port)))
-      (do ((token (lexer) (lexer)))
-	  ((<lexical-token>?/end-of-input token)
+      (do (((T <lexical-token>) (lexer) (lexer)))
+	  (T.end-of-input?
 	   (getter))
-	(display token port)))))
+	(display T port)))))
 
 
 ;;;; generator

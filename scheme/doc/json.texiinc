@@ -133,15 +133,14 @@ incoming @json{} text.  To setup conversion to S--expression we do:
 
 @example
 (import (rnrs)
-  (nausicaa silex lexer)
+  (prefix (nausicaa silex lexer) lex.)
   (nausicaa json))
 
 (define json-text
   "@{ \"Hello\" : true, \"Ciao\": false @}")
 
 (define IS
-  (lexer-make-IS (string: json-text)
-                 (counters: 'all)))
+  (lex.make-IS (string: json-text)))
 
 (define lexer
   (make-json-rfc-lexer IS))
@@ -161,11 +160,10 @@ Here is a set of meaningless examples using the event parser:
 @example
 (import (nausicaa)
   (nausicaa json)
-  (nausicaa silex lexer))
+  (prefix (nausicaa silex lexer) lex.))
 
 (define (doit string)
-  (let* ((IS      (lexer-make-IS (string: string)
-                                 (counters: 'all)))
+  (let* ((IS      (lexmake-IS (string: string)))
          (lexer   (make-json-rfc-lexer IS))
          (result  '())
          (handler (lambda args

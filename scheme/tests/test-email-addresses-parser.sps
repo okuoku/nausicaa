@@ -30,7 +30,7 @@
   (nausicaa generics object-to-string)
   (nausicaa checks)
   (nausicaa email addresses)
-  (nausicaa silex lexer)
+  (prefix (nausicaa silex lexer) lex.)
   (nausicaa strings))
 
 (check-set-mode! 'report-failed)
@@ -40,7 +40,7 @@
 (parameterise ((check-test-name 'simple-mailboxes))
 
   (define (doit string)
-    (let* ((IS		(lexer-make-IS (string: string) (counters: 'all)))
+    (let* ((IS		(lex.make-IS (lex.string: string) (lex.counters: 'all)))
 	   (lexer	(make-address-lexer IS))
 	   (parser	(make-address-parser))
 	   (handler	(lambda (msg tok) (list 'error-handler msg tok)))
@@ -95,7 +95,7 @@
 (parameterise ((check-test-name 'route-mailboxes))
 
   (define (doit string)
-    (let* ((IS		(lexer-make-IS (string: string) (counters: 'all)))
+    (let* ((IS		(lex.make-IS (lex.string: string) (lex.counters: 'all)))
 	   (lexer	(make-address-lexer IS))
 	   (parser	(make-address-parser))
 	   (handler	(lambda (msg tok) (list 'error-handler msg tok)))
@@ -120,7 +120,7 @@
 (parameterise ((check-test-name 'groups))
 
   (define (doit string)
-    (let* ((IS		(lexer-make-IS (string: string) (counters: 'all)))
+    (let* ((IS		(lex.make-IS (lex.string: string) (lex.counters: 'all)))
 	   (lexer	(make-address-lexer IS))
 	   (parser	(make-address-parser))
 	   (handler	(lambda (msg tok) (list 'error-handler msg tok)))
@@ -165,7 +165,7 @@
 (parameterise ((check-test-name 'complex-addresses))
 
   (define (doit string)
-    (let* ((IS		(lexer-make-IS (string: string) (counters: 'all)))
+    (let* ((IS		(lex.make-IS (lex.string: string) (lex.counters: 'all)))
 	   (lexer	(make-address-lexer IS))
 	   (parser	(make-address-parser))
 	   (handler	(lambda (msg tok) (list 'error-handler msg tok)))
@@ -231,8 +231,8 @@
     (error #f message token))
 
   (define (doit string)
-    (let* ((IS      (lexer-make-IS (string: string)
-				   (counters: 'all)))
+    (let* ((IS      (lex.make-IS (lex.string: string)
+				   (lex.counters: 'all)))
 	   (lexer   (make-address-lexer IS))
 	   (parser  (make-address-parser)))
       (parser lexer error-handler)))
@@ -310,7 +310,7 @@
     (error #f message token))
 
   (define (doit string)
-    (let* ((IS      (lexer-make-IS (string: string) (counters: 'all)))
+    (let* ((IS      (lex.make-IS (lex.string: string) (lex.counters: 'all)))
 	   (lexer   (make-address-lexer IS))
 	   (parser  (make-address-parser)))
       (parser lexer error-handler)))
@@ -358,7 +358,7 @@
     (error #f message token))
 
   (define (doit string)
-    (let* ((IS      (lexer-make-IS (string: string) (counters: 'all)))
+    (let* ((IS      (lex.make-IS (lex.string: string) (lex.counters: 'all)))
 	   (lexer   (make-address-lexer IS))
 	   (parser  (make-address-parser)))
       (parser lexer error-handler)))

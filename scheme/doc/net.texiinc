@@ -46,15 +46,13 @@ To tokenise an IPv4 address string we can do:
 
 @example
 (import (nausicaa)
-  (nausicaa silex lexer)
   (nausicaa net helpers ipv4address-lexer)
-  (nausicaa parser-tools lexical-token)
-  (nausicaa parser-tools source-location))
+  (prefix (nausicaa silex lexer) lex.)
+  (nausicaa parser-tools))
 
 (define (make-address-lexer address-string)
-  (let ((IS (lexer-make-IS (string: address-string)
-                           (counters: 'all))))
-    (lexer-make-lexer ipv4-address-lexer-table IS)))
+  (let ((IS (lex.make-IS (string: address-string))))
+    (lex.make-lexer ipv4-address-lexer-table IS)))
 @end example
 
 @noindent
@@ -99,11 +97,10 @@ To parse an IPv4 address string we can do:
 
 @example
 (import (nausicaa)
-  (nausicaa silex lexer)
   (nausicaa net helpers ipv4address-lexer)
   (nausicaa net helpers ipv4address-parser)
-  (nausicaa parser-tools lexical-token)
-  (nausicaa parser-tools source-location))
+  (prefix (nausicaa silex lexer) lex.)
+  (nausicaa parser-tools))
 
 (define (make-ipv4-address-parser-error-handler who string)
   (lambda (message (token <lexical-token>))
@@ -114,9 +111,9 @@ To parse an IPv4 address string we can do:
       string token.value)))
 
 (define (parse-address string)
-  (let* ((IS      (lexer-make-IS (string: string)
-                                 (counters: 'all)))
-         (lexer   (lexer-make-lexer ipv4-address-lexer-table IS))
+  (let* ((IS      (lex.make-IS (string: string)))
+         (lexer   (lex.make-lexer
+                    ipv4-address-lexer-table IS))
          (parser  (make-ipv4-address-parser)))
     (parser lexer
             (make-ipv4-address-parser-error-handler
@@ -402,15 +399,13 @@ To tokenise an IPv6 address string we can do:
 
 @example
 (import (nausicaa)
-  (nausicaa silex lexer)
   (nausicaa net helpers ipv6address-lexer)
-  (nausicaa parser-tools lexical-token)
-  (nausicaa parser-tools source-location))
+  (prefix (nausicaa silex lexer) lex.)
+  (nausicaa parser-tools))
 
 (define (make-address-lexer address-string)
-  (let ((IS (lexer-make-IS (string: address-string)
-                           (counters: 'all))))
-    (lexer-make-lexer ipv6-address-lexer-table IS)))
+  (let ((IS (lex.make-IS (string: address-string))))
+    (lex.make-lexer ipv6-address-lexer-table IS)))
 @end example
 
 @noindent
@@ -456,11 +451,10 @@ To parse an IPv6 address string we can do:
 
 @example
 (import (nausicaa)
-  (nausicaa silex lexer)
   (nausicaa net helpers ipv6address-lexer)
   (nausicaa net helpers ipv6address-parser)
-  (nausicaa parser-tools lexical-token)
-  (nausicaa parser-tools source-location))
+  (prefix (nausicaa silex lexer) lex.)
+  (nausicaa parser-tools))
 
 (define (make-ipv6-address-parser-error-handler who string)
   (lambda (message (token <lexical-token>))
@@ -471,9 +465,8 @@ To parse an IPv6 address string we can do:
       string token.value)))
 
 (define (parse-address string)
-  (let* ((IS      (lexer-make-IS (string: string)
-                                 (counters: 'all)))
-         (lexer   (lexer-make-lexer ipv6-address-lexer-table IS))
+  (let* ((IS      (lex.make-IS (string: string)))
+         (lexer   (lex.make-lexer ipv6-address-lexer-table IS))
          (parser  (make-ipv6-address-parser)))
     (parser lexer
             (make-ipv6-address-parser-error-handler
@@ -646,8 +639,7 @@ Evaluate to a IPv6 address and address prefix lexer, taking input as
 specified by @ameta{clause}.
 
 @ameta{clause} can be one of the @code{:string}, @code{:port},
-@code{:procedure} clauses of @func{lexer-make-IS}, @ref{silex input} for
-details.
+@code{:procedure} clauses of @func{make-IS} (@pxref{silex input}).
 @end deffn
 
 

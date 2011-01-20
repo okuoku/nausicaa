@@ -1,7 +1,12 @@
 (library (nausicaa uri generic-lexer)
   (export
     uri-generic-lexer-table)
-  (import (rnrs) (nausicaa silex lexer)(nausicaa silex default-error-handler)(nausicaa parser-tools lexical-token)(nausicaa parser-tools source-location))
+  (import (rnrs)
+(nausicaa silex input-system)
+(nausicaa silex default-error-handler)
+(nausicaa parser-tools lexical-token)
+(nausicaa parser-tools source-location)
+)
 
 ;
 ; Table generated from the file generic-lexer.l by SILex 1.0

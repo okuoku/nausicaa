@@ -11,7 +11,7 @@
 ;;;	  The lexer and parser libraries used in this file are generated
 ;;;	by the script "make-lalr-calc.sps".
 ;;;
-;;;Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2009, 2010, 2011 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;Copyright (c) 2004 Dominique Boucher
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
@@ -31,12 +31,11 @@
 
 #!r6rs
 (import (nausicaa)
-  (nausicaa silex lexer)
   (calc-parser)
   (calc-parser-helper)
   (calc-parser-lexer)
-  (nausicaa parser-tools lexical-token)
-  (nausicaa parser-tools source-location)
+  (prefix (nausicaa silex lexer) lex.)
+  (nausicaa parser-tools)
   (nausicaa checks))
 
 (check-set-mode! 'report-failed)
@@ -44,22 +43,21 @@
 
 (define (error-handler message token)
   (error #f
-    (if (not (<lexical-token>? token))
+    (if (not (is-a? token <lexical-token>))
 	message
-      (let* ((position	(<lexical-token>-location token))
-	     (line	(<source-location>-line position))
-	     (column	(<source-location>-column position)))
+      (let* (((T <lexical-token>)	token)
+	     ((P <source-location>)	T.location))
 	(string-append message
-		       " line " (if line (number->string line) "unknown")
-		       " column " (if column (number->string column) "unknown"))))
+		       " line "   (if P.line   (number->string P.line)   "?")
+		       " column " (if P.column (number->string P.column) "?"))))
     token))
 
 
 (parameterise ((check-test-name	'expressions))
 
   (define (doit string)
-    (let* ((IS		(lexer-make-IS (string: string) (counters: 'all)))
-	   (lexer	(lexer-make-lexer calc-parser-lexer-table IS))
+    (let* ((IS		(lex.make-IS (lex.string: string) (lex.counters: 'all)))
+	   (lexer	(lex.make-lexer calc-parser-lexer-table IS))
 	   (parser	(make-calc-parser)))
       (parameterise ((table-of-variables    (make-eq-hashtable))
 		     (evaluated-expressions '()))
@@ -98,8 +96,8 @@
 (parameterise ((check-test-name	'retval))
 
   (define (doit string)
-    (let* ((IS		(lexer-make-IS (string: string) (counters: 'all)))
-	   (lexer	(lexer-make-lexer calc-parser-lexer-table IS))
+    (let* ((IS		(lex.make-IS (lex.string: string) (lex.counters: 'all)))
+	   (lexer	(lex.make-lexer calc-parser-lexer-table IS))
 	   (parser	(make-calc-parser)))
       (parameterise ((table-of-variables    (make-eq-hashtable))
 		     (evaluated-expressions '()))

@@ -7,7 +7,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2009, 2010, 2011 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -27,7 +27,7 @@
 #!r6rs
 (import (nausicaa)
   (nausicaa checks)
-  (nausicaa silex lexer)
+  (prefix (nausicaa silex lexer) lex.)
   (nausicaa csv strings-lexer)
   (nausicaa csv unquoted-data-lexer)
   (nausicaa csv unquoted-data-comma-lexer)
@@ -41,8 +41,8 @@
 (parameterise ((check-test-name 'strings-lexer))
 
   (define (tokenise/list string)
-    (let* ((IS		(lexer-make-IS (string: string) (counters: 'all)))
-	   (lexer	(lexer-make-lexer csv-strings-table IS)))
+    (let* ((IS		(lex.make-IS (lex.string: string) (lex.counters: 'all)))
+	   (lexer	(lex.make-lexer csv-strings-table IS)))
       (do ((token (lexer) (lexer))
 	   (ell   '()))
 	  ((not token)
@@ -50,8 +50,8 @@
 	(set! ell (cons token ell)))))
 
   (define (tokenise/string string)
-    (let* ((IS		(lexer-make-IS (string: string)))
-	   (lexer	(lexer-make-lexer csv-strings-table IS)))
+    (let* ((IS		(lex.make-IS (lex.string: string)))
+	   (lexer	(lex.make-lexer csv-strings-table IS)))
       (let-values (((port the-string) (open-string-output-port)))
 	(do ((token (lexer) (lexer)))
 	    ((not token)
@@ -125,8 +125,8 @@
 (parameterise ((check-test-name 'unquoted-data-lexer))
 
   (define (tokenise string)
-    (let* ((IS		(lexer-make-IS (string: string) (counters: 'all)))
-	   (lexer	(lexer-make-lexer csv-unquoted-data-table IS)))
+    (let* ((IS		(lex.make-IS (lex.string: string) (lex.counters: 'all)))
+	   (lexer	(lex.make-lexer csv-unquoted-data-table IS)))
       (do ((token (lexer) (lexer))
 	   (ell   '()))
 	  ((or (not token) (eq? token 'string))
@@ -180,8 +180,8 @@
 (parameterise ((check-test-name 'unquoted-data-lexer/comma))
 
   (define (tokenise string)
-    (let* ((IS		(lexer-make-IS (string: string) (counters: 'all)))
-	   (lexer	(lexer-make-lexer csv-unquoted-data-table/comma IS)))
+    (let* ((IS		(lex.make-IS (lex.string: string) (lex.counters: 'all)))
+	   (lexer	(lex.make-lexer csv-unquoted-data-table/comma IS)))
       (do ((token (lexer) (lexer))
 	   (ell   '()))
 	  ((or (not token) (eq? token 'string))

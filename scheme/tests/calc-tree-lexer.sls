@@ -2,7 +2,7 @@
   (export
     calc-lexer-table/tree)
   (import (rnrs)
-(nausicaa silex lexer)
+(nausicaa silex input-system)
 )
 
 ;

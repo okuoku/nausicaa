@@ -60,10 +60,10 @@
 #;(parametrise ((check-test-name	'string-tokeniser))
 
   (define (tokenise string)
-    (let* ((IS		(lex.lexer-make-IS
+    (let* ((IS		(lex.make-IS
 			 (lex.string: string)
 			 (lex.counters: 'all)))
-	   (lexer	(lex.lexer-make-lexer xml.xml-lexer-table IS))
+	   (lexer	(lex.make-lexer xml.xml-lexer-table IS))
 	   (result	'()))
       (do (((T <lexical-token>) (lexer) (lexer)))
 	  (T.special?
