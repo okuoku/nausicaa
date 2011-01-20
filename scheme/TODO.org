@@ -130,7 +130,12 @@
 
   Use the FFI to load the shared library and run the function.
 
-* DONE matches
+* TODO matches
+
+  Transform the auxiliary macros to functions for expand time; the whole
+  MATCH  implementation  can  be  a  single  DEFINE-SYNTAX  form.   This
+  transformation would make the code more understandable.
+
 * TODO packrat
 
   Implement the :one and :any combinators, like the ones in (sexps).

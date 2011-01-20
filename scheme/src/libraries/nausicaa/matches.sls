@@ -14,7 +14,7 @@
 ;;;	overall  number of libraries  and to  improve "locality"  in the
 ;;;	reading comprehension of the code.
 ;;;
-;;;Copyright (c) 2009, 2010, 2011 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2009-2011 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;Copyright (c) 2006, 2007 Alex Shinn
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
@@ -57,8 +57,16 @@
     match-mismatch-error)
   (import (rnrs)
     (rnrs mutable-pairs)
-    (only (nausicaa language extensions) define-auxiliary-syntaxes)
+    (only (nausicaa language extensions)
+	  define-auxiliary-syntaxes
+	  define-syntax*
+	  define-inline)
+    (prefix (only (nausicaa language syntax-utilities)
+		  identifier-memq
+		  syntax->list)
+	    sx.)
     (nausicaa language conditions))
+
 
 
 (define-condition &match-mismatch
@@ -72,6 +80,9 @@
 		       (make-who-condition ?who)
 		       (make-message-condition "no matching pattern"))))))
 
+(define-inline (%mismatch-error ?expr)
+  (match-mismatch-error 'match ?expr))
+
 (define-auxiliary-syntaxes
   :predicate
   :accessor
@@ -84,7 +95,7 @@
   :bound-identifier)
 
 
-(define-syntax match
+(define-syntax* (match stx)
   ;;The main macro for pattern matching.  Synopsis:
   ;;
   ;;    (match <expression> <clause> ...)
@@ -93,115 +104,122 @@
   ;;
   ;;Perform some  basic syntax validation, bind the  expression to match
   ;;to a temporary  variable (if it is  not an atom), and pass  it on to
-  ;;MATCH-CLAUSE.
+  ;;%MATCH-CLAUSE.
   ;;
-  (lambda (stx)
-    (syntax-case stx (=>)
+  (define (main stx)
+    (syntax-case stx ()
       ((_)
-       (syntax-violation 'match "missing match expression" (syntax->datum stx)))
+       (synner "missing match expression"))
 
       ((_ ?expr)
-       (syntax-violation 'match "missing match clause" (syntax->datum stx)))
+       (synner "at least one match clause is required"))
 
-      ((_ ?pattern ?clause ...)
-       (identifier? #'?pattern)
-       #'(match-clause ?pattern ?pattern (set! ?pattern) ?clause ...))
+      ((_ ?expr . ?clauses)
+       (identifier? #'?expr)
+       (%match-clause #'?expr #'?expr #'(set! ?expr) #'?clauses))
 
-      ;;This matches  everything in round  parentheses, including quoted
-      ;;and quasiquoted lists.
-      ((_ (?item ...) ?clause ...)
-       #'(let ((expr (?item ...)))
-;;;*FIXME* Uncommenting  the following line makes the  error with Ikarus
-;;;go away.  It seems that  referencing the EXPR binding here explicitly
-;;;is  detected by  Ikarus, while  the  references in  the expansion  of
-;;;MATCH-CLAUSE  are  not  detected,  causing  EXPR to  be  inlined  and
-;;;evaluated multiple times.
-;;;
-;;;        (write expr)(newline)
-	   (match-clause expr expr (set! expr) ?clause ...)))
+      ((?k (?expr ...) . ?clauses) ;includes quoted and quasiquoted forms
+       (with-syntax (((EXPR) (generate-temporaries #'(#f))))
+	 #`(let ((EXPR (?expr ...)))
+	     #,(%match-clause #'EXPR #'EXPR #'(set! EXPR) #'?clauses))))
 
-      ((_ #(?item ...) ?clause ...)
-       #'(match (quote #(?item ...)) ?clause ...))
+      ((_ #(?expr ...) . ?clauses) ;FIXME Should this be rejected?
+       #'(match (quote #(?expr ...)) . ?clauses))
 
-      ((_ ?atom ?clause ...)
-       #'(match-clause ?atom ?atom
-		       (assertion-violation 'match "invoked setter for an atom")
-		       ?clause ...))
-      )))
+      ((?k ?expr . ?clauses)
+       (identifier? #'?expr)
+       (%match-clause #'?expr #'?expr #'(set! ?expr) #'?clauses))
 
-
-(define-syntax match-clause
-  ;;This macro is the entry point  to process a full clause from a MATCH
-  ;;use.  It  matches an  expression against the  full pattern  from the
-  ;;first given clause; if matching  fails, invoke a thunk that attempts
-  ;;to match the next given clause or raise an error if no other clauses
-  ;;are present.  To be called with the following arguments:
-  ;;
-  ;;EXPR	- the expression to match
-  ;;GETTER	- the first getter form for the expression
-  ;;SETTER	- the first setter form for the expression
-  ;;CLAUSE ...	- one or more match clauses
-  ;;
-  ;;The EXPR value must be the name of a temporary variable to which the
-  ;;expression to match  is bound, or the expression itself  if it is an
-  ;;atom.  EXPR is meant to be evaluated multiple times in the expansion
-  ;;of the macros.
-  ;;
-  ;;The GETTER  must be a form  which, when evaluated,  returns the full
-  ;;expression;  the getter  can be  EXPR itself.   It is  used  only by
-  ;;MATCH-PATTERN when  the pattern  has the form  "(:getter <getter>)",
-  ;;where <getter> is a symbol; the usage looks like this:
-  ;;
-  ;;	(let ((<getter> (lambda () GETTER)))
-  ;;	  BODY)
-  ;;
-  ;;and the  thunk bound to  <getter> is supposed  to be invoked  in the
-  ;;BODY.
-  ;;
-  ;;The  SETTER  must  be an  "incomplete"  form;  it  is used  only  by
-  ;;MATCH-PATTERN when  the pattern  has the form  "(:setter <setter>)",
-  ;;where <setter> is a symbol; the usage looks like this:
-  ;;
-  ;;	(let ((<setter> (lambda (x)
-  ;;	                  (SETTER ... x))))
-  ;;      . BODY)
-  ;;
-  ;;and  the the  accessor function  bound to  <setter> is  meant  to be
-  ;;invoked by  the BODY.  The SETTER  form with X appended  is meant to
-  ;;result to a  form which, when evaluated, sets  the expression to the
-  ;;value bound to X.
-  ;;
-  ;;Getters  and  setters are  combined  to  access  values nested  into
-  ;;composite expressions.
-  ;;
-  (lambda (stx)
-    (syntax-case stx (=>)
+      ((_ ?atom . ?clauses)
+       (%match-clause #'?atom #'?atom #'(assertion-violation 'match "invoked setter for an atom")
+		      #'?clauses))
+      ))
 
-      ((_ ?expr ?Getter ?Setter (?pattern) . ?other-clauses)
-       (syntax-violation 'match "no body in match clause" (syntax->datum #'(?pattern))))
+  (define (%match-clause expr Getter Setter clauses)
+    ;;This macro  is the  entry point  to process a  full clause  from a
+    ;;MATCH use.  It matches an expression against the full pattern from
+    ;;the first  given clause;  if matching fails,  invoke a  thunk that
+    ;;attempts to  match the next given  clause or raise an  error if no
+    ;;other  clauses  are present.   To  be  called  with the  following
+    ;;arguments:
+    ;;
+    ;;EXPR		- the expression to match
+    ;;GETTER		- the first getter form for the expression
+    ;;SETTER		- the first setter form for the expression
+    ;;CLAUSES ...	- one or more match clauses
+    ;;
+    ;;The EXPR value must be the name of a temporary variable to which the
+    ;;expression to match  is bound, or the expression itself  if it is an
+    ;;atom.  EXPR is meant to be evaluated multiple times in the expansion
+    ;;of the macros.
+    ;;
+    ;;The GETTER  must be a form  which, when evaluated,  returns the full
+    ;;expression;  the getter  can be  EXPR itself.   It is  used  only by
+    ;;MATCH-PATTERN when  the pattern  has the form  "(:getter <getter>)",
+    ;;where <getter> is a symbol; the usage looks like this:
+    ;;
+    ;;	(let ((<getter> (lambda () GETTER)))
+    ;;	  BODY)
+    ;;
+    ;;and the  thunk bound to  <getter> is supposed  to be invoked  in the
+    ;;BODY.
+    ;;
+    ;;The  SETTER  must  be an  "incomplete"  form;  it  is used  only  by
+    ;;MATCH-PATTERN when  the pattern  has the form  "(:setter <setter>)",
+    ;;where <setter> is a symbol; the usage looks like this:
+    ;;
+    ;;	(let ((<setter> (lambda (x)
+    ;;	                  (SETTER ... x))))
+    ;;      . BODY)
+    ;;
+    ;;and  the the  accessor function  bound to  <setter> is  meant  to be
+    ;;invoked by  the BODY.  The SETTER  form with X appended  is meant to
+    ;;result to a  form which, when evaluated, sets  the expression to the
+    ;;value bound to X.
+    ;;
+    ;;Getters  and  setters are  combined  to  access  values nested  into
+    ;;composite expressions.
+    ;;
+    (syntax-case clauses (=>)
 
-      ((_ ?expr ?Getter ?Setter (?pattern (=> ?failure)) . ?other-clauses)
-       (syntax-violation 'match "no body in match clause" (syntax->datum #'(?pattern (=> ?failure)))))
+      (((?pattern) . ?other-clauses)
+       (synner "no body in match clause" #'(?pattern)))
 
-      ;;No more clauses, raise an error.
-      ((_ ?expr ?Getter ?Setter)
-       #'(match-mismatch-error 'match ?expr))
+      (((?pattern (=> ?failure)) . ?other-clauses)
+       (synner "no body in match clause" #'(?pattern (=> ?failure))))
 
-      ;;Match when the clause has an explicitly named match continuation.
-      ((_ ?expr ?Getter ?Setter
-	  (?pattern (=> ?failure-kont) . ?body) ;this clause
-	  . ?other-clauses)
-       #'(let ((?failure-kont (lambda ()
-				(match-clause ?expr ?Getter ?Setter . ?other-clauses))))
-	   (match-pattern ?expr ?pattern ?Getter ?Setter
-			  (match-drop-bound-pattern-variables (begin . ?body)) ;success continuation
-			  (?failure-kont) ;failure continuation
-			  ()))) ;identifiers bound as pattern variables
+      ;;No more  clauses: if none  of the previous clauses  matched, the
+      ;;failure continuation must raise an error.
+      (()
+       #`(%mismatch-error #,expr))
 
-      ;;Anonymous failure continuation, give it a dummy name and recurse.
-      ((_ ?expr ?Getter ?Setter (?pattern . ?body) . ?other-clauses)
-       #'(match-clause ?expr ?Getter ?Setter
-		       (?pattern (=> anonymous-kont) . ?body) . ?other-clauses)))))
+      ;;Match when the caller explicitly  selected the name of the match
+      ;;failure continuation.
+      (((?pattern (=> ?kont-name) . ?body) . ?other-clauses)
+       (identifier? #'?kont-name)
+       (%output-form expr Getter Setter #'?pattern #'?kont-name #'?body #'?other-clauses))
+
+      ;;Match  when  the  failure  continuation must  have  an  internally
+      ;;generated name.
+      (((?pattern . ?body) . ?other-clauses)
+       (with-syntax (((KONT-NAME) (generate-temporaries #'(#f))))
+	 (%output-form expr Getter Setter #'?pattern #'KONT-NAME #'?body #'?other-clauses)))
+
+      (_
+       (synner "invalid match clauses syntax" clauses))))
+
+  (define (%output-form expr Getter Setter pattern failure-kont-name body other-clauses)
+    ;;Build the output form syntax object.
+    ;;
+    #`(let ((#,failure-kont-name (lambda ()
+				   #,(%match-clause expr Getter Setter other-clauses))))
+	(match-pattern #,expr #,pattern #,Getter #,Setter
+		       (match-drop-bound-pattern-variables (begin . #,body)) ;success continuation
+		       (#,failure-kont-name)
+		       () ;identifiers bound as pattern variables
+		       )))
+
+  (main stx))
 
 
 (define-syntax match-pattern
@@ -247,20 +265,6 @@
 		      :accessor :and :or :not :setter :getter
 		      :free-identifier :bound-identifier
 		      quasiquote quote)
-
-      ;;the pattern is #t
-      ((_ ?expr #t ?Getter ?Setter (?success-kont ...) ?failure-kont ?bound-pattern-variables)
-       #'(if ?expr
-      	     (?success-kont ... ?bound-pattern-variables)
-      	   ?failure-kont))
-
-      ;;the pattern is #f
-      ((_ ?expr #f ?Getter ?Setter (?success-kont ...) ?failure-kont ?bound-pattern-variables)
-       #'(if (not ?expr)
-      	     (?success-kont ... ?bound-pattern-variables)
-      	   ?failure-kont))
-
-;;; --------------------------------------------------------------------
 
       ;;the pattern is a quoted identifier
       ((_ ?expr (quote ?pattern) ?Getter ?Setter
@@ -484,51 +488,50 @@
 
 ;;; --------------------------------------------------------------------
 
-      ;;the pattern is the wildcard identifier
-      ((_ ?expr ?pattern ?Getter ?Setter (?success-kont ...) ?failure-kont ?bound-pattern-variables)
-       (and (identifier? #'?pattern) (free-identifier=? #'_ #'?pattern))
-       #'(?success-kont ... ?bound-pattern-variables))
-
-      ;;the pattern is a literal or a pattern variable among the already
-      ;;bound ones
-      ((_ ?expr ?pattern ?Getter ?Setter
-	  (?success-kont ...) ?failure-kont (?bound-pattern-variable ...))
-       (or (not (identifier? #'?pattern))
-	   (memq (syntax->datum #'?pattern) (syntax->datum #'(?bound-pattern-variable ...))))
-       #'(if (equal? ?expr ?pattern)
-	     (?success-kont ... (?bound-pattern-variable ...))
-	   ?failure-kont))
-
-      ;;the pattern is a pattern  variable NOT already bound, we bind it
-      ;;and add it to the list of bound pattern variables
-      ((_ ?expr ?pattern ?Getter ?Setter
-	  (?success-kont ...) ?failure-kont (?bound-pattern-variable ...))
+      ;;the pattern is an identifier
+      ((_ ?expr ?pattern ?Getter ?Setter (?success-kont ...) ?failure-kont (?bound-pattern-variable ...))
        (identifier? #'?pattern)
-       #'(let ((?pattern ?expr))
-	     (?success-kont ... (?bound-pattern-variable ... ?pattern))))
+       (cond ((free-identifier=? #'_ #'?pattern)
+	      ;;The pattern is the wildcard identifier.
+	      #'(?success-kont ... (?bound-pattern-variable ...)))
+	     ((sx.identifier-memq #'?pattern (sx.syntax->list #'(?bound-pattern-variable ...)))
+	      ;;The pattern is a literal or a pattern variable among the
+	      ;;already bound ones.
+	      #'(if (equal? ?expr ?pattern)
+		    (?success-kont ... (?bound-pattern-variable ...))
+		  ?failure-kont))
+	     (else
+	      ;;The pattern is a  pattern variable NOT already bound, we
+	      ;;bind  it  and  add  it  to the  list  of  bound  pattern
+	      ;;variables.
+	      #'(let ((?pattern ?expr))
+		  (?success-kont ... (?bound-pattern-variable ... ?pattern))))))
 
-      ;;The  following is  the  original pattern-var/literal  processing
-      ;;clause;  I am  keeping it  because  the syntax  trick is  really
-      ;;spiffy.
-      ;;
-      ;; ((_ ?expr ?pattern g s (sk ...) fk (id ...))
-      ;;  #'(let-syntax ((new-sym? (syntax-rules (id ...)
-      ;; 		;If ?PATTERN is among the ID symbols listed as literals,
-      ;; 		;the first rule matches; else the second rule matches.
-      ;; 				  ((_ ?pattern sk2 fk2) sk2)
-      ;; 				  ((_ y        sk2 fk2) fk2))))
-      ;; 	   (new-sym? random-sym-to-match
-      ;; 		     (let ((?pattern ?expr))
-      ;; 		       (sk ... (id ... ?pattern)))
-      ;; 		     (if (equal? ?expr ?pattern)
-      ;; 			 (sk ... (id ...))
-      ;; 		       fk))))
+;;; --------------------------------------------------------------------
+
+      ;;the pattern is #t
+      ((_ ?expr #t ?Getter ?Setter (?success-kont ...) ?failure-kont ?bound-pattern-variables)
+       #'(if ?expr
+      	     (?success-kont ... ?bound-pattern-variables)
+      	   ?failure-kont))
+
+      ;;the pattern is #f
+      ((_ ?expr #f ?Getter ?Setter (?success-kont ...) ?failure-kont ?bound-pattern-variables)
+       #'(if (not ?expr)
+      	     (?success-kont ... ?bound-pattern-variables)
+      	   ?failure-kont))
+
+      ;;the pattern is a non-boolean literal
+      ((_ ?expr ?pattern ?Getter ?Setter (?success-kont ...) ?failure-kont ?bound-pattern-variables)
+       (not (identifier? #'?pattern))
+       #'(if (equal? ?expr ?pattern)
+	     (?success-kont ... ?bound-pattern-variables)
+	   ?failure-kont))
 
 ;;; --------------------------------------------------------------------
 
       ;;we should never reach this clause
-      ((_ ?expr ?pattern ?Getter ?Setter
-	  ?success-kont ?failure-kont ?bound-pattern-variables)
+      ((_ ?expr ?pattern ?Getter ?Setter ?success-kont ?failure-kont ?bound-pattern-variables)
        (syntax-violation 'match "unrecognised pattern element" (syntax->datum #'?pattern)))
 
       )))

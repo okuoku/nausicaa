@@ -8,6 +8,13 @@
 
 The library @library{nausicaa language syntax-utilities} defines
 functions and macros to automate common tasks in new syntax definitions.
+It is suggested to prefix the bindings with @samp{sx.} when importing
+it, as in:
+
+@example
+(import ---
+  (prefix (nausicaa language syntax-utilities) sx.))
+@end example
 
 @menu
 * syntax utils wrapping::       Unwrapping syntax objects.

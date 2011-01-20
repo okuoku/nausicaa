@@ -7,7 +7,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2009-2011 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;Copyright (c) 2006, 2007 Alex Shinn
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
@@ -39,8 +39,8 @@
   (syntax-rules ()
     ((_ ?body)
      (guard (E ((irritants-condition? E)
-		`((message   . ,(condition-message E))
-		  (irritants . ,(condition-irritants E))))
+		`((message   ,(condition-message E))
+		  (irritants ,(condition-irritants E))))
 	       (else
 		#t))
        ?body))))
@@ -49,8 +49,9 @@
   (syntax-rules ()
     ((_ ?body)
      (guard (E ((syntax-violation? E)
-		`((message	. ,(condition-message E))
-		  (form		. ,(syntax-violation-form E))))
+		`((message	,(condition-message E))
+		  (form		,(syntax-violation-form E))
+		  (subform	,(syntax-violation-subform E))))
 	       (else #f))
        (eval (quote ?body)
 	     (environment '(rnrs) '(nausicaa matches)))))))
@@ -58,8 +59,8 @@
 (define-syntax catch-mismatch-error
   (syntax-rules ()
     ((_ ?body)
-     (guard (E (else `((message   . ,(condition-message E))
-		       (expr      . ,(condition-match-mismatch/expression E)))))
+     (guard (E (else `((message   ,(condition-message E))
+		       (expr      ,(condition-match-mismatch/expression E)))))
        ?body))))
 
 
@@ -67,42 +68,48 @@
 
   (check
       (catch-syntax-error (match))
-    => '((message . "missing match expression")
-	 (form    . (match))))
+    => '((message	"missing match expression")
+	 (form		(match))
+	 (subform	#f)))
 
   (check
       (catch-syntax-error (match 123))
-    => '((message . "missing match clause")
-	 (form    . (match 123))))
+    => '((message "at least one match clause is required")
+	 (form    (match 123))
+	 (subform #f)))
 
   (check
       (catch-mismatch-error (match 28 (29 'ok)))
-    => '((message . "no matching pattern")
-	 (expr    . 28)))
+    => '((message "no matching pattern")
+	 (expr    28)))
 
   (check
       (catch-syntax-error (match 28 (28 (=> fail))))
-    => '((message . "no body in match clause")
-	 (form    . (28 (=> fail)))))
+    => '((message "no body in match clause")
+	 (form    (match 28 (28 (=> fail))))
+	 (subform (28 (=> fail)))))
 
   (check
       (catch-syntax-error (match 28
 			    ((a ... b ... c)
 			     'fail)))
-    => '((message . "multiple ellipsis patterns not allowed at same level")
-	 (form    . (a ... b ... c))))
+    => '((message	"multiple ellipsis patterns not allowed at same level")
+	 (form		(a ... b ... c))
+	 (subform	#f)))
 
   (check
       (catch-syntax-error (match 28
 			    ((a ... b ...)
 			     'fail)))
-    => '((message . "multiple ellipsis patterns not allowed at same level")
-	 (form    . (a ... b ...))))
+    => '((message	"multiple ellipsis patterns not allowed at same level")
+	 (form		(a ... b ...))
+	 (subform	#f)))
 
   (check
       (catch-syntax-error (match 28 (28)))
-    => '((message . "no body in match clause")
-	 (form    . (28))))
+    => '((message	"no body in match clause")
+	 (form		(match 28 (28)))
+	 (subform	(28))))
 
   #t)
 
@@ -519,8 +526,9 @@
   (check
       (catch-syntax-error (match '()
 			    ((:not) 'fail)))
-    => '((message . "empty :NOT form in pattern")
-	 (form    . (:not))))
+    => '((message	"empty :NOT form in pattern")
+	 (form		(:not))
+	 (subform	#f)))
 
   #t)
 
@@ -657,8 +665,9 @@
       (catch-syntax-error (match '#(a b c d)
 			    (#( ...)
 			     x)))
-    => '((message . "ellipsis not allowed as single, vector pattern value")
-	 (form    . #(...))))
+    => '((message	"ellipsis not allowed as single, vector pattern value")
+	 (form		#(...))
+	 (subform	#f)))
 
   (check
       (match '#(a b c d)
