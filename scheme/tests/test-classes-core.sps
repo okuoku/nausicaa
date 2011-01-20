@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2010, 2011 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -3743,9 +3743,6 @@
 
   (check-for-true	(is-a? (make-message-condition "ciao") <condition>))
   (check-for-false	(is-a? 123 <condition>))
-
-  (check-for-true	(is-a? (make <alpha> 1 2 3) <record>))
-  (check-for-false	(is-a? 123 <record>))
 
   (check-for-true	(is-a? '(1 . 2) <pair>))
   (check-for-false	(is-a? 1 <pair>))

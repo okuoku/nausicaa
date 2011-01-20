@@ -3945,11 +3945,6 @@ Accessing this field is like applying @func{condition-irritants} to the
 condition object.
 @end defcv
 
-
-@deftp {Foreign Class} @aclass{record}
-Conventional type for objects satisfying @func{record?}.
-@end deftp
-
 @c page
 @node classes properties
 @section Class, label, mixin properties

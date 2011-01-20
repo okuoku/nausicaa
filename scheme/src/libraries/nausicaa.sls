@@ -878,7 +878,7 @@
 
     ;; builtin classes
     <top> <builtin> <pair> <list>
-    <char> <string> <vector> <bytevector> <hashtable> <record> <condition>
+    <char> <string> <vector> <bytevector> <hashtable> <condition>
     <port> <binary-port> <input-port> <output-port> <textual-port>
     <fixnum> <flonum> <integer> <integer-valued> <rational> <rational-valued>
     <real> <real-valued> <complex> <number>

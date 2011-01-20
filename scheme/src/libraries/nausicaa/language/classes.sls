@@ -99,7 +99,7 @@
 
     ;; builtin classes
     <top> <builtin> <pair> <list>
-    <char> <string> <vector> <bytevector> <hashtable> <record> <condition>
+    <char> <string> <vector> <bytevector> <hashtable> <condition>
     <port> <binary-port> <input-port> <output-port> <textual-port>
     <fixnum> <flonum> <integer> <integer-valued> <rational> <rational-valued>
     <real> <real-valued> <complex> <number>)
@@ -242,7 +242,6 @@
 	  ((textual-port?	obj)	(class-record-type-descriptor <textual-port>))
 	  (else				(class-record-type-descriptor <port>))))
    ((condition?		obj)		(class-record-type-descriptor <condition>))
-   ((record?		obj)		(class-record-type-descriptor <record>))
    ((pair?		obj)
     ;;Order does matter  here!!!  Better leave these at  the end because
     ;;qualifying a long list can be time-consuming.
@@ -287,7 +286,6 @@
 	  ((textual-port?	obj)	(class-uid-list <textual-port>))
 	  (else				(class-uid-list <port>))))
    ((condition?		obj)		(class-uid-list <condition>))
-   ((record?		obj)		(class-uid-list <record>))
    ((pair?		obj)
     ;;Order does matter  here!!!  Better leave these at  the end because
     ;;qualifying a long list can be time-consuming.
@@ -2782,9 +2780,6 @@
      (hashtable-ref ?variable-name ?key ?default))))
 
 ;;; --------------------------------------------------------------------
-
-(define-builtin-class <record>
-  (predicate record?))
 
 (define-builtin-class <condition>
   (predicate condition?)
