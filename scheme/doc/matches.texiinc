@@ -2,11 +2,11 @@
 @chapter Pattern matching
 
 
-@cindex @library{nausicaa matches}, library
-@cindex Library @library{nausicaa matches}
+@cindex @library{nausicaa language matches}, library
+@cindex Library @library{nausicaa language matches}
 
 
-The @library{nausicaa matches} library implements @dfn{pattern
+The @library{nausicaa language matches} library implements @dfn{pattern
 matching}, also known as @dfn{destructuring bind}.  The library creates
 simple generative pattern matchers; each pattern is expanded into the
 required tests, calling a failure continuation if the tests fail.
@@ -1448,7 +1448,6 @@ to write macro transformers.  An example follows:
 
 @example
 (import (nausicaa)
-  (nausicaa matches)
   (nausicaa language syntax-utilities))
 
 (define-auxiliary-syntaxes

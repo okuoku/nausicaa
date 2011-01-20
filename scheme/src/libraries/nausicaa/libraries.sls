@@ -59,7 +59,6 @@
     (nausicaa lists)
     (nausicaa strings)
     (nausicaa char-sets)
-    (nausicaa matches)
     (nausicaa libraries rnrs-bindings)
     (nausicaa libraries names)
     (nausicaa libraries references)

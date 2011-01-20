@@ -56,7 +56,13 @@
     (prefix (only (nausicaa language classes clause-parsers)
 		  %collect-clause/mixins)
 	    parser.)
-    (for (nausicaa language auxiliary-syntaxes) (meta -1))
+    (for (only (nausicaa language auxiliary-syntaxes)
+	       parent sealed opaque parent-rtd nongenerative
+	       protocol fields mutable immutable
+	       inherit predicate maker maker-transformer setter getter bindings
+	       public-protocol maker-protocol superclass-protocol virtual-fields
+	       methods method method-syntax custom-maker mixins satisfies)
+	 (meta -1))
     (for (nausicaa language classes top) (meta -1)))
 
 

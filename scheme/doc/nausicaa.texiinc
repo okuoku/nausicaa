@@ -80,6 +80,9 @@ Compensation stacks (@pxref{compensations, Compensation stacks}).
 @item nausicaa language deferred-exceptions
 Handling deferred exceptions (@pxref{deferred exceptions, Deferred
 exceptions}).
+
+@item nausicaa language matches
+Pattern matching (@pxref{matches, Pattern matching}).
 @end table
 
 @c page

@@ -121,7 +121,12 @@
     (for (nausicaa language classes clause-parsers)		expand)
     (for (prefix (nausicaa language sentinel) sentinel.)	expand)
     (nausicaa language makers)
-    (nausicaa language auxiliary-syntaxes)
+    (only (nausicaa language auxiliary-syntaxes)
+	  parent sealed opaque parent-rtd nongenerative
+	  protocol fields mutable immutable
+	  inherit predicate maker maker-transformer setter getter bindings
+	  public-protocol maker-protocol superclass-protocol virtual-fields
+	  methods method method-syntax custom-maker mixins satisfies)
     (nausicaa language extensions)
     (for (prefix (nausicaa language classes properties) prop.)  expand)
     (nausicaa language classes internal-auxiliary-syntaxes)

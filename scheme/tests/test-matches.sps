@@ -28,12 +28,13 @@
 #!r6rs
 (import (nausicaa)
   (nausicaa checks)
-  (nausicaa matches)
   (nausicaa language syntax-utilities)
   (rnrs eval))
 
 (check-set-mode! 'report-failed)
 (display "*** testing matches\n")
+
+(debugging #t)
 
 (define-syntax catch-error
   (syntax-rules ()
@@ -52,9 +53,11 @@
 		`((message	,(condition-message E))
 		  (form		,(syntax-violation-form E))
 		  (subform	,(syntax-violation-subform E))))
-	       (else #f))
+	       (else
+		(debug-print-condition "syntax:" E)
+		E))
        (eval (quote ?body)
-	     (environment '(rnrs) '(nausicaa matches)))))))
+	     (environment '(nausicaa)))))))
 
 (define-syntax catch-mismatch-error
   (syntax-rules ()
@@ -484,7 +487,7 @@
 		 ((:or (:predicate integer? x)
 		       (:predicate symbol?  y))
 		  y))
-	      (environment '(rnrs) '(nausicaa matches))))
+	      (environment '(nausicaa))))
     => #t)
 
   (check
@@ -493,7 +496,7 @@
 		 ((:or (:predicate integer? x)
 		       (:predicate symbol?  y))
 		  x))
-	      (environment '(rnrs) '(nausicaa matches))))
+	      (environment '(nausicaa))))
     => #t)
 
 ;;; --------------------------------------------------------------------
@@ -520,7 +523,7 @@
 	(eval '(match 123
 		 ((:not (:predicate symbol? x))
 		  x)) ; unbound identifier
-	      (environment '(rnrs) '(nausicaa matches))))
+	      (environment '(nausicaa))))
     => #t)
 
   (check
@@ -1013,7 +1016,7 @@
 	(eval '(match 1
 		 ((:setter doit)
 		  (doit 3)))
-	      (environment '(rnrs) '(nausicaa matches))))
+	      (environment '(nausicaa))))
     => #t)
 
   (check	;setter car

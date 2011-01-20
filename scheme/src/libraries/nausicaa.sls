@@ -899,6 +899,28 @@
     define-generic define-method add-method define-generic/merge
     call-next-method next-method? uid-list-of:
 
+;;;; bindings from (nausicaa language matches)
+
+    match match-lambda match-lambda* match-define match-define*
+    match-let match-letrec match-named-let match-let*
+
+    ;; auxiliary syntaxes
+    :predicate
+    :accessor
+    :and
+    :or
+    :not
+    :setter
+    :getter
+    :free-identifier
+    :bound-identifier
+
+    ;; conditions
+    &match-mismatch
+    make-match-mismatch-condition
+    match-mismatch-condition?
+    condition-match-mismatch/expression
+    match-mismatch-error
   )
 
 
@@ -925,6 +947,7 @@
     (for (nausicaa language compensations)		expand run)
     (for (nausicaa language deferred-exceptions)	expand run)
     (for (nausicaa language makers)			expand run)
+    (for (nausicaa language matches)			expand run)
     ))
 
 ;;; end of file

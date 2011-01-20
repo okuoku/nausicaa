@@ -31,7 +31,6 @@
     load-catalog load-catalog-from-file
     current-catalog en_GB)
   (import (nausicaa)
-    (nausicaa matches)
     (only (nausicaa strings) string-tokenize)
     (only (nausicaa char-sets)
 	  char-set-complement char-set char-set:full))

@@ -33,7 +33,7 @@
 
 
 #!r6rs
-(library (nausicaa matches)
+(library (nausicaa language matches)
   (export
     match match-lambda match-lambda* match-define match-define*
     match-let match-letrec match-named-let match-let*
@@ -61,6 +61,16 @@
 	  define-auxiliary-syntaxes
 	  define-syntax*
 	  define-inline)
+    (only (nausicaa language auxiliary-syntaxes)
+	  :predicate
+	  :accessor
+	  :and
+	  :or
+	  :not
+	  :setter
+	  :getter
+	  :free-identifier
+	  :bound-identifier)
     (prefix (only (nausicaa language syntax-utilities)
 		  identifier-memq
 		  syntax->list)
@@ -82,17 +92,6 @@
 
 (define-inline (%mismatch-error ?expr)
   (match-mismatch-error 'match ?expr))
-
-(define-auxiliary-syntaxes
-  :predicate
-  :accessor
-  :and
-  :or
-  :not
-  :setter
-  :getter
-  :free-identifier
-  :bound-identifier)
 
 
 (define-syntax* (match stx)

@@ -78,7 +78,6 @@
     apply-import-spec/rename
     )
   (import (nausicaa)
-    (nausicaa matches)
     (nausicaa libraries helpers)
     (nausicaa libraries references))
 

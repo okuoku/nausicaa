@@ -43,6 +43,17 @@
     ;; bindings for string and vector views
     view start past
 
+    ;; for MATCH
+    :predicate
+    :accessor
+    :and
+    :or
+    :not
+    :setter
+    :getter
+    :free-identifier
+    :bound-identifier
+
     ;; miscellaneous
     <> <...>)
   (import (rnrs records syntactic)
@@ -78,6 +89,18 @@
 
        view
        start
-       past))
+       past
+
+       ;; for MATCH
+       :predicate
+       :accessor
+       :and
+       :or
+       :not
+       :setter
+       :getter
+       :free-identifier
+       :bound-identifier
+       ))
 
 ;;; end of file

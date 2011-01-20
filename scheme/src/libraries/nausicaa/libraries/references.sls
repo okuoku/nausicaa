@@ -46,7 +46,6 @@
     conforming-library-name-and-library-reference?
     )
   (import (nausicaa)
-    (nausicaa matches)
     (nausicaa libraries names))
 
   (define-syntax %normalise-to-boolean

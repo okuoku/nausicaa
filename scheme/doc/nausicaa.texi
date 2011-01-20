@@ -631,6 +631,7 @@ Libraries in the @library{nausicaa} language
 * generics::                    Multimethods dispatching.
 * compensations::               Compensation stacks.
 * deferred exceptions::         Deferred exceptions.
+* matches::                     Pattern matching.
 
 More libraries
 
@@ -660,7 +661,6 @@ More libraries
 * combinators::                 Combinators.
 * keywords::                    Keyword values.
 * variables::                   Defining storage locations.
-* matches::                     Pattern matching.
 * irregex::                     IrRegular expressions.
 * pregexp::                     Portable regular expressions for Scheme.
 * parser-tools::                Lexer and parser utilities.
@@ -717,6 +717,7 @@ Indexes
 @include baselib.texiinc
 @include stdlib.texiinc
 @include nausicaa.texiinc
+@include matches.texiinc
 
 @c chapters on core libraries
 
@@ -769,7 +770,6 @@ Indexes
 @include combinators.texiinc
 @include keywords.texiinc
 @include variables.texiinc
-@include matches.texiinc
 @include irregex.texiinc
 @include pregexp.texiinc
 @include parser-tools.texiinc

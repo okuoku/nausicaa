@@ -44,6 +44,7 @@
   (only (nausicaa language generics))
   (only (nausicaa language deferred-exceptions))
   (only (nausicaa language compensations))
+  (only (nausicaa language matches))
   (only (nausicaa))
   (only (nausicaa mutable-pairs))
   (only (nausicaa mutable-strings))
@@ -93,8 +94,6 @@
   (only (nausicaa combinators))
   (only (nausicaa irregex))
   (only (nausicaa pregexp))
-
-  (only (nausicaa matches))
 
   (only (nausicaa parser-tools source-location))
   (only (nausicaa parser-tools lexical-token))
