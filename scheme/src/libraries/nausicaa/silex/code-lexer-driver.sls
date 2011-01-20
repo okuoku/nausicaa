@@ -1,3 +1,5 @@
+;;; -*- coding: utf-8-unix -*-
+;;;
 ;;;SILex - Scheme Implementation of Lex
 ;;;
 ;;;Copyright (C) 2001 Danny Dube'
@@ -17,30 +19,16 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
-
 #!r6rs
-(library (nausicaa silex lexer)
-  (export
-    make-lexer
-;;; bindings from (nausicaa silex input-system)
-    make-IS		lexer-get-func-offset
-    lexer-get-func-getc	lexer-get-func-ungetc
-    lexer-get-func-line	lexer-get-func-column
-    ;; auxiliary syntaxes
-    counters:		port:
-    procedure:		string:)
-  (import (rnrs)
-    (nausicaa silex input-system)
-    (nausicaa silex code-lexer-driver)
-    (nausicaa silex tree-lexer-driver)
-    (nausicaa silex char-lexer-driver))
-  (define (make-lexer tables IS)
-    (case (vector-ref tables 4) ; automaton type
-      ((decision-trees)
-       (make-tree-lexer tables IS))
-      ((tagged-chars-lists)
-       (make-char-lexer tables IS))
-      ((code)
-       (make-code-lexer tables IS)))))
+(library (nausicaa silex code-lexer-driver)
+  (export make-code-lexer)
+  (import (rnrs))
+  (define (make-code-lexer tables IS)
+    ;; Fabrication d'un lexer a partir de code pre-genere
+    (let ((<<EOF>>-pre-action   (vector-ref tables 1))
+	  (<<ERROR>>-pre-action (vector-ref tables 2))
+	  (rules-pre-action     (vector-ref tables 3))
+	  (code                 (vector-ref tables 5)))
+      (code <<EOF>>-pre-action <<ERROR>>-pre-action rules-pre-action IS))))
 
 ;;; end of file
