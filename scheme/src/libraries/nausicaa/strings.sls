@@ -1,5 +1,5 @@
 ;;;
-;;;Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2009, 2010, 2011 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;Derived from the SRFI 13 reference implementation.
 ;;;
@@ -201,10 +201,11 @@
     string-suffix?        string-suffix-ci?
 
     ;; searching
-    string-index     string-index-right
-    string-skip      string-skip-right
-    string-contains  string-contains-ci
+    string-index		string-index-right
+    string-skip			string-skip-right
+    string-contains		string-contains-ci
     string-count
+    string-search-and-replace	string-search-and-replace-ci
 
     ;; filtering
     string-filter string-delete
@@ -651,6 +652,28 @@
      (let-values (((str1 start1 end1) (unpack ?S1))
 		  ((str2 start2 end2) (unpack ?S2)))
        (%string-contains-ci str1 start1 end1 str2 start2 end2)))))
+
+(define-syntax string-search-and-replace
+  (syntax-rules ()
+    ((_ ?S1 ?S2 ?S3 ?max-replacement-count)
+     (let-values (((str1 start1 end1) (unpack ?S1))
+		  ((str2 start2 end2) (unpack ?S2))
+		  ((str3 start3 end3) (unpack ?S3)))
+       (%string-search-and-replace str1 start1 end1
+				   str2 start2 end2
+				   str3 start3 end3
+				   ?max-replacement-count)))))
+
+(define-syntax string-search-and-replace-ci
+  (syntax-rules ()
+    ((_ ?S1 ?S2 ?S3 ?max-replacement-count)
+     (let-values (((str1 start1 end1) (unpack ?S1))
+		  ((str2 start2 end2) (unpack ?S2))
+		  ((str3 start3 end3) (unpack ?S3)))
+       (%string-search-and-replace-ci str1 start1 end1
+				      str2 start2 end2
+				      str3 start3 end3
+				      ?max-replacement-count)))))
 
 
 ;;;; filtering

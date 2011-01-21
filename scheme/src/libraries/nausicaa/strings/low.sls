@@ -1,6 +1,6 @@
 ;;; low level strings library --
 ;;;
-;;;Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2009, 2010, 2011 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;Copyright (c) 2009 Derick Eddington
 ;;;
 ;;;Derived from the SRFI 13 reference implementation.
@@ -186,6 +186,7 @@
     %string-skip      %string-skip-right
     %string-contains  %string-contains-ci
     %string-count
+    %string-search-and-replace	%string-search-and-replace-ci
 
     ;; filtering
     %string-delete  %string-filter
@@ -205,8 +206,9 @@
     ;; reverse and replace
     %string-reverse  %string-reverse!
     %string-replace)
-  (import (rnrs)
+  (import (except (rnrs) assert)
     (rnrs mutable-strings)
+    (only (nausicaa language assertions) assert)
     (nausicaa char-sets)
     (nausicaa knuth-morris-pratt))
 
@@ -1292,6 +1294,62 @@
   (%kmp-search char-ci=? string-ref
 	       text text-start text-past
 	       pattern pattern-start pattern-past))
+
+
+;;;; searching and replacing
+
+(define (%string-search-and-replace src src.start src.past
+				    pattern pattern.start pattern.past
+				    replace replace.start replace.past
+				    max-replacement-count)
+  (%p-string-search-and-replace %string-contains
+				src src.start src.past
+				pattern pattern.start pattern.past
+				replace replace.start replace.past
+				max-replacement-count))
+
+(define (%string-search-and-replace-ci src src.start src.past
+				       pattern pattern.start pattern.past
+				       replace replace.start replace.past
+				       max-replacement-count)
+  (%p-string-search-and-replace %string-contains-ci
+				src src.start src.past
+				pattern pattern.start pattern.past
+				replace replace.start replace.past
+				max-replacement-count))
+
+(define (%p-string-search-and-replace contains
+				      src src.start src.past
+				      pattern pattern.start pattern.past
+				      replace replace.start replace.past
+				      max-replacement-count)
+  (assert (<= 0 max-replacement-count))
+  (assert (<= (- pattern.past pattern.start)
+	      (- src.past     src.start)))
+  (if (zero? max-replacement-count)
+      (substring src src.start src.past)
+    (let-values (((port getter)	(open-string-output-port))
+		 ((pattern.len)	(- pattern.past pattern.start)))
+      (define (%out str first past)
+	(do ((i first (+ 1 i)))
+	    ((= i past))
+	  (put-char port (string-ref str i))))
+      (let loop ((count	0)
+		 (beg	src.start))
+	(define (%flush)
+	  (%out src beg src.past)
+	  (getter))
+	(if (and (<  count max-replacement-count)
+		 (<= pattern.len (- src.past beg)))
+	    (let ((start (contains src beg src.past pattern pattern.start pattern.past)))
+	      (if start
+		  (begin
+		    (%out src beg start)
+		    (%out replace replace.start replace.past)
+		    (let ((beg (+ start pattern.len)))
+		      (loop (+ 1 count) beg)))
+		(%flush)))
+	  (%flush))))))
 
 
 ;;;; filtering

@@ -1597,6 +1597,20 @@ value is the index in @vari{str} where the substring of @varii{str}
 occurs.
 @end deffn
 
+
+@deffn Function %string-search-and-replace @var{src} @vari{start} @vari{past} @var{pattern} @varii{start} @varii{past} @var{replace} @variii{start} @variii{past} @var{max-replacement-count}
+@deffnx Function %string-search-and-replace-ci @var{src} @vari{start} @vari{past} @var{pattern} @varii{start} @varii{past} @var{replace} @variii{start} @variii{past} @var{max-replacement-count}
+@deffnx Macro string-search-and-replace @var{SRC} @var{PATTERN} @var{REPLACE} @var{max-replacement-count}
+@deffnx Macro string-search-and-replace-ci @var{SRC} @var{PATTERN} @var{REPLACE} @var{max-replacement-count}
+Build and return a copy of the selected substring of @var{src}, in which
+the occurrences of the selected substring of @var{pattern} are replaced
+with the selected substring of @var{replace}.
+
+At most @var{max-replacement-count} occurrences are replaced: if it is
+zero, the selected substring of @var{src} is returned; if it is
+@code{+inf.0}, all the occurrences are replaced.
+@end deffn
+
 @c page
 @node strings filter
 @section Filtering and deleting

@@ -20,8 +20,8 @@ macros to handle the definition and usage of assertions.
 @section Assertion macros
 
 
-The following bindings are exported by the @library{nausicaa assertions}
-library.
+The following bindings are exported by the @library{nausicaa language
+assertions} library.
 
 
 @defmac assert @var{expression}
@@ -106,8 +106,8 @@ A description string used in the error message.
 @section Defining predicates
 
 
-The following bindings are exported by the @library{nausicaa assertions}
-library.
+The following bindings are exported by the @library{nausicaa language
+assertions} library.
 
 
 @defmac define-list-of-values-predicates @var{name} @var{predicate}
@@ -135,8 +135,8 @@ satisfying @var{predicate}, or false.
 @section Derived predicates
 
 
-The following bindings are exported by the @library{nausicaa assertions}
-library.
+The following bindings are exported by the @library{nausicaa language
+assertions} library.
 
 
 @defun list-of-booleans? @var{obj}
