@@ -2525,10 +2525,11 @@
 
 (define-foreign-class <list>
   (nongenerative nausicaa:builtin:<list>)
-  (inherit <pair>)
   (predicate list?)
   (virtual-fields (immutable length	length)
 		  (immutable null?	null?)
+		  (immutable car	car)
+		  (immutable cdr	cdr)
 		  (immutable caar	caar)
 		  (immutable cadr	cadr)
 		  (immutable cdar	cdar)

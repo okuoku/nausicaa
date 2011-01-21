@@ -3272,8 +3272,7 @@ Access the cdr of the pair.
 
 
 @deftp {Foreign Class} @aclass{list}
-Conventional type of objects satisfying @func{list?}.  It is derived
-from @class{pair}.
+Conventional type of objects satisfying @func{list?}.
 @end deftp
 
 @defcv {Immutable Virtual Field} @aclass{list} length
