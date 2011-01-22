@@ -25,8 +25,9 @@
 ;;;
 
 
+#!r6rs
 (import (rnrs)
-  (makers))
+  (nausicaa language makers))
 
 (define check-count		0)
 (define check-success-count	0)

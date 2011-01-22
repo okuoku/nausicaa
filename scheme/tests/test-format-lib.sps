@@ -23,8 +23,8 @@
 
 
 (import (nausicaa)
-  (checks)
-  (formations))
+  (nausicaa checks)
+  (nausicaa formations))
 
 (check-set-mode! 'report-failed)
 (display "*** testing format library\n")
@@ -158,6 +158,7 @@
 	(ypsilon	"ciao \"#<subr display>\"")
 	(larceny	"ciao \"#<PROCEDURE display>\"")
 	(ikarus		"ciao \"#<procedure display>\"")
+	(petite		"ciao \"#<procedure display>\"")
 	(vicare		"ciao \"#<procedure display>\"")
 	(mosh		(string-append "ciao \""
 				       (call-with-string-output-port
@@ -175,6 +176,7 @@
 	(ypsilon	"ciao \"#<subr display>\"")
 	(larceny	"ciao \"#<PROCEDURE display>\"")
 	(ikarus		"ciao \"#<procedure display>\"")
+	(petite		"ciao \"#<procedure display>\"")
 	(vicare		"ciao \"#<procedure display>\"")
 	(mosh		(string-append "ciao \""
 				       (call-with-string-output-port

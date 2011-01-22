@@ -24,9 +24,10 @@
 ;;;
 
 
+#!r6rs
 (import (nausicaa)
-  (checks)
-  (queues))
+  (nausicaa checks)
+  (nausicaa queues))
 
 (check-set-mode! 'report-failed)
 (display "*** testing queues\n")
@@ -52,22 +53,22 @@
 ;;; --------------------------------------------------------------------
 
   (check
-      (let ((q (make <queue>)))
+      (let ((q (make* <queue>)))
 	(is-a? q <queue>))
     => #t)
 
   (check
-      (let ((q (make <queue> 1)))
+      (let ((q (make* <queue> 1)))
 	(is-a? q <queue>))
     => #t)
 
   (check
-      (let ((q (make <queue> 1 2)))
+      (let ((q (make* <queue> 1 2)))
 	(is-a? q <queue>))
     => #t)
 
   (check
-      (let ((q (make <queue> 1 2 3)))
+      (let ((q (make* <queue> 1 2 3)))
 	(is-a? q <queue>))
     => #t)
 

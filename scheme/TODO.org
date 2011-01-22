@@ -1,27 +1,17 @@
 * documentation
 
-  Differentiate between @meta inside normal text and @meta inside
-  examples, @samp, etc.
-
   Document  somewhere that  ypsilon requires  the --compatible  flag, or
   remove the need for --compatible.
 
 * nausicaa
-
-  Rorganise the auxiliary syntaxes from (classes auxiliary-syntaxes).
-
+* DONE makers
+* classes
 * generics
 
   Profile and improve method dispatching.
 
-* lists
-
-  Finished(?)
-
-* char-set
-
-  Done.
-
+* DONE lists
+* DONE char-set
 * email
 
 ** addresses
@@ -142,15 +132,21 @@
 
 * TODO matches
 
-  Write a version of the library which expands in a macro transformer.
+  Transform the auxiliary macros to functions for expand time; the whole
+  MATCH  implementation  can  be  a  single  DEFINE-SYNTAX  form.   This
+  transformation would make the code more understandable.
 
 * TODO packrat
 
   Implement the :one and :any combinators, like the ones in (sexps).
 
 * DONE armor
-
 * TODO libraries
 
   Finish the libraries inspector.
+
+* DONE contracts
+* TODO uri
+
+  Finish the parser.
 

@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2009, 2010, 2011 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -25,12 +25,13 @@
 ;;;
 
 
+#!r6rs
 (import (nausicaa)
-  (generics object-to-string)
-  (checks)
-  (email addresses)
-  (silex lexer)
-  (strings))
+  (nausicaa generics object-to-string)
+  (nausicaa checks)
+  (nausicaa email addresses)
+  (prefix (nausicaa silex lexer) lex.)
+  (nausicaa strings))
 
 (check-set-mode! 'report-failed)
 (display "*** testing email addresses\n")
@@ -39,7 +40,7 @@
 (parameterise ((check-test-name 'simple-mailboxes))
 
   (define (doit string)
-    (let* ((IS		(lexer-make-IS (:string string) (:counters 'all)))
+    (let* ((IS		(lex.make-IS (lex.string: string) (lex.counters: 'all)))
 	   (lexer	(make-address-lexer IS))
 	   (parser	(make-address-parser))
 	   (handler	(lambda (msg tok) (list 'error-handler msg tok)))
@@ -94,7 +95,7 @@
 (parameterise ((check-test-name 'route-mailboxes))
 
   (define (doit string)
-    (let* ((IS		(lexer-make-IS (:string string) (:counters 'all)))
+    (let* ((IS		(lex.make-IS (lex.string: string) (lex.counters: 'all)))
 	   (lexer	(make-address-lexer IS))
 	   (parser	(make-address-parser))
 	   (handler	(lambda (msg tok) (list 'error-handler msg tok)))
@@ -119,7 +120,7 @@
 (parameterise ((check-test-name 'groups))
 
   (define (doit string)
-    (let* ((IS		(lexer-make-IS (:string string) (:counters 'all)))
+    (let* ((IS		(lex.make-IS (lex.string: string) (lex.counters: 'all)))
 	   (lexer	(make-address-lexer IS))
 	   (parser	(make-address-parser))
 	   (handler	(lambda (msg tok) (list 'error-handler msg tok)))
@@ -164,7 +165,7 @@
 (parameterise ((check-test-name 'complex-addresses))
 
   (define (doit string)
-    (let* ((IS		(lexer-make-IS (:string string) (:counters 'all)))
+    (let* ((IS		(lex.make-IS (lex.string: string) (lex.counters: 'all)))
 	   (lexer	(make-address-lexer IS))
 	   (parser	(make-address-parser))
 	   (handler	(lambda (msg tok) (list 'error-handler msg tok)))
@@ -230,8 +231,8 @@
     (error #f message token))
 
   (define (doit string)
-    (let* ((IS      (lexer-make-IS (:string string)
-				   (:counters 'all)))
+    (let* ((IS      (lex.make-IS (lex.string: string)
+				   (lex.counters: 'all)))
 	   (lexer   (make-address-lexer IS))
 	   (parser  (make-address-parser)))
       (parser lexer error-handler)))
@@ -309,7 +310,7 @@
     (error #f message token))
 
   (define (doit string)
-    (let* ((IS      (lexer-make-IS (:string string) (:counters 'all)))
+    (let* ((IS      (lex.make-IS (lex.string: string) (lex.counters: 'all)))
 	   (lexer   (make-address-lexer IS))
 	   (parser  (make-address-parser)))
       (parser lexer error-handler)))
@@ -357,7 +358,7 @@
     (error #f message token))
 
   (define (doit string)
-    (let* ((IS      (lexer-make-IS (:string string) (:counters 'all)))
+    (let* ((IS      (lex.make-IS (lex.string: string) (lex.counters: 'all)))
 	   (lexer   (make-address-lexer IS))
 	   (parser  (make-address-parser)))
       (parser lexer error-handler)))

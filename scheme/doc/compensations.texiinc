@@ -1,0 +1,226 @@
+@node compensations
+@chapter Compensation stacks
+
+
+@cindex @library{nausicaa language compensations}, library
+@cindex Library @library{nausicaa language compensations}
+
+
+The @library{nausicaa language compensations} library implements
+compensation stacks: syntactic sugar that allows us to write code to
+allocate a resource near the code that releases it in case of error.
+
+@quotation
+Compensation stacks are described in: @emph{Finding and Preventing
+Run-Time Error Handling Mistakes}, by Westley Weimer, George C. Necula,
+2004.  In Proceedings of the @acronym{ACM} Conference on
+Object--Oriented Programming, Systems, Languages, and Applications.
+@end quotation
+
+@menu
+* compensations usage::         Basic compensations usage.
+* compensations api::           Compensations @api{}.
+@end menu
+
+@c page
+@node compensations usage
+@section Basic compensations usage
+
+
+A @dfn{compensation} is a chunk of code that undoes a resource
+allocation performed in another chunk, example:
+
+@example
+(define port
+  (open-file-input-port "/tmp/proof.1"))
+@end example
+
+@noindent
+must be ''compensated'' by:
+
+@example
+(close-port port)
+@end example
+
+@noindent
+with the compensations stack such code can be written:
+
+@example
+(with-compensations
+  (letrec
+      ((port (compensate
+                 (open-file-input-port "/tmp/proof.1")
+               (with
+                 (close-port port)))))
+    (make-use-of port)))
+@end example
+
+Compensation forms are embedded in a closure and pushed on a stack, so
+that, in case of error, it is possible to evaluate them in
+allocation--reversed order.
+
+A form that makes use of a compensation stack looks like this:
+
+@example
+(with-compensations
+    (compensate
+        ALLOC-FORMS-1
+      (with FREE-FORMS-1))
+    (compensate
+        ALLOC-FORMS-2
+      (with FREE-FORMS-2))
+  BODY-FORMS)
+@end example
+
+@noindent
+both @func{with-compensations} and @func{compensate} are syntaxes.  If
+no error occurs the order of evaluation is:
+
+@example
+ALLOC-FORMS-1
+ALLOC-FORMS-2
+BODY-FORMS
+FREE-FORMS-2
+FREE-FORMS-1
+@end example
+
+@noindent
+if an error occurs in @code{BODY-FORMS}, the order of evaluation is:
+
+@example
+ALLOC-FORMS-1
+ALLOC-FORMS-2
+BODY-FORMS
+FREE-FORMS-2
+FREE-FORMS-1
+@end example
+
+@noindent
+if an error occurs in @code{ALLOC-FORMS-2}, the order of evaluation is:
+
+@example
+ALLOC-FORMS-1
+ALLOC-FORMS-2
+FREE-FORMS-1
+@end example
+
+@noindent
+if an error occurs in @code{ALLOC-FORMS-1}, the order of evaluation is:
+
+@example
+ALLOC-FORMS-1
+@end example
+
+@noindent
+if an error occurs in @code{FREE-FORMS-1}, the order of evaluation is:
+
+@example
+ALLOC-FORMS-1
+ALLOC-FORMS-2
+BODY-FORMS
+FREE-FORMS-2
+FREE-FORMS-1
+@end example
+
+@noindent
+if an error occurs in @code{FREE-FORMS-2}, the order of evaluation is:
+
+@example
+ALLOC-FORMS-1
+ALLOC-FORMS-2
+BODY-FORMS
+FREE-FORMS-2
+FREE-FORMS-1
+@end example
+
+So @func{with-compensations} tries to evaluate all the free forms,
+despite errors.  Of course if an error occurs in the middle of a set of
+forms:
+
+@example
+(first-form)   ;evaluated
+(raise 'here)
+(third-form)   ;not evaluated
+@end example
+
+@noindent
+the forms before the error are evaluated, while the forms after the
+error are not.
+
+A variant of @func{with-compensations} exists to evaluate the
+compensation forms only in case of error:
+
+@example
+(with-compensations/on-error
+    (compensate
+        ALLOC-FORMS-1
+      (with FREE-FORMS-1))
+    (compensate
+        ALLOC-FORMS-2
+      (with FREE-FORMS-2))
+  BODY-FORMS)
+@end example
+
+@noindent
+if no error occurs the order of evaluation is:
+
+@example
+ALLOC-FORMS-1
+ALLOC-FORMS-2
+BODY-FORMS
+@end example
+
+@noindent
+while if an error occurs the evaluation is equal to the cases of
+@func{with-compensations}.  The ``on error'' variant is useful in
+constructors and initialisation functions, where we want to run the
+compensations only if an error occurs; if no error is raised, we just
+want the constructor to return.
+
+@c page
+@node compensations api
+@section Compensations @api{}
+
+
+@deffn Syntax compensate @var{alloc-form0} @var{alloc-form} @dots{} (with @var{release-form0} @var{release-form} @dots{})
+@deffnx {Auxiliary Syntax} with
+Evaluate all the @var{alloc-form}s and, if no error occurs, push a
+closure holding the @var{release-form}s on the current compensations
+stack.  Return the return value of the last @var{alloc-form}.
+@end deffn
+
+
+@deffn Syntax with-compensations @var{form} @dots{}
+@deffnx Syntax with-compensations/on-error @var{form} @dots{}
+Initialise a new local compensations stack, then evaluate all the
+@var{form}s.  If no error occurs, return the return value of the last
+@var{form}.
+
+@func{with-compensations} always invokes @func{run-compensations} after
+the @var{form}s have been evaluated.
+
+@func{with-compensations/on-error} invokes @func{run-compensations}
+after the @var{form}s have been evaluated only if an exception was
+raised.
+
+If the @var{form}s raise an exception: the exception is intercepted, the
+compensations are run, the exception is raised again as
+@strong{non--continuable} exception.  It is @strong{not} possible to
+return to the @var{form}s with a continuable exception.
+@end deffn
+
+
+@defun run-compensation
+Evaluate all the compensation forms that are in the current stack, in
+last in/first out order.  The compensations are evaluated in the body of
+a @func{defer-exceptions}, so exceptions raised are handled as described
+in @ref{deferred exceptions}.
+@end defun
+
+
+@deffn Syntax push-compensation @var{release-form0} @var{release-form} ...
+Push a closure holding the @var{release-form}s on the current
+compensations stack.
+@end deffn
+
+@c end of file

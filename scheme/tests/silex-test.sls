@@ -7,7 +7,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2009, 2010, 2011 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -24,19 +24,20 @@
 ;;;
 
 
+#!r6rs
 (library (silex-test)
   (export test-calc)
   (import (except (nausicaa) =)
     (only (rnrs) =)
-    (silex lexer)
-    (checks))
+    (prefix (nausicaa silex lexer) lex.)
+    (nausicaa checks))
 
 
 (define (test-calc table)
 
   (define (tokenize string)
-    (let* ((IS		(lexer-make-IS (:string string) (:counters 'line)))
-	   (lexer	(lexer-make-lexer table IS)))
+    (let* ((IS		(lex.make-IS (lex.string: string) (lex.counters: 'line)))
+	   (lexer	(lex.make-lexer table IS)))
       (do ((token (lexer) (lexer))
 	   (out   '()))
 	  ((eof-object? token)

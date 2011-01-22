@@ -7,7 +7,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;Copyright (c) 2006 Alan Manuel K. Gloria <almkglor@gmail.com>
 ;;;
 ;;;Permission is hereby granted, free of charge, to any person obtaining

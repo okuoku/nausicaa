@@ -24,11 +24,12 @@
 ;;;
 
 
+#!r6rs
 (import (nausicaa)
   (rnrs eval)
-  (interps)
-  (only (sentinel) sentinel?)
-  (checks))
+  (nausicaa interps)
+  (only (nausicaa language sentinel) sentinel?)
+  (nausicaa checks))
 
 (check-set-mode! 'report-failed)
 (display "*** testing interpreters\n")
@@ -36,53 +37,74 @@
 
 (parametrise ((check-test-name	'basic))
 
+;;; expressions
+
   (check
-      (let (((o <interp>) (make <interp> '((rnrs)))))
+      (let (((o <interp>) (make* <interp> '((rnrs)))))
 	(o.eval '(+ 1 2)))
     => 3)
 
   (check
-      (let (((o <interp>) (make <interp> '((rnrs)))))
+      (let (((o <interp>) (make* <interp> '((rnrs)))))
 	(o.eval '(begin (+ 1 2))))
     => 3)
 
   (check
-      (let (((o <interp>) (make <interp> '((rnrs)))))
+      (let (((o <interp>) (make* <interp> '((rnrs)))))
 	(o.eval '(+ 1 2))
 	(o.eval '(+ 1 4)))
     => 5)
 
 ;;; --------------------------------------------------------------------
+;;; imports
 
   (check
-      (let (((o <interp>) (make* <interp>
-			    (:imports '((rnrs))))))
+      (let (((o <interp>) (make <interp>
+			    (imports: '((rnrs))))))
 	(o.eval '(+ 1 2)))
     => 3)
 
   (check
-      (let (((o <interp>) (make* <interp>
-			    (:imports '((rnrs))))))
+      (let (((o <interp>) (make <interp>
+			    (imports: '((rnrs))))))
 	(o.eval '(begin (+ 1 2))))
     => 3)
 
   (check
-      (let (((o <interp>) (make* <interp>
-			    (:imports '((rnrs))))))
+      (let (((o <interp>) (make <interp>
+			    (imports: '((rnrs))))))
 	(o.eval '(+ 1 2))
 	(o.eval '(+ 1 4)))
     => 5)
+
+;;; --------------------------------------------------------------------
+;;; returning multiple values
+
+  (check	;no values
+      (let (((o <interp>) (make <interp>
+			    (imports: '((rnrs))))))
+	(o.eval '(values))
+	#t)
+    => #t)
+
+  (check	;multiple values
+      (receive (a b c)
+	  (let (((o <interp>) (make <interp>
+				(imports: '((rnrs))))))
+	    (o.eval '(values 1 2 3)))
+	(list a b c))
+    => '(1 2 3))
 
   #t)
 
 
 (parametrise ((check-test-name	'variables))
 
-  (check
+  (check 'this
       ;;Set variables and query their values.
       ;;
-      (let* (((o <interp>) (make <interp> '((rnrs))))
-	     (return-value (o.eval '(let ()
+      (let* (((o <interp>) (make* <interp> '((rnrs))))
+	     (return-value (o.eval '(begin
 				      (define-global woppa)
 				      (define-global wippa 456)
 				      (set! woppa 123)
@@ -96,10 +118,10 @@
       ;;Set a variable  in one EVAL, retrieve its  value in a subsequent
       ;;EVAL.
       ;;
-      (let (((o <interp>) (make <interp> '((rnrs)))))
-	(o.eval '(let ()
+      (let (((o <interp>) (make* <interp> '((rnrs)))))
+	(o.eval '(begin
 		   (define-global woppa 123)
-		   #f))
+		   (values)))
 	(o.eval '(begin woppa)))
     => 123)
 
@@ -107,7 +129,7 @@
       ;;Predefine  a variable  and retrieve  its value  in  a subsequent
       ;;EVAL.
       ;;
-      (let (((o <interp>) (make <interp> '((rnrs)))))
+      (let (((o <interp>) (make* <interp> '((rnrs)))))
 	(o.variable-set! 'woppa 123)
 	(o.eval '(begin woppa)))
     => 123)
@@ -116,7 +138,7 @@
       ;;Predefine  a variable  and retrieve  its value  in  a subsequent
       ;;EVAL.
       ;;
-      (let (((o <interp>) (make <interp> '((rnrs)))))
+      (let (((o <interp>) (make* <interp> '((rnrs)))))
 	(o.variable-set! 'woppa 123)
 	(o.eval 'woppa))
     => 123)
@@ -124,8 +146,8 @@
   (check
       ;;Access defined but non-initialised variable.
       ;;
-      (let (((o <interp>) (make <interp> '((rnrs)))))
-	(o.eval '(let () (define-global ciao) #f))
+      (let (((o <interp>) (make* <interp> '((rnrs)))))
+	(o.eval '(begin (define-global ciao) #f))
 	(sentinel? (o.eval 'ciao)))
     => #t)
 
@@ -136,8 +158,8 @@
       ;;Set a variable  in one EVAL, retrieve its  value in a subsequent
       ;;EVAL.
       ;;
-      (let (((o <interp>) (make <interp> '((rnrs)))))
-	(o.eval '(let ()
+      (let (((o <interp>) (make* <interp> '((rnrs)))))
+	(o.eval '(begin
 		   (define-global (woppa a)
 		     (cons 123 a))
 		   #f))
@@ -148,7 +170,7 @@
       ;;Predefine  a variable  and retrieve  its value  in  a subsequent
       ;;EVAL.
       ;;
-      (let (((o <interp>) (make <interp> '((rnrs)))))
+      (let (((o <interp>) (make* <interp> '((rnrs)))))
 	(o.variable-set! 'woppa (lambda (a)
 				  (cons 123 a)))
 	(o.eval '(woppa #\b)))
@@ -158,6 +180,44 @@
 ;;; errors
 
 
+  #t)
+
+
+(parametrise ((check-test-name	'clones))
+
+  (let (((p <interp>) (make* <interp> '((rnrs)))))
+    (p.eval '(begin
+	       (define-global a 1)
+	       (values)))
+    (p.variable-set! 'b (vector 2 3))
+    (let (((q <interp>) (p.clone)))
+
+      (check
+	  (q.eval '(begin a))
+	=> 1)
+
+      (check
+	  (q.eval 'b)
+	=> '#(2 3))
+
+      ;; (check
+      ;; 	  (eq? (p.eval 'b) (q.eval 'b))
+      ;; 	=> #t)
+
+      (check
+	  (begin
+	    (p.eval '(set! a 11))
+	    (q.eval 'a))
+	=> 1)
+
+      ;; (check
+      ;; 	  (begin
+      ;; 	    (p.eval '(vector-set! b 0 22))
+      ;; 	    (q.eval 'b))
+      ;; 	=> '#(22 3))
+
+      #f)
+    #f)
   #t)
 
 

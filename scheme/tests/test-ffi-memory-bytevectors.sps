@@ -25,10 +25,9 @@
 
 
 (import (nausicaa)
-  (checks)
-  (ffi memory)
-  (ffi memory compensated)
-  (compensations))
+  (nausicaa checks)
+  (nausicaa ffi memory)
+  (nausicaa ffi memory compensated))
 
 (check-set-mode! 'report-failed)
 (display "*** testing memory bytevectors\n")

@@ -25,10 +25,11 @@
 ;;;
 
 
+#!r6rs
 (import (nausicaa)
-  (rename (only (classes) method)
+  (rename (only (nausicaa language classes) method)
 	  (method virtual-method))
-  (checks))
+  (nausicaa checks))
 
 (check-set-mode! 'report-failed)
 (display "*** proof of virtual methods\n")

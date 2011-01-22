@@ -1,0 +1,184 @@
+@node infix
+@chapter Infix notation utilities
+
+
+@cindex @library{nausicaa infix}, library
+@cindex Library @library{nausicaa infix}
+
+
+The @library{nausicaa infix} library provides utilities to convert infix
+notation expressions to prefix notation expressions; the library is
+built upon @library{nausicaa}, @library{nausicaa silex lexer} and
+@library{nausicaa lalr lr-driver}.  The same functionality is packed in
+the standalone library @library{nausicaa language infix} and available
+as macro which can convert infix to prefix notation at expand time.
+
+@menu
+* infix strings::               Converting strings.
+* infix sexps::                 Converting S--expressions.
+@end menu
+
+@c page
+@node infix strings
+@section Converting strings
+
+
+@defun infix-string->sexp @var{expr-string}
+Return the prefix S--expression corresponding to @var{expr-string}.  The
+S--expression can be used directly for some symbolic interpretation or
+evaluated with @func{eval}.  @nauref{stdlib eval, Evaluation}
+
+Examples:
+
+@example
+(infix-string->sexpr "1*2-3")   @result{} (- (* 1 2) 3)
+(infix-string->sexpr "1//3")    @result{} (div 1 3)
+(infix-string->sexpr "1%3")     @result{} (mod 1 3)
+(infix-string->sexpr "1^3")     @result{} (expt 1 3)
+
+(infix-string->sexpr "cos(sin(1.1)+4)")
+@result{} (cos (+ (sin 1.1) 4))
+
+(infix-string->sexpr "fun(1, 2, 3, 4)")
+@result{} (fun 1 2 3 4)
+
+(infix-string->sexpr "cos(a) * (tan(b) / c)")
+@result{} (* (cos a) (/ (tan b) c))
+
+(infix-string->sexp "a * (b / a ? b : c)")
+@result{} (* a (if (/ b a) b c))
+@end example
+@end defun
+
+Some interpretation rules:
+
+@itemize
+@item
+Blank characters are ignored.
+
+@item
+Symbols in @var{expr-string} must match the following @library{nausicaa
+silex} regular expression:
+
+@example
+initial         [a-zA-Z_]
+subsequent      @{initial@}|[0-9\.@@!$&:<=>\?~\-]
+symbol          @{initial@}@{subsequent@}*
+@end example
+
+@noindent
+@ref{silex syntax, Syntax of the specification}.
+
+@item
+The following infix operators are supported, in order of increasing
+precedence from left to right:
+
+@example
++ - * / // % ^ < > <= >= =
+@end example
+
+@noindent
+remember that the Scheme comparison operators are meant to return a
+boolean value, rather than a number object.  @samp{//} stands for
+@func{div}, @samp{%} stands for @func{mod}, @samp{^} stands for
+@func{expt}.
+
+@item
+The if--then--else statement involves the special symbols @code{?} and
+@code{:} which cannot be variable symbols; this statement has the least
+precedence.
+
+@item
+Every symbol which is not an operator is interpreted as variable
+reference or function call.  If the first non--blank character following
+the symbol is an open parenthesis, it is interpreted as function call.
+@end itemize
+
+@c page
+@node infix sexps
+@section Converting S--expressions
+
+
+@defun infix->prefix @var{sexp-atom} ...
+Convert the infix S--expression composed of the sequence of
+@var{sexp-atom} arguments into a prefix S--expression.  The
+S--expression can be used directly for some symbolic interpretation or
+evaluated with @func{eval}.  @nauref{stdlib eval, Evaluation}
+
+The simplest way to use the function is to apply it to a single
+S--expression:
+
+@example
+(infix->prefix '(1 + 2 + 3))    @result{} '(+ (+ 1 2) 3)
+(infix->prefix '(1 + 2 - 3))    @result{} '(- (+ 1 2) 3)
+(infix->prefix '(1 + (2 + 3)))  @result{} '(+ 1 (+ 2 3))
+(infix->prefix '(1 + (2 - 3)))  @result{} '(+ 1 (- 2 3))
+
+(infix->prefix '(cos (sin (1.1))))
+@result{} (cos (sin 1.1))
+
+(infix->prefix '(cos (sin (1.1) + 4)))
+@result{} (cos (+ (sin 1.1) 4))
+
+(infix->prefix '(fun (1.1 2)))
+@result{} (fun 1.1 2)
+
+(infix->prefix '(fun (1 2 3 4)))
+@result{} (fun 1 2 3 4)
+
+(infix->prefix '(a * (b / a ? b : c)))
+@result{} (* a (if (/ b a) b c))
+@end example
+
+@noindent
+while applying it to multiple arguments looks like:
+
+@example
+(infix->prefix 1 '+ 2 '+ 3)     @result{} '(+ (+ 1 2) 3)
+@end example
+
+Some interpretation rules:
+
+@itemize
+@item
+The following infix operators are supported, in order of increasing
+precedence from left to right:
+
+@example
++ - * / // % ^ < > <= >= =
+@end example
+
+@noindent
+remember that the Scheme comparison operators are meant to return a
+boolean value, rather than a number object.  @samp{//} stands for
+@func{div}, @samp{%} stands for @func{mod}, @samp{^} stands for
+@func{expt}.
+
+@item
+The if--then--else statement involves the special symbols @code{?} and
+@code{:} which cannot be variable symbols; this statement has the least
+precedence.
+
+@item
+The elements of the S--expression can be numbers, symbols, procedures,
+all ``the other'' values.
+
+@item
+Symbols which are not operators are interpreted as variable references
+or function calls.  If a symbol is followed by a list, it is a function
+call.
+
+@item
+Function calls with one or more arguments require the arguments to be
+grouped in a list.  There is no special separator in the list of
+arguments.
+
+@item
+Procedures are treated like non--operator symbols.
+
+@item
+Numbers and all ``the other'' values are just put there.
+@end itemize
+@end defun
+
+@c end of file

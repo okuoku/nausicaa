@@ -1,0 +1,232 @@
+@node queues
+@chapter Simple queue
+
+
+@cindex @library{nausicaa queues}, library
+@cindex Library @library{nausicaa queues}
+
+
+The functions in this section are exported by the @library{nausicaa
+queues} library; the library implements queues holding arbitrary scheme
+objects and designed for efficient first--in/first--out operations.  The
+@library{nausicaa queues} library is built on top of the
+@library{nausicaa language classes} library.
+
+@menu
+* queues types::                Type definitions and constructors.
+* queues pred::                 Predicates and inspection.
+* queues ops::                  Basic operations.
+* queues list::                 List operations.
+* queues conv::                 Conversion.
+@end menu
+
+@c page
+@node queues types
+@section Type definitions and constructors
+
+
+@deftp Class @aclass{queue}
+Class type name of queue objects.
+@end deftp
+
+
+@defcv {Mutable Field} @aclass{queue} first-pair
+The first pair of the internal list of elements.
+@end defcv
+
+
+@defcv {Mutable Field} @aclass{queue} last-pair
+The last pair of the internal list of elements.
+@end defcv
+
+
+@defcv {Immutable Field} @aclass{queue} empty?
+True if the queue is empty.
+@end defcv
+
+
+@defcv {Immutable Field} @aclass{queue} length
+It holds the number of elements in the queue.
+@end defcv
+
+
+@defun make-<queue> @var{arg} ...
+Build and return a new @class{queue} record.  When called with no
+arguments, return an empty queue; when applied to arguments, return a
+queue holding those arguments in the given order.
+@end defun
+
+
+@defun <queue>? @var{obj}
+Return @true{} if @var{obj} is an object of type @class{queue}.
+@end defun
+
+
+@defun <queue>-first-pair @var{queue}
+@defunx <queue>-first-pair-set! @var{queue} @var{obj}
+@defunx <queue>-last-pair @var{queue}
+@defunx <queue>-last-pair-set! @var{queue} @var{obj}
+Accessors and mutators for the fields of @class{queue} records.
+@end defun
+
+@c page
+@node queues pred
+@section Predicates and inspection
+
+
+@defun queue-empty? @var{que}
+Return @true{} if the queue is empty.
+@end defun
+
+
+@defun queue-length @var{que}
+Return the number of elements in the queue.
+@end defun
+
+
+@defun queue-front @var{que}
+Return the first element in the queue, that is the value returned by a
+dequeue operation.  The queue is left unchanged.  Raise an exception if
+the queue is empty.
+@end defun
+
+
+@defmethod @aclass{queue} front
+Return first element in the queue: the next element returned by a
+dequeue operation.  The queue is left unchanged.  Raise an exception if
+the queue is empty.
+@end defmethod
+
+
+@defun queue-rear @var{que}
+Return the last element in the queue, that is the last enqueued valued.
+The queue is left unchanged.  Raise an exception if the queue is empty.
+@end defun
+
+
+@defmethod @aclass{queue} rear
+The last element in the queue.  The queue is left unchanged.  Raise an
+exception if the queue is empty.
+@end defmethod
+
+@c page
+@node queues ops
+@section Basic operations
+
+
+@defun queue-enqueue! @var{que} @var{obj}
+Enqueue @var{obj} in the rear of the queue.
+@end defun
+
+
+@defmethod @aclass{queue} enqueue! @var{obj}
+Enqueue @var{obj} in the rear of the queue.
+@end defmethod
+
+
+@defun queue-push! @var{obj} @var{que}
+Push @var{obj} in the front of the queue.
+@end defun
+
+
+@defmethod @aclass{queue} push! @var{obj}
+Push @var{obj} in the front of the queue.
+@end defmethod
+
+
+@defun queue-dequeue! @var{que}
+@defunx queue-pop! @var{que}
+Pop and return a value from the front of the queue.
+@end defun
+
+
+@defmethod @aclass{queue} dequeue!
+@defmethodx @aclass{queue} pop!
+Pop and return a value from the front of the queue.
+@end defmethod
+
+
+@defun queue-purge! @var{que}
+Discard all the elements from the queue.
+@end defun
+
+
+@defmethod @aclass{queue} purge!
+Discard all the elements from the queue.
+@end defmethod
+
+@c page
+@node queues list
+@section List operations
+
+
+@defun queue-find @var{proc} @var{que}
+@defunx queue-for-all @var{proc} @var{que}
+@defunx queue-exists @var{proc} @var{que}
+Apply @func{find} or @func{for-all} or @func{exists} to the internal
+list of the queue, return the result.
+@end defun
+
+
+@defmethod @aclass{queue} find @var{proc}
+@defmethodx @aclass{queue} for-all @var{proc}
+@defmethodx @aclass{queue} exists @var{proc} @var{que}
+Apply @func{find} or @func{for-all} or @func{exists} to the internal
+list of the queue, return the result.
+@end defmethod
+
+
+@defun queue-remp! @var{proc} @var{que}
+@defunx queue-remove! @var{obj} @var{que}
+Apply @func{remp} or @func{remove} or @func{remv} or @func{remq} to the
+internal list of the queue, removing objects from the queue.
+@end defun
+
+
+@defmethod @aclass{queue} remv! @var{obj}
+@defmethodx @aclass{queue} remq! @var{obj}
+Apply @func{remp} or @func{remove} or @func{remv} or @func{remq} to the
+internal list of the queue, removing objects from the queue.
+@end defmethod
+
+
+@defun queue-memp @var{proc} @var{que}
+@defunx queue-member @var{obj} @var{que}
+Apply @func{memp} or @func{member} or @func{memv} or @func{memq} to the
+internal list of the queue, return the result.
+@end defun
+
+
+@defmethod @aclass{queue} memv @var{obj}
+@defmethodx @aclass{queue} memq @var{obj}
+Apply @func{memp} or @func{member} or @func{memv} or @func{memq} to the
+internal list of the queue, return the result.
+@end defmethod
+
+@c page
+@node queues conv
+@section Conversion
+
+
+@defun queue->list @var{que}
+@defunx queue->vector @var{que}
+Return a list or vector holding the elements in the queue.  In the list
+case, return a copy of the spine of the list in the queue.
+@end defun
+
+
+@defmethod @aclass{queue} list
+@defmethodx @aclass{queue} vector
+Return a list or vector holding the elements in the queue.  In the list
+case, return a copy of the spine of the list in the queue.
+@end defmethod
+
+
+@defun list->queue @var{ell}
+@defunx vector->queue @var{vec}
+Build and return a new queue holding the elements from the list or
+vector.  In the list case, the queue holds a copy of the spine of the
+list argument.
+@end defun
+
+@c end of file

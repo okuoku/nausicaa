@@ -1,0 +1,190 @@
+@node markups
+@chapter Processing @axml{} documents
+
+
+The libraries under the @library{nausicaa xml markups ---} hierarchy
+provide tools to manipulate @axml{} documents compliant with the
+``Extensible Markup Language (@axml{}) 1.0 (Fifth Edition)'',
+@acronym{W3C} Recommendation 26 November 2008@footnote{Find the document
+and its errata at:
+
+@center @url{http://www.w3.org/TR/REC-xml/}
+@center @url{http://www.w3.org/XML/xml-V10-5e-errata}
+}.  It is suggested to import the libraries in this hiearchy with
+@code{xml.} as prefix:
+
+@example
+(import ---
+  (prefix (nausicaa xml markups lexer)  xml.)
+  (prefix (nausicaa xml markups parser) xml.))
+@end example
+
+@menu
+* markups lexer::               Tokenising @axml{} documents.
+* markups parser::              Parsing a stream of @axml{} tokens.
+* markups fixed-strings::       A collection of common strings.
+@end menu
+
+@c page
+@node markups lexer
+@section Tokenising @axml{} documents
+
+
+@cindex @library{nausicaa xml markups lexer}, library
+@cindex Library @library{nausicaa xml markups lexer}
+
+
+The library @library{nausicaa markups lexer} implements a lexer compliant
+with the @axml{} recommendation version 1.0.  The lexer is built on top
+of the @library{nausicaa silex} parser generator (@pxref{silex}).
+
+@menu
+* markups lexer full::             Full lexer table.
+* markups lexer params::           Full lexer--tabl semantic--action
+                                parameters.
+* markups lexer makers::           Full lexer token makers.
+* markups lexer strings::          Reading strings.
+* markups lexer custom::           Customising the lexer.
+@end menu
+
+@c page
+@node markups lexer full
+@subsection Full lexer table
+
+@c page
+@node markups lexer params
+@subsection Full lexer--tabl semantic--action parameters
+
+@c page
+@node markups lexer makers
+@subsection Full lexer token makers
+
+@c page
+@node markups lexer strings
+@subsection Reading strings
+
+@c page
+@node markups lexer custom
+@subsection Customising the lexer
+
+
+Setting the parameters exported by @library{nausicaa xml markups lexer} is
+the easier way to obtain custom behaviour; if this is not enough, we
+have to modify the lexer table.
+
+All the source files composing the @axml{} lexer are in the directory
+@file{src/libraries/nausicaa/xml/markups} of @value{PACKAGE} source
+tree.  The files with extension @code{.l} are input tables for SILex,
+the script @file{make-tables.sps} is used to rebuild the tables.
+
+To run the script we must first configure and build the @value{PACKAGE}
+package, then change the current directory to
+@file{src/libraries/nausicaa/xml/markups} and run the script with an
+@rnrs{6} implementation; take care of setting the environment in such a
+way that the libraries under @file{src/libraries} can be found.
+
+@c page
+@node markups parser
+@section Parsing a stream of @axml{} tokens
+
+
+@cindex @library{nausicaa xml markups parser}, library
+@cindex Library @library{nausicaa xml markups parser}
+
+
+The library @library{nausicaa xml markups parser} implements a lexer
+compliant with the @axml{} recommendation version 1.0.  The lexer is
+built on top of the @library{nausicaa lalr} parser generator
+(@pxref{lalr}) and it is meant to be used with the lexer @api{} exported
+by the @library{nausicaa xml markups lexer} library (@pxref{markups
+lexer}).
+
+@menu
+* markups parser parsing::         Parsing source code.
+* markups parser params::          Parser semantic actions parameters.
+* markups parser makers::          Parser datum makers.
+* markups parser custom::          Customising the parser.
+@end menu
+
+@c page
+@node markups parser parsing
+@subsection Parsing source code
+
+@c page
+@node markups parser params
+@subsection Parser semantic actions parameters
+
+@c page
+@node markups parser makers
+@subsection Parser datum makers
+
+@c page
+@node markups parser custom
+@subsection Customising the parser
+
+
+Setting the parameters exported by @library{nausicaa xml markups parser}
+is the easier way to obtain custom behaviour; if this is not enough, we
+have to modify the parser table.
+
+All the source files composing the @axml{} parser are in the directory
+@file{src/libraries/nausicaa/xml/markups} of @value{PACKAGE} source
+tree.  The script @file{make-tables.sps} is used to rebuild the tables;
+the parser table is defined in the script itself.
+
+To run the script we must first configure and build the @value{PACKAGE}
+package, then change the current directory to
+@file{src/libraries/nausicaa/xml/markups} and run the script with an
+@rnrs{6} implementation; take care of setting the environment in such a
+way that the libraries under @file{src/libraries} can be found.
+
+@c page
+@node markups fixed-strings
+@section A collection of common strings
+
+
+@cindex @library{nausicaa xml markups fixed-strings}, library
+@cindex Library @library{nausicaa xml markups fixed-strings}
+
+
+The library @library{nausicaa xml markups fixed-strings} exports
+bindings to common strings which are meant to be comparable using
+@func{eq?}.
+
+@c ------------------------------------------------------------
+
+@subsubheading @axml{} tag strings
+
+
+@defvr Constant tag-open
+Bound to the string @samp{"<"}.
+@end defvr
+
+
+@defvr Constant tag-close
+Bound to the string @samp{">"}.
+@end defvr
+
+
+@defvr Constant processor-instructions-open
+Bound to the string @samp{"<?"}.
+@end defvr
+
+
+@defvr Constant processor-instructions-close
+Bound to the string @samp{"?>"}.
+@end defvr
+
+
+@defvr Constant comment-open
+Bound to the string @samp{"<!--"}.
+@end defvr
+
+
+@defvr Constant comment-close
+Bound to the string @samp{"-->"}.
+@end defvr
+
+
+
+@c end of file

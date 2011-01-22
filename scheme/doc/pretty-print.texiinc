@@ -1,0 +1,19 @@
+@node pretty-print
+@chapter Pretty printing
+
+
+@cindex @library{nausicaa language pretty-print}, library
+@cindex Library @library{nausicaa language pretty-print}
+
+
+The following bindings are exported by the @library{nausicaa language
+pretty-print} library.
+
+
+@defun pretty-print @var{obj}
+@defunx pretty-print @var{obj} @var{port}
+Print a human readable representation of @var{obj} to @var{port} or the
+return value of @func{current-output-port}.
+@end defun
+
+@c end of file

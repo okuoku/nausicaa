@@ -1,0 +1,74 @@
+@node cleanup-handlers
+@chapter Cleaning up
+
+
+@cindex @library{nausicaa cleanup-handlers}, library
+@cindex Library @library{nausicaa cleanup-handlers}
+
+
+On Scheme implementations that provide guardians there is the need to
+invoke the guardian function, every now and then, to release guarded
+resources that were garbage collected.  For example: if the program
+makes use of an event loop, we can enqueue a periodic, batch, event that
+invokes a cleanup function.
+
+We may have code like this:
+
+@example
+(define block-guardian (make-guardian))
+
+(define (block-cleanup)
+  (do ((p (block-guardian) (block-guardian)))
+      ((not p))
+    (primitive-free p)))
+@end example
+
+@noindent
+and allocate memory with:
+
+@example
+(define (malloc/guarded size)
+  (let ((p (malloc size)))
+    (block-guardian p)
+    p))
+@end example
+
+@noindent
+whenever the values returned by @func{malloc/guarded} are garbage
+collected: they will be made available as return values from the
+guardian function, so we can invoke @func{block-cleanup} to free them.
+
+Of course, with code like this, we need a guardian for each type of
+resource, or, to be more precise, a guardian for each destructor
+(@func{primitive-free} in the example).
+
+To make it simpler to invoke all the cleanup functions, the library
+@library{nausicaa cleanup-handlers} provides an interface to register
+them and invoke them in sequence.
+
+
+@defun register-cleanup-function @var{thunk}
+Register @var{thunk} in the internal list of cleanup functions.
+@end defun
+
+
+@defun forget-cleanup-function @var{thunk}
+Remove @var{thunk} from the internal list of cleanup functions.
+@end defun
+
+
+@defun cleanup
+Invoke all the functions registered in the internal list of cleanup
+functions.  Every function is invoked with no arguments.
+@end defun
+
+
+@quotation
+@strong{NOTE} This library implements no event loop.  The only way to
+invoke a cleanup thunk only once is to register it, invoke
+@func{cleanup}, then remove it.  This is usually not what we want to do
+to handle such a simple case: we should use a proper event loop,
+instead.
+@end quotation
+
+@c end of file

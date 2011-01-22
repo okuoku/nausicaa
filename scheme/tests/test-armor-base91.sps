@@ -26,10 +26,9 @@
 
 
 (import (nausicaa)
-  (armor base91)
-  (armor conditions)
-  (checks)
-  (parameters))
+  (nausicaa armor base91)
+  (nausicaa armor conditions)
+  (nausicaa checks))
 
 (check-set-mode! 'report-failed)
 (display "*** testing ASCII armor base91\n")

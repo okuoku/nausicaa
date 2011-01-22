@@ -1,0 +1,61 @@
+@node configuration
+@chapter Overall configuration
+
+
+@cindex @library{nausicaa configuration}, library
+@cindex Library @library{nausicaa configuration}
+@cindex @env{NAUSICAA_ENABLE_ASSERTIONS}, environment variable
+@cindex @env{NAUSICAA_ENABLE_ARGUMENTS_VALIDATION}, environment variable
+@cindex Environment variable @env{NAUSICAA_ENABLE_ASSERTIONS}
+@cindex Environment variable @env{NAUSICAA_ENABLE_ARGUMENTS_VALIDATION}
+
+
+The @library{nausicaa configuration} library defines a set of parameters
+(in the sense defined by the @library{nausicaa language parameters}
+library) which can be used to configure the behaviour of Nausicaa.  It
+is suggested to import the library with the @code{config.} prefix, as
+in:
+
+@example
+(import (nausicaa)
+  (prefix (nausicaa configuration) config.))
+@end example
+
+
+@deffn Parameter enable-assertions?
+A boolean value, true if the code should include assertions to validate
+values.  If set to false: the assertions are excluded at code expansion
+time.
+
+The default value is true.  When the library is instantiated, the system
+environment variable @env{NAUSICAA_ENABLE_ASSERTIONS} is accessed and
+used to configure this parameter; recognised values are: @code{true},
+@code{false}, @code{1}, @code{0}.
+@end deffn
+
+
+@deffn Parameter enable-contracts?
+A boolean value, true if the code should include validation of contracts
+as defined by the @library{nausicaa contracts} library.  If set to
+false: the contracts are excluded at code expansion time.
+
+The default value is true.  When the library is instantiated, the system
+environment variable @env{NAUSICAA_ENABLE_CONTRACTS} is accessed and
+used to configure this parameter; recognised values are: @code{true},
+@code{false}, @code{1}, @code{0}.
+@end deffn
+
+
+@deffn Parameter enable-function-arguments-validation?
+A boolean value, true if the functions should include assertions to
+validate their arguments.  If set to false: the assertions are excluded
+at code expansion time.
+
+The default value is true.  When the library is instantiated, the system
+environment variable @env{NAUSICAA_ENABLE_ARGUMENTS_VALIDATION} is
+accessed and used to configure this parameter; recognised values are:
+@code{true}, @code{false}, @code{1}, @code{0}.
+@end deffn
+
+
+@c end of file

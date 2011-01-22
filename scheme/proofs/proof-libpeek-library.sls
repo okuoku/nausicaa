@@ -25,6 +25,7 @@
 ;;;
 
 
+#!r6rs
 (library (proof-libpeek-library)
   (export
     <type>	<type>-with-record-fields-of

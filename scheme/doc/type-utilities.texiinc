@@ -1,0 +1,64 @@
+@node type utils
+@chapter Type utilities
+
+
+@cindex @library{nausicaa type-utilities}, library
+@cindex Library @library{nausicaa type-utilities}
+
+
+The following bindings are exported by the @library{nausicaa
+type-utilities} library.
+
+
+@defmac define-type-assertion @var{name} @var{clause} ...
+Expand to the definition of a macro, or function, to be used to validate
+a value according to an existing predicate; the macro or function raises
+an assertion violation if the value does not satisfy the predicate, or
+returns true if it does.
+
+The generated output is equivalent to:
+
+@example
+(define the-message
+  (string-append "expected " @var{type-description}
+                 " as " @var{value-description}))
+
+(define-inline (FUNCNAME who obj)
+  (if (@var{predicate} obj)
+      #t
+    (assertion-violation who the-message obj)))
+@end example
+
+@noindent
+where @code{FUNCNAME} is @var{name} with @code{assert-} prepended.
+@end defmac
+
+
+@deffn {Auxiliary Syntax} predicate @var{predicate}
+Mandatory auxiliary syntax for @func{define-type-assertion}.  Select the
+predicate for the generated assertion.
+@end deffn
+
+
+@deffn {Auxiliary Syntax} type-description @var{description}
+Mandatory auxiliary syntax for @func{define-type-assertion}.
+@var{description} must evaluate to a string describing the expected
+type.  Examples: ``exact integer'', ``bytevector''.
+@end deffn
+
+
+@deffn {Auxiliary Syntax} value-description @var{description}
+Mandatory auxiliary syntax for @func{define-type-assertion}.
+@var{description} must evaluate to a string describing the semantic
+meaning of the expected value.  Examples: ``number of seconds'', ``input
+buffer''.
+@end deffn
+
+
+@deffn {Auxiliary Syntax} make-function @var{boolean}
+Optional auxiliary syntax for @func{define-type-assertion}.  Select the
+type of generated output: macro or function.  If @var{boolean} is true a
+function is generated.  By default a macro is generated.
+@end deffn
+
+@c end of file

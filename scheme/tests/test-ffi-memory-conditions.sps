@@ -24,9 +24,10 @@
 ;;;
 
 
+#!r6rs
 (import (nausicaa)
-  (checks)
-  (ffi memory))
+  (nausicaa checks)
+  (nausicaa ffi memory))
 
 (check-set-mode! 'report-failed)
 (display "*** testing memory conditions\n")

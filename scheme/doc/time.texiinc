@@ -1,0 +1,2529 @@
+@node time
+@chapter Time data types and procedures
+
+
+@cindex @library{nausicaa times-and-dates}, library
+@cindex Library @library{nausicaa times-and-dates}
+
+
+The @library{nausicaa times-and-dates} library implements procedures and
+data types to manipulate timestamps and dates; the library is built on
+top of the facilities of the @library{nausicaa language classes}
+library.  @nauref{classes, Classes library}.
+
+This chapter contains chunks of slightly edited text from Wikipedia
+pages on time scales and related subjects.  The @library{nausicaa
+times-and-dates} library is built upon such Wikipedia informations and
+informations extracted from the
+@uref{http://@/www.tondering.dk/@/claus/@/calendar.html, Calendar
+@acronym{FAQ}} maintained by Claus Tondering.
+
+@menu
+* time intro::                  Introduction to time scales.
+* time overview::               Overview of the library.
+* time system::                 Interface to the system.
+* time secs::                   Seconds and nanoseconds objects.
+* time duration::               Time duration objects.
+* time point::                  Points in time.
+* time date::                   Date object.
+* time utils::                  Miscellaneous utilities.
+* time current::                Current time and clock resolution.
+* time string::                 Date to string/string to date
+                                converters.
+@end menu
+
+@c page
+@node time intro
+@section Introduction to time scales
+
+
+@cindex Terrestrial time
+
+
+When using the @library{nausicaa times-and-dates} library we aim at
+dealing with @uref{http://@/en.wikipedia.org/@/wiki/@/Terrestrial_Time,
+@dfn{Terrestrial Time}} in which: seconds are the ones of the
+International System of Units (@acronym{SI}), defined using caesium
+atomic clocks; @math{60} seconds make one minute; @math{60} minutes make
+one hour; @math{24} hours make one day; @math{365} days make one year.
+Terrestrial Time is a theoretical ideal, which real clocks can only
+approximate.
+
+@menu
+* time intro conventions::      Miscellaneous conventions.
+* time intro tai::              International Atomic Time (@tai{}).
+* time intro utc::              Coordinated Universal Time (@utc{}).
+* time intro gmt::              Greenwich Mean Time (@gmt{}).
+* time intro zone::             Time zones and daylight saving time.
+* time intro dst::              Daylight Saving Time (@dst{}).
+* time intro unix::             Unix Time and Unix Epoch.
+* time intro gregorian::        Gregorian calendar.
+* time intro week::             Week days.
+* time intro julian::           Julian Date (@acronym{JD}) and Julian Day (@acronym{JDN}).
+@end menu
+
+@c page
+@node time intro conventions
+@subsection Miscellaneous conventions
+
+
+In this section we anticipate some concepts which are explained in
+detail in later sections; this anticipation should not hinder the
+comprehension.
+
+When expressing a timestamp in this documentation, we preferably use
+strings of the following format, which is compliant with @iso{} 8601:
+
+@example
+@cmeta{YYYY}-@cmeta{MM}-@cmeta{DD}T@cmeta{hh}:@cmeta{mm}:@cmeta{ss}Z
+@end example
+
+@noindent
+where @meta{YYYY} is the year number, @meta{MM} is the month index in
+the range @math{[1, 12]}, @meta{DD} is the day index in the range
+@math{[1, 31]}, @meta{hh} is the count of hours in the range @math{[0,
+23]}, @meta{mm} is the count of minutes in the range @math{[0, 59]},
+@meta{ss} is the count of seconds in the range @math{[0, 60]} (allowing
+leap seconds); the literal @code{T} separates the date from the hour and
+the literal @code{Z} specifies the mean time of Greenwich
+(@acronym{UK}).
+
+The beginning of the first second in a day is @samp{00:00:00} and we
+call it @dfn{midnight}; the beginning of the last second in a day is
+@samp{23:59:59} when no leap second is added and @samp{23:59:60} when a
+leap second is added (@pxref{time intro utc} for details).
+
+@c page
+@node time intro tai
+@subsection International Atomic Time (@tai{})
+
+
+@cindex International Atomic Time, @tai{}
+@cindex @tai{}, International Atomic Time
+
+
+A realisation of Terrestrial Time is the
+@uref{http://@/en.wikipedia.org/@/wiki/@/International_Atomic_Time,
+@dfn{International Atomic Time}}, which is based on the notional passage
+of proper time on Earth's surface.
+
+Time coordinates on the @tai{} scale are expressed using the
+@acronym{SI} seconds and the time coordinates defined by the proleptic
+Gregorian calendar.  @ref{time intro gregorian, Gregorian calendar}.
+
+The timestamp @samp{2010-08-05T11:22:33Z} is valid on the @tai{} scale
+with the usual count of years, month and days on the Gregorian calendar.
+The count of seconds is always in the range @math{[0, 59]} because the
+@tai{} scale has no leap seconds.
+
+@c page
+@node time intro utc
+@subsection Coordinated Universal Time (@utc{})
+
+
+@cindex Coordinated Universal Time, @utc{}
+@cindex @utc{}, Coordinated Universal Time
+@cindex Leap seconds
+@cindex @library{nausicaa times-and-dates leap-second-table}, library
+@cindex Library @library{nausicaa times-and-dates leap-second-table}
+
+
+Another realisation of Terrestrial Time is the
+@uref{http://@/en.wikipedia.org/@/wiki/@/Coordinated_Universal_Time,
+@dfn{Coordinated Universal Time}}, a time standard based on @tai{} with
+@uref{http://@/en.wikipedia.org/@/wiki/@/Leap_second, leap seconds}
+added at irregular intervals to compensate for the Earth's slowing
+rotation.  Leap seconds are added at the end of some days to allow
+@utc{} to closely track the mean solar time at the Royal Observatory,
+Greenwich (UK); when a leap second is added, the last minute of the day
+has @math{61} seconds.
+
+As a compromise between the history of time scale definitions and the
+need to define a time scale for every point in time, the best assumption
+we can do is that @tai{} and @utc{} where synchronised before the first
+leap second was added; when the first leap second was added (on June 30
+1972), @tai{} and @utc{} went out of synchronisation as follows:
+
+@example
+                  TAI midnight
+                        |
+          June 30 1972  |  July 1 1972
+                        v
+       23:59:58 23:59:59 00:00:00 00:00:01 00:00:02
+TAI --|--------|--------|--------|--------|--------|--
+
+       23:59:58 23:59:59 23:59:60 00:00:00 00:00:01
+UTC --|--------|--------|++++++++|--------|--------|--
+                          leap   ^
+                          second |
+                                 |
+                   June 30 1972  |  July 1 1972
+                                 |
+                           UTC midnight
+@end example
+
+@noindent
+when the second leap second was added (on December 31 1972), @tai{} and
+@utc{} went further out of synchronisation as follows:
+
+@example
+                  TAI midnight
+                        |
+      December 31 1972  |  January 1 1973
+                        v
+       23:59:58 23:59:59 00:00:00 00:00:01 00:00:02
+TAI --|--------|--------|--------|--------|--------|--
+
+       23:59:57 23:59:58 23:59:59 23:59:60 00:00:00
+UTC --|--------|--------|--------|++++++++|--------|--
+                                   leap   ^
+                                   second |
+                                          |
+                        December 31 1972  |  January 1 1973
+                                          |
+                                    UTC midnight
+@end example
+
+@noindent
+whenever a leap second is added on the @utc{} scale, the @utc{} date
+falls back one second with respect to @tai{}.  On August 3 2010 the
+@tai{} scale was 34 seconds forwards of the @utc{} scale.
+
+The timestamp @samp{2010-08-05T11:22:33Z} is valid on the @utc{} scale
+with the usual count of years, month and days on the Gregorian calendar.
+The count of seconds is usually in the range @math{[0, 59]} but it is in
+the range @math{[0, 60]} on the specific days in which a leap second is
+added.  The first leap second was added on June 30 1972, so the
+timestamp @samp{1972-06-30T23:59:60Z} is valid on the @utc{} scale but
+invalid on the @tai{} scale.
+
+All the timestamps with seconds count in the range @math{[0, 59]} are
+valid on both the @tai{} scale and the @utc{} scale; the difference
+between the two scales shows only on the specific timestamps
+representing the leap seconds and when converting a timestamp from the
+Gregorian calendar to a count of seconds since some conventional origin.
+
+It is not possible to compute the exact time interval elapsed between
+two @utc{} timestamps without consulting a table that describes how many
+leap seconds occurred during that interval.
+
+@float
+@multitable {leap second timestamp} {@utc{} seconds} {@tai{} - @utc{}}
+@headitem leap second timestamp @tab @utc{} seconds @tab @tai{} - @utc{}
+@item 1972-01-01T00:00:00Z @tab   63072000 @tab 10
+@item 1972-06-30T23:59:60Z @tab   78796800 @tab 11
+@item 1972-12-31T23:59:60Z @tab   94694400 @tab 12
+@item 1973-12-31T23:59:60Z @tab  126230400 @tab 13
+@item 1974-12-31T23:59:60Z @tab  157766400 @tab 14
+@item 1975-12-31T23:59:60Z @tab  189302400 @tab 15
+@item 1976-12-31T23:59:60Z @tab  220924800 @tab 16
+@item 1977-12-31T23:59:60Z @tab  252460800 @tab 17
+@item 1978-12-31T23:59:60Z @tab  283996800 @tab 18
+@item 1979-12-31T23:59:60Z @tab  315532800 @tab 19
+@item 1981-06-30T23:59:60Z @tab  362793600 @tab 20
+@item 1982-06-30T23:59:60Z @tab  394329600 @tab 21
+@item 1983-06-30T23:59:60Z @tab  425865600 @tab 22
+@item 1985-06-30T23:59:60Z @tab  489024000 @tab 23
+@item 1987-12-31T23:59:60Z @tab  567993600 @tab 24
+@item 1989-12-31T23:59:60Z @tab  631152000 @tab 25
+@item 1990-12-31T23:59:60Z @tab  662688000 @tab 26
+@item 1992-06-30T23:59:60Z @tab  709948800 @tab 27
+@item 1993-06-30T23:59:60Z @tab  741484800 @tab 28
+@item 1994-06-30T23:59:60Z @tab  773020800 @tab 29
+@item 1995-12-31T23:59:60Z @tab  820454400 @tab 30
+@item 1997-06-30T23:59:60Z @tab  867715200 @tab 31
+@item 1998-12-31T23:59:60Z @tab  915148800 @tab 32
+@item 2005-12-31T23:59:60Z @tab 1136073600 @tab 33
+@item 2008-12-31T23:59:60Z @tab 1230768000 @tab 34
+@end multitable
+@caption{Table: the first column is the timestamp of the leap second;
+the second column is the count of seconds, on the @utc{} scale since
+@samp{1970-01-01T00:00:00Z}, of the second right after the leap second;
+the third column is the difference between the @tai{} and @utc{} scales
+at the second right after the leap second.  By definition on
+@samp{1972-01-01T00:00:00Z} the difference between @tai{} and @utc{} was
+@math{10} seconds.}
+@end float
+
+Given the table of @utc{} seconds counts since
+@samp{1970-01-01T00:00:00Z}, we can convert a @utc{} seconds count to a
+@tai{} seconds count as follows:
+
+@example
+if utc-seconds < 63072000
+then tai-seconds = utc-seconds
+
+else if 63072000 <= utc-seconds < 78796800
+then tai-seconds = utc-seconds + 10
+
+else if 78796800 <= utc-seconds < 94694400
+then tai-seconds = utc-seconds + 11
+
+else ...
+@end example
+
+A leap seconds table is included in the library @library{nausicaa
+times-and-dates leap-second-table}; it can be automatically generated
+with the script in the Nausicaa/Scheme sources
+@file{src/script/read-leap-seconds-table.sps} applied to the data file
+@file{src/data/tai-utc.dat}; the data file is from:
+
+@center @url{ftp://maia.usno.navy.mil/ser7/tai-utc.dat}
+
+@c page
+@node time intro gmt
+@subsection Greenwich Mean Time (@gmt{})
+
+
+@cindex Greenwich Mean Time, @gmt{}
+@cindex @gmt{}, Greenwich Mean Time
+
+
+The @dfn{Greenwich Mean Time} is the mean solar time at the Royal
+Observatory, Greenwich (UK); in casual use, when fractions of a second
+are not important, @gmt{} can be considered equivalent to @utc{}; saying
+@gmt{} is generally avoided in technical contexts, where the unambiguous
+@utc{} is preferred.
+
+@c page
+@node time intro zone
+@subsection Time zones and local time
+
+
+@cindex Time zone
+@cindex Local time
+
+
+A @uref{http://@/en.wikipedia.org/@/wiki/@/Time_zone, @dfn{time zone}}
+is a region on Earth, more or less bounded by lines of longitude, that
+has a uniform, legally mandated standard time, usually referred to as
+the ``local time''; @math{24} time zones around the world can be
+expressed as positive or negative offsets from @utc{} (the mean solar
+time at the Royal Observatory, Greenwich).  Local time is @utc{} plus
+the current time zone offset for the location in question.
+
+Ideally, the increase proceeds eastward from the eastern boundary of the
+@utc{} time zone, increasing by one hour (@math{3600} seconds) for each
+@math{15} degrees, up to the International Date Line (longitude
+@math{180} degrees); a corresponding one hour decrease relative to
+@utc{} occurs every @math{15} degrees heading westward from the western
+boundary of the @utc{} time zone, up to the International Date Line.  As
+examples: London is in time zone zero; moving eastward, Rome (Italy) is
+in time zone @math{+1} hour or @math{+3600} seconds; moving westward,
+New York (@acronym{USA}) is in time zone @math{-5} hours or
+@math{-18000} seconds.
+
+In practice, time zones are established by countries based on local
+policies, so the only way to retrieve the time zone of a point on Earth
+is to look up an appropriate data table.  As examples: Iceland is in
+time zone zero (rather than @math{-1} hour); the Iles Marquises are in
+time zone @math{-9:30} hours or @math{-34200} seconds; the Chatham
+Islands are in time zone @math{+12:45} hours or @math{+45900} seconds.
+
+The web page (@aurl{} last verified Sat Sep 18, 2010) has some
+interesting links on time zones:
+
+@center @url{http://www.twinsun.com/tz/tz-link.htm}
+
+@noindent
+a database of time zones information can be retrieved at (@aurl{} last
+verified Sat Sep 18, 2010):
+
+@center @url{ftp://elsie.nci.nih.gov/pub/}
+
+@c page
+@node time intro dst
+@subsection Daylight Saving Time (@dst{})
+
+
+@cindex Daylight Saving Time, @dst{}
+@cindex @dst{}, Daylight Saving Time
+
+
+The @uref{http://@/en.wikipedia.org/@/wiki/@/Daylight_saving_time,
+@dfn{Daylight Saving Time}} is the practice of temporarily advancing
+clocks so that afternoons have more daylight and mornings have less;
+clocks are adjusted forward one hour near the start of spring and are
+adjusted backward in autumn.
+
+The effect of @dst{} is to shift the local time forward by one hour or
+@math{3600} seconds, possibly causing a shift or wrap around in the
+current day (and month and year) number with respect to the local time.
+
+As example, Rome (Italy) is in time zone @math{+1} hour with respect to
+@utc{}; when @dst{} is on, @math{+1} hour must be further added to the
+time resulting in an effective @math{+2} hours time shift with respect
+to @utc{}.
+
+@c page
+@node time intro unix
+@subsection Unix Time and Unix Epoch
+
+
+@cindex Unix Time
+@cindex @posix{} Time
+@cindex Epoch, Unix time
+@cindex Unix Epoch
+
+
+The @uref{http://@/en.wikipedia.org/@/wiki/@/Unix_time, @dfn{Unix Time}}
+or @dfn{@posix{} Time} is a system for describing points in time,
+defined as the number of seconds elapsed since 1970 January 1 00:00:00
+time zone zero, not counting leap seconds; the time 1970 January 1
+00:00:00 time zone zero is called @dfn{Unix Epoch}.  Although it does
+not count leap seconds, Unix Time stays synchronised with @utc{} time by
+repeating twice the same count when a leap second is inserted:
+
+@example
+             midnight
+                |
+                v
+... N-2   N-1   N   N   N+1  N+2 ...
+                  ^
+                  |
+         leap second inserted
+@end example
+
+@noindent
+Unix Time correctly counts @utc{} @strong{days} since the Epoch as
+follows:
+
+@example
+(define unix-time:seconds ---)
+
+(define unix-time:number-of-seconds-in-one-day
+  (* 24 60 60))
+
+(define utc-time:days-since-epoch
+  (div0 unix-time:seconds
+        unix-time:number-of-seconds-in-one-day))
+@end example
+
+@noindent
+Unix Time does @strong{not} correctly counts @utc{} @strong{seconds}
+since the Epoch, the following code:
+
+@example
+(define utc-time:seconds-since-midnight
+  (mod0 unix-time:seconds
+        unix-time:number-of-seconds-in-one-day))
+@end example
+
+@noindent
+gives incorrect results when @code{unix-time:seconds} is the count right
+before a leap second.
+
+@c page
+@node time intro gregorian
+@subsection Gregorian calendar
+
+
+@cindex Gregorian calendar
+@cindex Proleptic Gregorian calendar
+
+
+The @uref{http://@/en.wikipedia.org/@/wiki/@/Gregorian_calendar,
+@dfn{Gregorian Calendar}} is the internationally accepted civil
+calendar; it counts days as the basic unit of time, grouping them into
+years of @math{365} or @math{366} days.  A Gregorian year is divided
+into @math{12} months of irregular length:
+
+@multitable {Month Index} {Month Name} {Days123}
+@headitem Month Index @tab Month Name @tab Days
+@item 1 @tab January @tab 31
+@item 2 @tab February @tab 28 or 29
+@item 3 @tab March @tab 31
+@item 4 @tab April @tab 30
+@item 5 @tab May @tab 31
+@item 6 @tab June @tab 30
+@item 7 @tab July @tab 31
+@item 8 @tab August @tab 31
+@item 9 @tab September @tab 30
+@item 10 @tab October @tab 31
+@item 11 @tab November @tab 30
+@item 12 @tab December @tab 31
+@end multitable
+
+@noindent
+February has @math{28} on non--leap years and @math{29} days on leap
+years; from the Calendar @acronym{FAQ}:
+
+@quotation
+Every year divisible by @math{4} is a leap year.  However, every year
+divisible by @math{100} is not a leap year.  However, every year
+divisible by @math{400} is a leap year after all.
+@end quotation
+
+The
+@uref{http://@/en.wikipedia.org/@/wiki/@/Proleptic_Gregorian_calendar,
+@dfn{proleptic Gregorian calendar}} is produced by extending the
+Gregorian calendar backward to dates preceding its official introduction
+in 1582.
+
+@c page
+@node time intro week
+@subsection Week days
+
+
+A @uref{http://@/en.wikipedia.org/@/wiki/@/Week, @dfn{week}} is a time
+unit equal to seven days.
+
+@multitable {Day Index} {Day Name}
+@headitem Day Index @tab Day Name
+@item 0 @tab Sunday
+@item 1 @tab Monday
+@item 2 @tab Tuesday
+@item 3 @tab Wednesday
+@item 4 @tab Thursday
+@item 5 @tab Friday
+@item 6 @tab Saturday
+@end multitable
+
+@c page
+@node time intro julian
+@subsection Julian Date (@acronym{JD}) and Julian Day (@acronym{JDN})
+
+
+@cindex Julian Date
+@cindex Julian Day Number
+
+
+The @uref{http://@/en.wikipedia.org/@/wiki/@/Julian_day, @dfn{Julian
+Date}} is the interval of time in days and fractions of a day since
+-4714-11-24T12:00:00Z (November 24, -4714 at noon, @utc{}).
+
+The @dfn{Julian Day Number} is the integral part of the Julian Date.
+The day commencing at the above--mentioned epoch is zero.  Negative
+values can be used for preceding dates, though they predate all recorded
+history.
+
+@dfn{Modified Julian Day Number} represents a point in time as number of
+days since 1858-11-17T00:00:00Z (November 17, 1858 at midnight, @utc{}).
+
+Notice that both the Julian Day Number and the Modified Julian Day
+Number time points are for time zone zero; the first has the day
+starting at noon (12:00:00), the second has the day starting at midnight
+(00:00:00).
+
+The Modified Julian Day Number is @math{4800001/2 = 2400000.5} days less
+than the Julian Day Number; this brings the numbers into a more
+manageable numeric range and makes the day numbers change at midnight
+@utc{} rather than noon.
+
+@acronym{JD} test values can be computed with the calculator at (@aurl{}
+last verified Thu Jul 29, 2010):
+
+@center @url{http://www.imcce.fr/en/grandpublic/temps/jour_julien.php}
+
+@noindent
+the number computed by that calculator is the @acronym{JDN} at
+year/month/day hour:minute:second.
+
+@c page
+@node time overview
+@section Overview of the library
+
+
+@menu
+* time overview assumptions::   Basic assumptions and policies.
+* time overview host::          Retrieving the current time.
+* time overview time::          Time points and interval durations.
+* time overview date::          Dates and calendar.
+* time overview julian::        Julian dates and numbers.
+@end menu
+
+@c page
+@node time overview assumptions
+@subsection Basic assumptions and policies
+
+
+The @library{nausicaa times-and-dates} library:
+
+@itemize
+@item
+Assumes that the host clock is synchronised with current @utc{} time,
+taking into account both leap seconds and leap years.
+
+@item
+Assumes that the host exposes an @api{} through which it can retrieve
+the current time from the clock, expressed as Unix Time; this number of
+seconds is @strong{not} the number of @utc{} seconds between the current
+time and the Unix Epoch.
+
+@item
+It makes use of a @tai{} scale with origin at the Unix Epoch to express
+timestamps used to compute time intervals.
+
+@item
+It makes use of a @utc{} scale and the proleptic Gregorian calendar to
+express timestamps representing points in time.
+@end itemize
+
+@c page
+@node time overview host
+@subsection Retrieving the current time
+
+
+Unix Time is the count of seconds since the Epoch, ignoring leap
+seconds; by definition: when @utc{} was at January 1 1972 00:00:00,
+@tai{} was at January 1 1972 00:00:10.  We can express @utc{} and @tai{}
+times, too, as count of seconds since the Epoch.  After noticing that
+neither 1970 nor 1971 are leap years, we assume that the Unix Time scale
+and the @tai{} time scale are equal in those years, so the count of
+seconds since the Unix Epoch of January 1 1972 00:00:00 is:
+
+@example
+(1972 - 1970) * 365 * 24 * 60 * 60 = 63072000
+@end example
+
+@noindent
+we establish that:
+
+@example
+63072000(Unix) = 63072000(UTC) = 63072010(TAI)
+@end example
+
+So, let's say that ``now'' is 2000 January 1 00:00:00 @utc{} and the
+host clock is synchronised with this time: we retrieve the current time
+from a Unix Time clock which returns @math{946681200}, taking into
+account leap years but not leap seconds; we can verify this using the
+@gnu{} @command{date} command:
+
+@example
+$ date -d '2000/01/01 00:00:00' +%s
+@end example
+
+@noindent
+the count of seconds since the Epoch on the @tai{} scale is
+@math{946681200} itself; the count of seconds since the Epoch :
+
+
+@c page
+@node time overview time
+@subsection Time points and interval durations
+
+
+@library{nausicaa times-and-dates} represents time points as instances
+of the @class{time} class; a @class{time} object holds counts of seconds
+and nanoseconds on the @tai{} scale using the Unix Epoch as origin in
+time zone zero.  The counts are always both positive or both negative;
+when positive they represent a point in time after the Epoch, when
+negative they represent a point in time before the Epoch.
+
+@library{nausicaa times-and-dates} represents time durations as intances
+of the @class{duration} class; a @class{duration} object holds counts of
+seconds and nanoseconds on the @tai{} scale.  The counts are always both
+positive or both negative; when positive they represent a time interval
+from a time point forwards, when negative they represent a time interval
+from a time point backwards.
+
+Both @class{time} and @class{duration} objects are immutable.
+
+The library allows:
+
+@itemize
+@item
+Comparison between @class{time} objects to sort a sequence of events on
+the @tai{} scale.
+
+@item
+Comparison between @class{duration} objects to find the longer and the
+shorter.
+
+@item
+Arithmetics operations between @class{time} and @class{duration} objects
+to compute time durations from time points and vice versa.
+
+@item
+Conversion to @class{date} objects.
+@end itemize
+
+@c page
+@node time overview date
+@subsection Dates and calendar
+
+
+@library{nausicaa times-and-dates} represents dates on the proleptic
+Gregorian calendar as instances of the @class{date} class.  A
+@class{date} object represents a point in time with the tuple: year,
+month, day, hour, minute, second, nanosecond on the @utc{} scale and
+time zone zero; additionally the time zone and daylight saving time are
+represented as offsets in seconds.
+
+@class{date} objects are immutable.
+
+The library allows:
+
+@itemize
+@item
+Comparison between @class{date} objects to sort a sequence of events on
+the @utc{} scale.
+
+@item
+Conversion to and from strings.
+
+@item
+Conversion to @class{time} objects.
+@end itemize
+
+@c page
+@node time overview julian
+@subsection Julian dates and numbers
+
+
+Julian Dates are represented as exact rational numbers, having the
+integral part representing the Julian Day Number.
+
+@c page
+@node time system
+@section Interface to the system
+
+
+@cindex @library{nausicaa times-and-dates compat}, library
+@cindex Library @library{nausicaa times-and-dates compat}
+
+
+The following bindings are required from the underlying Scheme
+implementation, they should be exported by @library{nausicaa
+times-and-dates compat}.
+
+
+@defun host:current-time
+Must return a single value holding the current seconds and nanoseconds
+since the Unix Epoch on the Unix Time scale.
+
+@quotation
+On a @posix{} system these values can be retrieved with the platform's
+function @cfunc{gettimeofday}; this function returns microseconds, so
+the resolution is @math{1000} nanoseconds.
+
+@example
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/time.h>
+
+int
+main (void)
+@{
+  struct timeval  current_time;
+
+  gettimeofday(&current_time, NULL);
+
+  printf("secs = %ld, microsecs = %ld\n",
+    current_time.tv_sec, current_time.tv_usec);
+  exit(EXIT_SUCCESS);
+@}
+@end example
+@end quotation
+@end defun
+
+
+@defun host:time-second @var{unix-time}
+Given the return value from @func{host:current-time}, it must return the
+number of seconds.
+@end defun
+
+
+@defun host:time-nanosecond @var{unix-time}
+Given the return value from @func{host:current-time}, it must return the
+number of nanoseconds.
+@end defun
+
+
+@defun host:time-gmt-offset @var{unix-time}
+Given the return value from @func{host:current-time}, it must return the
+number of seconds representing the time zone offset.  Notice that the
+returned value may or may not include the offset introduced by Daylight
+Saving Time, depending on how the system clock is set.
+
+@quotation
+On a @posix{} platform, the offset can be computed with the following C
+code:
+
+@example
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
+#include <sys/time.h>
+
+int
+main (void)
+@{
+  struct timeval  current_time;
+  time_t          clock;
+  struct tm *     gmt_broken_time;
+  time_t          gmtclock;
+  time_t          time_zone_offset;
+
+  gettimeofday(&current_time, NULL);
+  clock            = current_time.tv_sec;
+  gmt_broken_time  = gmtime(&clock);
+  gmtclock         = mktime(gmt_broken_time);
+  time_zone_offset = clock - gmtclock;
+
+  printf("offset %ld\n", (long)time_zone_offset);
+  exit(EXIT_SUCCESS);
+@}
+@end example
+@end quotation
+@end defun
+
+
+@defvr Constant host:time-resolution
+An exact positive integer representing the resolution in nanoseconds of
+the return value of @func{host:current-time}.
+
+If the function underlying @func{host:current-time} returns
+microseconds: the resolution is @math{1000} nanoseconds.
+@end defvr
+
+@c ------------------------------------------------------------
+
+@subsubsection System clock inspection
+
+Here we perform an analysis of system clock settings on a @gnu{}+Linux
+host having:
+
+@itemize
+@item
+The system clock set to @utc{}, time zone zero (that is @gmt{}), using
+the @acronym{BIOS} facilities.
+
+@item
+Geographical time zone configure to @math{+1} hour.
+
+@item
+Daylight Saving Time in effect, resulting in a total time zone offset to
+@math{+2} hours.
+@end itemize
+
+@quotation
+The host is a Slackware Linux installation with the
+@code{glibc-zoneinfo} package used to configure the local time zone
+throught the @command{/usr/sbin/timeconfig} utility.
+@end quotation
+
+We can try to inspect the settings of the system clock using @gnu{}
+@command{date}; for example:
+
+@example
+## acquire UTC time
+$ now=$(date --rfc-2822 --utc)
+
+## print as UTC time
+$ echo $now
+Wed, 14 Jul 2010 15:28:27 +0000
+
+## print as local time
+$ date --rfc-2822 --date="$now"
+Wed, 14 Jul 2010 17:28:27 +0200
+
+## print as seconds since Unix Epoch
+$ date '+%s' --date="$now"
+1279121307
+@end example
+
+@c page
+@node time secs
+@section Seconds and nanoseconds objects
+
+
+The @class{seconds-and-nanoseconds} class is meant to represent counts
+of seconds with neither selected interpretation as points in time or
+duration, nor selected time scale.  The following bindings are exported
+by the @library{nausicaa times-and-dates} library.
+
+
+@deftp Class @aclass{seconds-and-nanoseconds}
+Base type representing a count of seconds and anoseconds.  The two
+counts are normalised to be both non--negative or both non--positive.
+@end deftp
+
+
+@defcv {Immutable Field} @aclass{seconds-and-nanoseconds} seconds
+Exact integer representing seconds count.  It can be positive, zero or
+negative.
+@end defcv
+
+
+@defcv {Immutable Field} @aclass{seconds-and-nanoseconds} nanoseconds
+Exact integer representing nanoseconds count.  It can be positive, zero
+or negative and it is normalised to the range @math{[-999999999,
+999999999]}.
+@end defcv
+
+
+@deffn Syntax {make* @aclass{seconds-and-nanoseconds}} @ameta{seconds} @ameta{nanoseconds}
+Expand to an expression evaluating to a new
+@class{seconds-and-nanoseconds} instance.  @meta{seconds} and
+@meta{nanoseconds} must expand into expressions evaluating to exact
+integers representing the counts of seconds and nanoseconds.
+@end deffn
+
+
+@deffn Syntax {make @aclass{seconds-and-nanoseconds}} @ameta{clause} ...
+Expand to an expression evaluating to a new
+@class{seconds-and-nanoseconds} instance.  The seconds and nanoseconds
+counts are computed from the values given in the following maker
+clauses:
+
+@table @code
+@item seconds @cmeta{seconds}
+@itemx milliseconds @cmeta{milliseconds}
+@itemx microseconds @cmeta{microseconds}
+@itemx nanoseconds @cmeta{nanoseconds}
+Select the count in the specified seconds and subseconds units.  All the
+values are normalised to seconds and nanoseconds counts.
+@end table
+@end deffn
+
+
+@defmethod @aclass{seconds-and-nanoseconds} deep-clone
+@defmethodx @aclass{seconds-and-nanoseconds} shallow-clone
+Return a copy of the object.
+@end defmethod
+
+
+@defcv {Immutable Field} @aclass{seconds-and-nanoseconds} full-seconds
+@defcvx {Immutable Field} @aclass{seconds-and-nanoseconds} full-milliseconds
+@defcvx {Immutable Field} @aclass{seconds-and-nanoseconds} full-microseconds
+@defcvx {Immutable Field} @aclass{seconds-and-nanoseconds} full-nanoseconds
+Exact numbers representing the time in seconds or the specified
+subseconds counts.
+@end defcv
+
+@c ------------------------------------------------------------
+
+@subsubheading Traditional record @api{}
+
+
+@defun make-<seconds-and-nanoseconds> @var{seconds} @var{nanoseconds}
+Build and return a new instance of @class{seconds-and-nanoseconds}.
+@end defun
+
+
+@defun <seconds-and-nanoseconds>? @var{obj}
+Return true if @var{obj} is an instance of
+@class{seconds-and-nanoseconds}.
+@end defun
+
+
+@defun <seconds-and-nanoseconds>-seconds @var{sn}
+@defunx <seconds-and-nanoseconds>-nanoseconds @var{sn}
+@defunx <seconds-and-nanoseconds>-full-seconds @var{sn}
+@defunx <seconds-and-nanoseconds>-full-microseconds @var{sn}
+@defunx <seconds-and-nanoseconds>-full-nanoseconds @var{sn}
+Accessors for concrete and virtual fields of a
+@class{seconds-and-nanoseconds} instance.
+@end defun
+
+
+@defun <seconds-and-nanoseconds>-deep-clone @var{sn}
+@defunx <seconds-and-nanoseconds>-shallow-clone @var{sn}
+Return a copy of a @class{seconds-and-nanoseconds} instance.
+@end defun
+
+@c page
+@node time duration
+@section Time duration objects
+
+
+A time duration is the algebraic difference between two points in time
+on the @tai{} scale; durations can be: defined directly, added to points
+in time or computed as difference between points in time.  Durations are
+represented by a seconds count and a nanoseconds count, which are
+normalised to be both non--negative or both non--positive.  The
+following bindings are exported by the @library{nausicaa
+times-and-dates} library.
+
+
+@deftp Class @aclass{duration}
+Type representing a time duration on the @tai{} scale; it is derived
+from @class{seconds-and-nanoseconds}.
+@end deftp
+
+
+@defcv {Immutable Field} @aclass{duration} seconds
+Exact integer representing seconds count on the @tai{} scale.
+@end defcv
+
+
+@defcv {Immutable Field} @aclass{duration} nanoseconds
+Exact integer representing nanoseconds count.
+@end defcv
+
+
+@deffn Syntax {make* @aclass{duration}} @var{seconds} @var{nanoseconds}
+Expand to an expression evaluating to a new @class{duration} instance.
+@var{seconds} and @var{nanoseconds} must expand into expressions
+evaluating to exact integers representing the counts of seconds on the
+@tai{} scale and the count of nanoseconds.
+
+Seconds and nanoseconds are normalised to be both non--negative or both
+non--positive.
+@end deffn
+
+
+@deffn Syntax {make @aclass{duration}} @var{clause} ...
+@deffnx {Auxiliary Syntax} seconds @var{seconds}
+@deffnx {Auxiliary Syntax} milliseconds @var{milliseconds}
+@deffnx {Auxiliary Syntax} microseconds @var{microseconds}
+@deffnx {Auxiliary Syntax} nanoseconds @var{nanoseconds}
+Expand to an expression evaluating to a new @class{duration} instance.
+The seconds and nanoseconds counts are computed from the values given in
+the following maker clauses and normalised to be both non--negative or
+both non--positive:
+
+@table @code
+@item seconds @var{seconds}
+@itemx milliseconds @var{milliseconds}
+@itemx microseconds @var{microseconds}
+@itemx nanoseconds @var{nanoseconds}
+Select the count in the specified seconds and subseconds units.  The
+seconds count must be on the @tai{} scale.
+@end table
+@end deffn
+
+
+@defmethod @aclass{duration} deep-clone
+@defmethodx @aclass{duration} shallow-clone
+Return a copy of the object.
+@end defmethod
+
+@c ------------------------------------------------------------
+
+@subsubheading Comparing time durations
+
+
+Comparison aims at estabilishing the longer or shorter duration between
+a couple of durations; comparison functions do @strong{not} consider the
+sign of seconds and nanoseconds counts: they compare the absolute
+values.
+
+
+@defmethod @aclass{duration} = @var{duration}
+@defmethodx @aclass{duration} < @var{duration}
+@defmethodx @aclass{duration} <= @var{duration}
+@defmethodx @aclass{duration} > @var{duration}
+@defmethodx @aclass{duration} >= @var{duration}
+Compare the instance's duration to the duration of the @class{duration}
+object @var{duration} and return a boolean value.
+@end defmethod
+
+
+@defun duration= @var{duration} ...
+@defunx duration< @var{duration} ...
+@defunx duration<= @var{duration} ...
+@defunx duration> @var{duration} ...
+@defunx duration>= @var{duration} ...
+Compare the @class{duration} arguments and return a boolean value.  When
+there are no arguments or only one argument: the return value is true.
+@end defun
+
+@c ------------------------------------------------------------
+
+@subsubheading Arithmetic functions
+
+
+@defmethod @aclass{duration} + @var{duration}
+Add the @class{duration} object @var{duration} to the instance and
+return a new @class{duration} object representing the result.
+@end defmethod
+
+
+@defmethod @aclass{duration} - @var{duration}
+Subtract the @class{duration} object @var{duration} from the instance
+and return a new @class{duration} object representing the result.
+@end defmethod
+
+
+@defmethod @aclass{duration} + @var{lambda}
+Multiply the instance by the real number @var{lambda} and return a new
+@class{duration} object representing the result.  The results of the
+product are turned into exact numbers.
+@end defmethod
+
+
+@defmethod @aclass{duration} / @var{lambda}
+Divide the instance by the real number @var{lambda} and return a new
+@class{duration} object representing the result.  The results of the
+division are turned into exact numbers.
+@end defmethod
+
+
+@defun duration+ @var{duration} ...
+Add all the @class{duration} arguments and return a new @class{duration}
+object representing the sum.  When called with no arguments: return a
+@class{duration} of zero seconds and zero nanoseconds.
+@end defun
+
+
+@defun duration- @var{duration} ...
+Subtract the @class{duration} arguments beyond the first from the first
+and return a new @class{duration} object representing the difference.
+When called with no arguments: return a @class{duration} of zero seconds
+and zero nanoseconds.
+@end defun
+
+@c ------------------------------------------------------------
+
+@subsubheading Traditional record @api{}
+
+
+@defun make-<duration> @var{seconds} @var{nanoseconds}
+Build and return a new @class{duration} instance.
+@end defun
+
+
+@defun <duration>? @var{obj}
+Return true if @var{obj} is an instance of @class{duration}.
+@end defun
+
+
+@defun <duration>-seconds @var{sn}
+@defunx <duration>-nanoseconds @var{sn}
+@defunx <duration>-full-seconds @var{sn}
+@defunx <duration>-full-microseconds @var{sn}
+@defunx <duration>-full-nanoseconds @var{sn}
+Accessors for concrete and virtual fields of a @class{duration}
+instance.
+@end defun
+
+
+@defun <duration>-deep-clone @var{sn}
+@defunx <duration>-shallow-clone @var{sn}
+Return a copy of a @class{duration} instance.
+@end defun
+
+@c page
+@node time point
+@section Points in time
+
+
+A time point is described by seconds and nanoseconds counts on the
+@tai{} scale (no leap seconds, time zone zero, no daylight saving time)
+using the Unix Epoch as origin.  The following bindings are exported by
+the @library{nausicaa times-and-dates} library.
+
+
+@deftp Class @aclass{time}
+Type representing a time point; it is derived from
+@class{seconds-and-nanoseconds}.
+@end deftp
+
+
+@defcv {Immutable Field} @aclass{time} seconds
+Exact integer representing seconds count on the @tai{} scale.
+@end defcv
+
+
+@defcv {Immutable Field} @aclass{time} nanoseconds
+Exact integer representing nanoseconds count.
+@end defcv
+
+
+@defcv {Immutable Virtual Field} @aclass{time} julian-day
+@defcvx {Immutable Virtual Field} @aclass{time} modified-julian-day
+Exact numbers representing the Julian Day Number and the Modified Julian
+Day Number corresponding to the instance's seconds on the @tai{} scale.
+@end defcv
+
+
+@deffn Syntax {make* @aclass{time}} @var{seconds} @var{nanoseconds}
+Expand to an expression evaluating to a new @class{time} instance.
+@var{seconds} and @var{nanoseconds} must expand into expressions
+evaluating to exact integers representing the counts of seconds on the
+@tai{} scale and the count of nanoseconds.
+
+Seconds and nanoseconds are normalised to be both non--negative or both
+non--positive.
+@end deffn
+
+
+@deffn Syntax {make @aclass{time}} @var{clause} ...
+@deffnx {Auxiliary Syntax} seconds @var{seconds}
+@deffnx {Auxiliary Syntax} milliseconds @var{milliseconds}
+@deffnx {Auxiliary Syntax} microseconds @var{microseconds}
+@deffnx {Auxiliary Syntax} nanoseconds @var{nanoseconds}
+Expand to an expression evaluating to a new @class{time} instance.  The
+seconds and nanoseconds counts are computed from the values given in the
+following maker clauses and normalised to be both non--negative or both
+non--positive:
+
+@table @code
+@item seconds @var{seconds}
+@itemx milliseconds @var{milliseconds}
+@itemx microseconds @var{microseconds}
+@itemx nanoseconds @var{nanoseconds}
+Select the count in the specified seconds and subseconds units.  The
+seconds count must be on the @tai{} scale.
+@end table
+@end deffn
+
+
+@defmethod @aclass{time} deep-clone
+@defmethodx @aclass{time} shallow-clone
+Return a copy of the object.
+@end defmethod
+
+@c ------------------------------------------------------------
+
+@subsubheading Comparing time points
+
+
+Comparison aims at estabilishing if a time point comes before or after
+another time point; comparison functions do consider the sign of seconds
+and nanoseconds counts.
+
+
+@defmethod @aclass{time} = @var{time}
+@defmethodx @aclass{time} < @var{time}
+@defmethodx @aclass{time} <= @var{time}
+@defmethodx @aclass{time} > @var{time}
+@defmethodx @aclass{time} >= @var{time}
+Compare the instance's time to the time of the @class{time} object
+@var{time} and return a boolean value.
+@end defmethod
+
+
+@defun time= @var{time} ...
+@defunx time< @var{time} ...
+@defunx time<= @var{time} ...
+@defunx time> @var{time} ...
+@defunx time>= @var{time} ...
+Compare the @class{time} arguments and return a boolean value.  When
+there are no arguments or only one argument: the return value is true.
+@end defun
+
+@c ------------------------------------------------------------
+
+@subsubheading Arithmetic functions
+
+
+@defmethod @aclass{time} + @var{duration}
+Add the @class{duration} object @var{duration} to the instance and
+return a new @class{time} object representing the result.
+@end defmethod
+
+
+@defmethod @aclass{time} - (@var{duration} @aclass{duration})
+Subtract the @class{duration} object @var{duration} from the instance
+and return a new @class{time} object representing the result.
+
+@example
+(let* (((D <time>)      (make* <time> 1 2))
+       ((E <duration>)  (make* <duration> 3 5))
+       ((F <time>)      (D.- E)))
+  (list (is-a? F <time>) F.seconds F.nanoseconds))
+@result{} (#t -2 -3)
+@end example
+@end defmethod
+
+
+@defmethod @aclass{time} - (@var{time} @aclass{time})
+Subtract the @class{time} object @var{time} from the instance and return
+a new @class{duration} object representing the result.
+
+@example
+(let* (((D <time>)      (make* <time> 1 2))
+       ((E <time>)      (make* <time> 3 5))
+       ((F <duration>)  (D.- E)))
+  (list (is-a? F <duration>) F.seconds F.nanoseconds))
+@result{} (#t -2 -3)
+@end example
+@end defmethod
+
+@c ------------------------------------------------------------
+
+@subsubheading Utility functions
+
+
+@defmethod @aclass{time} date
+@defmethodx @aclass{time} date @var{tz-offset}
+Return a @class{date} object representing the same time point of the
+instance.  @var{tz-offset} is the time zone offset in seconds, it
+defaults to the local time zone offset.
+@end defmethod
+
+@c ------------------------------------------------------------
+
+@subsubheading Traditional record @api{}
+
+
+@defun make-<time> @var{seconds} @var{nanoseconds}
+Build and return a new @class{time} instance.
+@end defun
+
+
+@defun <time>? @var{obj}
+Return true if @var{obj} is an instance of @class{time}.
+@end defun
+
+
+@defun <time>-seconds @var{sn}
+@defunx <time>-nanoseconds @var{sn}
+@defunx <time>-full-seconds @var{sn}
+@defunx <time>-full-microseconds @var{sn}
+@defunx <time>-full-nanoseconds @var{sn}
+Accessors for concrete and virtual fields of a @class{time} instance.
+@end defun
+
+
+@defun <time>-deep-clone @var{sn}
+@defunx <time>-shallow-clone @var{sn}
+Return a copy of a @class{time} instance.
+@end defun
+
+@c page
+@node time date
+@section Date object
+
+
+A date is a timestamp on the @utc{} scale expressed in the proleptic
+gregorian calendar coordinates; it is defined by the tuple: year, month,
+day, hours, minutes, seconds, nanoseconds, time zone offset in seconds
+accounting also for Daylight Saving Time, a boolean value signaling if
+the Daylight Saving Time is on.
+
+@class{date} objects are immutable once created.  Notice that to do
+operations with dates, like the arithmetic ones, we have to convert the
+@class{date} objects to @class{time} objects.
+
+The following bindings are exported by the @library{nausicaa
+times-and-dates} library.
+
+
+@deftp Class @aclass{date}
+Type representing a timestamp in the proleptic gregorian calendar
+coordinates, on the @utc{} scale.
+@end deftp
+
+
+@defcv {Immutable Field} @aclass{date} year
+An exact integer representing the year in the local time.  There is
+almost no limit to the range of allowed values, but the number must be
+encoded according to the following rules:
+
+@itemize
+@item
+Years after the conventional birth of Christ are positive.
+
+@item
+Years before the conventional birth of Christ are negative.
+
+@item
+The value zero is forbidden because the between 1 Annus Dominis and 1
+Before Christ there is no year zero.
+@end itemize
+
+Also notice that to convert a @class{date} instance to a @class{time}
+instance, the year must be greater than or equal to @math{-4714}, that
+is past 4714 Before Christ.
+@end defcv
+
+
+@defcv {Immutable Field} @aclass{date} month
+An exact integer in the range @math{[1, 12]} representing the month in
+the local time; in which @math{1} means January, @math{2} February, and
+so on.
+@end defcv
+
+
+@defcv {Immutable Field} @aclass{date} day
+An exact integer in one of the ranges:
+
+@table @math
+@item [1, 31]
+In January (@math{1}), March (@math{3}), May (@math{5}), July
+(@math{7}), August (@math{8}), October (@math{10}), December
+(@math{12}).
+
+@item [1, 30]
+In April (@math{4}), June (@math{6}), September (@math{9}), November
+(@math{11}).
+
+@item [1, 28]
+In February (@math{2}) of non--leap years.
+
+@item [1, 29]
+In February (@math{2}) of leap years.
+@end table
+
+@noindent
+representing the day number in the local time.
+@end defcv
+
+
+@defcv {Immutable Field} @aclass{date} hour
+An exact integer in the range @math{[0, 23]} representing the hours
+count in the local time.
+@end defcv
+
+
+@defcv {Immutable Field} @aclass{date} minute
+An exact integer in the range @math{[0, 59]} representing the minutes
+count in the local time.
+@end defcv
+
+
+@defcv {Immutable Field} @aclass{date} second
+An exact integer usually in the range @math{[0, 59]}, but in the range
+@math{[0, 60]} when the day has a leap second inserted, representing the
+seconds count in the local time.
+@end defcv
+
+
+@defcv {Immutable Field} @aclass{date} nanosecond
+An exact integer in the range @math{[0, 999999999]} representing the
+nanoseconds count in the local time.
+@end defcv
+
+
+@defcv {Immutable Field} @aclass{date} zone-offset
+An exact integer representing both the number of seconds East of @gmt{}
+for the local time zone and the offset introduced by Daylight Saving
+Time.  To compute the timestamp in time zone zero without Daylight
+Saving Time: this offset must be @strong{subtracted} from the other
+fields.
+@end defcv
+
+
+@defcv {Immutable Field} @aclass{date} daylight-saving-time?
+A boolean, true if Daylight Saving Time is on.
+@end defcv
+
+@c ------------------------------------------------------------
+
+@subsubheading Other fields and methods
+
+
+@defcv {Immutable Virtual Field} @aclass{date} year-day
+Return the ordinal day of the year of this date; January 1 is @math{1},
+January 2 is @math{2}, February 1 is @math{32}, and so on.
+@end defcv
+
+
+@defcv {Immutable Virtual Field} @aclass{date} week-day
+Return the day of the week of this date; Sunday is @math{0}, Monday is
+@math{1}, and so on.
+@end defcv
+
+
+@defmethod @aclass{date} week-number @var{day-of-week-starting-week}
+Return the ordinal week of the year which holds this date, ignoring a
+first partial week.  @var{day-of-week-starting-week} is the integer
+corresponding to the day of the week which is to be considered the first
+day of the week (Sunday=0, Monday=1, etc.).
+@end defmethod
+
+
+@defmethod @aclass{date} leap-year?
+Return true if the year in the date is a leap year.
+@end defmethod
+
+
+@defmethod @aclass{date} number-of-days-since-year-beginning
+Return the number of days since the beginning of the year.
+@end defmethod
+
+@c ------------------------------------------------------------
+
+@subsubheading Traditional record @api{}
+
+
+@defun make-<date> @var{nanosecond} @var{second} @var{minute} @var{hour} @var{day} @var{month} @var{year} @var{zone-offset}
+Creates a date object.
+@end defun
+
+
+@defun <date>? @var{obj}
+Return true if @var{obj} is a @class{date} instance.
+@end defun
+
+
+@defun <date>-year @var{date}
+@defunx <date>-month @var{date}
+@defunx <date>-day @var{date}
+@defunx <date>-hour @var{date}
+@defunx <date>-minute @var{date}
+@defunx <date>-second @var{date}
+@defunx <date>-nanosecond @var{date}
+@defunx <date>-zone-offset @var{date}
+@defunx <date>-daylight-saving-time? @var{date}
+Accessors for the fields of a @class{date} instance.
+@end defun
+
+
+@defun <date>-year-day @var{date}
+Accessor for the @code{year-day} field.
+@end defun
+
+
+@defun <date>-week-day @var{date}
+Accessor for the @code{week-day} field.
+@end defun
+
+
+@defun <date>-week-number @var{date} @var{day-of-week-starting-week}
+Like invoking the @code{week-number} method of @var{date}.
+@end defun
+
+@c page
+@node time utils
+@section Miscellaneous utilities
+
+@menu
+* time utils types::            Type predicates and assertions.
+* time utils secs::             Seconds and nanoseconds utilities.
+* time utils year::             Gregorian years and weeks.
+* time utils julian::           Julian calendar utilities.
+@end menu
+
+@c page
+@node time utils types
+@subsection Type predicates and assertions
+
+
+@cindex @library{nausicaa times-and-dates types}, library
+@cindex Library @library{nausicaa times-and-dates types}
+
+
+Before using the assertions proposed here consider using directly the
+predicate with @func{assert}: the only advantage of these assertions is
+an error message a bit more explicative.  The following bindings are
+exported by the @library{nausicaa times-and-dates types} library.
+
+@c ------------------------------------------------------------
+
+@subsubheading Type predicates
+
+
+@defmac years-type? @var{obj}
+Return true if @var{obj} is a valid value for a count of years.
+@end defmac
+
+
+@defmac month-type? @var{obj}
+Return true if @var{obj} is a valid value for a month index.
+@end defmac
+
+
+@defmac day-type? @var{obj}
+Return true if @var{obj} is a valid value for a day index.
+@end defmac
+
+
+@defmac hours-type? @var{obj}
+Return true if @var{obj} is a valid value for a count of hours.
+@end defmac
+
+
+@defmac minutes-type? @var{obj}
+Return true if @var{obj} is a valid value for a count of minutes.
+@end defmac
+
+
+@defmac seconds-type? @var{obj}
+Return true if @var{obj} is a valid value for a count of seconds.
+@end defmac
+
+
+@defmac milliseconds-type? @var{obj}
+Return true if @var{obj} is a valid value for a count of milliseconds.
+@end defmac
+
+
+@defmac microseconds-type? @var{obj}
+Return true if @var{obj} is a valid value for a count of microseconds.
+@end defmac
+
+
+@defmac nanoseconds-type? @var{obj}
+Return true if @var{obj} is a valid value for a count of nanoseconds.
+@end defmac
+
+@c ------------------------------------------------------------
+
+@subsubheading Range predicates
+
+@defmac date-years-range? @var{obj}
+Return true if @var{obj}, which must be a number satisfying
+@func{years-type?}, is in the range allowed for a count of years.
+@end defmac
+
+
+@defmac date-month-range? @var{obj}
+Return true if @var{obj}, which must be a number satisfying
+@func{month-type?}, is in the range allowed for a month index.
+@end defmac
+
+
+@defmac date-day-range? @var{obj} @var{month-index}
+Return true if @var{obj}, which must be a number satisfying
+@func{day-type?}, is in the range allowed for a the month whose index is
+@var{month-index} in a non--leap year.
+
+If @var{month-index} is invalid: raise an assertion violation.
+@end defmac
+
+
+@defmac date-day-range?/leap-year @var{obj} @var{month-index}
+Return true if @var{obj}, which must be a number satisfying
+@func{day-type?}, is in the range allowed for a the month whose index is
+@var{month-index} in a leap year.
+
+If @var{month-index} is invalid: raise an assertion violation.
+@end defmac
+
+
+@defmac date-hours-range? @var{obj}
+Return true if @var{obj}, which must be a number satisfying
+@func{hours-type?}, is in the range allowed for a count of hours.
+@end defmac
+
+
+@defmac date-minutes-range? @var{obj}
+Return true if @var{obj}, which must be a number satisfying
+@func{minutes-type?}, is in the range allowed for a count of minutes.
+@end defmac
+
+
+@defmac date-seconds-range? @var{obj}
+Return true if @var{obj}, which must be a number satisfying
+@func{seconds-type?}, is in the range allowed for a count of seconds
+excluding leap seconds.
+@end defmac
+
+
+@defmac date-seconds-range?/with-leap @var{obj}
+Return true if @var{obj}, which must be a number satisfying
+@func{seconds-type?}, is in the range allowed for a count of seconds
+including leap seconds.
+@end defmac
+
+
+@defmac date-milliseconds-range? @var{obj}
+Return true if @var{obj}, which must be a number satisfying
+@func{milliseconds-type?}, is in the range allowed for a count of
+milliseconds.
+@end defmac
+
+
+@defmac date-microseconds-range? @var{obj}
+Return true if @var{obj}, which must be a number satisfying
+@func{microseconds-type?}, is in the range allowed for a count of
+microseconds.
+@end defmac
+
+
+@defmac date-nanoseconds-range? @var{obj}
+Return true if @var{obj}, which must be a number satisfying
+@func{nanoseconds-type?}, is in the range allowed for a count of
+nanoseconds.
+@end defmac
+
+@c ------------------------------------------------------------
+
+@subsubheading Type assertions
+
+
+In the following macros, the raised value is a compound condition object
+of type: @condition{assertion}, @condition{who}, @condition{message},
+@condition{irritants}.  The @var{who} argument is used for the
+@condition{who} condition.
+
+
+@defmac assert-years-type @var{who} @var{obj}
+Raise an assertion violation if @var{obj} is not a valid value for a
+count of years.
+@end defmac
+
+
+@defmac assert-month-type @var{who} @var{obj}
+Raise an assertion violation if @var{obj} is not a valid value for a
+month index.
+@end defmac
+
+
+@defmac assert-day-type @var{who} @var{obj}
+Raise an assertion violation if @var{obj} is not a valid value for a day
+index.
+@end defmac
+
+
+@defmac assert-hours-type @var{who} @var{obj}
+Raise an assertion violation if @var{obj} is not a valid value for a
+count of hours.
+@end defmac
+
+
+@defmac assert-hours-type @var{who} @var{obj}
+Raise an assertion violation if @var{obj} is not a valid value for a day
+index.
+@end defmac
+
+
+@defmac assert-minutes-type @var{who} @var{obj}
+Raise an assertion violation if @var{obj} is not a valid value for a
+count of minutes.
+@end defmac
+
+
+@defmac assert-seconds-type @var{who} @var{obj}
+Raise an assertion violation if @var{obj} is not a valid value for a
+count of seconds.
+@end defmac
+
+
+@defmac assert-milliseconds-type @var{who} @var{obj}
+Raise an assertion violation if @var{obj} is not a valid value for a
+count of milliseconds.
+@end defmac
+
+
+@defmac assert-microseconds-type @var{who} @var{obj}
+Raise an assertion violation if @var{obj} is not a valid value for a
+count of microseconds.
+@end defmac
+
+
+@defmac assert-nanoseconds-type @var{who} @var{obj}
+Raise an assertion violation if @var{obj} is not a valid value for a
+count of nanoseconds.
+@end defmac
+
+@c ------------------------------------------------------------
+
+@subsubheading Range assertions
+
+
+In the following macros, the raised value is a compound condition object
+of type: @condition{assertion}, @condition{who}, @condition{message},
+@condition{irritants}.  The @var{who} argument is used for the
+@condition{who} condition.
+
+
+@defmac assert-date-years-range @var{who} @var{obj}
+Raise an assertion violation if @var{obj}, which must be a number
+satisfying @func{years-type?}, is not in the range allowed for a count
+of years.
+@end defmac
+
+
+@defmac assert-date-month-range @var{who} @var{obj}
+Raise an assertion violation if @var{obj}, which must be a number
+satisfying @func{month-type?}, is not in the range allowed for a month
+index.
+@end defmac
+
+
+@defmac assert-date-day-range @var{who} @var{obj} @var{month-index}
+Raise an assertion violation if @var{obj}, which must be a number
+satisfying @func{day-type?}, is not in the range allowed for a day index
+in the month whose index is @var{month-index} in a non--leap year.
+
+If @var{month-index} is invalid: raise an assertion violation.
+@end defmac
+
+
+@defmac assert-date-day-range/leap-year @var{who} @var{obj} @var{month-index}
+Raise an assertion violation if @var{obj}, which must be a number
+satisfying @func{day-type?}, is not in the range allowed for a day index
+in the month whose index is @var{month-index} in a leap year.
+
+If @var{month-index} is invalid: raise an assertion violation.
+@end defmac
+
+
+@defmac assert-date-hours-range @var{who} @var{obj}
+Raise an assertion violation if @var{obj}, which must be a number
+satisfying @func{hours-type?}, is not in the range allowed for a count
+of hours.
+@end defmac
+
+
+@defmac assert-date-minutes-range @var{who} @var{obj}
+Raise an assertion violation if @var{obj}, which must be a number
+satisfying @func{minutes-type?}, is not in the range allowed for a count
+of minutes.
+@end defmac
+
+
+@defmac assert-date-seconds-range @var{who} @var{obj}
+Raise an assertion violation if @var{obj}, which must be a number
+satisfying @func{seconds-type?}, is not in the range allowed for a count
+of seconds excluding the leap second.
+@end defmac
+
+
+@defmac assert-date-seconds-range/with-leap @var{who} @var{obj}
+Raise an assertion violation if @var{obj}, which must be a number
+satisfying @func{seconds-type?}, is not in the range allowed for a count
+of seconds including the leap second.
+@end defmac
+
+
+@defmac assert-date-milliseconds-range @var{who} @var{obj}
+Raise an assertion violation if @var{obj}, which must be a number
+satisfying @func{milliseconds-type?}, is not in the range allowed for a
+count of milliseconds.
+@end defmac
+
+
+@defmac assert-date-microseconds-range @var{who} @var{obj}
+Raise an assertion violation if @var{obj}, which must be a number
+satisfying @func{microseconds-type?}, is not in the range allowed for a
+count of microseconds.
+@end defmac
+
+
+@defmac assert-date-nanoseconds-range @var{who} @var{obj}
+Raise an assertion violation if @var{obj}, which must be a number
+satisfying @func{nanoseconds-type?}, is not in the range allowed for a
+count of nanoseconds.
+@end defmac
+
+@c page
+@node time utils secs
+@subsection Seconds and nanoseconds utilities
+
+
+@cindex @library{nausicaa times-and-dates seconds}, library
+@cindex Library @library{nausicaa times-and-dates seconds}
+
+
+@menu
+* time utils secs constants::   Constant values for seconds and
+                                subseconds units.
+* time utils secs utils::       Utilities for seconds and subseconds
+                                units counts.
+@end menu
+
+@c page
+@node time utils secs constants
+@subsubsection Constant values for seconds and subseconds units
+
+
+The following bindings are exported by the @library{nausicaa
+times-and-dates seconds} library.
+
+
+@defvr Constant $number-of-nanoseconds-in-one-microsecond
+@defvrx Constant $number-of-nanoseconds-in-one-millisecond
+@defvrx Constant $number-of-nanoseconds-in-one-second
+@defvrx Constant $number-of-nanoseconds-in-one-minute
+@defvrx Constant $number-of-nanoseconds-in-one-hour
+@defvrx Constant $number-of-nanoseconds-in-one-day
+Conversion coefficients for nanosecond counts.
+@end defvr
+
+
+@defvr Constant $number-of-microseconds-in-one-nanosecond
+@defvrx Constant $number-of-microseconds-in-one-millisecond
+@defvrx Constant $number-of-microseconds-in-one-second
+@defvrx Constant $number-of-microseconds-in-one-minute
+@defvrx Constant $number-of-microseconds-in-one-hour
+@defvrx Constant $number-of-microseconds-in-one-day
+Conversion coefficients for microsecond counts.
+@end defvr
+
+
+@defvr Constant $number-of-milliseconds-in-one-nanosecond
+@defvrx Constant $number-of-milliseconds-in-one-microsecond
+@defvrx Constant $number-of-milliseconds-in-one-second
+@defvrx Constant $number-of-milliseconds-in-one-minute
+@defvrx Constant $number-of-milliseconds-in-one-hour
+@defvrx Constant $number-of-milliseconds-in-one-day
+Conversion coefficients for millisecond counts.
+@end defvr
+
+
+@defvr Constant $number-of-seconds-in-one-nanosecond
+@defvrx Constant $number-of-seconds-in-one-microsecond
+@defvrx Constant $number-of-seconds-in-one-millisecond
+@defvrx Constant $number-of-seconds-in-one-minute
+@defvrx Constant $number-of-seconds-in-one-hour
+@defvrx Constant $number-of-seconds-in-one-day
+Conversion coefficients for second counts.
+@end defvr
+
+@c page
+@node time utils secs utils
+@subsubsection Utilities for seconds and subseconds units counts
+
+
+The following bindings are exported by the @library{nausicaa
+times-and-dates seconds} library.  The following naming conventions
+hold:
+
+@itemize
+@item
+All the bindings starting with @code{sn-} take as arguments a seconds
+and nanoseconds counts.
+
+@item
+All the bindings starting with @code{su-} take as arguments a seconds
+and microseconds counts.
+
+@item
+All the bindings starting with @code{sm-} take as arguments a seconds
+and milliseconds counts.
+
+@item
+All the bindings ending with @code{->sn} return two values: seconds and
+nanoseconds counts.
+
+@item
+All the bindings ending with @code{->su} return two values: seconds and
+microseconds counts.
+
+@item
+All the bindings ending with @code{->sm} return two values: seconds and
+milliseconds counts.
+@end itemize
+
+Some of the bindings are macros: this is to allow a level of inline
+expansion for small expressions and save a function call.  When the
+documentation refers to @dfn{normalised} values, it means that the
+seconds and subseconds counts are both non--negative or both
+non--positive and:
+
+@itemize
+@item
+The milliseconds count @math{M} is in the range @math{-1e-3 < M < 1e3}.
+
+@item
+The microseconds count @math{U} is in the range @math{-1e-6 < U < 1e6}.
+
+@item
+The nanoseconds count @math{N} is in the range @math{-1e-9 < N < 1e9}.
+@end itemize
+
+The counts in seconds and subseconds units must be given as exact
+numbers when arguments and are always returned as exact numbers.
+
+
+@deffn Syntax sn-normalise @var{seconds} @var{nanoseconds}
+@deffnx Syntax su-normalise @var{seconds} @var{microseconds}
+@deffnx Syntax sm-normalise @var{seconds} @var{milliseconds}
+Return two values: a normalised seconds count and a normalised
+subseconds count.  The returned values are the arguments normalised to
+be in such a way that the time from zero is left unchanged.  Examples:
+
+@example
+(sn-normalise +1 +1)    @result{} +1 +1
+(sn-normalise -1 -1)    @result{} -1 -1
+(sn-normalise +1 -1)    @result{}  0 +999999999
+(sn-normalise -1 +1)    @result{}  0 -999999999
+
+(sn-normalise +10 #e+1.001e9)     @result{} +11 +1e6
+(sn-normalise -10 #e-1.001e9)     @result{} -11 -1e6
+@end example
+@end deffn
+
+
+@deffn Syntax sn->seconds @var{seconds} @var{nanoseconds}
+@deffnx Syntax su->seconds @var{seconds} @var{microseconds}
+@deffnx Syntax sm->seconds @var{seconds} @var{milliseconds}
+Return an exact rational number representing the arguments in seconds
+units.
+@end deffn
+
+
+@deffn Syntax sn->milliseconds @var{seconds} @var{nanoseconds}
+@deffnx Syntax su->milliseconds @var{seconds} @var{microseconds}
+@deffnx Syntax sm->milliseconds @var{seconds} @var{milliseconds}
+Return an exact rational number representing the arguments in
+milliseconds units.
+@end deffn
+
+
+@deffn Syntax sn->microseconds @var{seconds} @var{nanoseconds}
+@deffnx Syntax su->microseconds @var{seconds} @var{microseconds}
+@deffnx Syntax sm->microseconds @var{seconds} @var{milliseconds}
+Return an exact rational number representing the arguments in
+microseconds units.
+@end deffn
+
+
+@deffn Syntax sn->nanoseconds @var{seconds} @var{nanoseconds}
+@deffnx Syntax su->nanoseconds @var{seconds} @var{microseconds}
+@deffnx Syntax sm->nanoseconds @var{seconds} @var{milliseconds}
+Return an exact rational number representing the arguments in
+nanoseconds units.
+@end deffn
+
+
+@deffn Syntax seconds->sn @var{seconds}
+@deffnx Syntax seconds->su @var{seconds}
+@deffnx Syntax seconds->sm @var{seconds}
+Return two values: @var{seconds} itself and zero.  The returned values
+represents the count of seconds and subseconds corresponding to
+@var{seconds}.
+@end deffn
+
+
+@deffn Syntax milliseconds->sn @var{milliseconds}
+@deffnx Syntax milliseconds->su @var{milliseconds}
+@deffnx Syntax milliseconds->sm @var{milliseconds}
+Return two values: the count of seconds and the count of subseconds
+corresponding to the count of @var{milliseconds}.  The returned values
+are normalised.
+@end deffn
+
+
+@deffn Syntax microseconds->sn @var{microseconds}
+@deffnx Syntax microseconds->su @var{microseconds}
+@deffnx Syntax microseconds->sm @var{microseconds}
+Return two values: the count of seconds and the count of subseconds
+corresponding to the count of @var{microseconds}.  The returned values
+are normalised.
+@end deffn
+
+
+@deffn Syntax nanoseconds->sn @var{nanoseconds}
+@deffnx Syntax nanoseconds->su @var{nanoseconds}
+@deffnx Syntax nanoseconds->sm @var{nanoseconds}
+Return two values: the count of seconds and the count of subseconds
+corresponding to the count of @var{nanoseconds}.  The returned values
+are normalised.
+@end deffn
+
+
+@defun smun->sn @var{seconds} @var{millliseconds} @var{microseconds} @var{nanoseconds}
+Return two values: the count of seconds and the count of nanoseconds
+corresponding to the arguments.  The returned values are normalised.
+@end defun
+
+
+@defun sn->smun @var{seconds} @var{nanoseconds}
+Return four values: the counts of seconds, milliseconds, microseconds,
+nanoseconds corresponding to the arguments.  The returned values are
+normalised.
+@end defun
+
+
+@defun sn-add @vari{seconds} @vari{nanoseconds} @varii{seconds} @varii{nanoseconds}
+Sum the two couples of counts and return two values: the resulting
+normalised counts of seconds and nanoseconds.
+@end defun
+
+
+@defun sn-sub @vari{seconds} @vari{nanoseconds} @varii{seconds} @varii{nanoseconds}
+Subtract the seconds couple of counts from the first and return two
+values: the resulting normalised counts of seconds and nanoseconds.
+@end defun
+
+
+@defun sn< @vari{seconds} @vari{nanoseconds} @varii{seconds} @varii{nanoseconds}
+@defunx sn> @vari{seconds} @vari{nanoseconds} @varii{seconds} @varii{nanoseconds}
+@defunx sn<= @vari{seconds} @vari{nanoseconds} @varii{seconds} @varii{nanoseconds}
+@defunx sn>= @vari{seconds} @vari{nanoseconds} @varii{seconds} @varii{nanoseconds}
+Return true if the first couple of counts is, respectively: less than,
+greater than, less than or equal to, greater than or equal to the second
+couple of counts.  The comparison is performed on normalised counts.
+@end defun
+
+
+@defun utc-seconds->tai-seconds @var{utc-seconds}
+@defunx tai-seconds->utc-seconds @var{tai-seconds}
+Convert a count of seconds since the Unix Epoch from @utc{} to @tai{}
+and vice versa.
+@end defun
+
+@c page
+@node time utils year
+@subsection Gregorian years and weeks
+
+
+@cindex @library{nausicaa times-and-dates years-and-weeks}, library
+@cindex Library @library{nausicaa times-and-dates years-and-weeks}
+
+
+@menu
+* time utils year const::       Constants.
+* time utils year year::        Year utility functions.
+* time utils year week::        Week utility functions.
+@end menu
+
+@c page
+@node time utils year const
+@subsubsection Constants
+
+
+The following bindings are exported from the @library{nausicaa
+times-and-dates years-and-weeks} library.
+
+
+@defvr Constant $number-of-seconds-in-half-day
+Number of seconds in a half day.  It is used in the expressions
+involving the Julian Day, which starts at noon (rather than at
+midnight).
+@end defvr
+
+
+@defvr Constant $tai-epoch-in-jd
+Julian day number for the Unix Epoch.
+@end defvr
+
+
+@defvr Constant $number-of-days-per-month/non-leap-year
+@defvrx Constant $number-of-days-per-month/leap-year
+Scheme vectors holding the numbers of days for each month.  The element
+at index zero is unused; the element at index @math{1} is for January,
+the element at index @math{2} for February, etc.
+@end defvr
+
+
+@defvr Constant $number-of-days-the-first-day-of-each-month/non-leap-year
+@defvrx Constant $number-of-days-the-first-day-of-each-month/leap-year
+Number of days from the beginning of the year, at the first day of a
+month.
+@end defvr
+
+@c page
+@node time utils year year
+@subsubsection Year utility functions
+
+
+The following bindings are exported from the @library{nausicaa
+times-and-dates years-and-weeks} library.
+
+
+@defun gregorian-leap-year? @var{yaer}
+Return true if @var{year} is a leap year.
+@end defun
+
+
+@defun gregorian-list-of-leap-years @var{inclusive-start} @var{inclusive-end}
+Return a list of leap years in the selected range of years.
+@end defun
+
+
+@defun gregorian-year-number-of-days-since-beginning @var{year} @var{month} @var{day}
+Return the number of days from the beginning of the year for the
+specified date.  Assume that the given date is correct.
+@end defun
+
+
+@defun gregorian-natural-year @var{xy} @var{current-year}
+Given a two digit year number @var{xy}, return the full year within
+@math{50} years; @var{current-year} must be a full year number
+representing the anchor for the returned value.
+
+@example
+(gregorian-natural-year 10 1903) @result{} 1910
+(gregorian-natural-year 10 1913) @result{} 1910
+(gregorian-natural-year 10 1923) @result{} 1910
+(gregorian-natural-year 10 1933) @result{} 1910
+(gregorian-natural-year 10 1943) @result{} 1910
+(gregorian-natural-year 10 1953) @result{} 1910
+(gregorian-natural-year 10 1963) @result{} 2010
+(gregorian-natural-year 10 1973) @result{} 2010
+(gregorian-natural-year 10 1983) @result{} 2010
+(gregorian-natural-year 10 1993) @result{} 2010
+(gregorian-natural-year 10 2003) @result{} 2010
+
+(gregorian-natural-year 50 1903) @result{} 1950
+(gregorian-natural-year 50 1913) @result{} 1950
+(gregorian-natural-year 50 1923) @result{} 1950
+(gregorian-natural-year 50 1933) @result{} 1950
+(gregorian-natural-year 50 1943) @result{} 1950
+(gregorian-natural-year 50 1953) @result{} 1950
+(gregorian-natural-year 50 1963) @result{} 1950
+(gregorian-natural-year 50 1973) @result{} 1950
+(gregorian-natural-year 50 1983) @result{} 1950
+(gregorian-natural-year 50 1993) @result{} 1950
+(gregorian-natural-year 50 2003) @result{} 2050
+
+(gregorian-natural-year 90 1903) @result{} 1890
+(gregorian-natural-year 90 1913) @result{} 1890
+(gregorian-natural-year 90 1923) @result{} 1890
+(gregorian-natural-year 90 1933) @result{} 1890
+(gregorian-natural-year 90 1943) @result{} 1990
+(gregorian-natural-year 90 1953) @result{} 1990
+(gregorian-natural-year 90 1963) @result{} 1990
+(gregorian-natural-year 90 1973) @result{} 1990
+(gregorian-natural-year 90 1983) @result{} 1990
+(gregorian-natural-year 90 1993) @result{} 1990
+(gregorian-natural-year 90 2003) @result{} 1990
+@end example
+@end defun
+
+
+@defun gregorian-year--western-easter-month-and-day @var{year}
+Given the number of a @var{year}, return two values being: the
+@math{1}-based index of the month in which Easter falls, the
+@math{1}-based index of the day in which Easter falls.  The computation
+is performed for the western christianity proleptic gregorian calendar.
+
+From the Calendar @acronym{FAQ}, section 2.13.7.
+@end defun
+
+@c page
+@node time utils year week
+@subsubsection Week utility functions
+
+
+The following bindings are exported from the @library{nausicaa
+times-and-dates years-and-weeks} library.
+
+
+@defun gregorian-index-of-day-in-week @var{year} @var{month} @var{day}
+Return the index of the day in its week, zero based: Sun=0, Mon=1,
+Tue=2, etc.  Assume the given date is correct.  Perform the computation
+for the proleptic gregorian calendar.
+
+From the calendar @acronym{FAQ} section 2.6.
+@end defun
+
+
+@defun gregorian-number-of-days-before-first-week @var{year} @var{day-of-week-starting-week}
+Return the number of days before the first day of the first week of the
+@var{year}.  @var{day-of-week-starting-week} selects which day starts a
+week: 0 for Sunday, 1 for Monday, 2 for Tuesday, etc.
+
+For example, given the month layout:
+
+@example
+    January 2010
+Su Mo Tu We Th Fr Sa
+                1  2
+ 3  4  5  6  7  8  9
+10 11 12 13 14 15 16
+17 18 19 20 21 22 23
+24 25 26 27 28 29 30
+31
+@end example
+
+@noindent
+in which the year starts on Friday (index 5) the results are as follows:
+
+@example
+(gregorian-number-of-days-before-first-week 2010 5)     @result{} 0
+(gregorian-number-of-days-before-first-week 2010 6)     @result{} 1
+(gregorian-number-of-days-before-first-week 2010 0)     @result{} 2
+(gregorian-number-of-days-before-first-week 2010 1)     @result{} 3
+(gregorian-number-of-days-before-first-week 2010 2)     @result{} 4
+(gregorian-number-of-days-before-first-week 2010 3)     @result{} 5
+(gregorian-number-of-days-before-first-week 2010 4)     @result{} 6
+@end example
+@end defun
+
+@c page
+@node time utils julian
+@subsection Julian calendar utilities
+
+
+@cindex @library{nausicaa times-and-dates julian-calendar}, library
+@cindex Library @library{nausicaa times-and-dates julian-calendar}
+
+
+The following bindings are exported by the @library{nausicaa
+times-and-dates julian-calendar} library.  The arguments to the
+functions are supposed to be in their valid type and range:
+
+@itemize
+@item
+Nanoseconds as exact integers in @math{[0, 999999999]}.
+
+@item
+Seconds as exact integers in @math{[0, 59]} when fractions of a minute,
+as exact integers when counts since the Epoch on the @tai{} or @utc{}
+scale.
+
+@item
+Minutes as exact integers in @math{[0, 59]}.
+
+@item
+Hours as exact integers in @math{[0, 23]}.
+
+@item
+Days as exact integers in @math{[1, 28]}, @math{[1, 29]}, @math{[1, 30]}
+or @math{[1, 31]} according to the month number.
+
+@item
+Months as exact integers in @math{[1, 12]}.
+
+@item
+Years as exact integers.
+
+@item
+Julian Dates as exact integers or exact rationals.
+
+@item
+Julian Day Numbers and Modified Julian Day Numbers as exact integers.
+@end itemize
+
+@c ------------------------------------------------------------
+
+@subsubheading Conversion to/from seconds and nanoseconds
+
+
+@defun utc-seconds-and-nanoseconds->julian-day-number @var{utc-seconds} @var{nanoseconds}
+Return the Julian Day Number representing the given counts of @utc{}
+seconds (time zone zero) since the Unix Epoch and nanoseconds.
+@end defun
+
+
+@defun tai-seconds-and-nanoseconds->julian-day-number @var{tai-seconds} @var{nanoseconds}
+Return the Julian Day Number representing the given counts of @tai{}
+seconds (time zone zero) since the Unix Epoch and nanoseconds.
+@end defun
+
+
+@defun julian-day-number->utc-seconds-and-nanoseconds @var{jdn}
+Return two values: the @utc{} seconds count (time zone zero) since the
+Unix Epoch and nanoseconds counts representing @var{jdn}.
+@end defun
+
+
+@defun julian-day-number->tai-seconds-and-nanoseconds @var{jdn}
+Return two values: the @tai{} seconds count (time zone zero) since the
+Unix Epoch and nanoseconds counts representing @var{JDN}.
+@end defun
+
+
+@defun utc-seconds-and-nanoseconds->julian-date @var{utc-seconds} @var{nanoseconds}
+Return the Julian Date representing the given counts of @utc{} seconds
+(time zone zero) since the Unix Epoch and nanoseconds.
+@end defun
+
+
+@defun tai-seconds-and-nanoseconds->julian-date @var{tai-seconds} @var{nanoseconds}
+Return the Julian Date representing the given counts of @tai{} seconds
+(time zone zero) since the Unix Epoch and nanoseconds.
+@end defun
+
+
+@defun julian-date->utc-seconds-and-nanoseconds @var{jd}
+Return two values: the @utc{} seconds count (time zone zero) since the
+Unix Epoch and nanoseconds counts representing @var{jd}.
+@end defun
+
+
+@defun julian-date->tai-seconds-and-nanoseconds @var{jd}
+Return two values: the @tai{} seconds count (time zone zero) since the
+Unix Epoch and nanoseconds counts representing @var{jd}.
+@end defun
+
+@c ------------------------------------------------------------
+
+@subsubheading Conversion to/from Gregorian calendar
+
+
+@defun julian-day-encode-number @var{year} @var{month} @var{day}
+Return an exact integer representing the Julian Day Number at the given
+date on the proleptic Gregorian calendar at 12:00:00Z, that is: starting
+at noon, @utc{} scale, time zone zero.  This function assumes the given
+date is correct.
+
+When converting a full time point to a Julian Day Number: the counts of
+hours, minutes, seconds and nanoseconds are discarded.
+
+From the Calendar @acronym{FAQ}, section 2.16.1.
+@end defun
+
+
+@defun julian-day-decode-number @var{jdn}
+Return 3 values: year, month, day in the proleptic Gregorian calendar
+corresponding to the Julian Day Number @var{jdn}.
+
+When converting a Julian Day Number to a full time point: the count of
+hours must be set to @math{12} and the counts of minutes, seconds and
+nanoseconds must be set to zero.
+
+From the Calendar @acronym{FAQ}, section 2.16.1.
+@end defun
+
+
+@defun time-point->julian-date @var{year} @var{month} @var{day} @var{hours} @var{minutes} @var{seconds} @var{nanoseconds}
+Convert the given time point into a Julian Date value.
+@end defun
+
+
+@defun julian-date->time-point @var{jd}
+Convert a Julian Date value to a time point tuple; return @math{7}
+values: year, month, day, hours, minutes, seconds, nanoseconds.
+@end defun
+
+@c ------------------------------------------------------------
+
+@subsubheading Conversion between @jdn{} and @mjdn{}
+
+
+@defun julian-day-number->modified-julian-day-number @var{jdn}
+Return the Modified Julian Day Number corresponding to the Julian Day
+Number @var{jdn}.
+@end defun
+
+
+@defun modified-julian-day-number->julian-day-number @var{mjdn}
+Return the Julian Day Number corresponding to the Modified Julian Day
+Number @var{mjdn}.
+@end defun
+
+@c page
+@node time current
+@section Current time and clock resolution
+
+
+@defun current-date
+@defunx current-date @var{tz-offset}
+Return a @emph{Date} corresponding to the current @utc{} time.
+@end defun
+
+@defun current-julian-date
+Current Julian Day.
+@end defun
+
+
+@defun current-modified-julian-day
+Current Modified Julian Day.
+@end defun
+
+
+@defun current-time
+@defunx current-time @var{time-type}
+Current time, of type @var{time-type} system, which defaults to
+@code{time-utc}.
+@end defun
+
+
+@defun time-resolution
+@defunx time-resolution @var{time-type}
+Return an exact integer representing the clock resolution, in
+nanoseconds, of the system clock of type type @var{time-type} system,
+which defaults to @code{time-utc}.
+@end defun
+
+@c page
+@node time string
+@section Date to string/string to date converters
+
+
+The following procedures provide conversion to and from strings.  They
+are required.  The specification below describes a ``locale''; the
+specification of locales is beyond this @srfi{}.
+
+
+@defun date->string @var{date} [@var{format-string}]
+Convert a date to a string, using the format string.
+
+The format string is copied as is; except escape characters (indicated
+by the tilde) are replaced with specfic conversions.
+
+The following table lists the required conversion specifiers;
+implementations are free to extend this list.
+
+@multitable {Escape Char} {scrappy dappy doo, scrappy dappy doo, scappy dappy}
+@headitem Escape Char @tab Conversion
+@item ~~ @tab a literal ~
+@item ~a @tab locale's abbreviated weekday name (Sun...Sat)
+@item ~A @tab locale's full weekday name (Sunday...Saturday)
+@item ~b @tab locale's abbreviate month name (Jan...Dec)
+@item ~B @tab locale's full month day (January...December)
+@item ~c @tab locale's date and time (e.g., "Fri Jul 14 20:28:42-0400 2000")
+@item ~d @tab day of month, zero padded (01...31)
+@item ~D @tab date (mm/dd/yy)
+@item ~e @tab day of month, blank padded ( 1...31)
+@item ~f @tab seconds+fractional seconds, using locale's decimal separator (e.g. 5.2).
+@item ~h @tab same as ~b
+@item ~H @tab hour, zero padded, 24-hour clock (00...23)
+@item ~I @tab hour, zero padded, 12-hour clock (01...12)
+@item ~j @tab day of year, zero padded
+@item ~k @tab hour, blank padded, 24-hour clock (00...23)
+@item ~l @tab hour, blank padded, 12-hour clock (01...12)
+@item ~m @tab month, zero padded (01...12)
+@item ~M @tab minute, zero padded (00...59)
+@item ~n @tab new line
+@item ~N @tab nanosecond, zero padded
+@item ~p @tab locale's AM or PM
+@item ~r @tab time, 12 hour clock, same as "~I:~M:~S ~p"
+@item ~s @tab number of full seconds since "the epoch" (in UTC)
+@item ~S @tab second, zero padded (00...60)
+@item ~t @tab horizontal tab
+@item ~T @tab time, 24 hour clock, same as "~H:~M:~S"
+@item ~U @tab week number of year with Sunday as first day of week (00...53)
+@item ~V @tab week number of year with Monday as first day of week (01...52)
+@item ~w @tab day of week (0...6)
+@item ~W @tab week number of year with Monday as first day of week (01...52)
+@item ~x @tab locale's date representation, for example: "12/31/99"
+@item ~X @tab locale's time representation, for example: "23:13:48"
+@item ~y @tab last two digits of year (00...99)
+@item ~Y @tab year
+@item ~z @tab time zone in RFC-822 style
+@item ~Z @tab symbol time zone (not--implemented)
+@item ~1 @tab @iso{}--8601 year--month--day format
+@item ~2 @tab @iso{}--8601 hour--minute--second-timezone format
+@item ~3 @tab @iso{}--8601 hour--minute--second format
+@item ~4 @tab @iso{}--8601 year--month--day--hour--minute--second--timezone format
+@item ~5 @tab @iso{}--8601 year--month--day--hour--minute--second format
+@end multitable
+
+@quotation
+@emph{Nausicaa note:} These escape sequences are almost like the ones
+specified for the C library function @cfunc{strftime} and the @gnu{}
+@command{date} command line program.  The original @srfi{} document
+defined @code{~x} to:
+
+@quotation
+week number of year with Monday as first day of week (00...53)
+@end quotation
+
+@noindent
+and @code{~X} to:
+
+@quotation
+locale's date representation, for example: "07/31/00"
+@end quotation
+
+@noindent
+which is probably a document composition error, because the reference
+implementation accompanying the document does what is described above.
+@end quotation
+@end defun
+
+
+@defun string->date @var{input-string} @var{template-string}
+Convert an input string to a date, using the template string.
+
+The input string must match the template string as is; except escape
+characters (preceded by a the tilde) indicate special converters which:
+
+@enumerate
+@item
+move to the next character in the input string fulfilling a criterion;
+
+@item
+read a value;
+
+@item
+act on this value in some way.
+@end enumerate
+
+The table below lists the required converters; implementations are free
+to extend this list.
+
+@multitable {Escape} {char-alphabetic?} {Scrappy dappy doo, scrappy} {Scrappy dappy}
+@headitem Escape @tab Skip to @tab Read @tab Contract
+@item ~~ @tab any @tab read literal ~ @tab nothing
+@item ~a @tab char-alphabetic? @tab abbreviated weekday in locale @tab nothing
+@item ~A @tab char-alphabetic? @tab full weekday in locale @tab nothing
+@item ~b @tab char-alphabetic? @tab abbreviated month name in locale @tab nothing
+@item ~B @tab char-alphabetic? @tab full month name in locale @tab nothing
+@item ~d @tab char-numeric? @tab day of month  @tab date--day
+@item ~e @tab any @tab day of month, blank padded @tab date--day
+@item ~h @tab char-alphabetic? @tab same as ~b @tab nothing
+@item ~H @tab char-numeric? @tab hour @tab date--hour
+@item ~k @tab any @tab hour, blank padded @tab date--hour
+@item ~m @tab char-numeric? @tab month @tab date--month
+@item ~M @tab char-numeric? @tab minute @tab date--minute
+@item ~S @tab char-numeric? @tab second @tab date--second
+@item ~y @tab any @tab 2--digit year @tab date--year within 50 years
+@item ~Y @tab char-numeric? @tab year @tab date-year
+@item ~z @tab any @tab time zone @tab date--zone--offset
+@end multitable
+@end defun
+
+@c end of file

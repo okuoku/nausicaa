@@ -25,9 +25,10 @@
 ;;;
 
 
+#!r6rs
 (import (nausicaa)
-  (libraries names)
-  (checks))
+  (nausicaa libraries names)
+  (nausicaa checks))
 
 (check-set-mode! 'report-failed)
 (display "*** testing library names\n")

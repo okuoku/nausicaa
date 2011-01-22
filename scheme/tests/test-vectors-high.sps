@@ -7,7 +7,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -24,9 +24,10 @@
 ;;;
 
 
+#!r6rs
 (import (nausicaa)
-  (vectors)
-  (checks))
+  (nausicaa vectors)
+  (nausicaa checks))
 
 (check-set-mode! 'report-failed)
 (display "*** testing vectors\n")
@@ -396,7 +397,7 @@
 	  (2 #\C)
 	  (3 #\D)))
 
-  (check 'this
+  (check
       (vector-map/with-index list
 			     '#(#\a #\b #\c #\d)
 			     '#(#\0 #\1 #\2 #\3))
@@ -405,11 +406,11 @@
 	  (2 #\c #\2)
 	  (3 #\d #\3)))
 
-  (check 'this
+  (check
       (vector-map/with-index list '#())
     => '#())
 
-  (check 'this
+  (check
       (vector-map/with-index list '#() '#())
     => '#())
 

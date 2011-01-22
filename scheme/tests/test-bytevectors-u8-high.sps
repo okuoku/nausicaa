@@ -27,10 +27,10 @@
 ;;;; setup
 
 (import (nausicaa)
-  (bytevectors u8)
-  (char-sets)
-  (asciis)
-  (checks)
+  (nausicaa bytevectors u8)
+  (nausicaa char-sets)
+  (nausicaa asciis)
+  (nausicaa checks)
   (rnrs mutable-strings))
 
 (check-set-mode! 'report-failed)

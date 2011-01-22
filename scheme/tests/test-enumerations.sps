@@ -26,8 +26,8 @@
 
 
 (import (nausicaa)
-  (enumerations)
-  (checks))
+  (nausicaa enumerations)
+  (nausicaa checks))
 
 (check-set-mode! 'report-failed)
 (display "*** testing enumerations\n")

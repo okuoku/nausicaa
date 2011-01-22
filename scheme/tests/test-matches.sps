@@ -1,13 +1,13 @@
 ;;;
 ;;;Part of: Nausicaa/Scheme
-;;;Contents: tests for (matches)
+;;;Contents: tests for (nausicaa matches)
 ;;;Date: Sat Aug 29, 2009
 ;;;
 ;;;Abstract
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2009-2011 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;Copyright (c) 2006, 2007 Alex Shinn
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
@@ -25,20 +25,23 @@
 ;;;
 
 
+#!r6rs
 (import (nausicaa)
-  (checks)
-  (matches)
+  (nausicaa checks)
+  (nausicaa language syntax-utilities)
   (rnrs eval))
 
 (check-set-mode! 'report-failed)
 (display "*** testing matches\n")
 
+(debugging #t)
+
 (define-syntax catch-error
   (syntax-rules ()
     ((_ ?body)
      (guard (E ((irritants-condition? E)
-		`((message   . ,(condition-message E))
-		  (irritants . ,(condition-irritants E))))
+		`((message   ,(condition-message E))
+		  (irritants ,(condition-irritants E))))
 	       (else
 		#t))
        ?body))))
@@ -47,17 +50,20 @@
   (syntax-rules ()
     ((_ ?body)
      (guard (E ((syntax-violation? E)
-		`((message	. ,(condition-message E))
-		  (form		. ,(syntax-violation-form E))))
-	       (else #f))
+		`((message	,(condition-message E))
+		  (form		,(syntax-violation-form E))
+		  (subform	,(syntax-violation-subform E))))
+	       (else
+		(debug-print-condition "syntax:" E)
+		E))
        (eval (quote ?body)
-	     (environment '(rnrs) '(matches)))))))
+	     (environment '(nausicaa)))))))
 
 (define-syntax catch-mismatch-error
   (syntax-rules ()
     ((_ ?body)
-     (guard (E (else `((message   . ,(condition-message E))
-		       (expr      . ,(condition-match-mismatch-expression E)))))
+     (guard (E (else `((message   ,(condition-message E))
+		       (expr      ,(condition-match-mismatch/expression E)))))
        ?body))))
 
 
@@ -65,42 +71,48 @@
 
   (check
       (catch-syntax-error (match))
-    => '((message . "missing match expression")
-	 (form    . (match))))
+    => '((message	"missing match expression")
+	 (form		(match))
+	 (subform	#f)))
 
   (check
       (catch-syntax-error (match 123))
-    => '((message . "missing match clause")
-	 (form    . (match 123))))
+    => '((message "at least one match clause is required")
+	 (form    (match 123))
+	 (subform #f)))
 
   (check
       (catch-mismatch-error (match 28 (29 'ok)))
-    => '((message . "no matching pattern")
-	 (expr    . 28)))
+    => '((message "no matching pattern")
+	 (expr    28)))
 
   (check
       (catch-syntax-error (match 28 (28 (=> fail))))
-    => '((message . "no body in match clause")
-	 (form    . (28 (=> fail)))))
+    => '((message "no body in match clause")
+	 (form    (match 28 (28 (=> fail))))
+	 (subform (28 (=> fail)))))
 
   (check
       (catch-syntax-error (match 28
 			    ((a ... b ... c)
 			     'fail)))
-    => '((message . "multiple ellipsis patterns not allowed at same level")
-	 (form    . (a ... b ... c))))
+    => '((message	"multiple ellipsis patterns not allowed at same level")
+	 (form		(a ... b ... c))
+	 (subform	#f)))
 
   (check
       (catch-syntax-error (match 28
 			    ((a ... b ...)
 			     'fail)))
-    => '((message . "multiple ellipsis patterns not allowed at same level")
-	 (form    . (a ... b ...))))
+    => '((message	"multiple ellipsis patterns not allowed at same level")
+	 (form		(a ... b ...))
+	 (subform	#f)))
 
   (check
       (catch-syntax-error (match 28 (28)))
-    => '((message . "no body in match clause")
-	 (form    . (28))))
+    => '((message	"no body in match clause")
+	 (form		(match 28 (28)))
+	 (subform	(28))))
 
   #t)
 
@@ -475,7 +487,7 @@
 		 ((:or (:predicate integer? x)
 		       (:predicate symbol?  y))
 		  y))
-	      (environment '(rnrs) '(matches))))
+	      (environment '(nausicaa))))
     => #t)
 
   (check
@@ -484,7 +496,7 @@
 		 ((:or (:predicate integer? x)
 		       (:predicate symbol?  y))
 		  x))
-	      (environment '(rnrs) '(matches))))
+	      (environment '(nausicaa))))
     => #t)
 
 ;;; --------------------------------------------------------------------
@@ -511,14 +523,15 @@
 	(eval '(match 123
 		 ((:not (:predicate symbol? x))
 		  x)) ; unbound identifier
-	      (environment '(rnrs) '(matches))))
+	      (environment '(nausicaa))))
     => #t)
 
   (check
       (catch-syntax-error (match '()
 			    ((:not) 'fail)))
-    => '((message . "empty :NOT form in pattern")
-	 (form    . (:not))))
+    => '((message	"empty :NOT form in pattern")
+	 (form		(:not))
+	 (subform	#f)))
 
   #t)
 
@@ -655,8 +668,9 @@
       (catch-syntax-error (match '#(a b c d)
 			    (#( ...)
 			     x)))
-    => '((message . "ellipsis not allowed as single, vector pattern value")
-	 (form    . #(...))))
+    => '((message	"ellipsis not allowed as single, vector pattern value")
+	 (form		#(...))
+	 (subform	#f)))
 
   (check
       (match '#(a b c d)
@@ -1002,7 +1016,7 @@
 	(eval '(match 1
 		 ((:setter doit)
 		  (doit 3)))
-	      (environment '(rnrs) '(matches))))
+	      (environment '(nausicaa))))
     => #t)
 
   (check	;setter car
@@ -1073,6 +1087,134 @@
 
 
     #t)
+
+
+(parametrise ((check-test-name 'identifiers))
+
+  (define-auxiliary-syntaxes
+    alpha beta)
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (match #'alpha
+	((:free-identifier #'alpha)
+	 #t)
+	(_ #f))
+    => #t)
+
+  (check
+      (match #'beta
+	((:free-identifier #'alpha)
+	 #t)
+	(_ #f))
+    => #f)
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (match #'alpha
+	((:bound-identifier #'alpha)
+	 #t)
+	(_ #f))
+    => #t)
+
+  (check
+      (match #'beta
+	((:bound-identifier #'alpha)
+	 #t)
+	(_ #f))
+    => #f)
+
+  #t)
+
+
+(parametrise ((check-test-name	'transformers))
+
+  (let ()
+    (define-auxiliary-syntaxes
+      alpha beta delta gamma rho)
+
+    (define-syntax doit
+      (lambda (stx)
+	(match (unwrap-syntax-object stx)
+	  ((_ ?clause)
+	   (match ?clause
+	     (((:free-identifier #'alpha) ?a)
+	      #`(list 'alpha #,?a))
+
+	     (((:free-identifier #'beta) ?clause)
+	      (match ?clause
+		(((:free-identifier #'delta) ?d)
+		 #`(list 'beta 'delta #,?d))
+		(((:free-identifier #'gamma) ?g)
+		 #`(list 'beta 'gamma #,?g))))
+
+	     (((:free-identifier #'rho) ?r)
+	      #`(list 'rho #,?r)))))))
+
+    (check
+	(doit (alpha 1))
+      => '(alpha 1))
+
+    (check
+	(doit (beta (delta 2)))
+      => '(beta delta 2))
+
+    (check
+	(doit (beta (gamma 3)))
+      => '(beta gamma 3))
+
+    (check
+	(doit (rho 4))
+      => '(rho 4))
+
+    #f)
+
+;;; --------------------------------------------------------------------
+;;; the same with syntax-case
+
+  (let ()
+    (define-auxiliary-syntaxes
+      alpha beta delta gamma rho)
+
+    (define-syntax doit
+      (lambda (stx)
+	(syntax-case stx ()
+	  ((_ ?clause)
+	   (syntax-case #'?clause (alpha beta rho)
+	     ((alpha  ?a)
+	      #'(list 'alpha ?a))
+
+	     ((beta ?clause)
+	      (syntax-case #'?clause ()
+		((delta ?d)
+		 #'(list 'beta 'delta ?d))
+		((gamma ?g)
+		 #'(list 'beta 'gamma ?g))))
+
+	     ((rho ?r)
+	      #'(list 'rho ?r)))))))
+
+    (check
+	(doit (alpha 1))
+      => '(alpha 1))
+
+    (check
+	(doit (beta (delta 2)))
+      => '(beta delta 2))
+
+    (check
+	(doit (beta (gamma 3)))
+      => '(beta gamma 3))
+
+    (check
+	(doit (rho 4))
+      => '(rho 4))
+
+    #f)
+
+  #t)
 
 
 ;;;; done

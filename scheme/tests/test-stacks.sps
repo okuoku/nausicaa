@@ -24,9 +24,10 @@
 ;;;
 
 
+#!r6rs
 (import (nausicaa)
-  (checks)
-  (stacks))
+  (nausicaa checks)
+  (nausicaa stacks))
 
 (check-set-mode! 'report-failed)
 (display "*** testing stacks\n")
@@ -52,17 +53,17 @@
 ;;; --------------------------------------------------------------------
 
   (check
-      (let ((q (make <stack>)))
+      (let ((q (make-<stack>)))
 	(is-a? q <stack>))
     => #t)
 
   (check
-      (let ((q (make <stack> 1)))
+      (let ((q (make-<stack> 1)))
 	(is-a? q <stack>))
     => #t)
 
   (check
-      (let ((q (make <stack> 1 2 3)))
+      (let ((q (make-<stack> 1 2 3)))
 	(is-a? q <stack>))
     => #t)
 

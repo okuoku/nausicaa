@@ -1,0 +1,309 @@
+@node syntax utils
+@chapter Syntax utilities
+
+
+@cindex @library{nausicaa language syntax-utilities}, library
+@cindex Library @library{nausicaa language syntax-utilities}
+
+
+The library @library{nausicaa language syntax-utilities} defines
+functions and macros to automate common tasks in new syntax definitions.
+It is suggested to prefix the bindings with @samp{sx.} when importing
+it, as in:
+
+@example
+(import ---
+  (prefix (nausicaa language syntax-utilities) sx.))
+@end example
+
+@menu
+* syntax utils wrapping::       Unwrapping syntax objects.
+* syntax utils inspecting::     Inspecting syntax objects.
+* syntax utils identifiers::    Constructing identifiers.
+* syntax utils clauses::        Clauses handling.
+@end menu
+
+@c page
+@node syntax utils wrapping
+@section Unwrapping syntax objects
+
+
+@defun unwrap-syntax-object @var{stx}
+@defunx unwrap-syntax-object @var{stx} @var{options}
+Given a syntax object @var{stx} decompose it and return the
+corresponding symbolic expression holding datums and identifiers.  Take
+care of returning a proper list when the input is a syntax object
+holding a proper list.
+
+@var{options} must be an enumeration set of type @enum{unwrap-option};
+it drives this function as follows:
+
+@table @code
+@item keep-general-quoted
+Do @strong{not} unwrap pairs whose car is one of the identifiers:
+@func{quote}, @func{quasiquote}, @func{syntax}, @func{quasisyntax}.
+Such pairs are left untouched as wrapped syntax objects.
+@end table
+
+@quotation
+This functions also provides a workaround for bugs in Ikarus (Vicare)
+and Mosh, which expand syntax objects holding a list into IMproper
+lists.
+@end quotation
+@end defun
+
+
+@deftp {Enumeration Type} enum-unwrap-options
+Enumeration for the options of @func{unwrap-syntax-object}; the included
+symbols are:
+
+@example
+keep-general-quoted
+@end example
+@end deftp
+
+
+@defmac unwrap-options @var{symbol} ...
+Expand into an enumeration set of type @enum{unwrap-options} holding the
+given symbol arguments.
+@end defmac
+
+
+@defun syntax->list @var{stx}
+@defunx syntax->list @var{stx} @var{tail}
+Given a syntax object @var{stx} holding a list, return a new proper list
+holding the component syntax objects.  @var{tail} must be null or a
+proper list which will become the tail of the returned list; @var{tail}
+defaults to null.
+@end defun
+
+
+@defun syntax->vector @var{stx}
+Unwrap the syntax object @var{stx} holding a Scheme vector; return the
+unwrapped vector.  If @var{stx} does not hold a vector: raise a syntax
+violation exception.
+@end defun
+
+@c page
+@node syntax utils inspecting
+@section Inspecting syntax objects
+
+
+@defun quoted-syntax-object? @var{stx}
+Return true if @var{stx} is a syntax object holding a pair whose car is
+one of the identifiers: @func{quote}, @func{quasiquote}, @func{syntax},
+@func{quasisyntax}.
+@end defun
+
+
+@defun syntax=? @vari{stx} @varii{stx}
+Unwrap the syntax objects @vari{stx} and @varii{stx} and compare the
+result: return true if they are equal.
+@end defun
+
+
+@defun all-identifiers? @var{stx}
+Given a syntax object: return true if it is null or a list of
+identifiers; return false otherwise.
+@end defun
+
+
+@defun duplicate-identifiers? @var{unwrapped-stx}
+@defunx duplicate-identifiers? @var{unwrapped-stx} @var{identifier=}
+Search the list of identifiers @var{unwrapped-stx} for duplicate
+identifiers; at the first duplicate found, return it; return false if no
+duplications are found.
+
+@var{identifier=} must be the predicate used to compare identifiers; it
+is typically @func{bound-identifier=?} or @func{free-identifier=?}.
+When not given: @var{identifier=} defaults to @func{bound-identifier=?}.
+@end defun
+
+
+@defun delete-duplicate-identifiers @var{unwrapped-ids}
+Given a list of identifiers: remove the duplicate identifiers and return
+a proper list of unique identifiers.
+@end defun
+
+
+@defun identifier-memq @var{identifier} @var{list-of-syntax-objects}
+Given a list of syntax objects search for one which is
+@func{free-identifier=?}  to @var{identifier} and return the sublist
+starting with it; return false if @var{identifier} is not present.
+@end defun
+
+
+@defun symbol-identifier=? @vari{id} @varii{id}
+Return true if the identifier arguments have the same name.
+@end defun
+
+
+@defun identifier-subst @var{src-ids} @var{dst-ids} @var{stx}
+Substitute occurrences of identifiers in @var{stx}.  @var{stx} must be a
+syntax object, wrapped or unwrapped.  @var{src-ids} and @var{dst-ids}
+must be syntax objects holding lists of identifiers with equal length;
+each identifier from @var{src-ids} is substituted with the corresponding
+identifier from @var{dst-ids}.
+
+It is typical that @var{src-ids} are identifiers from an input form of a
+macro use, while @var{dst-ids} is built with
+@func{generate-temporaries}; the following is a meaningless example:
+
+@example
+(define-syntax doit
+  (lambda (stx)
+    (syntax-case stx ()
+      ((_ ?name ...)
+       (with-syntax (((NAME ...)
+                      (generate-temporaries #'(?name ...))))
+         (identifier-subst #'(?name ...)
+                           #'(NAME  ...)
+                           stx))))))
+@end example
+@end defun
+
+@c page
+@node syntax utils identifiers
+@section Constructing identifiers
+
+
+@defmac identifier->string @var{id}
+Given an identifier syntax object return its string name.
+@end defmac
+
+
+@defmac string->identifier @var{context} @var{string}
+Convert @var{string} to a symbol and then into an identifier in the same
+context as the identifier @var{context}.
+@end defmac
+
+
+@defun identifier-prefix @var{prefix} @var{identifier}
+Return a new identifier, in the same context of @var{identifier}, whose
+name is built by prepending @var{prefix} to the name of
+@var{identifier}.  @var{prefix} must be a string, symbol or identifier.
+@end defun
+
+
+@defun identifier-suffix @var{identifier} @var{suffix}
+Return a new identifier, in the same context of @var{identifier}, whose
+name is built by appending @var{suffix} to the name of @var{identifier}.
+@var{suffix} must be a string, symbol or identifier.
+@end defun
+
+
+@defun syntax-maker-identifier @var{identifier}
+Return a new identifier, in the same context of @var{identifier}, whose
+name is built by prepending @code{make-} to the name of
+@var{identifier}.
+@end defun
+
+
+@defun syntax-predicate-identifier
+Return a new identifier, in the same context of @var{identifier}, whose
+name is built by appending @code{?} to the name of @var{identifier}.
+@end defun
+
+
+@defun syntax-accessor-identifier @var{type-identifier} @var{field-identifier}
+@defunx syntax-mutator-identifier @var{type-identifier} @var{field-identifier}
+Return a new identifier, in the same context of @var{type-identifier},
+whose name is built by joining the arguments with a dash @code{-};
+additionally @func{syntax-mutator-identifier} appends @code{-set!}.
+@end defun
+
+
+@defun syntax-method-identifier @var{type-identifier} @var{field-identifier}
+Return a new identifier, in the same context of @var{type-identifier},
+whose name is built by joining the arguments with a dash @code{-}.  This
+function is meant to be used to build class's method function names.
+@end defun
+
+
+@defun syntax-dot-notation-identifier @var{variable-identifier} @var{field-identifier}
+Return a new identifier, in the same context of @var{type-identifier},
+whose name is built by joining the arguments with a dot.
+@end defun
+
+
+@defun identifier-general-append @varo{arg} @var{arg} ...
+Build and return a new @strong{string} by appending the given arguments.
+The arguments can be identifiers, strings and symbols.
+@end defun
+
+@c page
+@node syntax utils clauses
+@section Clauses handling
+
+
+@defun validate-list-of-clauses @var{clauses} @var{synner}
+Scan the unwrapped syntax object @var{clauses} expecting a list with the
+format:
+
+@example
+((<keyword identifier> <thing> ...) ...)
+@end example
+
+@var{synner} must be a closure used to raise a syntax violation if a
+parse error occurs; it must accept two arguments: the message string,
+the invalid subform.
+@end defun
+
+
+@defun filter-clauses @var{keyword-identifier} @var{clauses}
+Given a list of clauses with the format:
+
+@example
+((<identifier> <thing> ...) ...)
+@end example
+
+@noindent
+look for the ones having @var{keyword-identifier} as car (according to
+@func{free-identifier=?}) and return the selected clauses in a list;
+return the empty list if no matching clause is found.
+@end defun
+
+
+@defun discard-clauses @var{keyword-identifier} @var{clauses}
+Given a list of clauses with the format:
+
+@example
+((<identifier> <thing> ...) ...)
+@end example
+
+@noindent
+look for the ones having @var{keyword-identifier} as car (according to
+@func{free-identifier=?}) and discard them; return all the other clauses
+in a list; return the empty list if all the clauses have
+@var{keyword-identifier} as car.
+@end defun
+
+
+@defun validate-definition-clauses @var{mandatory-keywords} @var{optional-keywords} @var{at-most-once-keywords} @var{exclusive-keywords-sets} @var{clauses} @var{synner}
+Scan the unwrapped syntax object @var{clauses} expecting a list with the
+format:
+
+@example
+((<identifier> <thing> ...) ...)
+@end example
+
+@noindent
+then verify that the @var{identifier} syntax objects are in the list of
+identifiers @var{mandatory-keywords} or in the list of identifiers
+@var{optional-keywords}; any order is allowed.
+
+Identifiers in @var{mandatory-keywords} must appear at least once in the
+clauses; identifiers in @var{at-most-once-keywords} must appear at most
+once; identifiers in @var{optional-keywords} can appear zero or multiple
+times.
+
+@var{exclusive-keywords-sets} is a list of lists, each sublist holds
+identifiers; the identifiers in each sublist are mutually exclusive: at
+most one can appear in @var{clauses}.
+
+@var{synner} must be the closure used to raise a syntax violation if a
+parse error occurs; it must accept two arguments: the message string,
+the invalid subform.
+@end defun
+
+@c end of file

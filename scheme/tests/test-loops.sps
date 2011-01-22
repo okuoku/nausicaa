@@ -2,7 +2,7 @@
 ;;;
 ;;;sebastian.egner@philips.com, Eindhoven, The Netherlands, 25-Apr-2005
 ;;;Copyright (c) 2008 Derick Eddington
-;;;Nausicaa integration by Marco Maggi <marcomaggi@gna.org>
+;;;Nausicaa integration by Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;Permission is hereby granted, free of charge, to any person obtaining
 ;;;a  copy of  this  software and  associated  documentation files  (the
@@ -30,10 +30,11 @@
 ;;;SOFTWARE.
 
 
+#!r6rs
 (import (rnrs)
-  (loops)
+  (nausicaa loops)
   (rnrs mutable-strings)
-  (checks))
+  (nausicaa checks))
 
 (check-set-mode! 'report-failed)
 (display "*** testing loops\n")

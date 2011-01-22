@@ -24,10 +24,41 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
+;;;SRFI-19: Time Data Types and Procedures.
+;;;
+;;;Modified by Derick Eddington to be included into the (srfi time) R6RS
+;;;library.
+;;;
+;;;Copyright (C) I/NET, Inc. (2000, 2002, 2003). All Rights Reserved.
+;;;
+;;;This document and  translations of it may be  copied and furnished to
+;;;others, and derivative works that  comment on or otherwise explain it
+;;;or assist  in its implementation  may be prepared,  copied, published
+;;;and  distributed, in  whole or  in part,  without restriction  of any
+;;;kind, provided that the above copyright notice and this paragraph are
+;;;included  on all  such copies  and derivative  works.   However, this
+;;;document itself may  not be modified in any way,  such as by removing
+;;;the  copyright  notice  or  references  to  the  Scheme  Request  For
+;;;Implementation process  or editors, except as needed  for the purpose
+;;;of  developing SRFIs  in  which case  the  procedures for  copyrights
+;;;defined  in the  SRFI process  must be  followed, or  as  required to
+;;;translate it into languages other than English.
+;;;
+;;;The limited permissions  granted above are perpetual and  will not be
+;;;revoked by the authors or their successors or assigns.
+;;;
+;;;This document and the information  contained herein is provided on an
+;;;"AS  IS" basis  and  THE AUTHOR  AND  THE SRFI  EDITORS DISCLAIM  ALL
+;;;WARRANTIES,  EXPRESS OR  IMPLIED, INCLUDING  BUT NOT  LIMITED  TO ANY
+;;;WARRANTY THAT THE USE OF THE INFORMATION HEREIN WILL NOT INFRINGE ANY
+;;;RIGHTS OR ANY IMPLIED WARRANTIES  OF MERCHANTABILITY OR FITNESS FOR A
+;;;PARTICULAR PURPOSE.
+
 
+#!r6rs
 (import (nausicaa)
-  (times-and-dates seconds-and-subseconds)
-  (checks))
+  (nausicaa times-and-dates seconds-and-subseconds)
+  (nausicaa checks))
 
 (check-set-mode! 'report-failed)
 (display "*** testing times-and-dates seconds utilities\n")
@@ -76,11 +107,11 @@
 
   (check
       (tol (sn-normalise 1 -1))
-    => (list 0 (- $number-of-nanoseconds-in-a-second 1)))
+    => (list 0 (- $number-of-nanoseconds-in-one-second 1)))
 
   (check
       (tol (sn-normalise -1 1))
-    => (list 0 (- 1 $number-of-nanoseconds-in-a-second)))
+    => (list 0 (- 1 $number-of-nanoseconds-in-one-second)))
 
 ;;; --------------------------------------------------------------------
 
@@ -94,11 +125,11 @@
 
   (check
       (tol (su-normalise 1 -1))
-    => (list 0 (- $number-of-microseconds-in-a-second 1)))
+    => (list 0 (- $number-of-microseconds-in-one-second 1)))
 
   (check
       (tol (su-normalise -1 1))
-    => (list 0 (- 1 $number-of-microseconds-in-a-second)))
+    => (list 0 (- 1 $number-of-microseconds-in-one-second)))
 
 ;;; --------------------------------------------------------------------
 
@@ -112,11 +143,11 @@
 
   (check
       (tol (sm-normalise 1 -1))
-    => (list 0 (- $number-of-milliseconds-in-a-second 1)))
+    => (list 0 (- $number-of-milliseconds-in-one-second 1)))
 
   (check
       (tol (sm-normalise -1 1))
-    => (list 0 (- 1 $number-of-milliseconds-in-a-second)))
+    => (list 0 (- 1 $number-of-milliseconds-in-one-second)))
 
   #t)
 
@@ -289,23 +320,23 @@
   #t)
 
 
-(parametrise ((check-test-name	'comparison))
+(parametrise ((check-test-name	'utc))
 
   (define-syntax doit
     (syntax-rules ()
       ((_ ?utc-seconds ?leap)
        (begin
 	 (check
-	     (utc->tai ?utc-seconds)
+	     (utc-seconds->tai-seconds ?utc-seconds)
 	   => (+ ?utc-seconds ?leap))
 	 (check
-	     (utc->tai (+ 1 ?utc-seconds))
+	     (utc-seconds->tai-seconds (+ 1 ?utc-seconds))
 	   => (+ 1 ?utc-seconds ?leap))
 	 (check
-	     (tai->utc (+ ?utc-seconds ?leap))
+	     (tai-seconds->utc-seconds (+ ?utc-seconds ?leap))
 	   => ?utc-seconds)
 	 (check
-	     (tai->utc (+ 1 ?utc-seconds ?leap))
+	     (tai-seconds->utc-seconds (+ 1 ?utc-seconds ?leap))
 	   => (+ 1 ?utc-seconds))
 	 ))))
 

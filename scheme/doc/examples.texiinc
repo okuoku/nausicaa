@@ -1,0 +1,614 @@
+@node examples
+@appendix Scheme programming examples
+
+
+@menu
+* examples macros::             Exploring macro mechanisms.
+@end menu
+
+
+@c page
+@node examples macros
+@appendixsec Exploring macro mechanisms
+
+
+The examples in this section are meant neither to be useful nor to be
+meaningful; their only purpose is to highlight how the
+@func{define-syntax}, @func{syntax-case} and @func{syntax} mechanism
+works.
+
+When the examples are especially simple, or do not require particular
+features of @func{syntax-case}, the @func{syntax-rules} transformer is
+used.  This is the case of some of the pattern examples.
+
+
+@menu
+* examples macros phases::      Bits about phases.
+* examples macros underscore::  About the underscore.
+* examples macros patterns::    About writing patterns.
+* examples macros literals::    About literal identifiers.
+* examples macros syntax::      Syntax objects and you.
+@end menu
+
+
+
+@c page
+@node examples macros phases
+@appendixsubsec Bits about phases
+
+
+@quotation
+@strong{The following ramblings do not aim at being rigorous.}
+@end quotation
+
+@noindent
+Let's look at this code:
+
+@example
+(import (rnrs))
+
+(define (gasp arg)
+  arg)
+
+(define (gulp arg)
+  (gasp arg))
+
+(gulp 123)
+@end example
+
+@noindent
+Oll Korrect: we define two functions, one of which invokes the other in
+its body.  Now look at this:
+
+@example
+(import (rnrs))
+
+(let ()
+  (define (gasp arg)
+    arg)
+  #f)
+
+(let ()
+  (define (gulp arg)
+    (gasp arg))
+  (gulp 123))
+@end example
+
+@noindent
+this will not work: when @func{gulp} is invoked @func{gasp} does not
+exist anymore, because it is ``local'' to the first @func{let}.  The two
+functions exist at different ``times'' (using correct jargon for this
+case: they belong to distinct @emph{regions}).
+
+Let's state this clearly: Scheme allows sets of functions to exist at
+different times.  With more generality: Scheme allows sets of
+identifier/value bindings to exist at different times.  Fine.  Now we
+know that, technologically speaking, we have this option.
+
+In the two--@func{let} example above the two ``times'', the two regions,
+correspond to two distinct chunks of code: the @func{let} forms.  We ask
+ourselves if it is possible to make two set of functions exist at
+different times in the same chunk of code; with this feature, we could
+use the first set to compute values and build code that are used by the
+second set.  It would be similar to preprocessing C language files with
+the C language preprocessor.  The answer is that: yes, it is possible.
+
+Inhabitants of the Scheme Pantheon decided that, in the same way as
+@func{let} ``times'' are called @emph{regions}, these other ``times''
+are called @emph{phases}.
+
+To do such a thing we have to mark, select, partition, discriminate,
+paint with different colours the functions that are meant to belong to
+different phases.  We can imagine that there are special versions of
+@func{define} and @func{eval} that select a phase:
+
+@example
+;; Imaginary code.
+
+(define-for-phase-1 (gasp arg1)
+  (cons 1 arg1))
+
+(define-for-phase-2 (gulp arg2)
+  (cons 2 (gasp arg2)))
+
+(evaluate-in-phase-2
+  (gulp 9))
+@end example
+
+@noindent
+so that after evaluation phase @code{1} is finished, we have code
+equivalent to:
+
+@example
+;; Imaginary code.
+
+(define-for-phase-2 (gulp arg)
+  (cons 2 (cons 1 arg)))
+
+(evaluate-in-phase-2
+  (gulp 9))
+@end example
+
+@noindent
+which is equivalent to:
+
+@example
+;; Imaginary code.
+
+(define (gulp arg)
+  (cons 2 (cons 1 arg)))
+
+(gulp 9)
+@end example
+
+@noindent
+which is ``ordinary'' Scheme code that computes the improper list
+@code{(2 1 . 9)}.
+
+It turns out that code like this is really ugly, and the Scheme Pantheon
+decided that a chunk of code, by itself, should have only two phases
+called @code{expand} and @code{run}.  The @code{run} phase is the normal
+one: it is when the program should do whatever it is meant to do (talk
+to the user, download web pages, etc).  The @code{expand} phase is the
+special one: it is when the program does the precomputation of values
+and code.
+
+So it is enough to mark one set of functions, and the Pantheon decided
+that it is the @code{expand} set that must be marked differently.  Let's
+look at:
+
+@example
+(import (rnrs) (nausicaa checks))
+(check-set-mode! 'report-failed)
+
+(define-syntax expand-time-func
+  (lambda (syntax-object)        ;; this is the expand
+    123))                        ;; phase function
+
+(define (run-time-func arg)
+  (expand-time-func arg))
+
+(check
+ (run-time-func 456)
+ => 123)
+
+(check-report)
+@end example
+
+@noindent
+where we have marked @func{expand-time-func} to exist at @code{expand}
+time using @func{define-syntax}.  After evaluation phase @code{expand}
+is finished the code is equivalent to:
+
+@example
+(import (rnrs) (nausicaa checks))
+(check-set-mode! 'report-failed)
+
+(define (run-time-func arg)
+  123)
+
+(check
+ (run-time-func 456)
+ => 123)
+
+(check-report)
+@end example
+
+@noindent
+and everything works as we expect.
+
+The single argument that is handed to the @code{expand} time function is
+a weird beast called ``syntax object''.  All this section about
+@func{syntax-case} deals with using syntax objects.
+
+In the example above, it looks like @func{expand-time-func} is applied
+to the @code{arg} argument of @func{run-time-func}; but what is actually
+handed to the function is a syntax object holding information about the
+whole form @code{(expand-time-func arg)} and the context where it was
+located.
+
+There are functions to extract and use values in the syntax object.  For
+example the following script evaluates successfully:
+
+@example
+(import (rnrs) (nausicaa checks))
+(check-set-mode! 'report-failed)
+
+(define-syntax expand-time-func
+  (lambda (syntax-object)
+    (caddr (syntax->datum syntax-object))))
+
+(define (run-time-func arg)
+  (expand-time-func arg 123))
+
+(check
+ (run-time-func 456)
+ => '123)
+
+(check-report)
+@end example
+
+
+
+@c page
+@node examples macros underscore
+@appendixsubsec About the underscore
+
+
+It is stated that:
+
+@quotation
+Underscores, @code{_}, also match arbitrary input subforms but are not
+pattern variables and so cannot be used to refer to those elements.
+Multiple underscores may appear in a @meta{pattern}.
+@end quotation
+
+@noindent
+@xref{baselib transformers,syntax-rules}.  It means that the following
+script will evaluate successfully:
+
+@example
+(import (rnrs) (nausicaa checks))
+(check-set-mode! 'report-failed)
+
+(check
+ (let ()
+   (define-syntax doit
+     (syntax-rules ()
+       ((doit _) 1)))
+
+   (list (doit '(a b c))
+         (doit 2)
+         (doit '(a (b (c)) d (e)))))
+ => '(1 1 1))
+
+(check
+ (let ()
+   (define-syntax doit
+     (syntax-rules ()
+       ((doit _ _) 1)))
+
+   (list (doit '(a b c) '(d e f))
+         (doit 1 2)))
+ => '(1 1))
+
+(check-report)
+@end example
+
+The use of @code{_} allows us not to invent pattern variable names for
+subpatterns that we do not care about in a @meta{syntax rule}.  In the
+following:
+
+@example
+(define-syntax doit
+  (syntax-rules ()
+    ((doit ?arg)
+     1)))
+@end example
+
+@noindent
+we do not care about the actual value of @code{?arg}, so why should we
+be forced to invent a name for it?  Better to write:
+
+@example
+(define-syntax doit
+  (syntax-rules ()
+    ((doit _)
+     1)))
+@end example
+
+It is customary to use @code{_} in the pattern of @meta{syntax rule}s as
+a placeholder for the macro use name:
+
+@example
+(define-syntax doit
+  (syntax-rules ()
+    ((_ ?arg)
+     (list ?arg))))
+@end example
+
+@noindent
+but there is nothing special about this: it is convenient because one
+has only one char to type.  Notice that when writing @func{syntax-case}
+forms using @code{_} as first subpattern of patterns, while still
+possible, may need to be avoided because there is the need to use the
+macro use identifier, and it is not possible to do it with @code{_}.
+
+
+
+@c page
+@node examples macros patterns
+@appendixsubsec About writing patterns
+
+
+@subsubheading At least one element in a subpattern with ellipsis
+
+
+When we want to specify a pattern or subpattern that matches at least
+one element from the input form we have to use @code{?elm0 ?elm ...};
+this is because the @code{?elm ...} subpattern matches @strong{zero} or
+more elements.  So the following correctly returns @code{error} when
+zero elements are used:
+
+@example
+(import (rnrs) (nausicaa checks))
+(check-set-mode! 'report-failed)
+
+(define-syntax doit
+  (syntax-rules ()
+    ((_ ?elm0 ?elm ...)
+     '(?elm0 ?elm ...))
+    ((_ . ?rest)
+     'error)))
+
+(check (doit 1)         => '(1))
+(check (doit 1 2 3)     => '(1 2 3))
+(check (doit)           => 'error)
+
+(check-report)
+@end example
+
+@noindent
+while the following happily matches zero arguments to the macro:
+
+@example
+(import (rnrs) (nausicaa checks))
+(check-set-mode! 'report-failed)
+
+(define-syntax doit
+  (syntax-rules ()
+    ((_ ?elm ...)
+     '(?elm ...))
+    ((_ . ?rest)
+     'error)))
+
+(check (doit 1)         => '(1))
+(check (doit 1 2 3)     => '(1 2 3))
+(check (doit)           => '())
+
+(check-report)
+@end example
+
+@noindent
+here the @code{(_ . ?rest)} is never matched.
+
+@c ------------------------------------------------------------
+
+
+@subsubheading Matching proper lists but not improper lists
+
+
+When the @code{?arg ...} and @code{. ?args} subpatterns appear at the
+end of a list, they both match all the other elements (the cdr), which
+can be zero or more.  There is one difference: while @code{?arg ...}
+matches only a proper list, @code{. ?args} matches both proper and
+improper lists.  So the following works always:
+
+@example
+(import (rnrs) (nausicaa checks))
+(check-set-mode! 'report-failed)
+
+(define-syntax doit
+  (syntax-rules ()
+    ((_ . ?args)
+     '?args)))
+
+(check (doit 1)         => '(1))
+(check (doit 1 2 3)     => '(1 2 3))
+(check (doit 1 . 2)     => '(1 . 2))
+
+(check-report)
+@end example
+
+@noindent
+but the following raises an ``invalid syntax'' error in the improper
+list check:
+
+@example
+(import (rnrs) (nausicaa checks))
+(check-set-mode! 'report-failed)
+
+(define-syntax doit
+  (syntax-rules ()
+    ((_ ?arg ...)
+     '(?arg ...))))
+
+(check (doit 1)         => '(1))
+(check (doit 1 2 3)     => '(1 2 3))
+(check (doit 1 . 2)     => '(1 . 2))
+
+(check-report)
+@end example
+
+Notice that the @meta{formals} argument of a @func{lambda} can be an
+improper list when we use the @code{(arg1 arg2 . args)} form to bind the
+rest arguments to @code{args}.  So to properly match @meta{formals} the
+general @meta{formals} we have to use the @code{?arg . ?args}
+subpattern.
+
+
+
+@c page
+@node examples macros literals
+@appendixsubsec About literal identifiers
+
+
+It is stated that:
+
+@quotation
+A @meta{literal} identifier matches an input subform if and only if the
+input subform is an identifier and either both its occurrence in the
+input expression and its occurrence in the list of literals have the
+same lexical binding, or the two identifiers have the same name and both
+have no lexical binding.
+@end quotation
+
+@noindent
+@xref{baselib transformers,syntax-rules}.  Literal identifiers are
+useful to ``mark'' subforms of the input form that have special meaning.
+In a way, @meta{literal}s can act as comments.
+
+The following script will evaluate successfully:
+
+@example
+(import (rnrs) (nausicaa checks))
+(check-set-mode! 'report-failed)
+
+;;;In this  example 'alpha'  has NO lexical  binding in  both the
+;;;literals list of SYNTAX-RULES and the input expression.
+(check
+ (let ()
+   (define-syntax doit
+     (syntax-rules (alpha)
+       ((_ ?arg1 (alpha ?arg2))
+        (list ?arg1 ?arg2))))
+
+   (doit 1 (alpha 2)))
+ => '(1 2))
+
+;;;In this example  'alpha' has THE SAME lexical  binding in both
+;;;the literals list of SYNTAX-RULES and the input expression.
+(check
+ (let ((alpha 123))
+   (define-syntax doit
+     (syntax-rules (alpha)
+       ((_ ?arg1 (alpha ?arg2))
+        (list ?arg1 ?arg2))))
+
+   (doit 1 (alpha 2)))
+ => '(1 2))
+
+(check-report)
+@end example
+
+@noindent
+while both the following examples will fail with a compile time error,
+because @code{alpha} has @strong{different} lexical bindings in the
+literals list of @func{syntax-rules} and the input expression:
+
+@example
+(check
+ (let ()
+   (define-syntax doit
+     (syntax-rules (alpha)
+       ((_ ?arg1 (alpha ?arg2))
+        (list ?arg1 ?arg2))))
+
+   (let ((alpha 123))
+     (doit 1 (alpha 2))))
+ => '(1 2))
+
+(check
+ (let ()
+   (define-syntax doit
+     (let ((alpha 123))
+       (syntax-rules (alpha)
+         ((_ ?arg1 (alpha ?arg2))
+          (list ?arg1 ?arg2)))))
+
+     (doit 1 (alpha 2)))
+ => '(1 2))
+@end example
+
+@noindent
+quoting the literal makes no difference:
+
+@example
+(check
+ (let ()
+   (define-syntax doit
+     (syntax-rules (alpha)
+       ((_ ?arg1 ((quote alpha) ?arg2))
+        (list ?arg1 ?arg2))))
+
+   (let ((alpha 123))
+     (doit 1 ((quote alpha) 2))))
+ => '(1 2))
+@end example
+
+@noindent
+it is still a compile time error.
+
+@c page
+@node examples macros syntax
+@appendixsubsec Syntax objects and you
+
+
+Syntax objects are constructed with @func{syntax}.
+
+
+@menu
+* examples macros syntax not::   What we do not do.
+@end menu
+
+
+@c page
+@node examples macros syntax not
+@appendixsubsubsec What we do not do
+
+
+We have to make clear that we cannot extract at will informations from a
+syntax object; only in particular context we can do something with
+them.  So the following is useless:
+
+@example
+(define (doit stx)
+  ---)
+
+(let ((alpha 1)
+      (beta  2)
+      (delta 3))
+  (doit (syntax (alpha beta delta))))
+@end example
+
+@noindent
+the expansion of @func{syntax} (which is a syntax, not a function)
+creates a syntax object that is used as argument for @func{doit}; but we
+can do nothing useful with it in the body of @func{doit}, neither for
+actual solution of programming problems, nor to show how syntax objects
+work.
+
+The following checks will work, but they only demonstrate that we can
+shoot the breeze with @func{syntax} and @func{syntax->datum}:
+
+@example
+(check
+    (let ()
+      (define (doit stx)
+        (syntax-case stx ()
+          ((use ?arg0 ?arg1)
+           (syntax->datum (syntax ?arg0)))))
+      (let ((alpha 1)
+            (beta  2)
+            (delta 3))
+        (doit (syntax (alpha beta delta)))))
+  => 'beta)
+
+(check
+    (let ()
+      (define (doit stx)
+        (syntax-case stx ()
+          ((use ?arg0 ?arg1)
+           (list (syntax->datum (syntax use))
+                 (syntax->datum (syntax ?arg0))
+                 (syntax->datum (syntax ?arg1))))))
+      (let ((alpha 1)
+            (beta  2)
+            (delta 3))
+        (doit (syntax (alpha beta delta)))))
+  => '(alpha beta delta))
+
+(check
+    (let ()
+      (define (doit stx)
+        (syntax-case stx ()
+          ((use ?arg0 ?arg1)
+           (syntax->datum (syntax (use ?arg0 ?arg1))))))
+      (let ((alpha 1)
+            (beta  2)
+            (delta 3))
+        (doit (syntax (alpha beta delta)))))
+  => '(alpha beta delta))
+@end example
+
+@c end of file

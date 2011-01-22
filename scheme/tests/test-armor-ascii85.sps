@@ -26,8 +26,8 @@
 
 
 (import (nausicaa)
-  (armor ascii85)
-  (checks))
+  (nausicaa armor ascii85)
+  (nausicaa checks))
 
 (check-set-mode! 'report-failed)
 (display "*** testing ASCII armor ascii85\n")

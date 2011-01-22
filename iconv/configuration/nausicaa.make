@@ -29,16 +29,16 @@
 ## Configuration.
 ## --------------------------------------------------------------------
 
-nausicaa_ENABLE_IKARUS		= @nausicaa_ENABLE_IKARUS@
-nausicaa_ENABLE_LARCENY		= @nausicaa_ENABLE_LARCENY@
+# nausicaa_ENABLE_IKARUS	= @nausicaa_ENABLE_IKARUS@
+# nausicaa_ENABLE_LARCENY	= @nausicaa_ENABLE_LARCENY@
 nausicaa_ENABLE_MOSH		= @nausicaa_ENABLE_MOSH@
 nausicaa_ENABLE_PETITE		= @nausicaa_ENABLE_PETITE@
 nausicaa_ENABLE_VICARE		= @nausicaa_ENABLE_VICARE@
 nausicaa_ENABLE_YPSILON		= @nausicaa_ENABLE_YPSILON@
 
 FIND		= @FIND@
-IKARUS		= @IKARUS@
-LARCENY		= @LARCENY@
+# IKARUS	= @IKARUS@
+# LARCENY	= @LARCENY@
 MOSH		= @MOSH@
 PETITE		= @PETITE@
 VICARE		= @VICARE@
@@ -49,12 +49,13 @@ nau_sls_BUILDDIR	= $(builddir)/fasl.d
 
 # Select the makefile rules to be prerequisite of the "fasl" rule.
 nau_IMPLEMENTATIONS	= \
-	$(call ds-if-yes,$(nausicaa_ENABLE_IKARUS),	i) \
-	$(call ds-if-yes,$(nausicaa_ENABLE_LARCENY),	l) \
 	$(call ds-if-yes,$(nausicaa_ENABLE_MOSH),	m) \
 	$(call ds-if-yes,$(nausicaa_ENABLE_PETITE),	p) \
 	$(call ds-if-yes,$(nausicaa_ENABLE_VICARE),	v) \
 	$(call ds-if-yes,$(nausicaa_ENABLE_YPSILON),	y)
+
+#$(call ds-if-yes,$(nausicaa_ENABLE_IKARUS),	i)
+#$(call ds-if-yes,$(nausicaa_ENABLE_LARCENY),	l)
 
 #page
 ## ---------------------------------------------------------------------
@@ -150,26 +151,26 @@ fasl-installed: $(foreach i,$(nau_IMPLEMENTATIONS), $(i)fasl-installed)
 # directory of the  source files is not (more)  supported by Ikarus (Sat
 # Jan 9, 2010).
 
-fasl_ikarus_COMPILE_SCRIPT	= $(nau_sls_SRCDIR)/compile-all.ikarus.sps
-ifeq (,$(strip $(IKARUS_LIBRARY_PATH)))
-fasl_ikarus_COMPILE_ENV		= IKARUS_LIBRARY_PATH=$(nau_sls_BUILDDIR)
-else
-fasl_ikarus_COMPILE_ENV		= IKARUS_LIBRARY_PATH=$(nau_sls_BUILDDIR):$(IKARUS_LIBRARY_PATH)
-endif
-fasl_ikarus_COMPILE_COMMAND	= $(IKARUS) --compile-dependencies
-fasl_ikarus_COMPILE_RUN		= $(fasl_ikarus_COMPILE_ENV) \
-					$(fasl_ikarus_COMPILE_COMMAND) \
-					$(fasl_ikarus_COMPILE_SCRIPT)
-fasl_ikarus_COMPILE_INST_RUN	= $(fasl_ikarus_COMPILE_COMMAND) \
-					$(fasl_ikarus_COMPILE_SCRIPT)
+# fasl_ikarus_COMPILE_SCRIPT	= $(nau_sls_SRCDIR)/compile-all.ikarus.sps
+# ifeq (,$(strip $(IKARUS_LIBRARY_PATH)))
+# fasl_ikarus_COMPILE_ENV		= IKARUS_LIBRARY_PATH=$(nau_sls_BUILDDIR)
+# else
+# fasl_ikarus_COMPILE_ENV		= IKARUS_LIBRARY_PATH=$(nau_sls_BUILDDIR):$(IKARUS_LIBRARY_PATH)
+# endif
+# fasl_ikarus_COMPILE_COMMAND	= $(IKARUS) --compile-dependencies
+# fasl_ikarus_COMPILE_RUN		= $(fasl_ikarus_COMPILE_ENV) \
+# 					$(fasl_ikarus_COMPILE_COMMAND) \
+# 					$(fasl_ikarus_COMPILE_SCRIPT)
+# fasl_ikarus_COMPILE_INST_RUN	= $(fasl_ikarus_COMPILE_COMMAND) \
+# 					$(fasl_ikarus_COMPILE_SCRIPT)
 
-ifasl: sls
-	@echo; echo "--- Compiling for Ikarus Scheme"
-	test -f $(fasl_ikarus_COMPILE_SCRIPT) && $(fasl_ikarus_COMPILE_RUN)
+# ifasl: sls
+# 	@echo; echo "--- Compiling for Ikarus Scheme"
+# 	test -f $(fasl_ikarus_COMPILE_SCRIPT) && $(fasl_ikarus_COMPILE_RUN)
 
-ifasl-installed:
-	@echo; echo "--- Compiling installed files for Ikarus Scheme"
-	test -f $(fasl_ikarus_COMPILE_SCRIPT) && $(fasl_ikarus_COMPILE_INST_RUN)
+# ifasl-installed:
+# 	@echo; echo "--- Compiling installed files for Ikarus Scheme"
+# 	test -f $(fasl_ikarus_COMPILE_SCRIPT) && $(fasl_ikarus_COMPILE_INST_RUN)
 
 ## --------------------------------------------------------------------
 ## Larceny compilation.
@@ -178,20 +179,20 @@ ifasl-installed:
 
 # The  use of  ABSPATH  is needed  because  we change  directory in  the
 # compile commands below.
-fasl_larceny_COMPILE_SCRIPT	= $(abspath $(nau_sls_SRCDIR)/compile-all.larceny.sps)
-ifeq (,$(strip $(LARCENY_LIBPATH)))
-fasl_larceny_COMPILE_ENV	= LARCENY_LIBPATH=$(PWD)/$(nau_sls_BUILDDIR)
-else
-fasl_larceny_COMPILE_ENV	= LARCENY_LIBPATH=$(PWD)/$(nau_sls_BUILDDIR):$(LARCENY_LIBPATH)
-endif
-fasl_larceny_COMPILE_COMMAND	= $(LARCENY) -r6rs -program
-fasl_larceny_COMPILE_RUN	= $(fasl_larceny_COMPILE_ENV) \
-					$(fasl_larceny_COMPILE_COMMAND) \
-					$(fasl_larceny_COMPILE_SCRIPT)
+# fasl_larceny_COMPILE_SCRIPT	= $(abspath $(nau_sls_SRCDIR)/compile-all.larceny.sps)
+# ifeq (,$(strip $(LARCENY_LIBPATH)))
+# fasl_larceny_COMPILE_ENV	= LARCENY_LIBPATH=$(PWD)/$(nau_sls_BUILDDIR)
+# else
+# fasl_larceny_COMPILE_ENV	= LARCENY_LIBPATH=$(PWD)/$(nau_sls_BUILDDIR):$(LARCENY_LIBPATH)
+# endif
+# fasl_larceny_COMPILE_COMMAND	= $(LARCENY) -r6rs -program
+# fasl_larceny_COMPILE_RUN	= $(fasl_larceny_COMPILE_ENV) \
+# 					$(fasl_larceny_COMPILE_COMMAND) \
+# 					$(fasl_larceny_COMPILE_SCRIPT)
 
-lfasl: sls
-	@echo; echo "--- Compiling for Larceny Scheme"
-	test -f $(fasl_larceny_COMPILE_SCRIPT) && (cd $(nau_sls_BUILDDIR) && $(fasl_larceny_COMPILE_RUN))
+# lfasl: sls
+# 	@echo; echo "--- Compiling for Larceny Scheme"
+# 	test -f $(fasl_larceny_COMPILE_SCRIPT) && (cd $(nau_sls_BUILDDIR) && $(fasl_larceny_COMPILE_RUN))
 
 ## --------------------------------------------------------------------
 ## Mosh compilation.
@@ -355,56 +356,56 @@ test-installed: $(foreach i,$(nau_IMPLEMENTATIONS), $(i)test-installed)
 ## ---------------------------------------------------------------------
 ## Ikarus
 
-nau_itest_ENV		= IKARUS_LIBRARY_PATH=$(nau_test_PATH):$(IKARUS_LIBRARY_PATH)
-nau_itest_ENV		+= $(nau_test_ENV)
-#nau_itest_PROGRAM	= $(IKARUS) --r6rs-script
-nau_itest_PROGRAM	= $(IKARUS) --debug --r6rs-script
-nau_itest_RUN		= $(nau_itest_ENV) $(nau_TIME_TESTS) $(nau_itest_PROGRAM)
+# nau_itest_ENV		= IKARUS_LIBRARY_PATH=$(nau_test_PATH):$(IKARUS_LIBRARY_PATH)
+# nau_itest_ENV		+= $(nau_test_ENV)
+# #nau_itest_PROGRAM	= $(IKARUS) --r6rs-script
+# nau_itest_PROGRAM	= $(IKARUS) --debug --r6rs-script
+# nau_itest_RUN		= $(nau_itest_ENV) $(nau_TIME_TESTS) $(nau_itest_PROGRAM)
 
-nau_itest_installed_ENV	= IKARUS_LIBRARY_PATH=$(nau_test_SRCDIR):$(IKARUS_LIBRARY_PATH)
-nau_itest_installed_RUN	= $(nau_itest_installed_ENV) $(nau_TIME_TESTS) $(nau_itest_PROGRAM)
+# nau_itest_installed_ENV	= IKARUS_LIBRARY_PATH=$(nau_test_SRCDIR):$(IKARUS_LIBRARY_PATH)
+# nau_itest_installed_RUN	= $(nau_itest_installed_ENV) $(nau_TIME_TESTS) $(nau_itest_PROGRAM)
 
-.PHONY: itest itests icheck itest-installed
+# .PHONY: itest itests icheck itest-installed
 
-itest itests icheck:
-	@$(foreach f,$(nau_test_FILES),$(call nau_test_SEPARATOR,Ikarus,$(f)) $(nau_itest_RUN) $(f);)
+# itest itests icheck:
+# 	@$(foreach f,$(nau_test_FILES),$(call nau_test_SEPARATOR,Ikarus,$(f)) $(nau_itest_RUN) $(f);)
 
-itest-installed:
-	@echo Running tests with installed Ikarus libraries
-	@echo $(nau_itest_installed_ENV)
-	@$(foreach f,$(nau_test_FILES),\
-		$(call nau_test_SEPARATOR,Ikarus,$(f)) $(nau_itest_installed_RUN) $(f);)
+# itest-installed:
+# 	@echo Running tests with installed Ikarus libraries
+# 	@echo $(nau_itest_installed_ENV)
+# 	@$(foreach f,$(nau_test_FILES),\
+# 		$(call nau_test_SEPARATOR,Ikarus,$(f)) $(nau_itest_installed_RUN) $(f);)
 
-ifeq ($(strip $(nausicaa_ENABLE_IKARUS)),yes)
-test tests check: itest
-endif
+# ifeq ($(strip $(nausicaa_ENABLE_IKARUS)),yes)
+# test tests check: itest
+# endif
 
 ## ---------------------------------------------------------------------
 ## Larceny
 
-nau_ltest_ENV		= LARCENY_LIBPATH=$(nau_test_PATH):$(LARCENY_LIBPATH)
-nau_ltest_ENV		+= $(nau_test_ENV)
-nau_ltest_PROGRAM	= $(LARCENY) -r6rs -program
-nau_ltest_RUN		= $(nau_ltest_ENV) $(nau_TIME_TESTS) $(nau_ltest_PROGRAM)
+# nau_ltest_ENV		= LARCENY_LIBPATH=$(nau_test_PATH):$(LARCENY_LIBPATH)
+# nau_ltest_ENV		+= $(nau_test_ENV)
+# nau_ltest_PROGRAM	= $(LARCENY) -r6rs -program
+# nau_ltest_RUN		= $(nau_ltest_ENV) $(nau_TIME_TESTS) $(nau_ltest_PROGRAM)
 
-nau_ltest_installed_ENV	= LARCENY_LIBPATH=$(nau_test_SRCDIR):$(LARCENY_LIBPATH)
-nau_ltest_installed_RUN	= $(nau_ltest_installed_ENV) $(nau_TIME_TESTS) $(nau_ltest_PROGRAM)
+# nau_ltest_installed_ENV	= LARCENY_LIBPATH=$(nau_test_SRCDIR):$(LARCENY_LIBPATH)
+# nau_ltest_installed_RUN	= $(nau_ltest_installed_ENV) $(nau_TIME_TESTS) $(nau_ltest_PROGRAM)
 
-.PHONY: ltest ltests lcheck ltest-installed
+# .PHONY: ltest ltests lcheck ltest-installed
 
-ltest ltests lcheck:
-	@$(foreach f,$(nau_test_FILES),\
-		$(call nau_test_SEPARATOR,Larceny,$(f)) $(nau_ltest_RUN) $(f);)
+# ltest ltests lcheck:
+# 	@$(foreach f,$(nau_test_FILES),\
+# 		$(call nau_test_SEPARATOR,Larceny,$(f)) $(nau_ltest_RUN) $(f);)
 
-ltest-installed:
-	@echo Running tests with installed Larceny libraries
-	@echo $(nau_ltest_installed_ENV)
-	@$(foreach f,$(nau_test_FILES),\
-		$(call nau_test_SEPARATOR,Larceny,$(f)) $(nau_ltest_installed_RUN) $(f);)
+# ltest-installed:
+# 	@echo Running tests with installed Larceny libraries
+# 	@echo $(nau_ltest_installed_ENV)
+# 	@$(foreach f,$(nau_test_FILES),\
+# 		$(call nau_test_SEPARATOR,Larceny,$(f)) $(nau_ltest_installed_RUN) $(f);)
 
-ifeq ($(strip $(nausicaa_ENABLE_LARCENY)),yes)
-test tests check: ltest
-endif
+# ifeq ($(strip $(nausicaa_ENABLE_LARCENY)),yes)
+# test tests check: ltest
+# endif
 
 ## ------------------------------------------------------------
 ## Mosh
@@ -567,42 +568,42 @@ proofs proof:
 ## ---------------------------------------------------------------------
 ## Ikarus
 
-nau_iproof_ENV		= IKARUS_LIBRARY_PATH=$(nau_proof_PATH):$(IKARUS_LIBRARY_PATH)
-nau_iproof_ENV		+= $(nau_proof_ENV)
-nau_iproof_PROGRAM	= $(IKARUS) --debug --r6rs-script
-nau_iproof_RUN		= $(nau_iproof_ENV) $(nau_iproof_PROGRAM)
+# nau_iproof_ENV		= IKARUS_LIBRARY_PATH=$(nau_proof_PATH):$(IKARUS_LIBRARY_PATH)
+# nau_iproof_ENV		+= $(nau_proof_ENV)
+# nau_iproof_PROGRAM	= $(IKARUS) --debug --r6rs-script
+# nau_iproof_RUN		= $(nau_iproof_ENV) $(nau_iproof_PROGRAM)
 
-.PHONY: iproof iproofs
+# .PHONY: iproof iproofs
 
-iproof iproofs:
-#ifeq ($(strip $(nausicaa_ENABLE_IKARUS)),yes)
-	@$(foreach f,$(nau_proof_FILES),\
-		$(call nau_proof_SEPARATOR,Ikarus,$(f)) $(nau_iproof_RUN) $(f);)
-#endif
+# iproof iproofs:
+# #ifeq ($(strip $(nausicaa_ENABLE_IKARUS)),yes)
+# 	@$(foreach f,$(nau_proof_FILES),\
+# 		$(call nau_proof_SEPARATOR,Ikarus,$(f)) $(nau_iproof_RUN) $(f);)
+# #endif
 
-ifeq ($(strip $(nausicaa_ENABLE_IKARUS)),yes)
-proof proofs: iproof
-endif
+# ifeq ($(strip $(nausicaa_ENABLE_IKARUS)),yes)
+# proof proofs: iproof
+# endif
 
 ## ---------------------------------------------------------------------
 ## Larceny
 
-nau_lproof_ENV		= LARCENY_LIBPATH=$(nau_proof_PATH):$(LARCENY_LIBPATH)
-nau_lproof_ENV		+= $(nau_proof_ENV)
-nau_lproof_PROGRAM	= $(LARCENY) -r6rs -program
-nau_lproof_RUN		= $(nau_lproof_ENV) $(nau_lproof_PROGRAM)
+# nau_lproof_ENV		= LARCENY_LIBPATH=$(nau_proof_PATH):$(LARCENY_LIBPATH)
+# nau_lproof_ENV		+= $(nau_proof_ENV)
+# nau_lproof_PROGRAM	= $(LARCENY) -r6rs -program
+# nau_lproof_RUN		= $(nau_lproof_ENV) $(nau_lproof_PROGRAM)
 
-.PHONY: lproof lproofs
+# .PHONY: lproof lproofs
 
-lproof lproofs:
-#ifeq ($(strip $(nausicaa_ENABLE_LARCENY)),yes)
-	@$(foreach f,$(nau_proof_FILES),\
-		$(call nau_proof_SEPARATOR,Larceny,$(f)) $(nau_lproof_RUN) $(f);)
-#endif
+# lproof lproofs:
+# #ifeq ($(strip $(nausicaa_ENABLE_LARCENY)),yes)
+# 	@$(foreach f,$(nau_proof_FILES),\
+# 		$(call nau_proof_SEPARATOR,Larceny,$(f)) $(nau_lproof_RUN) $(f);)
+# #endif
 
-ifeq ($(strip $(nausicaa_ENABLE_LARCENY)),yes)
-proof proofs: lproof
-endif
+# ifeq ($(strip $(nausicaa_ENABLE_LARCENY)),yes)
+# proof proofs: lproof
+# endif
 
 ## ------------------------------------------------------------
 ## Mosh

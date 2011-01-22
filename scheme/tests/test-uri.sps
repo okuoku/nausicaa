@@ -25,10 +25,11 @@
 ;;;
 
 
+#!r6rs
 (import (nausicaa)
-  (uri)
-  (prefix (uri low) uri:)
-  (checks))
+  (nausicaa uri)
+  (prefix (nausicaa uri low) uri:)
+  (nausicaa checks))
 
 (check-set-mode! 'report-failed)
 (display "*** testing URI\n")
@@ -191,7 +192,7 @@
       ((_ ?var ?expected . ?body)
        (check
 	   (let (((?var <uri>)
-		  (make* <uri>
+		  (make <uri>
 		    (:decoded-scheme	scheme)
 		    (:decoded-authority	authority)
 		    (:decoded-path	path)

@@ -7,7 +7,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2009, 2010, 2011 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -24,12 +24,11 @@
 ;;;
 
 
-;;;; setup
-
+#!r6rs
 (import (nausicaa)
-  (strings)
-  (char-sets)
-  (checks)
+  (nausicaa strings)
+  (nausicaa char-sets)
+  (nausicaa checks)
   (rnrs mutable-strings))
 
 (check-set-mode! 'report-failed)
@@ -2957,6 +2956,87 @@
     => #f)
 
   )
+
+
+(parameterise ((check-test-name 'searching-and-replacing))
+
+  (check	;no replacing because of no match
+      (let ((src "abcdabcdabc")
+	    (ptn "A")
+	    (rep "12345"))
+	(string-search-and-replace src ptn rep +inf.0))
+    => "abcdabcdabc")
+
+  (check	;replacing 3 chars
+      (let ((src "AbcdAbcdAbc")
+	    (ptn "A")
+	    (rep "12345"))
+	(string-search-and-replace src ptn rep +inf.0))
+    => "12345bcd12345bcd12345bc")
+
+  (check	;replacing 3 substrings
+      (let ((src "bcABCbcABCbcdpqstABCbc")
+	    (ptn "ABC")
+	    (rep "12345"))
+	(string-search-and-replace src ptn rep +inf.0))
+    => "bc12345bc12345bcdpqst12345bc")
+
+;;; --------------------------------------------------------------------
+
+  (check	;source string range
+      (let ((src "bcABCbcdABCbcdABCbc")
+	    (ptn "ABC")
+	    (rep "12345"))
+	(string-search-and-replace (view src (start 2) (past (- (string-length src) 2)))
+				   ptn rep +inf.0))
+    => "12345bcd12345bcd12345")
+
+  (check	;pattern range
+      (let ((src "bcABCbcdABCbcdABCbc")
+	    (ptn "pqABCst")
+	    (rep "12345"))
+	(string-search-and-replace src (view ptn (start 2) (past 5))
+				   rep +inf.0))
+    => "bc12345bcd12345bcd12345bc")
+
+  (check	;replacement range
+      (let ((src "bcABCbcdABCbcdABCbc")
+	    (ptn "ABC")
+	    (rep "pq12345st"))
+	(string-search-and-replace src ptn (view rep (start 2) (past 7)) +inf.0))
+    => "bc12345bcd12345bcd12345bc")
+
+;;; --------------------------------------------------------------------
+
+  (check	;zero replacements count
+      (let ((src "bcABCbcdABCbcdABCbc")
+	    (ptn "ABC")
+	    (rep "12345"))
+	(string-search-and-replace src ptn rep 0))
+    => "bcABCbcdABCbcdABCbc")
+
+  (check	;one replacement count
+      (let ((src "bcABCbcdABCbcdABCbc")
+	    (ptn "ABC")
+	    (rep "12345"))
+	(string-search-and-replace src ptn rep 1))
+    => "bc12345bcdABCbcdABCbc")
+
+  (check	;two replacements count
+      (let ((src "bcABCbcdABCbcdABCbc")
+	    (ptn "ABC")
+	    (rep "12345"))
+	(string-search-and-replace src ptn rep 2))
+    => "bc12345bcd12345bcdABCbc")
+
+  (check	;three replacements count
+      (let ((src "bcABCbcdABCbcdABCbc")
+	    (ptn "ABC")
+	    (rep "12345"))
+	(string-search-and-replace src ptn rep 3))
+    => "bc12345bcd12345bcd12345bc")
+
+  #t)
 
 
 (parameterise ((check-test-name 'filtering))

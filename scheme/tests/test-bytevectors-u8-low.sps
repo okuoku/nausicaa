@@ -25,9 +25,9 @@
 
 
 (import (nausicaa)
-  (bytevectors u8low)
-  (char-sets)
-  (checks))
+  (nausicaa bytevectors u8low)
+  (nausicaa char-sets)
+  (nausicaa checks))
 
 (check-set-mode! 'report-failed)
 (display "*** testing bytevectors u8 - low level\n")

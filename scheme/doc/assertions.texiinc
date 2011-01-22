@@ -1,0 +1,204 @@
+@node assertions
+@chapter Organising assertions
+
+
+@cindex @library{nausicaa language assertions}, library
+@cindex Library @library{nausicaa language assertions}
+
+
+The library @library{nausicaa language assertions} defines functions and
+macros to handle the definition and usage of assertions.
+
+@menu
+* assertions macros::           Assertion macros.
+* assertions definitions::      Defining predicates.
+* assertions predicate::        Derived predicates.
+@end menu
+
+@c page
+@node assertions macros
+@section Assertion macros
+
+
+The following bindings are exported by the @library{nausicaa language
+assertions} library.
+
+
+@defmac assert @var{expression}
+This is a replacement for @func{assert} from @rsixlibrary{base}; it
+behaves in the same way, but expands to @var{expression} itself if the
+parameter @func{enable-assertions?} from the library @library{nausicaa
+configuration} is set to false.
+@end defmac
+
+
+@deffn Syntax arguments @var{clause} ...
+@deffnx {Auxiliary Syntax} who @var{who}
+@deffnx {Auxiliary Syntax} number-of-arguments @var{who}
+@deffnx {Auxiliary Syntax} argument @var{arg-clauses}
+@deffnx {Auxiliary Syntax} formal @var{arg-name}
+@deffnx {Auxiliary Syntax} ordinal @var{arg-index}
+@deffnx {Auxiliary Syntax} predicate @var{arg-predicate}
+@deffnx {Auxiliary Syntax} description @var{arg-description}
+Expand into a set of assertions which are meant to test the arguments of
+a function; despite being a set of assertions, the expansion of this
+macro is a definition, so it can be used at the beginning of a body
+without switching its context from definitions to expressions.
+
+The @func{who} and @func{number-of-arguments} clauses select the
+argument for the @condition{who} condition object and the number of
+mandatory arguments expected by the function (zero or more).
+
+The @func{argument} clause defines the expected argument through the
+following subclauses:
+
+@table @func
+@item formal
+Specify the formal name of the argument.
+
+@item ordinal
+Specify the 1--based index of the argument in the list of mandatory
+function arguments.
+
+@item predicate
+Select the predicate to be applied to validate the value.
+
+@item description
+A description string used in the error message.
+@end table
+
+@example
+(import (rnrs)
+  (prefix (nausicaa language assertions) ass.))
+
+(define (doit a b c)
+  (ass.arguments (ass.who 'doit)
+                 (ass.number-of-arguments 3)
+     (ass.argument (ass.formal a)
+                   (ass.ordinal 1)
+                   (ass.predicate integer?)
+                   (ass.description "value of a"))
+     (ass.argument (ass.formal b)
+                   (ass.ordinal 2)
+                   (ass.predicate string?)
+                   (ass.description "value of b"))
+     (ass.argument (ass.formal c)
+                   (ass.ordinal 3)
+                   (ass.predicate symbol?)
+                   (ass.description "value of c")))
+  (list a b c))
+
+(doit 1 "two" 'three)   @result{} (1 "two" three)
+
+(doit #\a "two" 'three))
+@error{} expected value of a as argument number 1
+
+(doit 1 2 'three))
+@error{} expected value of b as argument number 2
+
+(doit 1 "two" 3))
+@error{} expected value of c as argument number 3
+@end example
+@end deffn
+
+@c page
+@node assertions definitions
+@section Defining predicates
+
+
+The following bindings are exported by the @library{nausicaa language
+assertions} library.
+
+
+@defmac define-list-of-values-predicates @var{name} @var{predicate}
+Define a set of predicate functions to test if a value is a list of
+values satisfying @var{predicate}, or null, or false.  The predicates
+have the following names:
+
+@table @code
+@item list-of-@var{name}?
+Return true if the object to which it is applied is a list of values
+satisfying @var{predicate}.
+
+@item list-of-@var{name}?/or-null
+Return true if the object to which it is applied is a list of values
+satisfying @var{predicate}, or null.
+
+@item list-of-@var{name}?/or-false
+Return true if the object to which it is applied is a list of values
+satisfying @var{predicate}, or false.
+@end table
+@end defmac
+
+@c page
+@node assertions predicate
+@section Derived predicates
+
+
+The following bindings are exported by the @library{nausicaa language
+assertions} library.
+
+
+@defun list-of-booleans? @var{obj}
+@defunx list-of-booleans?/or-null @var{obj}
+@defunx list-of-booleans?/or-false @var{obj}
+Return true if @var{obj} is a list of booleans, or null, or false.
+@end defun
+
+
+@defun list-of-numbers? @var{obj}
+@defunx list-of-numbers?/or-null @var{obj}
+@defunx list-of-numbers?/or-false @var{obj}
+Return true if @var{obj} is a list of numbers, or null, or false.
+@end defun
+
+
+@defun list-of-characters? @var{obj}
+@defunx list-of-characters?/or-null @var{obj}
+@defunx list-of-characters?/or-false @var{obj}
+Return true if @var{obj} is a list of characters, or null, or false.
+@end defun
+
+
+@defun list-of-symbols? @var{obj}
+@defunx list-of-symbols?/or-null @var{obj}
+@defunx list-of-symbols?/or-false @var{obj}
+Return true if @var{obj} is a list of symbols, or null, or false.
+@end defun
+
+
+@defun list-of-strings? @var{obj}
+@defunx list-of-strings?/or-null @var{obj}
+@defunx list-of-strings?/or-false @var{obj}
+Return true if @var{obj} is a list of strings, or null, or false.
+@end defun
+
+
+@defun list-of-vectors? @var{obj}
+@defunx list-of-vectors?/or-null @var{obj}
+@defunx list-of-vectors?/or-false @var{obj}
+Return true if @var{obj} is a list of vectors, or null, or false.
+@end defun
+
+
+@defun list-of-bytevectors? @var{obj}
+@defunx list-of-bytevectors?/or-null @var{obj}
+@defunx list-of-bytevectors?/or-false @var{obj}
+Return true if @var{obj} is a list of bytevectors, or null, or false.
+@end defun
+
+
+@defun list-of-hashtables? @var{obj}
+@defunx list-of-hashtables?/or-null @var{obj}
+@defunx list-of-hashtables?/or-false @var{obj}
+Return true if @var{obj} is a list of hashtables, or null, or false.
+@end defun
+
+
+@defun list-of-procedures? @var{obj}
+@defunx list-of-procedures?/or-null @var{obj}
+@defunx list-of-procedures?/or-false @var{obj}
+Return true if @var{obj} is a list of procedures, or null, or false.
+@end defun
+
+@c end of file

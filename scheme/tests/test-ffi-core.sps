@@ -25,13 +25,12 @@
 
 
 (import (nausicaa)
-  (ffi)
-  (ffi memory)
-  (ffi cstrings)
-  (ffi errno)
-  (ffi clang-data-types)
-  (checks)
-  (compensations))
+  (nausicaa ffi)
+  (nausicaa ffi memory)
+  (nausicaa ffi cstrings)
+  (nausicaa ffi errno)
+  (nausicaa ffi clang-data-types)
+  (nausicaa checks))
 
 (cond-expand ((or larceny petite) (exit)) (else #f))
 

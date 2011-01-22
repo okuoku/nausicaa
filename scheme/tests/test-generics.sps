@@ -1,13 +1,13 @@
 ;;;
 ;;;Part of: Nausicaa/Scheme
-;;;Contents: usage tests for (generics2)
+;;;Contents: usage tests for (generics)
 ;;;Date: Mon Jul  5, 2010
 ;;;
 ;;;Abstract
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2008, 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2008-2011 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -24,13 +24,32 @@
 ;;;
 
 
+#!r6rs
 (import (nausicaa)
-  (checks)
-  (generics)
-  (generics object-to-string))
+  (nausicaa checks)
+  (nausicaa generics object-to-string)
+  (rnrs eval))
 
 (check-set-mode! 'report-failed)
 (display "*** testing generic functions\n")
+
+
+(parameterise ((check-test-name 'errors))
+
+  (check
+      (guard (E ((syntax-violation? E)
+;;;(write (condition-message E))(newline)
+		 (syntax-violation-form E))
+		(else E))
+	(eval '(let ()
+		 (define-generic a)
+		 (define-method (a b) #f)
+		 (define-method (a b c) #f)
+                 #f)
+	      (environment '(nausicaa))))
+    => '((nausicaa:builtin:<top>) (nausicaa:builtin:<top>)))
+
+  #t)
 
 
 (parameterise ((check-test-name 'generic-simple-inheritance))
@@ -276,7 +295,7 @@
       'beta-three)
 
     (let ()
-      (define-generic/merge gamma alpha beta)
+      (define-generic/merge gamma (alpha beta))
 
       (let ((a (make-<one> 1 10 100))
 	    (b (make-<two> 0 0 0 2 20 200))

@@ -1,4 +1,4 @@
-;;; -*- coding: utf-8-unix -*-
+;;; -*- coding: utf-8 -*-
 ;;;
 ;;;Part of: Nausicaa/Scheme
 ;;;Contents: tests for (conditions)
@@ -25,9 +25,11 @@
 ;;;
 
 
+#!r6rs
 (import (nausicaa)
+  (nausicaa language conditions)	;we import it for the auxiliary syntaxes
   (rnrs eval)
-  (checks))
+  (nausicaa checks))
 
 (check-set-mode! 'report-failed)
 (display "*** testing conditions\n")
@@ -76,31 +78,56 @@
 
     #f)
 
-;;; --------------------------------------------------------------------
+  #t)
+
+
+(parameterize ((check-test-name	'definition-errors))
 
   (check
-      (guard (E ((syntax-violation? E) (condition-message E))
+      (guard (E ((syntax-violation? E)
+		 (list (condition-message E) (syntax-violation-subform E)))
 		(else #f))
 	(eval '(define-condition &alpha
 		 (parent a) (parent b))
 	      (environment '(nausicaa))))
-    => "PARENT clause given twice in condition type definition")
+    => '("maker clause used multiple times" parent))
 
   (check
-      (guard (E ((syntax-violation? E) (condition-message E))
+      (guard (E ((syntax-violation? E)
+		 (list (condition-message E) (syntax-violation-subform E)))
 		(else #f))
 	(eval '(define-condition &alpha
 		 (fields a) (fields b))
 	      (environment '(nausicaa))))
-    => "FIELDS clause given twice in condition type definition")
+    => '("maker clause used multiple times" fields))
 
   (check
-      (guard (E ((syntax-violation? E) (condition-message E))
+      (guard (E ((syntax-violation? E)
+		 (list (condition-message E) (syntax-violation-subform E)))
+		(else #f))
+	(eval '(define-condition 123
+		 (fields a b))
+	      (environment '(nausicaa))))
+    => '("expected identifier as condition name" 123))
+
+  (check
+      (guard (E ((syntax-violation? E)
+		 (list (condition-message E) (syntax-violation-subform E)))
+		(else #f))
+	(eval '(define-condition &alpha
+		 (parent 123)
+		 (fields a b))
+	      (environment '(nausicaa))))
+    => '("expected identifier as condition parent name" (parent 123)))
+
+  (check
+      (guard (E ((syntax-violation? E)
+		 (list (condition-message E) (syntax-violation-subform E)))
 		(else #f))
 	(eval '(define-condition &alpha
 		 (fields a 123 b))
 	      (environment '(nausicaa))))
-    => "condition type field specification must be an identifier")
+    => '("expected identifiers as condition field names" (fields a 123 b)))
 
   #t)
 
@@ -128,7 +155,10 @@
 		       (condition-wrong-num-args/expected E)
 		       (condition-wrong-num-args/given E)))
 		(else #f))
-	(raise-wrong-num-args-error 'woppa "hey!" 'the-proc 5 10))
+	(raise-wrong-num-args-error 'woppa "hey!"
+				    (procname 'the-proc)
+				    (expected 5)
+				    (given 10)))
     => '(woppa "hey!" the-proc 5 10))
 
   #t)
