@@ -7,7 +7,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2009-2011 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -25,19 +25,17 @@
 
 
 (import (nausicaa)
-  (strings)
-  (checks)
-  (deferred-exceptions)
-  (compensations)
-  (foreign ffi)
-  (foreign memory)
-  (foreign errno)
-  (foreign cstrings)
-  (posix sizeof)
-  (posix typedefs)
-  (prefix (posix process) posix:)
-  (prefix (posix fd) posix:)
-  (prefix (posix file) posix:))
+  (nausicaa strings)
+  (nausicaa checks)
+  (nausicaa ffi)
+  (nausicaa ffi memory)
+  (nausicaa ffi errno)
+  (nausicaa ffi cstrings)
+  (nausicaa posix sizeof)
+  (nausicaa posix typedefs)
+  (prefix (nausicaa posix process) px.)
+  (prefix (nausicaa posix fd) px.)
+  (prefix (nausicaa posix file) px.))
 
 (check-set-mode! 'report-failed)
 (display "*** testing POSIX file\n")
@@ -82,17 +80,17 @@ Ses ailes de geant l'empechent de marcher.")
 	the-file))
 
 (define (make-test-hierarchy)
-  (posix:system (string-append "mkdir --mode=0700 " the-root))
-  (posix:system (string-append "mkdir --mode=0700 " the-subdir-1))
-  (posix:system (string-append "mkdir --mode=0700 " the-subdir-2))
-  (posix:system (string-append "mkdir --mode=0700 " the-subdir-3))
-  (posix:system (string-append "umask 0027; echo -n \"" the-string "\" >" the-file))
-  (posix:system (string-append "umask 0077; echo -n \"" the-string "\" >" the-file-10))
-  (posix:system (string-append "umask 0077; echo -n \"" the-string "\" >" the-file-11))
-  (posix:system (string-append "umask 0077; echo -n \"" the-string "\" >" the-file-2)))
+  (px.system (string-append "mkdir --mode=0700 " the-root))
+  (px.system (string-append "mkdir --mode=0700 " the-subdir-1))
+  (px.system (string-append "mkdir --mode=0700 " the-subdir-2))
+  (px.system (string-append "mkdir --mode=0700 " the-subdir-3))
+  (px.system (string-append "umask 0027; echo -n \"" the-string "\" >" the-file))
+  (px.system (string-append "umask 0077; echo -n \"" the-string "\" >" the-file-10))
+  (px.system (string-append "umask 0077; echo -n \"" the-string "\" >" the-file-11))
+  (px.system (string-append "umask 0077; echo -n \"" the-string "\" >" the-file-2)))
 
 (define (clean-test-hierarchy)
-  (posix:system (string-append "rm -fr " the-root)))
+  (px.system (string-append "rm -fr " the-root)))
 
 
 (parametrise ((check-test-name	'working-directory)
@@ -105,12 +103,12 @@ Ses ailes de geant l'empechent de marcher.")
 
       (check
 	  (let ((dirname '/))
-	    (posix:chdir dirname))
+	    (px.chdir dirname))
 	=> 0)
 
       (check
 	  (let ((dirname '/usr/local/bin))
-	    (posix:chdir dirname))
+	    (px.chdir dirname))
 	=> 0)
 
       (check
@@ -118,19 +116,19 @@ Ses ailes de geant l'empechent de marcher.")
 	    (guard (E (else (list (errno-condition? E)
 				  (condition-who E)
 				  (errno-symbolic-value E))))
-	      (posix:chdir dirname)))
+	      (px.chdir dirname)))
 	=> '(#t chdir ENOENT))
 
       (check
 	  (let ((dirname '/usr/local/bin))
-	    (posix:chdir dirname)
-	    (posix:getcwd))
+	    (px.chdir dirname)
+	    (px.getcwd))
 	=> "/usr/local/bin")
 
       (check
 	  (let ((dirname '/bin))
-	    (posix:chdir dirname)
-	    (posix:pwd))
+	    (px.chdir dirname)
+	    (px.pwd))
 	=> "/bin")
 
       #f)))
@@ -150,37 +148,37 @@ Ses ailes de geant l'empechent de marcher.")
 	    (with
 	     (clean-test-hierarchy)))
 
-;;;(posix:system (string-append "ls -l " the-root))
+;;;(px.system (string-append "ls -l " the-root))
 
 	(check
 	    (with-compensations
-	      (let ((dir (posix:opendir/c the-root)))
+	      (let ((dir (px.opendir/c the-root)))
 		(list-sort string<?
-			   (let loop ((entry	(posix:readdir dir))
+			   (let loop ((entry	(px.readdir dir))
 				      (layout	'()))
 			     (if (pointer-null? entry)
 				 layout
-			       (loop (posix:readdir dir)
-				     (cons (posix:dirent-name->string entry) layout)))))))
+			       (loop (px.readdir dir)
+				     (cons (px.dirent-name->string entry) layout)))))))
 	  => '("." ".." "dir-1" "dir-2" "dir-3" "name.ext"))
 
 	(check
 	    (with-compensations
-	      (let ((dir	(posix:opendir/c the-subdir-1))
+	      (let ((dir	(px.opendir/c the-subdir-1))
 		    (layout	'()))
-		(do ((entry (posix:readdir dir) (posix:readdir dir)))
+		(do ((entry (px.readdir dir) (px.readdir dir)))
 		    ((pointer-null? entry))
-		  (set! layout (cons (posix:dirent-name->string entry) layout)))
+		  (set! layout (cons (px.dirent-name->string entry) layout)))
 		(list-sort string<? layout)))
 	  => '("." ".." "name-10.ext" "name-11.ext"))
 
 	(check
 	    (with-compensations
-	      (let ((dir	(posix:opendir/c the-subdir-3))
+	      (let ((dir	(px.opendir/c the-subdir-3))
 		    (layout	'()))
-		(do ((entry (posix:readdir dir) (posix:readdir dir)))
+		(do ((entry (px.readdir dir) (px.readdir dir)))
 		    ((pointer-null? entry))
-		  (set! layout (cons (posix:dirent-name->string entry) layout)))
+		  (set! layout (cons (px.dirent-name->string entry) layout)))
 		(list-sort string<? layout)))
 	  => '("." ".."))
 
@@ -188,26 +186,26 @@ Ses ailes de geant l'empechent de marcher.")
 
 	(check	;readdir_r
 	    (with-compensations
-	      (let ((dir	(posix:opendir/c the-root))
+	      (let ((dir	(px.opendir/c the-root))
 		    (layout	'()))
-		(do ((entry (posix:readdir_r dir) (posix:readdir_r dir)))
+		(do ((entry (px.readdir_r dir) (px.readdir_r dir)))
 		    ((pointer-null? entry))
-		  (set! layout  (cons (posix:dirent-name->string entry) layout)))
+		  (set! layout  (cons (px.dirent-name->string entry) layout)))
 		(list-sort string<? layout)))
 	  => '("." ".." "dir-1" "dir-2" "dir-3" "name.ext"))
 
 ;;; --------------------------------------------------------------------
 
 	(check
-	    (list-sort string<? (posix:directory-entries the-root))
+	    (list-sort string<? (px.directory-entries the-root))
 	  => '("." ".." "dir-1" "dir-2" "dir-3" "name.ext"))
 
 	(check
-	    (list-sort string<? (posix:directory-entries the-subdir-1))
+	    (list-sort string<? (px.directory-entries the-subdir-1))
 	  => '("." ".." "name-10.ext" "name-11.ext"))
 
 	(check
-	    (list-sort string<? (posix:directory-entries the-subdir-3))
+	    (list-sort string<? (px.directory-entries the-subdir-3))
 	  => '("." ".."))
 
 ;;; --------------------------------------------------------------------
@@ -215,8 +213,8 @@ Ses ailes de geant l'empechent de marcher.")
 	;;We DO  NOT close fd  here, it is  closed by CLOSEDIR  in the
 	;;compensation (weird but I have tested it, believe me!).
 	(check
-	    (letrec ((fd (posix:open the-root O_RDONLY 0)))
-	      (list-sort string<? (posix:directory-entries/fd fd)))
+	    (letrec ((fd (px.open the-root O_RDONLY 0)))
+	      (list-sort string<? (px.directory-entries/fd fd)))
 	  => '("." ".." "dir-1" "dir-2" "dir-3" "name.ext"))
 
 	;;We DO  NOT close fd  here, it is  closed by CLOSEDIR  in the
@@ -224,24 +222,24 @@ Ses ailes de geant l'empechent de marcher.")
 	(when (number? O_NOATIME)
 	  (check
 	      (with-compensations
-		(letrec ((fd (posix:open the-root O_RDONLY 0)))
-		  (list-sort string<? (posix:directory-entries/fd fd))))
+		(letrec ((fd (px.open the-root O_RDONLY 0)))
+		  (list-sort string<? (px.directory-entries/fd fd))))
 	    => '("." ".." "dir-1" "dir-2" "dir-3" "name.ext")))
 
 ;;; --------------------------------------------------------------------
 
 	(check	;telldir
 	    (with-compensations
-	      (let ((dir	(posix:opendir/c the-root))
+	      (let ((dir	(px.opendir/c the-root))
 		    (layout2	'())
 		    (layout1	'()))
-		(do ((entry (posix:readdir dir) (posix:readdir dir)))
+		(do ((entry (px.readdir dir) (px.readdir dir)))
 		    ((pointer-null? entry))
-		  (set! layout1 (cons (posix:dirent-name->string entry) layout1)))
-		(posix:rewinddir dir)
-		(do ((entry (posix:readdir dir) (posix:readdir dir)))
+		  (set! layout1 (cons (px.dirent-name->string entry) layout1)))
+		(px.rewinddir dir)
+		(do ((entry (px.readdir dir) (px.readdir dir)))
 		    ((pointer-null? entry))
-		  (set! layout2 (cons (posix:dirent-name->string entry) layout2)))
+		  (set! layout2 (cons (px.dirent-name->string entry) layout2)))
 		(append (list-sort string<? layout1)
 			(list-sort string<? layout2))))
 	  => '("." ".." "dir-1" "dir-2" "dir-3" "name.ext"
@@ -251,11 +249,11 @@ Ses ailes de geant l'empechent de marcher.")
 
 	(check	;rewinddir
 	    (with-compensations
-	      (let ((dir	(posix:opendir/c the-root))
+	      (let ((dir	(px.opendir/c the-root))
 		    (layout	'()))
-		(do ((entry (posix:readdir dir) (posix:readdir dir)))
+		(do ((entry (px.readdir dir) (px.readdir dir)))
 		    ((pointer-null? entry))
-		  (set! layout (cons (cons (posix:dirent-name->string entry) (posix:telldir entry))
+		  (set! layout (cons (cons (px.dirent-name->string entry) (px.telldir entry))
 				     layout)))
 		(map car (list-sort (lambda (a b)
 				      (string<? (car a) (car b)))
@@ -279,13 +277,13 @@ Ses ailes de geant l'empechent de marcher.")
 	    (with
 	     (clean-test-hierarchy)))
 
-;;;(posix:system (string-append "ls -l " the-root))
+;;;(px.system (string-append "ls -l " the-root))
 
 	(check
 	    (list-sort string<?
 		       (begin0-let ((result '()))
-			 (posix:ftw the-root
-				    (posix:make-ftw-callback
+			 (px.ftw the-root
+				    (px.make-ftw-callback
 				     (lambda (pathname stat flag)
 ;;;				       (write (list pathname stat))(newline)
 				       (set-cons! result pathname)
@@ -305,8 +303,8 @@ Ses ailes de geant l'empechent de marcher.")
 	(check
 	    (list-sort string<?
 		       (begin0-let ((result '()))
-			 (posix:nftw the-root
-				     (posix:make-nftw-callback
+			 (px.nftw the-root
+				     (px.make-nftw-callback
 				      (lambda (pathname stat flag base level)
 ;;;				        (write stat)(newline)
 ;;;					(write (list base level))(newline)
@@ -345,7 +343,7 @@ Ses ailes de geant l'empechent de marcher.")
 	  (check		;link
 	      (with-compensations
 		  (compensate
-		      (posix:link the-file the-other)
+		      (px.link the-file the-other)
 		    (with
 		     (delete-file the-other)))
 		(with-input-from-file the-other
@@ -356,7 +354,7 @@ Ses ailes de geant l'empechent de marcher.")
 	  (check	;symlink
 	      (with-compensations
 		  (compensate
-		      (posix:symlink the-file the-other)
+		      (px.symlink the-file the-other)
 		    (with
 		     (delete-file the-other)))
 		(with-input-from-file the-other
@@ -367,19 +365,19 @@ Ses ailes de geant l'empechent de marcher.")
 	  (check	;realpath
 	      (with-compensations
 		  (compensate
-		      (posix:symlink the-file the-other)
+		      (px.symlink the-file the-other)
 		    (with
 		     (delete-file the-other)))
-		(posix:realpath the-other))
+		(px.realpath the-other))
 	    => the-file)
 
 	  (check	;readlink
 	      (with-compensations
 		  (compensate
-		      (posix:symlink the-file the-other)
+		      (px.symlink the-file the-other)
 		    (with
 		     (delete-file the-other)))
-		(posix:readlink the-other))
+		(px.readlink the-other))
 	    => the-file)
 
 	  #f)))))
@@ -402,19 +400,19 @@ Ses ailes de geant l'empechent de marcher.")
 
 	  (check
 	      (begin
-		(posix:unlink the-file)
+		(px.unlink the-file)
 		(file-exists? the-file))
 	    => #f)
 
 	  (check
 	      (begin
-		(posix:remove the-file-2)
+		(px.remove the-file-2)
 		(file-exists? the-file-2))
 	    => #f)
 
 	  (check
 	      (begin
-		(posix:rmdir the-subdir-3)
+		(px.rmdir the-subdir-3)
 		(file-exists? the-subdir-3))
 	    => #f)
 
@@ -422,14 +420,14 @@ Ses ailes de geant l'empechent de marcher.")
 	      (guard (E (else (list (condition-who E)
 				    (errno-condition? E)
 				    (errno-symbolic-value E))))
-		(posix:rmdir the-subdir-1))
+		(px.rmdir the-subdir-1))
 	    => '(rmdir #t ENOTEMPTY))
 
 	  (check
 	      (begin
-		(posix:unlink the-file-10)
-		(posix:unlink the-file-11)
-		(posix:rmdir the-subdir-1)
+		(px.unlink the-file-10)
+		(px.unlink the-file-11)
+		(px.rmdir the-subdir-1)
 		(file-exists? the-subdir-1))
 	    => #f)
 
@@ -456,14 +454,14 @@ Ses ailes de geant l'empechent de marcher.")
 
 	    (check
 		(begin
-		  (posix:rename the-file the-other-file)
+		  (px.rename the-file the-other-file)
 		  (list (file-exists? the-file)
 			(file-exists? the-other-file)))
 	      => '(#f #t))
 
 	    (check
 		(begin
-		  (posix:rename the-subdir-1 the-other-dir)
+		  (px.rename the-subdir-1 the-other-dir)
 		  (list (file-exists? the-subdir-1)
 			(file-exists? the-other-dir)))
 	      => '(#f #t))
@@ -492,7 +490,7 @@ Ses ailes de geant l'empechent de marcher.")
 		(list
 		  (file-exists? the-other-dir)
 		  (begin
-		    (posix:mkdir the-other-dir #o700)
+		    (px.mkdir the-other-dir #o700)
 		    (file-exists? the-other-dir)))
 	      => '(#f #t))
 
@@ -515,22 +513,22 @@ Ses ailes de geant l'empechent de marcher.")
 	       (clean-test-hierarchy)))
 
 	  (check
-	      (let* ((record	(posix:stat the-file))
+	      (let* ((record	(px.stat the-file))
 		     (uid	(<stat>-uid record))
 		     (gid	(<stat>-gid record)))
-		(posix:chown the-file uid gid))
+		(px.chown the-file uid gid))
 	    => 0)
 
 	  (check
 	      (with-compensations
 		(letrec ((fd (compensate
-				 (posix:open the-file O_RDONLY 0)
+				 (px.open the-file O_RDONLY 0)
 			       (with
-				(posix:close fd)))))
-		  (let* ((record	(posix:fstat fd))
+				(px.close fd)))))
+		  (let* ((record	(px.fstat fd))
 			 (uid		(<stat>-uid record))
 			 (gid		(<stat>-gid record)))
-		    (posix:fchown fd uid gid))))
+		    (px.fchown fd uid gid))))
 	    => 0)
 
 	  #f)))))
@@ -551,31 +549,31 @@ Ses ailes de geant l'empechent de marcher.")
 	      (with
 	       (clean-test-hierarchy)))
 
-	  (posix:umask #o0027)
+	  (px.umask #o0027)
 
 	  (check
-	      (posix:getumask)
+	      (px.getumask)
 	    => #o0027)
 
 	  (check
 	      (let ()
-		(posix:umask 0)
-		(posix:chmod the-file (bitwise-ior S_IRUSR S_IXUSR
+		(px.umask 0)
+		(px.chmod the-file (bitwise-ior S_IRUSR S_IXUSR
 						   S_IRGRP S_IXGRP
 						   S_IROTH S_IXOTH))
-		(posix:file-permissions the-file))
+		(px.file-permissions the-file))
 	    => (bitwise-ior S_IRUSR S_IXUSR
 			    S_IRGRP S_IXGRP
 			    S_IROTH S_IXOTH))
 
 	  (check
 	      (let ()
-		(posix:umask 0)
-		(posix:chmod the-file
+		(px.umask 0)
+		(px.chmod the-file
 			     (access-permissions user-read user-exec
 						 group-read group-exec
 						 other-read other-exec))
-		(posix:file-permissions the-file))
+		(px.file-permissions the-file))
 	    => (bitwise-ior S_IRUSR S_IXUSR
 			    S_IRGRP S_IXGRP
 			    S_IROTH S_IXOTH))
@@ -583,12 +581,12 @@ Ses ailes de geant l'empechent de marcher.")
 	  (check
 	      (with-compensations
 		(letrec ((fd (compensate
-				 (posix:open the-file O_RDONLY 0)
+				 (px.open the-file O_RDONLY 0)
 			       (with
-				(posix:close fd)))))
-		  (posix:umask 0)
-		  (posix:fchmod fd #o123)
-		  (posix:file-permissions fd)))
+				(px.close fd)))))
+		  (px.umask 0)
+		  (px.fchmod fd #o123)
+		  (px.file-permissions fd)))
 	    => #o123)
 
 	  #f)))))
@@ -611,37 +609,37 @@ Ses ailes de geant l'empechent de marcher.")
 
 	  (check
 	      (begin
-		(posix:chmod the-file S_IRWXU)
-		(posix:access the-file F_OK))
+		(px.chmod the-file S_IRWXU)
+		(px.access the-file F_OK))
 	    => #t)
 
 	  (check
 	      (let ((the-other (string-join (list the-root "other.ext") "/")))
-		(posix:access the-other F_OK))
+		(px.access the-other F_OK))
 	    => #f)
 
 	  (check
 	      (begin
-		(posix:chmod the-file S_IRUSR)
-		(posix:access the-file R_OK))
+		(px.chmod the-file S_IRUSR)
+		(px.access the-file R_OK))
 	    => #t)
 
 	  (check
 	      (begin
-		(posix:chmod the-file 0)
-		(posix:access the-file R_OK))
+		(px.chmod the-file 0)
+		(px.access the-file R_OK))
 	    => #f)
 
 	  (check
 	      (begin
-		(posix:chmod the-file S_IWUSR)
-		(posix:access the-file W_OK))
+		(px.chmod the-file S_IWUSR)
+		(px.access the-file W_OK))
 	    => #t)
 
 	  (check
 	      (begin
-		(posix:chmod the-file 0)
-		(posix:access the-file W_OK))
+		(px.chmod the-file 0)
+		(px.access the-file W_OK))
 	    => #f)
 
 	  ;;I am not testing this on my system because "/tmp" is mounted
@@ -650,33 +648,33 @@ Ses ailes de geant l'empechent de marcher.")
 	  ;; (check
 	  ;;     (with-compensations
 	  ;; 	  (compensate
-	  ;; 	      (posix:umask 0)
+	  ;; 	      (px.umask 0)
 	  ;; 	    (with
-	  ;; 	     (posix:umask (bitwise-ior S_IWGRP S_IRWXG))))
-	  ;; 	(posix:chmod the-file S_IXUSR)
-	  ;; 	(posix:access the-file X_OK))
+	  ;; 	     (px.umask (bitwise-ior S_IWGRP S_IRWXG))))
+	  ;; 	(px.chmod the-file S_IXUSR)
+	  ;; 	(px.access the-file X_OK))
 	  ;;   => #t)
 
 	  (check
-	      (posix:access the-subdir-1 X_OK)
+	      (px.access the-subdir-1 X_OK)
 	    => #t)
 
 	  (check
 	      (begin
-		(posix:chmod the-file 0)
-		(posix:access the-file X_OK))
+		(px.chmod the-file 0)
+		(px.access the-file X_OK))
 	    => #f)
 
 	  (check
 	      (begin
-		(posix:chmod the-file S_IRWXU)
-		(posix:access the-file (access-flags existence)))
+		(px.chmod the-file S_IRWXU)
+		(px.access the-file (access-flags existence)))
 	    => #t)
 
 	  (check
 	      (begin
-		(posix:chmod the-file S_IRWXU)
-		(posix:access the-file (access-flags read)))
+		(px.chmod the-file S_IRWXU)
+		(px.access the-file (access-flags read)))
 	    => #t)
 
 	  #f)))))
@@ -692,7 +690,7 @@ Ses ailes de geant l'empechent de marcher.")
       (guard (E (else (debug-print-condition "times condition" E)))
 
 	(define (get-times pathname)
-	  (let ((record (posix:stat the-file)))
+	  (let ((record (px.stat the-file)))
 	    (list (<stat>-atime record)
 		  (<stat>-mtime record))))
 
@@ -708,23 +706,23 @@ Ses ailes de geant l'empechent de marcher.")
 	  ;;;though it is requested by the "utime()" call.
 	  (check
 	      (begin
-		(posix:chmod the-file S_IRWXU)
-;;;(posix:system (string-append "stat --printf='access=%X, modification=%Y, change=%Z\n' " the-file))
+		(px.chmod the-file S_IRWXU)
+;;;(px.system (string-append "stat --printf='access=%X, modification=%Y, change=%Z\n' " the-file))
 ;;;		(debug "debug: times ~s" (get-times the-file))
-		(posix:utime the-file
+		(px.utime the-file
 			     #e1e9 ;access time
 			     #e2e9);modification time
-;;;(posix:system (string-append "stat --printf='access=%X, modification=%Y, change=%Z\n' " the-file))
+;;;(px.system (string-append "stat --printf='access=%X, modification=%Y, change=%Z\n' " the-file))
 ;;;		(debug "debug: times ~s" (get-times the-file))
 		(get-times the-file))
 	    => '(#e1e9 #e2e9))
 
 	  (check
 	      (begin
-		(posix:chmod the-file S_IRWXU)
+		(px.chmod the-file S_IRWXU)
 ;;;		(debug "debug: times ~s" (get-times the-file))
 		(begin0
-		    (posix:utime the-file)
+		    (px.utime the-file)
 ;;;		  (debug "debug: times ~s" (get-times the-file))
 		  ))
 	    => 0)
@@ -733,8 +731,8 @@ Ses ailes de geant l'empechent de marcher.")
 
 	(check
 	    (begin
-	      (posix:chmod the-file S_IRWXU)
-	      (posix:utimes the-file
+	      (px.chmod the-file S_IRWXU)
+	      (px.utimes the-file
 			    #e1e3 ;access time
 			    #e1e4
 			    #e2e3 ;modification time
@@ -744,8 +742,8 @@ Ses ailes de geant l'empechent de marcher.")
 
 	(check
 	    (begin
-	      (posix:chmod the-file S_IRWXU)
-	      (posix:utimes the-file))
+	      (px.chmod the-file S_IRWXU)
+	      (px.utimes the-file))
 	  => 0)
 
 	  #f)))))
@@ -765,21 +763,21 @@ Ses ailes de geant l'empechent de marcher.")
 	    (with
 	     (clean-test-hierarchy)))
 
-;;;(posix:system (string-append "ls -l " the-file))
+;;;(px.system (string-append "ls -l " the-file))
 	(check
-	    (posix:file-size the-file)
+	    (px.file-size the-file)
 	  => (string-length the-string))
 
 	(check
 	    (begin
-	      (posix:ftruncate the-file 10)
-	      (posix:file-size the-file))
+	      (px.ftruncate the-file 10)
+	      (px.file-size the-file))
 	  => 10)
 
 	(check
 	    (begin
-	      (posix:truncate the-file 5)
-	      (posix:file-size the-file))
+	      (px.truncate the-file 5)
+	      (px.file-size the-file))
 	  => 5)
 
 	#f))))
@@ -800,8 +798,8 @@ Ses ailes de geant l'empechent de marcher.")
 	     (clean-test-hierarchy)))
 
 	(check		;mkstemp
-	    (let-values (((fd pathname) (posix:mkstemp (string-join (list TMPDIR "XXXXXX") "/"))))
-	      (posix:close fd)
+	    (let-values (((fd pathname) (px.mkstemp (string-join (list TMPDIR "XXXXXX") "/"))))
+	      (px.close fd)
 	      (list (string? pathname)
 		    (begin0
 			(file-exists? pathname)
@@ -809,11 +807,11 @@ Ses ailes de geant l'empechent de marcher.")
 	  => '(#t #t))
 
 	(check		;mkdtemp
-	    (let ((pathname (posix:mkdtemp (string-join (list TMPDIR "XXXXXX") "/"))))
+	    (let ((pathname (px.mkdtemp (string-join (list TMPDIR "XXXXXX") "/"))))
 	      (list (string? pathname)
 		    (file-exists? pathname)
-		    (posix:file-is-regular? pathname)
-		    (posix:file-is-directory? pathname)))
+		    (px.file-is-regular? pathname)
+		    (px.file-is-directory? pathname)))
 	  => '(#t #t #f #t))
 
 	#f))))

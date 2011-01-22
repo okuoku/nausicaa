@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2009-2011 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -26,19 +26,17 @@
 
 
 (import (nausicaa)
-  (strings)
-  (checks)
-  (deferred-exceptions)
-  (compensations)
-  (foreign ffi)
-  (foreign memory)
-  (foreign errno)
-  (foreign cstrings)
-  (posix sizeof)
-  (posix typedefs)
-  (prefix (posix process) posix:)
-  (prefix (posix fd) posix:)
-  (prefix (posix file) posix:))
+  (nausicaa strings)
+  (nausicaa checks)
+  (nausicaa ffi)
+  (nausicaa ffi memory)
+  (nausicaa ffi errno)
+  (nausicaa ffi cstrings)
+  (nausicaa posix sizeof)
+  (nausicaa posix typedefs)
+  (prefix (nausicaa posix process) px.)
+  (prefix (nausicaa posix fd) px.)
+  (prefix (nausicaa posix file) px.))
 
 (check-set-mode! 'report-failed)
 (display "*** testing POSIX stat\n")
@@ -83,17 +81,17 @@ Ses ailes de geant l'empechent de marcher.")
 	the-file))
 
 (define (make-test-hierarchy)
-  (posix:system (string-append "mkdir --mode=0700 " the-root))
-  (posix:system (string-append "mkdir --mode=0700 " the-subdir-1))
-  (posix:system (string-append "mkdir --mode=0700 " the-subdir-2))
-  (posix:system (string-append "mkdir --mode=0700 " the-subdir-3))
-  (posix:system (string-append "umask 0027; echo -n \"" the-string "\" >" the-file))
-  (posix:system (string-append "umask 0077; echo -n \"" the-string "\" >" the-file-10))
-  (posix:system (string-append "umask 0077; echo -n \"" the-string "\" >" the-file-11))
-  (posix:system (string-append "umask 0077; echo -n \"" the-string "\" >" the-file-2)))
+  (px.system (string-append "mkdir --mode=0700 " the-root))
+  (px.system (string-append "mkdir --mode=0700 " the-subdir-1))
+  (px.system (string-append "mkdir --mode=0700 " the-subdir-2))
+  (px.system (string-append "mkdir --mode=0700 " the-subdir-3))
+  (px.system (string-append "umask 0027; echo -n \"" the-string "\" >" the-file))
+  (px.system (string-append "umask 0077; echo -n \"" the-string "\" >" the-file-10))
+  (px.system (string-append "umask 0077; echo -n \"" the-string "\" >" the-file-11))
+  (px.system (string-append "umask 0077; echo -n \"" the-string "\" >" the-file-2)))
 
 (define (clean-test-hierarchy)
-  (posix:system (string-append "rm -fr " the-root)))
+  (px.system (string-append "rm -fr " the-root)))
 
 
 (parametrise ((check-test-name	'stat)
@@ -112,157 +110,157 @@ Ses ailes de geant l'empechent de marcher.")
 
 	(letrec ((the-other	(string-join (list the-root "other.ext") "/"))
 		 (fd		(compensate
-				    (posix:open the-file O_RDONLY 0)
+				    (px.open the-file O_RDONLY 0)
 				  (with
-				   (posix:close fd)))))
+				   (px.close fd)))))
 	  (compensate
-	      (posix:symlink the-file the-other)
+	      (px.symlink the-file the-other)
 	    (with
 	     (delete-file the-other)))
 
 	  (check
-	      (<stat>? (posix:stat the-file))
+	      (<stat>? (px.stat the-file))
 	    => #t)
 
 	  (check
-	      (<stat>? (posix:fstat fd))
+	      (<stat>? (px.fstat fd))
 	    => #t)
 
 	  (check
 	      (with-compensations
-		(<stat>? (posix:lstat the-other)))
+		(<stat>? (px.lstat the-other)))
 	    => #t)
 
 ;;; --------------------------------------------------------------------
 
 	  (check
-	      (list (posix:file-is-directory? the-subdir-1)
-		    (posix:file-is-directory? the-file)
-		    (posix:file-is-directory? the-other)
-		    (posix:file-is-directory? fd))
+	      (list (px.file-is-directory? the-subdir-1)
+		    (px.file-is-directory? the-file)
+		    (px.file-is-directory? the-other)
+		    (px.file-is-directory? fd))
 	    => '(#t #f #f #f))
 
 	  (check
-	      (list (posix:file-is-character-special? the-subdir-1)
-		    (posix:file-is-character-special? the-file)
-		    (posix:file-is-character-special? the-other)
-		    (posix:file-is-character-special? fd))
+	      (list (px.file-is-character-special? the-subdir-1)
+		    (px.file-is-character-special? the-file)
+		    (px.file-is-character-special? the-other)
+		    (px.file-is-character-special? fd))
 	    => '(#f #f #f #f))
 
 	  (check
-	      (list (posix:file-is-block-special? the-subdir-1)
-		    (posix:file-is-block-special? the-file)
-		    (posix:file-is-block-special? the-other)
-		    (posix:file-is-block-special? fd))
+	      (list (px.file-is-block-special? the-subdir-1)
+		    (px.file-is-block-special? the-file)
+		    (px.file-is-block-special? the-other)
+		    (px.file-is-block-special? fd))
 	    => '(#f #f #f #f))
 
 	  (check
-	      (list (posix:file-is-regular? the-subdir-1)
-		    (posix:file-is-regular? the-file)
-		    (posix:file-is-regular? the-other)
-		    (posix:file-is-regular? fd))
+	      (list (px.file-is-regular? the-subdir-1)
+		    (px.file-is-regular? the-file)
+		    (px.file-is-regular? the-other)
+		    (px.file-is-regular? fd))
 	    => '(#f #t #t #t))
 
 	  (check
-	      (list (posix:file-is-fifo? the-subdir-1)
-		    (posix:file-is-fifo? the-file)
-		    (posix:file-is-fifo? the-other)
-		    (posix:file-is-fifo? fd))
+	      (list (px.file-is-fifo? the-subdir-1)
+		    (px.file-is-fifo? the-file)
+		    (px.file-is-fifo? the-other)
+		    (px.file-is-fifo? fd))
 	    => '(#f #f #f #f))
 
 	  (check
-	      (list (posix:file-is-symbolic-link? the-subdir-1)
-		    (posix:file-is-symbolic-link? the-file)
-		    (posix:file-is-symbolic-link? the-other))
+	      (list (px.file-is-symbolic-link? the-subdir-1)
+		    (px.file-is-symbolic-link? the-file)
+		    (px.file-is-symbolic-link? the-other))
 	    => '(#f #f #t))
 
 	  (check
-	      (list (posix:file-is-socket? the-subdir-1)
-		    (posix:file-is-socket? the-file)
-		    (posix:file-is-socket? the-other)
-		    (posix:file-is-socket? fd))
+	      (list (px.file-is-socket? the-subdir-1)
+		    (px.file-is-socket? the-file)
+		    (px.file-is-socket? the-other)
+		    (px.file-is-socket? fd))
 	    => '(#f #f #f #f))
 
 	  (check
-	      (list (posix:file-is-semaphore? the-subdir-1)
-		    (posix:file-is-semaphore? the-file)
-		    (posix:file-is-semaphore? the-other)
-		    (posix:file-is-semaphore? fd))
+	      (list (px.file-is-semaphore? the-subdir-1)
+		    (px.file-is-semaphore? the-file)
+		    (px.file-is-semaphore? the-other)
+		    (px.file-is-semaphore? fd))
 	    => '(#f #f #f #f))
 
 	  (check
-	      (list (posix:file-is-shared-memory? the-subdir-1)
-		    (posix:file-is-shared-memory? the-file)
-		    (posix:file-is-shared-memory? the-other)
-		    (posix:file-is-shared-memory? fd))
+	      (list (px.file-is-shared-memory? the-subdir-1)
+		    (px.file-is-shared-memory? the-file)
+		    (px.file-is-shared-memory? the-other)
+		    (px.file-is-shared-memory? fd))
 	    => '(#f #f #f #f))
 
 	  (check
-	      (list (posix:file-is-message-queue? the-subdir-1)
-		    (posix:file-is-message-queue? the-file)
-		    (posix:file-is-message-queue? the-other)
-		    (posix:file-is-message-queue? fd))
+	      (list (px.file-is-message-queue? the-subdir-1)
+		    (px.file-is-message-queue? the-file)
+		    (px.file-is-message-queue? the-other)
+		    (px.file-is-message-queue? fd))
 	    => '(#f #f #f #f))
 
 ;;; --------------------------------------------------------------------
 
 	  (check
-	      (= 0 (bitwise-ior S_IRUSR (<stat>-mode (posix:stat the-file))))
+	      (= 0 (bitwise-ior S_IRUSR (<stat>-mode (px.stat the-file))))
 	    => #f)
 
 	  (check
-	      (= 0 (bitwise-ior S_IROTH (<stat>-mode (posix:stat the-file))))
+	      (= 0 (bitwise-ior S_IROTH (<stat>-mode (px.stat the-file))))
 	    => #f)
 
 	  (check
-	      (list (posix:file-user-readable? the-file)
-		    (posix:file-user-writable? the-file)
-		    (posix:file-user-executable? the-file)
-		    (posix:file-group-readable? the-file)
-		    (posix:file-group-writable? the-file)
-		    (posix:file-group-executable? the-file)
-		    (posix:file-other-readable? the-file)
-		    (posix:file-other-writable? the-file)
-		    (posix:file-other-executable? the-file)
-		    (posix:file-setuid? the-file)
-		    (posix:file-setgid? the-file)
-		    (posix:file-sticky? the-file))
+	      (list (px.file-user-readable? the-file)
+		    (px.file-user-writable? the-file)
+		    (px.file-user-executable? the-file)
+		    (px.file-group-readable? the-file)
+		    (px.file-group-writable? the-file)
+		    (px.file-group-executable? the-file)
+		    (px.file-other-readable? the-file)
+		    (px.file-other-writable? the-file)
+		    (px.file-other-executable? the-file)
+		    (px.file-setuid? the-file)
+		    (px.file-setgid? the-file)
+		    (px.file-sticky? the-file))
 	    => '(#t #t #f
 		    #t #f #f
 		    #f #f #f
 		    #f #f #f))
 
 	  (check
-	      (list (posix:file-user-readable? fd)
-		    (posix:file-user-writable? fd)
-		    (posix:file-user-executable? fd)
-		    (posix:file-group-readable? fd)
-		    (posix:file-group-writable? fd)
-		    (posix:file-group-executable? fd)
-		    (posix:file-other-readable? fd)
-		    (posix:file-other-writable? fd)
-		    (posix:file-other-executable? fd)
-		    (posix:file-setuid? fd)
-		    (posix:file-setgid? fd)
-		    (posix:file-sticky? fd))
+	      (list (px.file-user-readable? fd)
+		    (px.file-user-writable? fd)
+		    (px.file-user-executable? fd)
+		    (px.file-group-readable? fd)
+		    (px.file-group-writable? fd)
+		    (px.file-group-executable? fd)
+		    (px.file-other-readable? fd)
+		    (px.file-other-writable? fd)
+		    (px.file-other-executable? fd)
+		    (px.file-setuid? fd)
+		    (px.file-setgid? fd)
+		    (px.file-sticky? fd))
 	    => '(#t #t #f
 		    #t #f #f
 		    #f #f #f
 		    #f #f #f))
 
 	  (check
-	      (list (posix:lfile-user-readable? the-other)
-		    (posix:lfile-user-writable? the-other)
-		    (posix:lfile-user-executable? the-other)
-		    (posix:lfile-group-readable? the-other)
-		    (posix:lfile-group-writable? the-other)
-		    (posix:lfile-group-executable? the-other)
-		    (posix:lfile-other-readable? the-other)
-		    (posix:lfile-other-writable? the-other)
-		    (posix:lfile-other-executable? the-other)
-		    (posix:lfile-setuid? the-other)
-		    (posix:lfile-setgid? the-other)
-		    (posix:lfile-sticky? the-other))
+	      (list (px.lfile-user-readable? the-other)
+		    (px.lfile-user-writable? the-other)
+		    (px.lfile-user-executable? the-other)
+		    (px.lfile-group-readable? the-other)
+		    (px.lfile-group-writable? the-other)
+		    (px.lfile-group-executable? the-other)
+		    (px.lfile-other-readable? the-other)
+		    (px.lfile-other-writable? the-other)
+		    (px.lfile-other-executable? the-other)
+		    (px.lfile-setuid? the-other)
+		    (px.lfile-setgid? the-other)
+		    (px.lfile-sticky? the-other))
 	    => '(#t #t #t
 		    #t #t #t
 		    #t #t #t

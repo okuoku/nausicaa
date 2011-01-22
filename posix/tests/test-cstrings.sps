@@ -7,7 +7,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2009, 2011 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -25,10 +25,9 @@
 
 
 (import (nausicaa)
-  (checks)
-  (compensations)
-  (foreign cstrings)
-  (prefix (glibc cstrings platform) cstr:))
+  (nausicaa checks)
+  (nausicaa ffi cstrings)
+  (prefix (nausicaa glibc cstrings platform) cstr.))
 
 (check-set-mode! 'report-failed)
 (display "*** testing Glibc strings\n")
@@ -38,7 +37,7 @@
 
   (check
       (with-compensations
-        (cstr:strlen (string->cstring/c "ciao")))
+        (cstr.strlen (string->cstring/c "ciao")))
     => 4)
 
   #t)

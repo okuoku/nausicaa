@@ -7,7 +7,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2008, 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2008-2011 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -26,17 +26,15 @@
 
 
 (import (nausicaa)
-  (checks)
-  (deferred-exceptions)
-  (compensations)
-  (only (foreign ffi sizeof) valueof-int-max)
-  (foreign memory)
-  (foreign cstrings)
-  (foreign errno)
-  (posix sizeof)
-  (posix typedefs)
-  (prefix (posix time) posix:)
-  (prefix (glibc time) glibc:))
+  (nausicaa checks)
+  (only (nausicaa ffi sizeof) valueof-int-max)
+  (nausicaa ffi memory)
+  (nausicaa ffi cstrings)
+  (nausicaa ffi errno)
+  (nausicaa posix sizeof)
+  (nausicaa posix typedefs)
+  (prefix (nausicaa posix time) px.)
+  (prefix (nausicaa glibc time) glibc.))
 
 (check-set-mode! 'report-failed)
 (display "*** testing Glibc time\n")
@@ -82,7 +80,7 @@
       ;; 		     (errno-symbolic-value E))
       ;; 		    (else
       ;; 		     #f))
-      ;; 	    (glibc:stime (posix:time)))
+      ;; 	    (glibc.stime (px.time)))
       ;; 	=> 'EPERM)
 
       #t)))
@@ -96,7 +94,7 @@
     (lambda ()
 
       (check
-	  (let-values (((timeval timezone) (glibc:gettimeofday)))
+	  (let-values (((timeval timezone) (glibc.gettimeofday)))
 	    #t)
 	=> #t)
 
@@ -105,8 +103,8 @@
       ;; 	  (guard (E ((errno-condition? E)
       ;; 		     (errno-symbolic-value E))
       ;; 		    (else #f))
-      ;; 	    (let-values (((timeval timezone) (glibc:gettimeofday)))
-      ;; 	      (glibc:settimeofday timeval timezone)))
+      ;; 	    (let-values (((timeval timezone) (glibc.gettimeofday)))
+      ;; 	      (glibc.settimeofday timeval timezone)))
       ;; 	=> 'EPERM)
 
       ;; (check
@@ -114,7 +112,7 @@
       ;; 	  (guard (E ((errno-condition? E)
       ;; 		     (errno-symbolic-value E))
       ;; 		    (else #f))
-      ;; 	    (glibc:adjtime (make-<timeval> 0 0)))
+      ;; 	    (glibc.adjtime (make-<timeval> 0 0)))
       ;; 	=> 'EPERM)
 
       #t)))
@@ -122,7 +120,7 @@
 
 (parametrise ((check-test-name 'broken-down-time))
 
-  (define the-time (posix:time))
+  (define the-time (px.time))
 
   (with-deferred-exceptions-handler
       (lambda (E)
@@ -131,52 +129,52 @@
 
       (check
 	  (with-compensations
-	    (let ((tm* (glibc:localtime (posix:time) malloc-block/c)))
+	    (let ((tm* (glibc.localtime (px.time) malloc-block/c)))
 	      #t))
 	=> #t)
 
       (check
-	  (<tm>? (glibc:localtime* (posix:time)))
+	  (<tm>? (glibc.localtime* (px.time)))
 	=> #t)
 
 ;;; --------------------------------------------------------------------
 
       (check
 	  (with-compensations
-	    (let ((tm* (glibc:localtime (posix:time) malloc-block/c)))
+	    (let ((tm* (glibc.localtime (px.time) malloc-block/c)))
 	      #t))
 	=> #t)
 
       (check
-	  (<tm>? (glibc:localtime* (posix:time)))
+	  (<tm>? (glibc.localtime* (px.time)))
 	=> #t)
 
 ;;; --------------------------------------------------------------------
 
       (check
 	  (with-compensations
-	    (let ((tm* (glibc:localtime the-time malloc-block/c)))
-	      (glibc:timelocal tm*)))
+	    (let ((tm* (glibc.localtime the-time malloc-block/c)))
+	      (glibc.timelocal tm*)))
 	=> the-time)
 
       (check
 	  (with-compensations
-	    (let ((tm-record (glibc:localtime* the-time)))
-	      (glibc:timelocal* tm-record)))
+	    (let ((tm-record (glibc.localtime* the-time)))
+	      (glibc.timelocal* tm-record)))
 	=> the-time)
 
 ;;; --------------------------------------------------------------------
 
       (check
 	  (with-compensations
-	    (let ((tm* (glibc:gmtime the-time malloc-block/c)))
-	      (glibc:timegm tm*)))
+	    (let ((tm* (glibc.gmtime the-time malloc-block/c)))
+	      (glibc.timegm tm*)))
 	=> the-time)
 
       (check
 	  (with-compensations
-	    (let ((tm-record (glibc:gmtime* the-time)))
-	      (glibc:timegm* tm-record)))
+	    (let ((tm-record (glibc.gmtime* the-time)))
+	      (glibc.timegm* tm-record)))
 	=> the-time)
 
       #t)))
@@ -190,7 +188,7 @@
     (lambda ()
 
       (check
-	  (<ntptimeval>? (glibc:ntp_gettime*))
+	  (<ntptimeval>? (glibc.ntp_gettime*))
       	=> #t)
 
       ;; (check
@@ -198,7 +196,7 @@
       ;; 	  (guard (E ((errno-condition? E)
       ;; 		     (errno-symbolic-value E))
       ;; 		    (else (write E) #f))
-      ;; 	    (glibc:ntp_adjtime* (make-<timex>
+      ;; 	    (glibc.ntp_adjtime* (make-<timex>
       ;; 				 100 ;modes
       ;; 				 100 ;offset
       ;; 				 100 ;frequency
@@ -246,20 +244,20 @@
 			  ))
 
       (define the-time
-	(glibc:timelocal* broken))
+	(glibc.timelocal* broken))
 
 ;;; --------------------------------------------------------------------
 
       (check
-	  (glibc:asctime* broken)
+	  (glibc.asctime* broken)
 	=> "Wed May  3 02:01:00 1905\n")
 
       (check
-	  (glibc:ctime the-time)
+	  (glibc.ctime the-time)
 	=> "Wed May  3 02:01:00 1905\n")
 
       (check
-	  (glibc:strftime* "%a %h %d %H:%M:%S %Y" broken)
+	  (glibc.strftime* "%a %h %d %H:%M:%S %Y" broken)
 	=> "Wed May 03 02:01:00 1905")
 
       #t)))
@@ -290,7 +288,7 @@
       (define the-string "Wed May 03 02:01:00 1905")
 
       (check
-	  (glibc:strptime* the-string template)
+	  (glibc.strptime* the-string template)
 	(=> equal-<tm>?)
 	broken)
 
@@ -306,7 +304,7 @@
 
       (check
 	  (<itimerval>?
-	   (glibc:setitimer* ITIMER_REAL (make-<itimerval>
+	   (glibc.setitimer* ITIMER_REAL (make-<itimerval>
 					  (make-<timeval> 0 0)
 					  (make-<timeval> 999999 1))))
 	=> #t)
@@ -315,10 +313,10 @@
       ;;
       ;; (check
       ;; 	  (begin
-      ;; 	    (glibc:setitimer* ITIMER_REAL (make-<itimerval>
+      ;; 	    (glibc.setitimer* ITIMER_REAL (make-<itimerval>
       ;; 					   (make-<timeval> 0 0)
       ;; 					   (make-<timeval> 999999 1)))
-      ;; 	    (let* ((r (glibc:getitimer* ITIMER_REAL))
+      ;; 	    (let* ((r (glibc.getitimer* ITIMER_REAL))
       ;; 		   (i (<itimerval>-interval r))
       ;; 		   (v (<itimerval>-value    r)))
       ;; 	      (list (<timeval>-sec  i)
@@ -328,11 +326,11 @@
       ;; 	=> '(0 0 999999 1))
 
       (check
-	  (<itimerval>? (glibc:getitimer* ITIMER_REAL))
+	  (<itimerval>? (glibc.getitimer* ITIMER_REAL))
 	=> #t)
 
       (check
-	  (glibc:alarm 999999)
+	  (glibc.alarm 999999)
 	=> 999999)
 
       #t)))
@@ -346,11 +344,11 @@
     (lambda ()
 
       (check
-	  (glibc:sleep 1)
+	  (glibc.sleep 1)
 	=> 0)
 
       (check
-	  (let ((r (glibc:nanosleep* (make-<timespec> 1 0))))
+	  (let ((r (glibc.nanosleep* (make-<timespec> 1 0))))
 	    (list (<timespec>-sec  r)
 		  (<timespec>-nsec r)))
 	=> '(0 0))

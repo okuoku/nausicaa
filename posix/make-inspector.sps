@@ -9,7 +9,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2009-2011 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -27,7 +27,7 @@
 
 
 (import (nausicaa)
-  (ffi inspector-maker))
+  (nausicaa ffi inspector-maker))
 
 (class-uid "nausicaa:posix")
 
@@ -951,23 +951,23 @@ AC_SUBST([NAU_DIRENT_HAVE_D_TYPE])
 ;;;; done
 
 (define posix-library-spec
-  '(posix sizeof))
+  '(nausicaa posix sizeof))
 
 (define posix-structs-library-spec
-  '(posix structs))
+  '(nausicaa posix structs))
 
 (define posix-clang-types-library-spec
-  '(posix clang-data-types))
+  '(nausicaa posix clang-data-types))
 
 (autoconf-lib-write "configuration/posix-inspector.m4"
 		    posix-library-spec
 		    "NAUSICAA_POSIX")
 
-(sizeof-lib-write   "src/libraries/posix/sizeof.sls.in"
+(sizeof-lib-write   "src/libraries/nausicaa/posix/sizeof.sls.in"
 		    posix-library-spec
 		    posix-clang-types-library-spec)
 
-(clang-lib-write    "src/libraries/posix/clang-data-types.sls.in"
+(clang-lib-write    "src/libraries/nausicaa/posix/clang-data-types.sls.in"
 		    posix-clang-types-library-spec)
 
 

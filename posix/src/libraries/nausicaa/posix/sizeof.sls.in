@@ -1,0 +1,2037 @@
+;;; (nausicaa posix sizeof) --
+;;;
+;;;Part of: Nausicaa
+;;;Contents: foreign library inspection generation
+;;;Date: 
+;;;
+;;;Abstract
+;;;
+;;;
+;;;
+;;;Copyright (c)  Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;
+;;;This program is free software:  you can redistribute it and/or modify
+;;;it under the terms of the  GNU General Public License as published by
+;;;the Free Software Foundation, either version 3 of the License, or (at
+;;;your option) any later version.
+;;;
+;;;This program is  distributed in the hope that it  will be useful, but
+;;;WITHOUT  ANY   WARRANTY;  without   even  the  implied   warranty  of
+;;;MERCHANTABILITY  or FITNESS FOR  A PARTICULAR  PURPOSE.  See  the GNU
+;;;General Public License for more details.
+;;;
+;;;You should  have received  a copy of  the GNU General  Public License
+;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
+;;;
+
+
+(library (nausicaa posix sizeof)
+  (export c-sizeof c-strideof c-alignof c-valueof c-inspect
+    pointer-c-ref pointer-c-set! pointer-c-accessor
+    pointer-c-mutator array-c-ref array-c-set!
+    array-c-pointer-to _DIRENT_HAVE_D_NAMELEN
+    _DIRENT_HAVE_D_RECLEN _DIRENT_HAVE_D_OFF
+    _DIRENT_HAVE_D_TYPE SO_STYLE <struct-flock>
+    <struct-timeval> <struct-timespec> <struct-tms>
+    <struct-dirent> <struct-utimbuf> <struct-timezone>
+    <struct-tm> <struct-ntptimeval> <struct-timex>
+    <struct-itimerval> <struct-FTW> <struct-iovec>
+    <struct-fdset> <struct-passwd> <struct-group>
+    <struct-utsname> <struct-fstab> <struct-mntent>
+    <struct-sockaddr> <struct-sockaddr_in>
+    <struct-sockaddr_in6> <struct-sockaddr_un>
+    <struct-in_addr> <struct-in6_addr> <struct-if_nameindex>
+    <struct-netent> <struct-linger> <struct-hostent>
+    <struct-protoent> <struct-servent>)
+  (import
+    (rnrs)
+    (classes)
+    (for (nausicaa posix clang-data-types) expand)
+    (ffi syntax-helpers)
+    (prefix (ffi pointers) ffi:)
+    (prefix (ffi sizeof) ffi:)
+    (prefix (ffi peekers-and-pokers) ffi:)
+    (ffi extension-utilities))
+  (define-sizeof-macros)
+  (define sizeof-flock @SIZEOF_FLOCK@)
+  (define alignof-flock @ALIGNOF_FLOCK@)
+  (define strideof-flock @STRIDEOF_FLOCK@)
+  (define sizeof-timeval @SIZEOF_TIMEVAL@)
+  (define alignof-timeval @ALIGNOF_TIMEVAL@)
+  (define strideof-timeval @STRIDEOF_TIMEVAL@)
+  (define sizeof-timespec @SIZEOF_TIMESPEC@)
+  (define alignof-timespec @ALIGNOF_TIMESPEC@)
+  (define strideof-timespec @STRIDEOF_TIMESPEC@)
+  (define sizeof-tms @SIZEOF_TMS@)
+  (define alignof-tms @ALIGNOF_TMS@)
+  (define strideof-tms @STRIDEOF_TMS@)
+  (define sizeof-dirent @SIZEOF_DIRENT@)
+  (define alignof-dirent @ALIGNOF_DIRENT@)
+  (define strideof-dirent @STRIDEOF_DIRENT@)
+  (define sizeof-utimbuf @SIZEOF_UTIMBUF@)
+  (define alignof-utimbuf @ALIGNOF_UTIMBUF@)
+  (define strideof-utimbuf @STRIDEOF_UTIMBUF@)
+  (define sizeof-timezone @SIZEOF_TIMEZONE@)
+  (define alignof-timezone @ALIGNOF_TIMEZONE@)
+  (define strideof-timezone @STRIDEOF_TIMEZONE@)
+  (define sizeof-tm @SIZEOF_TM@)
+  (define alignof-tm @ALIGNOF_TM@)
+  (define strideof-tm @STRIDEOF_TM@)
+  (define sizeof-ntptimeval @SIZEOF_NTPTIMEVAL@)
+  (define alignof-ntptimeval @ALIGNOF_NTPTIMEVAL@)
+  (define strideof-ntptimeval @STRIDEOF_NTPTIMEVAL@)
+  (define sizeof-timex @SIZEOF_TIMEX@)
+  (define alignof-timex @ALIGNOF_TIMEX@)
+  (define strideof-timex @STRIDEOF_TIMEX@)
+  (define sizeof-itimerval @SIZEOF_ITIMERVAL@)
+  (define alignof-itimerval @ALIGNOF_ITIMERVAL@)
+  (define strideof-itimerval @STRIDEOF_ITIMERVAL@)
+  (define sizeof-FTW @SIZEOF_FTW@)
+  (define alignof-FTW @ALIGNOF_FTW@)
+  (define strideof-FTW @STRIDEOF_FTW@)
+  (define sizeof-iovec @SIZEOF_IOVEC@)
+  (define alignof-iovec @ALIGNOF_IOVEC@)
+  (define strideof-iovec @STRIDEOF_IOVEC@)
+  (define sizeof-fdset @SIZEOF_FDSET@)
+  (define alignof-fdset @ALIGNOF_FDSET@)
+  (define strideof-fdset @STRIDEOF_FDSET@)
+  (define sizeof-passwd @SIZEOF_PASSWD@)
+  (define alignof-passwd @ALIGNOF_PASSWD@)
+  (define strideof-passwd @STRIDEOF_PASSWD@)
+  (define sizeof-group @SIZEOF_GROUP@)
+  (define alignof-group @ALIGNOF_GROUP@)
+  (define strideof-group @STRIDEOF_GROUP@)
+  (define sizeof-utsname @SIZEOF_UTSNAME@)
+  (define alignof-utsname @ALIGNOF_UTSNAME@)
+  (define strideof-utsname @STRIDEOF_UTSNAME@)
+  (define sizeof-fstab @SIZEOF_FSTAB@)
+  (define alignof-fstab @ALIGNOF_FSTAB@)
+  (define strideof-fstab @STRIDEOF_FSTAB@)
+  (define sizeof-mntent @SIZEOF_MNTENT@)
+  (define alignof-mntent @ALIGNOF_MNTENT@)
+  (define strideof-mntent @STRIDEOF_MNTENT@)
+  (define sizeof-sockaddr @SIZEOF_SOCKADDR@)
+  (define alignof-sockaddr @ALIGNOF_SOCKADDR@)
+  (define strideof-sockaddr @STRIDEOF_SOCKADDR@)
+  (define sizeof-sockaddr_in @SIZEOF_SOCKADDR_IN@)
+  (define alignof-sockaddr_in @ALIGNOF_SOCKADDR_IN@)
+  (define strideof-sockaddr_in @STRIDEOF_SOCKADDR_IN@)
+  (define sizeof-sockaddr_in6 @SIZEOF_SOCKADDR_IN6@)
+  (define alignof-sockaddr_in6 @ALIGNOF_SOCKADDR_IN6@)
+  (define strideof-sockaddr_in6 @STRIDEOF_SOCKADDR_IN6@)
+  (define sizeof-sockaddr_un @SIZEOF_SOCKADDR_UN@)
+  (define alignof-sockaddr_un @ALIGNOF_SOCKADDR_UN@)
+  (define strideof-sockaddr_un @STRIDEOF_SOCKADDR_UN@)
+  (define sizeof-in_addr @SIZEOF_IN_ADDR@)
+  (define alignof-in_addr @ALIGNOF_IN_ADDR@)
+  (define strideof-in_addr @STRIDEOF_IN_ADDR@)
+  (define sizeof-in6_addr @SIZEOF_IN6_ADDR@)
+  (define alignof-in6_addr @ALIGNOF_IN6_ADDR@)
+  (define strideof-in6_addr @STRIDEOF_IN6_ADDR@)
+  (define sizeof-if_nameindex @SIZEOF_IF_NAMEINDEX@)
+  (define alignof-if_nameindex @ALIGNOF_IF_NAMEINDEX@)
+  (define strideof-if_nameindex @STRIDEOF_IF_NAMEINDEX@)
+  (define sizeof-netent @SIZEOF_NETENT@)
+  (define alignof-netent @ALIGNOF_NETENT@)
+  (define strideof-netent @STRIDEOF_NETENT@)
+  (define sizeof-linger @SIZEOF_LINGER@)
+  (define alignof-linger @ALIGNOF_LINGER@)
+  (define strideof-linger @STRIDEOF_LINGER@)
+  (define sizeof-hostent @SIZEOF_HOSTENT@)
+  (define alignof-hostent @ALIGNOF_HOSTENT@)
+  (define strideof-hostent @STRIDEOF_HOSTENT@)
+  (define sizeof-protoent @SIZEOF_PROTOENT@)
+  (define alignof-protoent @ALIGNOF_PROTOENT@)
+  (define strideof-protoent @STRIDEOF_PROTOENT@)
+  (define sizeof-servent @SIZEOF_SERVENT@)
+  (define alignof-servent @ALIGNOF_SERVENT@)
+  (define strideof-servent @STRIDEOF_SERVENT@)
+  (define valueof-SEEK_SET @VALUEOF_SEEK_SET@)
+  (define valueof-SEEK_CUR @VALUEOF_SEEK_CUR@)
+  (define valueof-SEEK_END @VALUEOF_SEEK_END@)
+  (define valueof-O_ACCMODE @VALUEOF_O_ACCMODE@)
+  (define valueof-O_APPEND @VALUEOF_O_APPEND@)
+  (define valueof-O_ASYNC @VALUEOF_O_ASYNC@)
+  (define valueof-O_CREAT @VALUEOF_O_CREAT@)
+  (define valueof-O_EXCL @VALUEOF_O_EXCL@)
+  (define valueof-O_EXEC @VALUEOF_O_EXEC@)
+  (define valueof-O_EXLOCK @VALUEOF_O_EXLOCK@)
+  (define valueof-O_FSYNC @VALUEOF_O_FSYNC@)
+  (define valueof-O_IGNORE_CTTY @VALUEOF_O_IGNORE_CTTY@)
+  (define valueof-O_NDELAY @VALUEOF_O_NDELAY@)
+  (define valueof-O_NOCTTY @VALUEOF_O_NOCTTY@)
+  (define valueof-O_NOLINK @VALUEOF_O_NOLINK@)
+  (define valueof-O_NONBLOCK @VALUEOF_O_NONBLOCK@)
+  (define valueof-O_NOTRANS @VALUEOF_O_NOTRANS@)
+  (define valueof-O_RDONLY @VALUEOF_O_RDONLY@)
+  (define valueof-O_RDWR @VALUEOF_O_RDWR@)
+  (define valueof-O_READ @VALUEOF_O_READ@)
+  (define valueof-O_SHLOCK @VALUEOF_O_SHLOCK@)
+  (define valueof-O_SYNC @VALUEOF_O_SYNC@)
+  (define valueof-O_TRUNC @VALUEOF_O_TRUNC@)
+  (define valueof-O_WRITE @VALUEOF_O_WRITE@)
+  (define valueof-O_WRONLY @VALUEOF_O_WRONLY@)
+  (define valueof-O_NOATIME @VALUEOF_O_NOATIME@)
+  (define valueof-O_CLOEXEC @VALUEOF_O_CLOEXEC@)
+  (define valueof-O_DIRECT @VALUEOF_O_DIRECT@)
+  (define valueof-O_DIRECTORY @VALUEOF_O_DIRECTORY@)
+  (define valueof-O_LARGEFILE @VALUEOF_O_LARGEFILE@)
+  (define valueof-O_NOFOLLOW @VALUEOF_O_NOFOLLOW@)
+  (define valueof-FD_CLOEXEC @VALUEOF_FD_CLOEXEC@)
+  (define valueof-F_DUPFD @VALUEOF_F_DUPFD@)
+  (define valueof-F_GETFD @VALUEOF_F_GETFD@)
+  (define valueof-F_GETFL @VALUEOF_F_GETFL@)
+  (define valueof-F_GETLK @VALUEOF_F_GETLK@)
+  (define valueof-F_GETOWN @VALUEOF_F_GETOWN@)
+  (define valueof-F_SETFD @VALUEOF_F_SETFD@)
+  (define valueof-F_SETFL @VALUEOF_F_SETFL@)
+  (define valueof-F_SETLKW @VALUEOF_F_SETLKW@)
+  (define valueof-F_SETLK @VALUEOF_F_SETLK@)
+  (define valueof-F_SETOWN @VALUEOF_F_SETOWN@)
+  (define valueof-F_RDLCK @VALUEOF_F_RDLCK@)
+  (define valueof-F_UNLCK @VALUEOF_F_UNLCK@)
+  (define valueof-F_WRLCK @VALUEOF_F_WRLCK@)
+  (define valueof-WNOHANG @VALUEOF_WNOHANG@)
+  (define valueof-WUNTRACED @VALUEOF_WUNTRACED@)
+  (define valueof-WCONTINUED @VALUEOF_WCONTINUED@)
+  (define valueof-R_OK @VALUEOF_R_OK@)
+  (define valueof-W_OK @VALUEOF_W_OK@)
+  (define valueof-X_OK @VALUEOF_X_OK@)
+  (define valueof-F_OK @VALUEOF_F_OK@)
+  (define valueof-L_ctermid @VALUEOF_L_ctermid@)
+  (define valueof-L_tmpnam @VALUEOF_L_tmpnam@)
+  (define valueof-CLOCKS_PER_SEC @VALUEOF_CLOCKS_PER_SEC@)
+  (define valueof-S_IRUSR @VALUEOF_S_IRUSR@)
+  (define valueof-S_IWUSR @VALUEOF_S_IWUSR@)
+  (define valueof-S_IXUSR @VALUEOF_S_IXUSR@)
+  (define valueof-S_IRGRP @VALUEOF_S_IRGRP@)
+  (define valueof-S_IWGRP @VALUEOF_S_IWGRP@)
+  (define valueof-S_IXGRP @VALUEOF_S_IXGRP@)
+  (define valueof-S_IROTH @VALUEOF_S_IROTH@)
+  (define valueof-S_IWOTH @VALUEOF_S_IWOTH@)
+  (define valueof-S_IXOTH @VALUEOF_S_IXOTH@)
+  (define valueof-S_IRWXU @VALUEOF_S_IRWXU@)
+  (define valueof-S_IRWXG @VALUEOF_S_IRWXG@)
+  (define valueof-S_IRWXO @VALUEOF_S_IRWXO@)
+  (define valueof-S_ISUID @VALUEOF_S_ISUID@)
+  (define valueof-S_ISGID @VALUEOF_S_ISGID@)
+  (define valueof-S_ISVTX @VALUEOF_S_ISVTX@)
+  (define _DIRENT_HAVE_D_NAMELEN @NAU_DIRENT_HAVE_D_NAMELEN@)
+  (define _DIRENT_HAVE_D_RECLEN @NAU_DIRENT_HAVE_D_RECLEN@)
+  (define _DIRENT_HAVE_D_OFF @NAU_DIRENT_HAVE_D_OFF@)
+  (define _DIRENT_HAVE_D_TYPE @NAU_DIRENT_HAVE_D_TYPE@)
+  (define valueof-DT_BLK @VALUEOF_DT_BLK@)
+  (define valueof-DT_CHR @VALUEOF_DT_CHR@)
+  (define valueof-DT_DIR @VALUEOF_DT_DIR@)
+  (define valueof-DT_FIFO @VALUEOF_DT_FIFO@)
+  (define valueof-DT_LNK @VALUEOF_DT_LNK@)
+  (define valueof-DT_REG @VALUEOF_DT_REG@)
+  (define valueof-DT_SOCK @VALUEOF_DT_SOCK@)
+  (define valueof-DT_UNKNOWN @VALUEOF_DT_UNKNOWN@)
+  (define valueof-FTW_F @VALUEOF_FTW_F@)
+  (define valueof-FTW_D @VALUEOF_FTW_D@)
+  (define valueof-FTW_NS @VALUEOF_FTW_NS@)
+  (define valueof-FTW_DNR @VALUEOF_FTW_DNR@)
+  (define valueof-FTW_SL @VALUEOF_FTW_SL@)
+  (define valueof-FTW_DP @VALUEOF_FTW_DP@)
+  (define valueof-FTW_SLN @VALUEOF_FTW_SLN@)
+  (define valueof-FTW_PHYS @VALUEOF_FTW_PHYS@)
+  (define valueof-FTW_MOUNT @VALUEOF_FTW_MOUNT@)
+  (define valueof-FTW_CHDIR @VALUEOF_FTW_CHDIR@)
+  (define valueof-FTW_DEPTH @VALUEOF_FTW_DEPTH@)
+  (define valueof-FTW_ACTIONRETVAL
+    @VALUEOF_FTW_ACTIONRETVAL@)
+  (define valueof-FTW_CONTINUE @VALUEOF_FTW_CONTINUE@)
+  (define valueof-FTW_STOP @VALUEOF_FTW_STOP@)
+  (define valueof-FTW_SKIP_SUBTREE
+    @VALUEOF_FTW_SKIP_SUBTREE@)
+  (define valueof-FTW_SKIP_SIBLINGS
+    @VALUEOF_FTW_SKIP_SIBLINGS@)
+  (define valueof-ITIMER_REAL @VALUEOF_ITIMER_REAL@)
+  (define valueof-ITIMER_VIRTUAL @VALUEOF_ITIMER_VIRTUAL@)
+  (define valueof-ITIMER_PROF @VALUEOF_ITIMER_PROF@)
+  (define valueof-EOF @VALUEOF_EOF@)
+  (define valueof-MAXSYMLINKS @VALUEOF_MAXSYMLINKS@)
+  (define valueof-MAXPATHLEN @VALUEOF_MAXPATHLEN@)
+  (define valueof-MAP_PRIVATE @VALUEOF_MAP_PRIVATE@)
+  (define valueof-MAP_SHARED @VALUEOF_MAP_SHARED@)
+  (define valueof-MAP_FIXED @VALUEOF_MAP_FIXED@)
+  (define valueof-MAP_ANON @VALUEOF_MAP_ANON@)
+  (define valueof-MAP_ANONYMOUS @VALUEOF_MAP_ANONYMOUS@)
+  (define valueof-MAP_32BITS @VALUEOF_MAP_32BITS@)
+  (define valueof-MAP_DENYWRITE @VALUEOF_MAP_DENYWRITE@)
+  (define valueof-MAP_EXECUTABLE @VALUEOF_MAP_EXECUTABLE@)
+  (define valueof-MAP_FILE @VALUEOF_MAP_FILE@)
+  (define valueof-MAP_GROWSDOWN @VALUEOF_MAP_GROWSDOWN@)
+  (define valueof-MAP_LOCKED @VALUEOF_MAP_LOCKED@)
+  (define valueof-MAP_NONBLOCK @VALUEOF_MAP_NONBLOCK@)
+  (define valueof-MAP_NORESERVE @VALUEOF_MAP_NORESERVE@)
+  (define valueof-MAP_POPULATE @VALUEOF_MAP_POPULATE@)
+  (define valueof-MAP_STACK @VALUEOF_MAP_STACK@)
+  (define valueof-MAP_AUTOGROW @VALUEOF_MAP_AUTOGROW@)
+  (define valueof-MAP_AUTORESRV @VALUEOF_MAP_AUTORESRV@)
+  (define valueof-MAP_COPY @VALUEOF_MAP_COPY@)
+  (define valueof-PROT_READ @VALUEOF_PROT_READ@)
+  (define valueof-PROT_WRITE @VALUEOF_PROT_WRITE@)
+  (define valueof-PROT_EXEC @VALUEOF_PROT_EXEC@)
+  (define valueof-PROT_NONE @VALUEOF_PROT_NONE@)
+  (define valueof-MS_SYNC @VALUEOF_MS_SYNC@)
+  (define valueof-MS_ASYNC @VALUEOF_MS_ASYNC@)
+  (define valueof-MREMAP_MAYMOVE @VALUEOF_MREMAP_MAYMOVE@)
+  (define valueof-FD_SETSIZE @VALUEOF_FD_SETSIZE@)
+  (define valueof-L_cuserid @VALUEOF_L_cuserid@)
+  (define valueof-ARG_MAX @VALUEOF_ARG_MAX@)
+  (define valueof-_POSIX_ARG_MAX @VALUEOF__POSIX_ARG_MAX@)
+  (define valueof-CHILD_MAX @VALUEOF_CHILD_MAX@)
+  (define valueof-_POSIX_CHILD_MAX
+    @VALUEOF__POSIX_CHILD_MAX@)
+  (define valueof-OPEN_MAX @VALUEOF_OPEN_MAX@)
+  (define valueof-_POSIX_OPEN_MAX @VALUEOF__POSIX_OPEN_MAX@)
+  (define valueof-STREAM_MAX @VALUEOF_STREAM_MAX@)
+  (define valueof-_POSIX_STREAM_MAX
+    @VALUEOF__POSIX_STREAM_MAX@)
+  (define valueof-TZNAME_MAX @VALUEOF_TZNAME_MAX@)
+  (define valueof-_POSIX_TZNAME_MAX
+    @VALUEOF__POSIX_TZNAME_MAX@)
+  (define valueof-NGROUPS_MAX @VALUEOF_NGROUPS_MAX@)
+  (define valueof-SSIZE_MAX @VALUEOF_SSIZE_MAX@)
+  (define valueof-RE_DUP_MAX @VALUEOF_RE_DUP_MAX@)
+  (define valueof-_POSIX_JOB_CONTROL
+    @VALUEOF__POSIX_JOB_CONTROL@)
+  (define valueof-_POSIX_SAVED_IDS
+    @VALUEOF__POSIX_SAVED_IDS@)
+  (define valueof-_POSIX2_C_DEV @VALUEOF__POSIX2_C_DEV@)
+  (define valueof-_POSIX2_FORT_DEV
+    @VALUEOF__POSIX2_FORT_DEV@)
+  (define valueof-_POSIX2_FORT_RUN
+    @VALUEOF__POSIX2_FORT_RUN@)
+  (define valueof-_POSIX2_LOCALEDEF
+    @VALUEOF__POSIX2_LOCALEDEF@)
+  (define valueof-_POSIX2_SW_DEV @VALUEOF__POSIX2_SW_DEV@)
+  (define valueof-_POSIX_VERSION @VALUEOF__POSIX_VERSION@)
+  (define valueof-_POSIX2_C_VERSION
+    @VALUEOF__POSIX2_C_VERSION@)
+  (define valueof-_SC_ARG_MAX @VALUEOF__SC_ARG_MAX@)
+  (define valueof-_SC_CHILD_MAX @VALUEOF__SC_CHILD_MAX@)
+  (define valueof-_SC_CLK_TCK @VALUEOF__SC_CLK_TCK@)
+  (define valueof-_SC_NGROUPS_MAX @VALUEOF__SC_NGROUPS_MAX@)
+  (define valueof-_SC_OPEN_MAX @VALUEOF__SC_OPEN_MAX@)
+  (define valueof-_SC_STREAM_MAX @VALUEOF__SC_STREAM_MAX@)
+  (define valueof-_SC_TZNAME_MAX @VALUEOF__SC_TZNAME_MAX@)
+  (define valueof-_SC_JOB_CONTROL @VALUEOF__SC_JOB_CONTROL@)
+  (define valueof-_SC_SAVED_IDS @VALUEOF__SC_SAVED_IDS@)
+  (define valueof-_SC_REALTIME_SIGNALS
+    @VALUEOF__SC_REALTIME_SIGNALS@)
+  (define valueof-_SC_PRIORITY_SCHEDULING
+    @VALUEOF__SC_PRIORITY_SCHEDULING@)
+  (define valueof-_SC_TIMERS @VALUEOF__SC_TIMERS@)
+  (define valueof-_SC_ASYNCHRONOUS_IO
+    @VALUEOF__SC_ASYNCHRONOUS_IO@)
+  (define valueof-_SC_PRIORITIZED_IO
+    @VALUEOF__SC_PRIORITIZED_IO@)
+  (define valueof-_SC_SYNCHRONIZED_IO
+    @VALUEOF__SC_SYNCHRONIZED_IO@)
+  (define valueof-_SC_FSYNC @VALUEOF__SC_FSYNC@)
+  (define valueof-_SC_MAPPED_FILES
+    @VALUEOF__SC_MAPPED_FILES@)
+  (define valueof-_SC_MEMLOCK @VALUEOF__SC_MEMLOCK@)
+  (define valueof-_SC_MEMLOCK_RANGE
+    @VALUEOF__SC_MEMLOCK_RANGE@)
+  (define valueof-_SC_MEMORY_PROTECTION
+    @VALUEOF__SC_MEMORY_PROTECTION@)
+  (define valueof-_SC_MESSAGE_PASSING
+    @VALUEOF__SC_MESSAGE_PASSING@)
+  (define valueof-_SC_SEMAPHORES @VALUEOF__SC_SEMAPHORES@)
+  (define valueof-_SC_SHARED_MEMORY_OBJECTS
+    @VALUEOF__SC_SHARED_MEMORY_OBJECTS@)
+  (define valueof-_SC_AIO_LISTIO_MAX
+    @VALUEOF__SC_AIO_LISTIO_MAX@)
+  (define valueof-_SC_AIO_MAX @VALUEOF__SC_AIO_MAX@)
+  (define valueof-_SC_AIO_PRIO_DELTA_MAX
+    @VALUEOF__SC_AIO_PRIO_DELTA_MAX@)
+  (define valueof-_SC_DELAYTIMER_MAX
+    @VALUEOF__SC_DELAYTIMER_MAX@)
+  (define valueof-_SC_MQ_OPEN_MAX @VALUEOF__SC_MQ_OPEN_MAX@)
+  (define valueof-_SC_MQ_PRIO_MAX @VALUEOF__SC_MQ_PRIO_MAX@)
+  (define valueof-_SC_VERSION @VALUEOF__SC_VERSION@)
+  (define valueof-_SC_PAGESIZE @VALUEOF__SC_PAGESIZE@)
+  (define valueof-_SC_PAGE_SIZE @VALUEOF__SC_PAGE_SIZE@)
+  (define valueof-_SC_RTSIG_MAX @VALUEOF__SC_RTSIG_MAX@)
+  (define valueof-_SC_SEM_NSEMS_MAX
+    @VALUEOF__SC_SEM_NSEMS_MAX@)
+  (define valueof-_SC_SEM_VALUE_MAX
+    @VALUEOF__SC_SEM_VALUE_MAX@)
+  (define valueof-_SC_SIGQUEUE_MAX
+    @VALUEOF__SC_SIGQUEUE_MAX@)
+  (define valueof-_SC_TIMER_MAX @VALUEOF__SC_TIMER_MAX@)
+  (define valueof-_SC_BC_BASE_MAX @VALUEOF__SC_BC_BASE_MAX@)
+  (define valueof-_SC_BC_DIM_MAX @VALUEOF__SC_BC_DIM_MAX@)
+  (define valueof-_SC_BC_SCALE_MAX
+    @VALUEOF__SC_BC_SCALE_MAX@)
+  (define valueof-_SC_BC_STRING_MAX
+    @VALUEOF__SC_BC_STRING_MAX@)
+  (define valueof-_SC_COLL_WEIGHTS_MAX
+    @VALUEOF__SC_COLL_WEIGHTS_MAX@)
+  (define valueof-_SC_EQUIV_CLASS_MAX
+    @VALUEOF__SC_EQUIV_CLASS_MAX@)
+  (define valueof-_SC_EXPR_NEST_MAX
+    @VALUEOF__SC_EXPR_NEST_MAX@)
+  (define valueof-_SC_LINE_MAX @VALUEOF__SC_LINE_MAX@)
+  (define valueof-_SC_RE_DUP_MAX @VALUEOF__SC_RE_DUP_MAX@)
+  (define valueof-_SC_CHARCLASS_NAME_MAX
+    @VALUEOF__SC_CHARCLASS_NAME_MAX@)
+  (define valueof-_SC_2_VERSION @VALUEOF__SC_2_VERSION@)
+  (define valueof-_SC_2_C_BIND @VALUEOF__SC_2_C_BIND@)
+  (define valueof-_SC_2_C_DEV @VALUEOF__SC_2_C_DEV@)
+  (define valueof-_SC_2_FORT_DEV @VALUEOF__SC_2_FORT_DEV@)
+  (define valueof-_SC_2_FORT_RUN @VALUEOF__SC_2_FORT_RUN@)
+  (define valueof-_SC_2_SW_DEV @VALUEOF__SC_2_SW_DEV@)
+  (define valueof-_SC_2_LOCALEDEF @VALUEOF__SC_2_LOCALEDEF@)
+  (define valueof-_SC_PII @VALUEOF__SC_PII@)
+  (define valueof-_SC_PII_XTI @VALUEOF__SC_PII_XTI@)
+  (define valueof-_SC_PII_SOCKET @VALUEOF__SC_PII_SOCKET@)
+  (define valueof-_SC_PII_INTERNET
+    @VALUEOF__SC_PII_INTERNET@)
+  (define valueof-_SC_PII_OSI @VALUEOF__SC_PII_OSI@)
+  (define valueof-_SC_POLL @VALUEOF__SC_POLL@)
+  (define valueof-_SC_SELECT @VALUEOF__SC_SELECT@)
+  (define valueof-_SC_UIO_MAXIOV @VALUEOF__SC_UIO_MAXIOV@)
+  (define valueof-_SC_IOV_MAX @VALUEOF__SC_IOV_MAX@)
+  (define valueof-_SC_PII_INTERNET_STREAM
+    @VALUEOF__SC_PII_INTERNET_STREAM@)
+  (define valueof-_SC_PII_INTERNET_DGRAM
+    @VALUEOF__SC_PII_INTERNET_DGRAM@)
+  (define valueof-_SC_PII_OSI_COTS
+    @VALUEOF__SC_PII_OSI_COTS@)
+  (define valueof-_SC_PII_OSI_CLTS
+    @VALUEOF__SC_PII_OSI_CLTS@)
+  (define valueof-_SC_PII_OSI_M @VALUEOF__SC_PII_OSI_M@)
+  (define valueof-_SC_T_IOV_MAX @VALUEOF__SC_T_IOV_MAX@)
+  (define valueof-_SC_THREADS @VALUEOF__SC_THREADS@)
+  (define valueof-_SC_THREAD_SAFE_FUNCTIONS
+    @VALUEOF__SC_THREAD_SAFE_FUNCTIONS@)
+  (define valueof-_SC_GETGR_R_SIZE_MAX
+    @VALUEOF__SC_GETGR_R_SIZE_MAX@)
+  (define valueof-_SC_GETPW_R_SIZE_MAX
+    @VALUEOF__SC_GETPW_R_SIZE_MAX@)
+  (define valueof-_SC_LOGIN_NAME_MAX
+    @VALUEOF__SC_LOGIN_NAME_MAX@)
+  (define valueof-_SC_TTY_NAME_MAX
+    @VALUEOF__SC_TTY_NAME_MAX@)
+  (define valueof-_SC_THREAD_DESTRUCTOR_ITERATIONS
+    @VALUEOF__SC_THREAD_DESTRUCTOR_ITERATIONS@)
+  (define valueof-_SC_THREAD_KEYS_MAX
+    @VALUEOF__SC_THREAD_KEYS_MAX@)
+  (define valueof-_SC_THREAD_STACK_MIN
+    @VALUEOF__SC_THREAD_STACK_MIN@)
+  (define valueof-_SC_THREAD_THREADS_MAX
+    @VALUEOF__SC_THREAD_THREADS_MAX@)
+  (define valueof-_SC_THREAD_ATTR_STACKADDR
+    @VALUEOF__SC_THREAD_ATTR_STACKADDR@)
+  (define valueof-_SC_THREAD_ATTR_STACKSIZE
+    @VALUEOF__SC_THREAD_ATTR_STACKSIZE@)
+  (define valueof-_SC_THREAD_PRIORITY_SCHEDULING
+    @VALUEOF__SC_THREAD_PRIORITY_SCHEDULING@)
+  (define valueof-_SC_THREAD_PRIO_INHERIT
+    @VALUEOF__SC_THREAD_PRIO_INHERIT@)
+  (define valueof-_SC_THREAD_PRIO_PROTECT
+    @VALUEOF__SC_THREAD_PRIO_PROTECT@)
+  (define valueof-_SC_THREAD_PROCESS_SHARED
+    @VALUEOF__SC_THREAD_PROCESS_SHARED@)
+  (define valueof-_SC_NPROCESSORS_CONF
+    @VALUEOF__SC_NPROCESSORS_CONF@)
+  (define valueof-_SC_NPROCESSORS_ONLN
+    @VALUEOF__SC_NPROCESSORS_ONLN@)
+  (define valueof-_SC_PHYS_PAGES @VALUEOF__SC_PHYS_PAGES@)
+  (define valueof-_SC_AVPHYS_PAGES
+    @VALUEOF__SC_AVPHYS_PAGES@)
+  (define valueof-_SC_ATEXIT_MAX @VALUEOF__SC_ATEXIT_MAX@)
+  (define valueof-_SC_PASS_MAX @VALUEOF__SC_PASS_MAX@)
+  (define valueof-_SC_XOPEN_VERSION
+    @VALUEOF__SC_XOPEN_VERSION@)
+  (define valueof-_SC_XOPEN_XCU_VERSION
+    @VALUEOF__SC_XOPEN_XCU_VERSION@)
+  (define valueof-_SC_XOPEN_UNIX @VALUEOF__SC_XOPEN_UNIX@)
+  (define valueof-_SC_XOPEN_CRYPT @VALUEOF__SC_XOPEN_CRYPT@)
+  (define valueof-_SC_XOPEN_ENH_I18N
+    @VALUEOF__SC_XOPEN_ENH_I18N@)
+  (define valueof-_SC_XOPEN_SHM @VALUEOF__SC_XOPEN_SHM@)
+  (define valueof-_SC_2_CHAR_TERM @VALUEOF__SC_2_CHAR_TERM@)
+  (define valueof-_SC_2_C_VERSION @VALUEOF__SC_2_C_VERSION@)
+  (define valueof-_SC_2_UPE @VALUEOF__SC_2_UPE@)
+  (define valueof-_SC_XOPEN_XPG2 @VALUEOF__SC_XOPEN_XPG2@)
+  (define valueof-_SC_XOPEN_XPG3 @VALUEOF__SC_XOPEN_XPG3@)
+  (define valueof-_SC_XOPEN_XPG4 @VALUEOF__SC_XOPEN_XPG4@)
+  (define valueof-_SC_CHAR_BIT @VALUEOF__SC_CHAR_BIT@)
+  (define valueof-_SC_CHAR_MAX @VALUEOF__SC_CHAR_MAX@)
+  (define valueof-_SC_CHAR_MIN @VALUEOF__SC_CHAR_MIN@)
+  (define valueof-_SC_INT_MAX @VALUEOF__SC_INT_MAX@)
+  (define valueof-_SC_INT_MIN @VALUEOF__SC_INT_MIN@)
+  (define valueof-_SC_LONG_BIT @VALUEOF__SC_LONG_BIT@)
+  (define valueof-_SC_WORD_BIT @VALUEOF__SC_WORD_BIT@)
+  (define valueof-_SC_MB_LEN_MAX @VALUEOF__SC_MB_LEN_MAX@)
+  (define valueof-_SC_NZERO @VALUEOF__SC_NZERO@)
+  (define valueof-_SC_SSIZE_MAX @VALUEOF__SC_SSIZE_MAX@)
+  (define valueof-_SC_SCHAR_MAX @VALUEOF__SC_SCHAR_MAX@)
+  (define valueof-_SC_SCHAR_MIN @VALUEOF__SC_SCHAR_MIN@)
+  (define valueof-_SC_SHRT_MAX @VALUEOF__SC_SHRT_MAX@)
+  (define valueof-_SC_SHRT_MIN @VALUEOF__SC_SHRT_MIN@)
+  (define valueof-_SC_UCHAR_MAX @VALUEOF__SC_UCHAR_MAX@)
+  (define valueof-_SC_UINT_MAX @VALUEOF__SC_UINT_MAX@)
+  (define valueof-_SC_ULONG_MAX @VALUEOF__SC_ULONG_MAX@)
+  (define valueof-_SC_USHRT_MAX @VALUEOF__SC_USHRT_MAX@)
+  (define valueof-_SC_NL_ARGMAX @VALUEOF__SC_NL_ARGMAX@)
+  (define valueof-_SC_NL_LANGMAX @VALUEOF__SC_NL_LANGMAX@)
+  (define valueof-_SC_NL_MSGMAX @VALUEOF__SC_NL_MSGMAX@)
+  (define valueof-_SC_NL_NMAX @VALUEOF__SC_NL_NMAX@)
+  (define valueof-_SC_NL_SETMAX @VALUEOF__SC_NL_SETMAX@)
+  (define valueof-_SC_NL_TEXTMAX @VALUEOF__SC_NL_TEXTMAX@)
+  (define valueof-_SC_XBS5_ILP32_OFF32
+    @VALUEOF__SC_XBS5_ILP32_OFF32@)
+  (define valueof-_SC_XBS5_ILP32_OFFBIG
+    @VALUEOF__SC_XBS5_ILP32_OFFBIG@)
+  (define valueof-_SC_XBS5_LP64_OFF64
+    @VALUEOF__SC_XBS5_LP64_OFF64@)
+  (define valueof-_SC_XBS5_LPBIG_OFFBIG
+    @VALUEOF__SC_XBS5_LPBIG_OFFBIG@)
+  (define valueof-_SC_XOPEN_LEGACY
+    @VALUEOF__SC_XOPEN_LEGACY@)
+  (define valueof-_SC_XOPEN_REALTIME
+    @VALUEOF__SC_XOPEN_REALTIME@)
+  (define valueof-_SC_XOPEN_REALTIME_THREADS
+    @VALUEOF__SC_XOPEN_REALTIME_THREADS@)
+  (define valueof-_SC_ADVISORY_INFO
+    @VALUEOF__SC_ADVISORY_INFO@)
+  (define valueof-_SC_BARRIERS @VALUEOF__SC_BARRIERS@)
+  (define valueof-_SC_BASE @VALUEOF__SC_BASE@)
+  (define valueof-_SC_C_LANG_SUPPORT
+    @VALUEOF__SC_C_LANG_SUPPORT@)
+  (define valueof-_SC_C_LANG_SUPPORT_R
+    @VALUEOF__SC_C_LANG_SUPPORT_R@)
+  (define valueof-_SC_CLOCK_SELECTION
+    @VALUEOF__SC_CLOCK_SELECTION@)
+  (define valueof-_SC_CPUTIME @VALUEOF__SC_CPUTIME@)
+  (define valueof-_SC_THREAD_CPUTIME
+    @VALUEOF__SC_THREAD_CPUTIME@)
+  (define valueof-_SC_DEVICE_IO @VALUEOF__SC_DEVICE_IO@)
+  (define valueof-_SC_DEVICE_SPECIFIC
+    @VALUEOF__SC_DEVICE_SPECIFIC@)
+  (define valueof-_SC_DEVICE_SPECIFIC_R
+    @VALUEOF__SC_DEVICE_SPECIFIC_R@)
+  (define valueof-_SC_FD_MGMT @VALUEOF__SC_FD_MGMT@)
+  (define valueof-_SC_FIFO @VALUEOF__SC_FIFO@)
+  (define valueof-_SC_PIPE @VALUEOF__SC_PIPE@)
+  (define valueof-_SC_FILE_ATTRIBUTES
+    @VALUEOF__SC_FILE_ATTRIBUTES@)
+  (define valueof-_SC_FILE_LOCKING
+    @VALUEOF__SC_FILE_LOCKING@)
+  (define valueof-_SC_FILE_SYSTEM @VALUEOF__SC_FILE_SYSTEM@)
+  (define valueof-_SC_MONOTONIC_CLOCK
+    @VALUEOF__SC_MONOTONIC_CLOCK@)
+  (define valueof-_SC_MULTI_PROCESS
+    @VALUEOF__SC_MULTI_PROCESS@)
+  (define valueof-_SC_SINGLE_PROCESS
+    @VALUEOF__SC_SINGLE_PROCESS@)
+  (define valueof-_SC_NETWORKING @VALUEOF__SC_NETWORKING@)
+  (define valueof-_SC_READER_WRITER_LOCKS
+    @VALUEOF__SC_READER_WRITER_LOCKS@)
+  (define valueof-_SC_SPIN_LOCKS @VALUEOF__SC_SPIN_LOCKS@)
+  (define valueof-_SC_REGEXP @VALUEOF__SC_REGEXP@)
+  (define valueof-_SC_REGEX_VERSION
+    @VALUEOF__SC_REGEX_VERSION@)
+  (define valueof-_SC_SHELL @VALUEOF__SC_SHELL@)
+  (define valueof-_SC_SIGNALS @VALUEOF__SC_SIGNALS@)
+  (define valueof-_SC_SPAWN @VALUEOF__SC_SPAWN@)
+  (define valueof-_SC_SPORADIC_SERVER
+    @VALUEOF__SC_SPORADIC_SERVER@)
+  (define valueof-_SC_THREAD_SPORADIC_SERVER
+    @VALUEOF__SC_THREAD_SPORADIC_SERVER@)
+  (define valueof-_SC_SYSTEM_DATABASE
+    @VALUEOF__SC_SYSTEM_DATABASE@)
+  (define valueof-_SC_SYSTEM_DATABASE_R
+    @VALUEOF__SC_SYSTEM_DATABASE_R@)
+  (define valueof-_SC_TIMEOUTS @VALUEOF__SC_TIMEOUTS@)
+  (define valueof-_SC_TYPED_MEMORY_OBJECTS
+    @VALUEOF__SC_TYPED_MEMORY_OBJECTS@)
+  (define valueof-_SC_USER_GROUPS @VALUEOF__SC_USER_GROUPS@)
+  (define valueof-_SC_USER_GROUPS_R
+    @VALUEOF__SC_USER_GROUPS_R@)
+  (define valueof-_SC_2_PBS @VALUEOF__SC_2_PBS@)
+  (define valueof-_SC_2_PBS_ACCOUNTING
+    @VALUEOF__SC_2_PBS_ACCOUNTING@)
+  (define valueof-_SC_2_PBS_LOCATE
+    @VALUEOF__SC_2_PBS_LOCATE@)
+  (define valueof-_SC_2_PBS_MESSAGE
+    @VALUEOF__SC_2_PBS_MESSAGE@)
+  (define valueof-_SC_2_PBS_TRACK @VALUEOF__SC_2_PBS_TRACK@)
+  (define valueof-_SC_SYMLOOP_MAX @VALUEOF__SC_SYMLOOP_MAX@)
+  (define valueof-_SC_STREAMS @VALUEOF__SC_STREAMS@)
+  (define valueof-_SC_2_PBS_CHECKPOINT
+    @VALUEOF__SC_2_PBS_CHECKPOINT@)
+  (define valueof-_SC_V6_ILP32_OFF32
+    @VALUEOF__SC_V6_ILP32_OFF32@)
+  (define valueof-_SC_V6_ILP32_OFFBIG
+    @VALUEOF__SC_V6_ILP32_OFFBIG@)
+  (define valueof-_SC_V6_LP64_OFF64
+    @VALUEOF__SC_V6_LP64_OFF64@)
+  (define valueof-_SC_V6_LPBIG_OFFBIG
+    @VALUEOF__SC_V6_LPBIG_OFFBIG@)
+  (define valueof-_SC_HOST_NAME_MAX
+    @VALUEOF__SC_HOST_NAME_MAX@)
+  (define valueof-_SC_TRACE @VALUEOF__SC_TRACE@)
+  (define valueof-_SC_TRACE_EVENT_FILTER
+    @VALUEOF__SC_TRACE_EVENT_FILTER@)
+  (define valueof-_SC_TRACE_INHERIT
+    @VALUEOF__SC_TRACE_INHERIT@)
+  (define valueof-_SC_TRACE_LOG @VALUEOF__SC_TRACE_LOG@)
+  (define valueof-_SC_LEVEL1_ICACHE_SIZE
+    @VALUEOF__SC_LEVEL1_ICACHE_SIZE@)
+  (define valueof-_SC_LEVEL1_ICACHE_ASSOC
+    @VALUEOF__SC_LEVEL1_ICACHE_ASSOC@)
+  (define valueof-_SC_LEVEL1_ICACHE_LINESIZE
+    @VALUEOF__SC_LEVEL1_ICACHE_LINESIZE@)
+  (define valueof-_SC_LEVEL1_DCACHE_SIZE
+    @VALUEOF__SC_LEVEL1_DCACHE_SIZE@)
+  (define valueof-_SC_LEVEL1_DCACHE_ASSOC
+    @VALUEOF__SC_LEVEL1_DCACHE_ASSOC@)
+  (define valueof-_SC_LEVEL1_DCACHE_LINESIZE
+    @VALUEOF__SC_LEVEL1_DCACHE_LINESIZE@)
+  (define valueof-_SC_LEVEL2_CACHE_SIZE
+    @VALUEOF__SC_LEVEL2_CACHE_SIZE@)
+  (define valueof-_SC_LEVEL2_CACHE_ASSOC
+    @VALUEOF__SC_LEVEL2_CACHE_ASSOC@)
+  (define valueof-_SC_LEVEL2_CACHE_LINESIZE
+    @VALUEOF__SC_LEVEL2_CACHE_LINESIZE@)
+  (define valueof-_SC_LEVEL3_CACHE_SIZE
+    @VALUEOF__SC_LEVEL3_CACHE_SIZE@)
+  (define valueof-_SC_LEVEL3_CACHE_ASSOC
+    @VALUEOF__SC_LEVEL3_CACHE_ASSOC@)
+  (define valueof-_SC_LEVEL3_CACHE_LINESIZE
+    @VALUEOF__SC_LEVEL3_CACHE_LINESIZE@)
+  (define valueof-_SC_LEVEL4_CACHE_SIZE
+    @VALUEOF__SC_LEVEL4_CACHE_SIZE@)
+  (define valueof-_SC_LEVEL4_CACHE_ASSOC
+    @VALUEOF__SC_LEVEL4_CACHE_ASSOC@)
+  (define valueof-_SC_LEVEL4_CACHE_LINESIZE
+    @VALUEOF__SC_LEVEL4_CACHE_LINESIZE@)
+  (define valueof-_SC_IPV6 @VALUEOF__SC_IPV6@)
+  (define valueof-_SC_RAW_SOCKETS @VALUEOF__SC_RAW_SOCKETS@)
+  (define valueof-LINK_MAX @VALUEOF_LINK_MAX@)
+  (define valueof-MAX_CANON @VALUEOF_MAX_CANON@)
+  (define valueof-MAX_INPUT @VALUEOF_MAX_INPUT@)
+  (define valueof-NAME_MAX @VALUEOF_NAME_MAX@)
+  (define valueof-PATH_MAX @VALUEOF_PATH_MAX@)
+  (define valueof-PIPE_BUF @VALUEOF_PIPE_BUF@)
+  (define valueof-MAXNAMLEN @VALUEOF_MAXNAMLEN@)
+  (define valueof-FILENAME_MAX @VALUEOF_FILENAME_MAX@)
+  (define valueof-_POSIX_CHOWN_RESTRICTED
+    @VALUEOF__POSIX_CHOWN_RESTRICTED@)
+  (define valueof-_POSIX_NO_TRUNC @VALUEOF__POSIX_NO_TRUNC@)
+  (define valueof-_POSIX_VDISABLE @VALUEOF__POSIX_VDISABLE@)
+  (define valueof-_POSIX_LINK_MAX @VALUEOF__POSIX_LINK_MAX@)
+  (define valueof-_POSIX_MAX_CANON
+    @VALUEOF__POSIX_MAX_CANON@)
+  (define valueof-_POSIX_MAX_INPUT
+    @VALUEOF__POSIX_MAX_INPUT@)
+  (define valueof-_POSIX_NAME_MAX @VALUEOF__POSIX_NAME_MAX@)
+  (define valueof-_POSIX_PATH_MAX @VALUEOF__POSIX_PATH_MAX@)
+  (define valueof-_POSIX_PIPE_BUF @VALUEOF__POSIX_PIPE_BUF@)
+  (define valueof-SYMLINK_MAX @VALUEOF_SYMLINK_MAX@)
+  (define valueof-POSIX_REC_INCR_XFER_SIZE
+    @VALUEOF_POSIX_REC_INCR_XFER_SIZE@)
+  (define valueof-POSIX_REC_MAX_XFER_SIZE
+    @VALUEOF_POSIX_REC_MAX_XFER_SIZE@)
+  (define valueof-POSIX_REC_MIN_XFER_SIZE
+    @VALUEOF_POSIX_REC_MIN_XFER_SIZE@)
+  (define valueof-POSIX_REC_XFER_ALIGN
+    @VALUEOF_POSIX_REC_XFER_ALIGN@)
+  (define valueof-_PC_LINK_MAX @VALUEOF__PC_LINK_MAX@)
+  (define valueof-_PC_MAX_CANON @VALUEOF__PC_MAX_CANON@)
+  (define valueof-_PC_MAX_INPUT @VALUEOF__PC_MAX_INPUT@)
+  (define valueof-_PC_NAME_MAX @VALUEOF__PC_NAME_MAX@)
+  (define valueof-_PC_PATH_MAX @VALUEOF__PC_PATH_MAX@)
+  (define valueof-_PC_PIPE_BUF @VALUEOF__PC_PIPE_BUF@)
+  (define valueof-_PC_CHOWN_RESTRICTED
+    @VALUEOF__PC_CHOWN_RESTRICTED@)
+  (define valueof-_PC_NO_TRUNC @VALUEOF__PC_NO_TRUNC@)
+  (define valueof-_PC_VDISABLE @VALUEOF__PC_VDISABLE@)
+  (define valueof-_PC_SYNC_IO @VALUEOF__PC_SYNC_IO@)
+  (define valueof-_PC_ASYNC_IO @VALUEOF__PC_ASYNC_IO@)
+  (define valueof-_PC_PRIO_IO @VALUEOF__PC_PRIO_IO@)
+  (define valueof-_PC_FILESIZEBITS
+    @VALUEOF__PC_FILESIZEBITS@)
+  (define valueof-_PC_REC_INCR_XFER_SIZE
+    @VALUEOF__PC_REC_INCR_XFER_SIZE@)
+  (define valueof-_PC_REC_MAX_XFER_SIZE
+    @VALUEOF__PC_REC_MAX_XFER_SIZE@)
+  (define valueof-_PC_REC_MIN_XFER_SIZE
+    @VALUEOF__PC_REC_MIN_XFER_SIZE@)
+  (define valueof-_PC_REC_XFER_ALIGN
+    @VALUEOF__PC_REC_XFER_ALIGN@)
+  (define valueof-BC_BASE_MAX @VALUEOF_BC_BASE_MAX@)
+  (define valueof-_POSIX_BC_BASE_MAX
+    @VALUEOF__POSIX_BC_BASE_MAX@)
+  (define valueof-BC_DIM_MAX @VALUEOF_BC_DIM_MAX@)
+  (define valueof-_POSIX_BC_DIM_MAX
+    @VALUEOF__POSIX_BC_DIM_MAX@)
+  (define valueof-BC_SCALE_MAX @VALUEOF_BC_SCALE_MAX@)
+  (define valueof-_POSIX_BC_SCALE_MAX
+    @VALUEOF__POSIX_BC_SCALE_MAX@)
+  (define valueof-BC_STRING_MAX @VALUEOF_BC_STRING_MAX@)
+  (define valueof-_POSIX_BC_STRING_MAX
+    @VALUEOF__POSIX_BC_STRING_MAX@)
+  (define valueof-COLL_WEIGHTS_MAX
+    @VALUEOF_COLL_WEIGHTS_MAX@)
+  (define valueof-_POSIX_COLL_WEIGHTS_MAX
+    @VALUEOF__POSIX_COLL_WEIGHTS_MAX@)
+  (define valueof-EXPR_NEXT_MAX @VALUEOF_EXPR_NEXT_MAX@)
+  (define valueof-_POSIX_EXPR_NEXT_MAX
+    @VALUEOF__POSIX_EXPR_NEXT_MAX@)
+  (define valueof-LINE_MAX @VALUEOF_LINE_MAX@)
+  (define valueof-_POSIX_LINE_MAX @VALUEOF__POSIX_LINE_MAX@)
+  (define valueof-EQUIV_CLASS_MAX @VALUEOF_EQUIV_CLASS_MAX@)
+  (define valueof-_POSIX_EQUIV_CLASS_MAX
+    @VALUEOF__POSIX_EQUIV_CLASS_MAX@)
+  (define valueof-_CS_PATH @VALUEOF__CS_PATH@)
+  (define valueof-_CS_LFS_CFLAGS @VALUEOF__CS_LFS_CFLAGS@)
+  (define valueof-_CS_LFS_LDFLAGS @VALUEOF__CS_LFS_LDFLAGS@)
+  (define valueof-_CS_LFS_LIBS @VALUEOF__CS_LFS_LIBS@)
+  (define valueof-_CS_LFS_LINTFLAGS
+    @VALUEOF__CS_LFS_LINTFLAGS@)
+  (define valueof-_CS_LFS64_CFLAGS
+    @VALUEOF__CS_LFS64_CFLAGS@)
+  (define valueof-_CS_LFS64_LDFLAGS
+    @VALUEOF__CS_LFS64_LDFLAGS@)
+  (define valueof-_CS_LFS64_LIBS @VALUEOF__CS_LFS64_LIBS@)
+  (define valueof-_CS_LFS64_LINTFLAGS
+    @VALUEOF__CS_LFS64_LINTFLAGS@)
+  (define valueof-_PATH_MNTTAB "@STRINGOF__PATH_MNTTAB@")
+  (define valueof-_PATH_FSTAB "@STRINGOF__PATH_FSTAB@")
+  (define valueof-_PATH_MOUNTED "@STRINGOF__PATH_MOUNTED@")
+  (define valueof-FSTAB_RW "@STRINGOF_FSTAB_RW@")
+  (define valueof-FSTAB_RQ "@STRINGOF_FSTAB_RQ@")
+  (define valueof-FSTAB_RO "@STRINGOF_FSTAB_RO@")
+  (define valueof-FSTAB_SW "@STRINGOF_FSTAB_SW@")
+  (define valueof-FSTAB_XX "@STRINGOF_FSTAB_XX@")
+  (define valueof-MNTTYPE_IGNORE "@STRINGOF_MNTTYPE_IGNORE@")
+  (define valueof-MNTTYPE_NFS "@STRINGOF_MNTTYPE_NFS@")
+  (define valueof-MNTTYPE_SWAP "@STRINGOF_MNTTYPE_SWAP@")
+  (define valueof-MNTOPT_DEFAULTS
+    "@STRINGOF_MNTOPT_DEFAULTS@")
+  (define valueof-MNTOPT_RO "@STRINGOF_MNTOPT_RO@")
+  (define valueof-MNTOPT_RW "@STRINGOF_MNTOPT_RW@")
+  (define valueof-MNTOPT_SUID "@STRINGOF_MNTOPT_SUID@")
+  (define valueof-MNTOPT_NOSUID "@STRINGOF_MNTOPT_NOSUID@")
+  (define valueof-MNTOPT_NOAUTO "@STRINGOF_MNTOPT_NOAUTO@")
+  (define valueof-MS_MGC_MASK @VALUEOF_MS_MGC_MASK@)
+  (define valueof-MS_REMOUNT @VALUEOF_MS_REMOUNT@)
+  (define valueof-MS_RDONLY @VALUEOF_MS_RDONLY@)
+  (define valueof-S_IMMUTABLE @VALUEOF_S_IMMUTABLE@)
+  (define valueof-S_APPEND @VALUEOF_S_APPEND@)
+  (define valueof-MS_NOSUID @VALUEOF_MS_NOSUID@)
+  (define valueof-MS_NOEXEC @VALUEOF_MS_NOEXEC@)
+  (define valueof-MS_NODEV @VALUEOF_MS_NODEV@)
+  (define valueof-MS_SYNCHRONOUS @VALUEOF_MS_SYNCHRONOUS@)
+  (define valueof-MS_MANDLOCK @VALUEOF_MS_MANDLOCK@)
+  (define valueof-MS_NOATIME @VALUEOF_MS_NOATIME@)
+  (define valueof-MS_NODIRATIME @VALUEOF_MS_NODIRATIME@)
+  (define valueof-MNT_FORCE @VALUEOF_MNT_FORCE@)
+  (define valueof-NSIG @VALUEOF_NSIG@)
+  (define valueof-SIGFPE @VALUEOF_SIGFPE@)
+  (define valueof-SIGILL @VALUEOF_SIGILL@)
+  (define valueof-SIGSEGV @VALUEOF_SIGSEGV@)
+  (define valueof-SIGBUS @VALUEOF_SIGBUS@)
+  (define valueof-SIGABRT @VALUEOF_SIGABRT@)
+  (define valueof-SIGIOT @VALUEOF_SIGIOT@)
+  (define valueof-SIGTRAP @VALUEOF_SIGTRAP@)
+  (define valueof-SIGEMT @VALUEOF_SIGEMT@)
+  (define valueof-SIGSYS @VALUEOF_SIGSYS@)
+  (define valueof-SIGTERM @VALUEOF_SIGTERM@)
+  (define valueof-SIGINT @VALUEOF_SIGINT@)
+  (define valueof-SIGQUIT @VALUEOF_SIGQUIT@)
+  (define valueof-SIGKILL @VALUEOF_SIGKILL@)
+  (define valueof-SIGHUP @VALUEOF_SIGHUP@)
+  (define valueof-SIGALRM @VALUEOF_SIGALRM@)
+  (define valueof-SIGVRALRM @VALUEOF_SIGVRALRM@)
+  (define valueof-SIGPROF @VALUEOF_SIGPROF@)
+  (define valueof-SIGIO @VALUEOF_SIGIO@)
+  (define valueof-SIGURG @VALUEOF_SIGURG@)
+  (define valueof-SIGPOLL @VALUEOF_SIGPOLL@)
+  (define valueof-SIGCHLD @VALUEOF_SIGCHLD@)
+  (define valueof-SIGCLD @VALUEOF_SIGCLD@)
+  (define valueof-SIGCONT @VALUEOF_SIGCONT@)
+  (define valueof-SIGSTOP @VALUEOF_SIGSTOP@)
+  (define valueof-SIGTSTP @VALUEOF_SIGTSTP@)
+  (define valueof-SIGTTIN @VALUEOF_SIGTTIN@)
+  (define valueof-SIGTTOU @VALUEOF_SIGTTOU@)
+  (define valueof-SIGPIPE @VALUEOF_SIGPIPE@)
+  (define valueof-SIGLOST @VALUEOF_SIGLOST@)
+  (define valueof-SIGXCPU @VALUEOF_SIGXCPU@)
+  (define valueof-SIGXSFZ @VALUEOF_SIGXSFZ@)
+  (define valueof-SIGUSR1 @VALUEOF_SIGUSR1@)
+  (define valueof-SIGUSR2 @VALUEOF_SIGUSR2@)
+  (define valueof-SIGWINCH @VALUEOF_SIGWINCH@)
+  (define valueof-SIGINFO @VALUEOF_SIGINFO@)
+  (define valueof-SOCK_STREAM @VALUEOF_SOCK_STREAM@)
+  (define valueof-SOCK_DGRAM @VALUEOF_SOCK_DGRAM@)
+  (define valueof-SOCK_RAW @VALUEOF_SOCK_RAW@)
+  (define valueof-SOCK_RDM @VALUEOF_SOCK_RDM@)
+  (define valueof-SOCK_SEQPACKET @VALUEOF_SOCK_SEQPACKET@)
+  (define valueof-AF_LOCAL @VALUEOF_AF_LOCAL@)
+  (define valueof-PF_LOCAL @VALUEOF_PF_LOCAL@)
+  (define valueof-AF_UNIX @VALUEOF_AF_UNIX@)
+  (define valueof-PF_UNIX @VALUEOF_PF_UNIX@)
+  (define valueof-AF_FILE @VALUEOF_AF_FILE@)
+  (define valueof-PF_FILE @VALUEOF_PF_FILE@)
+  (define valueof-AF_INET @VALUEOF_AF_INET@)
+  (define valueof-PF_INET @VALUEOF_PF_INET@)
+  (define valueof-AF_INET6 @VALUEOF_AF_INET6@)
+  (define valueof-PF_INET6 @VALUEOF_PF_INET6@)
+  (define valueof-AF_UNSPEC @VALUEOF_AF_UNSPEC@)
+  (define valueof-PF_UNSPEC @VALUEOF_PF_UNSPEC@)
+  (define valueof-SHUT_RD @VALUEOF_SHUT_RD@)
+  (define valueof-SHUT_WR @VALUEOF_SHUT_WR@)
+  (define valueof-SHUT_RDWR @VALUEOF_SHUT_RDWR@)
+  (define valueof-IPPORT_RESERVED @VALUEOF_IPPORT_RESERVED@)
+  (define valueof-IPPORT_USERRESERVED
+    @VALUEOF_IPPORT_USERRESERVED@)
+  (define valueof-IFNAMSIZ @VALUEOF_IFNAMSIZ@)
+  (define valueof-MSG_OOB @VALUEOF_MSG_OOB@)
+  (define valueof-MSG_PEEK @VALUEOF_MSG_PEEK@)
+  (define valueof-MSG_DONTROUTE @VALUEOF_MSG_DONTROUTE@)
+  (define valueof-SOL_SOCKET @VALUEOF_SOL_SOCKET@)
+  (define valueof-SO_DEBUG @VALUEOF_SO_DEBUG@)
+  (define valueof-SO_REUSEADDR @VALUEOF_SO_REUSEADDR@)
+  (define valueof-SO_KEEPALIVE @VALUEOF_SO_KEEPALIVE@)
+  (define valueof-SO_DONTROUTE @VALUEOF_SO_DONTROUTE@)
+  (define valueof-SO_LINGER @VALUEOF_SO_LINGER@)
+  (define valueof-SO_BROADCAST @VALUEOF_SO_BROADCAST@)
+  (define valueof-SO_OOBINLINE @VALUEOF_SO_OOBINLINE@)
+  (define valueof-SO_SNDBUF @VALUEOF_SO_SNDBUF@)
+  (define valueof-SO_RCVBUF @VALUEOF_SO_RCVBUF@)
+  (define valueof-SO_TYPE @VALUEOF_SO_TYPE@)
+  (define valueof-SO_ERROR @VALUEOF_SO_ERROR@)
+  (define valueof-INADDR_LOOPBACK @VALUEOF_INADDR_LOOPBACK@)
+  (define valueof-INADDR_ANY @VALUEOF_INADDR_ANY@)
+  (define valueof-INADDR_BROADCAST
+    @VALUEOF_INADDR_BROADCAST@)
+  (define valueof-INADDR_NONE @VALUEOF_INADDR_NONE@)
+  (define valueof-INET_ADDRSTRLEN @VALUEOF_INET_ADDRSTRLEN@)
+  (define valueof-INET6_ADDRSTRLEN
+    @VALUEOF_INET6_ADDRSTRLEN@)
+  (define valueof-HOST_NOT_FOUND @VALUEOF_HOST_NOT_FOUND@)
+  (define valueof-TRY_AGAIN @VALUEOF_TRY_AGAIN@)
+  (define valueof-NO_RECOVERY @VALUEOF_NO_RECOVERY@)
+  (define valueof-NO_ADDRESS @VALUEOF_NO_ADDRESS@)
+  (define SO_STYLE SO_TYPE)
+  (define-label <struct-flock>
+    (virtual-fields (mutable l_pid) (mutable l_len)
+      (mutable l_start) (mutable l_whence) (mutable l_type)))
+  (define-syntax <struct-flock>-l_pid-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_FLOCK_L_PID@ ?pointer
+         @OFFSETOF_FLOCK_L_PID@ ?value))))
+  (define-syntax <struct-flock>-l_pid
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_FLOCK_L_PID@ ?pointer
+         @OFFSETOF_FLOCK_L_PID@))))
+  (define-syntax <struct-flock>-l_len-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_FLOCK_L_LEN@ ?pointer
+         @OFFSETOF_FLOCK_L_LEN@ ?value))))
+  (define-syntax <struct-flock>-l_len
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_FLOCK_L_LEN@ ?pointer
+         @OFFSETOF_FLOCK_L_LEN@))))
+  (define-syntax <struct-flock>-l_start-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_FLOCK_L_START@ ?pointer
+         @OFFSETOF_FLOCK_L_START@ ?value))))
+  (define-syntax <struct-flock>-l_start
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_FLOCK_L_START@ ?pointer
+         @OFFSETOF_FLOCK_L_START@))))
+  (define-syntax <struct-flock>-l_whence-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_FLOCK_L_WHENCE@ ?pointer
+         @OFFSETOF_FLOCK_L_WHENCE@ ?value))))
+  (define-syntax <struct-flock>-l_whence
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_FLOCK_L_WHENCE@ ?pointer
+         @OFFSETOF_FLOCK_L_WHENCE@))))
+  (define-syntax <struct-flock>-l_type-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_FLOCK_L_TYPE@ ?pointer
+         @OFFSETOF_FLOCK_L_TYPE@ ?value))))
+  (define-syntax <struct-flock>-l_type
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_FLOCK_L_TYPE@ ?pointer
+         @OFFSETOF_FLOCK_L_TYPE@))))
+  (define-label <struct-timeval>
+    (virtual-fields (mutable tv_usec) (mutable tv_sec)))
+  (define-syntax <struct-timeval>-tv_usec-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_TIMEVAL_TV_USEC@ ?pointer
+         @OFFSETOF_TIMEVAL_TV_USEC@ ?value))))
+  (define-syntax <struct-timeval>-tv_usec
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_TIMEVAL_TV_USEC@ ?pointer
+         @OFFSETOF_TIMEVAL_TV_USEC@))))
+  (define-syntax <struct-timeval>-tv_sec-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_TIMEVAL_TV_SEC@ ?pointer
+         @OFFSETOF_TIMEVAL_TV_SEC@ ?value))))
+  (define-syntax <struct-timeval>-tv_sec
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_TIMEVAL_TV_SEC@ ?pointer
+         @OFFSETOF_TIMEVAL_TV_SEC@))))
+  (define-label <struct-timespec>
+    (virtual-fields (mutable tv_nsec) (mutable tv_sec)))
+  (define-syntax <struct-timespec>-tv_nsec-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_TIMESPEC_TV_NSEC@ ?pointer
+         @OFFSETOF_TIMESPEC_TV_NSEC@ ?value))))
+  (define-syntax <struct-timespec>-tv_nsec
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_TIMESPEC_TV_NSEC@ ?pointer
+         @OFFSETOF_TIMESPEC_TV_NSEC@))))
+  (define-syntax <struct-timespec>-tv_sec-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_TIMESPEC_TV_SEC@ ?pointer
+         @OFFSETOF_TIMESPEC_TV_SEC@ ?value))))
+  (define-syntax <struct-timespec>-tv_sec
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_TIMESPEC_TV_SEC@ ?pointer
+         @OFFSETOF_TIMESPEC_TV_SEC@))))
+  (define-label <struct-tms> (virtual-fields))
+  (define-label <struct-dirent>
+    (virtual-fields (immutable d_name) (mutable d_type)
+      (mutable d_reclen) (mutable d_off) (mutable d_ino)))
+  (define-syntax <struct-dirent>-d_name
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_DIRENT_D_NAME@ ?pointer
+         @OFFSETOF_DIRENT_D_NAME@))))
+  (define-syntax <struct-dirent>-d_type-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_DIRENT_D_TYPE@ ?pointer
+         @OFFSETOF_DIRENT_D_TYPE@ ?value))))
+  (define-syntax <struct-dirent>-d_type
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_DIRENT_D_TYPE@ ?pointer
+         @OFFSETOF_DIRENT_D_TYPE@))))
+  (define-syntax <struct-dirent>-d_reclen-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_DIRENT_D_RECLEN@ ?pointer
+         @OFFSETOF_DIRENT_D_RECLEN@ ?value))))
+  (define-syntax <struct-dirent>-d_reclen
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_DIRENT_D_RECLEN@ ?pointer
+         @OFFSETOF_DIRENT_D_RECLEN@))))
+  (define-syntax <struct-dirent>-d_off-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_DIRENT_D_OFF@ ?pointer
+         @OFFSETOF_DIRENT_D_OFF@ ?value))))
+  (define-syntax <struct-dirent>-d_off
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_DIRENT_D_OFF@ ?pointer
+         @OFFSETOF_DIRENT_D_OFF@))))
+  (define-syntax <struct-dirent>-d_ino-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_DIRENT_D_INO@ ?pointer
+         @OFFSETOF_DIRENT_D_INO@ ?value))))
+  (define-syntax <struct-dirent>-d_ino
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_DIRENT_D_INO@ ?pointer
+         @OFFSETOF_DIRENT_D_INO@))))
+  (define-label <struct-utimbuf>
+    (virtual-fields (mutable modtime) (mutable actime)))
+  (define-syntax <struct-utimbuf>-modtime-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_UTIMBUF_MODTIME@ ?pointer
+         @OFFSETOF_UTIMBUF_MODTIME@ ?value))))
+  (define-syntax <struct-utimbuf>-modtime
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_UTIMBUF_MODTIME@ ?pointer
+         @OFFSETOF_UTIMBUF_MODTIME@))))
+  (define-syntax <struct-utimbuf>-actime-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_UTIMBUF_ACTIME@ ?pointer
+         @OFFSETOF_UTIMBUF_ACTIME@ ?value))))
+  (define-syntax <struct-utimbuf>-actime
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_UTIMBUF_ACTIME@ ?pointer
+         @OFFSETOF_UTIMBUF_ACTIME@))))
+  (define-label <struct-timezone>
+    (virtual-fields (mutable tz_dsttime)
+      (mutable tz_minuteswest)))
+  (define-syntax <struct-timezone>-tz_dsttime-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_TIMEZONE_TZ_DSTTIME@ ?pointer
+         @OFFSETOF_TIMEZONE_TZ_DSTTIME@ ?value))))
+  (define-syntax <struct-timezone>-tz_dsttime
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_TIMEZONE_TZ_DSTTIME@ ?pointer
+         @OFFSETOF_TIMEZONE_TZ_DSTTIME@))))
+  (define-syntax <struct-timezone>-tz_minuteswest-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_TIMEZONE_TZ_MINUTESWEST@
+         ?pointer @OFFSETOF_TIMEZONE_TZ_MINUTESWEST@ ?value))))
+  (define-syntax <struct-timezone>-tz_minuteswest
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_TIMEZONE_TZ_MINUTESWEST@
+         ?pointer @OFFSETOF_TIMEZONE_TZ_MINUTESWEST@))))
+  (define-label <struct-tm>
+    (virtual-fields (mutable tm_zone) (mutable tm_gmtoff)
+      (mutable tm_isdst) (mutable tm_yday) (mutable tm_wday)
+      (mutable tm_year) (mutable tm_mon) (mutable tm_mday)
+      (mutable tm_hour) (mutable tm_min) (mutable tm_sec)))
+  (define-syntax <struct-tm>-tm_zone-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_TM_TM_ZONE@ ?pointer
+         @OFFSETOF_TM_TM_ZONE@ ?value))))
+  (define-syntax <struct-tm>-tm_zone
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_TM_TM_ZONE@ ?pointer
+         @OFFSETOF_TM_TM_ZONE@))))
+  (define-syntax <struct-tm>-tm_gmtoff-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_TM_TM_GMTOFF@ ?pointer
+         @OFFSETOF_TM_TM_GMTOFF@ ?value))))
+  (define-syntax <struct-tm>-tm_gmtoff
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_TM_TM_GMTOFF@ ?pointer
+         @OFFSETOF_TM_TM_GMTOFF@))))
+  (define-syntax <struct-tm>-tm_isdst-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_TM_TM_ISDST@ ?pointer
+         @OFFSETOF_TM_TM_ISDST@ ?value))))
+  (define-syntax <struct-tm>-tm_isdst
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_TM_TM_ISDST@ ?pointer
+         @OFFSETOF_TM_TM_ISDST@))))
+  (define-syntax <struct-tm>-tm_yday-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_TM_TM_YDAY@ ?pointer
+         @OFFSETOF_TM_TM_YDAY@ ?value))))
+  (define-syntax <struct-tm>-tm_yday
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_TM_TM_YDAY@ ?pointer
+         @OFFSETOF_TM_TM_YDAY@))))
+  (define-syntax <struct-tm>-tm_wday-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_TM_TM_WDAY@ ?pointer
+         @OFFSETOF_TM_TM_WDAY@ ?value))))
+  (define-syntax <struct-tm>-tm_wday
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_TM_TM_WDAY@ ?pointer
+         @OFFSETOF_TM_TM_WDAY@))))
+  (define-syntax <struct-tm>-tm_year-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_TM_TM_YEAR@ ?pointer
+         @OFFSETOF_TM_TM_YEAR@ ?value))))
+  (define-syntax <struct-tm>-tm_year
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_TM_TM_YEAR@ ?pointer
+         @OFFSETOF_TM_TM_YEAR@))))
+  (define-syntax <struct-tm>-tm_mon-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_TM_TM_MON@ ?pointer
+         @OFFSETOF_TM_TM_MON@ ?value))))
+  (define-syntax <struct-tm>-tm_mon
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_TM_TM_MON@ ?pointer
+         @OFFSETOF_TM_TM_MON@))))
+  (define-syntax <struct-tm>-tm_mday-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_TM_TM_MDAY@ ?pointer
+         @OFFSETOF_TM_TM_MDAY@ ?value))))
+  (define-syntax <struct-tm>-tm_mday
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_TM_TM_MDAY@ ?pointer
+         @OFFSETOF_TM_TM_MDAY@))))
+  (define-syntax <struct-tm>-tm_hour-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_TM_TM_HOUR@ ?pointer
+         @OFFSETOF_TM_TM_HOUR@ ?value))))
+  (define-syntax <struct-tm>-tm_hour
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_TM_TM_HOUR@ ?pointer
+         @OFFSETOF_TM_TM_HOUR@))))
+  (define-syntax <struct-tm>-tm_min-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_TM_TM_MIN@ ?pointer
+         @OFFSETOF_TM_TM_MIN@ ?value))))
+  (define-syntax <struct-tm>-tm_min
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_TM_TM_MIN@ ?pointer
+         @OFFSETOF_TM_TM_MIN@))))
+  (define-syntax <struct-tm>-tm_sec-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_TM_TM_SEC@ ?pointer
+         @OFFSETOF_TM_TM_SEC@ ?value))))
+  (define-syntax <struct-tm>-tm_sec
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_TM_TM_SEC@ ?pointer
+         @OFFSETOF_TM_TM_SEC@))))
+  (define-label <struct-ntptimeval>
+    (virtual-fields (mutable esterror) (mutable maxerror)
+      (immutable time)))
+  (define-syntax <struct-ntptimeval>-esterror-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_NTPTIMEVAL_ESTERROR@ ?pointer
+         @OFFSETOF_NTPTIMEVAL_ESTERROR@ ?value))))
+  (define-syntax <struct-ntptimeval>-esterror
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_NTPTIMEVAL_ESTERROR@ ?pointer
+         @OFFSETOF_NTPTIMEVAL_ESTERROR@))))
+  (define-syntax <struct-ntptimeval>-maxerror-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_NTPTIMEVAL_MAXERROR@ ?pointer
+         @OFFSETOF_NTPTIMEVAL_MAXERROR@ ?value))))
+  (define-syntax <struct-ntptimeval>-maxerror
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_NTPTIMEVAL_MAXERROR@ ?pointer
+         @OFFSETOF_NTPTIMEVAL_MAXERROR@))))
+  (define-syntax <struct-ntptimeval>-time
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_NTPTIMEVAL_TIME@ ?pointer
+         @OFFSETOF_NTPTIMEVAL_TIME@))))
+  (define-label <struct-timex>
+    (virtual-fields (mutable stbcnt) (mutable errcnt)
+      (mutable calcnt) (mutable jitcnt) (mutable stabil)
+      (mutable shift) (mutable jitter) (mutable ppsfreq)
+      (mutable tick) (immutable time) (mutable tolerance)
+      (mutable precision) (mutable constant)
+      (mutable status) (mutable esterror) (mutable maxerror)
+      (mutable freq) (mutable offset) (mutable modes)))
+  (define-syntax <struct-timex>-stbcnt-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_TIMEX_STBCNT@ ?pointer
+         @OFFSETOF_TIMEX_STBCNT@ ?value))))
+  (define-syntax <struct-timex>-stbcnt
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_TIMEX_STBCNT@ ?pointer
+         @OFFSETOF_TIMEX_STBCNT@))))
+  (define-syntax <struct-timex>-errcnt-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_TIMEX_ERRCNT@ ?pointer
+         @OFFSETOF_TIMEX_ERRCNT@ ?value))))
+  (define-syntax <struct-timex>-errcnt
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_TIMEX_ERRCNT@ ?pointer
+         @OFFSETOF_TIMEX_ERRCNT@))))
+  (define-syntax <struct-timex>-calcnt-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_TIMEX_CALCNT@ ?pointer
+         @OFFSETOF_TIMEX_CALCNT@ ?value))))
+  (define-syntax <struct-timex>-calcnt
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_TIMEX_CALCNT@ ?pointer
+         @OFFSETOF_TIMEX_CALCNT@))))
+  (define-syntax <struct-timex>-jitcnt-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_TIMEX_JITCNT@ ?pointer
+         @OFFSETOF_TIMEX_JITCNT@ ?value))))
+  (define-syntax <struct-timex>-jitcnt
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_TIMEX_JITCNT@ ?pointer
+         @OFFSETOF_TIMEX_JITCNT@))))
+  (define-syntax <struct-timex>-stabil-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_TIMEX_STABIL@ ?pointer
+         @OFFSETOF_TIMEX_STABIL@ ?value))))
+  (define-syntax <struct-timex>-stabil
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_TIMEX_STABIL@ ?pointer
+         @OFFSETOF_TIMEX_STABIL@))))
+  (define-syntax <struct-timex>-shift-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_TIMEX_SHIFT@ ?pointer
+         @OFFSETOF_TIMEX_SHIFT@ ?value))))
+  (define-syntax <struct-timex>-shift
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_TIMEX_SHIFT@ ?pointer
+         @OFFSETOF_TIMEX_SHIFT@))))
+  (define-syntax <struct-timex>-jitter-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_TIMEX_JITTER@ ?pointer
+         @OFFSETOF_TIMEX_JITTER@ ?value))))
+  (define-syntax <struct-timex>-jitter
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_TIMEX_JITTER@ ?pointer
+         @OFFSETOF_TIMEX_JITTER@))))
+  (define-syntax <struct-timex>-ppsfreq-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_TIMEX_PPSFREQ@ ?pointer
+         @OFFSETOF_TIMEX_PPSFREQ@ ?value))))
+  (define-syntax <struct-timex>-ppsfreq
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_TIMEX_PPSFREQ@ ?pointer
+         @OFFSETOF_TIMEX_PPSFREQ@))))
+  (define-syntax <struct-timex>-tick-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_TIMEX_TICK@ ?pointer
+         @OFFSETOF_TIMEX_TICK@ ?value))))
+  (define-syntax <struct-timex>-tick
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_TIMEX_TICK@ ?pointer
+         @OFFSETOF_TIMEX_TICK@))))
+  (define-syntax <struct-timex>-time
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_TIMEX_TIME@ ?pointer
+         @OFFSETOF_TIMEX_TIME@))))
+  (define-syntax <struct-timex>-tolerance-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_TIMEX_TOLERANCE@ ?pointer
+         @OFFSETOF_TIMEX_TOLERANCE@ ?value))))
+  (define-syntax <struct-timex>-tolerance
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_TIMEX_TOLERANCE@ ?pointer
+         @OFFSETOF_TIMEX_TOLERANCE@))))
+  (define-syntax <struct-timex>-precision-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_TIMEX_PRECISION@ ?pointer
+         @OFFSETOF_TIMEX_PRECISION@ ?value))))
+  (define-syntax <struct-timex>-precision
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_TIMEX_PRECISION@ ?pointer
+         @OFFSETOF_TIMEX_PRECISION@))))
+  (define-syntax <struct-timex>-constant-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_TIMEX_CONSTANT@ ?pointer
+         @OFFSETOF_TIMEX_CONSTANT@ ?value))))
+  (define-syntax <struct-timex>-constant
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_TIMEX_CONSTANT@ ?pointer
+         @OFFSETOF_TIMEX_CONSTANT@))))
+  (define-syntax <struct-timex>-status-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_TIMEX_STATUS@ ?pointer
+         @OFFSETOF_TIMEX_STATUS@ ?value))))
+  (define-syntax <struct-timex>-status
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_TIMEX_STATUS@ ?pointer
+         @OFFSETOF_TIMEX_STATUS@))))
+  (define-syntax <struct-timex>-esterror-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_TIMEX_ESTERROR@ ?pointer
+         @OFFSETOF_TIMEX_ESTERROR@ ?value))))
+  (define-syntax <struct-timex>-esterror
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_TIMEX_ESTERROR@ ?pointer
+         @OFFSETOF_TIMEX_ESTERROR@))))
+  (define-syntax <struct-timex>-maxerror-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_TIMEX_MAXERROR@ ?pointer
+         @OFFSETOF_TIMEX_MAXERROR@ ?value))))
+  (define-syntax <struct-timex>-maxerror
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_TIMEX_MAXERROR@ ?pointer
+         @OFFSETOF_TIMEX_MAXERROR@))))
+  (define-syntax <struct-timex>-freq-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_TIMEX_FREQ@ ?pointer
+         @OFFSETOF_TIMEX_FREQ@ ?value))))
+  (define-syntax <struct-timex>-freq
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_TIMEX_FREQ@ ?pointer
+         @OFFSETOF_TIMEX_FREQ@))))
+  (define-syntax <struct-timex>-offset-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_TIMEX_OFFSET@ ?pointer
+         @OFFSETOF_TIMEX_OFFSET@ ?value))))
+  (define-syntax <struct-timex>-offset
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_TIMEX_OFFSET@ ?pointer
+         @OFFSETOF_TIMEX_OFFSET@))))
+  (define-syntax <struct-timex>-modes-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_TIMEX_MODES@ ?pointer
+         @OFFSETOF_TIMEX_MODES@ ?value))))
+  (define-syntax <struct-timex>-modes
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_TIMEX_MODES@ ?pointer
+         @OFFSETOF_TIMEX_MODES@))))
+  (define-label <struct-itimerval>
+    (virtual-fields (immutable it_value)
+      (immutable it_interval)))
+  (define-syntax <struct-itimerval>-it_value
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_ITIMERVAL_IT_VALUE@ ?pointer
+         @OFFSETOF_ITIMERVAL_IT_VALUE@))))
+  (define-syntax <struct-itimerval>-it_interval
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_ITIMERVAL_IT_INTERVAL@
+         ?pointer @OFFSETOF_ITIMERVAL_IT_INTERVAL@))))
+  (define-label <struct-FTW>
+    (virtual-fields (mutable level) (mutable base)))
+  (define-syntax <struct-FTW>-level-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_FTW_LEVEL@ ?pointer
+         @OFFSETOF_FTW_LEVEL@ ?value))))
+  (define-syntax <struct-FTW>-level
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_FTW_LEVEL@ ?pointer
+         @OFFSETOF_FTW_LEVEL@))))
+  (define-syntax <struct-FTW>-base-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_FTW_BASE@ ?pointer
+         @OFFSETOF_FTW_BASE@ ?value))))
+  (define-syntax <struct-FTW>-base
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_FTW_BASE@ ?pointer
+         @OFFSETOF_FTW_BASE@))))
+  (define-label <struct-iovec>
+    (virtual-fields (mutable iov_len) (mutable iov_base)))
+  (define-syntax <struct-iovec>-iov_len-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_IOVEC_IOV_LEN@ ?pointer
+         @OFFSETOF_IOVEC_IOV_LEN@ ?value))))
+  (define-syntax <struct-iovec>-iov_len
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_IOVEC_IOV_LEN@ ?pointer
+         @OFFSETOF_IOVEC_IOV_LEN@))))
+  (define-syntax <struct-iovec>-iov_base-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_IOVEC_IOV_BASE@ ?pointer
+         @OFFSETOF_IOVEC_IOV_BASE@ ?value))))
+  (define-syntax <struct-iovec>-iov_base
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_IOVEC_IOV_BASE@ ?pointer
+         @OFFSETOF_IOVEC_IOV_BASE@))))
+  (define-label <struct-fdset> (virtual-fields))
+  (define-label <struct-passwd>
+    (virtual-fields (mutable pw_shell) (mutable pw_dir)
+      (mutable pw_gecos) (mutable pw_gid) (mutable pw_uid)
+      (mutable pw_passwd) (mutable pw_name)))
+  (define-syntax <struct-passwd>-pw_shell-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_PASSWD_PW_SHELL@ ?pointer
+         @OFFSETOF_PASSWD_PW_SHELL@ ?value))))
+  (define-syntax <struct-passwd>-pw_shell
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_PASSWD_PW_SHELL@ ?pointer
+         @OFFSETOF_PASSWD_PW_SHELL@))))
+  (define-syntax <struct-passwd>-pw_dir-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_PASSWD_PW_DIR@ ?pointer
+         @OFFSETOF_PASSWD_PW_DIR@ ?value))))
+  (define-syntax <struct-passwd>-pw_dir
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_PASSWD_PW_DIR@ ?pointer
+         @OFFSETOF_PASSWD_PW_DIR@))))
+  (define-syntax <struct-passwd>-pw_gecos-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_PASSWD_PW_GECOS@ ?pointer
+         @OFFSETOF_PASSWD_PW_GECOS@ ?value))))
+  (define-syntax <struct-passwd>-pw_gecos
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_PASSWD_PW_GECOS@ ?pointer
+         @OFFSETOF_PASSWD_PW_GECOS@))))
+  (define-syntax <struct-passwd>-pw_gid-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_PASSWD_PW_GID@ ?pointer
+         @OFFSETOF_PASSWD_PW_GID@ ?value))))
+  (define-syntax <struct-passwd>-pw_gid
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_PASSWD_PW_GID@ ?pointer
+         @OFFSETOF_PASSWD_PW_GID@))))
+  (define-syntax <struct-passwd>-pw_uid-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_PASSWD_PW_UID@ ?pointer
+         @OFFSETOF_PASSWD_PW_UID@ ?value))))
+  (define-syntax <struct-passwd>-pw_uid
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_PASSWD_PW_UID@ ?pointer
+         @OFFSETOF_PASSWD_PW_UID@))))
+  (define-syntax <struct-passwd>-pw_passwd-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_PASSWD_PW_PASSWD@ ?pointer
+         @OFFSETOF_PASSWD_PW_PASSWD@ ?value))))
+  (define-syntax <struct-passwd>-pw_passwd
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_PASSWD_PW_PASSWD@ ?pointer
+         @OFFSETOF_PASSWD_PW_PASSWD@))))
+  (define-syntax <struct-passwd>-pw_name-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_PASSWD_PW_NAME@ ?pointer
+         @OFFSETOF_PASSWD_PW_NAME@ ?value))))
+  (define-syntax <struct-passwd>-pw_name
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_PASSWD_PW_NAME@ ?pointer
+         @OFFSETOF_PASSWD_PW_NAME@))))
+  (define-label <struct-group>
+    (virtual-fields (mutable gr_mem) (mutable gr_gid)
+      (mutable gr_name)))
+  (define-syntax <struct-group>-gr_mem-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_GROUP_GR_MEM@ ?pointer
+         @OFFSETOF_GROUP_GR_MEM@ ?value))))
+  (define-syntax <struct-group>-gr_mem
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_GROUP_GR_MEM@ ?pointer
+         @OFFSETOF_GROUP_GR_MEM@))))
+  (define-syntax <struct-group>-gr_gid-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_GROUP_GR_GID@ ?pointer
+         @OFFSETOF_GROUP_GR_GID@ ?value))))
+  (define-syntax <struct-group>-gr_gid
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_GROUP_GR_GID@ ?pointer
+         @OFFSETOF_GROUP_GR_GID@))))
+  (define-syntax <struct-group>-gr_name-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_GROUP_GR_NAME@ ?pointer
+         @OFFSETOF_GROUP_GR_NAME@ ?value))))
+  (define-syntax <struct-group>-gr_name
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_GROUP_GR_NAME@ ?pointer
+         @OFFSETOF_GROUP_GR_NAME@))))
+  (define-label <struct-utsname>
+    (virtual-fields (immutable domainname)
+      (immutable nodename) (immutable machine)
+      (immutable version) (immutable release)
+      (immutable sysname)))
+  (define-syntax <struct-utsname>-domainname
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_UTSNAME_DOMAINNAME@ ?pointer
+         @OFFSETOF_UTSNAME_DOMAINNAME@))))
+  (define-syntax <struct-utsname>-nodename
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_UTSNAME_NODENAME@ ?pointer
+         @OFFSETOF_UTSNAME_NODENAME@))))
+  (define-syntax <struct-utsname>-machine
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_UTSNAME_MACHINE@ ?pointer
+         @OFFSETOF_UTSNAME_MACHINE@))))
+  (define-syntax <struct-utsname>-version
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_UTSNAME_VERSION@ ?pointer
+         @OFFSETOF_UTSNAME_VERSION@))))
+  (define-syntax <struct-utsname>-release
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_UTSNAME_RELEASE@ ?pointer
+         @OFFSETOF_UTSNAME_RELEASE@))))
+  (define-syntax <struct-utsname>-sysname
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_UTSNAME_SYSNAME@ ?pointer
+         @OFFSETOF_UTSNAME_SYSNAME@))))
+  (define-label <struct-fstab>
+    (virtual-fields (mutable fs_passno) (mutable fs_freq)
+      (mutable fs_type) (mutable fs_mntops)
+      (mutable fs_vfstype) (mutable fs_file)
+      (mutable fs_spec)))
+  (define-syntax <struct-fstab>-fs_passno-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_FSTAB_FS_PASSNO@ ?pointer
+         @OFFSETOF_FSTAB_FS_PASSNO@ ?value))))
+  (define-syntax <struct-fstab>-fs_passno
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_FSTAB_FS_PASSNO@ ?pointer
+         @OFFSETOF_FSTAB_FS_PASSNO@))))
+  (define-syntax <struct-fstab>-fs_freq-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_FSTAB_FS_FREQ@ ?pointer
+         @OFFSETOF_FSTAB_FS_FREQ@ ?value))))
+  (define-syntax <struct-fstab>-fs_freq
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_FSTAB_FS_FREQ@ ?pointer
+         @OFFSETOF_FSTAB_FS_FREQ@))))
+  (define-syntax <struct-fstab>-fs_type-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_FSTAB_FS_TYPE@ ?pointer
+         @OFFSETOF_FSTAB_FS_TYPE@ ?value))))
+  (define-syntax <struct-fstab>-fs_type
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_FSTAB_FS_TYPE@ ?pointer
+         @OFFSETOF_FSTAB_FS_TYPE@))))
+  (define-syntax <struct-fstab>-fs_mntops-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_FSTAB_FS_MNTOPS@ ?pointer
+         @OFFSETOF_FSTAB_FS_MNTOPS@ ?value))))
+  (define-syntax <struct-fstab>-fs_mntops
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_FSTAB_FS_MNTOPS@ ?pointer
+         @OFFSETOF_FSTAB_FS_MNTOPS@))))
+  (define-syntax <struct-fstab>-fs_vfstype-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_FSTAB_FS_VFSTYPE@ ?pointer
+         @OFFSETOF_FSTAB_FS_VFSTYPE@ ?value))))
+  (define-syntax <struct-fstab>-fs_vfstype
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_FSTAB_FS_VFSTYPE@ ?pointer
+         @OFFSETOF_FSTAB_FS_VFSTYPE@))))
+  (define-syntax <struct-fstab>-fs_file-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_FSTAB_FS_FILE@ ?pointer
+         @OFFSETOF_FSTAB_FS_FILE@ ?value))))
+  (define-syntax <struct-fstab>-fs_file
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_FSTAB_FS_FILE@ ?pointer
+         @OFFSETOF_FSTAB_FS_FILE@))))
+  (define-syntax <struct-fstab>-fs_spec-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_FSTAB_FS_SPEC@ ?pointer
+         @OFFSETOF_FSTAB_FS_SPEC@ ?value))))
+  (define-syntax <struct-fstab>-fs_spec
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_FSTAB_FS_SPEC@ ?pointer
+         @OFFSETOF_FSTAB_FS_SPEC@))))
+  (define-label <struct-mntent>
+    (virtual-fields (mutable mnt_passno) (mutable mnt_freq)
+      (mutable mnt_opts) (mutable mnt_type)
+      (mutable mnt_dir) (mutable mnt_fsname)))
+  (define-syntax <struct-mntent>-mnt_passno-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_MNTENT_MNT_PASSNO@ ?pointer
+         @OFFSETOF_MNTENT_MNT_PASSNO@ ?value))))
+  (define-syntax <struct-mntent>-mnt_passno
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_MNTENT_MNT_PASSNO@ ?pointer
+         @OFFSETOF_MNTENT_MNT_PASSNO@))))
+  (define-syntax <struct-mntent>-mnt_freq-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_MNTENT_MNT_FREQ@ ?pointer
+         @OFFSETOF_MNTENT_MNT_FREQ@ ?value))))
+  (define-syntax <struct-mntent>-mnt_freq
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_MNTENT_MNT_FREQ@ ?pointer
+         @OFFSETOF_MNTENT_MNT_FREQ@))))
+  (define-syntax <struct-mntent>-mnt_opts-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_MNTENT_MNT_OPTS@ ?pointer
+         @OFFSETOF_MNTENT_MNT_OPTS@ ?value))))
+  (define-syntax <struct-mntent>-mnt_opts
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_MNTENT_MNT_OPTS@ ?pointer
+         @OFFSETOF_MNTENT_MNT_OPTS@))))
+  (define-syntax <struct-mntent>-mnt_type-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_MNTENT_MNT_TYPE@ ?pointer
+         @OFFSETOF_MNTENT_MNT_TYPE@ ?value))))
+  (define-syntax <struct-mntent>-mnt_type
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_MNTENT_MNT_TYPE@ ?pointer
+         @OFFSETOF_MNTENT_MNT_TYPE@))))
+  (define-syntax <struct-mntent>-mnt_dir-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_MNTENT_MNT_DIR@ ?pointer
+         @OFFSETOF_MNTENT_MNT_DIR@ ?value))))
+  (define-syntax <struct-mntent>-mnt_dir
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_MNTENT_MNT_DIR@ ?pointer
+         @OFFSETOF_MNTENT_MNT_DIR@))))
+  (define-syntax <struct-mntent>-mnt_fsname-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_MNTENT_MNT_FSNAME@ ?pointer
+         @OFFSETOF_MNTENT_MNT_FSNAME@ ?value))))
+  (define-syntax <struct-mntent>-mnt_fsname
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_MNTENT_MNT_FSNAME@ ?pointer
+         @OFFSETOF_MNTENT_MNT_FSNAME@))))
+  (define-label <struct-sockaddr>
+    (virtual-fields (immutable sa_data) (mutable sa_family)))
+  (define-syntax <struct-sockaddr>-sa_data
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_SOCKADDR_SA_DATA@ ?pointer
+         @OFFSETOF_SOCKADDR_SA_DATA@))))
+  (define-syntax <struct-sockaddr>-sa_family-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_SOCKADDR_SA_FAMILY@ ?pointer
+         @OFFSETOF_SOCKADDR_SA_FAMILY@ ?value))))
+  (define-syntax <struct-sockaddr>-sa_family
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_SOCKADDR_SA_FAMILY@ ?pointer
+         @OFFSETOF_SOCKADDR_SA_FAMILY@))))
+  (define-label <struct-sockaddr_in>
+    (virtual-fields (mutable sin_port) (immutable sin_addr)
+      (mutable sin_family)))
+  (define-syntax <struct-sockaddr_in>-sin_port-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_SOCKADDR_IN_SIN_PORT@
+         ?pointer @OFFSETOF_SOCKADDR_IN_SIN_PORT@ ?value))))
+  (define-syntax <struct-sockaddr_in>-sin_port
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_SOCKADDR_IN_SIN_PORT@ ?pointer
+         @OFFSETOF_SOCKADDR_IN_SIN_PORT@))))
+  (define-syntax <struct-sockaddr_in>-sin_addr
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_SOCKADDR_IN_SIN_ADDR@ ?pointer
+         @OFFSETOF_SOCKADDR_IN_SIN_ADDR@))))
+  (define-syntax <struct-sockaddr_in>-sin_family-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_SOCKADDR_IN_SIN_FAMILY@
+         ?pointer @OFFSETOF_SOCKADDR_IN_SIN_FAMILY@ ?value))))
+  (define-syntax <struct-sockaddr_in>-sin_family
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_SOCKADDR_IN_SIN_FAMILY@
+         ?pointer @OFFSETOF_SOCKADDR_IN_SIN_FAMILY@))))
+  (define-label <struct-sockaddr_in6>
+    (virtual-fields (mutable sin6_port)
+      (immutable sin6_addr) (mutable sin6_family)))
+  (define-syntax <struct-sockaddr_in6>-sin6_port-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_SOCKADDR_IN6_SIN6_PORT@
+         ?pointer @OFFSETOF_SOCKADDR_IN6_SIN6_PORT@ ?value))))
+  (define-syntax <struct-sockaddr_in6>-sin6_port
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_SOCKADDR_IN6_SIN6_PORT@
+         ?pointer @OFFSETOF_SOCKADDR_IN6_SIN6_PORT@))))
+  (define-syntax <struct-sockaddr_in6>-sin6_addr
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_SOCKADDR_IN6_SIN6_ADDR@
+         ?pointer @OFFSETOF_SOCKADDR_IN6_SIN6_ADDR@))))
+  (define-syntax <struct-sockaddr_in6>-sin6_family-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_SOCKADDR_IN6_SIN6_FAMILY@
+         ?pointer @OFFSETOF_SOCKADDR_IN6_SIN6_FAMILY@ ?value))))
+  (define-syntax <struct-sockaddr_in6>-sin6_family
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_SOCKADDR_IN6_SIN6_FAMILY@
+         ?pointer @OFFSETOF_SOCKADDR_IN6_SIN6_FAMILY@))))
+  (define-label <struct-sockaddr_un>
+    (virtual-fields (immutable sun_path)
+      (mutable sun_family)))
+  (define-syntax <struct-sockaddr_un>-sun_path
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_SOCKADDR_UN_SUN_PATH@ ?pointer
+         @OFFSETOF_SOCKADDR_UN_SUN_PATH@))))
+  (define-syntax <struct-sockaddr_un>-sun_family-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_SOCKADDR_UN_SUN_FAMILY@
+         ?pointer @OFFSETOF_SOCKADDR_UN_SUN_FAMILY@ ?value))))
+  (define-syntax <struct-sockaddr_un>-sun_family
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_SOCKADDR_UN_SUN_FAMILY@
+         ?pointer @OFFSETOF_SOCKADDR_UN_SUN_FAMILY@))))
+  (define-label <struct-in_addr>
+    (virtual-fields (mutable s_addr)))
+  (define-syntax <struct-in_addr>-s_addr-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_IN_ADDR_S_ADDR@ ?pointer
+         @OFFSETOF_IN_ADDR_S_ADDR@ ?value))))
+  (define-syntax <struct-in_addr>-s_addr
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_IN_ADDR_S_ADDR@ ?pointer
+         @OFFSETOF_IN_ADDR_S_ADDR@))))
+  (define-label <struct-in6_addr>
+    (virtual-fields (mutable s_addr)))
+  (define-syntax <struct-in6_addr>-s_addr-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_IN6_ADDR_S_ADDR@ ?pointer
+         @OFFSETOF_IN6_ADDR_S_ADDR@ ?value))))
+  (define-syntax <struct-in6_addr>-s_addr
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_IN6_ADDR_S_ADDR@ ?pointer
+         @OFFSETOF_IN6_ADDR_S_ADDR@))))
+  (define-label <struct-if_nameindex>
+    (virtual-fields (mutable if_name) (mutable if_index)))
+  (define-syntax <struct-if_nameindex>-if_name-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_IF_NAMEINDEX_IF_NAME@
+         ?pointer @OFFSETOF_IF_NAMEINDEX_IF_NAME@ ?value))))
+  (define-syntax <struct-if_nameindex>-if_name
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_IF_NAMEINDEX_IF_NAME@ ?pointer
+         @OFFSETOF_IF_NAMEINDEX_IF_NAME@))))
+  (define-syntax <struct-if_nameindex>-if_index-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_IF_NAMEINDEX_IF_INDEX@
+         ?pointer @OFFSETOF_IF_NAMEINDEX_IF_INDEX@ ?value))))
+  (define-syntax <struct-if_nameindex>-if_index
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_IF_NAMEINDEX_IF_INDEX@
+         ?pointer @OFFSETOF_IF_NAMEINDEX_IF_INDEX@))))
+  (define-label <struct-netent>
+    (virtual-fields (mutable n_net) (mutable n_addrtype)
+      (mutable n_aliases) (mutable n_name)))
+  (define-syntax <struct-netent>-n_net-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_NETENT_N_NET@ ?pointer
+         @OFFSETOF_NETENT_N_NET@ ?value))))
+  (define-syntax <struct-netent>-n_net
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_NETENT_N_NET@ ?pointer
+         @OFFSETOF_NETENT_N_NET@))))
+  (define-syntax <struct-netent>-n_addrtype-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_NETENT_N_ADDRTYPE@ ?pointer
+         @OFFSETOF_NETENT_N_ADDRTYPE@ ?value))))
+  (define-syntax <struct-netent>-n_addrtype
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_NETENT_N_ADDRTYPE@ ?pointer
+         @OFFSETOF_NETENT_N_ADDRTYPE@))))
+  (define-syntax <struct-netent>-n_aliases-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_NETENT_N_ALIASES@ ?pointer
+         @OFFSETOF_NETENT_N_ALIASES@ ?value))))
+  (define-syntax <struct-netent>-n_aliases
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_NETENT_N_ALIASES@ ?pointer
+         @OFFSETOF_NETENT_N_ALIASES@))))
+  (define-syntax <struct-netent>-n_name-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_NETENT_N_NAME@ ?pointer
+         @OFFSETOF_NETENT_N_NAME@ ?value))))
+  (define-syntax <struct-netent>-n_name
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_NETENT_N_NAME@ ?pointer
+         @OFFSETOF_NETENT_N_NAME@))))
+  (define-label <struct-linger>
+    (virtual-fields (mutable l_linger) (mutable l_onoff)))
+  (define-syntax <struct-linger>-l_linger-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_LINGER_L_LINGER@ ?pointer
+         @OFFSETOF_LINGER_L_LINGER@ ?value))))
+  (define-syntax <struct-linger>-l_linger
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_LINGER_L_LINGER@ ?pointer
+         @OFFSETOF_LINGER_L_LINGER@))))
+  (define-syntax <struct-linger>-l_onoff-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_LINGER_L_ONOFF@ ?pointer
+         @OFFSETOF_LINGER_L_ONOFF@ ?value))))
+  (define-syntax <struct-linger>-l_onoff
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_LINGER_L_ONOFF@ ?pointer
+         @OFFSETOF_LINGER_L_ONOFF@))))
+  (define-label <struct-hostent>
+    (virtual-fields (mutable h_addr) (mutable h_addr_list)
+      (mutable h_length) (mutable h_addrtype)
+      (mutable h_aliases) (mutable h_name)))
+  (define-syntax <struct-hostent>-h_addr-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_HOSTENT_H_ADDR@ ?pointer
+         @OFFSETOF_HOSTENT_H_ADDR@ ?value))))
+  (define-syntax <struct-hostent>-h_addr
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_HOSTENT_H_ADDR@ ?pointer
+         @OFFSETOF_HOSTENT_H_ADDR@))))
+  (define-syntax <struct-hostent>-h_addr_list-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_HOSTENT_H_ADDR_LIST@ ?pointer
+         @OFFSETOF_HOSTENT_H_ADDR_LIST@ ?value))))
+  (define-syntax <struct-hostent>-h_addr_list
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_HOSTENT_H_ADDR_LIST@ ?pointer
+         @OFFSETOF_HOSTENT_H_ADDR_LIST@))))
+  (define-syntax <struct-hostent>-h_length-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_HOSTENT_H_LENGTH@ ?pointer
+         @OFFSETOF_HOSTENT_H_LENGTH@ ?value))))
+  (define-syntax <struct-hostent>-h_length
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_HOSTENT_H_LENGTH@ ?pointer
+         @OFFSETOF_HOSTENT_H_LENGTH@))))
+  (define-syntax <struct-hostent>-h_addrtype-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_HOSTENT_H_ADDRTYPE@ ?pointer
+         @OFFSETOF_HOSTENT_H_ADDRTYPE@ ?value))))
+  (define-syntax <struct-hostent>-h_addrtype
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_HOSTENT_H_ADDRTYPE@ ?pointer
+         @OFFSETOF_HOSTENT_H_ADDRTYPE@))))
+  (define-syntax <struct-hostent>-h_aliases-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_HOSTENT_H_ALIASES@ ?pointer
+         @OFFSETOF_HOSTENT_H_ALIASES@ ?value))))
+  (define-syntax <struct-hostent>-h_aliases
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_HOSTENT_H_ALIASES@ ?pointer
+         @OFFSETOF_HOSTENT_H_ALIASES@))))
+  (define-syntax <struct-hostent>-h_name-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_HOSTENT_H_NAME@ ?pointer
+         @OFFSETOF_HOSTENT_H_NAME@ ?value))))
+  (define-syntax <struct-hostent>-h_name
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_HOSTENT_H_NAME@ ?pointer
+         @OFFSETOF_HOSTENT_H_NAME@))))
+  (define-label <struct-protoent>
+    (virtual-fields (mutable p_proto) (mutable p_aliases)
+      (mutable p_name)))
+  (define-syntax <struct-protoent>-p_proto-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_PROTOENT_P_PROTO@ ?pointer
+         @OFFSETOF_PROTOENT_P_PROTO@ ?value))))
+  (define-syntax <struct-protoent>-p_proto
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_PROTOENT_P_PROTO@ ?pointer
+         @OFFSETOF_PROTOENT_P_PROTO@))))
+  (define-syntax <struct-protoent>-p_aliases-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_PROTOENT_P_ALIASES@ ?pointer
+         @OFFSETOF_PROTOENT_P_ALIASES@ ?value))))
+  (define-syntax <struct-protoent>-p_aliases
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_PROTOENT_P_ALIASES@ ?pointer
+         @OFFSETOF_PROTOENT_P_ALIASES@))))
+  (define-syntax <struct-protoent>-p_name-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_PROTOENT_P_NAME@ ?pointer
+         @OFFSETOF_PROTOENT_P_NAME@ ?value))))
+  (define-syntax <struct-protoent>-p_name
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_PROTOENT_P_NAME@ ?pointer
+         @OFFSETOF_PROTOENT_P_NAME@))))
+  (define-label <struct-servent>
+    (virtual-fields (mutable s_proto) (mutable s_port)
+      (mutable s_aliases) (mutable s_name)))
+  (define-syntax <struct-servent>-s_proto-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_SERVENT_S_PROTO@ ?pointer
+         @OFFSETOF_SERVENT_S_PROTO@ ?value))))
+  (define-syntax <struct-servent>-s_proto
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_SERVENT_S_PROTO@ ?pointer
+         @OFFSETOF_SERVENT_S_PROTO@))))
+  (define-syntax <struct-servent>-s_port-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_SERVENT_S_PORT@ ?pointer
+         @OFFSETOF_SERVENT_S_PORT@ ?value))))
+  (define-syntax <struct-servent>-s_port
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_SERVENT_S_PORT@ ?pointer
+         @OFFSETOF_SERVENT_S_PORT@))))
+  (define-syntax <struct-servent>-s_aliases-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_SERVENT_S_ALIASES@ ?pointer
+         @OFFSETOF_SERVENT_S_ALIASES@ ?value))))
+  (define-syntax <struct-servent>-s_aliases
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_SERVENT_S_ALIASES@ ?pointer
+         @OFFSETOF_SERVENT_S_ALIASES@))))
+  (define-syntax <struct-servent>-s_name-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_SERVENT_S_NAME@ ?pointer
+         @OFFSETOF_SERVENT_S_NAME@ ?value))))
+  (define-syntax <struct-servent>-s_name
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_SERVENT_S_NAME@ ?pointer
+         @OFFSETOF_SERVENT_S_NAME@)))))
+
+
+;;; end of file

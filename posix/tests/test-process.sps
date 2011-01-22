@@ -7,7 +7,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2008, 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2008-2011 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -25,13 +25,13 @@
 
 
 (import (nausicaa)
-  (foreign ffi)
-  (foreign memory)
-  (foreign errno)
-  (foreign cstrings)
-  (checks)
-  (posix typedefs)
-  (prefix (posix process) posix:))
+  (nausicaa ffi)
+  (nausicaa ffi memory)
+  (nausicaa ffi errno)
+  (nausicaa ffi cstrings)
+  (nausicaa checks)
+  (nausicaa posix typedefs)
+  (prefix (nausicaa posix process) px.))
 
 (check-set-mode! 'report-failed)
 (display "*** testing POSIX process\n")
@@ -40,16 +40,16 @@
 (parametrise ((check-test-name 'pid))
 
   (check
-      (pid? (posix:getpid))
+      (pid? (px.getpid))
     => #t)
 
   (check
-      (pid? (posix:getppid))
+      (pid? (px.getppid))
     => #t)
 
   (check
-      (< (pid->integer (posix:getppid))
-	 (pid->integer (posix:getpid)))
+      (< (pid->integer (px.getppid))
+	 (pid->integer (px.getpid)))
     => #t)
 
   #t)
@@ -58,7 +58,7 @@
 (parametrise ((check-test-name 'fork))
 
   (check
-      (let ((pid (posix:fork)))
+      (let ((pid (px.fork)))
 	(if pid
 	    #t
 	  (exit)))
@@ -68,10 +68,10 @@
       (let ()
 	(define (fake-fork)
 	  (raise-errno-error 'fork EINVAL))
-	(parametrise ((posix:fork-function fake-fork))
+	(parametrise ((px.fork-function fake-fork))
 	  (guard (E (else (list (errno-condition? E)
 				(errno-symbolic-value E))))
-	    (posix:fork))))
+	    (px.fork))))
     => '(#t EINVAL))
 
   #t)
@@ -81,63 +81,63 @@
 
   (check
       (begin
-	(unless (posix:fork)
-	  (posix:execv '/bin/ls '(ls "-l" /bin/ls))
+	(unless (px.fork)
+	  (px.execv '/bin/ls '(ls "-l" /bin/ls))
 	  (exit))
 	#t)
     => #t)
 
   (check
       (begin
-	(unless (posix:fork)
-	  (posix:execv '/usr/bin/du '(du /bin/ls))
+	(unless (px.fork)
+	  (px.execv '/usr/bin/du '(du /bin/ls))
 	  (exit))
 	#t)
     => #t)
 
   (check
-      (parameterize ((posix:execv-function (lambda args
+      (parameterize ((px.execv-function (lambda args
 					     (raise-errno-error 'execv EINVAL args))))
 	(guard (E (else (list (errno-condition? E)
 			      (condition-who E)
 			      (errno-symbolic-value E))))
-	  (posix:execv '/bin/ls '(ls))))
+	  (px.execv '/bin/ls '(ls))))
     => '(#t execv EINVAL))
 
 ;;; --------------------------------------------------------------------
 
   (check
       (begin
-	(unless (posix:fork)
-	  (posix:execve '/usr/bin/du '(du /bin/ls) '("BLOCK_SIZE=human-readable"))
+	(unless (px.fork)
+	  (px.execve '/usr/bin/du '(du /bin/ls) '("BLOCK_SIZE=human-readable"))
 	  (exit))
 	#t)
     => #t)
 
   (check
-      (parametrise ((posix:execve-function (lambda args
+      (parametrise ((px.execve-function (lambda args
 					     (raise-errno-error 'execve EINVAL args))))
 	(guard (E (else (list (errno-condition? E)
 			      (errno-symbolic-value E))))
-	  (posix:execve '/usr/bin/du '(du /bin/ls) '("BLOCK_SIZE=human-readable"))))
+	  (px.execve '/usr/bin/du '(du /bin/ls) '("BLOCK_SIZE=human-readable"))))
     => '(#t EINVAL))
 
 ;;; --------------------------------------------------------------------
 
   (check
       (begin
-	(unless (posix:fork)
-	  (posix:execvp 'ls '(ls "-l" /bin/ls))
+	(unless (px.fork)
+	  (px.execvp 'ls '(ls "-l" /bin/ls))
 	  (exit))
 	#t)
     => #t)
 
   (check
-      (parametrise ((posix:execvp-function (lambda args
+      (parametrise ((px.execvp-function (lambda args
 					     (raise-errno-error 'execve EINVAL args))))
 	(guard (E (else (list (errno-condition? E)
 			      (errno-symbolic-value E))))
-	  (posix:execvp 'ls '(ls))))
+	  (px.execvp 'ls '(ls))))
     => '(#t EINVAL))
 
   #t)
@@ -146,49 +146,49 @@
 (parameterize ((check-test-name 'wait))
 
   (check
-      (let ((pid (posix:fork)))
+      (let ((pid (px.fork)))
 	(if pid
 	    (receive (result status)
-		(posix:waitpid pid 0)
+		(px.waitpid pid 0)
 	      (pid=? pid result))
 	  (exit 0)))
     => #t)
 
   (check
-      (let ((pid (posix:fork)))
+      (let ((pid (px.fork)))
 	(if pid
 	    (receive (result status)
-		(posix:waitpid pid 0)
-	      (let ((r (posix:integer-><process-term-status> status)))
+		(px.waitpid pid 0)
+	      (let ((r (px.integer-><process-term-status> status)))
 		(WIFEXITED? r)))
 	  (exit 0)))
     => #t)
 
   ;; (check
-  ;;     (let ((pid (posix:fork)))
+  ;;     (let ((pid (px.fork)))
   ;; 	(if pid
   ;; 	    (receive (result status)
-  ;; 		(posix:waitpid/any 0)
+  ;; 		(px.waitpid/any 0)
   ;; 	      (write (list pid result))(newline)
   ;; 	      (pid=? pid result))
   ;; 	  (exit 0)))
   ;;   => #t)
 
   ;; (check
-  ;;     (let ((pid (posix:fork)))
+  ;;     (let ((pid (px.fork)))
   ;; 	(if pid
   ;; 	    (receive (result status)
-  ;; 		(posix:waitpid/any-my-group 0)
+  ;; 		(px.waitpid/any-my-group 0)
   ;; 	      ;;(write (list pid result))(newline)
   ;; 	      (pid=? pid result))
   ;; 	  (exit 0)))
   ;;   => #t)
 
   ;; (check
-  ;;     (let ((pid (posix:fork)))
+  ;;     (let ((pid (px.fork)))
   ;; 	(if pid
   ;; 	    (receive (result status)
-  ;; 		(posix:waitpid/group (posix:getppid) 0)
+  ;; 		(px.waitpid/group (px.getppid) 0)
   ;; 	      ;;(write (list pid result))(newline)
   ;; 	      (pid=? pid result))
   ;; 	  (exit 0)))

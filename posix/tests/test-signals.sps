@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2009-2011 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -26,11 +26,10 @@
 
 
 (import (nausicaa)
-  (compensations)
   (posix sizeof)
-  (posix typedefs)
-  (prefix (posix signals) posix:)
-  (prefix (posix process) posix:)
+  (nausicaa posix typedefs)
+  (prefix (nausicaa posix signals) px.)
+  (prefix (nausicaa posix process) px.)
   (checks))
 
 (check-set-mode! 'report-failed)
@@ -87,49 +86,49 @@
   (check
       (with-compensations
 	(compensate
-	    (posix:signal-bub-init)
+	    (px.signal-bub-init)
 	  (with
-	   (posix:signal-bub-final)))
-	(posix:signal-raise* (unix-signal SIGUSR1))
-	(posix:signal-bub-acquire)
-	(list (posix:signal-bub-delivered*? (unix-signal SIGUSR1))
-	      (posix:signal-bub-delivered*? (unix-signal SIGUSR2))))
+	   (px.signal-bub-final)))
+	(px.signal-raise* (unix-signal SIGUSR1))
+	(px.signal-bub-acquire)
+	(list (px.signal-bub-delivered*? (unix-signal SIGUSR1))
+	      (px.signal-bub-delivered*? (unix-signal SIGUSR2))))
     => '(#t #f))
 
   (check
       (with-compensations
 	(compensate
-	    (posix:signal-bub-init)
+	    (px.signal-bub-init)
 	  (with
-	   (posix:signal-bub-final)))
-	(posix:signal-bub-acquire)
-	(list (posix:signal-bub-delivered? SIGUSR1)
-	      (posix:signal-bub-delivered? SIGUSR2)))
+	   (px.signal-bub-final)))
+	(px.signal-bub-acquire)
+	(list (px.signal-bub-delivered? SIGUSR1)
+	      (px.signal-bub-delivered? SIGUSR2)))
     => '(#f #f))
 
   (check
       (with-compensations
 	(compensate
-	    (posix:signal-bub-init)
+	    (px.signal-bub-init)
 	  (with
-	   (posix:signal-bub-final)))
-	(posix:signal-raise* (unix-signal SIGUSR2))
-	(posix:signal-bub-acquire)
-	(list (posix:signal-bub-delivered? SIGUSR1)
-	      (posix:signal-bub-delivered? SIGUSR2)))
+	   (px.signal-bub-final)))
+	(px.signal-raise* (unix-signal SIGUSR2))
+	(px.signal-bub-acquire)
+	(list (px.signal-bub-delivered? SIGUSR1)
+	      (px.signal-bub-delivered? SIGUSR2)))
     => '(#f #t))
 
   (check
       (with-compensations
 	(compensate
-	    (posix:signal-bub-init)
+	    (px.signal-bub-init)
 	  (with
-	   (posix:signal-bub-final)))
-	(posix:signal-raise SIGUSR1)
-	(posix:signal-raise SIGUSR2)
-	(posix:signal-bub-acquire)
-	(list (posix:signal-bub-delivered? SIGUSR1)
-	      (posix:signal-bub-delivered? SIGUSR2)))
+	   (px.signal-bub-final)))
+	(px.signal-raise SIGUSR1)
+	(px.signal-raise SIGUSR2)
+	(px.signal-bub-acquire)
+	(list (px.signal-bub-delivered? SIGUSR1)
+	      (px.signal-bub-delivered? SIGUSR2)))
     => '(#t #t))
 
 ;;; --------------------------------------------------------------------
@@ -138,49 +137,49 @@
   (check
       (with-compensations
 	(compensate
-	    (posix:signal-bub-init)
+	    (px.signal-bub-init)
 	  (with
-	   (posix:signal-bub-final)))
-	(posix:kill* (posix:getpid) (unix-signal SIGUSR1))
-	(posix:signal-bub-acquire)
-	(list (posix:signal-bub-delivered? SIGUSR1)
-	      (posix:signal-bub-delivered? SIGUSR2)))
+	   (px.signal-bub-final)))
+	(px.kill* (px.getpid) (unix-signal SIGUSR1))
+	(px.signal-bub-acquire)
+	(list (px.signal-bub-delivered? SIGUSR1)
+	      (px.signal-bub-delivered? SIGUSR2)))
     => '(#t #f))
 
   (check
       (with-compensations
 	(compensate
-	    (posix:signal-bub-init)
+	    (px.signal-bub-init)
 	  (with
-	   (posix:signal-bub-final)))
-	(posix:signal-bub-acquire)
-	(list (posix:signal-bub-delivered? SIGUSR1)
-	      (posix:signal-bub-delivered? SIGUSR2)))
+	   (px.signal-bub-final)))
+	(px.signal-bub-acquire)
+	(list (px.signal-bub-delivered? SIGUSR1)
+	      (px.signal-bub-delivered? SIGUSR2)))
     => '(#f #f))
 
   (check
       (with-compensations
 	(compensate
-	    (posix:signal-bub-init)
+	    (px.signal-bub-init)
 	  (with
-	   (posix:signal-bub-final)))
-	(posix:kill (posix:getpid) SIGUSR2)
-	(posix:signal-bub-acquire)
-	(list (posix:signal-bub-delivered? SIGUSR1)
-	      (posix:signal-bub-delivered? SIGUSR2)))
+	   (px.signal-bub-final)))
+	(px.kill (px.getpid) SIGUSR2)
+	(px.signal-bub-acquire)
+	(list (px.signal-bub-delivered? SIGUSR1)
+	      (px.signal-bub-delivered? SIGUSR2)))
     => '(#f #t))
 
   (check
       (with-compensations
 	(compensate
-	    (posix:signal-bub-init)
+	    (px.signal-bub-init)
 	  (with
-	   (posix:signal-bub-final)))
-	(posix:kill* (posix:getpid) (unix-signal SIGUSR1))
-	(posix:kill* (posix:getpid) (unix-signal SIGUSR2))
-	(posix:signal-bub-acquire)
-	(list (posix:signal-bub-delivered? SIGUSR1)
-	      (posix:signal-bub-delivered? SIGUSR2)))
+	   (px.signal-bub-final)))
+	(px.kill* (px.getpid) (unix-signal SIGUSR1))
+	(px.kill* (px.getpid) (unix-signal SIGUSR2))
+	(px.signal-bub-acquire)
+	(list (px.signal-bub-delivered? SIGUSR1)
+	      (px.signal-bub-delivered? SIGUSR2)))
     => '(#t #t))
 
 ;;; --------------------------------------------------------------------
@@ -188,13 +187,13 @@
   (check	;test clearing the flag
       (with-compensations
 	(compensate
-	    (posix:signal-bub-init)
+	    (px.signal-bub-init)
 	  (with
-	   (posix:signal-bub-final)))
-	(posix:signal-raise SIGUSR1)
-	(posix:signal-bub-acquire)
-	(let ((res (posix:signal-bub-delivered? SIGUSR1)))
-	  (list res (posix:signal-bub-delivered? SIGUSR2))))
+	   (px.signal-bub-final)))
+	(px.signal-raise SIGUSR1)
+	(px.signal-bub-acquire)
+	(let ((res (px.signal-bub-delivered? SIGUSR1)))
+	  (list res (px.signal-bub-delivered? SIGUSR2))))
     => '(#t #f))
 
 ;;; --------------------------------------------------------------------
@@ -202,24 +201,24 @@
   (check
       (with-compensations
 	(compensate
-	    (posix:signal-bub-init)
+	    (px.signal-bub-init)
 	  (with
-	   (posix:signal-bub-final)))
-	(posix:signal-raise SIGUSR1)
-	(posix:signal-bub-acquire)
-	(posix:signal-bub-all-delivered))
+	   (px.signal-bub-final)))
+	(px.signal-raise SIGUSR1)
+	(px.signal-bub-acquire)
+	(px.signal-bub-all-delivered))
     (=> enum-set=?) (unix-signals SIGUSR1))
 
   (check
       (with-compensations
 	(compensate
-	    (posix:signal-bub-init)
+	    (px.signal-bub-init)
 	  (with
-	   (posix:signal-bub-final)))
-	(posix:signal-raise SIGUSR1)
-	(posix:signal-raise SIGUSR2)
-	(posix:signal-bub-acquire)
-	(posix:signal-bub-all-delivered))
+	   (px.signal-bub-final)))
+	(px.signal-raise SIGUSR1)
+	(px.signal-raise SIGUSR2)
+	(px.signal-bub-acquire)
+	(px.signal-bub-all-delivered))
     (=> enum-set=?) (unix-signals SIGUSR1 SIGUSR2))
 
   #t)

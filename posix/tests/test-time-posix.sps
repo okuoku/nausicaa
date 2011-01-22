@@ -7,7 +7,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2008, 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2008-2011 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -26,11 +26,9 @@
 
 
 (import (nausicaa)
-  (checks)
-  (deferred-exceptions)
-  (compensations)
-  (posix typedefs)
-  (prefix (posix time) posix:))
+  (nausicaa checks)
+  (nausicaa posix typedefs)
+  (prefix (nausicaa posix time) px.))
 
 (check-set-mode! 'report-failed)
 (display "*** testing POSIX time\n")
@@ -45,12 +43,12 @@
 
 
       (check
-	  (flonum? (posix:clock))
+	  (flonum? (px.clock))
 	=> #t)
 
       (check
 	  (receive (result tms)
-	      (posix:times)
+	      (px.times)
 	    (list (flonum? result)
 		  (flonum? (<tms>-utime tms))
 		  (flonum? (<tms>-stime tms))
@@ -69,7 +67,7 @@
     (lambda ()
 
       (check
-	  (flonum? (posix:time))
+	  (flonum? (px.time))
 	=> #t)
 
       #t)))

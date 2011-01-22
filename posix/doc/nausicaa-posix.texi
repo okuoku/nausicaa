@@ -76,6 +76,18 @@ Revised^6 Report on the algorithmic language Scheme
 @code{(\SPEC\)}
 @end macro
 
+@macro posixlib{SPEC}
+@code{(nausicaa posix \SPEC\)}
+@end macro
+
+@macro glibclib{SPEC}
+@code{(nausicaa glibc \SPEC\)}
+@end macro
+
+@macro linuxlib{SPEC}
+@code{(nausicaa linux \SPEC\)}
+@end macro
+
 @macro ffi{}
 @acronym{FFI}
 @end macro
@@ -413,7 +425,7 @@ Revised^6 Report on the algorithmic language Scheme
 
 @c To be used as @value{COPYRIGHT_YEARS} whenever we need to include the
 @c list of copyright years.
-@set COPYRIGHT_YEARS            2008, 2009, 2010
+@set COPYRIGHT_YEARS            2008-2011
 
 @c page
 @c ------------------------------------------------------------
@@ -443,7 +455,7 @@ the project home page of Nausicaa is at:
 @noindent
 development of Nausicaa takes place at:
 
-@center @url{http://github.com/marcomaggi/nausicaa/tree/master}
+@center @url{http://github.com/marcomaggi/nausicaa/}
 
 @noindent
 Copyright @copyright{} @value{COPYRIGHT_YEARS} by @value{AUTHOR} @value{AUTHOR_EMAIL}
@@ -864,55 +876,55 @@ should contain notes about @posix{} standard compliance).
 Unless otherwise specified, libraries are split in three sets:
 
 @table @library
-@item posix --- platform
-@itemx glibc --- platform
-@itemx linux --- platform
+@item nausicaa posix --- platform
+@itemx nausicaa glibc --- platform
+@itemx nausicaa linux --- platform
 The low--level interface: faster but raw.  In this documentation, all
-the bindings from these libraries are prefixed with @samp{platform:},
+the bindings from these libraries are prefixed with @samp{platform.},
 but they are exported @strong{without} this prefix.
 
 Some functions are exposed by these libraries but not by the upper level
 libraries (for example many non--reentrant functions which have a
 corresponding reentrant counterpart).
 
-@item posix --- primitives
-@itemx glibc --- primitives
-@itemx linux --- primitives
+@item nausicaa posix --- primitives
+@itemx nausicaa glibc --- primitives
+@itemx nausicaa linux --- primitives
 The middle--level interface: does marshaling of arguments and return
 values, it is built on top of the @code{platform} libraries.  In this
 documentation, all the bindings from these libraries are prefixed with
-@samp{primitive:}, but they are exported @strong{without} this prefix.
+@samp{primitive.}, but they are exported @strong{without} this prefix.
 
-@item posix ---
-@itemx glibc ---
-@itemx linux ---
+@item nausicaa posix ---
+@itemx nausicaa glibc ---
+@itemx nausicaa linux ---
 The high--level interface: slower but user friendly, it is built on top
 of the @code{primitives} libraries.  We should really import these
 libraries by prefixing the identifiers; for example:
 
 @example
 (import (rnrs)
-  (prefix (posix fd)   posix:)
-  (prefix (glibc file) glibc:))
+  (prefix (nausicaa posix fd)   px.)
+  (prefix (nausicaa glibc file) glibc.))
 @end example
 
 @end table
 
 Additionally, the following libraries are installed:
 
-@table @library
-@item posix sizeof
+@table @posixlib
+@item sizeof
 Exports bindings for constant values (like @samp{O_CREAT}) and data
 structure accessors and mutators.
 
-@item posix typedefs
+@item typedefs
 Defines new Scheme object types to be used as wrappers for system
 objects (file descriptors, pointers to specific data structures, etc.).
 This library defines a lot of record types, but it depends only upon the
 @library{posix sizeof} library; so it is fine to import it for the
 @code{expand} phase.
 
-@item posix extensions
+@item extensions
 Defines extensions for the types exported by @library{posix
 typedefs}, to be used with the @library{records} library (from the
 Nausicaa/Scheme package).  For this purpose, this library must be
@@ -931,11 +943,11 @@ pattern for function @func{x}:
 
 @deffn Function x @var{arg} ...
 @deffnx Parameter x-function
-@deffnx Function primitive:x @var{arg} ...
-@deffnx Function platform:x @var{c-arg} ...
+@deffnx Function primitive.x @var{arg} ...
+@deffnx Function platform.x @var{c-arg} ...
 This is an interface for the @cfunc{x} foreign function.
 
-@func{x} and @func{primitive:x} do something with the arguments, which
+@func{x} and @func{primitive.x} do something with the arguments, which
 are regular Scheme values.  They take the same arguments and return the
 same return values.  If successful they return values representing the
 result; in case of error they raise an @samp{&errno} condition.
@@ -943,9 +955,9 @@ result; in case of error they raise an @samp{&errno} condition.
 
 @func{x} does the job by applying to the arguments the current value of
 the @func{x-function} parameter, which must be a function; the parameter
-is initialised to @func{primitive:x}.
+is initialised to @func{primitive.x}.
 
-@func{platform:x} is the direct wrapper for the foreign function.  It
+@func{platform.x} is the direct wrapper for the foreign function.  It
 accepts C language level arguments (like C strings), and returns 2
 values: the return value from the foreign function call and the value of
 @samp{errno} right after the call.
@@ -964,20 +976,20 @@ This interface gives us 3 choices:
 
 @enumerate
 @item
-To call directly the foreign function using the @func{platform:x}
+To call directly the foreign function using the @func{platform.x}
 callout; in this case we are responsible to convert the Scheme arguments
 to the appropriate C language level values (beware to non--garbage
 collected values!).
 
 @item
-To call the Scheme adapter @func{primitive:x}; this gives us: automatic
+To call the Scheme adapter @func{primitive.x}; this gives us: automatic
 conversion of arguments, exceptions in case of errors, automatic
 retrying in case the foreign function call is interrupted by an
 @samp{EINTR} signal (unless otherwise specified).
 
 @item
 To call the high--level, parametrised, @func{x} interface; this gives us
-everything @func{primitive:x} does and additionally allows us to replace
+everything @func{primitive.x} does and additionally allows us to replace
 the primitive function with a version that returns controlled values, or
 raises an error, and/or logs the operation.  This feature can be used to
 test Scheme code execution paths that handle exceptions.
@@ -1186,8 +1198,8 @@ The following functions manage the process' current directory.
 
 @deffn Function getcwd
 @deffnx Parameter getcwd-function
-@deffnx Function primitive:getcwd
-@deffnx Function platform:getcwd
+@deffnx Function primitive.getcwd
+@deffnx Function platform.getcwd
 Return a string representing the current working directory.
 @end deffn
 
@@ -1199,8 +1211,8 @@ An alias for @func{getcwd}.
 
 @deffn Function chdir @var{pathname}
 @deffnx Parameter chdir-function
-@deffnx Function primitive:chdir @var{pathname}
-@deffnx Function platform:chdir @var{pathname}
+@deffnx Function primitive.chdir @var{pathname}
+@deffnx Function platform.chdir @var{pathname}
 Change the current directory to the selected @var{pathname}, which must
 be a Scheme string or symbol.  If an error occurs changing directory,
 because of access permissions: An exception is raised.
@@ -1209,8 +1221,8 @@ because of access permissions: An exception is raised.
 
 @deffn Function fchdir @var{fd}
 @deffnx Parameter fchdir-function
-@deffnx Function primitive:fchdir @var{fd}
-@deffnx Function platform:fchdir @var{fd}
+@deffnx Function primitive.fchdir @var{fd}
+@deffnx Function platform.fchdir @var{fd}
 Change the current directory to the one associated to the file
 descriptor @var{fd}.
 @end deffn
@@ -1310,8 +1322,8 @@ stream}.
 
 @deffn Function opendir @var{pathname}
 @deffnx Parameter opendir-function
-@deffnx Function primitive:opendir @var{pathname}
-@deffnx Function platform:opendir @var{pathname-cstr}
+@deffnx Function primitive.opendir @var{pathname}
+@deffnx Function platform.opendir @var{pathname-cstr}
 Open and return a stream associated to the directory selected by the
 Scheme string or symbol @var{pathname}.
 @end deffn
@@ -1319,8 +1331,8 @@ Scheme string or symbol @var{pathname}.
 
 @deffn Function fdopendir @var{fd}
 @deffnx Parameter fdopendir-function
-@deffnx Function primitive:fdopendir @var{fd}
-@deffnx Function platform:fdopendir @var{fd}
+@deffnx Function primitive.fdopendir @var{fd}
+@deffnx Function platform.fdopendir @var{fd}
 Open and return a stream associated to the directory selected by the
 file descriptor @var{fd}.
 @end deffn
@@ -1328,8 +1340,8 @@ file descriptor @var{fd}.
 
 @deffn Function closedir @var{stream}
 @deffnx Parameter closedir-function
-@deffnx Function primitive:closedir @var{stream}
-@deffnx Function platform:closedir @var{stream}
+@deffnx Function primitive.closedir @var{stream}
+@deffnx Function platform.closedir @var{stream}
 Close the directory @var{stream} previously opened with @func{opendir}
 or @func{fdopendir}.
 
@@ -1347,7 +1359,7 @@ documentation).
 
 @deffn Function opendir/c @var{pathname}
 @deffnx Parameter opendir/c-function
-@deffnx Function primitive:opendir/c @var{pathname}
+@deffnx Function primitive.opendir/c @var{pathname}
 Like @func{opendir} but push the appropriate call to @func{closedir} on
 the current compensation stack.  @nauref{compensations, Compensation
 stacks}.
@@ -1365,8 +1377,8 @@ stacks}.
 
 @deffn Function dirfd @var{stream}
 @deffnx Parameter dirfd-function
-@deffnx Function primitive:dirfd @var{stream}
-@deffnx Function platform:dirfd @var{stream}
+@deffnx Function primitive.dirfd @var{stream}
+@deffnx Function platform.dirfd @var{stream}
 Return the file descriptor associated to the directory @var{stream}
 previously opened with @func{opendir} or @func{fdopendir}.
 @end deffn
@@ -1425,8 +1437,8 @@ to read a directory using the file descriptor and the @gnu{} flag
 
 @deffn Function readdir @var{stream}
 @deffnx Parameter readdir-function
-@deffnx Function primitive:readdir @var{stream}
-@deffnx Function platform:readdir @var{stream}
+@deffnx Function primitive.readdir @var{stream}
+@deffnx Function platform.readdir @var{stream}
 Return a pointer to a statically allocated @code{struct dirent}
 describing the next entry from the directory @var{stream}, previously
 opened with @func{opendir} or @func{fdopendir}.
@@ -1439,15 +1451,15 @@ there.
 
 @deffn Function readdir_r @var{stream}
 @deffnx Parameter readdir_r-function
-@deffnx Function primitive:readdir_r @var{stream}
-@deffnx Function platform:readdir_r @var{stream}
+@deffnx Function primitive.readdir_r @var{stream}
+@deffnx Function platform.readdir_r @var{stream}
 Like @func{readdir}, but operates in a reentrant manner.
 @end deffn
 
 
 @deffn Function directory-entries @var{pathname}
 @deffnx Parameter directory-entries-function
-@deffnx Function primitive:directory-entries @var{pathname}
+@deffnx Function primitive.directory-entries @var{pathname}
 High--level functions that open the directory selected by the Scheme
 string or symbol @var{pathname}, read all the entries and return a list
 of Scheme strings holding the entry names.
@@ -1464,7 +1476,7 @@ strings holding the entry names.
 
 
 @defun dirent-name->string @var{struct-dirent-pointer}
-@defunx primitive:dirent-name->string @var{struct-dirent-pointer}
+@defunx primitive.dirent-name->string @var{struct-dirent-pointer}
 Build and return a Scheme string containing the name of the directory
 described by @var{struct-dirent-pointer}.
 @end defun
@@ -1478,14 +1490,14 @@ The following function handle seeking the current position in the
 special @dfn{stream} objects used to access directory contents.
 @glibcref{Random Access Directory, Random Access in a Directory Stream}.
 
-For the following bindings: The @code{platform:} functions return a
+For the following bindings: The @code{platform.} functions return a
 @strong{single} value, they do not use @code{errno} to signal errors.
 
 
 @deffn Function rewinddir @var{stream}
 @deffnx Parameter rewinddir-function
-@deffnx Function primitive:rewinddir @var{stream}
-@deffnx Function platform:rewinddir @var{stream}
+@deffnx Function primitive.rewinddir @var{stream}
+@deffnx Function platform.rewinddir @var{stream}
 Rewind to the first entry the directory @var{stream} previously opened
 with @func{opendir} or @func{fdopendir}.
 @end deffn
@@ -1493,8 +1505,8 @@ with @func{opendir} or @func{fdopendir}.
 
 @deffn Function telldir @var{stream}
 @deffnx Parameter telldir-function
-@deffnx Function primitive:telldir @var{stream}
-@deffnx Function platform:telldir @var{stream}
+@deffnx Function primitive.telldir @var{stream}
+@deffnx Function platform.telldir @var{stream}
 Return an exact integer representing the current position in the
 directory @var{stream} previously opened with @func{opendir} or
 @func{fdopendir}.
@@ -1506,8 +1518,8 @@ follow a predictable sequence.
 
 @deffn Function seekdir @var{stream} @var{position}
 @deffnx Parameter seekdir-function
-@deffnx Function primitive:seekdir @var{stream} @var{position}
-@deffnx Function platform:seekdir @var{stream} @var{position}
+@deffnx Function primitive.seekdir @var{stream} @var{position}
+@deffnx Function platform.seekdir @var{stream} @var{position}
 Seek to @var{position} the directory @var{stream} previously opened with
 @func{opendir} or @func{fdopendir}.  @var{position} must be a value
 previously returned by @func{telldir}.
@@ -1533,7 +1545,7 @@ excluding the dots:
               (let ((name (dirent-name->string struct-dirent)))
                 (not (or (string=? "."  name)
                          (string=? ".." name))))))
-         platform:alphasort)
+         platform.alphasort)
 @end smallexample
 
 @noindent
@@ -1556,8 +1568,8 @@ and if we want to sort the entries in decreasing lexicographic order:
 
 @deffn Function scandir @var{pathname} @var{selector} @var{compare}
 @deffnx Parameter scandir-function
-@deffnx Function primitive:scandir @var{pathname} @var{selector} @var{compare}
-@deffnx Function platform:scandir @var{pathname} @var{namelist} @var{selector} @var{compare}
+@deffnx Function primitive.scandir @var{pathname} @var{selector} @var{compare}
+@deffnx Function platform.scandir @var{pathname} @var{namelist} @var{selector} @var{compare}
 Scan the directory selected by @var{pathname}, which must be a string or
 symbol, and return a list of Scheme strings representing the names of
 the entries in the directory.
@@ -1578,8 +1590,8 @@ comparison result (as @cfunc{strcmp} does).
 
 @defun make-scandir-selector-callback @var{scheme-function}
 @defunx make-scandir-compare-callback @var{scheme-function}
-@defunx primitive:make-scandir-selector-callback @var{scheme-function}
-@defunx primitive:make-scandir-compare-callback @var{scheme-function}
+@defunx primitive.make-scandir-selector-callback @var{scheme-function}
+@defunx primitive.make-scandir-compare-callback @var{scheme-function}
 Given a Scheme function, return a callback pointer to be used as
 @var{selector} or @var{compare} argument to @func{scandir}.  They are
 implemented as follows:
@@ -1597,8 +1609,8 @@ implemented as follows:
 @end defun
 
 
-@defvr {Function Pointer} platform:alphasort
-@defvrx {Function Pointer} platform:versionsort
+@defvr {Function Pointer} platform.alphasort
+@defvrx {Function Pointer} platform.versionsort
 Raw pointers to comparison functions exported by the @gnu{} C Library;
 they are meant to be used as @var{compare} arguments for the
 @func{scandir} function.
@@ -1633,8 +1645,8 @@ Usage example to just list the tree entries:
 
 @deffn Function ftw @var{pathname} @var{inspector} @var{descriptors}
 @deffnx Parameter ftw-function
-@deffnx Function primitive:ftw @var{pathname} @var{inspector} @var{descriptors}
-@deffnx Function primitive:ftw @var{pathname-cstr} @var{inspector} @var{descriptors}
+@deffnx Function primitive.ftw @var{pathname} @var{inspector} @var{descriptors}
+@deffnx Function primitive.ftw @var{pathname-cstr} @var{inspector} @var{descriptors}
 Invoke the C language function referenced by the raw pointer
 @var{inspector} for each entry in the directory hierarchy whose root is
 @var{pathname}, which must be a Scheme string or symbol.
@@ -1653,8 +1665,8 @@ allowed to use while walking the directory tree.
 
 @deffn Function nftw @var{pathname} @var{inspector} @var{descriptors} @var{flags}
 @deffnx Parameter nftw-function
-@deffnx Function primitive:nftw @var{pathname} @var{inspector} @var{descriptors} @var{flags}
-@deffnx Function primitive:nftw @var{pathname-cstr} @var{inspector} @var{descriptors} @var{flags}
+@deffnx Function primitive.nftw @var{pathname} @var{inspector} @var{descriptors} @var{flags}
+@deffnx Function primitive.nftw @var{pathname-cstr} @var{inspector} @var{descriptors} @var{flags}
 Invoke the C language function referenced by the raw pointer
 @var{inspector} for each entry in the directory hierarchy whose root is
 @var{pathname}, which must be a Scheme string or symbol.
@@ -1676,8 +1688,8 @@ iteration; to select no flags, we can use zero.
 
 @defun make-ftw-callback @var{scheme-function}
 @defunx make-nftw-callback @var{scheme-function}
-@defunx primitive:make-ftw-callback @var{scheme-function}
-@defunx primitive:make-nftw-callback @var{scheme-function}
+@defunx primitive.make-ftw-callback @var{scheme-function}
+@defunx primitive.make-nftw-callback @var{scheme-function}
 Build and return a callback to be used with @func{ftw} and @func{nftw};
 they are implemented as follows:
 
@@ -1769,8 +1781,8 @@ Links}.
 
 @deffn Function link @var{old-pathname} @var{new-pathname}
 @deffnx Parameter link-function
-@deffnx Function primitive:link @var{old-pathname} @var{new-pathname}
-@deffnx Function platform:link @var{old-pathname-cstr} @var{new-pathname-cstr}
+@deffnx Function primitive.link @var{old-pathname} @var{new-pathname}
+@deffnx Function platform.link @var{old-pathname-cstr} @var{new-pathname-cstr}
 Link to the new name specified by the Scheme string or symbol
 @var{new-pathname}, the file selected by the Scheme string or symbol
 @var{old-pathname}.
@@ -1779,8 +1791,8 @@ Link to the new name specified by the Scheme string or symbol
 
 @deffn Function symlink @var{old-pathname} @var{new-pathname}
 @deffnx Parameter symlink-function
-@deffnx Function primitive:symlink @var{old-pathname} @var{new-pathname}
-@deffnx Function platform:symlink @var{old-pathname-cstr} @var{new-pathname-cstr}
+@deffnx Function primitive.symlink @var{old-pathname} @var{new-pathname}
+@deffnx Function platform.symlink @var{old-pathname-cstr} @var{new-pathname-cstr}
 Symbolically link to the new name specified by the Scheme string or
 symbol @var{new-pathname}, the file selected by the Scheme string or
 symbol @var{old-pathname}.
@@ -1789,8 +1801,8 @@ symbol @var{old-pathname}.
 
 @deffn Function readlink @var{pathname}
 @deffnx Parameter readlink-function
-@deffnx Function primitive:readlink @var{pathname}
-@deffnx Function platform:readlink @var{pathname-cstr}
+@deffnx Function primitive.readlink @var{pathname}
+@deffnx Function platform.readlink @var{pathname-cstr}
 Return a string representing the value of the symbolic link
 @var{pathname}, which must be a Scheme string or symbol.
 @end deffn
@@ -1798,8 +1810,8 @@ Return a string representing the value of the symbolic link
 
 @deffn Function realpath @var{pathname}
 @deffnx Parameter realpath-function
-@deffnx Function primitive:realpath @var{pathname}
-@deffnx Function platform:realpath @var{pathname-cstr} @var{buffer-ptr}
+@deffnx Function primitive.realpath @var{pathname}
+@deffnx Function platform.realpath @var{pathname-cstr} @var{buffer-ptr}
 Return a string representing the absolute name of the file represented
 by @var{pathname}, which must be a Scheme string or symbol.  The
 returned name contains neither @samp{.} or @samp{..} components, nor
@@ -1823,16 +1835,16 @@ file system.  @glibcref{Deleting Files,Deleting Files}.
 
 @deffn Function unlink @var{pathname}
 @deffnx Parameter unlink-function
-@deffnx Function primitive:unlink @var{pathname}
-@deffnx Function platform:unlink @var{pathname}
+@deffnx Function primitive.unlink @var{pathname}
+@deffnx Function platform.unlink @var{pathname}
 Remove the file selected by the Scheme string or symbol @var{pathname}.
 @end deffn
 
 
 @deffn Function remove @var{pathname}
 @deffnx Parameter remove-function
-@deffnx Function primitive:remove @var{pathname}
-@deffnx Function platform:remove @var{pathname}
+@deffnx Function primitive.remove @var{pathname}
+@deffnx Function platform.remove @var{pathname}
 Remove the file or directory selected by the Scheme string or symbol
 @var{pathname}.
 @end deffn
@@ -1840,8 +1852,8 @@ Remove the file or directory selected by the Scheme string or symbol
 
 @deffn Function rmdir @var{pathname}
 @deffnx Parameter rmdir-function
-@deffnx Function primitive:rmdir @var{pathname}
-@deffnx Function platform:rmdir @var{pathname}
+@deffnx Function primitive.rmdir @var{pathname}
+@deffnx Function platform.rmdir @var{pathname}
 Remove the directory selected by the Scheme string or symbol
 @var{pathname}.  The directory has to be empty.
 @end deffn
@@ -1857,8 +1869,8 @@ file system.  @glibcref{Renaming Files,Renaming Files}.
 
 @deffn Function rename @var{old-pathname} @var{new-pathname}
 @deffnx Parameter rename-function
-@deffnx Function primitive:rename @var{old-pathname} @var{new-pathname}
-@deffnx Function platform:rename @var{old-pathname} @var{new-pathname}
+@deffnx Function primitive.rename @var{old-pathname} @var{new-pathname}
+@deffnx Function platform.rename @var{old-pathname} @var{new-pathname}
 Rename the file selected by the string or symbol @var{old-pathname} to
 the pathname selected by the string or symbol @var{new-pathname}.
 @end deffn
@@ -1874,8 +1886,8 @@ The following functions manage creating new directories.
 
 @deffn Function mkdir @var{pathname}
 @deffnx Parameter mkdir-function
-@deffnx Function primitive:mkdir @var{pathname}
-@deffnx Function platform:mkdir @var{pathname}
+@deffnx Function primitive.mkdir @var{pathname}
+@deffnx Function platform.mkdir @var{pathname}
 Create a new directory with pathname selected by the Scheme string or
 symbol @var{pathname}.
 @end deffn
@@ -1906,8 +1918,8 @@ The following functions manage file ownership attributes.
 
 @deffn Function chown @var{pathname} @var{owner-id} @var{group-id}
 @deffnx Parameter chown-function
-@deffnx Function primitive:chown @var{pathname} @var{owner-id} @var{group-id}
-@deffnx Function platform:chown @var{pathname-cstr} @var{owner-id} @var{group-id}
+@deffnx Function primitive.chown @var{pathname} @var{owner-id} @var{group-id}
+@deffnx Function platform.chown @var{pathname-cstr} @var{owner-id} @var{group-id}
 Change the file owner and group to the given numeric identifiers.
 @var{pathname} must be a Scheme string or symbol representing a
 pathname.
@@ -1916,8 +1928,8 @@ pathname.
 
 @deffn Function fchown @var{fd} @var{owner-id} @var{group-id}
 @deffnx Parameter fchown-function
-@deffnx Function primitive:fchown @var{fd} @var{owner-id} @var{group-id}
-@deffnx Function platform:fchown fchown @var{fd} @var{owner-id} @var{group-id}
+@deffnx Function primitive.fchown @var{fd} @var{owner-id} @var{group-id}
+@deffnx Function platform.fchown fchown @var{fd} @var{owner-id} @var{group-id}
 Change the file owner and group to the given numeric identifiers.
 @var{fd} must be a file descriptor.
 @end deffn
@@ -1937,8 +1949,8 @@ the the mask value as a bitwise combination of predefined constants.
 
 @deffn Function umask @var{mask}
 @deffnx Parameter umask-function
-@deffnx Function primitive:umask @var{mask}
-@deffnx Function platform:umask @var{mask}
+@deffnx Function primitive.umask @var{mask}
+@deffnx Function platform.umask @var{mask}
 Set the umask to @var{mask} and return the old mask value.  To query the
 current mask without changing it:
 
@@ -1957,15 +1969,15 @@ or use @func{getumask}, which has exactly this implementation.
 
 
 @defun getumask
-@defunx primitive:getumask
+@defunx primitive.getumask
 Return the current umask.
 @end defun
 
 
 @deffn Function chmod @var{pathname} @var{mask}
 @deffnx Parameter chmod-function
-@deffnx Function primitive:chmod @var{pathname} @var{mask}
-@deffnx Function platform:chmod @var{pathname-cstr} @var{mask}
+@deffnx Function primitive.chmod @var{pathname} @var{mask}
+@deffnx Function platform.chmod @var{pathname-cstr} @var{mask}
 Change the file access permissions bits to the given numeric mask.
 @var{pathname} must be a Scheme string or symbol representing a
 pathname.  @var{mask} can be an exact integer or an enumeration set of
@@ -1975,8 +1987,8 @@ type @code{enum-access-permissions}.
 
 @deffn Function fchmod @var{fd} @var{mask}
 @deffnx Parameter fchmod-function
-@deffnx Function primitive:fchmod @var{fd} @var{mask}
-@deffnx Function platform:fchmod @var{fd} @var{mask}
+@deffnx Function primitive.fchmod @var{fd} @var{mask}
+@deffnx Function platform.fchmod @var{fd} @var{mask}
 Change the file access permissions bits to the given numeric mask.
 @var{fd} must be a file descriptor.  @var{mask} can be an exact integer
 or an enumeration set of type @code{enum-access-permissions}.
@@ -2000,8 +2012,8 @@ Example:
 
 @deffn Function access @var{pathname} @var{mask}
 @deffnx Parameter access-function
-@deffnx Function primitive:access @var{pathname} @var{mask}
-@deffnx Function platform:access @var{pathname-cstr} @var{mask}
+@deffnx Function primitive.access @var{pathname} @var{mask}
+@deffnx Function platform.access @var{pathname-cstr} @var{mask}
 Return @true{} if the process has permission to access the file selected
 by the Scheme string or symbol @var{pathname} as specified by
 @var{mask}; return @false{} otherwise.
@@ -2018,7 +2030,7 @@ combination of: @code{F_OK}, @code{R_OK}, @code{W_OK}, @code{X_OK}.
 
 @deffn Function file-size @var{fd/pathname}
 @deffnx Parameter file-size-function
-@deffnx Function primitive:file-size @var{fd/pathname}
+@deffnx Function primitive.file-size @var{fd/pathname}
 Return the size of the selected file.  @var{fd/pathname} can be a file
 descriptor or a pathname in the form of a Scheme string or symbol.
 
@@ -2029,8 +2041,8 @@ seek, Setting the file position}.
 
 @deffn Function truncate @var{fd/pathname} @var{length}
 @deffnx Parameter truncate-function
-@deffnx Function primitive:truncate @var{fd/pathname} @var{length}
-@deffnx Function platform:truncate @var{fd/pathname-cstr} @var{length}
+@deffnx Function primitive.truncate @var{fd/pathname} @var{length}
+@deffnx Function platform.truncate @var{fd/pathname-cstr} @var{length}
 Set to @var{length} the size of the selected file.  @var{fd/pathname}
 can be a file descriptor or a pathname in the form of a Scheme string or
 symbol.
@@ -2039,8 +2051,8 @@ symbol.
 
 @deffn Function ftruncate @var{fd/pathname} @var{length}
 @deffnx Parameter ftruncate-function
-@deffnx Function primitive:ftruncate @var{fd/pathname} @var{length}
-@deffnx Function platform:ftruncate @var{fd/pathname-cstr} @var{length}
+@deffnx Function primitive.ftruncate @var{fd/pathname} @var{length}
+@deffnx Function platform.ftruncate @var{fd/pathname-cstr} @var{length}
 Set to @var{length} the size of the selected file.  @var{fd/pathname}
 can be a file descriptor or a pathname in the form of a Scheme string or
 symbol.
@@ -2066,8 +2078,8 @@ Usage example:
 
 @deffn Function mkstemp @var{template}
 @deffnx Parameter mkstemp-function
-@deffnx Function primitive:mkstemp @var{template}
-@deffnx Function platform:mkstemp @var{template-cstr}
+@deffnx Function primitive.mkstemp @var{template}
+@deffnx Function platform.mkstemp @var{template-cstr}
 Return two values: a file descriptor and a file pathname as Scheme
 string.  The pathname is built from the Scheme string or symbol
 @var{template}, which must include the @code{XXXXXX} sequence of
@@ -2078,8 +2090,8 @@ mutated.
 
 @deffn Function mkdtemp @var{template}
 @deffnx Parameter mkdtemp-function
-@deffnx Function primitive:mkdtemp @var{template}
-@deffnx Function platform:mkdtemp @var{template-cstr}
+@deffnx Function primitive.mkdtemp @var{template}
+@deffnx Function platform.mkdtemp @var{template-cstr}
 Create a new directory and return its pathname as Scheme string.  The
 pathname is built from the Scheme string or symbol @var{template}, which
 must include the @code{XXXXXX} sequence of characters (six times
@@ -2101,8 +2113,8 @@ The bindings documented below are exported by the following libraries:
 
 @deffn Function tmpfile
 @deffnx Parameter tmpfile-function
-@deffnx Function primitive:tmpfile
-@deffnx Function platform:tmpfile
+@deffnx Function primitive.tmpfile
+@deffnx Function platform.tmpfile
 Create a temporary file, open it and return a file stream object.
 
 @quotation
@@ -2116,8 +2128,8 @@ decided that streams--related functions are not to be exported by the
 
 @deffn Function mktemp @var{template}
 @deffnx Parameter mktemp-function
-@deffnx Function primitive:mktemp @var{template}
-@deffnx Function platform:mktemp @var{template-cstr}
+@deffnx Function primitive.mktemp @var{template}
+@deffnx Function platform.mktemp @var{template-cstr}
 Return a file pathname, as Scheme string, that, at the time of the call,
 does not exist on the system.  The pathname is built from the Scheme
 string or symbol @var{template}, which must include the @code{XXXXXX}
@@ -2128,8 +2140,8 @@ sequence of characters (six times @code{X}).  @var{template} is
 
 @deffn Function tempnam @var{directory} @var{prefix}
 @deffnx Parameter tempnam-function
-@deffnx Function primitive:tempnam @var{directory} @var{prefix}
-@deffnx Function platform:tempnam @var{directory-cstr} @var{prefix-cstr}
+@deffnx Function primitive.tempnam @var{directory} @var{prefix}
+@deffnx Function platform.tempnam @var{directory-cstr} @var{prefix-cstr}
 Build and return a file pathname, as Scheme string, that, at the time of
 the call, does not exists on the system.  @var{directory} and
 @var{prefix} can be Scheme string or symbols or @false{} (in place of
@@ -2141,11 +2153,11 @@ the file name.
 
 @deffn Function tmpnam
 @deffnx Parameter tmpnam-function
-@deffnx Function primitive:tmpnam
-@deffnx Function platform:tmpnam
+@deffnx Function primitive.tmpnam
+@deffnx Function platform.tmpnam
 Return a file pathname, as Scheme string, that, at the time of the call,
 does not exist on the system.  The implementation of
-@func{primitive:tmpnam} is reentrant.
+@func{primitive.tmpnam} is reentrant.
 @end deffn
 
 @c page
@@ -2156,9 +2168,9 @@ does not exist on the system.  The implementation of
 @deffn Function utime @var{pathname}
 @deffnx Function utime @var{pathname} @var{access-time} @var{modification-time}
 @deffnx Parameter utime-function
-@deffnx Function primitive:utime @var{pathname}
-@deffnx Function primitive:utime @var{pathname} @var{access-time} @var{modification-time}
-@deffnx Function platform:utime @var{pathname-cstr} @var{utimbuf-pointer}
+@deffnx Function primitive.utime @var{pathname}
+@deffnx Function primitive.utime @var{pathname} @var{access-time} @var{modification-time}
+@deffnx Function platform.utime @var{pathname-cstr} @var{utimbuf-pointer}
 Set the access and modification times for the file selected by
 @var{pathname}, which must be a Scheme string or symbol.  If
 @var{access-time} and @var{modification-time} are not given, set the
@@ -2177,9 +2189,9 @@ the file, even though it is requested by the @cfunc{utime} call.
 @deffn Function utimes @var{pathname}
 @deffnx Function utimes @var{pathname} @var{atime} @var{atime-usec} @var{mtime} @var{mtime-usec}
 @deffnx Parameter utimes-function
-@deffnx Function primitive:utimes @var{pathname}
-@deffnx Function primitive:utimes @var{pathname} @var{atime} @var{atime-usec} @var{mtime} @var{mtime-usec}
-@deffnx Function platform:utimes @var{pathname-cstr} @var{utimbuf-pointer}
+@deffnx Function primitive.utimes @var{pathname}
+@deffnx Function primitive.utimes @var{pathname} @var{atime} @var{atime-usec} @var{mtime} @var{mtime-usec}
+@deffnx Function platform.utimes @var{pathname-cstr} @var{utimbuf-pointer}
 Set the access and modification times, both the integer part and the
 fractional part, for the file selected by @var{pathname}, which must be
 a Scheme string or symbol.  If the time arguments are not given, set the
@@ -2203,9 +2215,9 @@ The bindings documented below are exported by the following libraries:
 @deffn Function lutimes @var{pathname}
 @deffnx Function lutimes @var{pathname} @var{atime} @var{atime-usec} @var{mtime} @var{mtime-usec}
 @deffnx Parameter lutimes-function
-@deffnx Function primitive:lutimes @var{pathname}
-@deffnx Function primitive:lutimes @var{pathname} @var{atime} @var{atime-usec} @var{mtime} @var{mtime-usec}
-@deffnx Function platform:lutimes @var{pathname-cstr} @var{utimbuf-pointer}
+@deffnx Function primitive.lutimes @var{pathname}
+@deffnx Function primitive.lutimes @var{pathname} @var{atime} @var{atime-usec} @var{mtime} @var{mtime-usec}
+@deffnx Function platform.lutimes @var{pathname-cstr} @var{utimbuf-pointer}
 Like @func{utimes}, but does not follow symbolic links.
 @end deffn
 
@@ -2213,9 +2225,9 @@ Like @func{utimes}, but does not follow symbolic links.
 @deffn Function futimes @var{fd}
 @deffnx Function futimes @var{fd} @var{atime} @var{atime-usec} @var{mtime} @var{mtime-usec}
 @deffnx Parameter futimes-function
-@deffnx Function primitive:futimes @var{fd}
-@deffnx Function primitive:futimes @var{fd} @var{atime} @var{atime-usec} @var{mtime} @var{mtime-usec}
-@deffnx Function platform:futimes @var{fd} @var{utimbuf-pointer}
+@deffnx Function primitive.futimes @var{fd}
+@deffnx Function primitive.futimes @var{fd} @var{atime} @var{atime-usec} @var{mtime} @var{mtime-usec}
+@deffnx Function platform.futimes @var{fd} @var{utimbuf-pointer}
 Like @func{utimes}, but act upon the file associated to the given file
 descriptor.
 @end deffn
@@ -2343,7 +2355,7 @@ The following bindings manage file attributes inspection.
 @glibcref{Reading Attributes, Reading Attributes}.
 
 
-@defun primitive:pointer-><stat> @var{pointer}
+@defun primitive.pointer-><stat> @var{pointer}
 Given a pointer to a block of memory holding a C language @code{struct
 stat}, build and return a @class{stat} record mirroring it.  All
 the fields that are not available in the foreign structure are set to
@@ -2353,8 +2365,8 @@ zero.
 
 @deffn Function stat @var{pathname}
 @deffnx Parameter stat-function
-@deffnx Function primitive:stat @var{pathname}
-@deffnx Function platform:stat @var{pathname-cstr} @var{pointer}
+@deffnx Function primitive.stat @var{pathname}
+@deffnx Function platform.stat @var{pathname-cstr} @var{pointer}
 Return a @class{stat} record filled with attributes of the file or
 directory selected by the Scheme string or symbol @var{pathname}.
 @end deffn
@@ -2362,8 +2374,8 @@ directory selected by the Scheme string or symbol @var{pathname}.
 
 @deffn Function fstat @var{fd}
 @deffnx Parameter fstat-function
-@deffnx Function primitive:fstat @var{fd}
-@deffnx Function platform:fstat @var{fd} @var{pointer}
+@deffnx Function primitive.fstat @var{fd}
+@deffnx Function platform.fstat @var{fd} @var{pointer}
 Return a @class{stat} record filled with attributes of the file or
 directory selected by the file descriptor @var{fd}.
 @end deffn
@@ -2371,8 +2383,8 @@ directory selected by the file descriptor @var{fd}.
 
 @deffn Function lstat @var{pathname}
 @deffnx Parameter lstat-function
-@deffnx Function primitive:lstat @var{pathname}
-@deffnx Function platform:lstat @var{pathname-cstr} @var{pointer}
+@deffnx Function primitive.lstat @var{pathname}
+@deffnx Function platform.lstat @var{pathname-cstr} @var{pointer}
 Return a @class{stat} record filled with attributes of the
 symbolic link selected by the Scheme string or symbol @var{pathname}.
 @end deffn
@@ -2435,7 +2447,7 @@ a Scheme string or symbol representing a pathname.
 
 Unfortunately, these predicates require access to the full @code{struct
 stat}, so, at present, they are implemented with the low--level
-@func{platform:stat} and @func{platform:fstat}.  This prevents using
+@func{platform.stat} and @func{platform.fstat}.  This prevents using
 parametrised functions like @func{stat} and @func{fstat}.
 @end defun
 
@@ -2524,91 +2536,91 @@ stat} is acquired with a call to @func{fstat} or @func{stat}.
 
 @deffn Function file-user-readable? @var{fd/mode/pathname}
 @deffnx Parameter file-user-readable?-function
-@deffnx Function primitive:file-user-readable? @var{fd/mode/pathname}
+@deffnx Function primitive.file-user-readable? @var{fd/mode/pathname}
 Return @true{} if the named permission bit is set, @false{} otherwise.
 @end deffn
 
 
 @deffn Function file-user-writable? @var{fd/mode/pathname}
 @deffnx Parameter file-user-writable?-function
-@deffnx Function primitive:file-user-writable? @var{fd/mode/pathname}
+@deffnx Function primitive.file-user-writable? @var{fd/mode/pathname}
 Return @true{} if the named permission bit is set, @false{} otherwise.
 @end deffn
 
 
 @deffn Function file-user-executable? @var{fd/mode/pathname}
 @deffnx Parameter file-user-executable?-function
-@deffnx Function primitive:file-user-executable? @var{fd/mode/pathname}
+@deffnx Function primitive.file-user-executable? @var{fd/mode/pathname}
 Return @true{} if the named permission bit is set, @false{} otherwise.
 @end deffn
 
 
 @deffn Function file-group-readable? @var{fd/mode/pathname}
 @deffnx Parameter file-group-readable?-function
-@deffnx Function primitive:file-group-readable? @var{fd/mode/pathname}
+@deffnx Function primitive.file-group-readable? @var{fd/mode/pathname}
 Return @true{} if the named permission bit is set, @false{} otherwise.
 @end deffn
 
 
 @deffn Function file-group-writable? @var{fd/mode/pathname}
 @deffnx Parameter file-group-writable?-function
-@deffnx Function primitive:file-group-writable? @var{fd/mode/pathname}
+@deffnx Function primitive.file-group-writable? @var{fd/mode/pathname}
 Return @true{} if the named permission bit is set, @false{} otherwise.
 @end deffn
 
 
 @deffn Function file-group-executable? @var{fd/mode/pathname}
 @deffnx Parameter file-group-executable?-function
-@deffnx Function primitive:file-group-executable? @var{fd/mode/pathname}
+@deffnx Function primitive.file-group-executable? @var{fd/mode/pathname}
 Return @true{} if the named permission bit is set, @false{} otherwise.
 @end deffn
 
 
 @deffn Function file-other-readable? @var{fd/mode/pathname}
 @deffnx Parameter file-other-readable?-function
-@deffnx Function primitive:file-other-readable? @var{fd/mode/pathname}
+@deffnx Function primitive.file-other-readable? @var{fd/mode/pathname}
 Return @true{} if the named permission bit is set, @false{} otherwise.
 @end deffn
 
 
 @deffn Function file-other-writable? @var{fd/mode/pathname}
 @deffnx Parameter file-other-writable?-function
-@deffnx Function primitive:file-other-writable? @var{fd/mode/pathname}
+@deffnx Function primitive.file-other-writable? @var{fd/mode/pathname}
 Return @true{} if the named permission bit is set, @false{} otherwise.
 @end deffn
 
 
 @deffn Function file-other-executable? @var{fd/mode/pathname}
 @deffnx Parameter file-other-executable?-function
-@deffnx Function primitive:file-other-executable? @var{fd/mode/pathname}
+@deffnx Function primitive.file-other-executable? @var{fd/mode/pathname}
 Return @true{} if the named permission bit is set, @false{} otherwise.
 @end deffn
 
 
 @deffn Function file-setuid? @var{fd/mode/pathname}
 @deffnx Parameter file-setuid?-function
-@deffnx Function primitive:file-setuid? @var{fd/mode/pathname}
+@deffnx Function primitive.file-setuid? @var{fd/mode/pathname}
 Return @true{} if the named permission bit is set, @false{} otherwise.
 @end deffn
 
 
 @deffn Function file-setgid? @var{fd/mode/pathname}
 @deffnx Parameter file-setgid?-function
-@deffnx Function primitive:file-setgid? @var{fd/mode/pathname}
+@deffnx Function primitive.file-setgid? @var{fd/mode/pathname}
 Return @true{} if the named permission bit is set, @false{} otherwise.
 @end deffn
 
 
 @deffn Function file-sticky? @var{fd/mode/pathname}
 @deffnx Parameter file-sticky?-function
-@deffnx Function primitive:file-sticky? @var{fd/mode/pathname}
+@deffnx Function primitive.file-sticky? @var{fd/mode/pathname}
 Return @true{} if the named permission bit is set, @false{} otherwise.
 @end deffn
 
 
 @deffn Function file-permissions @var{fd/pathname}
 @deffnx Parameter file-permissions-function
-@deffnx Function primitive:file-permissions @var{fd/pathname}
+@deffnx Function primitive.file-permissions @var{fd/pathname}
 Return an exact integer representing the access permissions bits from
 the @code{st_mode} field of a @code{struct stat}.
 
@@ -2635,91 +2647,91 @@ of @code{struct stat} is acquired with @func{lstat}.
 
 @deffn Function lfile-user-readable? @var{mode/pathname}
 @deffnx Parameter lfile-user-readable?-function
-@deffnx Function primitive:lfile-user-readable? @var{mode/pathname}
+@deffnx Function primitive.lfile-user-readable? @var{mode/pathname}
 Return @true{} if the named permission bit is set, @false{} otherwise.
 @end deffn
 
 
 @deffn Function lfile-user-writable? @var{mode/pathname}
 @deffnx Parameter lfile-user-writable?-function
-@deffnx Function primitive:lfile-user-writable? @var{mode/pathname}
+@deffnx Function primitive.lfile-user-writable? @var{mode/pathname}
 Return @true{} if the named permission bit is set, @false{} otherwise.
 @end deffn
 
 
 @deffn Function lfile-user-executable? @var{mode/pathname}
 @deffnx Parameter lfile-user-executable?-function
-@deffnx Function primitive:lfile-user-executable? @var{mode/pathname}
+@deffnx Function primitive.lfile-user-executable? @var{mode/pathname}
 Return @true{} if the named permission bit is set, @false{} otherwise.
 @end deffn
 
 
 @deffn Function lfile-group-readable? @var{mode/pathname}
 @deffnx Parameter lfile-group-readable?-function
-@deffnx Function primitive:lfile-group-readable? @var{mode/pathname}
+@deffnx Function primitive.lfile-group-readable? @var{mode/pathname}
 Return @true{} if the named permission bit is set, @false{} otherwise.
 @end deffn
 
 
 @deffn Function lfile-group-writable? @var{mode/pathname}
 @deffnx Parameter lfile-group-writable?-function
-@deffnx Function primitive:lfile-group-writable? @var{mode/pathname}
+@deffnx Function primitive.lfile-group-writable? @var{mode/pathname}
 Return @true{} if the named permission bit is set, @false{} otherwise.
 @end deffn
 
 
 @deffn Function lfile-group-executable? @var{mode/pathname}
 @deffnx Parameter lfile-group-executable?-function
-@deffnx Function primitive:lfile-group-executable? @var{mode/pathname}
+@deffnx Function primitive.lfile-group-executable? @var{mode/pathname}
 Return @true{} if the named permission bit is set, @false{} otherwise.
 @end deffn
 
 
 @deffn Function lfile-other-readable? @var{mode/pathname}
 @deffnx Parameter lfile-other-readable?-function
-@deffnx Function primitive:lfile-other-readable? @var{mode/pathname}
+@deffnx Function primitive.lfile-other-readable? @var{mode/pathname}
 Return @true{} if the named permission bit is set, @false{} otherwise.
 @end deffn
 
 
 @deffn Function lfile-other-writable? @var{mode/pathname}
 @deffnx Parameter lfile-other-writable?-function
-@deffnx Function primitive:lfile-other-writable? @var{mode/pathname}
+@deffnx Function primitive.lfile-other-writable? @var{mode/pathname}
 Return @true{} if the named permission bit is set, @false{} otherwise.
 @end deffn
 
 
 @deffn Function lfile-other-executable? @var{mode/pathname}
 @deffnx Parameter lfile-other-executable?-function
-@deffnx Function primitive:lfile-other-executable? @var{mode/pathname}
+@deffnx Function primitive.lfile-other-executable? @var{mode/pathname}
 Return @true{} if the named permission bit is set, @false{} otherwise.
 @end deffn
 
 
 @deffn Function lfile-setuid? @var{mode/pathname}
 @deffnx Parameter lfile-setuid?-function
-@deffnx Function primitive:lfile-setuid? @var{mode/pathname}
+@deffnx Function primitive.lfile-setuid? @var{mode/pathname}
 Return @true{} if the named permission bit is set, @false{} otherwise.
 @end deffn
 
 
 @deffn Function lfile-setgid? @var{mode/pathname}
 @deffnx Parameter lfile-setgid?-function
-@deffnx Function primitive:lfile-setgid? @var{mode/pathname}
+@deffnx Function primitive.lfile-setgid? @var{mode/pathname}
 Return @true{} if the named permission bit is set, @false{} otherwise.
 @end deffn
 
 
 @deffn Function lfile-sticky? @var{mode/pathname}
 @deffnx Parameter lfile-sticky?-function
-@deffnx Function primitive:lfile-sticky? @var{mode/pathname}
+@deffnx Function primitive.lfile-sticky? @var{mode/pathname}
 Return @true{} if the named permission bit is set, @false{} otherwise.
 @end deffn
 
 
 @deffn Function lfile-permissions @var{pathname}
 @deffnx Parameter lfile-permissions-function
-@deffnx Function primitive:lfile-permissions @var{pathname}
+@deffnx Function primitive.lfile-permissions @var{pathname}
 Return an exact integer representing the access permissions bits from
 the @code{st_mode} field of a @code{struct stat}.
 
@@ -2926,7 +2938,7 @@ Convert between a file descriptor object and a @objtype{pointer} object.
 
 
 All the following bindings are exported by the @library{posix sizeof}
-library.  If a value is not defined on the underlying platform: the
+library.  If a value is not defined on the underlying platform. the
 corresponding binding is to @false{}.  @glibcref{File Status Flags, File
 Status Flags}.
 
@@ -3478,8 +3490,8 @@ executable.}
 
 @deffn Function open @var{pathname} @var{mode} @var{permissions}
 @deffnx Parameter open-function
-@deffnx Function primitive:open @var{pathname} @var{mode} @var{permissions}
-@deffnx Function platform:open @var{pathname-cstr} @var{mode} @var{permissions}
+@deffnx Function primitive.open @var{pathname} @var{mode} @var{permissions}
+@deffnx Function platform.open @var{pathname-cstr} @var{mode} @var{permissions}
 Open with @var{mode} the file selected by @var{pathname} and return a
 file descriptor object; if the file is created, it is created with
 access @var{permissions}.
@@ -3502,8 +3514,8 @@ in creating a new file.
 
 @deffn Function close @var{fd}
 @deffnx Parameter close-function
-@deffnx Function primitive:close @var{fd}
-@deffnx Function platform:close @var{fd-int}
+@deffnx Function primitive.close @var{fd}
+@deffnx Function platform.close @var{fd-int}
 Close the file descriptor @var{fd}.
 @end deffn
 
@@ -3542,8 +3554,8 @@ and the following prefixes with @samp{posix:} all the bindings from
 
 @deffn Function read @var{fd} @var{pointer} @var{number-of-bytes}
 @deffnx Parameter read-function
-@deffnx Function primitive:read @var{fd} @var{pointer} @var{number-of-bytes}
-@deffnx Function platform:read @var{fd-int} @var{pointer} @var{number-of-bytes}
+@deffnx Function primitive.read @var{fd} @var{pointer} @var{number-of-bytes}
+@deffnx Function platform.read @var{fd-int} @var{pointer} @var{number-of-bytes}
 Read at most @var{number-of-bytes} from @var{fd}, starting at the
 current file position, and store them in the buffer referenced by
 @var{pointer}.  The file position is advanced.  Return the number of
@@ -3553,8 +3565,8 @@ bytes actually read.
 
 @deffn Function pread @var{fd} @var{pointer} @var{number-of-bytes} @var{offset}
 @deffnx Parameter pread-function
-@deffnx Function primitive:pread @var{fd} @var{pointer} @var{number-of-bytes} @var{offset}
-@deffnx Function platform:pread @var{fd-int} @var{pointer} @var{number-of-bytes} @var{offset}
+@deffnx Function primitive.pread @var{fd} @var{pointer} @var{number-of-bytes} @var{offset}
+@deffnx Function platform.pread @var{fd-int} @var{pointer} @var{number-of-bytes} @var{offset}
 Read at most @var{number-of-bytes} from @var{fd}, starting at
 @var{offset} from the beginning of the file, and store them in the
 buffer referenced by @var{pointer}.  The file position is left
@@ -3568,8 +3580,8 @@ untouched.  Return the number of bytes actually read.
 
 @deffn Function write @var{fd} @var{pointer} @var{number-of-bytes}
 @deffnx Parameter write-function
-@deffnx Function primitive:write @var{fd} @var{pointer} @var{number-of-bytes}
-@deffnx Function platform:write @var{fd-int} @var{pointer} @var{number-of-bytes}
+@deffnx Function primitive.write @var{fd} @var{pointer} @var{number-of-bytes}
+@deffnx Function platform.write @var{fd-int} @var{pointer} @var{number-of-bytes}
 Write to @var{fd}, starting at the current file position, at most
 @var{number-of-bytes} from the buffer referenced by @var{pointer}.  The
 file position is advanced.  Return the number of bytes actually written.
@@ -3578,8 +3590,8 @@ file position is advanced.  Return the number of bytes actually written.
 
 @deffn Function pwrite @var{fd} @var{pointer} @var{number-of-bytes} @var{offset}
 @deffnx Parameter pwrite-function
-@deffnx Function primitive:pwrite @var{fd} @var{pointer} @var{number-of-bytes} @var{offset}
-@deffnx Function platform:pwrite @var{fd-int} @var{pointer} @var{number-of-bytes} @var{offset}
+@deffnx Function primitive.pwrite @var{fd} @var{pointer} @var{number-of-bytes} @var{offset}
+@deffnx Function platform.pwrite @var{fd-int} @var{pointer} @var{number-of-bytes} @var{offset}
 Write to @var{fd}, starting at @var{offset} from the beginning of the
 file, at most @var{number-of-bytes} from the buffer referenced by
 @var{pointer}.  The file position is left untouched.  Return the number
@@ -3598,8 +3610,8 @@ Position of a Descriptor}.
 
 @deffn Function lseek @var{fd} @var{offset} @var{whence}
 @deffnx Parameter lseek-function
-@deffnx Function primitive:lseek @var{fd} @var{offset} @var{whence}
-@deffnx Function platform:lseek @var{fd-int} @var{offset} @var{whence}
+@deffnx Function primitive.lseek @var{fd} @var{offset} @var{whence}
+@deffnx Function platform.lseek @var{fd-int} @var{offset} @var{whence}
 Move the file position of @var{fd} at @var{offset} from the position
 selected with @var{whence}, which must be a value among @code{SEEK_SET},
 @code{SEEK_CUR}, @code{SEEK_END} (@pxref{fd constants seek}).  Return
@@ -3645,8 +3657,8 @@ Synchronizing I/O}.
 
 @deffn Function sync
 @deffnx Parameter sync-function
-@deffnx Function primitive:sync
-@deffnx Function platform:sync
+@deffnx Function primitive.sync
+@deffnx Function platform.sync
 Synchronise data for all the file descriptors with the underlying
 devices.  Does not return until the operation is terminated.
 @end deffn
@@ -3654,16 +3666,16 @@ devices.  Does not return until the operation is terminated.
 
 @deffn Function fsync @var{fd}
 @deffnx Parameter fsync-function
-@deffnx Function primitive:fsync @var{fd}
-@deffnx Function platform:fsync @var{fd-int}
+@deffnx Function primitive.fsync @var{fd}
+@deffnx Function platform.fsync @var{fd-int}
 Synchronise data for @var{fd} with the underlying device.
 @end deffn
 
 
 @deffn Function fdatasync @var{fd}
 @deffnx Parameter fdatasync-function
-@deffnx Function primitive:fdatasync @var{fd}
-@deffnx Function platform:fdatasync @var{fd-int}
+@deffnx Function primitive.fdatasync @var{fd}
+@deffnx Function platform.fdatasync @var{fd-int}
 Flushes the output buffer of @var{fd} to the underlying device.  This
 function does not synchronise the file meta data (like the access time).
 @end deffn
@@ -3680,35 +3692,35 @@ Files}.  @glibcref{IOCTLs, I/O Control Operations}.
 
 @deffn Function fcntl @var{fd} @var{operation} @var{arg}
 @deffnx Parameter fcntl-function
-@deffnx Function primitive:fcntl @var{fd} @var{operation} @var{arg}
-@deffnx Function platform:fcntl @var{fd-int} @var{operation} @var{arg-int}
-@deffnx Function platform:fcntl/ptr @var{fd-int} @var{operation} @var{arg-ptr}
+@deffnx Function primitive.fcntl @var{fd} @var{operation} @var{arg}
+@deffnx Function platform.fcntl @var{fd-int} @var{operation} @var{arg-int}
+@deffnx Function platform.fcntl/ptr @var{fd-int} @var{operation} @var{arg-ptr}
 Perform @var{operation} on @var{fd} using @var{arg}.  @var{operation}
 must be an exact integer; @var{arg} can be an exact integer, a pointer
 object or a @code{struct-flock} object.  @ref{fd constants control} for
 the list of the supported operations.
 
-@func{primitive:fcntl} assumes that: if the return value of
-@func{platform:fcntl} or @func{platform:fcntl/ptr} is @code{-1}, an
+@func{primitive.fcntl} assumes that: if the return value of
+@func{platform.fcntl} or @func{platform.fcntl/ptr} is @code{-1}, an
 error occurred.
 
 If @var{arg} has to be a pointer (like when requesting a lock on the
-file), we must use @func{platform:fcntl/ptr}; if it has to be an exact
-integer, we must use @func{platform:fcntl}.  @func{primitive:fcntl}
+file), we must use @func{platform.fcntl/ptr}; if it has to be an exact
+integer, we must use @func{platform.fcntl}.  @func{primitive.fcntl}
 dispatches correctly by examining the type of @var{arg}.
 @end deffn
 
 
 @deffn Function ioctl @var{fd} @var{operation} @var{arg}
 @deffnx Parameter ioctl-function
-@deffnx Function primitive:ioctl @var{fd} @var{operation} @var{arg}
-@deffnx Function platform:ioctl @var{fd-int} @var{operation} @var{arg}
+@deffnx Function primitive.ioctl @var{fd} @var{operation} @var{arg}
+@deffnx Function platform.ioctl @var{fd-int} @var{operation} @var{arg}
 Perform @var{operation} on @var{fd} using @var{arg}.  @var{operation}
 and @var{arg} must be exact integers.  @ref{fd constants control} for
 the list of the supported operations.
 
-@func{primitive:ioctl} assumes that: if the return value of
-@func{platform:ioctl} is @code{-1}, an error occurred.
+@func{primitive.ioctl} assumes that: if the return value of
+@func{platform.ioctl} is @code{-1}, an error occurred.
 @end deffn
 
 @c page
@@ -3722,16 +3734,16 @@ The following functions manage duplication of file descriptors.
 
 @deffn Function dup @var{fd}
 @deffnx Parameter dup-function
-@deffnx Function primitive:dup @var{fd}
-@deffnx Function platform:dup @var{fd-int}
+@deffnx Function primitive.dup @var{fd}
+@deffnx Function platform.dup @var{fd-int}
 Duplicate @var{fd}, return the new file descriptor object.
 @end deffn
 
 
 @deffn Function dup2 @var{old-fd} @var{new-fd/int}
 @deffnx Parameter dup2-function
-@deffnx Function primitive:dup2 @var{old-fd} @var{new-fd/int}
-@deffnx Function platform:dup2 @var{old-fd-int} @var{new-fd-int}
+@deffnx Function primitive.dup2 @var{old-fd} @var{new-fd/int}
+@deffnx Function platform.dup2 @var{old-fd-int} @var{new-fd-int}
 Copy @var{old-fd}, a file descriptor object, to a file descriptor whose
 number is @var{new-fd/int}, which can be a file descriptor object or an
 exact integer.  Return the new file descriptor object.
@@ -3807,8 +3819,8 @@ order we have to use @func{let*}:
 
 @deffn Function pipe
 @deffnx Parameter pipe-function
-@deffnx Function primitive:pipe
-@deffnx Function platform:pipe @var{pointer}
+@deffnx Function primitive.pipe
+@deffnx Function platform.pipe @var{pointer}
 Open a pipe: a pair of file descriptors linked together.  Return two
 values: the first is the reading file descriptor, the second is the
 writing file descriptor.
@@ -3817,8 +3829,8 @@ writing file descriptor.
 
 @deffn Function mkfifo @var{pathname} @var{mode}
 @deffnx Parameter mkfifo-function
-@deffnx Function primitive:mkfifo mkfifo @var{pathname} @var{mode}
-@deffnx Function platform:mkfifo @var{pathname-cstr} @var{mode}
+@deffnx Function primitive.mkfifo mkfifo @var{pathname} @var{mode}
+@deffnx Function platform.mkfifo @var{pathname-cstr} @var{mode}
 Create a named pipe pseudofile: a special file that can be used for
 interprocess communication.  The Scheme string or symbol @var{pathname}
 selects the file pathname.  @var{mode} is a numeric access permissions
@@ -3841,8 +3853,8 @@ The following functions are exported by the libraries:
 
 @deffn Function pipe2 @var{flags}
 @deffnx Parameter pipe2-function
-@deffnx Function primitive:pipe2 @var{flags}
-@deffnx Function platform:pipe2 @var{fd-ptr} @var{flags}
+@deffnx Function primitive.pipe2 @var{flags}
+@deffnx Function platform.pipe2 @var{fd-ptr} @var{flags}
 Like @func{pipe} but accepts configuration @var{flags}.  @var{flags} can
 be an exact integer or an enumeration set of type @code{pipe2-flags}; in
 the integer case it can be an inclusive OR combination of the following
@@ -3865,8 +3877,8 @@ Scatter--Gather I/O}.
 
 @deffn Function readv @var{fd} @var{iovec-array-pointer} @var{iovec-array-size}
 @deffnx Parameter readv-function
-@deffnx Function primitive:readv @var{fd} @var{iovec-array-pointer} @var{iovec-array-size}
-@deffnx Function platform:readv @var{fd-int} @var{iovec-array-pointer} @var{iovec-array-size}
+@deffnx Function primitive.readv @var{fd} @var{iovec-array-pointer} @var{iovec-array-size}
+@deffnx Function platform.readv @var{fd-int} @var{iovec-array-pointer} @var{iovec-array-size}
 Read data from @var{fd} storing it in the buffers described by the
 @code{iovec} array.  Return the total number of bytes read.
 @end deffn
@@ -3874,8 +3886,8 @@ Read data from @var{fd} storing it in the buffers described by the
 
 @deffn Function writev @var{fd} @var{iovec-array-pointer} @var{iovec-array-size}
 @deffnx Parameter writev-function
-@deffnx Function primitive:writev @var{fd} @var{iovec-array-pointer} @var{iovec-array-size}
-@deffnx Function platform:writev @var{fd-int} @var{iovec-array-pointer} @var{iovec-array-size}
+@deffnx Function primitive.writev @var{fd} @var{iovec-array-pointer} @var{iovec-array-size}
+@deffnx Function platform.writev @var{fd-int} @var{iovec-array-pointer} @var{iovec-array-size}
 Write data to @var{fd} reading it from the buffers described by the
 @code{iovec} array.  Return the total number of bytes written.
 @end deffn
@@ -3949,8 +3961,8 @@ region of memory.  @glibcref{Memory-mapped I/O, Memory--mapped I/O}.
 
 @deffn Function mmap @var{address} @var{length} @var{protect} @var{flags} @var{fd} @var{offset}
 @deffnx Parameter mmap-function
-@deffnx Function primitive:mmap @var{address} @var{length} @var{protect} @var{flags} @var{fd} @var{offset}
-@deffnx Function platform:mmap @var{address} @var{length} @var{protect} @var{flags} @var{fd-int} @var{offset}
+@deffnx Function primitive.mmap @var{address} @var{length} @var{protect} @var{flags} @var{fd} @var{offset}
+@deffnx Function platform.mmap @var{address} @var{length} @var{protect} @var{flags} @var{fd-int} @var{offset}
 Create a memory mapping for @var{fd}, starting at file position
 @var{offset}, for @var{length} bytes starting at @var{address} (which
 can be @code{pointer-null}).  Return the effective address of the
@@ -3967,16 +3979,16 @@ composed with bitwise inclusive OR from appropriate constant values.
 
 @deffn Function munmap @var{pointer} @var{length}
 @deffnx Parameter munmap-function
-@deffnx Function primitive:munmap @var{pointer} @var{length}
-@deffnx Function platform:munmap @var{pointer} @var{length}
+@deffnx Function primitive.munmap @var{pointer} @var{length}
+@deffnx Function platform.munmap @var{pointer} @var{length}
 Unmap a previously created memory mapping.
 @end deffn
 
 
 @deffn Function msync @var{pointer} @var{length} @var{flags}
 @deffnx Parameter msync-function
-@deffnx Function primitive:msync @var{pointer} @var{length} @var{flags}
-@deffnx Function platform:msync @var{pointer} @var{length} @var{flags}
+@deffnx Function primitive.msync @var{pointer} @var{length} @var{flags}
+@deffnx Function platform.msync @var{pointer} @var{length} @var{flags}
 Synchronise a memory mapped region with the corresponding file on the
 underlying device.
 
@@ -3988,8 +4000,8 @@ Memory mapped files}.
 
 @deffn Function mremap @var{pointer} @var{length} @var{new-length} @var{flags}
 @deffnx Parameter mremap-function
-@deffnx Function primitive:mremap @var{pointer} @var{length} @var{new-length} @var{flags}
-@deffnx Function platform:mremap @var{pointer} @var{length} @var{new-length} @var{flags}
+@deffnx Function primitive.mremap @var{pointer} @var{length} @var{new-length} @var{flags}
+@deffnx Function platform.mremap @var{pointer} @var{length} @var{new-length} @var{flags}
 Change the size of an existing memory mapping.
 
 The @var{flags} argument must be an exact integer composed with bitwise
@@ -4132,34 +4144,34 @@ objects.  @ref{fd typedefs fdsets, File descriptor sets}.
 
 
 @deffn Function FD_ZERO @var{fdset}
-@deffnx Function primitive:FD_ZERO @var{fdset}
-@deffnx Function platform:FD_ZERO @var{fdset}
+@deffnx Function primitive.FD_ZERO @var{fdset}
+@deffnx Function platform.FD_ZERO @var{fdset}
 Initialise the file descriptor set referenced by @var{fdset}.  The
 return value is undefined, platform function included.
 @end deffn
 
 
 @deffn Function FD_SET @var{fd} @var{fdset}
-@deffnx Function primitive:FD_SET @var{fd} @var{fdset}
-@deffnx Function platform:FD_SET @var{fd} @var{fdset}
+@deffnx Function primitive.FD_SET @var{fd} @var{fdset}
+@deffnx Function platform.FD_SET @var{fd} @var{fdset}
 Add @var{fd} to the file descriptor set referenced by @var{fdset}.  The
 return value is undefined, platform function included.
 @end deffn
 
 
 @deffn Function FD_CLR @var{fd} @var{fdset}
-@deffnx Function primitive:FD_CLR @var{fd} @var{fdset}
-@deffnx Function platform:FD_CLR @var{fd} @var{fdset}
+@deffnx Function primitive.FD_CLR @var{fd} @var{fdset}
+@deffnx Function platform.FD_CLR @var{fd} @var{fdset}
 Remove @var{fd} from the file descriptor set referenced by @var{fdset}.
 The return value is undefined, platform function included.
 @end deffn
 
 
 @deffn Function FD_ISSET @var{fd} @var{fdset}
-@deffnx Function primitive:FD_ISSET @var{fd} @var{fdset}
-@deffnx Function platform:FD_ISSET @var{fd} @var{fdset}
+@deffnx Function primitive.FD_ISSET @var{fd} @var{fdset}
+@deffnx Function platform.FD_ISSET @var{fd} @var{fdset}
 Return true if @var{fd} is a member of the file descriptor set
-referenced by @var{fdset}.  @func{platform:FD_ISSET} returns a single
+referenced by @var{fdset}.  @func{platform.FD_ISSET} returns a single
 value, an integer with C language true/false meaning.
 @end deffn
 
@@ -4170,8 +4182,8 @@ value, an integer with C language true/false meaning.
 
 @deffn Function select @var{max-fd} @var{rdset} @var{wrset} @var{exset} @var{timeout}
 @deffnx Parameter select-function
-@deffnx Function primitive:select @var{max-fd} @var{rdset} @var{wrset} @var{exset} @var{timeout}
-@deffnx Function platform:select @var{max-fd} @var{rdset} @var{wrset} @var{exset} @var{timeout}
+@deffnx Function primitive.select @var{max-fd} @var{rdset} @var{wrset} @var{exset} @var{timeout}
+@deffnx Function platform.select @var{max-fd} @var{rdset} @var{wrset} @var{exset} @var{timeout}
 Halt the process until one or more events happen on the selected file
 descriptors; mutate the given file descriptor sets to report which file
 descriptors are affected.
@@ -4196,8 +4208,8 @@ until a different return condition happens.
 
 @deffn Function select/interruptible @var{max-fd} @var{rdset} @var{wrset} @var{exset} @var{timeout}
 @deffnx Parameter select/interruptible-function
-@deffnx Function primitive:select/interruptible @var{max-fd} @var{rdset} @var{wrset} @var{exset} @var{timeout}
-@deffnx Function platform:select/interruptible @var{max-fd} @var{rdset} @var{wrset} @var{exset} @var{timeout}
+@deffnx Function primitive.select/interruptible @var{max-fd} @var{rdset} @var{wrset} @var{exset} @var{timeout}
+@deffnx Function platform.select/interruptible @var{max-fd} @var{rdset} @var{wrset} @var{exset} @var{timeout}
 Like @func{select}, but if the function call is interrupted and returns
 with @code{errno} set to @code{EINTR}, the library does not
 automatically reinvoke it, rather it raises an error with
@@ -4208,7 +4220,7 @@ automatically reinvoke it, rather it raises an error with
 
 @deffn Function select* @var{rdell} @var{wrell} @var{exell} @var{timeout}
 @deffnx Parameter select*-function
-@deffnx Function primitive:select* @var{rdell} @var{wrell} @var{exell} @var{timeout}
+@deffnx Function primitive.select* @var{rdell} @var{wrell} @var{exell} @var{timeout}
 Like @func{select} but accept selected file descriptors as lists of
 @objtype{fd} objects: @var{rdell}, @var{wrell}, @var{exell}.  Also the
 @var{max-fd} argument is not present, it defaults to @code{FD_SETSIZE}.
@@ -4221,7 +4233,7 @@ which an exceptional condition has occurred.
 
 @deffn Function select*/interruptible @var{rdell} @var{wrell} @var{exell} @var{timeout}
 @deffnx Parameter select*/interruptible-function
-@deffnx Function primitive:select*/interruptible @var{rdell} @var{wrell} @var{exell} @var{timeout}
+@deffnx Function primitive.select*/interruptible @var{rdell} @var{wrell} @var{exell} @var{timeout}
 Like @func{select/interruptible} but accept selected file descriptors as
 lists of @objtype{fd} objects: @var{rdell}, @var{wrell}, @var{exell}.
 Also the @var{max-fd} argument is not present, it defaults to
@@ -4236,7 +4248,7 @@ which an exceptional condition has occurred.
 
 @deffn Function select/fd @var{fd} @var{timeout}
 @deffnx Parameter select/fd-function
-@deffnx Function primitive:select/fd @var{fd} @var{timeout}
+@deffnx Function primitive.select/fd @var{fd} @var{timeout}
 Like @func{select} but watch a single @objtype{fd} for readable,
 writable and exceptional events.
 
@@ -4248,7 +4260,7 @@ exceptional event, false otherwise.
 
 @deffn Function select/fd/interruptible @var{fd} @var{timeout}
 @deffnx Parameter select/fd/interruptible-function
-@deffnx Function primitive:select/fd/interruptible @var{fd} @var{timeout}
+@deffnx Function primitive.select/fd/interruptible @var{fd} @var{timeout}
 Like @func{select/interruptible} but watch a single @objtype{fd} for
 readable, writable and exceptional events.
 
@@ -5408,7 +5420,7 @@ Accessors and mutators for records of type @class{sockaddr-in}.
 @end defun
 
 
-@defun primitive:pointer-><sockaddr-in> @var{pointer}
+@defun primitive.pointer-><sockaddr-in> @var{pointer}
 Given a pointer object to a @code{struct sockaddr_in} data structure,
 build and return a record of type @class{sockaddr-in} which mirrors it.
 This function takes care of converting the port number from network byte
@@ -5462,7 +5474,7 @@ Accessors and mutators for records of type @class{sockaddr-in6}.
 @end defun
 
 
-@defun primitive:pointer-><sockaddr-in6> @var{pointer}
+@defun primitive.pointer-><sockaddr-in6> @var{pointer}
 Given a pointer object to a @code{struct sockaddr_in6} data structure,
 build and return a record of type @class{sockaddr-in6} which mirrors it.
 This function takes care of converting the port number from network byte
@@ -5511,7 +5523,7 @@ Accessors and mutators for records of type @class{sockaddr-un}.
 @end defun
 
 
-@defun primitive:pointer-><sockaddr-un> @var{pointer}
+@defun primitive.pointer-><sockaddr-un> @var{pointer}
 Given a pointer object to a @code{struct sockaddr_un} data structure,
 build and return a record of type @class{sockaddr-un} which mirrors it.
 
@@ -5602,7 +5614,7 @@ Return the first element in the @code{addrlist} field value of
 @end defun
 
 
-@defun primitive:pointer-><hostent> @var{pointer}
+@defun primitive.pointer-><hostent> @var{pointer}
 Build and return a new record of type @class{hostent} representing the
 @code{struct hostent} value referenced by @var{pointer}.  This binding
 is exported by the @library{posix sockets primitives} library.
@@ -5653,7 +5665,7 @@ Accessors for records of type @class{netent}.
 @end defun
 
 
-@defun primitive:pointer-><netent> @var{pointer}
+@defun primitive.pointer-><netent> @var{pointer}
 Build and return a new record of type @class{netent} representing the
 @code{struct netent} value referenced by @var{pointer}.  This binding is
 exported by the @library{posix sockets primitives} library.
@@ -5697,7 +5709,7 @@ Accessors for records of type @class{protoent}.
 @end defun
 
 
-@defun primitive:pointer-><protoent> @var{pointer}
+@defun primitive.pointer-><protoent> @var{pointer}
 Build and return a new record of type @class{protoent} representing the
 @code{struct protoent} value referenced by @var{pointer}.  This binding
 is exported by the @library{posix sockets primitives} library.
@@ -5747,7 +5759,7 @@ Accessors for records of type @class{servent}.
 @end defun
 
 
-@defun primitive:pointer-><servent> @var{pointer}
+@defun primitive.pointer-><servent> @var{pointer}
 Build and return a new record of type @class{servent} representing the
 @code{struct servent} value referenced by @var{pointer}.  This binding
 is exported by the @library{posix sockets primitives} library.
@@ -5767,8 +5779,8 @@ The following functions manage inspection of network interfaces.
 
 @deffn Function if-nametoindex @var{name}
 @deffnx Parameter if-nametoindex-function
-@deffnx Function primitive:if-nametoindex @var{name}
-@deffnx Function platform:if_nametoindex @var{name-cstr}
+@deffnx Function primitive.if-nametoindex @var{name}
+@deffnx Function platform.if_nametoindex @var{name-cstr}
 Convert the Scheme string or symbol @var{name} to the corresponding
 network interface index.  Correct indexes should start at @math{1}, with
 @math{0} being invalid.  Examples:
@@ -5785,8 +5797,8 @@ network interface index.  Correct indexes should start at @math{1}, with
 
 @deffn Function if-indextoname @var{index}
 @deffnx Parameter if-indextoname-function
-@deffnx Function primitive:if-indextoname @var{index}
-@deffnx Function platform:if_indextoname @var{index}
+@deffnx Function primitive.if-indextoname @var{index}
+@deffnx Function platform.if_indextoname @var{index}
 Convert the exact integer @var{index} representing a network interface
 integer to a Scheme string or symbol representing the corresponding
 network interface name.  Correct indexes should start at @math{1}, with
@@ -5804,9 +5816,9 @@ network interface name.  Correct indexes should start at @math{1}, with
 
 @deffn Function if-nameindex
 @deffnx Parameter if-nameindex-function
-@deffnx Function primitive:if-nameindex
-@deffnx Function platform:if_nameindex
-@deffnx Function platform:if_freenameindex @var{nameindex-ptr}
+@deffnx Function primitive.if-nameindex
+@deffnx Function platform.if_nameindex
+@deffnx Function platform.if_freenameindex @var{nameindex-ptr}
 Return a list of @class{if-nameindex} records representing the known
 network interfaces.
 @end deffn
@@ -5840,8 +5852,8 @@ Functions}.
 
 @deffn Function inet-aton @var{address-name}
 @deffnx Parameter inet-aton-function
-@deffnx Function primitive:inet-aton @var{address-name}
-@deffnx Function platform:inet_aton @var{name-ptr} @var{in-addr-ptr}
+@deffnx Function primitive.inet-aton @var{address-name}
+@deffnx Function platform.inet_aton @var{name-ptr} @var{in-addr-ptr}
 Convert the Scheme string @var{address-name} representing an IPv4
 address, in presentation format, to a @code{struct in_addr} value stored
 in a Scheme bytevector.  If the address is valid, return the bytevector;
@@ -5856,8 +5868,8 @@ else return @false{}.
 
 @deffn Function inet-pton @var{address-format} @var{address-name}
 @deffnx Parameter inet-pton-function
-@deffnx Function primitive:inet-pton @var{address-name}
-@deffnx Function platform:inet_pton @var{name-ptr} @var{in-addr-ptr}
+@deffnx Function primitive.inet-pton @var{address-name}
+@deffnx Function platform.inet_pton @var{name-ptr} @var{in-addr-ptr}
 Convert the Scheme string @var{address-name} representing an IPv4 or
 IPv6 address, in presentation format, to a @code{struct in_addr} or
 @code{struct in6_addr} value stored in a Scheme bytevector.  If the
@@ -5871,8 +5883,8 @@ the address format: @code{inet} or @code{inet6}.
 
 @deffn Function inet-ntoa @var{address-bv}
 @deffnx Parameter inet-ntoa-function @var{address-bv}
-@deffnx Function primitive:inet-ntoa @var{address-bv}
-@deffnx Function platform:inet_ntoa @var{in-addr-ptr}
+@deffnx Function primitive.inet-ntoa @var{address-bv}
+@deffnx Function platform.inet_ntoa @var{in-addr-ptr}
 Convert the Scheme bytevector @var{address-bv} holding a @code{struct
 in_addr} value to a Scheme string holding the address in presentation
 format; return the string.
@@ -5908,8 +5920,8 @@ the corresponding host names.  @glibcref{Host Names, Host Names}.
 
 @deffn Function gethostbyname @var{host-name}
 @deffnx Parameter gethostbyname-function
-@deffnx Function primitive:gethostbyname @var{host-name}
-@deffnx Function platform:gethostbyname @var{name-ptr}
+@deffnx Function primitive.gethostbyname @var{host-name}
+@deffnx Function platform.gethostbyname @var{name-ptr}
 Acquire the Internet addresses associated to @var{host-name}, a Scheme
 string, and return a record of type @class{hostent}.
 @end deffn
@@ -5917,8 +5929,8 @@ string, and return a record of type @class{hostent}.
 
 @deffn Function gethostbyaddr @var{address-bv}
 @deffnx Parameter gethostbyaddr-function
-@deffnx Function primitive:gethostbyaddr @var{address-bv}
-@deffnx Function platform:gethostbyaddr @var{addr-ptr} @var{addr-len} @var{address-format-int}
+@deffnx Function primitive.gethostbyaddr @var{address-bv}
+@deffnx Function platform.gethostbyaddr @var{addr-ptr} @var{addr-len} @var{address-format-int}
 Acquire the Internet addresses associated to @var{address-bv}, a Scheme
 bytevector, and return a record of type @class{hostent}.
 @var{address-bv} must hold a @code{struct in_addr} or @code{struct
@@ -5940,8 +5952,8 @@ The following bindings are exported by the libraries:
 
 @deffn Function gethostbyname2 @var{host-name} @var{address-format}
 @deffnx Parameter gethostbyname2-function
-@deffnx Function primitive:gethostbyname2 @var{host-name} @var{address-format}
-@deffnx Function platform:gethostbyname2 @var{name-ptr} @var{address-format-int}
+@deffnx Function primitive.gethostbyname2 @var{host-name} @var{address-format}
+@deffnx Function platform.gethostbyname2 @var{name-ptr} @var{address-format-int}
 Like @func{gethostbyname}, but allows the specification of the address
 format with the @var{address-format} enumeration set, which must be of
 type @code{enum-socket-address-format}.
@@ -5953,8 +5965,8 @@ The following functions are thread--safe.
 
 @deffn Function gethostbyname_r @var{host-name}
 @deffnx Parameter gethostbyname_r-function
-@deffnx Function primitive:gethostbyname_r @var{host-name}
-@deffnx Function platform:gethostbyname_r @var{name-ptr} @var{hostent-ptr} @var{buf-ptr} @var{buf-len} @var{result-ptr} @var{errno-ptr}
+@deffnx Function primitive.gethostbyname_r @var{host-name}
+@deffnx Function platform.gethostbyname_r @var{name-ptr} @var{hostent-ptr} @var{buf-ptr} @var{buf-len} @var{result-ptr} @var{errno-ptr}
 Acquire the Internet addresses associated to @var{host-name}, a Scheme
 string, and return a record of type @class{hostent}.
 @end deffn
@@ -5962,8 +5974,8 @@ string, and return a record of type @class{hostent}.
 
 @deffn Function gethostbyname2_r @var{host-name} @var{address-format}
 @deffnx Parameter gethostbyname2_r-function
-@deffnx Function primitive:gethostbyname2_r @var{host-name} @var{address-format}
-@deffnx Function platform:gethostbyname2_r @var{name-ptr} @var{address-format-int} @var{hostent-ptr} @var{buf-ptr} @var{buf-len} @var{result-ptr} @var{errno-ptr}
+@deffnx Function primitive.gethostbyname2_r @var{host-name} @var{address-format}
+@deffnx Function platform.gethostbyname2_r @var{name-ptr} @var{address-format-int} @var{hostent-ptr} @var{buf-ptr} @var{buf-len} @var{result-ptr} @var{errno-ptr}
 Like @func{gethostbyname}, but allows the specification of the address
 format with the @var{address-format} enumeration set, which must be of
 type @code{enum-socket-address-format}.
@@ -5972,8 +5984,8 @@ type @code{enum-socket-address-format}.
 
 @deffn Function gethostbyaddr_r @var{address-bv}
 @deffnx Parameter gethostbyaddr_r-function
-@deffnx Function primitive:gethostbyaddr_r @var{address-bv}
-@deffnx Function platform:gethostbyaddr_r @var{addr-ptr} @var{addr-len} @var{address-format-int} @var{hostent-ptr} @var{buf-ptr} @var{buf-len} @var{result-ptr} @var{errno-ptr}
+@deffnx Function primitive.gethostbyaddr_r @var{address-bv}
+@deffnx Function platform.gethostbyaddr_r @var{addr-ptr} @var{addr-len} @var{address-format-int} @var{hostent-ptr} @var{buf-ptr} @var{buf-len} @var{result-ptr} @var{errno-ptr}
 Acquire the Internet addresses associated to @var{address-bv}, a Scheme
 bytevector, and return a record of type @class{hostent}.
 @var{address-bv} must hold a @code{struct in_addr} or @code{struct
@@ -5992,9 +6004,9 @@ addresses.  @glibcref{Host Names, Host Names}.
 @deffn Function sethostent
 @deffnx Function sethostent @var{stay-open}
 @deffnx Parameter sethostent-function
-@deffnx Function primitive:sethostent
-@deffnx Function primitive:sethostent @var{stay-open}
-@deffnx Function platform:sethostent @var{stay-open-int}
+@deffnx Function primitive.sethostent
+@deffnx Function primitive.sethostent @var{stay-open}
+@deffnx Function platform.sethostent @var{stay-open-int}
 Start a scan operation on the host database file.  If the optional
 @var{stay-open} is true, it causes the database file to be kept open by
 the library; when not used, it defaults to @false{}.
@@ -6003,8 +6015,8 @@ the library; when not used, it defaults to @false{}.
 
 @deffn Function gethostent
 @deffnx Parameter gethostent-function
-@deffnx Function primitive:gethostent
-@deffnx Function platform:gethostent
+@deffnx Function primitive.gethostent
+@deffnx Function platform.gethostent
 Return a record of type @class{hostent} representing the next entry from
 the database, or @false{} if no more entries are available.
 @end deffn
@@ -6012,8 +6024,8 @@ the database, or @false{} if no more entries are available.
 
 @deffn Function endhostent
 @deffnx Parameter endhostent-function
-@deffnx Function primitive:endhostent
-@deffnx Function platform:endhostent
+@deffnx Function primitive.endhostent
+@deffnx Function platform.endhostent
 Close the host database file.
 @end deffn
 
@@ -6044,8 +6056,8 @@ The following functions manage scanning of the networks database.
 
 @deffn Function getnetbyname @var{net-name}
 @deffnx Parameter getnetbyname-function
-@deffnx Function primitive:getnetbyname @var{net-name}
-@deffnx Function platform:getnetbyname @var{net-name-ptr}
+@deffnx Function primitive.getnetbyname @var{net-name}
+@deffnx Function platform.getnetbyname @var{net-name-ptr}
 Return a record of type @class{netent} representing the address of the
 network @var{net-name}, which must be a Scheme string.  If the network
 is unknown, the return value is @false{}.
@@ -6055,9 +6067,9 @@ is unknown, the return value is @false{}.
 @deffn Function getnetbyaddr @var{address-bv}
 @deffnx Function getnetbyaddr @var{address-bv} @var{address-format}
 @deffnx Parameter getnetbyaddr-function
-@deffnx Function primitive:getnetbyaddr @var{address-bv}
-@deffnx Function primitive:getnetbyaddr @var{address-bv} @var{address-format}
-@deffnx Function platform:getnetbyaddr @var{address} @var{address-format-int}
+@deffnx Function primitive.getnetbyaddr @var{address-bv}
+@deffnx Function primitive.getnetbyaddr @var{address-bv} @var{address-format}
+@deffnx Function platform.getnetbyaddr @var{address} @var{address-format-int}
 Return a record of type @class{netent} representing the address of the
 network selected by @var{address-bv}, which must be a Scheme bytevector
 holding the network number in network byte order.  If the network is
@@ -6072,9 +6084,9 @@ unknown, the return value is @false{}.
 @deffn Function setnetent
 @deffnx Function setnetent @var{stay-open}
 @deffnx Parameter setnetent-function
-@deffnx Function primitive:setnetent
-@deffnx Function primitive:setnetent @var{stay-open}
-@deffnx Function platform:setnetent @var{stay-open-int}
+@deffnx Function primitive.setnetent
+@deffnx Function primitive.setnetent @var{stay-open}
+@deffnx Function platform.setnetent @var{stay-open-int}
 Start a scan operation on the networks database file.  If the optional
 @var{stay-open} is true, it causes the database file to be kept open by
 the library; when not used, it defaults to @false{}.
@@ -6083,8 +6095,8 @@ the library; when not used, it defaults to @false{}.
 
 @deffn Function getnetent
 @deffnx Parameter getnetent-function
-@deffnx Function primitive:getnetent
-@deffnx Function platform:getnetent
+@deffnx Function primitive.getnetent
+@deffnx Function platform.getnetent
 Return a record of type @class{netent} representing the next entry from
 the database, or @false{} if no more entries are available.
 @end deffn
@@ -6092,8 +6104,8 @@ the database, or @false{} if no more entries are available.
 
 @deffn Function endnetent
 @deffnx Parameter endnetent-function
-@deffnx Function primitive:endnetent
-@deffnx Function platform:endnetent
+@deffnx Function primitive.endnetent
+@deffnx Function platform.endnetent
 Close the networks database file.
 @end deffn
 
@@ -6124,8 +6136,8 @@ The following functions manage scanning of the protocols database.
 
 @deffn Function getprotobyname @var{proto-name}
 @deffnx Parameter getprotobyname-function
-@deffnx Function primitive:getprotobyname @var{proto-name}
-@deffnx Function platform:getprotobyname @var{proto-name-ptr}
+@deffnx Function primitive.getprotobyname @var{proto-name}
+@deffnx Function platform.getprotobyname @var{proto-name-ptr}
 Return a record of type @class{protoent} representing the informations
 on the protocol @var{proto-name}, which must be a Scheme string.  If the
 protocol is unknown, the return value is @false{}.
@@ -6134,8 +6146,8 @@ protocol is unknown, the return value is @false{}.
 
 @deffn Function getprotobynumber @var{protocol-number}
 @deffnx Parameter getprotobynumber-function
-@deffnx Function primitive:getprotobynumber @var{protocol-number}
-@deffnx Function platform:getprotobynumber @var{protocol-number}
+@deffnx Function primitive.getprotobynumber @var{protocol-number}
+@deffnx Function platform.getprotobynumber @var{protocol-number}
 Return a record of type @class{protoent} representing the informations
 on the protocol selected by @var{protocol-number}.  If the protocol is
 unknown, the return value is @false{}.
@@ -6145,9 +6157,9 @@ unknown, the return value is @false{}.
 @deffn Function setprotoent
 @deffnx Function setprotoent @var{stay-open}
 @deffnx Parameter setprotoent-function
-@deffnx Function primitive:setprotoent
-@deffnx Function primitive:setprotoent @var{stay-open}
-@deffnx Function platform:setprotoent @var{stay-open-int}
+@deffnx Function primitive.setprotoent
+@deffnx Function primitive.setprotoent @var{stay-open}
+@deffnx Function platform.setprotoent @var{stay-open-int}
 Start a scan operation on the protocols database file.  If the optional
 @var{stay-open} is true, it causes the database file to be kept open by
 the library; when not used, it defaults to @false{}.
@@ -6156,8 +6168,8 @@ the library; when not used, it defaults to @false{}.
 
 @deffn Function getprotoent
 @deffnx Parameter getprotoent-function
-@deffnx Function primitive:getprotoent
-@deffnx Function platform:getprotoent
+@deffnx Function primitive.getprotoent
+@deffnx Function platform.getprotoent
 Return a record of type @class{protoent} representing the next entry
 from the database, or @false{} if no more entries are available.
 @end deffn
@@ -6165,8 +6177,8 @@ from the database, or @false{} if no more entries are available.
 
 @deffn Function endprotoent
 @deffnx Parameter endprotoent-function
-@deffnx Function primitive:endprotoent
-@deffnx Function platform:endprotoent
+@deffnx Function primitive.endprotoent
+@deffnx Function platform.endprotoent
 Close the protocols database file.
 @end deffn
 
@@ -6197,8 +6209,8 @@ The following functions manage scanning of the services database.
 
 @deffn Function getservbyname @var{serv-name} @var{proto-name}
 @deffnx Parameter getservbyname-function
-@deffnx Function primitive:getservbyname @var{serv-name} @var{proto-name}
-@deffnx Function platform:getservbyname @var{serv-name-ptr} @var{proto-name-ptr}
+@deffnx Function primitive.getservbyname @var{serv-name} @var{proto-name}
+@deffnx Function platform.getservbyname @var{serv-name-ptr} @var{proto-name-ptr}
 Return a record of type @class{servent} representing the informations on
 the service @var{serv-name}, which must be a Scheme string, under
 protocol @var{proto-name}, which must be a Scheme string.  If the
@@ -6208,8 +6220,8 @@ service is unknown, the return value is @false{}.
 
 @deffn Function getservbyport @var{network-port-number} @var{proto-name}
 @deffnx Parameter getservbyport-function
-@deffnx Function primitive:getservbyport @var{network-port-number} @var{proto-name}
-@deffnx Function platform:getservbyport @var{network-port-number} @var{proto-name-ptr}
+@deffnx Function primitive.getservbyport @var{network-port-number} @var{proto-name}
+@deffnx Function platform.getservbyport @var{network-port-number} @var{proto-name-ptr}
 Return a record of type @class{servent} representing the informations on
 the service selected by @var{network-port-number}, which must be an
 exact non--negative integer, under @var{proto-name}, which must be a
@@ -6226,7 +6238,7 @@ conversion automatically, so we probably want to use that function.
 
 @deffn Function getservbyport* @var{host-port-number} @var{proto-name}
 @deffnx Parameter getservbyport*-function
-@deffnx Function primitive:getservbyport* @var{host-port-number} @var{proto-name}
+@deffnx Function primitive.getservbyport* @var{host-port-number} @var{proto-name}
 Like @func{getservbyport*}, but accept the port number in host byte
 order.
 @end deffn
@@ -6235,9 +6247,9 @@ order.
 @deffn Function setservent
 @deffnx Function setservent @var{stay-open}
 @deffnx Parameter setservent-function
-@deffnx Function primitive:setservent
-@deffnx Function primitive:setservent @var{stay-open}
-@deffnx Function platform:setservent @var{stay-open-int}
+@deffnx Function primitive.setservent
+@deffnx Function primitive.setservent @var{stay-open}
+@deffnx Function platform.setservent @var{stay-open-int}
 Start a scan operation on the services database file.  If the optional
 @var{stay-open} is true, it causes the database file to be kept open by
 the library; when not used, it defaults to @false{}.
@@ -6246,8 +6258,8 @@ the library; when not used, it defaults to @false{}.
 
 @deffn Function getservent
 @deffnx Parameter getservent-function
-@deffnx Function primitive:getservent
-@deffnx Function platform:getservent
+@deffnx Function primitive.getservent
+@deffnx Function platform.getservent
 Return a record of type @class{servent} representing the next entry from
 the database, or @false{} if no more entries are available.
 @end deffn
@@ -6255,8 +6267,8 @@ the database, or @false{} if no more entries are available.
 
 @deffn Function endservent
 @deffnx Parameter endservent-function
-@deffnx Function primitive:endservent
-@deffnx Function platform:endservent
+@deffnx Function primitive.endservent
+@deffnx Function platform.endservent
 Close the services database file.
 @end deffn
 
@@ -6287,8 +6299,8 @@ between network byte order (big endian) and host byte order.
 
 
 @defun htons @var{host-uint16}
-@defunx primitive:htons @var{host-uint16}
-@defunx platform:htons @var{host-uint16}
+@defunx primitive.htons @var{host-uint16}
+@defunx platform.htons @var{host-uint16}
 Host--to--network--short: convert a non--negative exact integer,
 representable with @math{16} bits, from host byte order to network byte
 order.
@@ -6296,8 +6308,8 @@ order.
 
 
 @defun ntohs @var{network-uint16}
-@defunx primitive:ntohs @var{network-uint16}
-@defunx platform:ntohs @var{network-uint16}
+@defunx primitive.ntohs @var{network-uint16}
+@defunx platform.ntohs @var{network-uint16}
 Network--to--host--short: convert a non--negative exact integer,
 representable with @math{16} bits, from network byte order to host byte
 order.
@@ -6305,8 +6317,8 @@ order.
 
 
 @defun htonl @var{host-uint32}
-@defunx primitive:htonl @var{host-uint32}
-@defunx platform:htonl @var{host-uint32}
+@defunx primitive.htonl @var{host-uint32}
+@defunx platform.htonl @var{host-uint32}
 Host--to--network--long: convert a non--negative exact integer,
 representable with @math{32} bits, from host byte order to network byte
 order.
@@ -6314,8 +6326,8 @@ order.
 
 
 @defun ntohl @var{network-uint32}
-@defunx primitive:ntohl @var{network-uint32}
-@defunx platform:ntohl @var{network-uint32}
+@defunx primitive.ntohl @var{network-uint32}
+@defunx platform.ntohl @var{network-uint32}
 Network--to--host--long: convert a non--negative exact integer,
 representable with @math{32} bits, from network byte order to host byte
 order.
@@ -6333,9 +6345,9 @@ The following functions manage opening and closing sockets.
 @deffn Function socket @var{namespace} @var{style}
 @deffnx Function socket @var{namespace} @var{style} @var{protocol}
 @deffnx Parameter socket-function
-@deffnx Function primitive:socket @var{namespace} @var{style}
-@deffnx Function primitive:socket @var{namespace} @var{style} @var{protocol}
-@deffnx Function platform:socket @var{namespace-int} @var{style-int} @var{protocol-int}
+@deffnx Function primitive.socket @var{namespace} @var{style}
+@deffnx Function primitive.socket @var{namespace} @var{style} @var{protocol}
+@deffnx Function platform.socket @var{namespace-int} @var{style-int} @var{protocol-int}
 Create a new socket and return a @class{socket} record representing it.
 Arguments description:
 
@@ -6369,9 +6381,9 @@ like, usage.
 @deffn Function socketpair @var{namespace} @var{style}
 @deffnx Function socketpair @var{namespace} @var{style} @var{protocol}
 @deffnx Parameter socketpair-function
-@deffnx Function primitive:socketpair @var{namespace} @var{style}
-@deffnx Function primitive:socketpair @var{namespace} @var{style} @var{protocol}
-@deffnx Function platform:socketpair @var{namespace-int} @var{style-int} @var{protocol-int}
+@deffnx Function primitive.socketpair @var{namespace} @var{style}
+@deffnx Function primitive.socketpair @var{namespace} @var{style} @var{protocol}
+@deffnx Function platform.socketpair @var{namespace-int} @var{style-int} @var{protocol-int}
 Create a two interconnected sockets and return two values being
 @class{socket} records representing them.
 
@@ -6405,8 +6417,8 @@ like, usage.
 
 @deffn Function shutdown @var{sock} @var{how}
 @deffnx Parameter shutdown-function
-@deffnx Function primitive:shutdown @var{sock} @var{how}
-@deffnx Function platform:shutdown @var{sock-int} @var{how-int}
+@deffnx Function primitive.shutdown @var{sock} @var{how}
+@deffnx Function platform.shutdown @var{sock-int} @var{how-int}
 Shut down the connection socket @var{sock}, which must be a
 @class{socket} record, according to the mode selected by @var{how},
 which must be an enumeration set of type
@@ -6418,7 +6430,7 @@ This function is an alternative to @func{close}, which can be applied to
 
 
 @deffn Syntax shutdown* @ameta{sock} @ameta{how}
-@deffnx Syntax primitive:shutdown* @ameta{sock} @ameta{how}
+@deffnx Syntax primitive.shutdown* @ameta{sock} @ameta{how}
 Wrapper for @func{shutdown} which allows us not to embed the shutdown
 mode in the @func{shutdown-mode} syntax; it expands to:
 
@@ -6441,8 +6453,8 @@ Connections}.  @glibcref{Accepting Connections, Accepting Connections}.
 
 @deffn Function connect @var{sock} @var{sockaddr}
 @deffnx Parameter connect-function
-@deffnx Function primitive:connect @var{sock} @var{sockaddr}
-@deffnx Function platform:connect @var{sock-int} @var{sockaddr-ptr} @var{socklen}
+@deffnx Function primitive.connect @var{sock} @var{sockaddr}
+@deffnx Function platform.connect @var{sock-int} @var{sockaddr-ptr} @var{socklen}
 Initiate a connection from @var{sock} to the address described by
 @var{sockaddr}.  @var{sock} must be a @class{socket} record,
 @var{sockaddr} must be a record of type @class{sockaddr-un},
@@ -6452,8 +6464,8 @@ Initiate a connection from @var{sock} to the address described by
 
 @deffn Function bind @var{sock} @var{sockaddr}
 @deffnx Parameter bind-function
-@deffnx Function primitive:bind @var{sock} @var{sockaddr}
-@deffnx Function platform:bind @var{sock} @var{sockaddr-ptr} @var{socklen}
+@deffnx Function primitive.bind @var{sock} @var{sockaddr}
+@deffnx Function platform.bind @var{sock} @var{sockaddr-ptr} @var{socklen}
 Assign an address to a socket.  @var{sock} must be a record of type
 @class{socket}.  @var{sockaddr} must be a record of type
 @class{sockaddr-un}, @class{sockaddr-in} or
@@ -6463,8 +6475,8 @@ Assign an address to a socket.  @var{sock} must be a record of type
 
 @deffn Function listen @var{sock} @var{max-pending-connections}
 @deffnx Parameter listen-function
-@deffnx Function primitive:listen @var{sock} @var{max-pending-connections}
-@deffnx Function platform:listen @var{sock-int} @var{max-pending-connections}
+@deffnx Function primitive.listen @var{sock} @var{max-pending-connections}
+@deffnx Function platform.listen @var{sock-int} @var{max-pending-connections}
 Enable @var{sock} to accept connections, making it a server socket;
 @var{sock} must be a record of type @class{socket}.
 
@@ -6476,8 +6488,8 @@ the connection is refused.
 
 @deffn Function accept @var{sock}
 @deffnx Parameter accept-function
-@deffnx Function primitive:accept @var{sock}
-@deffnx Function platform:accept @var{sock-int} @var{sockaddr-ptr} @var{socklen}
+@deffnx Function primitive.accept @var{sock}
+@deffnx Function platform.accept @var{sock-int} @var{sockaddr-ptr} @var{socklen}
 Accept a connection to the server--socket @var{sock}, which must be a
 @class{socket} record.
 
@@ -6499,8 +6511,8 @@ addresses.  @glibcref{Reading Address, Reading the Address of a Socket}.
 
 @deffn Function getsockname @var{sock}
 @deffnx Parameter getsockname-function
-@deffnx Function primitive:getsockname @var{sock}
-@deffnx Function platform:getsockname @var{sock-int} @var{sockaddr-ptr} @var{socklen-ptr}
+@deffnx Function primitive.getsockname @var{sock}
+@deffnx Function platform.getsockname @var{sock-int} @var{sockaddr-ptr} @var{socklen-ptr}
 Return a record of type @class{sockaddr-un},
 @class{sockaddr-in} or @class{sockaddr-in6} describing the
 address bound to @var{sock}, which must be a @class{socket} record.
@@ -6511,8 +6523,8 @@ This is the address associated to @var{sock} by @func{bind}.
 
 @deffn Function getpeername @var{sock}
 @deffnx Parameter getpeername-function
-@deffnx Function primitive:getpeername @var{sock}
-@deffnx Function platform:getpeername @var{sock-int} @var{sockaddr-ptr} @var{socklen-ptr}
+@deffnx Function primitive.getpeername @var{sock}
+@deffnx Function platform.getpeername @var{sock-int} @var{sockaddr-ptr} @var{socklen-ptr}
 Return a record of type @class{sockaddr-un},
 @class{sockaddr-in} or @class{sockaddr-in6} describing the
 address to which @var{sock} is connected; @var{sock} must be a
@@ -6533,8 +6545,8 @@ The following functions manage sending data through stream sockets.
 
 @deffn Function send @var{sock} @var{ptr} @var{len} @var{options}
 @deffnx Parameter send-function
-@deffnx Function primitive:send @var{sock} @var{ptr} @var{len} @var{options}
-@deffnx Function platform:send @var{sock-int} @var{ptr} @var{len} @var{options-int}
+@deffnx Function primitive.send @var{sock} @var{ptr} @var{len} @var{options}
+@deffnx Function platform.send @var{sock-int} @var{ptr} @var{len} @var{options-int}
 Write at most @var{len} bytes from the buffer referenced by @var{ptr}
 through the socket @var{sock}; return the number of bytes actually sent.
 
@@ -6562,8 +6574,8 @@ not used, it defaults to @code{(socket-data-options)}.
 @deffn Function send/string @var{sock} @var{str}
 @deffnx Function send/string @var{sock} @var{str} @var{options}
 @deffnx Parameter send/string-function
-@deffnx Function primitive:send/string @var{sock} @var{str}
-@deffnx Function primitive:send/string @var{sock} @var{str} @var{options}
+@deffnx Function primitive.send/string @var{sock} @var{str}
+@deffnx Function primitive.send/string @var{sock} @var{str} @var{options}
 Wrapper for @func{send} which sends the Scheme string @var{str}.  The
 Scheme string is converted to a memory block holding its @acronym{UTF8}
 representation; @strong{no} terminating zero byte is sent.
@@ -6573,8 +6585,8 @@ representation; @strong{no} terminating zero byte is sent.
 @deffn Function send/bytevector @var{sock} @var{bv}
 @deffnx Function send/bytevector @var{sock} @var{bv} @var{options}
 @deffnx Parameter send/bytevector-function
-@deffnx Function primitive:send/bytevector @var{sock} @var{bv}
-@deffnx Function primitive:send/bytevector @var{sock} @var{bv} @var{options}
+@deffnx Function primitive.send/bytevector @var{sock} @var{bv}
+@deffnx Function primitive.send/bytevector @var{sock} @var{bv} @var{options}
 Wrapper for @func{send} which sends the Scheme bytevector @var{bv}.
 @end deffn
 
@@ -6582,8 +6594,8 @@ Wrapper for @func{send} which sends the Scheme bytevector @var{bv}.
 @deffn Function send/memblock @var{sock} @var{mb}
 @deffnx Function send/memblock @var{sock} @var{mb} @var{options}
 @deffnx Parameter send/memblock-function
-@deffnx Function primitive:send/memblock @var{sock} @var{mb}
-@deffnx Function primitive:send/memblock @var{sock} @var{mb} @var{options}
+@deffnx Function primitive.send/memblock @var{sock} @var{mb}
+@deffnx Function primitive.send/memblock @var{sock} @var{mb} @var{options}
 Wrapper for @func{send} which sends data from the memory block
 referenced by @var{mb}, which must be a @class{memblock} record.
 @nauref{memory blocks, Memory blocks}.
@@ -6600,8 +6612,8 @@ The following functions manage receiving data through stream sockets.
 
 @deffn Function recv @var{sock} @var{ptr} @var{len} @var{options}
 @deffnx Parameter recv-function
-@deffnx Function primitive:recv @var{sock} @var{ptr} @var{len} @var{options}
-@deffnx Function platform:recv @var{sock-int} @var{ptr} @var{len} @var{options-int}
+@deffnx Function primitive.recv @var{sock} @var{ptr} @var{len} @var{options}
+@deffnx Function platform.recv @var{sock-int} @var{ptr} @var{len} @var{options-int}
 Read at most @var{len} bytes from the socket @var{sock} to the buffer
 referenced by @var{ptr}; return the number of bytes actually received.
 
@@ -6629,8 +6641,8 @@ not used, it defaults to @code{(socket-data-options)}.
 @deffn Function recv/string @var{sock} @var{max-len}
 @deffnx Function recv/string @var{sock} @var{max-len} @var{options}
 @deffnx Parameter recv/string-function
-@deffnx Function primitive:recv/string @var{sock} @var{max-len}
-@deffnx Function primitive:recv/string @var{sock} @var{max-len} @var{options}
+@deffnx Function primitive.recv/string @var{sock} @var{max-len}
+@deffnx Function primitive.recv/string @var{sock} @var{max-len} @var{options}
 Wrapper for @func{recv} which converts the bytes read, at most
 @var{max-len}, to a Scheme string and returns it.  The data read is
 interpreted as a string in @acronym{UTF8} representation; @strong{no}
@@ -6641,8 +6653,8 @@ terminating zero byte is expected from the socket.
 @deffn Function recv/bytevector @var{sock} @var{max-len}
 @deffnx Function recv/bytevector @var{sock} @var{max-len} @var{options}
 @deffnx Parameter recv/bytevector-function
-@deffnx Function primitive:recv/bytevector @var{sock} @var{max-len}
-@deffnx Function primitive:recv/bytevector @var{sock} @var{max-len} @var{options}
+@deffnx Function primitive.recv/bytevector @var{sock} @var{max-len}
+@deffnx Function primitive.recv/bytevector @var{sock} @var{max-len} @var{options}
 Wrapper for @func{recv} which converts the bytes read, at most
 @var{max-len}, to a Scheme bytevector and returns it.
 @end deffn
@@ -6651,8 +6663,8 @@ Wrapper for @func{recv} which converts the bytes read, at most
 @deffn Function recv/memblock @var{sock} @var{max-len} @var{malloc}
 @deffnx Function recv/memblock @var{sock} @var{max-len} @var{options} @var{malloc}
 @deffnx Parameter recv/memblock-function
-@deffnx Function primitive:recv/memblock @var{sock} @var{max-len} @var{malloc}
-@deffnx Function primitive:recv/memblock @var{sock} @var{max-len} @var{options} @var{malloc}
+@deffnx Function primitive.recv/memblock @var{sock} @var{max-len} @var{malloc}
+@deffnx Function primitive.recv/memblock @var{sock} @var{max-len} @var{options} @var{malloc}
 Wrapper for @func{recv} which stores the bytes read, at most
 @var{max-len}, into a newly allocated block of memory and returns a
 @class{memblock} record referencing it.  @nauref{memory blocks, Memory
@@ -6675,8 +6687,8 @@ The following functions manage sending data through datagram sockets.
 
 @deffn Function sendto @var{sock} @var{ptr} @var{len} @var{options} @var{sockaddr}
 @deffnx Parameter sendto-function
-@deffnx Function primitive:sendto @var{sock} @var{ptr} @var{len} @var{options} @var{sockaddr}
-@deffnx Function platform:sendto @var{sock-int} @var{ptr} @var{len} @var{options-int}
+@deffnx Function primitive.sendto @var{sock} @var{ptr} @var{len} @var{options} @var{sockaddr}
+@deffnx Function platform.sendto @var{sock-int} @var{ptr} @var{len} @var{options-int}
 Write at most @var{len} bytes from the buffer referenced by @var{ptr}
 through the socket @var{sock} to the address selected by @var{sockaddr};
 return the number of bytes actually sent.  Arguments description:
@@ -6709,8 +6721,8 @@ not used, it defaults to @code{(socket-data-options)}.
 @deffn Function sendto/string @var{sock} @var{str} @var{sockaddr}
 @deffnx Function sendto/string @var{sock} @var{str} @var{options} @var{sockaddr}
 @deffnx Parameter sendto/string-function
-@deffnx Function primitive:sendto/string @var{sock} @var{str} @var{sockaddr}
-@deffnx Function primitive:sendto/string @var{sock} @var{str} @var{options} @var{sockaddr}
+@deffnx Function primitive.sendto/string @var{sock} @var{str} @var{sockaddr}
+@deffnx Function primitive.sendto/string @var{sock} @var{str} @var{options} @var{sockaddr}
 Wrapper for @func{sendto} which sends the Scheme string @var{str}.  The
 Scheme string is converted to a memory block holding its @acronym{UTF8}
 representation; @strong{no} terminating zero byte is sent.
@@ -6720,8 +6732,8 @@ representation; @strong{no} terminating zero byte is sent.
 @deffn Function sendto/bytevector @var{sock} @var{bv} @var{sockaddr}
 @deffnx Function sendto/bytevector @var{sock} @var{bv} @var{options} @var{sockaddr}
 @deffnx Parameter sendto/bytevector-function
-@deffnx Function primitive:sendto/bytevector @var{sock} @var{bv} @var{sockaddr}
-@deffnx Function primitive:sendto/bytevector @var{sock} @var{bv} @var{options} @var{sockaddr}
+@deffnx Function primitive.sendto/bytevector @var{sock} @var{bv} @var{sockaddr}
+@deffnx Function primitive.sendto/bytevector @var{sock} @var{bv} @var{options} @var{sockaddr}
 Wrapper for @func{sendto} which sends the Scheme bytevector @var{bv}.
 @end deffn
 
@@ -6729,8 +6741,8 @@ Wrapper for @func{sendto} which sends the Scheme bytevector @var{bv}.
 @deffn Function sendto/memblock @var{sock} @var{mb} @var{sockaddr}
 @deffnx Function sendto/memblock @var{sock} @var{mb} @var{options} @var{sockaddr}
 @deffnx Parameter sendto/memblock-function
-@deffnx Function primitive:sendto/memblock @var{sock} @var{mb} @var{sockaddr}
-@deffnx Function primitive:sendto/memblock @var{sock} @var{mb} @var{options} @var{sockaddr}
+@deffnx Function primitive.sendto/memblock @var{sock} @var{mb} @var{sockaddr}
+@deffnx Function primitive.sendto/memblock @var{sock} @var{mb} @var{options} @var{sockaddr}
 Wrapper for @func{sendto} which sends data from the memory block
 referenced by @var{mb}, which must be a @class{memblock} record.
 @nauref{memory blocks, Memory blocks}.
@@ -6747,8 +6759,8 @@ The following functions manage receiving data through datagram sockets.
 
 @deffn Function recvfrom @var{sock} @var{ptr} @var{len} @var{options}
 @deffnx Parameter recvfrom-function
-@deffnx Function primitive:recvfrom @var{sock} @var{ptr} @var{len} @var{options}
-@deffnx Function platform:recvfrom @var{sock-int} @var{ptr} @var{len} @var{options-int}
+@deffnx Function primitive.recvfrom @var{sock} @var{ptr} @var{len} @var{options}
+@deffnx Function platform.recvfrom @var{sock-int} @var{ptr} @var{len} @var{options-int}
 Read at most @var{len} bytes from the socket @var{sock} to the buffer
 referenced by @var{ptr}.  Return two values: the number of bytes
 actually received; a record of type @class{sockaddr-in},
@@ -6779,8 +6791,8 @@ not used, it defaults to @code{(socket-data-options)}.
 @deffn Function recvfrom/string @var{sock} @var{max-len}
 @deffnx Function recvfrom/string @var{sock} @var{max-len} @var{options}
 @deffnx Parameter recvfrom/string-function
-@deffnx Function primitive:recvfrom/string @var{sock} @var{max-len}
-@deffnx Function primitive:recvfrom/string @var{sock} @var{max-len} @var{options}
+@deffnx Function primitive.recvfrom/string @var{sock} @var{max-len}
+@deffnx Function primitive.recvfrom/string @var{sock} @var{max-len} @var{options}
 Wrapper for @func{recvfrom} which converts the bytes read, at most
 @var{max-len}, to a Scheme string and returns it as first value; the
 second returned value is the same as the one of @func{recvfrom}.
@@ -6794,8 +6806,8 @@ socket.
 @deffn Function recvfrom/bytevector @var{sock} @var{max-len}
 @deffnx Function recvfrom/bytevector @var{sock} @var{max-len} @var{options}
 @deffnx Parameter recvfrom/bytevector-function
-@deffnx Function primitive:recvfrom/bytevector @var{sock} @var{max-len}
-@deffnx Function primitive:recvfrom/bytevector @var{sock} @var{max-len} @var{options}
+@deffnx Function primitive.recvfrom/bytevector @var{sock} @var{max-len}
+@deffnx Function primitive.recvfrom/bytevector @var{sock} @var{max-len} @var{options}
 Wrapper for @func{recvfrom} which converts the bytes read, at most
 @var{max-len}, to a Scheme bytevector and returns it as first value; the
 second returned value is the same as the one of @func{recvfrom}.
@@ -6805,8 +6817,8 @@ second returned value is the same as the one of @func{recvfrom}.
 @deffn Function recvfrom/memblock @var{sock} @var{max-len} @var{malloc}
 @deffnx Function recvfrom/memblock @var{sock} @var{max-len} @var{options} @var{malloc}
 @deffnx Parameter recvfrom/memblock-function
-@deffnx Function primitive:recvfrom/memblock @var{sock} @var{max-len} @var{malloc}
-@deffnx Function primitive:recvfrom/memblock @var{sock} @var{max-len} @var{options} @var{malloc}
+@deffnx Function primitive.recvfrom/memblock @var{sock} @var{max-len} @var{malloc}
+@deffnx Function primitive.recvfrom/memblock @var{sock} @var{max-len} @var{options} @var{malloc}
 Wrapper for @func{recvfrom} which stores the bytes read, at most
 @var{max-len}, into a newly allocated block of memory and returns a
 @class{memblock} record referencing it as first value; the second
@@ -6830,8 +6842,8 @@ The following functions manage configuration of sockets.
 
 @deffn Function getsockopt @var{sock} @var{option}
 @deffnx Parameter getsockopt-function
-@deffnx Function primitive:getsockopt @var{sock} @var{option}
-@deffnx Function platform:getsockopt @var{sock-int} @var{level} @var{option} @var{optptr} @var{optlen}
+@deffnx Function primitive.getsockopt @var{sock} @var{option}
+@deffnx Function platform.getsockopt @var{sock-int} @var{level} @var{option} @var{optptr} @var{optlen}
 Retrieve the selected option from a socket and return its value.
 @var{sock} must be an object of type @class{socket}; @var{option} must
 be an enumeration set of type @code{enum-socket-option} holding a
@@ -6841,8 +6853,8 @@ single element.
 
 @deffn Function setsockopt @var{sock} @var{option} @var{value}
 @deffnx Parameter setsockopt-function
-@deffnx Function primitive:setsockopt @var{sock} @var{option} @var{value}
-@deffnx Function platform:setsockopt @var{sock-int} @var{level} @var{option} @var{optptr} @var{optlen}
+@deffnx Function primitive.setsockopt @var{sock} @var{option} @var{value}
+@deffnx Function platform.setsockopt @var{sock-int} @var{level} @var{option} @var{optptr} @var{optlen}
 Set the selected option for a socket.  @var{sock} must be an object of
 type @class{socket}; @var{option} must be an enumeration set of type
 @code{enum-socket-option} holding a single element.
@@ -7344,19 +7356,19 @@ The following functions manage error detection on streams operations.
 
 @deffn Function ferror @var{stream}
 @deffnx Parameter ferror-function
-@deffnx Function primitive:-ferror @var{stream}
-@deffnx Function platform:ferror @var{stream}
+@deffnx Function primitive.-ferror @var{stream}
+@deffnx Function platform.ferror @var{stream}
 Return @true{} if the error indicator of @var{stream} is set, @false{}
-otherwise.  @func{platform:ferror} returns a single value: The return
+otherwise.  @func{platform.ferror} returns a single value: The return
 value of the foreign function call.
 @end deffn
 
 
 @defun clearerr @var{stream}
-@defunx primitive:clearerr @var{stream}
-@defunx platform:clearerr @var{stream}
+@defunx primitive.clearerr @var{stream}
+@defunx platform.clearerr @var{stream}
 Clear the error and end--of--file indicators for @var{stream}.
-@func{platform:clearerr} returns a single value: The return value of the
+@func{platform.clearerr} returns a single value: The return value of the
 foreign function call.
 @end defun
 
@@ -7372,8 +7384,8 @@ Closing Streams}.
 
 @deffn Function fopen @var{pathname} @var{mode}
 @deffnx Parameter fopen-function
-@deffnx Function primitive:fopen @var{pathname} @var{mode}
-@deffnx Function platform:fopen @var{pathname-cstr} @var{mode-cstr}
+@deffnx Function primitive.fopen @var{pathname} @var{mode}
+@deffnx Function platform.fopen @var{pathname-cstr} @var{mode-cstr}
 Open a file selected by @var{pathname} with the given mode and return a
 @code{FILE*} object.  @var{pathname} and @var{mode} must be Scheme
 strings or symbols.
@@ -7382,16 +7394,16 @@ strings or symbols.
 
 @deffn Function fclose @var{stream}
 @deffnx Parameter fclose-function
-@deffnx Function primitive:fclose @var{stream}
-@deffnx Function platform:fclose @var{stream-ptr}
+@deffnx Function primitive.fclose @var{stream}
+@deffnx Function platform.fclose @var{stream-ptr}
 Close the previously opened @var{stream}.
 @end deffn
 
 
 @deffn Function fcloseall
 @deffnx Parameter fcloseall-function
-@deffnx Function primitive:fcloseall
-@deffnx Function platform:fcloseall
+@deffnx Function primitive.fcloseall
+@deffnx Function platform.fcloseall
 Close all the open streams of the process.
 @end deffn
 
@@ -7407,8 +7419,8 @@ Buffers}.
 
 @deffn Function fwrite @var{pointer} @var{size} @var{count} @var{stream}
 @deffnx Parameter fwrite-function
-@deffnx Function primitive:fwrite @var{pointer} @var{size} @var{count} @var{stream}
-@deffnx Function platform:fwrite @var{pointer} @var{size} @var{count} @var{stream-ptr}
+@deffnx Function primitive.fwrite @var{pointer} @var{size} @var{count} @var{stream}
+@deffnx Function platform.fwrite @var{pointer} @var{size} @var{count} @var{stream-ptr}
 Write up to @var{count} elements of @var{size} bytes from the block of
 memory referenced by @var{pointer} to @var{stream}.  If successful
 return @var{count}.
@@ -7417,8 +7429,8 @@ return @var{count}.
 
 @deffn Function fputc @var{char} @var{stream}
 @deffnx Parameter fputc-function
-@deffnx Function primitive:fputc @var{char} @var{stream}
-@deffnx Function platform:fputc @var{char} @var{stream-ptr}
+@deffnx Function primitive.fputc @var{char} @var{stream}
+@deffnx Function platform.fputc @var{char} @var{stream-ptr}
 Write a character to @var{stream}.  @var{char} must be a Scheme
 character with scalar value in the range @code{[0, 255]}; the scalar
 value is computed with @func{char->integer}.  If successful return the
@@ -7428,8 +7440,8 @@ scalar representing @var{char}.
 
 @deffn Function fputs @var{string} @var{stream}
 @deffnx Parameter fputs-function
-@deffnx Function primitive:fputs @var{string} @var{stream}
-@deffnx Function platform:fputs @var{cstring} @var{stream-ptr}
+@deffnx Function primitive.fputs @var{string} @var{stream}
+@deffnx Function platform.fputs @var{cstring} @var{stream-ptr}
 Write a string to @var{stream}.  @var{string} must be a Scheme string or
 symbol.  If successful return the scalar representing @var{char}.
 @end deffn
@@ -7437,8 +7449,8 @@ symbol.  If successful return the scalar representing @var{char}.
 
 @deffn Function fflush @var{stream}
 @deffnx Parameter fflush-function
-@deffnx Function primitive:fflush @var{stream}
-@deffnx Function platform:fflush @var{stream-ptr}
+@deffnx Function primitive.fflush @var{stream}
+@deffnx Function platform.fflush @var{stream-ptr}
 Flush the contents of the buffer to the underlying device.
 @end deffn
 
@@ -7453,8 +7465,8 @@ The following functions manage reading data from streams.
 
 @deffn Function fread @var{pointer} @var{size} @var{count} @var{stream}
 @deffnx Parameter fread-function
-@deffnx Function primitive:fread @var{pointer} @var{size} @var{count} @var{stream}
-@deffnx Function platform:fread @var{pointer} @var{size} @var{count} @var{stream-ptr}
+@deffnx Function primitive.fread @var{pointer} @var{size} @var{count} @var{stream}
+@deffnx Function platform.fread @var{pointer} @var{size} @var{count} @var{stream-ptr}
 Read up to @var{count} elements of @var{size} bytes from @var{stream}
 and store them in the block of memory referenced by @var{pointer}.
 Return the number of objects actually read (which may be less than
@@ -7464,15 +7476,15 @@ Return the number of objects actually read (which may be less than
 
 @deffn Function fgetc @var{stream}
 @deffnx Parameter fgetc-function
-@deffnx Function primitive:fgetc @var{stream}
-@deffnx Function platform:fgetc @var{stream-ptr}
+@deffnx Function primitive.fgetc @var{stream}
+@deffnx Function platform.fgetc @var{stream-ptr}
 Read a single character from @var{stream}.  Return a Scheme character.
 @end deffn
 
 
 @deffn Function fgets @var{pointer} @var{count} @var{stream}
 @deffnx Parameter fgets-function
-@deffnx Function primitive:fgets @var{pointer} @var{count} @var{stream}
+@deffnx Function primitive.fgets @var{pointer} @var{count} @var{stream}
 @deffnx Function platform-fgets @var{pointer} @var{count} @var{stream-ptr}
 Read a line from @var{stream} and store it in the buffer of @var{count}
 bytes referenced by @var{pointer}.  Return @var{pointer}.
@@ -7489,8 +7501,8 @@ The following functions manage ``unreading'' data from streams.
 
 @deffn Function ungetc @var{char} @var{stream}
 @deffnx Parameter ungetc-function
-@deffnx Function primitive:ungetc @var{char} @var{stream}
-@deffnx Function platform:ungetc @var{c-char} @var{stream-ptr}
+@deffnx Function primitive.ungetc @var{char} @var{stream}
+@deffnx Function platform.ungetc @var{c-char} @var{stream-ptr}
 Unread a character to @var{stream}.  @var{char} must be a Scheme
 character with scalar value in the range @code{[0, 255]}; the scalar
 value is computed with @func{char->integer}.
@@ -7511,8 +7523,8 @@ library.  @ref{fd constants seek, File positions}
 
 @deffn Function feof @var{stream}
 @deffnx Parameter feof-function
-@deffnx Function primitive:feof @var{stream}
-@deffnx Function platform:feof @var{stream-ptr}
+@deffnx Function primitive.feof @var{stream}
+@deffnx Function platform.feof @var{stream-ptr}
 Return @true{} if the end--of--file indicator of @var{stream} is set,
 otherwise @false{}.
 @end deffn
@@ -7520,8 +7532,8 @@ otherwise @false{}.
 
 @deffn Function fseek @var{stream} @var{offset} @var{whence}
 @deffnx Parameter fseek-function
-@deffnx Function primitive:fseek @var{stream} @var{offset} @var{whence}
-@deffnx Function platform:fseek @var{stream-ptr} @var{offset} @var{whence}
+@deffnx Function primitive.fseek @var{stream} @var{offset} @var{whence}
+@deffnx Function platform.fseek @var{stream-ptr} @var{offset} @var{whence}
 Change the file position of @var{stream} to @var{offset} from
 @var{whence}.
 @end deffn
@@ -7529,32 +7541,32 @@ Change the file position of @var{stream} to @var{offset} from
 
 @deffn Function fseeko @var{stream} @var{offset} @var{whence}
 @deffnx Parameter fseeko-function
-@deffnx Function primitive:fseeko @var{stream} @var{offset} @var{whence}
-@deffnx Function platform:fseeko @var{stream-ptr} @var{offset} @var{whence}
+@deffnx Function primitive.fseeko @var{stream} @var{offset} @var{whence}
+@deffnx Function platform.fseeko @var{stream-ptr} @var{offset} @var{whence}
 Like @func{fseek}, but the return value is of type @code{off_t}.
 @end deffn
 
 
 @deffn Function ftell @var{stream}
 @deffnx Parameter ftell-function
-@deffnx Function primitive:ftell @var{stream}
-@deffnx Function platform:ftell @var{stream-ptr}
+@deffnx Function primitive.ftell @var{stream}
+@deffnx Function platform.ftell @var{stream-ptr}
 Return the current file position of @var{stream}.
 @end deffn
 
 
 @deffn Function ftello @var{stream}
 @deffnx Parameter ftello-function
-@deffnx Function primitive:ftello @var{stream}
-@deffnx Function platform:ftello @var{stream-ptr}
+@deffnx Function primitive.ftello @var{stream}
+@deffnx Function platform.ftello @var{stream-ptr}
 Like @func{ftell}, but the return value is of type @code{off_t}.
 @end deffn
 
 
 @deffn Function rewind @var{stream}
 @deffnx Parameter rewind-function
-@deffnx Function primitive:rewind @var{stream}
-@deffnx Function platform:rewind @var{stream-ptr}
+@deffnx Function primitive.rewind @var{stream}
+@deffnx Function platform.rewind @var{stream-ptr}
 Change the file position of @var{stream} to the beginning of the file.
 @end deffn
 
@@ -7570,8 +7582,8 @@ Streams}.
 
 @deffn Function fdopen @var{fd} @var{open-mode}
 @deffnx Parameter fdopen-function
-@deffnx Function primitive:fdopen @var{fd} @var{open-mode}
-@deffnx Function platform:fdopen @var{fd} @var{open-mode}
+@deffnx Function primitive.fdopen @var{fd} @var{open-mode}
+@deffnx Function platform.fdopen @var{fd} @var{open-mode}
 Build a new stream referencing the file descriptor @var{fd} and return a
 @code{FILE*} object.  @var{open-mode} must be a Scheme string or symbol
 representing the open mode of @var{fd}; it can have the same values
@@ -7581,8 +7593,8 @@ accepted by @func{fopen}.
 
 @deffn Function fileno @var{stream}
 @deffnx Parameter fileno-function
-@deffnx Function primitive:fileno @var{stream}
-@deffnx Function platform:fileno @var{stream-ptr}
+@deffnx Function primitive.fileno @var{stream}
+@deffnx Function platform.fileno @var{stream-ptr}
 Return a @objtype{fd} object representing the file descriptor wrapped by
 @var{stream}.
 @end deffn
@@ -7603,15 +7615,15 @@ variants, but they do not implicitly lock the stream.
 
 @deffn Function ferror_unlocked @var{stream}
 @deffnx Parameter ferror_unlocked-function
-@deffnx Function primitive:ferror_unlocked @var{stream}
-@deffnx Function platform:ferror_unlocked @var{stream-ptr}
+@deffnx Function primitive.ferror_unlocked @var{stream}
+@deffnx Function platform.ferror_unlocked @var{stream-ptr}
 Like @func{ferror}.
 @end deffn
 
 
 @defun clearerr_unlocked @var{stream}
-@defunx primitive:clearerr_unlocked @var{stream}
-@defunx platform:clearerr_unlocked @var{stream-ptr}
+@defunx primitive.clearerr_unlocked @var{stream}
+@defunx platform.clearerr_unlocked @var{stream-ptr}
 Like @func{clearerr}.
 @end defun
 
@@ -7622,32 +7634,32 @@ Like @func{clearerr}.
 
 @deffn Function fwrite_unlocked @var{pointer} @var{size} @var{count} @var{stream}
 @deffnx Parameter fwrite_unlocked-function
-@deffnx Function primitive:fwrite_unlocked @var{pointer} @var{size} @var{count} @var{stream}
-@deffnx Function platform:fwrite_unlocked @var{pointer} @var{size} @var{count} @var{stream-ptr}
+@deffnx Function primitive.fwrite_unlocked @var{pointer} @var{size} @var{count} @var{stream}
+@deffnx Function platform.fwrite_unlocked @var{pointer} @var{size} @var{count} @var{stream-ptr}
 Like @func{fwrite}.
 @end deffn
 
 
 @deffn Function fputc_unlocked @var{char} @var{stream}
 @deffnx Parameter fputc_unlocked-function
-@deffnx Function primitive:fputc_unlocked @var{c-char} @var{stream}
-@deffnx Function platform:fputc_unlocked @var{c-char} @var{stream-ptr}
+@deffnx Function primitive.fputc_unlocked @var{c-char} @var{stream}
+@deffnx Function platform.fputc_unlocked @var{c-char} @var{stream-ptr}
 Like @func{fputc}.
 @end deffn
 
 
 @deffn Function fputs_unlocked @var{string} @var{stream}
 @deffnx Parameter fputs_unlocked-function
-@deffnx Function primitive:fputs_unlocked @var{cstring} @var{stream}
-@deffnx Function platform:fputs_unlocked @var{cstring} @var{stream-ptr}
+@deffnx Function primitive.fputs_unlocked @var{cstring} @var{stream}
+@deffnx Function platform.fputs_unlocked @var{cstring} @var{stream-ptr}
 Like @func{fputs}.
 @end deffn
 
 
 @deffn Function fflush_unlocked @var{stream}
 @deffnx Parameter fflush_unlocked-function
-@deffnx Function primitive:fflush_unlocked @var{stream}
-@deffnx Function platform:fflush_unlocked @var{stream-ptr}
+@deffnx Function primitive.fflush_unlocked @var{stream}
+@deffnx Function platform.fflush_unlocked @var{stream-ptr}
 Like @func{fflush}.
 @end deffn
 
@@ -7658,24 +7670,24 @@ Like @func{fflush}.
 
 @deffn Function fread_unlocked @var{pointer} @var{size} @var{count} @var{stream}
 @deffnx Parameter fread_unlocked-function
-@deffnx Function primitive:fread_unlocked @var{pointer} @var{size} @var{count} @var{stream}
-@deffnx Function platform:fread_unlocked @var{pointer} @var{size} @var{count} @var{stream-ptr}
+@deffnx Function primitive.fread_unlocked @var{pointer} @var{size} @var{count} @var{stream}
+@deffnx Function platform.fread_unlocked @var{pointer} @var{size} @var{count} @var{stream-ptr}
 Like @func{fread}.
 @end deffn
 
 
 @deffn Function fgetc_unlocked @var{stream}
 @deffnx Parameter fgetc_unlocked-function
-@deffnx Function primitive:fgetc_unlocked @var{stream}
-@deffnx Function platform:fgetc_unlocked @var{stream-ptr}
+@deffnx Function primitive.fgetc_unlocked @var{stream}
+@deffnx Function platform.fgetc_unlocked @var{stream-ptr}
 Like @func{fgetc}.
 @end deffn
 
 
 @deffn Function fgets_unlocked @var{pointer} @var{count} @var{stream}
 @deffnx Parameter fgets_unlocked-function
-@deffnx Function primitive:fgets_unlocked @var{pointer} @var{count} @var{stream}
-@deffnx Function platform:fgets_unlocked @var{pointer} @var{count} @var{stream-ptr}
+@deffnx Function primitive.fgets_unlocked @var{pointer} @var{count} @var{stream}
+@deffnx Function platform.fgets_unlocked @var{pointer} @var{count} @var{stream-ptr}
 Like @func{fgets}.
 @end deffn
 
@@ -7686,8 +7698,8 @@ Like @func{fgets}.
 
 @deffn Function feof_unlocked @var{stream}
 @deffnx Parameter feof_unlocked-function
-@deffnx Function primitive:feof_unlocked @var{stream}
-@deffnx Function platform:feof_unlocked @var{stream-ptr}
+@deffnx Function primitive.feof_unlocked @var{stream}
+@deffnx Function platform.feof_unlocked @var{stream-ptr}
 Like @func{feof}.
 @end deffn
 
@@ -7698,8 +7710,8 @@ Like @func{feof}.
 
 @deffn Function fileno_unlocked @var{stream}
 @deffnx Parameter fileno_unlocked-function
-@deffnx Function primitive:fileno_unlocked @var{stream}
-@deffnx Function platform:fileno_unlocked @var{stream-ptr}
+@deffnx Function primitive.fileno_unlocked @var{stream}
+@deffnx Function platform.fileno_unlocked @var{stream-ptr}
 Like @func{fileno}.
 @end deffn
 
@@ -7717,50 +7729,50 @@ The following functions implement extended operations on streams.
 
 @deffn Function freadable @var{stream}
 @deffnx Parameter freadable-function
-@deffnx Function primitive:freadable @var{stream}
-@deffnx Function platform:freadable @var{stream-ptr}
+@deffnx Function primitive.freadable @var{stream}
+@deffnx Function platform.freadable @var{stream-ptr}
 Return @true{} if @var{stream} was opened for reading, otherwise return
-@false{}.  @func{platform:freadable} returns a single value: the return
+@false{}.  @func{platform.freadable} returns a single value: the return
 value from the foreign function.
 @end deffn
 
 
 @deffn Function fwritable @var{stream}
 @deffnx Parameter fwritable-function
-@deffnx Function primitive:fwritable @var{stream}
-@deffnx Function platform:fwritable @var{stream-ptr}
+@deffnx Function primitive.fwritable @var{stream}
+@deffnx Function platform.fwritable @var{stream-ptr}
 Return @true{} if @var{stream} was opened for writing, otherwise return
-@false{}.  @func{platform:fwritable} returns a single value: the return
+@false{}.  @func{platform.fwritable} returns a single value: the return
 value from the foreign function.
 @end deffn
 
 
 @deffn Function freading @var{stream}
 @deffnx Parameter freading-function
-@deffnx Function primitive:freading @var{stream}
-@deffnx Function platform:freading @var{stream-ptr}
+@deffnx Function primitive.freading @var{stream}
+@deffnx Function platform.freading @var{stream-ptr}
 Return @true{} if @var{stream} was last read from, otherwise return
-@false{}.  @func{platform:freading} returns a single value: the return
+@false{}.  @func{platform.freading} returns a single value: the return
 value from the foreign function.
 @end deffn
 
 
 @deffn Function fwriting @var{stream}
 @deffnx Parameter fwriting-function
-@deffnx Function primitive:fwriting @var{stream}
-@deffnx Function platform:fwriting @var{stream-ptr}
+@deffnx Function primitive.fwriting @var{stream}
+@deffnx Function platform.fwriting @var{stream-ptr}
 Return @true{} if @var{stream} was last written to, otherwise return
-@false{}.  @func{platform:fwriting} returns a single value: the return
+@false{}.  @func{platform.fwriting} returns a single value: the return
 value from the foreign function.
 @end deffn
 
 
 @deffn Function fwide @var{stream} @var{mode}
 @deffnx Parameter fwide-function
-@deffnx Function primitive:fwide @var{stream} @var{mode}
-@deffnx Function platform:fwide @var{stream-ptr} @var{mode}
+@deffnx Function primitive.fwide @var{stream} @var{mode}
+@deffnx Function platform.fwide @var{stream-ptr} @var{mode}
 Set or query the orientation of @var{stream}.  @var{mode} must be an
-exact integer.  @func{platform:fwide} returns a single value: the return
+exact integer.  @func{platform.fwide} returns a single value: the return
 value from the foreign function.
 
 @itemize
@@ -7789,9 +7801,9 @@ characters.
 
 @deffn Function fpurge @var{stream}
 @deffnx Parameter fpurge-function
-@deffnx Function primitive:fpurge @var{stream}
-@deffnx Function platform:fpurge @var{stream-ptr}
-Discard the contents of the buffer.  @func{platform:fpurge} returns a
+@deffnx Function primitive.fpurge @var{stream}
+@deffnx Function platform.fpurge @var{stream-ptr}
+Discard the contents of the buffer.  @func{platform.fpurge} returns a
 single value: the return value from the foreign function.
 @end deffn
 
@@ -7806,8 +7818,8 @@ The following functions manage reading lines from streams.
 
 @deffn Function getline @var{stream}
 @deffnx Parameter getline-function
-@deffnx Function primitive:getline @var{stream}
-@deffnx Function platform:getline @var{pointer-pointer} @var{pointer-count} @var{stream-ptr}
+@deffnx Function primitive.getline @var{stream}
+@deffnx Function platform.getline @var{pointer-pointer} @var{pointer-count} @var{stream-ptr}
 Read characters from @var{stream} until a newline is found, then returns
 a string holding those characters and a terminating newline.
 
@@ -7824,8 +7836,8 @@ If an error occurs while reading: An exception is raised.
 
 @deffn Function getdelim @var{stream} @var{delimiter}
 @deffnx Parameter getdelim-function
-@deffnx Function primitive:getdelim @var{stream} @var{delimiter}
-@deffnx Function platform:getdelim @var{pointer-pointer} @var{pointer-count} @var{delimiter} @var{stream-ptr}
+@deffnx Function primitive.getdelim @var{stream} @var{delimiter}
+@deffnx Function platform.getdelim @var{pointer-pointer} @var{pointer-count} @var{delimiter} @var{stream-ptr}
 Like @func{getline} but reads characters until @var{delimiter} is found.
 @var{delimiter} must be a Scheme character with an integer
 representation in the range @code{[0, 255]}.
@@ -7844,7 +7856,7 @@ file and accumulates them in the @code{lines} variables:
   (foreign errno)
   (foreign ffi peekers-and-pokers)
   (glibc streams)
-  (prefix (glibc streams platform) platform:))
+  (prefix (glibc streams platform) platform.))
 
 (let* ((pathname the-pathname))
   (with-compensations
@@ -7863,7 +7875,7 @@ file and accumulates them in the @code{lines} variables:
               (lines       '()))
       (let loop ()
         (receive (result errno)
-            (platform:getline *pointer *count S)
+            (platform.getline *pointer *count S)
           (cond ((ferror S)
                  (free)
                  (raise-errno-error 'reading-line errno S))
@@ -8765,8 +8777,8 @@ Time Inquiry}.  @glibcref{Processor Time, Processor Time Inquiry}.
 
 @deffn Function clock
 @deffnx Parameter clock-function
-@deffnx Function primitive:clock
-@deffnx Function platform:clock
+@deffnx Function primitive.clock
+@deffnx Function platform.clock
 Return the calling process' current @cpu{} time, casted to a native
 @code{double} number and then to a Scheme inexact real number.
 @end deffn
@@ -8774,8 +8786,8 @@ Return the calling process' current @cpu{} time, casted to a native
 
 @deffn Function times
 @deffnx Parameter times-function
-@deffnx Function primitive:times
-@deffnx Function platform:times @var{pointer}
+@deffnx Function primitive.times
+@deffnx Function platform.times @var{pointer}
 Return two values: the return value from the @cfunc{times} call casted
 to a native @code{double} number and then to a Scheme inexact real
 number; a record of type @class{tms}.
@@ -8792,8 +8804,8 @@ The following functions deal with simple calendar time.
 
 @deffn Function time
 @deffnx Parameter time-function
-@deffnx Function primitive:time
-@deffnx Function platform:time
+@deffnx Function primitive.time
+@deffnx Function platform.time
 Return the current calendar time represented by a @code{time_t} value,
 casted to a native @code{double} value and then converted to a Scheme
 inexact real number.  It is the @dfn{epoch}: the number of seconds
@@ -8805,8 +8817,8 @@ These bindings are exported by the @posix{} @code{time} libraries.
 
 @deffn Function stime @var{calendar-time}
 @deffnx Parameter stime-function
-@deffnx Function primitive:stime @var{calendar-time}
-@deffnx Function platform:stime @var{calendar-time-double}
+@deffnx Function primitive.stime @var{calendar-time}
+@deffnx Function platform.stime @var{calendar-time-double}
 Set the system clock using a calendar time specification.  Superuser
 privileges are needed to successfully call this function.
 
@@ -8829,8 +8841,8 @@ bindings are exported by the Glibc @code{time} libraries.
 
 @deffn Function gettimeofday
 @deffnx Parameter gettimeofday-function
-@deffnx Function primitive:gettimeofday
-@deffnx Function platform:gettimeofday @var{timeval-ptr} @var{timezone-ptr}
+@deffnx Function primitive.gettimeofday
+@deffnx Function platform.gettimeofday @var{timeval-ptr} @var{timezone-ptr}
 Build and return two values: a record of type @class{timeval}, a
 record of type @class{timezone}; they represent the current time.
 @end deffn
@@ -8838,8 +8850,8 @@ record of type @class{timezone}; they represent the current time.
 
 @deffn Function settimeofday @var{timeval} @var{timezone}
 @deffnx Parameter settimeofday-function
-@deffnx Function primitive:settimeofday @var{timeval} @var{timezone}
-@deffnx Function platform:settimeofday @var{timeval-ptr} @var{timezone-ptr}
+@deffnx Function primitive.settimeofday @var{timeval} @var{timezone}
+@deffnx Function platform.settimeofday @var{timeval-ptr} @var{timezone-ptr}
 Set the system clock to the calendar time specified by the @var{timeval}
 and @var{timezone} arguments, which must be a @class{timeval}
 record and a @class{timezone} record.
@@ -8850,14 +8862,14 @@ Super user privileges are needed to successfully call this function.
 
 @deffn Function adjtime @var{timeval-delta}
 @deffnx Parameter adjtime-function
-@deffnx Function primitive:adjtime @var{timeval-delta}
-@deffnx Function platform:adjtime @var{timeval-delta-ptr} @var{timeval-old-delta-ptr}
+@deffnx Function primitive.adjtime @var{timeval-delta}
+@deffnx Function platform.adjtime @var{timeval-delta-ptr} @var{timeval-old-delta-ptr}
 Speed up or slow down the system clock in order to make a gradual
 adjustment maintaining a monotonic clock value.  The time delta is
 described by @var{timeval-delta}, which must be a record of type
 @class{timeval}.
 
-The @func{adjtime} and @func{primitive:adjtime} functions return two
+The @func{adjtime} and @func{primitive.adjtime} functions return two
 values: the return value from the foreign function and a record of type
 @class{timeval-delta} describing any previous time adjustment that has
 yet not completed.
@@ -8877,8 +8889,8 @@ specified, the bindings are exported by the Glibc @code{time} libraries.
 
 @deffn Function localtime @var{time} @var{malloc}
 @deffnx Parameter localtime-function
-@deffnx Function primitive:localtime @var{time} @var{malloc}
-@deffnx Function platform:localtime_r @var{time} @var{tm-pointer}
+@deffnx Function primitive.localtime @var{time} @var{malloc}
+@deffnx Function platform.localtime_r @var{time} @var{tm-pointer}
 Allocate a new @code{struct tm} instance, then fill it with broken--down
 values from the calendar @var{time} (which can be the return value of
 @func{time}).  The return value is the pointer to the @code{struct tm}
@@ -8905,8 +8917,8 @@ For example, to get the current year:
 
 @deffn Function localtime* @var{time}
 @deffnx Parameter localtime*-parameter
-@deffnx Function primitive:localtime* @var{time}
-Wrapper for @func{primitive:localtime} which automatically converts the
+@deffnx Function primitive.localtime* @var{time}
+Wrapper for @func{primitive.localtime} which automatically converts the
 @code{struct tm} instance into a @class{tm} record and returns
 it.  Memory is managed internally.
 
@@ -8921,8 +8933,8 @@ For example, to get the current year:
 
 @deffn Function gmtime @var{time} @var{malloc}
 @deffnx Parameter gmtime-function
-@deffnx Function primitive:gmtime @var{time} @var{malloc}
-@deffnx Function platform:gmtime @var{time} @var{tm-pointer}
+@deffnx Function primitive.gmtime @var{time} @var{malloc}
+@deffnx Function platform.gmtime @var{time} @var{tm-pointer}
 Like @func{localtime} but converts the given time as Coordinated
 Universal Time (@acronym{UTC}).
 @end deffn
@@ -8930,8 +8942,8 @@ Universal Time (@acronym{UTC}).
 
 @deffn Function gmtime* @var{time}
 @deffnx Parameter gmtime*-parameter
-@deffnx Function primitive:gmtime* @var{time}
-Wrapper for @func{primitive:gmtime} which automatically converts the
+@deffnx Function primitive.gmtime* @var{time}
+Wrapper for @func{primitive.gmtime} which automatically converts the
 @code{struct tm} instance into a @class{tm} record and returns
 it.  Memory is managed internally.
 @end deffn
@@ -8939,8 +8951,8 @@ it.  Memory is managed internally.
 
 @deffn Function timelocal @var{tm-pointer}
 @deffnx Parameter timelocal-function
-@deffnx Function primitive:timelocal @var{tm-pointer}
-@deffnx Function platform:timelocal @var{tm-pointer}
+@deffnx Function primitive.timelocal @var{tm-pointer}
+@deffnx Function platform.timelocal @var{tm-pointer}
 Return a calendar time value from the @code{struct tm} referenced by
 @var{tm-pointer}; the returned value is a @code{time_t} casted to a
 native @code{double} and converted to a Scheme inexact real number.  It
@@ -8956,8 +8968,8 @@ is the inverse of @func{localtime}.
 
 @deffn Function timelocal* @var{tm-record}
 @deffnx Parameter timelocal*-function
-@deffnx Function primitive:timelocal* @var{tm-record}
-Wrapper for @func{primitive:timelocal} which automatically converts
+@deffnx Function primitive.timelocal* @var{tm-record}
+Wrapper for @func{primitive.timelocal} which automatically converts
 @var{tm-record}, which must be a @class{tm} record, into an
 instance of @code{struct tm}.  Memory is managed internally.
 @end deffn
@@ -8965,8 +8977,8 @@ instance of @code{struct tm}.  Memory is managed internally.
 
 @deffn Function timegm @var{tm-pointer}
 @deffnx Parameter timegm-function
-@deffnx Function primitive:timegm @var{tm-pointer}
-@deffnx Function platform:timegm @var{tm-pointer}
+@deffnx Function primitive.timegm @var{tm-pointer}
+@deffnx Function platform.timegm @var{tm-pointer}
 Return a calendar time value from the @code{struct tm} referenced by
 @var{tm-pointer}; the returned value is a @code{time_t} casted to a
 native @code{double} and converted to a Scheme inexact real number.  It
@@ -8976,8 +8988,8 @@ is the inverse of @func{gmtime}.
 
 @deffn Function timegm* @var{tm-record}
 @deffnx Parameter timegm*-function
-@deffnx Function primitive:timegm* @var{tm-record}
-Wrapper for @func{primitive:timegm} which automatically converts
+@deffnx Function primitive.timegm* @var{tm-record}
+Wrapper for @func{primitive.timegm} which automatically converts
 @var{tm-record}, which must be a @class{tm} record, into an
 instance of @code{struct tm}.  Memory is managed internally.
 @end deffn
@@ -8995,8 +9007,8 @@ Clock}.
 
 @deffn Function ntp_gettime @var{ntptimeval-pointer}
 @deffnx Parameter ntp_gettime-function
-@deffnx Function primitive:ntp_gettime @var{ntptimeval-pointer}
-@deffnx Function platform:ntp_gettime @var{ntptimeval-pointer}
+@deffnx Function primitive.ntp_gettime @var{ntptimeval-pointer}
+@deffnx Function platform.ntp_gettime @var{ntptimeval-pointer}
 Fill the @code{struct ntptimeval} instance referenced by
 @var{ntptimeval-pointer} with current values from the system's kernel.
 @end deffn
@@ -9004,8 +9016,8 @@ Fill the @code{struct ntptimeval} instance referenced by
 
 @deffn Function ntp_gettime*
 @deffnx Parameter ntp_gettime-function
-@deffnx Function primitive:ntp_gettime*
-Wrappers for @func{primitive:ntp_gettime} which automatically allocate
+@deffnx Function primitive.ntp_gettime*
+Wrappers for @func{primitive.ntp_gettime} which automatically allocate
 the @code{struct ntptimeval} instance and convert it into a
 @class{ntptimeval} record; return the record.
 @end deffn
@@ -9013,8 +9025,8 @@ the @code{struct ntptimeval} instance and convert it into a
 
 @deffn Function ntp_adjtime @var{timex-pointer}
 @deffnx Parameter ntp_adjtime-function
-@deffnx Function primitive:ntp_adjtime @var{timex-pointer}
-@deffnx Function platform:ntp_adjtime @var{timex-pointer}
+@deffnx Function primitive.ntp_adjtime @var{timex-pointer}
+@deffnx Function platform.ntp_adjtime @var{timex-pointer}
 Set the @code{struct timex} instance referenced by @var{timex-pointer}
 to current values, also set some kernel values with values from the
 instance.  See the original documentation for details.
@@ -9025,10 +9037,10 @@ Superuser privileges are needed to successfully call this function.
 
 @deffn Function ntp_adjtime* @var{record}
 @deffnx Parameter ntp_adjtime-function
-@deffnx Function primitive:ntp_adjtime* @var{record}
-Wrappers for @func{primitive:ntp_adjtime} which automatically convert
+@deffnx Function primitive.ntp_adjtime* @var{record}
+Wrappers for @func{primitive.ntp_adjtime} which automatically convert
 the @class{timex} @var{record} into a @code{struct timex}
-instance, hand the structure to @func{primitive:ntp_adjtime}, finally
+instance, hand the structure to @func{primitive.ntp_adjtime}, finally
 convert the modified structure into a new @class{timex} record
 and return it.
 
@@ -9048,8 +9060,8 @@ Formatting Calendar Time}.
 
 @deffn Function asctime @var{tm-pointer}
 @deffnx Parameter asctime-function
-@deffnx Function primitive:asctime @var{tm-pointer}
-@deffnx Function platform:asctime_r @var{tm-pointer} @var{cstr}
+@deffnx Function primitive.asctime @var{tm-pointer}
+@deffnx Function platform.asctime_r @var{tm-pointer} @var{cstr}
 Convert the time specification in the @code{struct tm} instance
 referenced by @var{tm-pointer} into a string in a standard format;
 return a Scheme string.
@@ -9061,8 +9073,8 @@ reentrant.
 
 @deffn Function asctime* @var{tm-record}
 @deffnx Parameter asctime*-function
-@deffnx Function primitive:asctime* @var{tm-record}
-Wrappers for @func{primitive:asctime} which automatically convert the
+@deffnx Function primitive.asctime* @var{tm-record}
+Wrappers for @func{primitive.asctime} which automatically convert the
 @class{tm} @var{tm-record} into an instance of @code{struct tm}
 and perform the conversion to string.
 @end deffn
@@ -9070,8 +9082,8 @@ and perform the conversion to string.
 
 @deffn Function ctime @var{calendar-time}
 @deffnx Parameter ctime-function
-@deffnx Function primitive:ctime @var{calendar-time}
-@deffnx Function platform:ctime_r @var{calendar-time} @var{cstr}
+@deffnx Function primitive.ctime @var{calendar-time}
+@deffnx Function platform.ctime_r @var{calendar-time} @var{cstr}
 Convert the time specification of @var{calendar-time} into a string in a
 standard format; return a Scheme string.
 
@@ -9082,8 +9094,8 @@ reentrant.
 
 @deffn Function strftime @var{template} @var{tm-pointer}
 @deffnx Parameter strftime-function
-@deffnx Function primitive:strftime @var{template} @var{tm-pointer}
-@deffnx Function platform:strftime @var{output-cstr} @var{output-len} @var{template-cstr} @var{tm-pointer}
+@deffnx Function primitive.strftime @var{template} @var{tm-pointer}
+@deffnx Function platform.strftime @var{output-cstr} @var{output-len} @var{template-cstr} @var{tm-pointer}
 Return a Scheme string representing the date and time specification
 described by @var{template}, which must be a Scheme string, and the
 @code{struct tm} instance referenced by @var{tm-pointer}.
@@ -9098,8 +9110,8 @@ than that number of bytes, an error is raised.
 
 @deffn Function strftime* @var{template} @var{tm-record}
 @deffnx Parameter strftime*-function
-@deffnx Function primitive:strftime* @var{template} @var{tm-record}
-Wrappers for @func{primitive:strftime} which automatically convert the
+@deffnx Function primitive.strftime* @var{template} @var{tm-record}
+Wrappers for @func{primitive.strftime} which automatically convert the
 @class{tm} @var{tm-record} into an instance of @code{struct tm},
 then build and return the output string.
 @end deffn
@@ -9117,8 +9129,8 @@ Parsing, Interpret string according to given format}.
 
 @deffn Function strptime @var{input} @var{template} @var{tm-pointer}
 @deffnx Parameter strptime-function
-@deffnx Function primitive:strptime @var{input} @var{template} @var{tm-pointer}
-@deffnx Function platform:strptime @var{input-cstr} @var{template-cstr} @var{tm-pointer}
+@deffnx Function primitive.strptime @var{input} @var{template} @var{tm-pointer}
+@deffnx Function platform.strptime @var{input-cstr} @var{template-cstr} @var{tm-pointer}
 Parse the @var{input} Scheme string according to the @var{template}
 Scheme string and store the values in the @code{struct tm} instance
 referenced by @var{tm-pointer}.
@@ -9127,12 +9139,12 @@ referenced by @var{tm-pointer}.
 
 @deffn Function strptime* @var{input} @var{template}
 @deffnx Parameter strptime*-function
-@deffnx Function primitive:strptime* @var{input} @var{template}
-Wrappers for @func{primitive:strptime} which allocate a @code{struct tm}
+@deffnx Function primitive.strptime* @var{input} @var{template}
+Wrappers for @func{primitive.strptime} which allocate a @code{struct tm}
 instance and convert it to a @class{tm} record; return the
 record.
 
-Before calling @func{primitive:strptime} all the integer fields of
+Before calling @func{primitive.strptime} all the integer fields of
 @code{struct tm} are initialised to @code{INT_MAX} and the @code{zone}
 field is initialised to the @cnull{} pointer.
 @end deffn
@@ -9149,8 +9161,8 @@ the bindings are exported by the Glibc @code{time} libraries.
 
 @deffn Function setitimer @var{which} @var{itimerval-ptr-new} @var{itimerval-ptr-old}
 @deffnx Parameter setitimer-function
-@deffnx Function primitive:setitimer @var{which} @var{itimerval-ptr-new} @var{itimerval-ptr-old}
-@deffnx Function platform:setitimer @var{which} @var{itimerval-ptr-new} @var{itimerval-ptr-old}
+@deffnx Function primitive.setitimer @var{which} @var{itimerval-ptr-new} @var{itimerval-ptr-old}
+@deffnx Function platform.setitimer @var{which} @var{itimerval-ptr-new} @var{itimerval-ptr-old}
 Set the timer specified by @var{which} according to the time
 specification in the @code{struct itimerval} instance referenced by the
 pointer @var{itimerval-ptr-new}; the old timer specification, for the
@@ -9164,8 +9176,8 @@ referenced by the pointer @var{itimerval-ptr-old}.
 
 @deffn Function setitimer* @var{which} @var{new-record}
 @deffnx Parameter setitimer*-function
-@deffnx Function primitive:setitimer* @var{which} @var{new-record}
-Wrappers for @func{primitive:setitimer} which internally convert the
+@deffnx Function primitive.setitimer* @var{which} @var{new-record}
+Wrappers for @func{primitive.setitimer} which internally convert the
 @class{itimerval} record @var{new-record} to a @code{struct
 itimerval} instance and set the selected timer accordingly; the return
 value is a @class{itimerval} record representing the old
@@ -9175,8 +9187,8 @@ specification of the selected timer.
 
 @deffn Function getitimer @var{which} @var{itimerval-ptr-old}
 @deffnx Parameter getitimer-function
-@deffnx Function primitive:getitimer @var{which} @var{itimerval-ptr-old}
-@deffnx Function platform:getitimer @var{which} @var{itimerval-ptr-old}
+@deffnx Function primitive.getitimer @var{which} @var{itimerval-ptr-old}
+@deffnx Function platform.getitimer @var{which} @var{itimerval-ptr-old}
 Store, in the @code{struct itimerval} instance referenced by the pointer
 @var{itimerval-ptr-old}, the current timer specification for the
 selected type.  @var{which} can be one among the values bound to
@@ -9186,8 +9198,8 @@ selected type.  @var{which} can be one among the values bound to
 
 @deffn Function getitimer* @var{which}
 @deffnx Parameter getitimer*-function
-@deffnx Function primitive:getitimer* @var{which}
-Wrappers for @func{primitive:getitimer} which internally allocate a
+@deffnx Function primitive.getitimer* @var{which}
+Wrappers for @func{primitive.getitimer} which internally allocate a
 @code{struct itimerval} instance, query the timer status and return a
 @class{itimerval} record.
 @end deffn
@@ -9195,8 +9207,8 @@ Wrappers for @func{primitive:getitimer} which internally allocate a
 
 @deffn Function alarm @var{seconds}
 @deffnx Parameter alarm-function
-@deffnx Function primitive:alarm @var{seconds}
-@deffnx Function platform:alarm @var{seconds}
+@deffnx Function primitive.alarm @var{seconds}
+@deffnx Function platform.alarm @var{seconds}
 Set the timer of type @code{ITIMER_REAL} to trigger after @var{seconds}
 past the call.
 @end deffn
@@ -9212,8 +9224,8 @@ libraries.  @glibcref{Sleeping, Sleeping}.
 
 
 @defun sleep @var{seconds}
-@defunx primitive:sleep @var{seconds}
-@defunx platform:sleep @var{seconds}
+@defunx primitive.sleep @var{seconds}
+@defunx platform.sleep @var{seconds}
 Halt the process for @var{seconds}; return after the elapsed time or if
 a signal is received.  The return value is zero if the time is elapsed
 or, if a signal is received, the number of seconds still to wait.
@@ -9222,8 +9234,8 @@ or, if a signal is received, the number of seconds still to wait.
 
 @deffn Function nanosleep @var{requested-timespec-ptr} @var{remaining-timespec-ptr}
 @deffnx Parameter nanosleep-function
-@deffnx Function primitive:nanosleep @var{requested-timespec-ptr} @var{remaining-timespec-ptr}
-@deffnx Function platform:nanosleep @var{requested-timespec-ptr} @var{remaining-timespec-ptr}
+@deffnx Function primitive.nanosleep @var{requested-timespec-ptr} @var{remaining-timespec-ptr}
+@deffnx Function platform.nanosleep @var{requested-timespec-ptr} @var{remaining-timespec-ptr}
 Halt the process for the time specified in the @code{struct timespec}
 instance referenced by the @var{requested-timespec-ptr} pointer; return
 after the elapsed time or if a signal is received.  Store in the
@@ -9234,8 +9246,8 @@ after the elapsed time or if a signal is received.  Store in the
 
 @deffn Function nanosleep* @var{requested}
 @deffnx Parameter nanosleep*-function
-@deffnx Function primitive:nanosleep* @var{requested}
-Wrappers for @func{primitive:nanosleep} which internally convert the
+@deffnx Function primitive.nanosleep* @var{requested}
+Wrappers for @func{primitive.nanosleep} which internally convert the
 @class{timespec} record @var{requested} in a @code{struct
 timespec} instance, halt the process and return the remaining time in a
 @class{timespec} record.
@@ -9375,20 +9387,20 @@ The following functions inspect the process identifier.
 
 @deffn Function getpid
 @deffnx Parameter getpid-function
-@deffnx Function primitive:getpid
-@deffnx Function platform:getpid
+@deffnx Function primitive.getpid
+@deffnx Function platform.getpid
 Return a @code{pid} object representing the identifier of the current
-process.  This function cannot fail, so @func{platform:getpid} returns a
+process.  This function cannot fail, so @func{platform.getpid} returns a
 single value: the return value from the foreign function.
 @end deffn
 
 
 @deffn Function getppid
 @deffnx Parameter getppid-function
-@deffnx Function primitive:getppid
-@deffnx Function platform:getppid
+@deffnx Function primitive.getppid
+@deffnx Function platform.getppid
 Return a @code{pid} object representing the identifier of the parent
-process.  This function cannot fail, so @func{platform:getppid} returns
+process.  This function cannot fail, so @func{platform.getppid} returns
 a single value: the return value from the foreign function.
 @end deffn
 
@@ -9408,8 +9420,8 @@ impossible to know what the underlying Scheme implementation does.
 
 @deffn Function fork
 @deffnx Parameter fork-function
-@deffnx Function primitive:fork
-@deffnx Function platform:fork
+@deffnx Function primitive.fork
+@deffnx Function platform.fork
 Create a new process by forking the current one.  If successful
 @func{fork} returns @false{} in the child process and a @code{pid}
 object representing the child process' id in the parent process.
@@ -9426,8 +9438,8 @@ File, Executing a File}.
 
 @deffn Function execv @var{pathname} @var{args}
 @deffnx Parameter execv-function
-@deffnx Function primitive:execv @var{pathname} @var{args}
-@deffnx Function platform:execv @var{pathname-cstr} @var{argv}
+@deffnx Function primitive.execv @var{pathname} @var{args}
+@deffnx Function platform.execv @var{pathname-cstr} @var{argv}
 Execute the file selected by the Scheme string or symbol @var{pathname}
 using the list of Scheme strings or symbols @var{args} as command line
 arguments.  By convention the first value of @var{args} must be the name
@@ -9450,8 +9462,8 @@ reserved for numeric datums).
 
 @deffn Function execve @var{pathname} @var{args} @var{envs}
 @deffnx Parameter execve-function
-@deffnx Function primitive:execve @var{pathname} @var{args} @var{envs}
-@deffnx Function platform:execve @var{pathname-cstr} @var{argv} @var{envv}
+@deffnx Function primitive.execve @var{pathname} @var{args} @var{envs}
+@deffnx Function platform.execve @var{pathname-cstr} @var{argv} @var{envv}
 Execute the file selected by the Scheme string or symbol @var{pathname}
 using the list of Scheme strings or symbols @var{args} as command line
 arguments.  By convention the first value of @var{args} must be the name
@@ -9481,8 +9493,8 @@ reserved for numeric datums).
 
 @deffn Function execvp @var{pathname} @var{args}
 @deffnx Parameter execvp-function
-@deffnx Function primitive:execvp @var{pathname} @var{args}
-@deffnx Function platform:execvp @var{pathname-str} @var{argv}
+@deffnx Function primitive.execvp @var{pathname} @var{args}
+@deffnx Function platform.execvp @var{pathname-str} @var{argv}
 These functions are like the @func{execv} ones, except that
 @var{pathname} can be the name of a file that is searched in the current
 @env{PATH} search path.
@@ -9491,8 +9503,8 @@ These functions are like the @func{execv} ones, except that
 
 @deffn Function system @var{command}
 @deffnx Parameter system-function
-@deffnx Function primitive:system @var{command}
-@deffnx Function platform:system @var{command-cstr}
+@deffnx Function primitive.system @var{command}
+@deffnx Function platform.system @var{command-cstr}
 Run @var{command} using the system shell.
 @end deffn
 
@@ -9511,8 +9523,8 @@ The following functions manage waiting for spawned processes.
 
 @deffn Function waitpid @var{pid} @var{options}
 @deffnx Parameter waitpid-function
-@deffnx Function primitive:waitpid @var{pid} @var{options}
-@deffnx Function platform:waitpid @var{pid-int} @var{pointer} @var{options}
+@deffnx Function primitive.waitpid @var{pid} @var{options}
+@deffnx Function platform.waitpid @var{pid-int} @var{pointer} @var{options}
 Wait for a single process or a set of processes in a group; return two
 values: the return value from the foreign function embedded in a
 @code{pid} object; the process termination status.
@@ -9549,19 +9561,19 @@ group with id @var{gpid}.
 
 
 @defun integer-><process-term-status> @var{status}
-@defunx primitive:integer-><process-term-status> @var{status}
+@defunx primitive.integer-><process-term-status> @var{status}
 Given the exact integer @var{status} representing a process' termination
 status, build and return a record of type @class{process-term-status}.
 @end defun
 
 
-@defun platform:WIFEXITED @var{status}
-@defunx platform:WEXITSTATUS @var{status}
-@defunx platform:WIFSIGNALED @var{status}
-@defunx platform:WTERMSIG @var{status}
-@defunx platform:WCOREDUMP @var{status}
-@defunx platform:WIFSTOPPED @var{status}
-@defunx platform:WSTOPSIG @var{status}
+@defun platform.WIFEXITED @var{status}
+@defunx platform.WEXITSTATUS @var{status}
+@defunx platform.WIFSIGNALED @var{status}
+@defunx platform.WTERMSIG @var{status}
+@defunx platform.WCOREDUMP @var{status}
+@defunx platform.WIFSTOPPED @var{status}
+@defunx platform.WSTOPSIG @var{status}
 These are wrappers for the macros that extract a value from the
 @var{status} integer returned by the @func{waitpid} functions.  They can
 be used to query the status without building a record.
@@ -9589,8 +9601,8 @@ Controlling Terminal}.
 
 @deffn Function ctermid
 @deffnx Parameter ctermid-function
-@deffnx Function primitive:ctermid
-@deffnx Function platform:ctermid @var{pointer}
+@deffnx Function primitive.ctermid
+@deffnx Function platform.ctermid @var{pointer}
 Return a string representing the pathname of the controlling terminal
 for this process.
 
@@ -9611,8 +9623,8 @@ The following functions manage process groups and sessions.
 
 @deffn Function setsid
 @deffnx Parameter setsid-function
-@deffnx Function primitive:setsid
-@deffnx Function platform:setsid
+@deffnx Function primitive.setsid
+@deffnx Function platform.setsid
 Create a new session and return a @code{pid} object representing the new
 process group id.
 @end deffn
@@ -9620,8 +9632,8 @@ process group id.
 
 @deffn Function getsid @var{pid}
 @deffnx Parameter getsid-function
-@deffnx Function primitive:getsid @var{pid}
-@deffnx Function platform:getsid @var{pid-int}
+@deffnx Function primitive.getsid @var{pid}
+@deffnx Function platform.getsid @var{pid-int}
 Return a @code{pid} object representing the group id of the session
 leader of the process with @var{pid}.
 @end deffn
@@ -9629,8 +9641,8 @@ leader of the process with @var{pid}.
 
 @deffn Function getpgrp
 @deffnx Parameter getpgrp-function
-@deffnx Function primitive:getpgrp
-@deffnx Function platform:getpgrp
+@deffnx Function primitive.getpgrp
+@deffnx Function platform.getpgrp
 Return a @code{pid} object representing the process group id of the
 group to which the current process belongs.
 @end deffn
@@ -9638,8 +9650,8 @@ group to which the current process belongs.
 
 @deffn Function setpgid @var{pid} @var{pgid}
 @deffnx Parameter setpgid-function
-@deffnx Function primitive:setpgid @var{pid} @var{pgid}
-@deffnx Function platform:setpgid @var{pid-int} @var{pgid-int}
+@deffnx Function primitive.setpgid @var{pid} @var{pgid}
+@deffnx Function platform.setpgid @var{pid-int} @var{pgid-int}
 Put the process @var{pid} in the group @var{pgid}.
 @end deffn
 
@@ -9655,8 +9667,8 @@ Controlling Terminal Access}.
 
 @deffn Function tcgetpgrp @var{fd}
 @deffnx Parameter tcgetpgrp-function
-@deffnx Function primitive:tcgetpgrp @var{fd}
-@deffnx Function platform:tcgetpgrp @var{fd-int}
+@deffnx Function primitive.tcgetpgrp @var{fd}
+@deffnx Function platform.tcgetpgrp @var{fd-int}
 Return a @code{pid} object representing the process group id of the
 foreground process group associated with the terminal open on descriptor
 @var{fd}.
@@ -9665,16 +9677,16 @@ foreground process group associated with the terminal open on descriptor
 
 @deffn Function tcsetpgrp @var{fd} @var{pgid}
 @deffnx Parameter tcsetpgrp-function
-@deffnx Function primitive:tcsetpgrp @var{fd} @var{pgid}
-@deffnx Function platform:tcsetpgrp @var{fd-int} @var{pgid-int}
+@deffnx Function primitive.tcsetpgrp @var{fd} @var{pgid}
+@deffnx Function platform.tcsetpgrp @var{fd-int} @var{pgid-int}
 Set a terminal's foreground process group id.
 @end deffn
 
 
 @deffn Function tcgetsid @var{fd}
 @deffnx Parameter tcgetsid-function
-@deffnx Function primitive:tcgetsid @var{fd}
-@deffnx Function platform:tcgetsid @var{fd-int}
+@deffnx Function primitive.tcgetsid @var{fd}
+@deffnx Function platform.tcgetsid @var{fd-int}
 Return a @code{pid} object representing the process group id of the
 session for which the file descriptor @var{fd} is the controlling
 terminal.
@@ -9846,7 +9858,7 @@ Accessors and mutators for records of type @class{passwd}.
 @end defun
 
 
-@defun primitive:pointer-><passwd> @var{pointer}
+@defun primitive.pointer-><passwd> @var{pointer}
 Build and return a new @class{passwd} record mirroring the
 @code{struct passwd} C language data structure referenced by
 @var{pointer}.
@@ -9895,7 +9907,7 @@ Accessors and mutators for records of type @class{group}.
 @end defun
 
 
-@defun primitive:pointer-><group> @var{pointer}
+@defun primitive.pointer-><group> @var{pointer}
 Build and return a new @class{group} record mirroring the
 @code{struct group} C language data structure referenced by
 @var{pointer}.
@@ -9915,52 +9927,52 @@ The following bindings manage acquisition of user and group identifiers.
 
 @deffn Function getuid
 @deffnx Parameter getuid-function
-@deffnx Function primitive:getuid
-@deffnx Function platform:getuid
+@deffnx Function primitive.getuid
+@deffnx Function platform.getuid
 Return an @code{uid} object representing the real user identifier.
 
-@func{platform:getuid} returns a single argument: the return value from
+@func{platform.getuid} returns a single argument: the return value from
 the foreign function.
 @end deffn
 
 
 @deffn Function getgid
 @deffnx Parameter getgid-function
-@deffnx Function primitive:getgid
-@deffnx Function platform:getgid
+@deffnx Function primitive.getgid
+@deffnx Function platform.getgid
 Return a @code{gid} object representing the real group identifier.
 
-@func{platform:getgid} returns a single argument: the return value from
+@func{platform.getgid} returns a single argument: the return value from
 the foreign function.
 @end deffn
 
 
 @deffn Function geteuid
 @deffnx Parameter geteuid-function
-@deffnx Function primitive:geteuid
-@deffnx Function platform:geteuid
+@deffnx Function primitive.geteuid
+@deffnx Function platform.geteuid
 Return an @code{uid} object representing the effective user identifier.
 
-@func{platform:geteuid} returns a single argument: the return value from
+@func{platform.geteuid} returns a single argument: the return value from
 the foreign function.
 @end deffn
 
 
 @deffn Function getegid
 @deffnx Parameter getegid-function
-@deffnx Function primitive:getegid
-@deffnx Function platform:getegid
+@deffnx Function primitive.getegid
+@deffnx Function platform.getegid
 Return a @code{gid} object representing the effective group identifier.
 
-@func{platform:getegid} returns a single argument: the return value from
+@func{platform.getegid} returns a single argument: the return value from
 the foreign function.
 @end deffn
 
 
 @deffn Function getgroups
 @deffnx Parameter getgroups-function
-@deffnx Function primitive:getgroups
-@deffnx Function platform:getgroups @var{count} @var{group-array}
+@deffnx Function primitive.getgroups
+@deffnx Function platform.getgroups @var{count} @var{group-array}
 Return a (possibly empty) list of @code{gid} objects representing the
 supplementary group identifiers of the process.
 @end deffn
@@ -9968,8 +9980,8 @@ supplementary group identifiers of the process.
 
 @deffn Function getgrouplist @var{user-name} @var{gid}
 @deffnx Parameter getgrouplist-function @var{user-name} @var{gid}
-@deffnx Function primitive:getgrouplist
-@deffnx Function platform:getgrouplist @var{user-name-cstr} @var{gid-int}
+@deffnx Function primitive.getgrouplist
+@deffnx Function platform.getgrouplist @var{user-name-cstr} @var{gid-int}
 Return a (never empty) list of @code{gid} objects representing the
 supplementary group identifiers of groups to which the user with name
 @var{user-name} belongs to.  @var{gid} is added to the list.
@@ -9989,40 +10001,40 @@ Groups, Setting the Group IDs}.
 
 @deffn Function setuid @var{uid}
 @deffnx Parameter setuid-function
-@deffnx Function primitive:setuid @var{uid}
-@deffnx Function platform:setuid @var{uid-int}
+@deffnx Function primitive.setuid @var{uid}
+@deffnx Function platform.setuid @var{uid-int}
 Set both the real and effective user identifier to @var{uid}.
 @end deffn
 
 
 @deffn Function seteuid @var{uid}
 @deffnx Parameter seteuid-function
-@deffnx Function primitive:seteuid @var{uid}
-@deffnx Function platform:seteuid @var{uid-int}
+@deffnx Function primitive.seteuid @var{uid}
+@deffnx Function platform.seteuid @var{uid-int}
 Set the effective user identifier to @var{uid}.
 @end deffn
 
 
 @deffn Function setgid @var{gid}
 @deffnx Parameter setgid-function
-@deffnx Function primitive:setgid @var{gid}
-@deffnx Function platform:setgid @var{gid-int}
+@deffnx Function primitive.setgid @var{gid}
+@deffnx Function platform.setgid @var{gid-int}
 Set both the real and effective group identifier to @var{gid}.
 @end deffn
 
 
 @deffn Function setegid @var{gid}
 @deffnx Parameter setegid-function
-@deffnx Function primitive:setegid @var{gid}
-@deffnx Function platform:setegid @var{gid-int}
+@deffnx Function primitive.setegid @var{gid}
+@deffnx Function platform.setegid @var{gid-int}
 Set the effective group identifier to @var{gid}.
 @end deffn
 
 
 @deffn Function setgroups @var{gid-list}
 @deffnx Parameter setgroups-function
-@deffnx Function primitive:setgroups @var{gid-list}
-@deffnx Function platform:setgroups @var{count} @var{group-array}
+@deffnx Function primitive.setgroups @var{gid-list}
+@deffnx Function platform.setgroups @var{count} @var{group-array}
 Set the supplementary group identifiers of the process to the given list
 of identifiers.
 @end deffn
@@ -10030,8 +10042,8 @@ of identifiers.
 
 @deffn Function initgroups @var{user-name} @var{gid}
 @deffnx Parameter initgroups-function
-@deffnx Function primitive:initgroups @var{user-name} @var{gid}
-@deffnx Function platform:initgroups @var{user-name-cstr} @var{gid-int}
+@deffnx Function primitive.initgroups @var{user-name} @var{gid}
+@deffnx Function platform.initgroups @var{user-name-cstr} @var{gid-int}
 Set the current supplementary groups to be the default for the user
 selected by @var{user-name}, which must be a Scheme string or symbol.
 The group identifier @var{gid} is automatically included.
@@ -10048,24 +10060,24 @@ The following bindings manage retrieval of user's login name.
 
 @deffn Function getlogin
 @deffnx Parameter getlogin-function
-@deffnx Function primitive:getlogin
-@deffnx Function platform:getlogin
+@deffnx Function primitive.getlogin
+@deffnx Function platform.getlogin
 Return a Scheme string representing the name of the logged in user; this
 function is not reentrant.
 
-@func{platform:getlogin} returns a single argument: the return value
+@func{platform.getlogin} returns a single argument: the return value
 from the foreign function.
 @end deffn
 
 
 @deffn Function cuserid
 @deffnx Parameter cuserid-function
-@deffnx Function primitive:cuserid
-@deffnx Function platform:cuserid @var{cstr}
+@deffnx Function primitive.cuserid
+@deffnx Function platform.cuserid @var{cstr}
 Return a Scheme string representing the name of the logged in user; this
 function is reentrant.
 
-@func{platform:cuserid} returns a single argument: the return value from
+@func{platform.cuserid} returns a single argument: the return value from
 the foreign function.
 @end deffn
 
@@ -10081,9 +10093,9 @@ Users, Scanning the List of All Users}.
 
 @deffn Function getpwuid @var{uid}
 @deffnx Parameter getpwuid-function
-@deffnx Function primitive:getpwuid @var{uid}
-@deffnx Function platform:getpwuid @var{uid-int}
-@deffnx Function platform:getpwuid_r @var{uid-int} @var{pwd-ptr} @var{buf-ptr} @var{buf-len} @var{result-ptr}
+@deffnx Function primitive.getpwuid @var{uid}
+@deffnx Function platform.getpwuid @var{uid-int}
+@deffnx Function platform.getpwuid_r @var{uid-int} @var{pwd-ptr} @var{buf-ptr} @var{buf-len} @var{result-ptr}
 Return a record of type @class{passwd} representing data about
 the user identified by @var{uid}.  This function is reentrant.
 @end deffn
@@ -10091,9 +10103,9 @@ the user identified by @var{uid}.  This function is reentrant.
 
 @deffn Function getpwnam @var{user-name}
 @deffnx Parameter getpwnam-function
-@deffnx Function primitive:getpwnam @var{user-name}
-@deffnx Function platform:getpwnam @var{name-cstr}
-@deffnx Function platform:getpwnam_r @var{name-cstr} @var{pwd-ptr} @var{buf-ptr} @var{buf-len} @var{result-ptr}
+@deffnx Function primitive.getpwnam @var{user-name}
+@deffnx Function platform.getpwnam @var{name-cstr}
+@deffnx Function platform.getpwnam_r @var{name-cstr} @var{pwd-ptr} @var{buf-ptr} @var{buf-len} @var{result-ptr}
 Return a record of type @class{passwd} representing data about
 the user whose name is @var{user-name}, a Scheme string or symbol.  This
 function is reentrant.
@@ -10102,9 +10114,9 @@ function is reentrant.
 
 @deffn Function fgetpwent @var{stream}
 @deffnx Parameter fgetpwent
-@deffnx Function primitive:fgetpwent @var{stream}
-@deffnx Function platform:fgetpwent @var{stream-ptr}
-@deffnx Function platform:fgetpwent_r @var{stream-ptr} @var{pwd-ptr} @var{buf-ptr} @var{buf-len} @var{result-ptr}
+@deffnx Function primitive.fgetpwent @var{stream}
+@deffnx Function platform.fgetpwent @var{stream-ptr}
+@deffnx Function platform.fgetpwent_r @var{stream-ptr} @var{pwd-ptr} @var{buf-ptr} @var{buf-len} @var{result-ptr}
 Return a record of type @class{passwd} representing data about
 the next user from the database file referenced by @var{stream}, a
 @code{FILE*} object.  When the iteration over the database ends, the
@@ -10138,9 +10150,9 @@ Groups, Scanning the List of All Groups}.
 
 @deffn Function getgrgid @var{gid}
 @deffnx Parameter getgrgid-function
-@deffnx Function primitive:getgrgid @var{gid}
-@deffnx Function platform:getgrgid @var{gid-int}
-@deffnx Function platform:getgrgid_r @var{gid-int} @var{pwd-ptr} @var{buf-ptr} @var{buf-len} @var{result-ptr}
+@deffnx Function primitive.getgrgid @var{gid}
+@deffnx Function platform.getgrgid @var{gid-int}
+@deffnx Function platform.getgrgid_r @var{gid-int} @var{pwd-ptr} @var{buf-ptr} @var{buf-len} @var{result-ptr}
 Return a record of type @class{group} representing data about
 the group identified by @var{gid}.  This function is reentrant.
 @end deffn
@@ -10148,9 +10160,9 @@ the group identified by @var{gid}.  This function is reentrant.
 
 @deffn Function getgrnam @var{group-name}
 @deffnx Parameter getgrnam-function
-@deffnx Function primitive:getgrnam @var{group-name}
-@deffnx Function platform:getgrnam @var{name-cstr}
-@deffnx Function platform:getgrnam_r @var{name-cstr} @var{pwd-ptr} @var{buf-ptr} @var{buf-len} @var{result-ptr}
+@deffnx Function primitive.getgrnam @var{group-name}
+@deffnx Function platform.getgrnam @var{name-cstr}
+@deffnx Function platform.getgrnam_r @var{name-cstr} @var{pwd-ptr} @var{buf-ptr} @var{buf-len} @var{result-ptr}
 Return a record of type @class{group} representing data about
 the group whose name is @var{group-name}, a Scheme string or symbol.  This
 function is reentrant.
@@ -10159,9 +10171,9 @@ function is reentrant.
 
 @deffn Function fgetgrent @var{stream}
 @deffnx Parameter fgetgrent
-@deffnx Function primitive:fgetgrent @var{stream}
-@deffnx Function platform:fgetgrent @var{stream-ptr}
-@deffnx Function platform:fgetgrent_r @var{stream-ptr} @var{pwd-ptr} @var{buf-ptr} @var{buf-len} @var{result-ptr}
+@deffnx Function primitive.fgetgrent @var{stream}
+@deffnx Function platform.fgetgrent @var{stream-ptr}
+@deffnx Function platform.fgetgrent_r @var{stream-ptr} @var{pwd-ptr} @var{buf-ptr} @var{buf-len} @var{result-ptr}
 Return a record of type @class{group} representing data about the
 next group from the database file referenced by @var{stream}, a
 @code{FILE*} object.  When the iteration over the database ends, the
@@ -10329,16 +10341,16 @@ libraries.  @glibcref{Signal Messages, Signal Messages}.
 
 
 @deffn Function strsignal @var{signum}
-@deffnx Function primitive:strsignal @var{signum}
-@deffnx Function platform:strsignal @var{signum}
+@deffnx Function primitive.strsignal @var{signum}
+@deffnx Function platform.strsignal @var{signum}
 Return a Scheme string representing a description of the signal
 @var{signum}.
 @end deffn
 
 
 @deffn Function psignal @var{signum} @var{message-prefix}
-@deffnx Function primitive:psignal @var{signum} @var{message-prefix}
-@deffnx Function platform:psignal @var{signum} @var{message-prefix-cstr}
+@deffnx Function primitive.psignal @var{signum} @var{message-prefix}
+@deffnx Function platform.psignal @var{signum} @var{message-prefix-cstr}
 Print a Scheme string representing a description of the signal
 @var{signum} to @code{stderr}.
 @end deffn
@@ -10369,27 +10381,27 @@ example:
 
 
 @defun signal-bub-init
-@defunx primitive:signal-bub-init
+@defunx primitive.signal-bub-init
 Block all the signals and initialise the @bub{} interface.
 @end defun
 
 
 @defun signal-bub-final
-@defunx primitive:signal-bub-final
+@defunx primitive.signal-bub-final
 Set all the signal handlers to @code{SIG_IGN}, then unblock all the
 signals and finalise the @bub{} interface.
 @end defun
 
 
 @defun signal-bub-acquire
-@defunx primitive:signal-bub-acquire
+@defunx primitive.signal-bub-acquire
 Unblock all the signals, then block them again.  This should allow all
 the pending signals to be delivered to the process.
 @end defun
 
 
 @defun signal-bub-delivered? @var{signum}
-@defunx primitive:signal-bub-delivered? @var{signum}
+@defunx primitive.signal-bub-delivered? @var{signum}
 Return @true{} if the signal @var{signum} has been delivered at least
 once @strong{before} the last call to @func{signal-bub-acquire}.
 Calling this function with @var{signum} clears the internal flag for
@@ -10401,7 +10413,7 @@ This function interferes with @func{signal-bub-all-delivered}.
 
 
 @deffn Syntax signal-bub-delivered*? @ameta{sig-set}
-@deffnx Syntax primitive:signal-bub-delivered*? @ameta{sig-set}
+@deffnx Syntax primitive.signal-bub-delivered*? @ameta{sig-set}
 Wrapper for @func{signal-bub-delivered?} accepting as argument an
 enumeration set of type @code{enum-unix-signals} holding a single
 argument.
@@ -10409,7 +10421,7 @@ argument.
 
 
 @defun signal-bub-all-delivered
-@defunx primitive:signal-bub-all-delivered
+@defunx primitive.signal-bub-all-delivered
 Return an enumeration set of type @code{enum-unix-signals} representing
 the signals delivered before the last call to @func{signal-bub-acquire}.
 Calling this function clears the internal flags for all the signals, so
@@ -10430,8 +10442,8 @@ The following functions manage sending interprocess signals.
 
 @deffn Function signal-raise @var{signum}
 @deffnx Parameter signal-raise-function
-@deffnx Function primitive:signal-raise @var{signum}
-@deffnx Function platform:signal_raise @var{signum}
+@deffnx Function primitive.signal-raise @var{signum}
+@deffnx Function platform.signal_raise @var{signum}
 Send the signal @var{signum} to this process.
 
 This is a wrapper for the @cfunc{raise} foreign function.
@@ -10441,7 +10453,7 @@ foreign function.
 
 
 @deffn Syntax signal-raise* @ameta{sig-set}
-@deffnx Syntax primitive:signal-raise* @ameta{sig-set}
+@deffnx Syntax primitive.signal-raise* @ameta{sig-set}
 Wrapper for @func{signal-raise} accepting as argument an enumeration set
 of type @code{enum-unix-signals} holding a single argument.
 @end deffn
@@ -10449,15 +10461,15 @@ of type @code{enum-unix-signals} holding a single argument.
 
 @deffn Function kill @var{pid} @var{signum}
 @deffnx Parameter kill-function
-@deffnx Function primitive:kill @var{pid} @var{signum}
-@deffnx Function platform:kill @var{pid-int} @var{signum}
+@deffnx Function primitive.kill @var{pid} @var{signum}
+@deffnx Function platform.kill @var{pid-int} @var{signum}
 Send the signal @var{signum} to the process or process groups identified
 by @var{pid}, a @code{pid} object.
 @end deffn
 
 
 @deffn Syntax kill* @ameta{pid} @ameta{sig-set}
-@deffnx Syntax primitive:kill* @ameta{pid} @ameta{sig-set}
+@deffnx Syntax primitive.kill* @ameta{pid} @ameta{sig-set}
 Wrapper for @func{kill} accepting as argument an enumeration set of type
 @code{enum-unix-signals} holding a single argument.
 @end deffn
@@ -10465,15 +10477,15 @@ Wrapper for @func{kill} accepting as argument an enumeration set of type
 
 @deffn Function killpg @var{pid} @var{signum}
 @deffnx Parameter killpg-function
-@deffnx Function primitive:killpg @var{pid} @var{signum}
-@deffnx Function platform:killpg @var{pid-int} @var{signum}
+@deffnx Function primitive.killpg @var{pid} @var{signum}
+@deffnx Function platform.killpg @var{pid-int} @var{signum}
 Send the signal @var{signum} to the process group identified by
 @var{pid}, a @code{pid} object.
 @end deffn
 
 
 @deffn Syntax killpg* @ameta{pid} @ameta{sig-set}
-@deffnx Syntax primitive:killpg* @ameta{pid} @ameta{sig-set}
+@deffnx Syntax primitive.killpg* @ameta{pid} @ameta{sig-set}
 Wrapper for @func{killpg} accepting as argument an enumeration set of
 type @code{enum-unix-signals} holding a single argument.
 @end deffn
@@ -10490,8 +10502,8 @@ interprocess signal.  @glibcref{Using Pause, Using @cfunc{pause}}.
 
 @deffn Function pause
 @deffnx Parameter pause-function
-@deffnx Function primitive:pause
-@deffnx Function platform:pause
+@deffnx Function primitive.pause
+@deffnx Function platform.pause
 Block the process and wait until the next signal arrives.
 @end deffn
 
@@ -10611,7 +10623,7 @@ Accessors and mutators for records of type @class{utsname}.
 @end defun
 
 
-@defun primitive:pointer-><utsname> @var{pointer}
+@defun primitive.pointer-><utsname> @var{pointer}
 Build and return a new record of type @class{utsname} initialised
 with data from the C structure of type @code{struct utsname} referenced
 by @var{pointer}.
@@ -10684,7 +10696,7 @@ Accessors and mutators for records of type @class{fstab}.
 @end defun
 
 
-@defun primitive:pointer-><fstab> @var{pointer}
+@defun primitive.pointer-><fstab> @var{pointer}
 Build and return a new record of type @class{fstab} initialised
 with data from the C structure of type @code{struct fstab} referenced by
 @var{pointer}.
@@ -10748,7 +10760,7 @@ Accessors and mutators for records of type @class{mntent}.
 @end defun
 
 
-@defun primitive:pointer-><mntent> @var{pointer}
+@defun primitive.pointer-><mntent> @var{pointer}
 Build and return a new record of type @class{mntent} initialised
 with data from the C structure of type @code{struct mntent} referenced
 by @var{pointer}.
@@ -10758,7 +10770,7 @@ primitives}.
 @end defun
 
 
-@defun primitive:<mntent>->pointer @var{mntent} @var{malloc}
+@defun primitive.<mntent>->pointer @var{mntent} @var{malloc}
 Allocate a new @code{struct mntent} C language data structure
 initialised with values from @var{mntent}, which must be a record of
 type @class{mntent}.
@@ -11198,8 +11210,8 @@ environment, Accessing environment variables}.
 
 @deffn Function getenv @var{varname}
 @deffnx Parameter getenv-function
-@deffnx Function primitive:getenv @var{varname}
-@deffnx Function platform:getenv @var{varname-cstr}
+@deffnx Function primitive.getenv @var{varname}
+@deffnx Function platform.getenv @var{varname-cstr}
 Return the current value of the environment variable @var{varname}, as a
 Scheme string.  @var{varname} must be a Scheme string or symbol.  If the
 variable is not set, the return value if @false{}; if the variable is
@@ -11210,9 +11222,9 @@ set to the empty string, the return value is the empty string.
 @deffn Function setenv @var{varname} @var{value}
 @deffnx Function setenv @var{varname} @var{value} @var{replace}
 @deffnx Parameter setenv-function
-@deffnx Function primitive:setenv @var{varname} @var{value}
-@deffnx Function primitive:setenv @var{varname} @var{value} @var{replace}
-@deffnx Function platform:setenv @var{varname} @var{value} @var{replace}
+@deffnx Function primitive.setenv @var{varname} @var{value}
+@deffnx Function primitive.setenv @var{varname} @var{value} @var{replace}
+@deffnx Function platform.setenv @var{varname} @var{value} @var{replace}
 Set a new value for the environment variable @var{varname}.
 @var{varname} and @var{value} must be Scheme strings or symbols.  If the
 environment already contains @var{varname}, then @var{replace} controls
@@ -11222,14 +11234,14 @@ the action: if true the value is replaced, if @false{} it is left alone.
 
 @deffn Function environ
 @deffnx Parameter environ-function
-@deffnx Function primitive:environ
-@deffnx Function platform:environ
+@deffnx Function primitive.environ
+@deffnx Function platform.environ
 Direct access to the process' environment variables.  @func{environ} and
-@func{primitive:environ} return a list of strings, each of the form
+@func{primitive.environ} return a list of strings, each of the form
 @samp{NAME=VALUE} where @samp{NAME} is the name of an environment
 variable and @samp{VALUE} its value.
 
-@func{platform:environ} returns a pointer to an array of pointers, each
+@func{platform.environ} returns a pointer to an array of pointers, each
 referencing a C string with the format @samp{NAME=VALUE}.  The pointer
 is suitable to be used as argument to @func{arg->strings}
 (@nauref{cstrings argv, Converting arrays of strings}).
@@ -11238,7 +11250,7 @@ is suitable to be used as argument to @func{arg->strings}
 
 @deffn Function environ-table
 @deffnx Parameter environ-table
-@deffnx Function primitive:environ-table
+@deffnx Function primitive.environ-table
 Internally invoke @func{environ} and convert the list of strings into a
 hashtable; return the hashtable.  The keys are Scheme symbols
 representing the defined environment variables, the values are Scheme
@@ -11248,8 +11260,8 @@ symbols representing the environment variables' values.
 
 @defun environ->table @var{environ}
 @defunx table->environ @var{table}
-@defunx primitive:environ->table @var{environ}
-@defunx primitive:table->environ @var{table}
+@defunx primitive.environ->table @var{environ}
+@defunx primitive.table->environ @var{table}
 Convert between a list of strings in ``environ'' format and a hashtable.
 @end defun
 
@@ -11267,23 +11279,23 @@ The following bindings are exported by following functions:
 
 
 @deffn Function clearenv
-@deffnx Function primitive:clearenv
-@deffnx Function platform:clearenv
+@deffnx Function primitive.clearenv
+@deffnx Function platform.clearenv
 Remove all the entries from the process' environment.
 @end deffn
 
 
 @deffn Function unsetenv @var{varname}
-@deffnx Function primitive:unsetenv @var{varname}
-@deffnx Function platform:unsetenv @var{varname-cstr}
+@deffnx Function primitive.unsetenv @var{varname}
+@deffnx Function platform.unsetenv @var{varname-cstr}
 Remove the entry for @var{varname} from the environment.  @var{varname}
 must be a Scheme string or symbol.
 @end deffn
 
 
 @deffn Function putenv @var{assignment}
-@deffnx Function primitive:putenv @var{assignment}
-@deffnx Function platform:putenv @var{assignment-cstr}
+@deffnx Function primitive.putenv @var{assignment}
+@deffnx Function platform.putenv @var{assignment-cstr}
 Put the variable assignment described by the Scheme string or symbol
 @var{assignment} in the environment.  @var{assignment} must have the
 format @samp{NAME=VALUE}.
@@ -11291,7 +11303,7 @@ format @samp{NAME=VALUE}.
 
 
 @defun putenv* @var{name} @var{value}
-@defunx primitive:putenv* @var{name} @var{value}
+@defunx primitive.putenv* @var{name} @var{value}
 Append the Scheme strings or symbols @var{name} and @var{value} to form
 a single strings with @samp{=} in the middle; then put the resulting
 variable assignment in the environment.
@@ -11304,8 +11316,8 @@ variable assignment in the environment.
 
 @deffn Function sysconf @var{param}
 @deffnx Parameter sysconf-function
-@deffnx Function primitive:sysconf @var{param}
-@deffnx Function platform:sysconf @var{param}
+@deffnx Function primitive.sysconf @var{param}
+@deffnx Function platform.sysconf @var{param}
 Return an exact integer representing the configuration value selected by
 @var{param}.  @glibcref{Sysconf, Using @code{sysconf}}.
 
@@ -11318,8 +11330,8 @@ If the system does not impose a limit: the return value is @true{}.
 
 @deffn Function pathconf @var{pathname} @var{param}
 @deffnx Parameter pathconf-function
-@deffnx Function primitive:pathconf @var{pathname} @var{param}
-@deffnx Function platform:pathconf @var{pathname-cstr} @var{param}
+@deffnx Function primitive.pathconf @var{pathname} @var{param}
+@deffnx Function platform.pathconf @var{pathname-cstr} @var{param}
 Return an exact integer representing the configuration value selected by
 @var{param} associated to the file @var{pathname}.  @glibcref{Utility
 Limits, Using @code{pathconf}}.
@@ -11335,8 +11347,8 @@ If the system does not impose a limit: the return value is @true{}.
 
 @deffn Function fpathconf @var{fd} @var{param}
 @deffnx Parameter fpathconf-function
-@deffnx Function primitive:fpathconf @var{fd} @var{param}
-@deffnx Function platform:fpathconf @var{fd} @var{param}
+@deffnx Function primitive.fpathconf @var{fd} @var{param}
+@deffnx Function platform.fpathconf @var{fd} @var{param}
 Like @func{pathconf} but select the file through the file descriptor
 @var{fd}.
 @end deffn
@@ -11344,8 +11356,8 @@ Like @func{pathconf} but select the file through the file descriptor
 
 @deffn Function confstr @var{param}
 @deffnx Parameter confstr-function
-@deffnx Function primitive:confstr @var{param}
-@deffnx Function platform:confstr @var{param} @var{buf} @var{len}
+@deffnx Function primitive.confstr @var{param}
+@deffnx Function platform.confstr @var{param} @var{buf} @var{len}
 Return the value of a string--valued system parameter.
 
 @var{param} must be one among the @samp{_CS_*} values.  @ref{system
@@ -11363,32 +11375,32 @@ The following functions manage local host identification.
 
 @deffn Function gethostname
 @deffnx Parameter gethostname-function
-@deffnx Function primitive:gethostname
-@deffnx Function platform:gethostname @var{buf-ptr} @var{buf-len}
+@deffnx Function primitive.gethostname
+@deffnx Function platform.gethostname @var{buf-ptr} @var{buf-len}
 Return a Scheme string representing the local host name.
 @end deffn
 
 
 @deffn Function sethostname @var{host-name}
 @deffnx Parameter sethostname-function
-@deffnx Function primitive:sethostname @var{host-name}
-@deffnx Function platform:sethostname @var{buf-ptr} @var{buf-len}
+@deffnx Function primitive.sethostname @var{host-name}
+@deffnx Function platform.sethostname @var{buf-ptr} @var{buf-len}
 Set the local host name to @var{host-name}, a Scheme string or symbol.
 @end deffn
 
 
 @deffn Function getdomainname
 @deffnx Parameter getdomainname-function
-@deffnx Function primitive:getdomainname
-@deffnx Function platform:getdomainname @var{buf-ptr} @var{buf-len}
+@deffnx Function primitive.getdomainname
+@deffnx Function platform.getdomainname @var{buf-ptr} @var{buf-len}
 Return a Scheme string representing the local domain name.
 @end deffn
 
 
 @deffn Function setdomainname @var{host-name}
 @deffnx Parameter setdomainname-function
-@deffnx Function primitive:setdomainname @var{host-name}
-@deffnx Function platform:setdomainname @var{buf-ptr} @var{buf-len}
+@deffnx Function primitive.setdomainname @var{host-name}
+@deffnx Function platform.setdomainname @var{buf-ptr} @var{buf-len}
 Set the local domain name to @var{host-name}, a Scheme string or symbol.
 @end deffn
 
@@ -11404,8 +11416,8 @@ The following functions manage platform identification.
 
 @deffn Function uname
 @deffnx Parameter uname-function
-@deffnx Function primitive:uname
-@deffnx Function platform:uname @var{struct-ptr}
+@deffnx Function primitive.uname
+@deffnx Function platform.uname @var{struct-ptr}
 Return a record of type @class{utsname} describing the underlying
 platform.
 @end deffn
@@ -11431,32 +11443,32 @@ The following functions manage reading the @file{fstab} file.
 
 @deffn Function setfsent
 @deffnx Parameter setfsent-function
-@deffnx Function primitive:setfsent
-@deffnx Function platform:setfsent
+@deffnx Function primitive.setfsent
+@deffnx Function platform.setfsent
 Initialise the next iteration over the @file{fstab} file.  Raise an
 exception if an error occurs.
 
-@func{platform:setfsent} returns a single argument: the return value
+@func{platform.setfsent} returns a single argument: the return value
 from the foreign function.
 @end deffn
 
 
 @deffn Function endfsent
 @deffnx Parameter endfsent-function
-@deffnx Function primitive:endfsent
-@deffnx Function platform:endfsent
+@deffnx Function primitive.endfsent
+@deffnx Function platform.endfsent
 Finalise the last iteration over the @file{fstab} file.  Raise an
 exception if an error occurs.
 
-@func{platform:endfsent} returns a single argument: the return value
+@func{platform.endfsent} returns a single argument: the return value
 from the foreign function.
 @end deffn
 
 
 @deffn Function getfsent
 @deffnx Parameter getfsent-function
-@deffnx Function primitive:getfsent
-@deffnx Function platform:getfsent
+@deffnx Function primitive.getfsent
+@deffnx Function platform.getfsent
 Return a record of type @class{fstab} describing the next entry
 in the @file{fstab} file.  It is impossible to distinguish between
 errors and end of iteration, so when no more records can be returned:
@@ -11476,15 +11488,15 @@ the return value is @false{}.
     ---)))
 @end example
 
-@func{platform:getfsent} returns a single argument: the return value
+@func{platform.getfsent} returns a single argument: the return value
 from the foreign function.
 @end deffn
 
 
 @deffn Function getfsspec @var{spec}
 @deffnx Parameter getfsspec-function
-@deffnx Function primitive:getfsspec @var{spec}
-@deffnx Function platform:getfsspec @var{spec}
+@deffnx Function primitive.getfsspec @var{spec}
+@deffnx Function platform.getfsspec @var{spec}
 Return a record of type @class{fstab} describing the next entry
 in the @file{fstab} file having @var{spec}, a Scheme string or symbol,
 as content of the @code{fs_spec} field.  It is impossible to distinguish
@@ -11494,15 +11506,15 @@ returned: the return value is @false{}.
 Multiple, successful, calls to this function may return the same result
 and never @false{}.
 
-@func{platform:getfsspec} returns a single argument: the return value
+@func{platform.getfsspec} returns a single argument: the return value
 from the foreign function.
 @end deffn
 
 
 @deffn Function getfsfile @var{file}
 @deffnx Parameter getfsfile-function
-@deffnx Function primitive:getfsfile @var{file}
-@deffnx Function platform:getfsfile @var{file}
+@deffnx Function primitive.getfsfile @var{file}
+@deffnx Function platform.getfsfile @var{file}
 Return a record of type @class{fstab} describing the next entry
 in the @file{fstab} file having @var{file}, a Scheme string or symbol,
 as content of the @code{fs_file} field.  It is impossible to distinguish
@@ -11512,7 +11524,7 @@ returned: the return value is @false{}.
 Multiple, successful, calls to this function may return the same result
 and never @false{}.
 
-@func{platform:getfsfile} returns a single argument: the return value
+@func{platform.getfsfile} returns a single argument: the return value
 from the foreign function.
 @end deffn
 
@@ -11537,8 +11549,8 @@ The following functions manage reading the @file{mtab} file.
 
 @deffn Function setmntent @var{pathname} @var{open-mode}
 @deffnx Parameter setmntent-function
-@deffnx Function primitive:setmntent @var{pathname} @var{open-mode}
-@deffnx Function platform:setmntent @var{pathname-cstr} @var{open-mode-cstr}
+@deffnx Function primitive.setmntent @var{pathname} @var{open-mode}
+@deffnx Function platform.setmntent @var{pathname-cstr} @var{open-mode-cstr}
 Open the file selected by @var{pathname}, a Scheme string or symbol, to
 be read as a @file{mtab} file; return a @code{FILE*} object.
 @var{open-mode} must be a file open mode like the ones allowed for
@@ -11548,21 +11560,21 @@ be read as a @file{mtab} file; return a @code{FILE*} object.
 
 @deffn Function endmntent @var{stream}
 @deffnx Parameter endmntent-function
-@deffnx Function primitive:endmntent @var{stream}
-@deffnx Function platform:endmntent @var{stream}
+@deffnx Function primitive.endmntent @var{stream}
+@deffnx Function platform.endmntent @var{stream}
 Close @var{stream}, a @code{FILE*} object, releasing all the resources
 associated to the @file{mtab} iteration.
 
-@func{platform:endmntent} returns a single argument: the return value
+@func{platform.endmntent} returns a single argument: the return value
 from the foreign function.
 @end deffn
 
 
 @deffn Function getmntent @var{stream}
 @deffnx Parameter getmntent-function
-@deffnx Function primitive:getmntent @var{stream}
-@deffnx Function platform:getmntent @var{file-ptr}
-@deffnx Function platform:getmntent_r @var{file-ptr} @var{mntent-ptr} @var{buf-ptr} @var{buf-len}
+@deffnx Function primitive.getmntent @var{stream}
+@deffnx Function platform.getmntent @var{file-ptr}
+@deffnx Function platform.getmntent_r @var{file-ptr} @var{mntent-ptr} @var{buf-ptr} @var{buf-len}
 Return a record of type @class{mntent} representing the next
 entry read from @var{stream}, a @code{FILE*} object.  This function is
 reentrant.
@@ -11586,15 +11598,15 @@ iteration, so when one of these events happens: the return value is
     ---))
 @end example
 
-@func{platform:getmntent} and @func{platform:getmntent_r} return a
+@func{platform.getmntent} and @func{platform.getmntent_r} return a
 single argument: the return value from the foreign function.
 @end deffn
 
 
 @deffn Function addmntent @var{stream} @var{mntent}
 @deffnx Parameter addmntent-function
-@deffnx Function primitive:addmntent @var{stream} @var{mntent}
-@deffnx Function platform:addmntent @var{file-ptr} @var{mntent-ptr}
+@deffnx Function primitive.addmntent @var{stream} @var{mntent}
+@deffnx Function platform.addmntent @var{file-ptr} @var{mntent-ptr}
 Append a new entry to the @file{mtab} file referenced by @var{stream}.
 @var{mntent} must be a record of type @class{mntent}.
 @end deffn
@@ -11610,8 +11622,8 @@ The following functions manage mounting and unmounting file systems.
 
 @deffn Function mount @var{special-file} @var{mount-point} @var{fstype} @var{options} @var{data-ptr}
 @deffnx Parameter mount-function
-@deffnx Function primitive:mount @var{special-file} @var{mount-point} @var{fstype} @var{options} @var{data-ptr}
-@deffnx Function platform:mount @var{special-file-cstr} @var{mount-point-cstr} @var{fstype-cstr} @var{options} @var{data-ptr}
+@deffnx Function primitive.mount @var{special-file} @var{mount-point} @var{fstype} @var{options} @var{data-ptr}
+@deffnx Function platform.mount @var{special-file-cstr} @var{mount-point-cstr} @var{fstype-cstr} @var{options} @var{data-ptr}
 Mount or remount the device selected by @var{special-file} (a Scheme
 string) under @var{mount-point} (a Scheme string) assuming it is of
 @var{fstype} (a Scheme string).
@@ -11625,8 +11637,8 @@ may be a valid value.  @nauref{cstrings constants, Constant values}.
 
 @deffn Function umount2 @var{pathname} @var{flags}
 @deffnx Parameter umount2-function
-@deffnx Function primitive:umount2 @var{pathname} @var{flags}
-@deffnx Function platform:umount2 @var{pathname-cstr} @var{flags}
+@deffnx Function primitive.umount2 @var{pathname} @var{flags}
+@deffnx Function platform.umount2 @var{pathname-cstr} @var{flags}
 Unmount the file system selected by @var{pathname} (a Scheme string)
 which can be the mount point or the device.  @var{flags} must be an
 exact integer composed by inclusive bitwise OR of the @code{MNT_*}
@@ -11636,8 +11648,8 @@ flags, or zero.
 
 @deffn Function umount @var{pathname}
 @deffnx Parameter umount-function
-@deffnx Function primitive:umount @var{pathname}
-@deffnx Function platform:umount @var{pathname-cstr}
+@deffnx Function primitive.umount @var{pathname}
+@deffnx Function platform.umount @var{pathname-cstr}
 Unmount the file system selected by @var{pathname} (a Scheme string)
 which can be the mount point or the device.
 @end deffn

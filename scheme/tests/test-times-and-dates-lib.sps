@@ -1489,95 +1489,95 @@
   #t)
 
 
-;; (parametrise ((check-test-name	'date))
+(parametrise ((check-test-name	'date))
 
-;;   (check
-;;       (<date>? (current-date))
-;;     => #t)
+    ;; (check
+    ;;     (is-a? (current-date) <date>)
+    ;;   => #t)
 
-;;   (check
-;;       (<date>? 123)
-;;     => #f)
+  ;;   (check
+  ;;       (<date>? 123)
+  ;;     => #f)
 
-;; ;;; --------------------------------------------------------------------
+;;; --------------------------------------------------------------------
 
-;;   (check
-;;       (let ((d (make-date 1 2 3 4 5 6 7 8)))
-;; 	(<date>-nanosecond d))
-;;     => 1)
+  ;;   (check
+  ;;       (let ((d (make-date 1 2 3 4 5 6 7 8)))
+  ;; 	(<date>-nanosecond d))
+  ;;     => 1)
 
-;;   (check
-;;       (let ((d (make-date 1 2 3 4 5 6 7 8)))
-;; 	(<date>-second d))
-;;     => 2)
+  ;;   (check
+  ;;       (let ((d (make-date 1 2 3 4 5 6 7 8)))
+  ;; 	(<date>-second d))
+  ;;     => 2)
 
-;;   (check
-;;       (let ((d (make-date 1 2 3 4 5 6 7 8)))
-;; 	(<date>-minute d))
-;;     => 3)
+  ;;   (check
+  ;;       (let ((d (make-date 1 2 3 4 5 6 7 8)))
+  ;; 	(<date>-minute d))
+  ;;     => 3)
 
-;;   (check
-;;       (let ((d (make-date 1 2 3 4 5 6 7 8)))
-;; 	(<date>-hour d))
-;;     => 4)
+  ;;   (check
+  ;;       (let ((d (make-date 1 2 3 4 5 6 7 8)))
+  ;; 	(<date>-hour d))
+  ;;     => 4)
 
-;;   (check
-;;       (let ((d (make-date 1 2 3 4 5 6 7 8)))
-;; 	(<date>-day d))
-;;     => 5)
+  ;;   (check
+  ;;       (let ((d (make-date 1 2 3 4 5 6 7 8)))
+  ;; 	(<date>-day d))
+  ;;     => 5)
 
-;;   (check
-;;       (let ((d (make-date 1 2 3 4 5 6 7 8)))
-;; 	(<date>-month d))
-;;     => 6)
+  ;;   (check
+  ;;       (let ((d (make-date 1 2 3 4 5 6 7 8)))
+  ;; 	(<date>-month d))
+  ;;     => 6)
 
-;;   (check
-;;       (let ((d (make-date 1 2 3 4 5 6 7 8)))
-;; 	(<date>-year d))
-;;     => 7)
+  ;;   (check
+  ;;       (let ((d (make-date 1 2 3 4 5 6 7 8)))
+  ;; 	(<date>-year d))
+  ;;     => 7)
 
-;;   (check
-;;       (let ((d (make-date 1 2 3 4 5 6 7 8)))
-;; 	(<date>-zone-offset d))
-;;     => 8)
+  ;;   (check
+  ;;       (let ((d (make-date 1 2 3 4 5 6 7 8)))
+  ;; 	(<date>-zone-offset d))
+  ;;     => 8)
 
-;;   (check
-;;       (let ((d (make-date 1 2 3 4
-;; 			  5 1 1 1)))
-;; 	(date-year-day d))
-;;     => 5)
+  ;;   (check
+  ;;       (let ((d (make-date 1 2 3 4
+  ;; 			  5 1 1 1)))
+  ;; 	(date-year-day d))
+  ;;     => 5)
 
-;;   (check
-;;       (let ((d (make-date 1 2 3 4
-;; 			  5 1 1 1)))
-;; 	(date-week-day d))
-;;     => 5)
+  ;;   (check
+  ;;       (let ((d (make-date 1 2 3 4
+  ;; 			  5 1 1 1)))
+  ;; 	(date-week-day d))
+  ;;     => 5)
 
-;;   (check	;Aug 2, 1953 was a Sunday
-;;       (let ((d (make-date 0 0 0 0
-;; 			  2 8 1953 0)))
-;; 	(date-week-day d))
-;;     => 0)
+  ;;   (check	;Aug 2, 1953 was a Sunday
+  ;;       (let ((d (make-date 0 0 0 0
+  ;; 			  2 8 1953 0)))
+  ;; 	(date-week-day d))
+  ;;     => 0)
 
-;;   (check
-;;       (let ((d (make-date 1 2 3 4
-;; 			  5 2 1 1)))
-;; 	(date-week-number d 1))
-;;     => 5)
+  ;;   (check
+  ;;       (let ((d (make-date 1 2 3 4
+  ;; 			  5 2 1 1)))
+  ;; 	(date-week-number d 1))
+  ;;     => 5)
 
-;; ;;; --------------------------------------------------------------------
+;;; --------------------------------------------------------------------
 
-;;   (check
-;;       (let* ((D (make* <date>
-;; 		  0 0 0 0
-;; 		  1 1 1992 0))
-;; 	     ((E <date>) (date-easter-day D)))
-;; 	(list E.month E.day))
-;;     => '(4 19))
+  ;;   (check
+  ;;       (let* ((D (make* <date>
+  ;; 		  0 0 0 0
+  ;; 		  1 1 1992 0))
+  ;; 	     ((E <date>) (date-easter-day D)))
+  ;; 	(list E.month E.day))
+  ;;     => '(4 19))
 
-;;   #t)
+  #t)
 
-;; 
+
 ;; (parametrise ((check-test-name	'time))
 
 ;;   (check

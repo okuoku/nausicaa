@@ -1,14 +1,14 @@
-dnl (posix sizeof) --
+dnl (nausicaa posix sizeof) --
 dnl
 dnl Part of: Nausicaa
 dnl Contents: foreign library inspection generation
-dnl Date: Mon Mar 29, 2010
+dnl Date: 
 dnl
 dnl Abstract
 dnl
 dnl
 dnl
-dnl Copyright (c) 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
+dnl Copyright (c)  Marco Maggi <marco.maggi-ipsu@poste.it>
 dnl
 dnl This program is free software:  you can redistribute it and/or modify
 dnl it under the terms of the  GNU General Public License as published by
@@ -26,19 +26,32 @@ dnl
 
 AC_DEFUN([NAUSICAA_POSIX],[
 
-NAUSICAA_INSPECT_TYPE([BLKCNT_T],[blkcnt_t],[unsigned-int],[#f])
-NAUSICAA_INSPECT_TYPE([CLOCK_T],[clock_t],[signed-int],[#f])
-NAUSICAA_INSPECT_TYPE([DEV_T],[dev_t],[signed-int],[#f])
-NAUSICAA_INSPECT_TYPE([GID_T],[gid_t],[signed-int],[#f])
-NAUSICAA_INSPECT_TYPE([INO_T],[ino_t],[unsigned-int],[#f])
-NAUSICAA_INSPECT_TYPE([MODE_T],[mode_t],[unsigned-int],[#f])
-NAUSICAA_INSPECT_TYPE([NLINK_T],[nlink_t],[unsigned-int],[#f])
-NAUSICAA_INSPECT_TYPE([OFF_T],[off_t],[unsigned-int],[#f])
-NAUSICAA_INSPECT_TYPE([PID_T],[pid_t],[signed-int],[#f])
-NAUSICAA_INSPECT_TYPE([TIME_T],[time_t],[signed-int],[#f])
-NAUSICAA_INSPECT_TYPE([UID_T],[uid_t],[signed-int],[#f])
-NAUSICAA_INSPECT_TYPE([WCHAR_T],[wchar_t],[signed-int],[#f])
-NAUSICAA_INSPECT_TYPE([SOCKLEN_T],[socklen_t],[signed-int],[#f])
+NAUSICAA_SIZEOF_TEST([BLKCNT_T],[blkcnt_t])
+NAUSICAA_BASE_TYPE_TEST([BLKCNT_T],[blkcnt_t],[unsigned-int])
+NAUSICAA_SIZEOF_TEST([CLOCK_T],[clock_t])
+NAUSICAA_BASE_TYPE_TEST([CLOCK_T],[clock_t],[signed-int])
+NAUSICAA_SIZEOF_TEST([DEV_T],[dev_t])
+NAUSICAA_BASE_TYPE_TEST([DEV_T],[dev_t],[signed-int])
+NAUSICAA_SIZEOF_TEST([GID_T],[gid_t])
+NAUSICAA_BASE_TYPE_TEST([GID_T],[gid_t],[signed-int])
+NAUSICAA_SIZEOF_TEST([INO_T],[ino_t])
+NAUSICAA_BASE_TYPE_TEST([INO_T],[ino_t],[unsigned-int])
+NAUSICAA_SIZEOF_TEST([MODE_T],[mode_t])
+NAUSICAA_BASE_TYPE_TEST([MODE_T],[mode_t],[unsigned-int])
+NAUSICAA_SIZEOF_TEST([NLINK_T],[nlink_t])
+NAUSICAA_BASE_TYPE_TEST([NLINK_T],[nlink_t],[unsigned-int])
+NAUSICAA_SIZEOF_TEST([OFF_T],[off_t])
+NAUSICAA_BASE_TYPE_TEST([OFF_T],[off_t],[unsigned-int])
+NAUSICAA_SIZEOF_TEST([PID_T],[pid_t])
+NAUSICAA_BASE_TYPE_TEST([PID_T],[pid_t],[signed-int])
+NAUSICAA_SIZEOF_TEST([TIME_T],[time_t])
+NAUSICAA_BASE_TYPE_TEST([TIME_T],[time_t],[signed-int])
+NAUSICAA_SIZEOF_TEST([UID_T],[uid_t])
+NAUSICAA_BASE_TYPE_TEST([UID_T],[uid_t],[signed-int])
+NAUSICAA_SIZEOF_TEST([WCHAR_T],[wchar_t])
+NAUSICAA_BASE_TYPE_TEST([WCHAR_T],[wchar_t],[signed-int])
+NAUSICAA_SIZEOF_TEST([SOCKLEN_T],[socklen_t])
+NAUSICAA_BASE_TYPE_TEST([SOCKLEN_T],[socklen_t],[signed-int])
 
 dnl Struct inspection: flock
 NAUSICAA_INSPECT_STRUCT_TYPE([FLOCK],[struct flock],[#f])

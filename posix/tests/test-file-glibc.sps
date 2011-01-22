@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2009-2011 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -26,22 +26,20 @@
 
 
 (import (nausicaa)
-  (strings)
-  (checks)
-  (deferred-exceptions)
-  (compensations)
-  (foreign ffi)
-  (foreign memory)
-  (foreign errno)
-  (foreign cstrings)
-  (posix sizeof)
-  (posix typedefs)
-  (prefix (glibc file) glibc:)
-  (prefix (only (glibc streams) fclose) glibc:)
-  (prefix (glibc file platform) glibc:platform:)
-  (prefix (posix process) posix:)
-  (prefix (posix fd) posix:)
-  (prefix (posix file) posix:))
+  (nausicaa strings)
+  (nausicaa checks)
+  (nausicaa ffi)
+  (nausicaa ffi memory)
+  (nausicaa ffi errno)
+  (nausicaa ffi cstrings)
+  (nausicaa posix sizeof)
+  (nausicaa posix typedefs)
+  (prefix (nausicaa glibc file) glibc:)
+  (prefix (only (nausicaa glibc streams) fclose) glibc:)
+  (prefix (nausicaa glibc file platform) glibc:platform:)
+  (prefix (nausicaa posix process) px.)
+  (prefix (nausicaa posix fd) px.)
+  (prefix (nausicaa posix file) px.))
 
 (check-set-mode! 'report-failed)
 (display "*** testing Glibc file\n")
@@ -86,17 +84,17 @@ Ses ailes de geant l'empechent de marcher.")
 	the-file))
 
 (define (make-test-hierarchy)
-  (posix:system (string-append "mkdir --mode=0700 " the-root))
-  (posix:system (string-append "mkdir --mode=0700 " the-subdir-1))
-  (posix:system (string-append "mkdir --mode=0700 " the-subdir-2))
-  (posix:system (string-append "mkdir --mode=0700 " the-subdir-3))
-  (posix:system (string-append "umask 0027; echo -n \"" the-string "\" >" the-file))
-  (posix:system (string-append "umask 0077; echo -n \"" the-string "\" >" the-file-10))
-  (posix:system (string-append "umask 0077; echo -n \"" the-string "\" >" the-file-11))
-  (posix:system (string-append "umask 0077; echo -n \"" the-string "\" >" the-file-2)))
+  (px.system (string-append "mkdir --mode=0700 " the-root))
+  (px.system (string-append "mkdir --mode=0700 " the-subdir-1))
+  (px.system (string-append "mkdir --mode=0700 " the-subdir-2))
+  (px.system (string-append "mkdir --mode=0700 " the-subdir-3))
+  (px.system (string-append "umask 0027; echo -n \"" the-string "\" >" the-file))
+  (px.system (string-append "umask 0077; echo -n \"" the-string "\" >" the-file-10))
+  (px.system (string-append "umask 0077; echo -n \"" the-string "\" >" the-file-11))
+  (px.system (string-append "umask 0077; echo -n \"" the-string "\" >" the-file-2)))
 
 (define (clean-test-hierarchy)
-  (posix:system (string-append "rm -fr " the-root)))
+  (px.system (string-append "rm -fr " the-root)))
 
 
 (parametrise ((check-test-name	'directory-access)
@@ -133,7 +131,7 @@ Ses ailes de geant l'empechent de marcher.")
 	    (glibc:scandir the-root
 			   (glibc:make-scandir-selector-callback
 			    (lambda (struct-dirent)
-			      (let ((name (posix:dirent-name->string struct-dirent)))
+			      (let ((name (px.dirent-name->string struct-dirent)))
 				(not (or (string=? "."  name)
 					 (string=? ".." name))))))
 			   glibc:platform:alphasort)
@@ -146,8 +144,8 @@ Ses ailes de geant l'empechent de marcher.")
 			      #t))
 			   (glibc:make-scandir-compare-callback
 			    (lambda (a b)
-			      (let ((a (posix:dirent-name->string a))
-				    (b (posix:dirent-name->string b)))
+			      (let ((a (px.dirent-name->string a))
+				    (b (px.dirent-name->string b)))
 				(cond ((string<? a b) 1)
 				      ((string>? a b) -1)
 				      (else 0))))))
@@ -165,7 +163,7 @@ Ses ailes de geant l'empechent de marcher.")
 	(debug-print-condition "deferred condition in times" E))
     (lambda ()
       (define (get-times pathname)
-	(let ((record (posix:stat the-file)))
+	(let ((record (px.stat the-file)))
 	  (list (<stat>-atime record)
 		(<stat>-mtime record))))
 
@@ -180,7 +178,7 @@ Ses ailes de geant l'empechent de marcher.")
 
 	(check
 	    (begin
-	      (posix:chmod the-file S_IRWXU)
+	      (px.chmod the-file S_IRWXU)
 	      (glibc:lutimes the-file
 			     #e1e3 ;access time
 			     #e1e4
@@ -191,7 +189,7 @@ Ses ailes de geant l'empechent de marcher.")
 
 	(check
 	    (begin
-	      (posix:chmod the-file S_IRWXU)
+	      (px.chmod the-file S_IRWXU)
 	      (glibc:lutimes the-file))
 	  => 0)
 
@@ -199,11 +197,11 @@ Ses ailes de geant l'empechent de marcher.")
 
 	(check
 	    (with-compensations
-	      (posix:chmod the-file S_IRWXU)
+	      (px.chmod the-file S_IRWXU)
 	      (letrec ((fd (compensate
-			       (posix:open the-file O_WRONLY 0)
+			       (px.open the-file O_WRONLY 0)
 			     (with
-			      (posix:close fd)))))
+			      (px.close fd)))))
 		(glibc:futimes fd
 			       #e1e3 ;access time
 			       #e1e4
@@ -214,11 +212,11 @@ Ses ailes de geant l'empechent de marcher.")
 
 	(check
 	    (with-compensations
-	      (posix:chmod the-file S_IRWXU)
+	      (px.chmod the-file S_IRWXU)
 	      (letrec ((fd (compensate
-			       (posix:open the-file O_WRONLY 0)
+			       (px.open the-file O_WRONLY 0)
 			     (with
-			      (posix:close fd)))))
+			      (px.close fd)))))
 		(glibc:futimes fd)))
 	  => 0)
 
