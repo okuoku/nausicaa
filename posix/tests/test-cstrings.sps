@@ -1,3 +1,4 @@
+;;; -*- coding: utf-8-unix -*-
 ;;;
 ;;;Part of: Nausicaa/POSIX
 ;;;Contents: tests for cstrings
@@ -7,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009, 2011 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2009-2011 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -24,9 +25,10 @@
 ;;;
 
 
+#!r6rs
 (import (nausicaa)
   (nausicaa checks)
-  (nausicaa ffi cstrings)
+  (prefix (nausicaa ffi cstrings) ffi)
   (prefix (nausicaa glibc cstrings platform) cstr.))
 
 (check-set-mode! 'report-failed)
@@ -37,7 +39,7 @@
 
   (check
       (with-compensations
-        (cstr.strlen (string->cstring/c "ciao")))
+        (cstr.strlen (ffi.string->cstring/c "ciao")))
     => 4)
 
   #t)

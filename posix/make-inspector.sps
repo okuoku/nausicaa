@@ -940,10 +940,7 @@ AC_SUBST([NAU_DIRENT_HAVE_D_TYPE])
   )
 
 (sizeof-lib
- (define SO_STYLE SO_TYPE))
-
-(sizeof-lib-exports
- SO_STYLE)
+ (define valueof-SO_STYLE valueof-SO_TYPE))
 
 (autoconf-lib "AC_CACHE_SAVE")
 

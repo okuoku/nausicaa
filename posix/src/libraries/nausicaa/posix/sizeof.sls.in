@@ -31,27 +31,26 @@
     pointer-c-mutator array-c-ref array-c-set!
     array-c-pointer-to _DIRENT_HAVE_D_NAMELEN
     _DIRENT_HAVE_D_RECLEN _DIRENT_HAVE_D_OFF
-    _DIRENT_HAVE_D_TYPE SO_STYLE <struct-flock>
-    <struct-timeval> <struct-timespec> <struct-tms>
-    <struct-dirent> <struct-utimbuf> <struct-timezone>
-    <struct-tm> <struct-ntptimeval> <struct-timex>
-    <struct-itimerval> <struct-FTW> <struct-iovec>
-    <struct-fdset> <struct-passwd> <struct-group>
-    <struct-utsname> <struct-fstab> <struct-mntent>
-    <struct-sockaddr> <struct-sockaddr_in>
-    <struct-sockaddr_in6> <struct-sockaddr_un>
-    <struct-in_addr> <struct-in6_addr> <struct-if_nameindex>
-    <struct-netent> <struct-linger> <struct-hostent>
-    <struct-protoent> <struct-servent>)
+    _DIRENT_HAVE_D_TYPE <struct-flock> <struct-timeval>
+    <struct-timespec> <struct-tms> <struct-dirent>
+    <struct-utimbuf> <struct-timezone> <struct-tm>
+    <struct-ntptimeval> <struct-timex> <struct-itimerval>
+    <struct-FTW> <struct-iovec> <struct-fdset>
+    <struct-passwd> <struct-group> <struct-utsname>
+    <struct-fstab> <struct-mntent> <struct-sockaddr>
+    <struct-sockaddr_in> <struct-sockaddr_in6>
+    <struct-sockaddr_un> <struct-in_addr> <struct-in6_addr>
+    <struct-if_nameindex> <struct-netent> <struct-linger>
+    <struct-hostent> <struct-protoent> <struct-servent>)
   (import
     (rnrs)
-    (classes)
+    (nausicaa language classes)
     (for (nausicaa posix clang-data-types) expand)
-    (ffi syntax-helpers)
-    (prefix (ffi pointers) ffi:)
-    (prefix (ffi sizeof) ffi:)
-    (prefix (ffi peekers-and-pokers) ffi:)
-    (ffi extension-utilities))
+    (nausicaa ffi syntax-helpers)
+    (prefix (nausicaa ffi pointers) ffi.)
+    (prefix (nausicaa ffi sizeof) ffi.)
+    (prefix (nausicaa ffi peekers-and-pokers) ffi.)
+    (nausicaa ffi extension-utilities))
   (define-sizeof-macros)
   (define sizeof-flock @SIZEOF_FLOCK@)
   (define alignof-flock @ALIGNOF_FLOCK@)
@@ -823,7 +822,7 @@
   (define valueof-TRY_AGAIN @VALUEOF_TRY_AGAIN@)
   (define valueof-NO_RECOVERY @VALUEOF_NO_RECOVERY@)
   (define valueof-NO_ADDRESS @VALUEOF_NO_ADDRESS@)
-  (define SO_STYLE SO_TYPE)
+  (define valueof-SO_STYLE valueof-SO_TYPE)
   (define-label <struct-flock>
     (virtual-fields (mutable l_pid) (mutable l_len)
       (mutable l_start) (mutable l_whence) (mutable l_type)))

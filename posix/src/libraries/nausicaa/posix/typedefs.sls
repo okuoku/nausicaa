@@ -1,14 +1,14 @@
 ;;; -*- coding: utf-8-unix -*-
 ;;;
 ;;;Part of: Nausicaa/POSIX
-;;;Contents: entity record wrappers
+;;;Contents: class wrappers for foreign data structures
 ;;;Date: Sun Dec  6, 2009
 ;;;
 ;;;Abstract
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009, 2010, 2011 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2009-2011 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -349,23 +349,23 @@
     (nausicaa posix sizeof))
 
 
-(define-record-type (fd integer->fd fd?)
+(define-class (fd integer->fd fd?)
   (nongenerative nausicaa:posix:fd)
   (fields (immutable object fd->integer)))
 
-(define-record-type (FILE* pointer->FILE* FILE*?)
+(define-class (FILE* pointer->FILE* FILE*?)
   (nongenerative nausicaa:posix:FILE*)
   (fields (immutable object FILE*->pointer)))
 
-(define-record-type (uid integer->uid uid?)
+(define-class (uid integer->uid uid?)
   (nongenerative nausicaa:posix:uid)
   (fields (immutable object uid->integer)))
 
-(define-record-type (gid integer->gid gid?)
+(define-class (gid integer->gid gid?)
   (nongenerative nausicaa:posix:gid)
   (fields (immutable object gid->integer)))
 
-(define-record-type (pid integer->pid pid?)
+(define-class (pid integer->pid pid?)
   (nongenerative nausicaa:posix:pid)
   (fields (immutable object pid->integer)))
 
@@ -393,7 +393,7 @@
 
 ;;; --------------------------------------------------------------------
 
-(define-record-type (fdset pointer->fdset fdset?)
+(define-class (fdset pointer->fdset fdset?)
   (nongenerative nausicaa:posix:fdset)
   (fields (immutable object fdset->pointer)))
 
@@ -402,7 +402,7 @@
 
 ;;; --------------------------------------------------------------------
 
-(define-record-type (struct-flock pointer->struct-flock struct-flock?)
+(define-class (struct-flock pointer->struct-flock struct-flock?)
   (nongenerative nausicaa:posix:struct-flock)
   (fields (immutable object struct-flock->pointer)))
 
@@ -411,7 +411,7 @@
 
 ;;; --------------------------------------------------------------------
 
-(define-record-type (struct-timeval pointer->struct-timeval struct-timeval?)
+(define-class (struct-timeval pointer->struct-timeval struct-timeval?)
   (nongenerative nausicaa:posix:struct-timeval)
   (fields (immutable object struct-timeval->pointer)))
 
@@ -419,7 +419,7 @@
   (pointer->struct-timeval (malloc sizeof-timeval)))
 
 
-(define-record-type <passwd>
+(define-class <passwd>
   (nongenerative nausicaa:posix:<passwd>)
   (fields (mutable name)
 	  (mutable passwd)
@@ -434,7 +434,7 @@
 
 ;;; --------------------------------------------------------------------
 
-(define-record-type <group>
+(define-class <group>
   (nongenerative nausicaa:posix:<group>)
   (fields (mutable name)
 	  (mutable gid)
@@ -444,7 +444,7 @@
   (record-type-descriptor <group>))
 
 
-(define-record-type <utsname>
+(define-class <utsname>
   (nongenerative nausicaa:posix:<utsname>)
   (fields (mutable sysname)
 	  (mutable release)
@@ -455,7 +455,7 @@
   (record-type-descriptor <utsname>))
 
 
-(define-record-type <fstab>
+(define-class <fstab>
   (nongenerative nausicaa:posix:<fstab>)
   (fields (mutable spec)
 	  (mutable file)
@@ -470,7 +470,7 @@
 
 ;;; --------------------------------------------------------------------
 
-(define-record-type <mntent>
+(define-class <mntent>
   (nongenerative nausicaa:posix:<mntent>)
   (fields (mutable fsname)
 	  (mutable dir)
@@ -483,7 +483,7 @@
   (record-type-descriptor <mntent>))
 
 
-(define-record-type <process-term-status>
+(define-class <process-term-status>
   (nongenerative nausicaa:posix:<process-term-status>)
   (fields (immutable WIFEXITED		WIFEXITED?)
 	  (immutable WEXITSTATUS	WEXITSTATUS?)
@@ -497,7 +497,7 @@
   (record-type-descriptor <process-term-status>))
 
 
-(define-record-type <stat>
+(define-class <stat>
   (nongenerative nausicaa:posix:<stat>)
   (fields (immutable mode)
 	  (immutable ino)
@@ -519,7 +519,7 @@
   (record-type-descriptor <stat>))
 
 
-(define-record-type <tms>
+(define-class <tms>
   (nongenerative nausicaa:posix:<tms>)
   (fields (mutable utime)
 	  (mutable stime)
@@ -531,7 +531,7 @@
 
 ;;; --------------------------------------------------------------------
 
-(define-record-type <timeval>
+(define-class <timeval>
   (nongenerative nausicaa:posix:<timeval>)
   (fields (mutable sec)
 	  (mutable usec)))
@@ -541,7 +541,7 @@
 
 ;;; --------------------------------------------------------------------
 
-(define-record-type <timespec>
+(define-class <timespec>
   (nongenerative nausicaa:posix:<timespec>)
   (fields (mutable sec)
 	  (mutable nsec)))
@@ -551,7 +551,7 @@
 
 ;;; --------------------------------------------------------------------
 
-(define-record-type <timezone>
+(define-class <timezone>
   (nongenerative nausicaa:posix:<timezone>)
   (fields (mutable minuteswest)
 	  (mutable dsttime)))
@@ -561,7 +561,7 @@
 
 ;;; --------------------------------------------------------------------
 
-(define-record-type <tm>
+(define-class <tm>
   (nongenerative nausicaa:posix:<tm>)
   (fields (mutable sec)
 	  (mutable min)
@@ -580,7 +580,7 @@
 
 ;;; --------------------------------------------------------------------
 
-(define-record-type <ntptimeval>
+(define-class <ntptimeval>
   (nongenerative nausicaa:posix:<ntptimeval>)
   (fields (mutable time)
 	  (mutable maxerror)
@@ -591,7 +591,7 @@
 
 ;;; --------------------------------------------------------------------
 
-(define-record-type <timex>
+(define-class <timex>
   (nongenerative nausicaa:posix:<timex>)
   (fields (mutable modes)
 	  (mutable offset)
@@ -618,7 +618,7 @@
 
 ;;; --------------------------------------------------------------------
 
-(define-record-type <itimerval>
+(define-class <itimerval>
   (nongenerative nausicaa:posix:<itimerval>)
   (fields (mutable interval)
 	  (mutable value)))
@@ -627,7 +627,7 @@
   (record-type-descriptor <itimerval>))
 
 
-(define-record-type <sockaddr>
+(define-class <sockaddr>
   (nongenerative nausicaa:posix:<sockaddr>)
   (fields (immutable family)))
 
@@ -636,7 +636,7 @@
 
 ;;; --------------------------------------------------------------------
 
-(define-record-type (<sockaddr-in> %make-<sockaddr-in> <sockaddr-in>?)
+(define-class (<sockaddr-in> %make-<sockaddr-in> <sockaddr-in>?)
   (nongenerative nausicaa:posix:<sockaddr-in>)
   (parent <sockaddr>)
   (fields (mutable addr)
@@ -652,7 +652,7 @@
 
 ;;; --------------------------------------------------------------------
 
-(define-record-type (<sockaddr-in6> %make-<sockaddr-in6> <sockaddr-in6>?)
+(define-class (<sockaddr-in6> %make-<sockaddr-in6> <sockaddr-in6>?)
   (nongenerative nausicaa:posix:<sockaddr-in6>)
   (parent <sockaddr>)
   (fields (mutable addr)
@@ -668,7 +668,7 @@
 
 ;;; --------------------------------------------------------------------
 
-(define-record-type (<sockaddr-un> %make-<sockaddr-un> <sockaddr-un>?)
+(define-class (<sockaddr-un> %make-<sockaddr-un> <sockaddr-un>?)
   (nongenerative nausicaa:posix:<sockaddr-un>)
   (parent <sockaddr>)
   (fields (mutable pathname)))
@@ -683,7 +683,7 @@
 
 ;;; --------------------------------------------------------------------
 
-(define-record-type <if-nameindex>
+(define-class <if-nameindex>
   (nongenerative nausicaa:posix:<if-nameindex>)
   (fields (immutable index)
 	  (immutable name)))
@@ -692,7 +692,7 @@
   (record-type-descriptor <if-nameindex>))
 
 
-(define-record-type <netent>
+(define-class <netent>
   (nongenerative nausicaa:posix:<netent>)
   (fields (immutable name)
 	  (immutable aliases)
@@ -704,7 +704,7 @@
 
 ;;; --------------------------------------------------------------------
 
-(define-record-type <hostent>
+(define-class <hostent>
   (nongenerative nausicaa:posix:<hostent>)
   (fields (immutable name)
 	  (immutable aliases)
@@ -719,7 +719,7 @@
 
 ;;; --------------------------------------------------------------------
 
-(define-record-type <protoent>
+(define-class <protoent>
   (nongenerative nausicaa:posix:<protoent>)
   (fields (immutable name)
 	  (immutable aliases)
@@ -730,7 +730,7 @@
 
 ;;; --------------------------------------------------------------------
 
-(define-record-type <servent>
+(define-class <servent>
   (nongenerative nausicaa:posix:<servent>)
   (fields (immutable name)
 	  (immutable aliases)
@@ -741,7 +741,7 @@
   (record-type-descriptor <servent>))
 
 
-(define-record-type struct-in-addr
+(define-class struct-in-addr
   (nongenerative nausicaa:posix:struct-in-addr)
   (fields (immutable pointer struct-in-addr->pointer)))
 
@@ -749,7 +749,7 @@
 
 ;;; --------------------------------------------------------------------
 
-(define-record-type struct-in6-addr
+(define-class struct-in6-addr
   (nongenerative nausicaa:posix:struct-in6-addr)
   (fields (immutable pointer struct-in6-addr->pointer)))
 
@@ -757,7 +757,7 @@
 
 ;;; --------------------------------------------------------------------
 
-(define-record-type <socket>
+(define-class <socket>
   (nongenerative nausicaa:posix:<socket>)
   (parent fd)
   (fields (immutable namespace)

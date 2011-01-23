@@ -1,3 +1,4 @@
+;;; -*- coding: utf-8-unix -*-
 ;;;
 ;;;Part of: Nausicaa/POSIX
 ;;;Contents: library of cstring functions
@@ -24,6 +25,7 @@
 ;;;
 
 
+#!r6rs
 (library (nausicaa glibc cstrings platform)
   (export
 
@@ -89,7 +91,7 @@
     l64a		a64l)
   (import (rnrs)
     (nausicaa ffi)
-    (nausicaa ffi sizeof)
+    ((nausicaa ffi sizeof)
     (nausicaa posix sizeof))
 
   (define wchar_t* 'void*)
