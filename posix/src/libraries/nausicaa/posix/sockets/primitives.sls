@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009-2011 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2009, 2010, 2011 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -25,37 +25,36 @@
 ;;;
 
 
-#!r6rs
 (library (posix sockets primitives)
   (export
     ;; Internet address conversion
     inet-aton		inet-pton
     inet-ntoa		inet-ntop
-    (rename (platform.htons		htons)
-	    (platform.htonl		htonl)
-	    (platform.ntohs		ntohs)
-	    (platform.ntohl		ntohl))
+    (rename (platform:htons		htons)
+	    (platform:htonl		htonl)
+	    (platform:ntohs		ntohs)
+	    (platform:ntohl		ntohl))
 
     ;; host names
     gethostbyname		gethostbyaddr
     sethostent			gethostent
-    (rename (platform.endhostent endhostent))
+    (rename (platform:endhostent endhostent))
 
     ;; networks database
     getnetbyname		getnetbyaddr
     setnetent			getnetent
-    (rename (platform.endnetent endnetent))
+    (rename (platform:endnetent endnetent))
 
     ;; protocols database
     getprotobyname		getprotobynumber
     setprotoent			getprotoent
-    (rename (platform.endprotoent endprotoent))
+    (rename (platform:endprotoent endprotoent))
 
     ;; services database
     getservbyname
     getservbyport		getservbyport*
     setservent			getservent
-    (rename (platform.endservent endservent))
+    (rename (platform:endservent endservent))
 
     ;; interface names
     if-nametoindex		if-indextoname
@@ -90,19 +89,19 @@
   (import (rnrs)
     (nausicaa language extensions)
     (nausicaa language compensations)
-    (prefix (only (nausicaa  ffi)
-		  pointer-c-ref
-		  pointer-c-set!)
-	    ffi.)
-    (prefix (only (nausicaa ffi sizeof)
-		  c-sizeof)
-	    ffi.)
+    (only (nausicaa  ffi)
+	  pointer-ref-c-size_t
+	  pointer-set-c-size_t!
+	  pointer-ref-c-signed-int
+	  pointer-set-c-signed-int!)
+    (only (nausicaa ffi sizeof)
+	  sizeof-int sizeof-size_t)
     (nausicaa ffi memory)
     (nausicaa ffi cstrings)
     (nausicaa ffi errno)
     (nausicaa posix typedefs)
-    (prefix (nausicaa posix sizeof) px.)
-    (prefix (nausicaa posix sockets platform) platform.))
+    (nausicaa posix sizeof)
+    (prefix (nausicaa posix sockets platform) platform:))
 
 
 ;;;; helpers
@@ -112,7 +111,7 @@
   ;;
   (do ((i 0 (+ 1 i)))
       ((= i addr.len))
-    (ffi.pointer-c-set! uint8 addr.ptr i (bytevector-u8-ref bv i))))
+    (pointer-set-c-uint8! addr.ptr i (bytevector-u8-ref bv i))))
 
 (define (%address-struct->address-bytevector addr.ptr addr.len)
   ;;Allocate a new bytevector and copy into it bytes from a block of raw
@@ -122,7 +121,7 @@
     (do ((i 0 (+ 1 i)))
 	((= i addr.len)
 	 bv)
-      (bytevector-u8-set! bv i (ffi.pointer-c-ref uint8 addr.ptr i)))))
+      (bytevector-u8-set! bv i (pointer-ref-c-uint8 addr.ptr i)))))
 
 (define (%network-number->bytevector number)
   ;;Given  an exact integer  representing a  network address  in network
@@ -164,7 +163,7 @@
   ;;length, add one for the terminating zero, then add the offset of the
   ;;pathname field in the structure.
   ;;
-  (+ (px.c-sizeof sockaddr_un) (bytevector-length (string->utf8 pathname))))
+  (+ sizeof-sockaddr_un (bytevector-length (string->utf8 pathname))))
 
 ;;; --------------------------------------------------------------------
 ;;;The  following  helper functions  are  duplicated  in (glibc  sockets
@@ -184,7 +183,7 @@
 
 (define (%raise-h-errno-error who . irritants)
   (apply error who
-	 (let ((h_errno (platform.h_errno)))
+	 (let ((h_errno (platform:h_errno)))
 	   (cond ((= h_errno HOST_NOT_FOUND)
 		  "hostname resolution error, host not found")
 		 ((= h_errno TRY_AGAIN)
@@ -214,7 +213,7 @@
 (define (pointer-><servent> servent*)
   (make-<servent> (cstring->string	(struct-servent-s_name-ref	servent*))
 		  (argv->strings	(struct-servent-s_aliases-ref	servent*))
-		  (platform.ntohs	(struct-servent-s_port-ref	servent*))
+		  (platform:ntohs	(struct-servent-s_port-ref	servent*))
 		  (cstring->string	(struct-servent-s_proto-ref	servent*))))
 
 
@@ -234,33 +233,31 @@
 	     (cstr.len	(strlen cstr.ptr)))
 	(struct-sockaddr_un-sun_family-set! sockaddr* AF_LOCAL)
 	(%strncpy* (struct-sockaddr_un-sun_path-ref sockaddr*) cstr.ptr cstr.len)
-	(values sockaddr* (platform.SUN_LEN sockaddr*))))))
+	(values sockaddr* (platform:SUN_LEN sockaddr*))))))
 
 (define (<sockaddr-in>->pointer&length sockaddr malloc)
-  (let ((sockaddr* (malloc (px.c-sizeof sockaddr_in))))
+  (let ((sockaddr* (malloc sizeof-sockaddr_in)))
     (struct-sockaddr_in-sin_family-set! sockaddr* AF_INET)
-    (struct-sockaddr_in-sin_port-set!   sockaddr* (platform.htons (<sockaddr-in>-port sockaddr)))
+    (struct-sockaddr_in-sin_port-set!   sockaddr* (platform:htons (<sockaddr-in>-port sockaddr)))
     (with-compensations
       (let ((in_addr* (struct-sockaddr_in-sin_addr-ref sockaddr*)))
-	(%address-bytevector->address-struct! (<sockaddr-in>-addr sockaddr) in_addr*
-					      (px.c-sizeof in_addr))
-	(values sockaddr* (px.c-sizeof sockaddr_in))))))
+	(%address-bytevector->address-struct! (<sockaddr-in>-addr sockaddr) in_addr* sizeof-in_addr)
+	(values sockaddr* sizeof-sockaddr_in)))))
 
 (define (<sockaddr-in6>->pointer&length sockaddr malloc)
-  (let ((sockaddr* (malloc (px.c-sizeof sockaddr_in6))))
+  (let ((sockaddr* (malloc sizeof-sockaddr_in6)))
     (struct-sockaddr_in6-sin6_family-set! sockaddr* AF_INET6)
-    (struct-sockaddr_in6-sin6_port-set!   sockaddr* (platform.htons (<sockaddr-in6>-port sockaddr)))
+    (struct-sockaddr_in6-sin6_port-set!   sockaddr* (platform:htons (<sockaddr-in6>-port sockaddr)))
     (with-compensations
       (let ((in6_addr* (struct-sockaddr_in6-sin6_addr-ref sockaddr*)))
-	(%address-bytevector->address-struct! (<sockaddr-in6>-addr sockaddr) in6_addr*
-					      (px.c-sizeof in6_addr))
+	(%address-bytevector->address-struct! (<sockaddr-in6>-addr sockaddr) in6_addr* sizeof-in6_addr)
 	(values sockaddr* sizeof-sockaddr_in6)))))
 
 (define (%socklen-from-sock sock)
   (let ((ns (socket-namespace->value (<socket>-namespace sock))))
     (cond ((= AF_UNIX  ns)	4096) ;let's play it safe
-	  ((= AF_INET  ns)	(px.c-sizeof sockaddr_in))
-	  ((= AF_INET6 ns)	(px.c-sizeof sockaddr_in6))
+	  ((= AF_INET  ns)	sizeof-sockaddr_in)
+	  ((= AF_INET6 ns)	sizeof-sockaddr_in6)
 	  (else (assertion-violation '%socklen-from-sock "invalid socket namespace value" sock)))))
 
 
@@ -279,13 +276,13 @@
 
 (define (pointer-><sockaddr-in> sockaddr*)
   (make-<sockaddr-in>
-   (pointer->bytevector (struct-sockaddr_in-sin_addr-ref sockaddr*) (px.c-sizeof in_addr))
-   (platform.ntohs (struct-sockaddr_in-sin_port-ref sockaddr*))))
+   (pointer->bytevector (struct-sockaddr_in-sin_addr-ref sockaddr*) sizeof-in_addr)
+   (platform:ntohs (struct-sockaddr_in-sin_port-ref sockaddr*))))
 
 (define (pointer-><sockaddr-in6> sockaddr*)
   (make-<sockaddr-in6>
-   (pointer->bytevector (struct-sockaddr_in6-sin6_addr-ref sockaddr*) (px.c-sizeof in6_addr))
-   (platform.ntohs (struct-sockaddr_in6-sin6_port-ref sockaddr*))))
+   (pointer->bytevector (struct-sockaddr_in6-sin6_addr-ref sockaddr*) sizeof-in6_addr)
+   (platform:ntohs (struct-sockaddr_in6-sin6_port-ref sockaddr*))))
 
 
 ;;;; internet address conversion
@@ -293,13 +290,13 @@
 (define (inet-aton address-name)
   (with-compensations
     (let* ((addr.ptr	(malloc-small/c))
-	   (result	(platform.inet_aton (string->cstring/c address-name) addr.ptr)))
+	   (result	(platform:inet_aton (string->cstring/c address-name) addr.ptr)))
       (if (= 0 result)
 	  #f
-	(%address-struct->address-bytevector addr.ptr (px.c-sizeof in_addr))))))
+	(%address-struct->address-bytevector addr.ptr sizeof-in_addr)))))
 
 (define (inet-ntoa address-bytevector)
-  (cstring->string (platform.inet_ntoa (bytevector-u32-native-ref address-bytevector 0))))
+  (cstring->string (platform:inet_ntoa (bytevector-u32-native-ref address-bytevector 0))))
 
 ;;; --------------------------------------------------------------------
 
@@ -307,30 +304,30 @@
   (with-compensations
     (let* ((format	(socket-address-format->value address-format))
 	   (addr.ptr	(malloc-small/c))
-	   (result	(platform.inet_pton format (string->cstring/c address-name) addr.ptr)))
+	   (result	(platform:inet_pton format (string->cstring/c address-name) addr.ptr)))
       (if (= 0 result)
 	  #f
 	(%address-struct->address-bytevector addr.ptr (if (= AF_INET format)
-							  (px.c-sizeof in_addr)
-							(px.c-sizeof in6_addr)))))))
+							  sizeof-in_addr
+							sizeof-in6_addr))))))
 
 (define (inet-ntop address-format address-bytevector)
   (with-compensations
     (let ((format (socket-address-format->value address-format)))
       (receive (addr.len str.len)
 	  (if (= AF_INET format)
-	      (values (px.c-sizeof in_addr) INET_ADDRSTRLEN)
-	    (values (px.c-sizeof in6_addr) INET6_ADDRSTRLEN))
+	      (values sizeof-in_addr INET_ADDRSTRLEN)
+	    (values sizeof-in6_addr INET6_ADDRSTRLEN))
 	(let ((addr.ptr	(malloc-small/c)))
 	  (%address-bytevector->address-struct! address-bytevector addr.ptr addr.len)
-	  (cstring->string (platform.inet_ntop format addr.ptr (malloc-block/c str.len) str.len)))))))
+	  (cstring->string (platform:inet_ntop format addr.ptr (malloc-block/c str.len) str.len)))))))
 
 
 ;;;; host names
 
 (define (gethostbyname host-name)
   (with-compensations
-    (let ((hostent* (platform.gethostbyname (string->cstring/c host-name))))
+    (let ((hostent* (platform:gethostbyname (string->cstring/c host-name))))
       (if (pointer-null? hostent*)
 	  (%raise-h-errno-error 'gethostbyname host-name)
 	(pointer-><hostent> hostent*)))))
@@ -340,10 +337,10 @@
     (let* ((addr.ptr	(malloc-small/c))
 	   (addr.len	(bytevector-length address-bytevector)))
       (%address-bytevector->address-struct! address-bytevector addr.ptr addr.len)
-      (let ((hostent* (platform.gethostbyaddr addr.ptr addr.len
-					      (cond ((= addr.len (px.c-sizeof in_addr))
+      (let ((hostent* (platform:gethostbyaddr addr.ptr addr.len
+					      (cond ((= addr.len sizeof-in_addr)
 						     AF_INET)
-						    ((= addr.len (px.c-sizeof in6_addr))
+						    ((= addr.len sizeof-in6_addr)
 						     AF_INET6)
 						    (else
 						     (assertion-violation 'gethostbyaddr
@@ -358,17 +355,17 @@
    (()
     (sethostent #f))
    ((stay-open?)
-    (platform.sethostent (if stay-open? 1 0)))))
+    (platform:sethostent (if stay-open? 1 0)))))
 
 (define (gethostent)
-  (%pointer->record (pointer-><hostent> (platform.gethostent))))
+  (%pointer->record (pointer-><hostent> (platform:gethostent))))
 
 
 ;;;; networks database
 
 (define (getnetbyname net-name)
   (with-compensations
-    (%pointer->record (pointer-><netent> (platform.getnetbyname (string->cstring/c net-name))))))
+    (%pointer->record (pointer-><netent> (platform:getnetbyname (string->cstring/c net-name))))))
 
 (define getnetbyaddr
   (case-lambda
@@ -376,7 +373,7 @@
     (getnetbyaddr address-bytevector (socket-address-format inet)))
    ((address-bytevector address-format)
     (%pointer->record (pointer-><netent>
-		       (platform.getnetbyaddr (%bytevector->network-number address-bytevector)
+		       (platform:getnetbyaddr (%bytevector->network-number address-bytevector)
 					      (socket-address-format->value address-format)))))))
 
 (define setnetent
@@ -384,37 +381,37 @@
    (()
     (setnetent #f))
    ((stay-open?)
-    (platform.setnetent (if stay-open? 1 0)))))
+    (platform:setnetent (if stay-open? 1 0)))))
 
 (define (getnetent)
-  (%pointer->record (pointer-><netent> (platform.getnetent))))
+  (%pointer->record (pointer-><netent> (platform:getnetent))))
 
 
 ;;;; protocols database
 
 (define (getprotobyname proto-name)
   (with-compensations
-    (%pointer->record (pointer-><protoent> (platform.getprotobyname (string->cstring/c proto-name))))))
+    (%pointer->record (pointer-><protoent> (platform:getprotobyname (string->cstring/c proto-name))))))
 
 (define (getprotobynumber number)
-  (%pointer->record (pointer-><protoent> (platform.getprotobynumber number))))
+  (%pointer->record (pointer-><protoent> (platform:getprotobynumber number))))
 
 (define setprotoent
   (case-lambda
    (()
     (setprotoent #f))
    ((stay-open?)
-    (platform.setprotoent (if stay-open? 1 0)))))
+    (platform:setprotoent (if stay-open? 1 0)))))
 
 (define (getprotoent)
-  (%pointer->record (pointer-><protoent> (platform.getprotoent))))
+  (%pointer->record (pointer-><protoent> (platform:getprotoent))))
 
 
 ;;;; services database
 
 (define (getservbyname service-name protocol-name)
   (with-compensations
-    (let ((servent* (platform.getservbyname (string->cstring/c service-name)
+    (let ((servent* (platform:getservbyname (string->cstring/c service-name)
 					    (string->cstring/c protocol-name))))
       (if (pointer-null? servent*)
 	  #f
@@ -422,35 +419,35 @@
 
 (define (getservbyport port protocol-name)
   (with-compensations
-    (let ((servent* (platform.getservbyport port (string->cstring/c protocol-name))))
+    (let ((servent* (platform:getservbyport port (string->cstring/c protocol-name))))
       (if (pointer-null? servent*)
 	  #f
 	(pointer-><servent> servent*)))))
 
 (define (getservbyport* port protocol-name)
-  (getservbyport (platform.htons port) protocol-name))
+  (getservbyport (platform:htons port) protocol-name))
 
 (define setservent
   (case-lambda
    (()
     (setservent #f))
    ((stay-open?)
-    (platform.setservent (if stay-open? 1 0)))))
+    (platform:setservent (if stay-open? 1 0)))))
 
 (define (getservent)
-  (%pointer->record (pointer-><servent> (platform.getservent))))
+  (%pointer->record (pointer-><servent> (platform:getservent))))
 
 
 ;;;; interface naming
 
 (define (if-nametoindex name)
   (with-compensations
-    (platform.if_nametoindex (string->cstring/c name))))
+    (platform:if_nametoindex (string->cstring/c name))))
 
 (define (if-indextoname index)
   (with-compensations
     (let* ((name*	(malloc-block/c IFNAMSIZ))
-	   (result*	(platform.if_indextoname index name*)))
+	   (result*	(platform:if_indextoname index name*)))
       (if (pointer-null? result*)
 	  (error 'if-indextoname "invalid network interface index" index)
 	(cstring->string name*)))))
@@ -458,16 +455,16 @@
 (define (if-nameindex)
   (with-compensations
     (letrec ((names* (compensate
-			 (begin0-let ((p (platform.if_nameindex)))
+			 (begin0-let ((p (platform:if_nameindex)))
 			   (when (pointer-null? p)
 			     (error 'if-nameindex "unable to acquire list of interface names")))
 		       (with
-			(platform.if_freenameindex names*)))))
+			(platform:if_freenameindex names*)))))
       (let loop ((names* names*)
       		 (alist  '()))
       	(if (pointer-null? (struct-if_nameindex-if_name-ref names*))
 	    alist
-      	  (loop (pointer-add names* (px.c-sizeof if_nameindex))
+      	  (loop (pointer-add names* sizeof-if_nameindex)
       	  	(cons (make-<if-nameindex>
 		       (struct-if_nameindex-if_index-ref names*)
 		       (cstring->string (struct-if_nameindex-if_name-ref names*)))
@@ -482,7 +479,7 @@
     (socket namespace style 0))
    ((namespace style protocol)
     (receive (result errno)
-	(platform.socket (socket-namespace->value namespace)
+	(platform:socket (socket-namespace->value namespace)
 			 (socket-style->value style)
 			 protocol)
       (if (= -1 result)
@@ -497,7 +494,7 @@
     (with-compensations
       (let ((fds* (malloc-small/c)))
 	(receive (result errno)
-	    (platform.socketpair (socket-namespace->value namespace)
+	    (platform:socketpair (socket-namespace->value namespace)
 				 (socket-style->value style)
 				 protocol fds*)
 	  (if (= -1 result)
@@ -507,7 +504,7 @@
 
 (define (shutdown sock how)
   (receive (result errno)
-      (platform.shutdown (fd->integer sock) (shutdown-mode->value how))
+      (platform:shutdown (fd->integer sock) (shutdown-mode->value how))
     (when (= -1 result)
       (raise-errno-error 'shutdown errno (list sock how)))))
 
@@ -524,7 +521,7 @@
     (receive (sockaddr* socklen)
 	(%sockaddr->pointer&length sockaddr malloc-block/c)
       (receive (result errno)
-	  (platform.bind (fd->integer sock) sockaddr* socklen)
+	  (platform:bind (fd->integer sock) sockaddr* socklen)
 	(when (= -1 result)
 	  (raise-errno-error 'bind errno (list sock sockaddr)))))))
 
@@ -533,24 +530,24 @@
     (receive (sockaddr* socklen)
 	(%sockaddr->pointer&length sockaddr malloc-block/c)
       (receive (result errno)
-	  (platform.connect (fd->integer sock) sockaddr* socklen)
+	  (platform:connect (fd->integer sock) sockaddr* socklen)
 	(when (= -1 result)
 	  (raise-errno-error 'connect errno (list sock sockaddr)))))))
 
 (define (listen sock max-pending-connections)
   (receive (result errno)
-      (platform.listen (fd->integer sock) max-pending-connections)
+      (platform:listen (fd->integer sock) max-pending-connections)
     (when (= -1 result)
       (raise-errno-error 'listen errno (list sock max-pending-connections)))))
 
 (define (accept sock)
   (with-compensations
-    (let* ((socklen	(max (px.c-sizeof sockaddr_in) (px.c-sizeof sockaddr_in6)))
+    (let* ((socklen	(max sizeof-sockaddr_in sizeof-sockaddr_in6))
 	   (sockaddr*	(malloc-block/c socklen))
 	   (socklen*	(malloc-small/c)))
       (pointer-set-c-socklen_t! socklen* 0 socklen)
       (receive (result errno)
-	  (platform.accept (fd->integer sock) sockaddr* socklen*)
+	  (platform:accept (fd->integer sock) sockaddr* socklen*)
 	(cond ((= -1 result)
 	       (raise-errno-error 'accept errno sock))
 	      ((< socklen (pointer-ref-c-socklen_t socklen* 0))
@@ -575,7 +572,7 @@
     (receive (sockaddr* socklen*)
 	(%sockaddr&socklen-pointers/c sock)
       (receive (result errno)
-	  (platform.getsockname (fd->integer sock) sockaddr* socklen*)
+	  (platform:getsockname (fd->integer sock) sockaddr* socklen*)
 	(cond ((= -1 result)
 	       (raise-errno-error 'getsockname errno sock))
 	      ((< (%socklen-from-sock sock) (pointer-ref-c-socklen_t socklen* 0))
@@ -589,7 +586,7 @@
     (receive (sockaddr* socklen*)
 	(%sockaddr&socklen-pointers/c sock)
       (receive (result errno)
-	  (platform.getpeername (fd->integer sock) sockaddr* socklen*)
+	  (platform:getpeername (fd->integer sock) sockaddr* socklen*)
 	(cond ((= -1 result)
 	       (raise-errno-error 'getpeername errno sock))
 	      ((< (%socklen-from-sock sock) (pointer-ref-c-socklen_t socklen* 0))
@@ -605,7 +602,7 @@
     (send sock buf.ptr buf.len (socket-data-options)))
    ((sock buf.ptr buf.len options)
     (receive (result errno)
-	(platform.send (fd->integer sock) buf.ptr buf.len
+	(platform:send (fd->integer sock) buf.ptr buf.len
 		       (socket-data-options->value options))
       (if (= -1 result)
 	  (raise-errno-error 'send errno (list sock buf.ptr buf.len options))
@@ -646,7 +643,7 @@
     (recv sock buf.ptr buf.len (socket-data-options)))
    ((sock buf.ptr buf.len options)
     (receive (result errno)
-	(platform.recv (fd->integer sock) buf.ptr buf.len
+	(platform:recv (fd->integer sock) buf.ptr buf.len
 		       (socket-data-options->value options))
       (if (= -1 result)
 	  (raise-errno-error 'recv errno (list sock buf.ptr buf.len options))
@@ -688,7 +685,7 @@
       (receive (sockaddr* socklen)
 	  (%sockaddr->pointer&length sockaddr malloc-block/c)
 	(receive (result errno)
-	    (platform.sendto (fd->integer sock)
+	    (platform:sendto (fd->integer sock)
 			     buf.ptr buf.len
 			     (socket-data-options->value options)
 			     sockaddr* socklen)
@@ -736,7 +733,7 @@
 	     (socklen*	(malloc-small/c)))
 	(pointer-set-c-socklen_t! socklen* 0 socklen)
 	(receive (result errno)
-	    (platform.recvfrom (fd->integer sock)
+	    (platform:recvfrom (fd->integer sock)
 			       buf.ptr buf.len
 			       (socket-data-options->value options)
 			       sockaddr* socklen*)
@@ -785,18 +782,16 @@
     (let* ((optsym	(socket-option->symbol option))
 	   (optlen	(case optsym
 			  ((debug reuseaddr keepalive dontroute broadcast oobinline style type error)
-			   (ffi.c-sizeof int))
-			  ((sndbuf rcvbuf)
-			   (ffi.c-sizeof size_t))
-			  ((linger)
-			   (px.c-sizeof linger))
+			   sizeof-int)
+			  ((sndbuf rcvbuf)	sizeof-size_t)
+			  ((linger)		sizeof-linger)
 			  (else
 			   (assertion-violation 'getsockopt "invalid socket option" option))))
 	   (optval*	(malloc-block/c optlen))
 	   (optlen*	(malloc-small/c)))
       (pointer-set-c-socklen_t! optlen* 0 optlen)
       (receive (result errno)
-	  (platform.getsockopt (fd->integer sock) SOL_SOCKET
+	  (platform:getsockopt (fd->integer sock) SOL_SOCKET
 			       (socket-option->value option) optval* optlen*)
 	(if (= -1 result)
 	    (raise-errno-error 'getsockopt errno (list sock))
@@ -821,11 +816,9 @@
     (let* ((optsym	(socket-option->symbol option))
 	   (optlen	(case optsym
 			  ((debug reuseaddr keepalive dontroute broadcast oobinline)
-			   (ffi.c-sizeof int))
-			  ((sndbuf rcvbuf)
-			   (ffi.c-sizeof size_t))
-			  ((linger)
-			   (px.c-sizeof linger))
+			   sizeof-int)
+			  ((sndbuf rcvbuf)	sizeof-size_t)
+			  ((linger)		sizeof-linger)
 			  (else
 			   (assertion-violation 'setsockopt "invalid socket option" option))))
 	   (optval*	(malloc-block/c optlen)))
@@ -840,7 +833,7 @@
 	(else
 	 (assertion-violation 'setsockopt "invalid socket option" option)))
       (receive (result errno)
-	  (platform.setsockopt (fd->integer sock) SOL_SOCKET
+	  (platform:setsockopt (fd->integer sock) SOL_SOCKET
 			       (socket-option->value option) optval* optlen)
 	(if (= -1 result)
 	    (raise-errno-error 'setsockopt errno (list sock))
