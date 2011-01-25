@@ -45,14 +45,38 @@
 ;;;; label interface to "struct tms" pointers
 
 (define-c-functions libnausicaa-posix
-  (pointer-to-tms-tms_utime		(double nausicaa_posix_tms_utime_ref (void*)))
-  (pointer-to-tms-tms_stime		(double nausicaa_posix_tms_stime_ref (void*)))
-  (pointer-to-tms-tms_cutime		(double nausicaa_posix_tms_cutime_ref (void*)))
-  (pointer-to-tms-tms_cstime		(double nausicaa_posix_tms_cstime_ref (void*)))
-  (pointer-to-tms-tms_utime-set!	(void nausicaa_posix_tms_utime_set (void* double)))
-  (pointer-to-tms-tms_stime-set!	(void nausicaa_posix_tms_stime_set (void* double)))
-  (pointer-to-tms-tms_cutime-set!	(void nausicaa_posix_tms_cutime_set (void* double)))
-  (pointer-to-tms-tms_cstime-set!	(void nausicaa_posix_tms_cstime_set (void* double))))
+  (%pointer-to-tms-tms_utime		(double nausicaa_posix_tms_utime_ref (void*)))
+  (%pointer-to-tms-tms_stime		(double nausicaa_posix_tms_stime_ref (void*)))
+  (%pointer-to-tms-tms_cutime		(double nausicaa_posix_tms_cutime_ref (void*)))
+  (%pointer-to-tms-tms_cstime		(double nausicaa_posix_tms_cstime_ref (void*)))
+  (%pointer-to-tms-tms_utime-set!	(void nausicaa_posix_tms_utime_set (void* double)))
+  (%pointer-to-tms-tms_stime-set!	(void nausicaa_posix_tms_stime_set (void* double)))
+  (%pointer-to-tms-tms_cutime-set!	(void nausicaa_posix_tms_cutime_set (void* double)))
+  (%pointer-to-tms-tms_cstime-set!	(void nausicaa_posix_tms_cstime_set (void* double))))
+
+(define-inline (pointer-to-tms-tms_utime pointer)
+  (exact (%pointer-to-tms-tms_utime pointer)))
+
+(define-inline (pointer-to-tms-tms_stime pointer)
+  (exact (%pointer-to-tms-tms_stime pointer)))
+
+(define-inline (pointer-to-tms-tms_cutime pointer)
+  (exact (%pointer-to-tms-tms_cutime pointer)))
+
+(define-inline (pointer-to-tms-tms_cstime pointer)
+  (exact (%pointer-to-tms-tms_cstime pointer)))
+
+(define-inline (pointer-to-tms-tms_utime-set! pointer value)
+  (%pointer-to-tms-tms_utime-set! pointer (inexact value)))
+
+(define-inline (pointer-to-tms-tms_stime-set! pointer value)
+  (%pointer-to-tms-tms_stime-set! pointer (inexact value)))
+
+(define-inline (pointer-to-tms-tms_cutime-set! pointer value)
+  (%pointer-to-tms-tms_cutime-set! pointer (inexact value)))
+
+(define-inline (pointer-to-tms-tms_cstime-set! pointer value)
+  (%pointer-to-tms-tms_cstime-set! pointer (inexact value)))
 
 (define-label pointer-to-tms
   (custom-maker make-pointer-to-tms)
@@ -228,10 +252,10 @@
 	       wrapper.tms_cutime))
 
 (define (tms-mirror->tms-mirror constructor (mirror <tms>))
-  (constructor mirror.stime
-	       mirror.utime
-	       mirror.cstime
-	       mirror.cutime))
+  (constructor mirror.utime
+	       mirror.stime
+	       mirror.cutime
+	       mirror.cstime))
 
 
 ;;;; done

@@ -39,11 +39,25 @@
     (nausicaa posix sizeof))
 
   (define-c-functions/with-errno libnausicaa-posix
-    (clock		(double nausicaa_posix_clock (void)))
-    (time		(double nausicaa_posix_time (void))))
+    (%clock		(double nausicaa_posix_clock (void)))
+    (%time		(double nausicaa_posix_time (void))))
 
   (define-c-functions libnausicaa-posix
-    (times		(double nausicaa_posix_times (struct-tms*))))
+    (%times		(double nausicaa_posix_times (struct-tms*))))
+
+  (define (clock)
+    (receive (result errno)
+	(%clock)
+      (values (exact result) errno)))
+
+  (define (time)
+    (receive (result errno)
+	(%time)
+      (values (exact result) errno)))
+
+  (define (times pointer)
+    (exact (%times pointer)))
+
   )
 
 ;;; end of file

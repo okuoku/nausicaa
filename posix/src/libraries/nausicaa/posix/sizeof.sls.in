@@ -1069,8 +1069,7 @@
   (define-syntax pointer-to-dirent-d_name
     (syntax-rules ()
       ((_ ?pointer)
-       (pointer-c-ref @TYPEOF_DIRENT_D_NAME@ ?pointer
-         @OFFSETOF_DIRENT_D_NAME@))))
+       (ffi:pointer-add ?pointer @OFFSETOF_DIRENT_D_NAME@))))
   (define-syntax pointer-to-dirent-d_type-set!
     (syntax-rules ()
       ((_ ?pointer ?value)
@@ -1535,8 +1534,7 @@
   (define-syntax pointer-to-ntptimeval-time
     (syntax-rules ()
       ((_ ?pointer)
-       (pointer-c-ref @TYPEOF_NTPTIMEVAL_TIME@ ?pointer
-         @OFFSETOF_NTPTIMEVAL_TIME@))))
+       (ffi:pointer-add ?pointer @OFFSETOF_NTPTIMEVAL_TIME@))))
   (define-class <struct-ntptimeval>
     (nongenerative nausicaa:posix:<struct-ntptimeval>)
     (protocol
@@ -1676,8 +1674,7 @@
   (define-syntax pointer-to-timex-time
     (syntax-rules ()
       ((_ ?pointer)
-       (pointer-c-ref @TYPEOF_TIMEX_TIME@ ?pointer
-         @OFFSETOF_TIMEX_TIME@))))
+       (ffi:pointer-add ?pointer @OFFSETOF_TIMEX_TIME@))))
   (define-syntax pointer-to-timex-tolerance-set!
     (syntax-rules ()
       ((_ ?pointer ?value)
@@ -1982,13 +1979,13 @@
   (define-syntax pointer-to-itimerval-it_value
     (syntax-rules ()
       ((_ ?pointer)
-       (pointer-c-ref @TYPEOF_ITIMERVAL_IT_VALUE@ ?pointer
+       (ffi:pointer-add ?pointer
          @OFFSETOF_ITIMERVAL_IT_VALUE@))))
   (define-syntax pointer-to-itimerval-it_interval
     (syntax-rules ()
       ((_ ?pointer)
-       (pointer-c-ref @TYPEOF_ITIMERVAL_IT_INTERVAL@
-         ?pointer @OFFSETOF_ITIMERVAL_IT_INTERVAL@))))
+       (ffi:pointer-add ?pointer
+         @OFFSETOF_ITIMERVAL_IT_INTERVAL@))))
   (define-class <struct-itimerval>
     (nongenerative nausicaa:posix:<struct-itimerval>)
     (protocol
@@ -2367,33 +2364,28 @@
   (define-syntax pointer-to-utsname-domainname
     (syntax-rules ()
       ((_ ?pointer)
-       (pointer-c-ref @TYPEOF_UTSNAME_DOMAINNAME@ ?pointer
+       (ffi:pointer-add ?pointer
          @OFFSETOF_UTSNAME_DOMAINNAME@))))
   (define-syntax pointer-to-utsname-nodename
     (syntax-rules ()
       ((_ ?pointer)
-       (pointer-c-ref @TYPEOF_UTSNAME_NODENAME@ ?pointer
-         @OFFSETOF_UTSNAME_NODENAME@))))
+       (ffi:pointer-add ?pointer @OFFSETOF_UTSNAME_NODENAME@))))
   (define-syntax pointer-to-utsname-machine
     (syntax-rules ()
       ((_ ?pointer)
-       (pointer-c-ref @TYPEOF_UTSNAME_MACHINE@ ?pointer
-         @OFFSETOF_UTSNAME_MACHINE@))))
+       (ffi:pointer-add ?pointer @OFFSETOF_UTSNAME_MACHINE@))))
   (define-syntax pointer-to-utsname-version
     (syntax-rules ()
       ((_ ?pointer)
-       (pointer-c-ref @TYPEOF_UTSNAME_VERSION@ ?pointer
-         @OFFSETOF_UTSNAME_VERSION@))))
+       (ffi:pointer-add ?pointer @OFFSETOF_UTSNAME_VERSION@))))
   (define-syntax pointer-to-utsname-release
     (syntax-rules ()
       ((_ ?pointer)
-       (pointer-c-ref @TYPEOF_UTSNAME_RELEASE@ ?pointer
-         @OFFSETOF_UTSNAME_RELEASE@))))
+       (ffi:pointer-add ?pointer @OFFSETOF_UTSNAME_RELEASE@))))
   (define-syntax pointer-to-utsname-sysname
     (syntax-rules ()
       ((_ ?pointer)
-       (pointer-c-ref @TYPEOF_UTSNAME_SYSNAME@ ?pointer
-         @OFFSETOF_UTSNAME_SYSNAME@))))
+       (ffi:pointer-add ?pointer @OFFSETOF_UTSNAME_SYSNAME@))))
   (define-class <struct-utsname>
     (nongenerative nausicaa:posix:<struct-utsname>)
     (protocol
@@ -2746,8 +2738,7 @@
   (define-syntax pointer-to-sockaddr-sa_data
     (syntax-rules ()
       ((_ ?pointer)
-       (pointer-c-ref @TYPEOF_SOCKADDR_SA_DATA@ ?pointer
-         @OFFSETOF_SOCKADDR_SA_DATA@))))
+       (ffi:pointer-add ?pointer @OFFSETOF_SOCKADDR_SA_DATA@))))
   (define-syntax pointer-to-sockaddr-sa_family-set!
     (syntax-rules ()
       ((_ ?pointer ?value)
@@ -2800,7 +2791,7 @@
   (define-syntax pointer-to-sockaddr_in-sin_addr
     (syntax-rules ()
       ((_ ?pointer)
-       (pointer-c-ref @TYPEOF_SOCKADDR_IN_SIN_ADDR@ ?pointer
+       (ffi:pointer-add ?pointer
          @OFFSETOF_SOCKADDR_IN_SIN_ADDR@))))
   (define-syntax pointer-to-sockaddr_in-sin_family-set!
     (syntax-rules ()
@@ -2866,8 +2857,8 @@
   (define-syntax pointer-to-sockaddr_in6-sin6_addr
     (syntax-rules ()
       ((_ ?pointer)
-       (pointer-c-ref @TYPEOF_SOCKADDR_IN6_SIN6_ADDR@
-         ?pointer @OFFSETOF_SOCKADDR_IN6_SIN6_ADDR@))))
+       (ffi:pointer-add ?pointer
+         @OFFSETOF_SOCKADDR_IN6_SIN6_ADDR@))))
   (define-syntax pointer-to-sockaddr_in6-sin6_family-set!
     (syntax-rules ()
       ((_ ?pointer ?value)
@@ -2923,7 +2914,7 @@
   (define-syntax pointer-to-sockaddr_un-sun_path
     (syntax-rules ()
       ((_ ?pointer)
-       (pointer-c-ref @TYPEOF_SOCKADDR_UN_SUN_PATH@ ?pointer
+       (ffi:pointer-add ?pointer
          @OFFSETOF_SOCKADDR_UN_SUN_PATH@))))
   (define-syntax pointer-to-sockaddr_un-sun_family-set!
     (syntax-rules ()

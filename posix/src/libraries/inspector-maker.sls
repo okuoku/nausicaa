@@ -660,7 +660,7 @@ As an example, it should be something like:
 			       `(define-syntax ,accessor
 				  (syntax-rules ()
 				    ((_ ?pointer)
-				     (pointer-c-ref ,typeof ?pointer ,offset))))))
+				     (ffi:pointer-add ?pointer ,offset))))))
 		(begin
 		  (set-cons! fields `(mutable ,field-name))
 		  (set-cons! accessors-and-mutators

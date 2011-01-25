@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009, 2010, 2011 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2009-2011 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -52,10 +52,6 @@
     struct-flock
     make-struct-flock		struct-flock?
     struct-flock->pointer	pointer->struct-flock
-
-    struct-timeval
-    make-struct-timeval		struct-timeval?
-    struct-timeval->pointer	pointer->struct-timeval
 
     struct-in-addr		struct-in-addr?
     struct-in-addr->pointer	pointer->struct-in-addr
@@ -143,77 +139,6 @@
     <stat>-ctime_usec
     <stat>-blocks
     <stat>-blksize
-
-;;; --------------------------------------------------------------------
-
-    <tms>			<tms-rtd>
-    make-<tms>			<tms>?
-    <tms>-utime			<tms>-utime-set!
-    <tms>-stime			<tms>-stime-set!
-    <tms>-cutime		<tms>-cutime-set!
-    <tms>-cstime		<tms>-cstime-set!
-
-    <timeval>			<timeval-rtd>
-    make-<timeval>		<timeval>?
-    <timeval>-sec		<timeval>-sec-set!
-    <timeval>-usec		<timeval>-usec-set!
-
-    <timespec>			<timespec-rtd>
-    make-<timespec>		<timespec>?
-    <timespec>-sec		<timespec>-sec-set!
-    <timespec>-nsec		<timespec>-nsec-set!
-
-    <timezone>			<timezone-rtd>
-    make-<timezone>		<timezone>?
-    <timezone>-minuteswest	<timezone>-minuteswest-set!
-    <timezone>-dsttime		<timezone>-dsttime-set!
-
-    <tm>			<tm-rtd>
-    make-<tm>			<tm>?
-    <tm>-sec			<tm>-sec-set!
-    <tm>-min			<tm>-min-set!
-    <tm>-hour			<tm>-hour-set!
-    <tm>-mday			<tm>-mday-set!
-    <tm>-mon			<tm>-mon-set!
-    <tm>-year			<tm>-year-set!
-    <tm>-wday			<tm>-wday-set!
-    <tm>-yday			<tm>-yday-set!
-    <tm>-isdst			<tm>-isdst-set!
-    <tm>-gmtoff			<tm>-gmtoff-set!
-    <tm>-zone			<tm>-zone-set!
-
-    <ntptimeval>		<ntptimeval-rtd>
-    make-<ntptimeval>		<ntptimeval>?
-    <ntptimeval>-time		<ntptimeval>-time-set!
-    <ntptimeval>-maxerror	<ntptimeval>-maxerror-set!
-    <ntptimeval>-esterror	<ntptimeval>-esterror-set!
-
-    <timex>			<timex-rtd>
-    make-<timex>		<timex>?
-    <timex>-modes		<timex>-modes-set!
-    <timex>-offset		<timex>-offset-set!
-    <timex>-freq		<timex>-freq-set!
-    <timex>-maxerror		<timex>-maxerror-set!
-    <timex>-esterror		<timex>-esterror-set!
-    <timex>-status		<timex>-status-set!
-    <timex>-constant		<timex>-constant-set!
-    <timex>-precision		<timex>-precision-set!
-    <timex>-tolerance		<timex>-tolerance-set!
-    <timex>-time		<timex>-time-set!
-    <timex>-tick		<timex>-tick-set!
-    <timex>-ppsfreq		<timex>-ppsfreq-set!
-    <timex>-jitter		<timex>-jitter-set!
-    <timex>-shift		<timex>-shift-set!
-    <timex>-stabil		<timex>-stabil-set!
-    <timex>-jitcnt		<timex>-jitcnt-set!
-    <timex>-calcnt		<timex>-calcnt-set!
-    <timex>-errcnt		<timex>-errcnt-set!
-    <timex>-stbcnt		<timex>-stbcnt-set!
-
-    <itimerval>			<itimerval-rtd>
-    make-<itimerval>		<itimerval>?
-    <itimerval>-interval	<itimerval>-interval-set!
-    <itimerval>-value		<itimerval>-value-set!
 
 ;;; --------------------------------------------------------------------
 
@@ -410,15 +335,6 @@
 (define (make-struct-flock malloc)
   (pointer->struct-flock (malloc (so.c-sizeof struct-flock))))
 
-;;; --------------------------------------------------------------------
-
-(define-class (struct-timeval pointer->struct-timeval struct-timeval?)
-  (nongenerative nausicaa:posix:struct-timeval)
-  (fields (immutable object struct-timeval->pointer)))
-
-(define (make-struct-timeval malloc)
-  (pointer->struct-timeval (malloc (so.c-sizeof timeval))))
-
 
 (define-class <passwd>
   (nongenerative nausicaa:posix:<passwd>)
@@ -518,114 +434,6 @@
 
 (define <stat-rtd>
   (record-type-descriptor <stat>))
-
-
-(define-class <tms>
-  (nongenerative nausicaa:posix:<tms>)
-  (fields (mutable utime)
-	  (mutable stime)
-	  (mutable cutime)
-	  (mutable cstime)))
-
-(define <tms-rtd>
-  (record-type-descriptor <tms>))
-
-;;; --------------------------------------------------------------------
-
-(define-class <timeval>
-  (nongenerative nausicaa:posix:<timeval>)
-  (fields (mutable sec)
-	  (mutable usec)))
-
-(define <timeval-rtd>
-  (record-type-descriptor <timeval>))
-
-;;; --------------------------------------------------------------------
-
-(define-class <timespec>
-  (nongenerative nausicaa:posix:<timespec>)
-  (fields (mutable sec)
-	  (mutable nsec)))
-
-(define <timespec-rtd>
-  (record-type-descriptor <timespec>))
-
-;;; --------------------------------------------------------------------
-
-(define-class <timezone>
-  (nongenerative nausicaa:posix:<timezone>)
-  (fields (mutable minuteswest)
-	  (mutable dsttime)))
-
-(define <timezone-rtd>
-  (record-type-descriptor <timezone>))
-
-;;; --------------------------------------------------------------------
-
-(define-class <tm>
-  (nongenerative nausicaa:posix:<tm>)
-  (fields (mutable sec)
-	  (mutable min)
-	  (mutable hour)
-	  (mutable mday)
-	  (mutable mon)
-	  (mutable year)
-	  (mutable wday)
-	  (mutable yday)
-	  (mutable isdst)
-	  (mutable gmtoff)
-	  (mutable zone)))
-
-(define <tm-rtd>
-  (record-type-descriptor <tm>))
-
-;;; --------------------------------------------------------------------
-
-(define-class <ntptimeval>
-  (nongenerative nausicaa:posix:<ntptimeval>)
-  (fields (mutable time)
-	  (mutable maxerror)
-	  (mutable esterror)))
-
-(define <ntptimeval-rtd>
-  (record-type-descriptor <ntptimeval>))
-
-;;; --------------------------------------------------------------------
-
-(define-class <timex>
-  (nongenerative nausicaa:posix:<timex>)
-  (fields (mutable modes)
-	  (mutable offset)
-	  (mutable freq)
-	  (mutable maxerror)
-	  (mutable esterror)
-	  (mutable status)
-	  (mutable constant)
-	  (mutable precision)
-	  (mutable tolerance)
-	  (mutable time)
-	  (mutable tick)
-	  (mutable ppsfreq)
-	  (mutable jitter)
-	  (mutable shift)
-	  (mutable stabil)
-	  (mutable jitcnt)
-	  (mutable calcnt)
-	  (mutable errcnt)
-	  (mutable stbcnt)))
-
-(define <timex-rtd>
-  (record-type-descriptor <timex>))
-
-;;; --------------------------------------------------------------------
-
-(define-class <itimerval>
-  (nongenerative nausicaa:posix:<itimerval>)
-  (fields (mutable interval)
-	  (mutable value)))
-
-(define <itimerval-rtd>
-  (record-type-descriptor <itimerval>))
 
 
 (define-class <sockaddr>

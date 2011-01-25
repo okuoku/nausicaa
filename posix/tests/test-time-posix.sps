@@ -25,13 +25,54 @@
 
 
 
+#!r6rs
 (import (nausicaa)
   (nausicaa checks)
-  (nausicaa posix typedefs)
+  (prefix (nausicaa ffi memory) mem.)
+  (nausicaa posix time typedefs)
+  (nausicaa posix sizeof)
   (prefix (nausicaa posix time) px.))
 
 (check-set-mode! 'report-failed)
 (display "*** testing POSIX time\n")
+
+
+(parametrise ((check-test-name	'structs))
+
+  (with-deferred-exceptions-handler
+      (lambda (E)
+	(debug-print-condition "deferred condition in structs" E))
+    (lambda ()
+
+      (with-compensations	;from mirror to any
+	(let (((M <tms>) (make* <tms> 1 2 3 4)))
+
+	  (let (((P pointer-to-tms) (make pointer-to-tms
+				      (mirror: M)
+				      (malloc: mem.malloc-block/c))))
+	    (check P.tms_utime	=> 1)
+	    (check P.tms_stime	=> 2)
+	    (check P.tms_cutime	=> 3)
+	    (check P.tms_cstime	=> 4))
+
+	  (let (((W <struct-tms>) (make <struct-tms>
+				    (mirror: M)
+				    (malloc: mem.malloc-block/c))))
+	    (check W.tms_utime	=> 1)
+	    (check W.tms_stime	=> 2)
+	    (check W.tms_cutime	=> 3)
+	    (check W.tms_cstime	=> 4))
+
+	  (let (((D <tms>) (make <tms>
+			     (mirror: M))))
+	    (check D.utime	=> 1)
+	    (check D.stime	=> 2)
+	    (check D.cutime	=> 3)
+	    (check D.cstime	=> 4))
+
+	  #f))
+
+      #t)))
 
 
 (parametrise ((check-test-name 'clock))
@@ -43,17 +84,19 @@
 
 
       (check
-	  (flonum? (px.clock))
+	  (exact? (px.clock))
 	=> #t)
 
+      ;;This tests the type of values  in the fields of the <tms> mirror
+      ;;class; the values are produced by functions in the stub library.
       (check
-	  (receive (result tms)
+	  (receive (result (tms <tms>))
 	      (px.times)
-	    (list (flonum? result)
-		  (flonum? (<tms>-utime tms))
-		  (flonum? (<tms>-stime tms))
-		  (flonum? (<tms>-cutime tms))
-		  (flonum? (<tms>-cstime tms))))
+	    (list (exact? result)
+		  (exact? tms.utime)
+		  (exact? tms.stime)
+		  (exact? tms.cutime)
+		  (exact? tms.cstime)))
 	=> '(#t #t #t #t #t))
 
       #t)))
@@ -67,7 +110,7 @@
     (lambda ()
 
       (check
-	  (flonum? (px.time))
+	  (exact? (px.time))
 	=> #t)
 
       #t)))
