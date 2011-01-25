@@ -196,9 +196,9 @@ dnl --------------------------------------------------------------------
 dnl Done.
 dnl --------------------------------------------------------------------
 
-AC_CONFIG_FILES([../src/libraries/nausicaa/posix/sizeof.sls:../src/libraries/nausicaa/posix/sizeof.sls.in])
-AC_CONFIG_FILES([../src/libraries/nausicaa/posix/clang-data-types.sls:src/libraries/nausicaa/posix/clang-data-types.sls.in])
 AC_CONFIG_FILES([meta.d/makefiles/library.make:../configuration/library.make])
+AC_CONFIG_FILES([../src/libraries/nausicaa/posix/sizeof.sls:../src/libraries/nausicaa/posix/sizeof.sls.in])
+AC_CONFIG_FILES([../src/libraries/nausicaa/posix/clang/type-translation.sls:src/libraries/nausicaa/posix/clang/type-translation.sls.in])
 
 DS_CONFIG_FILE_SLACKWARE_BIN_DESC
 DS_CONFIG_FILE_SLACKWARE_DOC_DESC

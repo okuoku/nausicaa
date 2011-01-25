@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2009-2011 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -31,7 +31,7 @@
     (only (nausicaa ffi)
 	  libc-shared-object
 	  define-c-functions)
-    (only (nausicaa ffi clang-data-types)
+    (only (nausicaa ffi clang type-translation)
 	  clang-maybe-foreign-type->clang-external-type))
   (define-c-functions libc-shared-object
     (memset	(void* memset  (void* int   size_t)))

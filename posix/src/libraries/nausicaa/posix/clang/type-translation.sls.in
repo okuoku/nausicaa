@@ -1,0 +1,155 @@
+;;; (nausicaa posix clang type-translation) --
+;;;
+;;;Part of: Nausicaa
+;;;Contents: foreign library C language type mapping
+;;;Date: 
+;;;
+;;;Abstract
+;;;
+;;;
+;;;
+;;;Copyright (c)  Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;
+;;;This program is free software:  you can redistribute it and/or modify
+;;;it under the terms of the  GNU General Public License as published by
+;;;the Free Software Foundation, either version 3 of the License, or (at
+;;;your option) any later version.
+;;;
+;;;This program is  distributed in the hope that it  will be useful, but
+;;;WITHOUT  ANY   WARRANTY;  without   even  the  implied   warranty  of
+;;;MERCHANTABILITY  or FITNESS FOR  A PARTICULAR  PURPOSE.  See  the GNU
+;;;General Public License for more details.
+;;;
+;;;You should  have received  a copy of  the GNU General  Public License
+;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
+;;;
+
+#!r6rs
+(library (nausicaa posix clang type-translation)
+  (export clang-foreign-type->clang-external-type
+    clang-maybe-foreign-type->clang-external-type
+    enum-clang-foreign-types clang-foreign-types)
+  (import
+    (rnrs)
+    (prefix (nausicaa ffi clang type-translation) ffi.))
+  (define-enumeration enum-clang-foreign-types
+    (blkcnt_t clock_t dev_t gid_t ino_t mode_t nlink_t off_t
+      pid_t time_t uid_t wchar_t socklen_t socklen_t*
+      struct-flock struct-flock* struct-timeval
+      struct-timeval* struct-timespec struct-timespec*
+      struct-tms struct-tms* struct-dirent struct-dirent*
+      struct-utimbuf struct-utimbuf* struct-timezone
+      struct-timezone* struct-tm struct-tm*
+      struct-ntptimeval struct-ntptimeval* struct-timex
+      struct-timex* struct-itimerval struct-itimerval*
+      struct-FTW struct-FTW* struct-iovec struct-iovec*
+      struct-fdset struct-fdset* struct-passwd
+      struct-passwd* struct-group struct-group*
+      struct-utsname struct-utsname* struct-fstab
+      struct-fstab* struct-mntent struct-mntent* sockaddr*
+      struct-sockaddr struct-sockaddr* sockaddr_in*
+      struct-sockaddr_in struct-sockaddr_in* sockaddr_in6*
+      struct-sockaddr_in6 struct-sockaddr_in6* sockaddr_un*
+      struct-sockaddr_un struct-sockaddr_un* in_addr*
+      struct-in_addr struct-in_addr* in6_addr*
+      struct-in6_addr struct-in6_addr* if_nameindex*
+      struct-if_nameindex struct-if_nameindex* netent*
+      struct-netent struct-netent* struct-linger
+      struct-linger* struct-hostent struct-hostent*
+      struct-protoent struct-protoent* struct-servent
+      struct-servent*)
+    clang-foreign-types)
+  (define (clang-foreign-type->clang-external-type type)
+    (case type
+      ((blkcnt_t) '@TYPEOF_BLKCNT_T@)
+      ((clock_t) '@TYPEOF_CLOCK_T@)
+      ((dev_t) '@TYPEOF_DEV_T@)
+      ((gid_t) '@TYPEOF_GID_T@)
+      ((ino_t) '@TYPEOF_INO_T@)
+      ((mode_t) '@TYPEOF_MODE_T@)
+      ((nlink_t) '@TYPEOF_NLINK_T@)
+      ((off_t) '@TYPEOF_OFF_T@)
+      ((pid_t) '@TYPEOF_PID_T@)
+      ((time_t) '@TYPEOF_TIME_T@)
+      ((uid_t) '@TYPEOF_UID_T@)
+      ((wchar_t) '@TYPEOF_WCHAR_T@)
+      ((socklen_t) '@TYPEOF_SOCKLEN_T@)
+      ((socklen_t*) 'pointer)
+      ((struct-flock) 'struct-flock)
+      ((struct-flock*) 'pointer)
+      ((struct-timeval) 'struct-timeval)
+      ((struct-timeval*) 'pointer)
+      ((struct-timespec) 'struct-timespec)
+      ((struct-timespec*) 'pointer)
+      ((struct-tms) 'struct-tms)
+      ((struct-tms*) 'pointer)
+      ((struct-dirent) 'struct-dirent)
+      ((struct-dirent*) 'pointer)
+      ((struct-utimbuf) 'struct-utimbuf)
+      ((struct-utimbuf*) 'pointer)
+      ((struct-timezone) 'struct-timezone)
+      ((struct-timezone*) 'pointer)
+      ((struct-tm) 'struct-tm)
+      ((struct-tm*) 'pointer)
+      ((struct-ntptimeval) 'struct-ntptimeval)
+      ((struct-ntptimeval*) 'pointer)
+      ((struct-timex) 'struct-timex)
+      ((struct-timex*) 'pointer)
+      ((struct-itimerval) 'struct-itimerval)
+      ((struct-itimerval*) 'pointer)
+      ((struct-FTW) 'struct-FTW)
+      ((struct-FTW*) 'pointer)
+      ((struct-iovec) 'struct-iovec)
+      ((struct-iovec*) 'pointer)
+      ((struct-fdset) 'struct-fdset)
+      ((struct-fdset*) 'pointer)
+      ((struct-passwd) 'struct-passwd)
+      ((struct-passwd*) 'pointer)
+      ((struct-group) 'struct-group)
+      ((struct-group*) 'pointer)
+      ((struct-utsname) 'struct-utsname)
+      ((struct-utsname*) 'pointer)
+      ((struct-fstab) 'struct-fstab)
+      ((struct-fstab*) 'pointer)
+      ((struct-mntent) 'struct-mntent)
+      ((struct-mntent*) 'pointer)
+      ((sockaddr*) 'pointer)
+      ((struct-sockaddr) 'struct-sockaddr)
+      ((struct-sockaddr*) 'pointer)
+      ((sockaddr_in*) 'pointer)
+      ((struct-sockaddr_in) 'struct-sockaddr_in)
+      ((struct-sockaddr_in*) 'pointer)
+      ((sockaddr_in6*) 'pointer)
+      ((struct-sockaddr_in6) 'struct-sockaddr_in6)
+      ((struct-sockaddr_in6*) 'pointer)
+      ((sockaddr_un*) 'pointer)
+      ((struct-sockaddr_un) 'struct-sockaddr_un)
+      ((struct-sockaddr_un*) 'pointer)
+      ((in_addr*) 'pointer)
+      ((struct-in_addr) 'struct-in_addr)
+      ((struct-in_addr*) 'pointer)
+      ((in6_addr*) 'pointer)
+      ((struct-in6_addr) 'struct-in6_addr)
+      ((struct-in6_addr*) 'pointer)
+      ((if_nameindex*) 'pointer)
+      ((struct-if_nameindex) 'struct-if_nameindex)
+      ((struct-if_nameindex*) 'pointer)
+      ((netent*) 'pointer)
+      ((struct-netent) 'struct-netent)
+      ((struct-netent*) 'pointer)
+      ((struct-linger) 'struct-linger)
+      ((struct-linger*) 'pointer)
+      ((struct-hostent) 'struct-hostent)
+      ((struct-hostent*) 'pointer)
+      ((struct-protoent) 'struct-protoent)
+      ((struct-protoent*) 'pointer)
+      ((struct-servent) 'struct-servent)
+      ((struct-servent*) 'pointer)
+      (else #f)))
+  (define (clang-maybe-foreign-type->clang-external-type
+            type)
+    (or (clang-foreign-type->clang-external-type type)
+        (ffi.clang-foreign-type->clang-external-type type))))
+
+
+;;; end of file

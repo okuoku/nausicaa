@@ -1,14 +1,14 @@
 ;;; -*- coding: utf-8-unix -*-
 ;;;
 ;;;Part of: Nausicaa/Scheme
-;;;Contents: FFI types for Vicare Scheme
-;;;Date: Mon Nov 30, 2009
+;;;Contents: compatibility library for Petite Chez
+;;;Date: Sat Mar 20, 2010
 ;;;
 ;;;Abstract
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2010, 2011 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -26,47 +26,55 @@
 
 
 #!r6rs
-(library (nausicaa ffi clang-data-types compat)
+(library (nausicaa ffi clang type-translation compat)
   (export enum-clang-types clang-types clang-internal-type->clang-type)
   (import (rnrs))
 
 
 (define-enumeration enum-clang-types
   ( ;;
-   signed-char unsigned-char signed-short unsigned-short
-   signed-int unsigned-int signed-long unsigned-long
-   signed-long-long unsigned-long-long
-   float double pointer void)
+   char		unsigned-char
+   short	unsigned-short
+   int		unsigned-int
+   long		unsigned-long
+   long-long	unsigned-long-long
+   fixed-float	fixed-double
+   void*
+   integer-8	unsigned-8
+   integer-16	unsigned-16
+   integer-32	unsigned-32
+   integer-64	unsigned-64
+   single-float	double-float)
   clang-types)
 
 (define (clang-internal-type->clang-type type)
   (case type
-    ((int8_t)				'signed-char)
-    ((int16_t)				'signed-short)
-    ((int32_t)				'signed-int)
-    ((int64_t)				'signed-long-long)
-    ((uint8_t)				'unsigned-char)
-    ((uint16_t)				'unsigned-short)
-    ((uint32_t)				'unsigned-int)
-    ((uint64_t)				'unsigned-long-long)
-    ((signed-char)			'signed-char)
-    ((unsigned-char)			'unsigned-char)
-    ((signed-short)			'signed-short)
+    ((int8_t)				'integer-8)
+    ((int16_t)				'integer-16)
+    ((int32_t)				'integer-32)
+    ((int64_t)				'integer-64)
+    ((uint8_t)				'unsigned-8)
+    ((uint16_t)				'unsigned-16)
+    ((uint32_t)				'unsigned-32)
+    ((uint64_t)				'unsigned-64)
+    ((signed-char)			'integer-8)
+    ((unsigned-char)			'unsigned-8)
+    ((signed-short)			'short)
     ((unsigned-short)			'unsigned-short)
-    ((signed-int)			'signed-int)
+    ((signed-int)			'int)
     ((unsigned-int)			'unsigned-int)
-    ((signed-long)			'signed-long)
+    ((signed-long)			'long)
     ((unsigned-long)			'unsigned-long)
-    ((signed-long-long)			'signed-long-long)
+    ((signed-long-long)			'long-long)
     ((unsigned-long-long)		'unsigned-long-long)
-    ((float)				'float)
-    ((double)				'double)
-    ((pointer)				'pointer)
-    ((callback)				'pointer)
+    ((float)				'fixed-float)
+    ((double)				'fixed-double)
+    ((pointer)				'void*)
+    ((callback)				'void*)
     ((void)				'void)
     (else
      (assertion-violation #f
-       "C language type identifier is unknown by Vicare Scheme" type))))
+       "C language type identifier is unknown by Petite Chez Scheme" type))))
 
 
 ;;;; done

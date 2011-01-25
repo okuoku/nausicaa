@@ -27,7 +27,7 @@
 
 
 (import (nausicaa)
-  (nausicaa ffi inspector-maker))
+  (inspector-maker))
 
 (class-uid "nausicaa:posix")
 
@@ -75,8 +75,23 @@
   (signed-int		tv_sec)
   (signed-int		tv_nsec))
 
+;;All the  fields of  "struct tms"  are of type  "clock_t", which  is an
+;;unspecified type for values returned by "clock()".  We normalise it to
+;;"double".
+;;
+;;The stub library  in this package has code  implementing accessors and
+;;mutators for "struct tms", which normalise such values to "double".
+;;
+;;The library "(nausicaa posix time typedefs)" has code implementing the
+;;Nausicaa label  and classes types needed  to access the  fields of the
+;;structure given a pointer to it.
+;;
+;;Here we just  need to determine the size, stride  and alignment of the
+;;struct.
+;;
 (define-c-struct tms
-  "struct tms")
+  "struct tms"
+  (options no-label no-wrapper no-mirror))
 
 (define-c-struct dirent
   "struct dirent"
@@ -430,13 +445,21 @@ AC_CHECK_MEMBERS([struct stat.st_ctime_usec])
 ;;; "struct dirent" related stuff
 
 (autoconf-lib "
-AC_CHECK_DECL([_DIRENT_HAVE_D_NAMELEN],[NAU_DIRENT_HAVE_D_NAMELEN=#t],[NAU_DIRENT_HAVE_D_NAMELEN=#f],
+AC_CHECK_DECL([_DIRENT_HAVE_D_NAMELEN],
+  [NAU_DIRENT_HAVE_D_NAMELEN=\"#t\"],
+  [NAU_DIRENT_HAVE_D_NAMELEN=\"#f\"],
   [NAU_POSIX_INCLUDES])
-AC_CHECK_DECL([_DIRENT_HAVE_D_RECLEN],[NAU_DIRENT_HAVE_D_RECLEN=#t],[NAU_DIRENT_HAVE_D_RECLEN=#f],
+AC_CHECK_DECL([_DIRENT_HAVE_D_RECLEN],
+  [NAU_DIRENT_HAVE_D_RECLEN=\"#t\"],
+  [NAU_DIRENT_HAVE_D_RECLEN=\"#f\"],
   [NAU_POSIX_INCLUDES])
-AC_CHECK_DECL([_DIRENT_HAVE_D_OFF],[NAU_DIRENT_HAVE_D_OFF=#t],[NAU_DIRENT_HAVE_D_OFF=#f],
+AC_CHECK_DECL([_DIRENT_HAVE_D_OFF],
+  [NAU_DIRENT_HAVE_D_OFF=\"#t\"],
+  [NAU_DIRENT_HAVE_D_OFF=\"#f\"],
   [NAU_POSIX_INCLUDES])
-AC_CHECK_DECL([_DIRENT_HAVE_D_TYPE],[NAU_DIRENT_HAVE_D_TYPE=#t],[NAU_DIRENT_HAVE_D_TYPE=#f],
+AC_CHECK_DECL([_DIRENT_HAVE_D_TYPE],
+  [NAU_DIRENT_HAVE_D_TYPE=\"#t\"],
+  [NAU_DIRENT_HAVE_D_TYPE=\"#f\"],
   [NAU_POSIX_INCLUDES])
 AC_SUBST([NAU_DIRENT_HAVE_D_NAMELEN])
 AC_SUBST([NAU_DIRENT_HAVE_D_RECLEN])
@@ -445,14 +468,10 @@ AC_SUBST([NAU_DIRENT_HAVE_D_TYPE])
 ")
 
 (sizeof-lib
- (define _DIRENT_HAVE_D_NAMELEN	^NAU_DIRENT_HAVE_D_NAMELEN^)
- (define _DIRENT_HAVE_D_RECLEN	^NAU_DIRENT_HAVE_D_RECLEN^)
- (define _DIRENT_HAVE_D_OFF	^NAU_DIRENT_HAVE_D_OFF^)
- (define _DIRENT_HAVE_D_TYPE	^NAU_DIRENT_HAVE_D_TYPE^))
-
-(sizeof-lib-exports
- _DIRENT_HAVE_D_NAMELEN		_DIRENT_HAVE_D_RECLEN
- _DIRENT_HAVE_D_OFF		_DIRENT_HAVE_D_TYPE)
+ (define DIRENT_HAVE_D_NAMELEN	^NAU_DIRENT_HAVE_D_NAMELEN^)
+ (define DIRENT_HAVE_D_RECLEN	^NAU_DIRENT_HAVE_D_RECLEN^)
+ (define DIRENT_HAVE_D_OFF	^NAU_DIRENT_HAVE_D_OFF^)
+ (define DIRENT_HAVE_D_TYPE	^NAU_DIRENT_HAVE_D_TYPE^))
 
 (define-c-defines "dirent stuff"
   DT_BLK
@@ -940,10 +959,7 @@ AC_SUBST([NAU_DIRENT_HAVE_D_TYPE])
   )
 
 (sizeof-lib
- (define SO_STYLE SO_TYPE))
-
-(sizeof-lib-exports
- SO_STYLE)
+ (define valueof-SO_STYLE valueof-SO_TYPE))
 
 (autoconf-lib "AC_CACHE_SAVE")
 
@@ -957,7 +973,7 @@ AC_SUBST([NAU_DIRENT_HAVE_D_TYPE])
   '(nausicaa posix structs))
 
 (define posix-clang-types-library-spec
-  '(nausicaa posix clang-data-types))
+  '(nausicaa posix clang type-translation))
 
 (autoconf-lib-write "configuration/posix-inspector.m4"
 		    posix-library-spec
@@ -967,8 +983,9 @@ AC_SUBST([NAU_DIRENT_HAVE_D_TYPE])
 		    posix-library-spec
 		    posix-clang-types-library-spec)
 
-(clang-lib-write    "src/libraries/nausicaa/posix/clang-data-types.sls.in"
-		    posix-clang-types-library-spec)
+(clang-type-translation-lib-write
+ "src/libraries/nausicaa/posix/clang/type-translation.sls.in"
+ posix-clang-types-library-spec)
 
 
 ;;; end of file

@@ -7,7 +7,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2008-2010 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2008-2011 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -33,7 +33,7 @@
     c-inspect)
   (import (rnrs)
     (for (nausicaa ffi syntax-helpers) expand)
-    (for (nausicaa ffi clang-data-types) expand run))
+    (for (nausicaa ffi clang type-translation) expand run))
 
 
 (define-syntax c-sizeof

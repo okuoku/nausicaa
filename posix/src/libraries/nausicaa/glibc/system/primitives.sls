@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009, 2010, 2011 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2009-2011 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -43,12 +43,10 @@
     (nausicaa language extensions)
     (nausicaa language compensations)
     (only (nausicaa strings) string-index)
-    (nausicaa ffi memory)
+    (prefix (nausicaa ffi memory) mem.)
     (nausicaa ffi cstrings)
     (nausicaa ffi errno)
-    (only (nausicaa ffi peekers-and-pokers) pointer-set-c-signed-char!)
-
-    (nausicaa posix sizeof)
+    (prefix (nausicaa posix sizeof) so.)
     (nausicaa posix typedefs)
     (prefix (nausicaa glibc system platform) platform.))
 
@@ -135,9 +133,9 @@
 
 (define (getmntent stream)
   (with-compensations
-    (let* ((mntent*	(malloc-block/c sizeof-mntent))
+    (let* ((mntent*	(mem.malloc-block/c sizeof-mntent))
 	   (buf.len	4096) ;let's try to play it safe
-	   (buf.ptr	(malloc-block/c buf.len)))
+	   (buf.ptr	(mem.malloc-block/c buf.len)))
       (let ((result* (platform.getmntent_r (FILE*->pointer stream) mntent* buf.ptr buf.len)))
 	(if (pointer-null? result*)
 	    #f
@@ -146,7 +144,7 @@
 (define (addmntent stream mntent)
   (with-compensations
     (receive (result errno)
-	(platform.addmntent (FILE*->pointer stream) (<mntent>->pointer mntent malloc-block/c))
+	(platform.addmntent (FILE*->pointer stream) (<mntent>->pointer mntent mem.malloc-block/c))
       (if (= 0 result)
 	  result
 	(raise-errno-error 'addmntent errno (list stream mntent))))))
@@ -166,7 +164,7 @@
 (define (putenv assignment)
   (let ((s (%normalise assignment)))
     (if (string-index s #\=)
-	(platform.putenv (string->cstring s malloc))
+	(platform.putenv (string->cstring s mem.malloc))
       (assertion-violation 'putenv
 	"missing equal sign in process' environment variable assignment"
 	assignment))))

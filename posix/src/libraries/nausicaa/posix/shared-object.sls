@@ -27,7 +27,8 @@
 
 (library (nausicaa posix shared-object)
   (export libnausicaa-posix)
-  (import (nausicaa ffi))
+  (import (nausicaa ffi)
+    (only (rnrs) quote))
   (define-shared-object libnausicaa-posix
     'libnausicaa-posix1.so))
 

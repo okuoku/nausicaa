@@ -29,6 +29,7 @@
 ## --------------------------------------------------------------------
 
 $(eval $(call nau-libraries,posix,nausicaa/posix))
+$(eval $(call nau-libraries,posix_clang,nausicaa/posix/clang))
 $(eval $(call nau-libraries,posix_fd,nausicaa/posix/fd))
 $(eval $(call nau-libraries,posix_file,nausicaa/posix/file))
 $(eval $(call nau-libraries,posix_process,nausicaa/posix/process))

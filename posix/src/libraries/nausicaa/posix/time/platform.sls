@@ -25,28 +25,18 @@
 ;;;
 
 
+#!r6rs
 (library (nausicaa posix time platform)
   (export
-
     ;; clock ticks and CPU times
     clock		times
-
     ;; calendar time
-    time
-
-    ;; "struct tms" accessors
-    struct-tms-tms_utime-ref		struct-tms-tms_utime-set!
-    struct-tms-tms_stime-ref		struct-tms-tms_stime-set!
-    struct-tms-tms_cutime-ref		struct-tms-tms_cutime-set!
-    struct-tms-tms_cstime-ref		struct-tms-tms_cstime-set!
-
-    )
-  (import (rnrs)
+    time)
+  (import (nausicaa)
     (nausicaa ffi)
+    (nausicaa posix clang type-translation)
     (nausicaa posix shared-object)
     (nausicaa posix sizeof))
-
-  (define struct-tms*	'pointer)
 
   (define-c-functions/with-errno libnausicaa-posix
     (clock		(double nausicaa_posix_clock (void)))
@@ -54,15 +44,6 @@
 
   (define-c-functions libnausicaa-posix
     (times		(double nausicaa_posix_times (struct-tms*))))
-
-  (define-c-functions libnausicaa-posix
-    (struct-tms-tms_utime-ref	(double nausicaa_posix_tms_utime_ref (void*)))
-    (struct-tms-tms_stime-ref	(double nausicaa_posix_tms_stime_ref (void*)))
-    (struct-tms-tms_cutime-ref	(double nausicaa_posix_tms_cutime_ref (void*)))
-    (struct-tms-tms_cstime-ref	(double nausicaa_posix_tms_cstime_ref (void*)))
-    (struct-tms-tms_utime-set!	(void nausicaa_posix_tms_utime_set (void* double)))
-    (struct-tms-tms_stime-set!	(void nausicaa_posix_tms_stime_set (void* double)))
-    (struct-tms-tms_cutime-set!	(void nausicaa_posix_tms_cutime_set (void* double)))
-    (struct-tms-tms_cstime-set!	(void nausicaa_posix_tms_cstime_set (void* double)))))
+  )
 
 ;;; end of file

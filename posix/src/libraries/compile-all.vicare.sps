@@ -24,22 +24,22 @@
 ;;;
 
 (import
-  (only (nausicaa posix fd))
-  (only (nausicaa posix file))
-  (only (nausicaa posix process))
-  (only (nausicaa posix signals))
-  (only (nausicaa posix sockets))
-  (only (nausicaa posix system))
+  ;; (only (nausicaa posix fd))
+  ;; (only (nausicaa posix file))
+  ;; (only (nausicaa posix process))
+  ;; (only (nausicaa posix signals))
+  ;; (only (nausicaa posix sockets))
+  ;; (only (nausicaa posix system))
   (only (nausicaa posix time))
 
-  (only (nausicaa glibc file))
-  (only (nausicaa glibc signals))
-  (only (nausicaa glibc sockets))
-  (only (nausicaa glibc streams))
-  (only (nausicaa glibc system))
-  (only (nausicaa glibc time))
+  ;; (only (nausicaa glibc file))
+  ;; (only (nausicaa glibc signals))
+  ;; (only (nausicaa glibc sockets))
+  ;; (only (nausicaa glibc streams))
+  ;; (only (nausicaa glibc system))
+  ;; (only (nausicaa glibc time))
 
-  (only (nausicaa linux fd))
+  ;; (only (nausicaa linux fd))
 
   )
 

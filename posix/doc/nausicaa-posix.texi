@@ -1287,10 +1287,10 @@ type.
 @end defvr
 
 
-@defvr Constant _DIRENT_HAVE_D_NAMELEN
-@defvrx Constant _DIRENT_HAVE_D_RECLEN
-@defvrx Constant _DIRENT_HAVE_D_OFF
-@defvrx Constant _DIRENT_HAVE_D_TYPE
+@defvr Constant DIRENT_HAVE_D_NAMELEN
+@defvrx Constant DIRENT_HAVE_D_RECLEN
+@defvrx Constant DIRENT_HAVE_D_OFF
+@defvrx Constant DIRENT_HAVE_D_TYPE
 Set to @true{} by the @gnu{} C Library if the named field is present in
 the @code{struct dirent} type.
 @end defvr

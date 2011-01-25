@@ -81,7 +81,7 @@
     make-c-callout*			make-c-callout/with-errno*
     make-c-callback*)
   (import (nausicaa)
-    (for (nausicaa ffi clang-data-types) expand run)
+    (for (nausicaa ffi clang type-translation) expand run)
     (nausicaa ffi conditions)
 ;;;    (nausicaa ffi peekers-and-pokers)
     (nausicaa ffi pointers)

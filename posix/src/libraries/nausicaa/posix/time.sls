@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2008, 2009, 2010, 2011 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2008-2011 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -25,6 +25,7 @@
 ;;;
 
 
+#!r6rs
 (library (nausicaa posix time)
   (export
 
@@ -34,7 +35,6 @@
 
     ;; calendar time
     time		time-function
-
     )
   (import (rnrs)
     (nausicaa posix helpers)

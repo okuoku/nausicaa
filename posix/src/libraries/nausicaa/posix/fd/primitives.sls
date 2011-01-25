@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009, 2010, 2011 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2009-2011 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -54,17 +54,23 @@
   (import (except (rnrs) read write)
     (nausicaa language extensions)
     (nausicaa language compensations)
-    (only (nausicaa ffi memory)	malloc-block/c malloc-small/c)
-    (only (nausicaa ffi cstrings)	string->cstring/c)
-    (only (nausicaa ffi ffi peekers-and-pokers) array-ref-c-signed-int)
-    (only (nausicaa ffi errno)	EINTR raise-errno-error)
+    (prefix (only (nausicaa ffi memory)
+		  malloc-block/c
+		  malloc-small/c)
+	    mem.)
+    (prefix (only (nausicaa ffi cstrings)
+		  string->cstring/c)
+	    cstr.)
+    (prefix (only (nausicaa ffi peekers-and-pokers)
+		  array-c-ref)
+	    ffi.)
+    (prefix (only (nausicaa ffi errno)
+		  EINTR
+		  raise-errno-error)
+	    errno.)
     (nausicaa ffi pointers)
-    (only (nausicaa ffi sizeof)	sizeof-int-array)
-    (only (nausicaa posix sizeof)
-	  sizeof-fdset
-	  sizeof-fdset-array
-	  array-ref-c-fdset
-	  FD_SETSIZE)
+    (prefix (nausicaa ffi sizeof) ffi.)
+    (prefix (nausicaa posix sizeof) so.)
     (nausicaa posix typedefs)
     (only (nausicaa posix time primitives) <timeval>->pointer)
     (prefix (nausicaa posix fd platform) platform.))
@@ -74,7 +80,7 @@
 
 (define-syntax %temp-failure-retry-minus-one
   ;;Invoke a "/with-errno" function again  and again until its result is
-  ;;different from -1, or the error is not EINTR.
+  ;;different from -1, or the error is not errno.EINTR.
   ;;
   ;;It is  a syntax in an  attempt to speed  up things, but it  could be
   ;;made into a function.
@@ -85,9 +91,9 @@
        (receive (result errno)
 	   (?primitive ?arg ...)
 	 (when (= -1 result)
-	   (when (= EINTR errno)
+	   (when (= errno.EINTR errno)
 	     (loop))
-	   (raise-errno-error (quote ?who) errno ?irritants))
+	   (errno.raise-errno-error (quote ?who) errno ?irritants))
 	 result)))))
 
 (define-syntax %call-for-minus-one
@@ -95,14 +101,14 @@
   ;;interpreted as an error, so an "&errno" exception is raised.
   ;;
   ;;This macro is  for platform functions that are  NOT interrupted by a
-  ;;EINTR.
+  ;;errno.EINTR.
   ;;
   (syntax-rules ()
     ((_ ?who ?primitive ?arg ...)
      (receive (result errno)
 	 (?primitive ?arg ...)
        (when (= -1 result)
-	 (raise-errno-error (quote ?who) errno (list ?arg ...)))
+	 (errno.raise-errno-error (quote ?who) errno (list ?arg ...)))
        result))))
 
 (define-syntax %call-for-minus-one/irritants
@@ -110,14 +116,14 @@
   ;;interpreted as an error, so an "&errno" exception is raised.
   ;;
   ;;This macro is  for platform functions that are  NOT interrupted by a
-  ;;EINTR.
+  ;;errno.EINTR.
   ;;
   (syntax-rules ()
     ((_ ?who (?primitive ?arg ...) ?irritants ...)
      (receive (result errno)
 	 (?primitive ?arg ...)
        (when (= -1 result)
-	 (raise-errno-error (quote ?who) errno (list ?irritants ...)))
+	 (errno.raise-errno-error (quote ?who) errno (list ?irritants ...)))
        result))))
 
 (define-syntax %fd->integer
@@ -130,7 +136,7 @@
 
 (define (%timeval->pointer/c obj who)
   (cond ((<timeval>? obj)
-	 (<timeval>->pointer obj malloc-block/c))
+	 (<timeval>->pointer obj mem.malloc-block/c))
 	((struct-timeval? obj)
 	 (struct-timeval->pointer obj))
 	((pointer? obj)
@@ -155,7 +161,7 @@
   (integer->fd (with-compensations
 			      (%temp-failure-retry-minus-one
 			       open
-			       (platform.open (string->cstring/c pathname)
+			       (platform.open (cstr.string->cstring/c pathname)
 					      (%open-mode->value open-mode)
 					      (%permissions->value permissions))
 			       (list pathname open-mode permissions)))))
@@ -198,8 +204,8 @@
 ;;;; seeking
 
 (define (lseek fd offset whence)
-  ;;It seems  that EINTR  cannot happen with  "lseek()", but it  does no
-  ;;harm to use the macro.
+  ;;It seems that errno.EINTR cannot  happen with "lseek()", but it does
+  ;;no harm to use the macro.
   (%temp-failure-retry-minus-one lseek
 				 (platform.lseek (fd->integer fd) offset whence)
 				 (list fd offset whence)))
@@ -211,7 +217,7 @@
   (receive (result errno)
       (platform.sync)
     (unless (zero? result)
-      (raise-errno-error 'sync errno #f))
+      (errno.raise-errno-error 'sync errno #f))
     result))
 
 (define (fsync fd)
@@ -267,18 +273,18 @@
 
 (define (pipe)
   (with-compensations
-    (let ((p (malloc-small/c)))
+    (let ((p (mem.malloc-small/c)))
       (receive (result errno)
 	  (platform.pipe p)
 	(if (= -1 result)
-	    (raise-errno-error 'pipe errno)
-	  (values (integer->fd (array-ref-c-signed-int p 0))
-		  (integer->fd (array-ref-c-signed-int p 1))))))))
+	    (errno.raise-errno-error 'pipe errno)
+	  (values (integer->fd (ffi.array-c-ref signed-int p 0))
+		  (integer->fd (ffi.array-c-ref signed-int p 1))))))))
 
 (define (mkfifo pathname mode)
   (with-compensations
     (%call-for-minus-one/irritants mkfifo
-				   (platform.mkfifo (string->cstring/c pathname) mode)
+				   (platform.mkfifo (cstr.string->cstring/c pathname) mode)
 				   pathname mode)))
 
 
@@ -305,7 +311,7 @@
 	  (or (= -1 i) ;for ikarus and ypsilon
 	      (= #xffffffff i)
 	      (= #xffffffffffffffff i)))
-	(raise-errno-error 'mmap errno (list address length protect flags fd offset))
+	(errno.raise-errno-error 'mmap errno (list address length protect flags fd offset))
       effective-address)))
 
 (define (munmap address length)
@@ -343,7 +349,7 @@
 (define (select/interruptible max-fd read-fdset write-fdset except-fdset timeval)
   (with-compensations
     (%call-for-minus-one select platform.select
-			 (if max-fd (%fd->integer max-fd) FD_SETSIZE)
+			 (if max-fd (%fd->integer max-fd) so.FD_SETSIZE)
 			 (%fdset-true-or-null read-fdset)
 			 (%fdset-true-or-null write-fdset)
 			 (%fdset-true-or-null except-fdset)
@@ -353,7 +359,7 @@
   (with-compensations
     (%temp-failure-retry-minus-one
      select
-     (platform.select (if max-fd (%fd->integer max-fd) FD_SETSIZE)
+     (platform.select (if max-fd (%fd->integer max-fd) so.FD_SETSIZE)
 		      (%fdset-true-or-null read-fdset)
 		      (%fdset-true-or-null write-fdset)
 		      (%fdset-true-or-null except-fdset)
@@ -367,10 +373,10 @@
   (assert (list? wr-ell))
   (assert (list? ex-ell))
   (with-compensations
-    (let* ((pool*	(malloc-block/c (sizeof-fdset-array 3)))
-	   (rd-set*	(array-ref-c-fdset pool* 0))
-	   (wr-set*	(array-ref-c-fdset pool* 1))
-	   (ex-set*	(array-ref-c-fdset pool* 2)))
+    (let* ((pool*	(mem.malloc-block/c (so.c-sizeof fdset 3)))
+	   (rd-set*	(so.array-c-ref fdset pool* 0))
+	   (wr-set*	(so.array-c-ref fdset pool* 1))
+	   (ex-set*	(so.array-c-ref fdset pool* 2)))
       (platform.FD_ZERO rd-set*)
       (platform.FD_ZERO wr-set*)
       (platform.FD_ZERO ex-set*)
@@ -383,7 +389,7 @@
       (let ((total-number-of-fds
 	     (%temp-failure-retry-minus-one
 	      select
-	      (platform.select FD_SETSIZE
+	      (platform.select so.FD_SETSIZE
 			       rd-set* wr-set* ex-set*
 			       (%timeval->pointer/c timeval 'select*))
 	      (list rd-ell wr-ell ex-ell timeval))))
@@ -405,10 +411,10 @@
   (assert (list? wr-ell))
   (assert (list? ex-ell))
   (with-compensations
-    (let* ((pool*	(malloc-block/c (sizeof-fdset-array 3)))
-	   (rd-set*	(array-ref-c-fdset pool* 0))
-	   (wr-set*	(array-ref-c-fdset pool* 1))
-	   (ex-set*	(array-ref-c-fdset pool* 2)))
+    (let* ((pool*	(mem.malloc-block/c (so.c-sizeof fdset 3)))
+	   (rd-set*	(so.array-c-ref fdset pool* 0))
+	   (wr-set*	(so.array-c-ref fdset pool* 1))
+	   (ex-set*	(so.array-c-ref fdset pool* 2)))
       (platform.FD_ZERO rd-set*)
       (platform.FD_ZERO wr-set*)
       (platform.FD_ZERO ex-set*)
@@ -420,7 +426,7 @@
 	(list rd-ell  wr-ell  ex-ell))
       (let ((total-number-of-fds
 	     (%call-for-minus-one select platform.select
-				  FD_SETSIZE
+				  so.FD_SETSIZE
 				  rd-set* wr-set* ex-set*
 				  (%timeval->pointer/c timeval 'select*/interruptible))))
 	(if (zero? total-number-of-fds)
@@ -441,10 +447,10 @@
 (define (select/fd fd timeval)
   (assert (fd? fd))
   (with-compensations
-    (let* ((pool*	(malloc-block/c (sizeof-fdset-array 3)))
-	   (rd-set*	(array-ref-c-fdset pool* 0))
-	   (wr-set*	(array-ref-c-fdset pool* 1))
-	   (ex-set*	(array-ref-c-fdset pool* 2))
+    (let* ((pool*	(mem.malloc-block/c (so.c-sizeof fdset 3)))
+	   (rd-set*	(so.array-c-ref fdset pool* 0))
+	   (wr-set*	(so.array-c-ref fdset pool* 1))
+	   (ex-set*	(so.array-c-ref fdset pool* 2))
 	   (fd-int	(fd->integer fd)))
       (platform.FD_ZERO rd-set*)
       (platform.FD_ZERO wr-set*)
@@ -455,7 +461,7 @@
       (let ((total-number-of-fds
 	     (%temp-failure-retry-minus-one
 	      select
-	      (platform.select FD_SETSIZE
+	      (platform.select so.FD_SETSIZE
 			       rd-set* wr-set* ex-set*
 			       (%timeval->pointer/c timeval 'select/fd))
 	      (list fd timeval))))
@@ -468,10 +474,10 @@
 (define (select/fd/interruptible fd timeval)
   (assert (fd? fd))
   (with-compensations
-    (let* ((pool*	(malloc-block/c (sizeof-fdset-array 3)))
-	   (rd-set*	(array-ref-c-fdset pool* 0))
-	   (wr-set*	(array-ref-c-fdset pool* 1))
-	   (ex-set*	(array-ref-c-fdset pool* 2))
+    (let* ((pool*	(mem.malloc-block/c (so.c-sizeof fdset 3)))
+	   (rd-set*	(so.array-c-ref fdset pool* 0))
+	   (wr-set*	(so.array-c-ref fdset pool* 1))
+	   (ex-set*	(so.array-c-ref fdset pool* 2))
 	   (fd-int	(fd->integer fd)))
       (platform.FD_ZERO rd-set*)
       (platform.FD_ZERO wr-set*)
@@ -481,7 +487,7 @@
       (platform.FD_SET fd-int ex-set*)
       (let ((total-number-of-fds
 	     (%call-for-minus-one select platform.select
-				  FD_SETSIZE
+				  so.FD_SETSIZE
 				  rd-set* wr-set* ex-set*
 				  (%timeval->pointer/c timeval 'select/fd))))
 	(if (zero? total-number-of-fds)
@@ -497,7 +503,7 @@
 ;;   (receive (result errno)
 ;;       (platform.aio_read (struct-aciocb->pointer aciocb))
 ;;     (if (= -1 result)
-;; 	(raise-errno-error 'aio-read errno aiocb)
+;; 	(errno.raise-errno-error 'aio-read errno aiocb)
 ;;       result)))
 
 ;; (define (aio_write)

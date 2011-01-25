@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2010, 2011 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2010-2011 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -25,6 +25,7 @@
 ;;;
 
 
+#!r6rs
 (library (nausicaa glibc sockets primitives)
   (export
 
@@ -34,17 +35,13 @@
     )
   (import (rnrs)
     (nausicaa language compensations)
-    (only (nausicaa  ffi sizeof)
-	  sizeof-pointer)
-    (only (nausicaa  ffi)
-	  pointer-ref-c-signed-int
-	  pointer-set-c-signed-int!)
-    (nausicaa ffi memory)
+    (prefix (nausicaa ffi sizeof) ffi.)
+    (prefix (nausicaa ffi memory) mem.)
     (nausicaa ffi cstrings)
-    (nausicaa ffi errno)
+    (prefix (nausicaa ffi errno) errno.)
     (nausicaa posix typedefs)
-    (nausicaa posix sizeof)
-    (prefix (nausicaa glibc sockets platform) platform:))
+    (prefix (nausicaa posix sizeof) so.)
+    (prefix (nausicaa glibc sockets platform) platform.))
 
 
 ;;;; host names
@@ -82,73 +79,73 @@
 
 (define (gethostbyname2 host-name address-format)
   (with-compensations
-    (let ((hostent* (platform:gethostbyname2 (string->cstring/c host-name)
+    (let ((hostent* (platform.gethostbyname2 (string->cstring/c host-name)
 					     (socket-address-format->value address-format))))
       (if (pointer-null? hostent*)
-	  (%raise-h-errno-error (platform:h_errno) 'gethostbyname2 host-name)
+	  (%raise-h-errno-error (platform.h_errno) 'gethostbyname2 host-name)
 	(pointer-><hostent> hostent*)))))
 
 (define (gethostbyname_r host-name)
   (with-compensations
     (let* ((name*	(string->cstring/c host-name))
-	   (hostent*	(malloc-block/c sizeof-hostent))
-	   (result*	(malloc-small/c))
-	   (h_errno*	(pointer-add result* sizeof-pointer)))
+	   (hostent*	(mem.malloc-block/c (so.c-sizeof hostent)))
+	   (result*	(mem.malloc-small/c))
+	   (h_errno*	(pointer-add result* (ffi.c-sizeof pointer))))
       (let loop ((buf.len 4096))
-	(let* ((buf.ptr	(malloc-block/c buf.len))
-	       (ret	(platform:gethostbyname_r name* hostent* buf.ptr buf.len result* h_errno*)))
+	(let* ((buf.ptr	(mem.malloc-block/c buf.len))
+	       (ret	(platform.gethostbyname_r name* hostent* buf.ptr buf.len result* h_errno*)))
 	  (cond ((= ERANGE ret)
 		 (loop (* 2 buf.len)))
 		((and (= 0 ret) (not (pointer-null? result*)))
 		 (pointer-><hostent> hostent*))
 		(else
-		 (%raise-h-errno-error (pointer-ref-c-signed-int h_errno* 0)
+		 (%raise-h-errno-error (ffi.pointer-c-ref signed-int h_errno* 0)
 				       'gethostbyname_r host-name))))))))
 
 (define (gethostbyname2_r host-name address-format)
   (with-compensations
     (let* ((name*	(string->cstring/c host-name))
-	   (hostent*	(malloc-block/c sizeof-hostent))
-	   (result*	(malloc-small/c))
-	   (h_errno*	(pointer-add result* sizeof-pointer)))
+	   (hostent*	(mem.malloc-block/c (so.c-sizeof hostent)))
+	   (result*	(mem.malloc-small/c))
+	   (h_errno*	(pointer-add result* (ffi.c-sizeof pointer))))
       (let loop ((buf.len 4096))
-	(let* ((buf.ptr	(malloc-block/c buf.len))
-	       (ret	(platform:gethostbyname2_r name* (socket-address-format->value address-format)
+	(let* ((buf.ptr	(mem.malloc-block/c buf.len))
+	       (ret	(platform.gethostbyname2_r name* (socket-address-format->value address-format)
 						   hostent* buf.ptr buf.len result* h_errno*)))
 	  (cond ((= ERANGE ret)
 		 (loop (* 2 buf.len)))
 		((and (= 0 ret) (not (pointer-null? result*)))
 		 (pointer-><hostent> hostent*))
 		(else
-		 (%raise-h-errno-error (pointer-ref-c-signed-int h_errno* 0)
-
+		 (%raise-h-errno-error (ffi.pointer-c-ref signed-int h_errno* 0)
 				       'gethostbyname2_r host-name))))))))
 
 (define (gethostbyaddr_r address-bytevector)
   (with-compensations
-    (let* ((addr.ptr	(malloc-small/c))
+    (let* ((addr.ptr	(mem.malloc-small/c))
 	   (addr.len	(bytevector-length address-bytevector))
-	   (hostent*	(malloc-block/c sizeof-hostent))
-	   (result*	(malloc-small/c))
-	   (h_errno*	(pointer-add result* sizeof-pointer)))
+	   (hostent*	(mem.malloc-block/c (so.c-sizeof hostent)))
+	   (result*	(mem.malloc-small/c))
+	   (h_errno*	(pointer-add result* (ffi.c-sizeof pointer))))
       (let loop ((buf.len 4096))
-	(let* ((buf.ptr	(malloc-block/c buf.len))
-	       (ret	(platform:gethostbyaddr_r addr.ptr addr.len
-						  (cond ((= addr.len sizeof-in_addr)
-							 AF_INET)
-							((= addr.len sizeof-in6_addr)
-							 AF_INET6)
-							(else
-							 (assertion-violation 'gethostbyaddr_r
-							   "wrong size for Internet address bytevector"
-							   address-bytevector)))
-						  hostent* buf.ptr buf.len result* h_errno*)))
+	(let* ((buf.ptr	(mem.malloc-block/c buf.len))
+	       (ret	(platform.gethostbyaddr_r
+			 addr.ptr addr.len
+			 (cond ((= addr.len (so.c-sizeof in_addr))
+				AF_INET)
+			       ((= addr.len (so.c-sizeof in6_addr))
+				AF_INET6)
+			       (else
+				(assertion-violation 'gethostbyaddr_r
+				  "wrong size for Internet address bytevector"
+				  address-bytevector)))
+			 hostent* buf.ptr buf.len result* h_errno*)))
 	  (cond ((= ERANGE ret)
 		 (loop (* 2 buf.len)))
 		((and (= 0 ret) (not (pointer-null? result*)))
 		 (pointer-><hostent> hostent*))
 		(else
-		 (%raise-h-errno-error (pointer-ref-c-signed-int h_errno* 0)
+		 (%raise-h-errno-error (ffi.pointer-c-ref signed-int h_errno* 0)
 				       'gethostbyaddr_r address-bytevector))))))))
 
 

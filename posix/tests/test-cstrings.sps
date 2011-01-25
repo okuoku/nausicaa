@@ -26,8 +26,8 @@
 
 (import (nausicaa)
   (nausicaa checks)
-  (nausicaa ffi cstrings)
-  (prefix (nausicaa glibc cstrings platform) cstr.))
+  (prefix (nausicaa ffi cstrings) cstr.)
+  (prefix (nausicaa glibc cstrings platform) glibc.))
 
 (check-set-mode! 'report-failed)
 (display "*** testing Glibc strings\n")
@@ -37,7 +37,7 @@
 
   (check
       (with-compensations
-        (cstr.strlen (string->cstring/c "ciao")))
+        (glibc.strlen (cstr.string->cstring/c "ciao")))
     => 4)
 
   #t)

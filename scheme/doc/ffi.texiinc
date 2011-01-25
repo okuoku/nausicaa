@@ -63,8 +63,8 @@ can try, at installation time, to select a C library pathname with the
 Here is a list of the most important libraries:
 
 @table @library
-@item nausicaa ffi clang-data-types
-@itemx nausicaa ffi clang-data-types compat
+@item nausicaa ffi clang type-translation
+@itemx nausicaa ffi clang type-translation compat
 Export functions to convert Scheme symbols representing external C
 language data types to Scheme symbols representing C language data types
 recognised by the underlying Scheme implementation; it also provides
@@ -520,8 +520,8 @@ Notice that Petite's @ffi{} is only partially supported.}
 @end float
 
 
-The following bindings are exported by the @library{nausicaa ffi
-clang-data-types} library.
+The following bindings are exported by the @library{nausicaa ffi clang
+type-translation} library.
 
 
 @deftp {Enumeration Type} enum-clang-external-types
@@ -577,8 +577,8 @@ export bindings with the same name.
 
 In all the following syntax descriptions: @meta{type name} must be a
 symbol representing a C language type in the enumeration
-@enum{clang-external-types} from the @library{nausicaa ffi
-clang-data-types} library.
+@enum{clang-external-types} from the @library{nausicaa ffi clang
+type-translation} library.
 
 
 @deffn Syntax c-sizeof @ameta{type name}
@@ -861,8 +861,8 @@ exact integer which is @strong{not} scaled by the type dimension.
 
 @meta{type} must be a symbol representing a C language type in the
 enumeration @enum{clang-external-types} from the @library{nausicaa ffi
-clang-data-types} library; in particular the meaning of the basic types
-is as follows:
+clang type-translation} library; in particular the meaning of the basic
+types is as follows:
 
 @table @code
 @item int8_t
@@ -962,8 +962,8 @@ integer which is @strong{not} scaled by the type dimension.
 
 @meta{type} must be a symbol representing a C language type in the
 enumeration @enum{clang-external-types} from the @library{nausicaa ffi
-clang-data-types} library; in particular the meaning of the basic types
-is as follows:
+clang type-translation} library; in particular the meaning of the basic
+types is as follows:
 
 @table @code
 @item int8_t
@@ -1059,8 +1059,8 @@ Expand to an expression evaluating to the pointer accessor function for
 @meta{type}; the returned function accepts two arguments: a pointer
 object, an offset from the pointer object.  @meta{type} must be a symbol
 representing a C language type in the enumeration
-@enum{clang-external-types} from the @library{nausicaa ffi
-clang-data-types} library.
+@enum{clang-external-types} from the @library{nausicaa ffi clang
+tyhpe-translation} library.
 @end deffn
 
 
@@ -1070,7 +1070,7 @@ Expand to an expression evaluating to the pointer mutator function for
 object, an offset from the pointer object, the value to store at the
 selected location.  @meta{type} must be a symbol representing a C
 language type in the enumeration @enum{clang-external-types} from the
-@library{nausicaa ffi clang-data-types} library.
+@library{nausicaa ffi clang type-translation} library.
 @end deffn
 
 
@@ -1103,8 +1103,8 @@ the array of @meta{type} referenced by @meta{pointer}.  @meta{pointer}
 must be a pointer object; @meta{index} must be an exact integer
 representing an index in the referenced array; @meta{type} must be a
 symbol representing a C language type in the enumeration
-@enum{clang-external-types} from the @library{nausicaa ffi
-clang-data-types} library.
+@enum{clang-external-types} from the @library{nausicaa ffi clang
+type-translation} library.
 @end deffn
 
 @c page
@@ -2672,13 +2672,13 @@ foreign data types inspection definitions and constants definitions.  It
 is meant to be processed by the @command{configure} script to insert
 values for the @code{@@...@@} symbols.
 
-@item src/libraries/xml/libxml2/clang-data-types.sls.in
-A template for the @library{nausicaa xml libxml2 clang-data-types}
+@item src/libraries/xml/libxml2/clang/type-translation.sls.in
+A template for the @library{nausicaa xml libxml2 clang type-translation}
 library holding functions to convert between Scheme symbols representing
 Libxml2 data types and Scheme symbols in the @enum{clang-external-types}
-enumeration from @library{nausicaa ffi clang-data-types}.  It is meant
-to be processed by the @command{configure} script to insert values for
-the @code{@@...@@} symbols.
+enumeration from @library{nausicaa ffi clang type-translation}.  It is
+meant to be processed by the @command{configure} script to insert values
+for the @code{@@...@@} symbols.
 @end table
 
 @c ------------------------------------------------------------
@@ -2733,7 +2733,7 @@ defining the foreign C language types.  Example:
   '(xml libxml2 sizeof))
 
 (define libxml2-clang-library
-  '(xml libxml2 clang-data-types))
+  '(xml libxml2 clang type-translation))
 
 (sizeof-lib-write
    "src/libraries/xml/libxml2/sizeof.sls.in"
@@ -2744,16 +2744,16 @@ defining the foreign C language types.  Example:
 
 
 @defun clang-lib-write @var{filename} @var{libname}
-Write to the specified @var{filename} the contents of the
-@code{clang-data-types} library; @var{libname} must be the library
+Write to the specified @var{filename} the contents of the @code{clang
+type-translation} library; @var{libname} must be the library
 specification.  Example:
 
 @example
 (define libxml2-clang-library
-  '(xml libxml2 clang-data-types))
+  '(xml libxml2 clang type-translation))
 
 (clang-lib-write
-   "src/libraries/xml/libxml2/clang-data-types.sls.in"
+   "src/libraries/xml/libxml2/clang/type-translation.sls.in"
    libxml2-clang-library)
 @end example
 @end defun

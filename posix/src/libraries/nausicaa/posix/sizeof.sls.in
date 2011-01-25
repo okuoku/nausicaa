@@ -29,123 +29,140 @@
   (export c-sizeof c-strideof c-alignof c-valueof c-inspect
     pointer-c-ref pointer-c-set! pointer-c-accessor
     pointer-c-mutator array-c-ref array-c-set!
-    array-c-pointer-to _DIRENT_HAVE_D_NAMELEN
-    _DIRENT_HAVE_D_RECLEN _DIRENT_HAVE_D_OFF
-    _DIRENT_HAVE_D_TYPE SO_STYLE <struct-flock>
-    <struct-timeval> <struct-timespec> <struct-tms>
-    <struct-dirent> <struct-utimbuf> <struct-timezone>
-    <struct-tm> <struct-ntptimeval> <struct-timex>
-    <struct-itimerval> <struct-FTW> <struct-iovec>
-    <struct-fdset> <struct-passwd> <struct-group>
-    <struct-utsname> <struct-fstab> <struct-mntent>
-    <struct-sockaddr> <struct-sockaddr_in>
-    <struct-sockaddr_in6> <struct-sockaddr_un>
-    <struct-in_addr> <struct-in6_addr> <struct-if_nameindex>
-    <struct-netent> <struct-linger> <struct-hostent>
-    <struct-protoent> <struct-servent>)
+    array-c-pointer-to pointer-to-flock <struct-flock>
+    <flock> pointer-to-timeval <struct-timeval> <timeval>
+    pointer-to-timespec <struct-timespec> <timespec>
+    pointer-to-dirent <struct-dirent> <dirent>
+    pointer-to-utimbuf <struct-utimbuf> <utimbuf>
+    pointer-to-timezone <struct-timezone> <timezone>
+    pointer-to-tm <struct-tm> <tm> pointer-to-ntptimeval
+    <struct-ntptimeval> <ntptimeval> pointer-to-timex
+    <struct-timex> <timex> pointer-to-itimerval
+    <struct-itimerval> <itimerval> pointer-to-FTW
+    <struct-FTW> <FTW> pointer-to-iovec <struct-iovec>
+    <iovec> pointer-to-fdset <struct-fdset> <fdset>
+    pointer-to-passwd <struct-passwd> <passwd>
+    pointer-to-group <struct-group> <group>
+    pointer-to-utsname <struct-utsname> <utsname>
+    pointer-to-fstab <struct-fstab> <fstab>
+    pointer-to-mntent <struct-mntent> <mntent>
+    pointer-to-sockaddr <struct-sockaddr> <sockaddr>
+    pointer-to-sockaddr_in <struct-sockaddr_in>
+    <sockaddr_in> pointer-to-sockaddr_in6
+    <struct-sockaddr_in6> <sockaddr_in6>
+    pointer-to-sockaddr_un <struct-sockaddr_un>
+    <sockaddr_un> pointer-to-in_addr <struct-in_addr>
+    <in_addr> pointer-to-in6_addr <struct-in6_addr>
+    <in6_addr> pointer-to-if_nameindex <struct-if_nameindex>
+    <if_nameindex> pointer-to-netent <struct-netent>
+    <netent> pointer-to-linger <struct-linger> <linger>
+    pointer-to-hostent <struct-hostent> <hostent>
+    pointer-to-protoent <struct-protoent> <protoent>
+    pointer-to-servent <struct-servent> <servent>)
   (import
-    (rnrs)
-    (classes)
-    (for (nausicaa posix clang-data-types) expand)
-    (ffi syntax-helpers)
-    (prefix (ffi pointers) ffi:)
-    (prefix (ffi sizeof) ffi:)
-    (prefix (ffi peekers-and-pokers) ffi:)
-    (ffi extension-utilities))
+    (nausicaa)
+    (for (nausicaa posix clang type-translation) expand)
+    (nausicaa ffi syntax-helpers)
+    (prefix (nausicaa ffi pointers) ffi:)
+    (prefix (nausicaa ffi sizeof) ffi:)
+    (prefix (nausicaa ffi peekers-and-pokers) ffi:)
+    (nausicaa ffi extension-utilities))
   (define-sizeof-macros)
-  (define sizeof-flock @SIZEOF_FLOCK@)
-  (define alignof-flock @ALIGNOF_FLOCK@)
-  (define strideof-flock @STRIDEOF_FLOCK@)
-  (define sizeof-timeval @SIZEOF_TIMEVAL@)
-  (define alignof-timeval @ALIGNOF_TIMEVAL@)
-  (define strideof-timeval @STRIDEOF_TIMEVAL@)
-  (define sizeof-timespec @SIZEOF_TIMESPEC@)
-  (define alignof-timespec @ALIGNOF_TIMESPEC@)
-  (define strideof-timespec @STRIDEOF_TIMESPEC@)
-  (define sizeof-tms @SIZEOF_TMS@)
-  (define alignof-tms @ALIGNOF_TMS@)
-  (define strideof-tms @STRIDEOF_TMS@)
-  (define sizeof-dirent @SIZEOF_DIRENT@)
-  (define alignof-dirent @ALIGNOF_DIRENT@)
-  (define strideof-dirent @STRIDEOF_DIRENT@)
-  (define sizeof-utimbuf @SIZEOF_UTIMBUF@)
-  (define alignof-utimbuf @ALIGNOF_UTIMBUF@)
-  (define strideof-utimbuf @STRIDEOF_UTIMBUF@)
-  (define sizeof-timezone @SIZEOF_TIMEZONE@)
-  (define alignof-timezone @ALIGNOF_TIMEZONE@)
-  (define strideof-timezone @STRIDEOF_TIMEZONE@)
-  (define sizeof-tm @SIZEOF_TM@)
-  (define alignof-tm @ALIGNOF_TM@)
-  (define strideof-tm @STRIDEOF_TM@)
-  (define sizeof-ntptimeval @SIZEOF_NTPTIMEVAL@)
-  (define alignof-ntptimeval @ALIGNOF_NTPTIMEVAL@)
-  (define strideof-ntptimeval @STRIDEOF_NTPTIMEVAL@)
-  (define sizeof-timex @SIZEOF_TIMEX@)
-  (define alignof-timex @ALIGNOF_TIMEX@)
-  (define strideof-timex @STRIDEOF_TIMEX@)
-  (define sizeof-itimerval @SIZEOF_ITIMERVAL@)
-  (define alignof-itimerval @ALIGNOF_ITIMERVAL@)
-  (define strideof-itimerval @STRIDEOF_ITIMERVAL@)
-  (define sizeof-FTW @SIZEOF_FTW@)
-  (define alignof-FTW @ALIGNOF_FTW@)
-  (define strideof-FTW @STRIDEOF_FTW@)
-  (define sizeof-iovec @SIZEOF_IOVEC@)
-  (define alignof-iovec @ALIGNOF_IOVEC@)
-  (define strideof-iovec @STRIDEOF_IOVEC@)
-  (define sizeof-fdset @SIZEOF_FDSET@)
-  (define alignof-fdset @ALIGNOF_FDSET@)
-  (define strideof-fdset @STRIDEOF_FDSET@)
-  (define sizeof-passwd @SIZEOF_PASSWD@)
-  (define alignof-passwd @ALIGNOF_PASSWD@)
-  (define strideof-passwd @STRIDEOF_PASSWD@)
-  (define sizeof-group @SIZEOF_GROUP@)
-  (define alignof-group @ALIGNOF_GROUP@)
-  (define strideof-group @STRIDEOF_GROUP@)
-  (define sizeof-utsname @SIZEOF_UTSNAME@)
-  (define alignof-utsname @ALIGNOF_UTSNAME@)
-  (define strideof-utsname @STRIDEOF_UTSNAME@)
-  (define sizeof-fstab @SIZEOF_FSTAB@)
-  (define alignof-fstab @ALIGNOF_FSTAB@)
-  (define strideof-fstab @STRIDEOF_FSTAB@)
-  (define sizeof-mntent @SIZEOF_MNTENT@)
-  (define alignof-mntent @ALIGNOF_MNTENT@)
-  (define strideof-mntent @STRIDEOF_MNTENT@)
-  (define sizeof-sockaddr @SIZEOF_SOCKADDR@)
-  (define alignof-sockaddr @ALIGNOF_SOCKADDR@)
-  (define strideof-sockaddr @STRIDEOF_SOCKADDR@)
-  (define sizeof-sockaddr_in @SIZEOF_SOCKADDR_IN@)
-  (define alignof-sockaddr_in @ALIGNOF_SOCKADDR_IN@)
-  (define strideof-sockaddr_in @STRIDEOF_SOCKADDR_IN@)
-  (define sizeof-sockaddr_in6 @SIZEOF_SOCKADDR_IN6@)
-  (define alignof-sockaddr_in6 @ALIGNOF_SOCKADDR_IN6@)
-  (define strideof-sockaddr_in6 @STRIDEOF_SOCKADDR_IN6@)
-  (define sizeof-sockaddr_un @SIZEOF_SOCKADDR_UN@)
-  (define alignof-sockaddr_un @ALIGNOF_SOCKADDR_UN@)
-  (define strideof-sockaddr_un @STRIDEOF_SOCKADDR_UN@)
-  (define sizeof-in_addr @SIZEOF_IN_ADDR@)
-  (define alignof-in_addr @ALIGNOF_IN_ADDR@)
-  (define strideof-in_addr @STRIDEOF_IN_ADDR@)
-  (define sizeof-in6_addr @SIZEOF_IN6_ADDR@)
-  (define alignof-in6_addr @ALIGNOF_IN6_ADDR@)
-  (define strideof-in6_addr @STRIDEOF_IN6_ADDR@)
-  (define sizeof-if_nameindex @SIZEOF_IF_NAMEINDEX@)
-  (define alignof-if_nameindex @ALIGNOF_IF_NAMEINDEX@)
-  (define strideof-if_nameindex @STRIDEOF_IF_NAMEINDEX@)
-  (define sizeof-netent @SIZEOF_NETENT@)
-  (define alignof-netent @ALIGNOF_NETENT@)
-  (define strideof-netent @STRIDEOF_NETENT@)
-  (define sizeof-linger @SIZEOF_LINGER@)
-  (define alignof-linger @ALIGNOF_LINGER@)
-  (define strideof-linger @STRIDEOF_LINGER@)
-  (define sizeof-hostent @SIZEOF_HOSTENT@)
-  (define alignof-hostent @ALIGNOF_HOSTENT@)
-  (define strideof-hostent @STRIDEOF_HOSTENT@)
-  (define sizeof-protoent @SIZEOF_PROTOENT@)
-  (define alignof-protoent @ALIGNOF_PROTOENT@)
-  (define strideof-protoent @STRIDEOF_PROTOENT@)
-  (define sizeof-servent @SIZEOF_SERVENT@)
-  (define alignof-servent @ALIGNOF_SERVENT@)
-  (define strideof-servent @STRIDEOF_SERVENT@)
+  (define sizeof-struct-flock @SIZEOF_FLOCK@)
+  (define alignof-struct-flock @ALIGNOF_FLOCK@)
+  (define strideof-struct-flock @STRIDEOF_FLOCK@)
+  (define sizeof-struct-timeval @SIZEOF_TIMEVAL@)
+  (define alignof-struct-timeval @ALIGNOF_TIMEVAL@)
+  (define strideof-struct-timeval @STRIDEOF_TIMEVAL@)
+  (define sizeof-struct-timespec @SIZEOF_TIMESPEC@)
+  (define alignof-struct-timespec @ALIGNOF_TIMESPEC@)
+  (define strideof-struct-timespec @STRIDEOF_TIMESPEC@)
+  (define sizeof-struct-tms @SIZEOF_TMS@)
+  (define alignof-struct-tms @ALIGNOF_TMS@)
+  (define strideof-struct-tms @STRIDEOF_TMS@)
+  (define sizeof-struct-dirent @SIZEOF_DIRENT@)
+  (define alignof-struct-dirent @ALIGNOF_DIRENT@)
+  (define strideof-struct-dirent @STRIDEOF_DIRENT@)
+  (define sizeof-struct-utimbuf @SIZEOF_UTIMBUF@)
+  (define alignof-struct-utimbuf @ALIGNOF_UTIMBUF@)
+  (define strideof-struct-utimbuf @STRIDEOF_UTIMBUF@)
+  (define sizeof-struct-timezone @SIZEOF_TIMEZONE@)
+  (define alignof-struct-timezone @ALIGNOF_TIMEZONE@)
+  (define strideof-struct-timezone @STRIDEOF_TIMEZONE@)
+  (define sizeof-struct-tm @SIZEOF_TM@)
+  (define alignof-struct-tm @ALIGNOF_TM@)
+  (define strideof-struct-tm @STRIDEOF_TM@)
+  (define sizeof-struct-ntptimeval @SIZEOF_NTPTIMEVAL@)
+  (define alignof-struct-ntptimeval @ALIGNOF_NTPTIMEVAL@)
+  (define strideof-struct-ntptimeval @STRIDEOF_NTPTIMEVAL@)
+  (define sizeof-struct-timex @SIZEOF_TIMEX@)
+  (define alignof-struct-timex @ALIGNOF_TIMEX@)
+  (define strideof-struct-timex @STRIDEOF_TIMEX@)
+  (define sizeof-struct-itimerval @SIZEOF_ITIMERVAL@)
+  (define alignof-struct-itimerval @ALIGNOF_ITIMERVAL@)
+  (define strideof-struct-itimerval @STRIDEOF_ITIMERVAL@)
+  (define sizeof-struct-FTW @SIZEOF_FTW@)
+  (define alignof-struct-FTW @ALIGNOF_FTW@)
+  (define strideof-struct-FTW @STRIDEOF_FTW@)
+  (define sizeof-struct-iovec @SIZEOF_IOVEC@)
+  (define alignof-struct-iovec @ALIGNOF_IOVEC@)
+  (define strideof-struct-iovec @STRIDEOF_IOVEC@)
+  (define sizeof-struct-fdset @SIZEOF_FDSET@)
+  (define alignof-struct-fdset @ALIGNOF_FDSET@)
+  (define strideof-struct-fdset @STRIDEOF_FDSET@)
+  (define sizeof-struct-passwd @SIZEOF_PASSWD@)
+  (define alignof-struct-passwd @ALIGNOF_PASSWD@)
+  (define strideof-struct-passwd @STRIDEOF_PASSWD@)
+  (define sizeof-struct-group @SIZEOF_GROUP@)
+  (define alignof-struct-group @ALIGNOF_GROUP@)
+  (define strideof-struct-group @STRIDEOF_GROUP@)
+  (define sizeof-struct-utsname @SIZEOF_UTSNAME@)
+  (define alignof-struct-utsname @ALIGNOF_UTSNAME@)
+  (define strideof-struct-utsname @STRIDEOF_UTSNAME@)
+  (define sizeof-struct-fstab @SIZEOF_FSTAB@)
+  (define alignof-struct-fstab @ALIGNOF_FSTAB@)
+  (define strideof-struct-fstab @STRIDEOF_FSTAB@)
+  (define sizeof-struct-mntent @SIZEOF_MNTENT@)
+  (define alignof-struct-mntent @ALIGNOF_MNTENT@)
+  (define strideof-struct-mntent @STRIDEOF_MNTENT@)
+  (define sizeof-struct-sockaddr @SIZEOF_SOCKADDR@)
+  (define alignof-struct-sockaddr @ALIGNOF_SOCKADDR@)
+  (define strideof-struct-sockaddr @STRIDEOF_SOCKADDR@)
+  (define sizeof-struct-sockaddr_in @SIZEOF_SOCKADDR_IN@)
+  (define alignof-struct-sockaddr_in @ALIGNOF_SOCKADDR_IN@)
+  (define strideof-struct-sockaddr_in @STRIDEOF_SOCKADDR_IN@)
+  (define sizeof-struct-sockaddr_in6 @SIZEOF_SOCKADDR_IN6@)
+  (define alignof-struct-sockaddr_in6 @ALIGNOF_SOCKADDR_IN6@)
+  (define strideof-struct-sockaddr_in6
+    @STRIDEOF_SOCKADDR_IN6@)
+  (define sizeof-struct-sockaddr_un @SIZEOF_SOCKADDR_UN@)
+  (define alignof-struct-sockaddr_un @ALIGNOF_SOCKADDR_UN@)
+  (define strideof-struct-sockaddr_un @STRIDEOF_SOCKADDR_UN@)
+  (define sizeof-struct-in_addr @SIZEOF_IN_ADDR@)
+  (define alignof-struct-in_addr @ALIGNOF_IN_ADDR@)
+  (define strideof-struct-in_addr @STRIDEOF_IN_ADDR@)
+  (define sizeof-struct-in6_addr @SIZEOF_IN6_ADDR@)
+  (define alignof-struct-in6_addr @ALIGNOF_IN6_ADDR@)
+  (define strideof-struct-in6_addr @STRIDEOF_IN6_ADDR@)
+  (define sizeof-struct-if_nameindex @SIZEOF_IF_NAMEINDEX@)
+  (define alignof-struct-if_nameindex @ALIGNOF_IF_NAMEINDEX@)
+  (define strideof-struct-if_nameindex
+    @STRIDEOF_IF_NAMEINDEX@)
+  (define sizeof-struct-netent @SIZEOF_NETENT@)
+  (define alignof-struct-netent @ALIGNOF_NETENT@)
+  (define strideof-struct-netent @STRIDEOF_NETENT@)
+  (define sizeof-struct-linger @SIZEOF_LINGER@)
+  (define alignof-struct-linger @ALIGNOF_LINGER@)
+  (define strideof-struct-linger @STRIDEOF_LINGER@)
+  (define sizeof-struct-hostent @SIZEOF_HOSTENT@)
+  (define alignof-struct-hostent @ALIGNOF_HOSTENT@)
+  (define strideof-struct-hostent @STRIDEOF_HOSTENT@)
+  (define sizeof-struct-protoent @SIZEOF_PROTOENT@)
+  (define alignof-struct-protoent @ALIGNOF_PROTOENT@)
+  (define strideof-struct-protoent @STRIDEOF_PROTOENT@)
+  (define sizeof-struct-servent @SIZEOF_SERVENT@)
+  (define alignof-struct-servent @ALIGNOF_SERVENT@)
+  (define strideof-struct-servent @STRIDEOF_SERVENT@)
   (define valueof-SEEK_SET @VALUEOF_SEEK_SET@)
   (define valueof-SEEK_CUR @VALUEOF_SEEK_CUR@)
   (define valueof-SEEK_END @VALUEOF_SEEK_END@)
@@ -216,10 +233,10 @@
   (define valueof-S_ISUID @VALUEOF_S_ISUID@)
   (define valueof-S_ISGID @VALUEOF_S_ISGID@)
   (define valueof-S_ISVTX @VALUEOF_S_ISVTX@)
-  (define _DIRENT_HAVE_D_NAMELEN @NAU_DIRENT_HAVE_D_NAMELEN@)
-  (define _DIRENT_HAVE_D_RECLEN @NAU_DIRENT_HAVE_D_RECLEN@)
-  (define _DIRENT_HAVE_D_OFF @NAU_DIRENT_HAVE_D_OFF@)
-  (define _DIRENT_HAVE_D_TYPE @NAU_DIRENT_HAVE_D_TYPE@)
+  (define DIRENT_HAVE_D_NAMELEN @NAU_DIRENT_HAVE_D_NAMELEN@)
+  (define DIRENT_HAVE_D_RECLEN @NAU_DIRENT_HAVE_D_RECLEN@)
+  (define DIRENT_HAVE_D_OFF @NAU_DIRENT_HAVE_D_OFF@)
+  (define DIRENT_HAVE_D_TYPE @NAU_DIRENT_HAVE_D_TYPE@)
   (define valueof-DT_BLK @VALUEOF_DT_BLK@)
   (define valueof-DT_CHR @VALUEOF_DT_CHR@)
   (define valueof-DT_DIR @VALUEOF_DT_DIR@)
@@ -823,199 +840,565 @@
   (define valueof-TRY_AGAIN @VALUEOF_TRY_AGAIN@)
   (define valueof-NO_RECOVERY @VALUEOF_NO_RECOVERY@)
   (define valueof-NO_ADDRESS @VALUEOF_NO_ADDRESS@)
-  (define SO_STYLE SO_TYPE)
-  (define-label <struct-flock>
+  (define valueof-SO_STYLE valueof-SO_TYPE)
+  (define-label pointer-to-flock
+    (virtual-fields (mutable l_pid) (mutable l_len)
+      (mutable l_start) (mutable l_whence) (mutable l_type)))
+  (define-syntax pointer-to-flock-l_pid-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_FLOCK_L_PID@ ?pointer
+         @OFFSETOF_FLOCK_L_PID@ ?value))))
+  (define-syntax pointer-to-flock-l_pid
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_FLOCK_L_PID@ ?pointer
+         @OFFSETOF_FLOCK_L_PID@))))
+  (define-syntax pointer-to-flock-l_len-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_FLOCK_L_LEN@ ?pointer
+         @OFFSETOF_FLOCK_L_LEN@ ?value))))
+  (define-syntax pointer-to-flock-l_len
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_FLOCK_L_LEN@ ?pointer
+         @OFFSETOF_FLOCK_L_LEN@))))
+  (define-syntax pointer-to-flock-l_start-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_FLOCK_L_START@ ?pointer
+         @OFFSETOF_FLOCK_L_START@ ?value))))
+  (define-syntax pointer-to-flock-l_start
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_FLOCK_L_START@ ?pointer
+         @OFFSETOF_FLOCK_L_START@))))
+  (define-syntax pointer-to-flock-l_whence-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_FLOCK_L_WHENCE@ ?pointer
+         @OFFSETOF_FLOCK_L_WHENCE@ ?value))))
+  (define-syntax pointer-to-flock-l_whence
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_FLOCK_L_WHENCE@ ?pointer
+         @OFFSETOF_FLOCK_L_WHENCE@))))
+  (define-syntax pointer-to-flock-l_type-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_FLOCK_L_TYPE@ ?pointer
+         @OFFSETOF_FLOCK_L_TYPE@ ?value))))
+  (define-syntax pointer-to-flock-l_type
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_FLOCK_L_TYPE@ ?pointer
+         @OFFSETOF_FLOCK_L_TYPE@))))
+  (define-class <struct-flock>
+    (nongenerative nausicaa:posix:<struct-flock>)
+    (protocol
+      (lambda (make-top)
+        (lambda (malloc)
+          ((make-top) (malloc (c-sizeof struct-flock))))))
+    (fields (immutable pointer))
     (virtual-fields (mutable l_pid) (mutable l_len)
       (mutable l_start) (mutable l_whence) (mutable l_type)))
   (define-syntax <struct-flock>-l_pid-set!
     (syntax-rules ()
       ((_ ?pointer ?value)
-       (pointer-c-set! @TYPEOF_FLOCK_L_PID@ ?pointer
-         @OFFSETOF_FLOCK_L_PID@ ?value))))
+       (pointer-to-flock-l_pid-set!
+         (<struct-flock>-pointer ?pointer) ?value))))
   (define-syntax <struct-flock>-l_pid
     (syntax-rules ()
       ((_ ?pointer)
-       (pointer-c-ref @TYPEOF_FLOCK_L_PID@ ?pointer
-         @OFFSETOF_FLOCK_L_PID@))))
+       (pointer-to-flock-l_pid
+         (<struct-flock>-pointer ?pointer)))))
   (define-syntax <struct-flock>-l_len-set!
     (syntax-rules ()
       ((_ ?pointer ?value)
-       (pointer-c-set! @TYPEOF_FLOCK_L_LEN@ ?pointer
-         @OFFSETOF_FLOCK_L_LEN@ ?value))))
+       (pointer-to-flock-l_len-set!
+         (<struct-flock>-pointer ?pointer) ?value))))
   (define-syntax <struct-flock>-l_len
     (syntax-rules ()
       ((_ ?pointer)
-       (pointer-c-ref @TYPEOF_FLOCK_L_LEN@ ?pointer
-         @OFFSETOF_FLOCK_L_LEN@))))
+       (pointer-to-flock-l_len
+         (<struct-flock>-pointer ?pointer)))))
   (define-syntax <struct-flock>-l_start-set!
     (syntax-rules ()
       ((_ ?pointer ?value)
-       (pointer-c-set! @TYPEOF_FLOCK_L_START@ ?pointer
-         @OFFSETOF_FLOCK_L_START@ ?value))))
+       (pointer-to-flock-l_start-set!
+         (<struct-flock>-pointer ?pointer) ?value))))
   (define-syntax <struct-flock>-l_start
     (syntax-rules ()
       ((_ ?pointer)
-       (pointer-c-ref @TYPEOF_FLOCK_L_START@ ?pointer
-         @OFFSETOF_FLOCK_L_START@))))
+       (pointer-to-flock-l_start
+         (<struct-flock>-pointer ?pointer)))))
   (define-syntax <struct-flock>-l_whence-set!
     (syntax-rules ()
       ((_ ?pointer ?value)
-       (pointer-c-set! @TYPEOF_FLOCK_L_WHENCE@ ?pointer
-         @OFFSETOF_FLOCK_L_WHENCE@ ?value))))
+       (pointer-to-flock-l_whence-set!
+         (<struct-flock>-pointer ?pointer) ?value))))
   (define-syntax <struct-flock>-l_whence
     (syntax-rules ()
       ((_ ?pointer)
-       (pointer-c-ref @TYPEOF_FLOCK_L_WHENCE@ ?pointer
-         @OFFSETOF_FLOCK_L_WHENCE@))))
+       (pointer-to-flock-l_whence
+         (<struct-flock>-pointer ?pointer)))))
   (define-syntax <struct-flock>-l_type-set!
     (syntax-rules ()
       ((_ ?pointer ?value)
-       (pointer-c-set! @TYPEOF_FLOCK_L_TYPE@ ?pointer
-         @OFFSETOF_FLOCK_L_TYPE@ ?value))))
+       (pointer-to-flock-l_type-set!
+         (<struct-flock>-pointer ?pointer) ?value))))
   (define-syntax <struct-flock>-l_type
     (syntax-rules ()
       ((_ ?pointer)
-       (pointer-c-ref @TYPEOF_FLOCK_L_TYPE@ ?pointer
-         @OFFSETOF_FLOCK_L_TYPE@))))
-  (define-label <struct-timeval>
+       (pointer-to-flock-l_type
+         (<struct-flock>-pointer ?pointer)))))
+  (define-class <flock>
+    (nongenerative nausicaa:posix:<flock>)
+    (fields (mutable l_pid) (mutable l_len)
+      (mutable l_start) (mutable l_whence) (mutable l_type)))
+  (define-label pointer-to-timeval
     (virtual-fields (mutable tv_usec) (mutable tv_sec)))
-  (define-syntax <struct-timeval>-tv_usec-set!
+  (define-syntax pointer-to-timeval-tv_usec-set!
     (syntax-rules ()
       ((_ ?pointer ?value)
        (pointer-c-set! @TYPEOF_TIMEVAL_TV_USEC@ ?pointer
          @OFFSETOF_TIMEVAL_TV_USEC@ ?value))))
-  (define-syntax <struct-timeval>-tv_usec
+  (define-syntax pointer-to-timeval-tv_usec
     (syntax-rules ()
       ((_ ?pointer)
        (pointer-c-ref @TYPEOF_TIMEVAL_TV_USEC@ ?pointer
          @OFFSETOF_TIMEVAL_TV_USEC@))))
-  (define-syntax <struct-timeval>-tv_sec-set!
+  (define-syntax pointer-to-timeval-tv_sec-set!
     (syntax-rules ()
       ((_ ?pointer ?value)
        (pointer-c-set! @TYPEOF_TIMEVAL_TV_SEC@ ?pointer
          @OFFSETOF_TIMEVAL_TV_SEC@ ?value))))
-  (define-syntax <struct-timeval>-tv_sec
+  (define-syntax pointer-to-timeval-tv_sec
     (syntax-rules ()
       ((_ ?pointer)
        (pointer-c-ref @TYPEOF_TIMEVAL_TV_SEC@ ?pointer
          @OFFSETOF_TIMEVAL_TV_SEC@))))
-  (define-label <struct-timespec>
+  (define-class <struct-timeval>
+    (nongenerative nausicaa:posix:<struct-timeval>)
+    (protocol
+      (lambda (make-top)
+        (lambda (malloc)
+          ((make-top) (malloc (c-sizeof struct-timeval))))))
+    (fields (immutable pointer))
+    (virtual-fields (mutable tv_usec) (mutable tv_sec)))
+  (define-syntax <struct-timeval>-tv_usec-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-to-timeval-tv_usec-set!
+         (<struct-timeval>-pointer ?pointer) ?value))))
+  (define-syntax <struct-timeval>-tv_usec
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-to-timeval-tv_usec
+         (<struct-timeval>-pointer ?pointer)))))
+  (define-syntax <struct-timeval>-tv_sec-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-to-timeval-tv_sec-set!
+         (<struct-timeval>-pointer ?pointer) ?value))))
+  (define-syntax <struct-timeval>-tv_sec
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-to-timeval-tv_sec
+         (<struct-timeval>-pointer ?pointer)))))
+  (define-class <timeval>
+    (nongenerative nausicaa:posix:<timeval>)
+    (fields (mutable tv_usec) (mutable tv_sec)))
+  (define-label pointer-to-timespec
     (virtual-fields (mutable tv_nsec) (mutable tv_sec)))
-  (define-syntax <struct-timespec>-tv_nsec-set!
+  (define-syntax pointer-to-timespec-tv_nsec-set!
     (syntax-rules ()
       ((_ ?pointer ?value)
        (pointer-c-set! @TYPEOF_TIMESPEC_TV_NSEC@ ?pointer
          @OFFSETOF_TIMESPEC_TV_NSEC@ ?value))))
-  (define-syntax <struct-timespec>-tv_nsec
+  (define-syntax pointer-to-timespec-tv_nsec
     (syntax-rules ()
       ((_ ?pointer)
        (pointer-c-ref @TYPEOF_TIMESPEC_TV_NSEC@ ?pointer
          @OFFSETOF_TIMESPEC_TV_NSEC@))))
-  (define-syntax <struct-timespec>-tv_sec-set!
+  (define-syntax pointer-to-timespec-tv_sec-set!
     (syntax-rules ()
       ((_ ?pointer ?value)
        (pointer-c-set! @TYPEOF_TIMESPEC_TV_SEC@ ?pointer
          @OFFSETOF_TIMESPEC_TV_SEC@ ?value))))
-  (define-syntax <struct-timespec>-tv_sec
+  (define-syntax pointer-to-timespec-tv_sec
     (syntax-rules ()
       ((_ ?pointer)
        (pointer-c-ref @TYPEOF_TIMESPEC_TV_SEC@ ?pointer
          @OFFSETOF_TIMESPEC_TV_SEC@))))
-  (define-label <struct-tms> (virtual-fields))
-  (define-label <struct-dirent>
+  (define-class <struct-timespec>
+    (nongenerative nausicaa:posix:<struct-timespec>)
+    (protocol
+      (lambda (make-top)
+        (lambda (malloc)
+          ((make-top) (malloc (c-sizeof struct-timespec))))))
+    (fields (immutable pointer))
+    (virtual-fields (mutable tv_nsec) (mutable tv_sec)))
+  (define-syntax <struct-timespec>-tv_nsec-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-to-timespec-tv_nsec-set!
+         (<struct-timespec>-pointer ?pointer) ?value))))
+  (define-syntax <struct-timespec>-tv_nsec
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-to-timespec-tv_nsec
+         (<struct-timespec>-pointer ?pointer)))))
+  (define-syntax <struct-timespec>-tv_sec-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-to-timespec-tv_sec-set!
+         (<struct-timespec>-pointer ?pointer) ?value))))
+  (define-syntax <struct-timespec>-tv_sec
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-to-timespec-tv_sec
+         (<struct-timespec>-pointer ?pointer)))))
+  (define-class <timespec>
+    (nongenerative nausicaa:posix:<timespec>)
+    (fields (mutable tv_nsec) (mutable tv_sec)))
+  (define-label pointer-to-dirent
+    (virtual-fields (immutable d_name) (mutable d_type)
+      (mutable d_reclen) (mutable d_off) (mutable d_ino)))
+  (define-syntax pointer-to-dirent-d_name
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_DIRENT_D_NAME@ ?pointer
+         @OFFSETOF_DIRENT_D_NAME@))))
+  (define-syntax pointer-to-dirent-d_type-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_DIRENT_D_TYPE@ ?pointer
+         @OFFSETOF_DIRENT_D_TYPE@ ?value))))
+  (define-syntax pointer-to-dirent-d_type
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_DIRENT_D_TYPE@ ?pointer
+         @OFFSETOF_DIRENT_D_TYPE@))))
+  (define-syntax pointer-to-dirent-d_reclen-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_DIRENT_D_RECLEN@ ?pointer
+         @OFFSETOF_DIRENT_D_RECLEN@ ?value))))
+  (define-syntax pointer-to-dirent-d_reclen
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_DIRENT_D_RECLEN@ ?pointer
+         @OFFSETOF_DIRENT_D_RECLEN@))))
+  (define-syntax pointer-to-dirent-d_off-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_DIRENT_D_OFF@ ?pointer
+         @OFFSETOF_DIRENT_D_OFF@ ?value))))
+  (define-syntax pointer-to-dirent-d_off
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_DIRENT_D_OFF@ ?pointer
+         @OFFSETOF_DIRENT_D_OFF@))))
+  (define-syntax pointer-to-dirent-d_ino-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_DIRENT_D_INO@ ?pointer
+         @OFFSETOF_DIRENT_D_INO@ ?value))))
+  (define-syntax pointer-to-dirent-d_ino
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_DIRENT_D_INO@ ?pointer
+         @OFFSETOF_DIRENT_D_INO@))))
+  (define-class <struct-dirent>
+    (nongenerative nausicaa:posix:<struct-dirent>)
+    (protocol
+      (lambda (make-top)
+        (lambda (malloc)
+          ((make-top) (malloc (c-sizeof struct-dirent))))))
+    (fields (immutable pointer))
     (virtual-fields (immutable d_name) (mutable d_type)
       (mutable d_reclen) (mutable d_off) (mutable d_ino)))
   (define-syntax <struct-dirent>-d_name
     (syntax-rules ()
       ((_ ?pointer)
-       (pointer-c-ref @TYPEOF_DIRENT_D_NAME@ ?pointer
-         @OFFSETOF_DIRENT_D_NAME@))))
+       (pointer-to-dirent-d_name
+         (<struct-dirent>-pointer ?pointer)))))
   (define-syntax <struct-dirent>-d_type-set!
     (syntax-rules ()
       ((_ ?pointer ?value)
-       (pointer-c-set! @TYPEOF_DIRENT_D_TYPE@ ?pointer
-         @OFFSETOF_DIRENT_D_TYPE@ ?value))))
+       (pointer-to-dirent-d_type-set!
+         (<struct-dirent>-pointer ?pointer) ?value))))
   (define-syntax <struct-dirent>-d_type
     (syntax-rules ()
       ((_ ?pointer)
-       (pointer-c-ref @TYPEOF_DIRENT_D_TYPE@ ?pointer
-         @OFFSETOF_DIRENT_D_TYPE@))))
+       (pointer-to-dirent-d_type
+         (<struct-dirent>-pointer ?pointer)))))
   (define-syntax <struct-dirent>-d_reclen-set!
     (syntax-rules ()
       ((_ ?pointer ?value)
-       (pointer-c-set! @TYPEOF_DIRENT_D_RECLEN@ ?pointer
-         @OFFSETOF_DIRENT_D_RECLEN@ ?value))))
+       (pointer-to-dirent-d_reclen-set!
+         (<struct-dirent>-pointer ?pointer) ?value))))
   (define-syntax <struct-dirent>-d_reclen
     (syntax-rules ()
       ((_ ?pointer)
-       (pointer-c-ref @TYPEOF_DIRENT_D_RECLEN@ ?pointer
-         @OFFSETOF_DIRENT_D_RECLEN@))))
+       (pointer-to-dirent-d_reclen
+         (<struct-dirent>-pointer ?pointer)))))
   (define-syntax <struct-dirent>-d_off-set!
     (syntax-rules ()
       ((_ ?pointer ?value)
-       (pointer-c-set! @TYPEOF_DIRENT_D_OFF@ ?pointer
-         @OFFSETOF_DIRENT_D_OFF@ ?value))))
+       (pointer-to-dirent-d_off-set!
+         (<struct-dirent>-pointer ?pointer) ?value))))
   (define-syntax <struct-dirent>-d_off
     (syntax-rules ()
       ((_ ?pointer)
-       (pointer-c-ref @TYPEOF_DIRENT_D_OFF@ ?pointer
-         @OFFSETOF_DIRENT_D_OFF@))))
+       (pointer-to-dirent-d_off
+         (<struct-dirent>-pointer ?pointer)))))
   (define-syntax <struct-dirent>-d_ino-set!
     (syntax-rules ()
       ((_ ?pointer ?value)
-       (pointer-c-set! @TYPEOF_DIRENT_D_INO@ ?pointer
-         @OFFSETOF_DIRENT_D_INO@ ?value))))
+       (pointer-to-dirent-d_ino-set!
+         (<struct-dirent>-pointer ?pointer) ?value))))
   (define-syntax <struct-dirent>-d_ino
     (syntax-rules ()
       ((_ ?pointer)
-       (pointer-c-ref @TYPEOF_DIRENT_D_INO@ ?pointer
-         @OFFSETOF_DIRENT_D_INO@))))
-  (define-label <struct-utimbuf>
+       (pointer-to-dirent-d_ino
+         (<struct-dirent>-pointer ?pointer)))))
+  (define-class <dirent>
+    (nongenerative nausicaa:posix:<dirent>)
+    (fields (mutable d_name) (mutable d_type)
+      (mutable d_reclen) (mutable d_off) (mutable d_ino)))
+  (define-label pointer-to-utimbuf
     (virtual-fields (mutable modtime) (mutable actime)))
-  (define-syntax <struct-utimbuf>-modtime-set!
+  (define-syntax pointer-to-utimbuf-modtime-set!
     (syntax-rules ()
       ((_ ?pointer ?value)
        (pointer-c-set! @TYPEOF_UTIMBUF_MODTIME@ ?pointer
          @OFFSETOF_UTIMBUF_MODTIME@ ?value))))
-  (define-syntax <struct-utimbuf>-modtime
+  (define-syntax pointer-to-utimbuf-modtime
     (syntax-rules ()
       ((_ ?pointer)
        (pointer-c-ref @TYPEOF_UTIMBUF_MODTIME@ ?pointer
          @OFFSETOF_UTIMBUF_MODTIME@))))
-  (define-syntax <struct-utimbuf>-actime-set!
+  (define-syntax pointer-to-utimbuf-actime-set!
     (syntax-rules ()
       ((_ ?pointer ?value)
        (pointer-c-set! @TYPEOF_UTIMBUF_ACTIME@ ?pointer
          @OFFSETOF_UTIMBUF_ACTIME@ ?value))))
-  (define-syntax <struct-utimbuf>-actime
+  (define-syntax pointer-to-utimbuf-actime
     (syntax-rules ()
       ((_ ?pointer)
        (pointer-c-ref @TYPEOF_UTIMBUF_ACTIME@ ?pointer
          @OFFSETOF_UTIMBUF_ACTIME@))))
-  (define-label <struct-timezone>
+  (define-class <struct-utimbuf>
+    (nongenerative nausicaa:posix:<struct-utimbuf>)
+    (protocol
+      (lambda (make-top)
+        (lambda (malloc)
+          ((make-top) (malloc (c-sizeof struct-utimbuf))))))
+    (fields (immutable pointer))
+    (virtual-fields (mutable modtime) (mutable actime)))
+  (define-syntax <struct-utimbuf>-modtime-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-to-utimbuf-modtime-set!
+         (<struct-utimbuf>-pointer ?pointer) ?value))))
+  (define-syntax <struct-utimbuf>-modtime
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-to-utimbuf-modtime
+         (<struct-utimbuf>-pointer ?pointer)))))
+  (define-syntax <struct-utimbuf>-actime-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-to-utimbuf-actime-set!
+         (<struct-utimbuf>-pointer ?pointer) ?value))))
+  (define-syntax <struct-utimbuf>-actime
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-to-utimbuf-actime
+         (<struct-utimbuf>-pointer ?pointer)))))
+  (define-class <utimbuf>
+    (nongenerative nausicaa:posix:<utimbuf>)
+    (fields (mutable modtime) (mutable actime)))
+  (define-label pointer-to-timezone
+    (virtual-fields (mutable tz_dsttime)
+      (mutable tz_minuteswest)))
+  (define-syntax pointer-to-timezone-tz_dsttime-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_TIMEZONE_TZ_DSTTIME@ ?pointer
+         @OFFSETOF_TIMEZONE_TZ_DSTTIME@ ?value))))
+  (define-syntax pointer-to-timezone-tz_dsttime
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_TIMEZONE_TZ_DSTTIME@ ?pointer
+         @OFFSETOF_TIMEZONE_TZ_DSTTIME@))))
+  (define-syntax pointer-to-timezone-tz_minuteswest-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_TIMEZONE_TZ_MINUTESWEST@
+         ?pointer @OFFSETOF_TIMEZONE_TZ_MINUTESWEST@ ?value))))
+  (define-syntax pointer-to-timezone-tz_minuteswest
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_TIMEZONE_TZ_MINUTESWEST@
+         ?pointer @OFFSETOF_TIMEZONE_TZ_MINUTESWEST@))))
+  (define-class <struct-timezone>
+    (nongenerative nausicaa:posix:<struct-timezone>)
+    (protocol
+      (lambda (make-top)
+        (lambda (malloc)
+          ((make-top) (malloc (c-sizeof struct-timezone))))))
+    (fields (immutable pointer))
     (virtual-fields (mutable tz_dsttime)
       (mutable tz_minuteswest)))
   (define-syntax <struct-timezone>-tz_dsttime-set!
     (syntax-rules ()
       ((_ ?pointer ?value)
-       (pointer-c-set! @TYPEOF_TIMEZONE_TZ_DSTTIME@ ?pointer
-         @OFFSETOF_TIMEZONE_TZ_DSTTIME@ ?value))))
+       (pointer-to-timezone-tz_dsttime-set!
+         (<struct-timezone>-pointer ?pointer) ?value))))
   (define-syntax <struct-timezone>-tz_dsttime
     (syntax-rules ()
       ((_ ?pointer)
-       (pointer-c-ref @TYPEOF_TIMEZONE_TZ_DSTTIME@ ?pointer
-         @OFFSETOF_TIMEZONE_TZ_DSTTIME@))))
+       (pointer-to-timezone-tz_dsttime
+         (<struct-timezone>-pointer ?pointer)))))
   (define-syntax <struct-timezone>-tz_minuteswest-set!
     (syntax-rules ()
       ((_ ?pointer ?value)
-       (pointer-c-set! @TYPEOF_TIMEZONE_TZ_MINUTESWEST@
-         ?pointer @OFFSETOF_TIMEZONE_TZ_MINUTESWEST@ ?value))))
+       (pointer-to-timezone-tz_minuteswest-set!
+         (<struct-timezone>-pointer ?pointer) ?value))))
   (define-syntax <struct-timezone>-tz_minuteswest
     (syntax-rules ()
       ((_ ?pointer)
-       (pointer-c-ref @TYPEOF_TIMEZONE_TZ_MINUTESWEST@
-         ?pointer @OFFSETOF_TIMEZONE_TZ_MINUTESWEST@))))
-  (define-label <struct-tm>
+       (pointer-to-timezone-tz_minuteswest
+         (<struct-timezone>-pointer ?pointer)))))
+  (define-class <timezone>
+    (nongenerative nausicaa:posix:<timezone>)
+    (fields (mutable tz_dsttime) (mutable tz_minuteswest)))
+  (define-label pointer-to-tm
+    (virtual-fields (mutable tm_zone) (mutable tm_gmtoff)
+      (mutable tm_isdst) (mutable tm_yday) (mutable tm_wday)
+      (mutable tm_year) (mutable tm_mon) (mutable tm_mday)
+      (mutable tm_hour) (mutable tm_min) (mutable tm_sec)))
+  (define-syntax pointer-to-tm-tm_zone-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_TM_TM_ZONE@ ?pointer
+         @OFFSETOF_TM_TM_ZONE@ ?value))))
+  (define-syntax pointer-to-tm-tm_zone
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_TM_TM_ZONE@ ?pointer
+         @OFFSETOF_TM_TM_ZONE@))))
+  (define-syntax pointer-to-tm-tm_gmtoff-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_TM_TM_GMTOFF@ ?pointer
+         @OFFSETOF_TM_TM_GMTOFF@ ?value))))
+  (define-syntax pointer-to-tm-tm_gmtoff
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_TM_TM_GMTOFF@ ?pointer
+         @OFFSETOF_TM_TM_GMTOFF@))))
+  (define-syntax pointer-to-tm-tm_isdst-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_TM_TM_ISDST@ ?pointer
+         @OFFSETOF_TM_TM_ISDST@ ?value))))
+  (define-syntax pointer-to-tm-tm_isdst
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_TM_TM_ISDST@ ?pointer
+         @OFFSETOF_TM_TM_ISDST@))))
+  (define-syntax pointer-to-tm-tm_yday-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_TM_TM_YDAY@ ?pointer
+         @OFFSETOF_TM_TM_YDAY@ ?value))))
+  (define-syntax pointer-to-tm-tm_yday
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_TM_TM_YDAY@ ?pointer
+         @OFFSETOF_TM_TM_YDAY@))))
+  (define-syntax pointer-to-tm-tm_wday-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_TM_TM_WDAY@ ?pointer
+         @OFFSETOF_TM_TM_WDAY@ ?value))))
+  (define-syntax pointer-to-tm-tm_wday
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_TM_TM_WDAY@ ?pointer
+         @OFFSETOF_TM_TM_WDAY@))))
+  (define-syntax pointer-to-tm-tm_year-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_TM_TM_YEAR@ ?pointer
+         @OFFSETOF_TM_TM_YEAR@ ?value))))
+  (define-syntax pointer-to-tm-tm_year
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_TM_TM_YEAR@ ?pointer
+         @OFFSETOF_TM_TM_YEAR@))))
+  (define-syntax pointer-to-tm-tm_mon-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_TM_TM_MON@ ?pointer
+         @OFFSETOF_TM_TM_MON@ ?value))))
+  (define-syntax pointer-to-tm-tm_mon
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_TM_TM_MON@ ?pointer
+         @OFFSETOF_TM_TM_MON@))))
+  (define-syntax pointer-to-tm-tm_mday-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_TM_TM_MDAY@ ?pointer
+         @OFFSETOF_TM_TM_MDAY@ ?value))))
+  (define-syntax pointer-to-tm-tm_mday
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_TM_TM_MDAY@ ?pointer
+         @OFFSETOF_TM_TM_MDAY@))))
+  (define-syntax pointer-to-tm-tm_hour-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_TM_TM_HOUR@ ?pointer
+         @OFFSETOF_TM_TM_HOUR@ ?value))))
+  (define-syntax pointer-to-tm-tm_hour
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_TM_TM_HOUR@ ?pointer
+         @OFFSETOF_TM_TM_HOUR@))))
+  (define-syntax pointer-to-tm-tm_min-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_TM_TM_MIN@ ?pointer
+         @OFFSETOF_TM_TM_MIN@ ?value))))
+  (define-syntax pointer-to-tm-tm_min
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_TM_TM_MIN@ ?pointer
+         @OFFSETOF_TM_TM_MIN@))))
+  (define-syntax pointer-to-tm-tm_sec-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_TM_TM_SEC@ ?pointer
+         @OFFSETOF_TM_TM_SEC@ ?value))))
+  (define-syntax pointer-to-tm-tm_sec
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_TM_TM_SEC@ ?pointer
+         @OFFSETOF_TM_TM_SEC@))))
+  (define-class <struct-tm>
+    (nongenerative nausicaa:posix:<struct-tm>)
+    (protocol
+      (lambda (make-top)
+        (lambda (malloc)
+          ((make-top) (malloc (c-sizeof struct-tm))))))
+    (fields (immutable pointer))
     (virtual-fields (mutable tm_zone) (mutable tm_gmtoff)
       (mutable tm_isdst) (mutable tm_yday) (mutable tm_wday)
       (mutable tm_year) (mutable tm_mon) (mutable tm_mday)
@@ -1023,142 +1406,375 @@
   (define-syntax <struct-tm>-tm_zone-set!
     (syntax-rules ()
       ((_ ?pointer ?value)
-       (pointer-c-set! @TYPEOF_TM_TM_ZONE@ ?pointer
-         @OFFSETOF_TM_TM_ZONE@ ?value))))
+       (pointer-to-tm-tm_zone-set!
+         (<struct-tm>-pointer ?pointer) ?value))))
   (define-syntax <struct-tm>-tm_zone
     (syntax-rules ()
       ((_ ?pointer)
-       (pointer-c-ref @TYPEOF_TM_TM_ZONE@ ?pointer
-         @OFFSETOF_TM_TM_ZONE@))))
+       (pointer-to-tm-tm_zone (<struct-tm>-pointer ?pointer)))))
   (define-syntax <struct-tm>-tm_gmtoff-set!
     (syntax-rules ()
       ((_ ?pointer ?value)
-       (pointer-c-set! @TYPEOF_TM_TM_GMTOFF@ ?pointer
-         @OFFSETOF_TM_TM_GMTOFF@ ?value))))
+       (pointer-to-tm-tm_gmtoff-set!
+         (<struct-tm>-pointer ?pointer) ?value))))
   (define-syntax <struct-tm>-tm_gmtoff
     (syntax-rules ()
       ((_ ?pointer)
-       (pointer-c-ref @TYPEOF_TM_TM_GMTOFF@ ?pointer
-         @OFFSETOF_TM_TM_GMTOFF@))))
+       (pointer-to-tm-tm_gmtoff
+         (<struct-tm>-pointer ?pointer)))))
   (define-syntax <struct-tm>-tm_isdst-set!
     (syntax-rules ()
       ((_ ?pointer ?value)
-       (pointer-c-set! @TYPEOF_TM_TM_ISDST@ ?pointer
-         @OFFSETOF_TM_TM_ISDST@ ?value))))
+       (pointer-to-tm-tm_isdst-set!
+         (<struct-tm>-pointer ?pointer) ?value))))
   (define-syntax <struct-tm>-tm_isdst
     (syntax-rules ()
       ((_ ?pointer)
-       (pointer-c-ref @TYPEOF_TM_TM_ISDST@ ?pointer
-         @OFFSETOF_TM_TM_ISDST@))))
+       (pointer-to-tm-tm_isdst
+         (<struct-tm>-pointer ?pointer)))))
   (define-syntax <struct-tm>-tm_yday-set!
     (syntax-rules ()
       ((_ ?pointer ?value)
-       (pointer-c-set! @TYPEOF_TM_TM_YDAY@ ?pointer
-         @OFFSETOF_TM_TM_YDAY@ ?value))))
+       (pointer-to-tm-tm_yday-set!
+         (<struct-tm>-pointer ?pointer) ?value))))
   (define-syntax <struct-tm>-tm_yday
     (syntax-rules ()
       ((_ ?pointer)
-       (pointer-c-ref @TYPEOF_TM_TM_YDAY@ ?pointer
-         @OFFSETOF_TM_TM_YDAY@))))
+       (pointer-to-tm-tm_yday (<struct-tm>-pointer ?pointer)))))
   (define-syntax <struct-tm>-tm_wday-set!
     (syntax-rules ()
       ((_ ?pointer ?value)
-       (pointer-c-set! @TYPEOF_TM_TM_WDAY@ ?pointer
-         @OFFSETOF_TM_TM_WDAY@ ?value))))
+       (pointer-to-tm-tm_wday-set!
+         (<struct-tm>-pointer ?pointer) ?value))))
   (define-syntax <struct-tm>-tm_wday
     (syntax-rules ()
       ((_ ?pointer)
-       (pointer-c-ref @TYPEOF_TM_TM_WDAY@ ?pointer
-         @OFFSETOF_TM_TM_WDAY@))))
+       (pointer-to-tm-tm_wday (<struct-tm>-pointer ?pointer)))))
   (define-syntax <struct-tm>-tm_year-set!
     (syntax-rules ()
       ((_ ?pointer ?value)
-       (pointer-c-set! @TYPEOF_TM_TM_YEAR@ ?pointer
-         @OFFSETOF_TM_TM_YEAR@ ?value))))
+       (pointer-to-tm-tm_year-set!
+         (<struct-tm>-pointer ?pointer) ?value))))
   (define-syntax <struct-tm>-tm_year
     (syntax-rules ()
       ((_ ?pointer)
-       (pointer-c-ref @TYPEOF_TM_TM_YEAR@ ?pointer
-         @OFFSETOF_TM_TM_YEAR@))))
+       (pointer-to-tm-tm_year (<struct-tm>-pointer ?pointer)))))
   (define-syntax <struct-tm>-tm_mon-set!
     (syntax-rules ()
       ((_ ?pointer ?value)
-       (pointer-c-set! @TYPEOF_TM_TM_MON@ ?pointer
-         @OFFSETOF_TM_TM_MON@ ?value))))
+       (pointer-to-tm-tm_mon-set!
+         (<struct-tm>-pointer ?pointer) ?value))))
   (define-syntax <struct-tm>-tm_mon
     (syntax-rules ()
       ((_ ?pointer)
-       (pointer-c-ref @TYPEOF_TM_TM_MON@ ?pointer
-         @OFFSETOF_TM_TM_MON@))))
+       (pointer-to-tm-tm_mon (<struct-tm>-pointer ?pointer)))))
   (define-syntax <struct-tm>-tm_mday-set!
     (syntax-rules ()
       ((_ ?pointer ?value)
-       (pointer-c-set! @TYPEOF_TM_TM_MDAY@ ?pointer
-         @OFFSETOF_TM_TM_MDAY@ ?value))))
+       (pointer-to-tm-tm_mday-set!
+         (<struct-tm>-pointer ?pointer) ?value))))
   (define-syntax <struct-tm>-tm_mday
     (syntax-rules ()
       ((_ ?pointer)
-       (pointer-c-ref @TYPEOF_TM_TM_MDAY@ ?pointer
-         @OFFSETOF_TM_TM_MDAY@))))
+       (pointer-to-tm-tm_mday (<struct-tm>-pointer ?pointer)))))
   (define-syntax <struct-tm>-tm_hour-set!
     (syntax-rules ()
       ((_ ?pointer ?value)
-       (pointer-c-set! @TYPEOF_TM_TM_HOUR@ ?pointer
-         @OFFSETOF_TM_TM_HOUR@ ?value))))
+       (pointer-to-tm-tm_hour-set!
+         (<struct-tm>-pointer ?pointer) ?value))))
   (define-syntax <struct-tm>-tm_hour
     (syntax-rules ()
       ((_ ?pointer)
-       (pointer-c-ref @TYPEOF_TM_TM_HOUR@ ?pointer
-         @OFFSETOF_TM_TM_HOUR@))))
+       (pointer-to-tm-tm_hour (<struct-tm>-pointer ?pointer)))))
   (define-syntax <struct-tm>-tm_min-set!
     (syntax-rules ()
       ((_ ?pointer ?value)
-       (pointer-c-set! @TYPEOF_TM_TM_MIN@ ?pointer
-         @OFFSETOF_TM_TM_MIN@ ?value))))
+       (pointer-to-tm-tm_min-set!
+         (<struct-tm>-pointer ?pointer) ?value))))
   (define-syntax <struct-tm>-tm_min
     (syntax-rules ()
       ((_ ?pointer)
-       (pointer-c-ref @TYPEOF_TM_TM_MIN@ ?pointer
-         @OFFSETOF_TM_TM_MIN@))))
+       (pointer-to-tm-tm_min (<struct-tm>-pointer ?pointer)))))
   (define-syntax <struct-tm>-tm_sec-set!
     (syntax-rules ()
       ((_ ?pointer ?value)
-       (pointer-c-set! @TYPEOF_TM_TM_SEC@ ?pointer
-         @OFFSETOF_TM_TM_SEC@ ?value))))
+       (pointer-to-tm-tm_sec-set!
+         (<struct-tm>-pointer ?pointer) ?value))))
   (define-syntax <struct-tm>-tm_sec
     (syntax-rules ()
       ((_ ?pointer)
-       (pointer-c-ref @TYPEOF_TM_TM_SEC@ ?pointer
-         @OFFSETOF_TM_TM_SEC@))))
-  (define-label <struct-ntptimeval>
+       (pointer-to-tm-tm_sec (<struct-tm>-pointer ?pointer)))))
+  (define-class <tm> (nongenerative nausicaa:posix:<tm>)
+    (fields (mutable tm_zone) (mutable tm_gmtoff)
+      (mutable tm_isdst) (mutable tm_yday) (mutable tm_wday)
+      (mutable tm_year) (mutable tm_mon) (mutable tm_mday)
+      (mutable tm_hour) (mutable tm_min) (mutable tm_sec)))
+  (define-label pointer-to-ntptimeval
+    (virtual-fields (mutable esterror) (mutable maxerror)
+      (immutable time)))
+  (define-syntax pointer-to-ntptimeval-esterror-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_NTPTIMEVAL_ESTERROR@ ?pointer
+         @OFFSETOF_NTPTIMEVAL_ESTERROR@ ?value))))
+  (define-syntax pointer-to-ntptimeval-esterror
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_NTPTIMEVAL_ESTERROR@ ?pointer
+         @OFFSETOF_NTPTIMEVAL_ESTERROR@))))
+  (define-syntax pointer-to-ntptimeval-maxerror-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_NTPTIMEVAL_MAXERROR@ ?pointer
+         @OFFSETOF_NTPTIMEVAL_MAXERROR@ ?value))))
+  (define-syntax pointer-to-ntptimeval-maxerror
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_NTPTIMEVAL_MAXERROR@ ?pointer
+         @OFFSETOF_NTPTIMEVAL_MAXERROR@))))
+  (define-syntax pointer-to-ntptimeval-time
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_NTPTIMEVAL_TIME@ ?pointer
+         @OFFSETOF_NTPTIMEVAL_TIME@))))
+  (define-class <struct-ntptimeval>
+    (nongenerative nausicaa:posix:<struct-ntptimeval>)
+    (protocol
+      (lambda (make-top)
+        (lambda (malloc)
+          ((make-top) (malloc (c-sizeof struct-ntptimeval))))))
+    (fields (immutable pointer))
     (virtual-fields (mutable esterror) (mutable maxerror)
       (immutable time)))
   (define-syntax <struct-ntptimeval>-esterror-set!
     (syntax-rules ()
       ((_ ?pointer ?value)
-       (pointer-c-set! @TYPEOF_NTPTIMEVAL_ESTERROR@ ?pointer
-         @OFFSETOF_NTPTIMEVAL_ESTERROR@ ?value))))
+       (pointer-to-ntptimeval-esterror-set!
+         (<struct-ntptimeval>-pointer ?pointer) ?value))))
   (define-syntax <struct-ntptimeval>-esterror
     (syntax-rules ()
       ((_ ?pointer)
-       (pointer-c-ref @TYPEOF_NTPTIMEVAL_ESTERROR@ ?pointer
-         @OFFSETOF_NTPTIMEVAL_ESTERROR@))))
+       (pointer-to-ntptimeval-esterror
+         (<struct-ntptimeval>-pointer ?pointer)))))
   (define-syntax <struct-ntptimeval>-maxerror-set!
     (syntax-rules ()
       ((_ ?pointer ?value)
-       (pointer-c-set! @TYPEOF_NTPTIMEVAL_MAXERROR@ ?pointer
-         @OFFSETOF_NTPTIMEVAL_MAXERROR@ ?value))))
+       (pointer-to-ntptimeval-maxerror-set!
+         (<struct-ntptimeval>-pointer ?pointer) ?value))))
   (define-syntax <struct-ntptimeval>-maxerror
     (syntax-rules ()
       ((_ ?pointer)
-       (pointer-c-ref @TYPEOF_NTPTIMEVAL_MAXERROR@ ?pointer
-         @OFFSETOF_NTPTIMEVAL_MAXERROR@))))
+       (pointer-to-ntptimeval-maxerror
+         (<struct-ntptimeval>-pointer ?pointer)))))
   (define-syntax <struct-ntptimeval>-time
     (syntax-rules ()
       ((_ ?pointer)
-       (pointer-c-ref @TYPEOF_NTPTIMEVAL_TIME@ ?pointer
-         @OFFSETOF_NTPTIMEVAL_TIME@))))
-  (define-label <struct-timex>
+       (pointer-to-ntptimeval-time
+         (<struct-ntptimeval>-pointer ?pointer)))))
+  (define-class <ntptimeval>
+    (nongenerative nausicaa:posix:<ntptimeval>)
+    (fields (mutable esterror) (mutable maxerror)
+      (mutable time)))
+  (define-label pointer-to-timex
+    (virtual-fields (mutable stbcnt) (mutable errcnt)
+      (mutable calcnt) (mutable jitcnt) (mutable stabil)
+      (mutable shift) (mutable jitter) (mutable ppsfreq)
+      (mutable tick) (immutable time) (mutable tolerance)
+      (mutable precision) (mutable constant)
+      (mutable status) (mutable esterror) (mutable maxerror)
+      (mutable freq) (mutable offset) (mutable modes)))
+  (define-syntax pointer-to-timex-stbcnt-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_TIMEX_STBCNT@ ?pointer
+         @OFFSETOF_TIMEX_STBCNT@ ?value))))
+  (define-syntax pointer-to-timex-stbcnt
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_TIMEX_STBCNT@ ?pointer
+         @OFFSETOF_TIMEX_STBCNT@))))
+  (define-syntax pointer-to-timex-errcnt-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_TIMEX_ERRCNT@ ?pointer
+         @OFFSETOF_TIMEX_ERRCNT@ ?value))))
+  (define-syntax pointer-to-timex-errcnt
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_TIMEX_ERRCNT@ ?pointer
+         @OFFSETOF_TIMEX_ERRCNT@))))
+  (define-syntax pointer-to-timex-calcnt-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_TIMEX_CALCNT@ ?pointer
+         @OFFSETOF_TIMEX_CALCNT@ ?value))))
+  (define-syntax pointer-to-timex-calcnt
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_TIMEX_CALCNT@ ?pointer
+         @OFFSETOF_TIMEX_CALCNT@))))
+  (define-syntax pointer-to-timex-jitcnt-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_TIMEX_JITCNT@ ?pointer
+         @OFFSETOF_TIMEX_JITCNT@ ?value))))
+  (define-syntax pointer-to-timex-jitcnt
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_TIMEX_JITCNT@ ?pointer
+         @OFFSETOF_TIMEX_JITCNT@))))
+  (define-syntax pointer-to-timex-stabil-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_TIMEX_STABIL@ ?pointer
+         @OFFSETOF_TIMEX_STABIL@ ?value))))
+  (define-syntax pointer-to-timex-stabil
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_TIMEX_STABIL@ ?pointer
+         @OFFSETOF_TIMEX_STABIL@))))
+  (define-syntax pointer-to-timex-shift-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_TIMEX_SHIFT@ ?pointer
+         @OFFSETOF_TIMEX_SHIFT@ ?value))))
+  (define-syntax pointer-to-timex-shift
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_TIMEX_SHIFT@ ?pointer
+         @OFFSETOF_TIMEX_SHIFT@))))
+  (define-syntax pointer-to-timex-jitter-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_TIMEX_JITTER@ ?pointer
+         @OFFSETOF_TIMEX_JITTER@ ?value))))
+  (define-syntax pointer-to-timex-jitter
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_TIMEX_JITTER@ ?pointer
+         @OFFSETOF_TIMEX_JITTER@))))
+  (define-syntax pointer-to-timex-ppsfreq-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_TIMEX_PPSFREQ@ ?pointer
+         @OFFSETOF_TIMEX_PPSFREQ@ ?value))))
+  (define-syntax pointer-to-timex-ppsfreq
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_TIMEX_PPSFREQ@ ?pointer
+         @OFFSETOF_TIMEX_PPSFREQ@))))
+  (define-syntax pointer-to-timex-tick-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_TIMEX_TICK@ ?pointer
+         @OFFSETOF_TIMEX_TICK@ ?value))))
+  (define-syntax pointer-to-timex-tick
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_TIMEX_TICK@ ?pointer
+         @OFFSETOF_TIMEX_TICK@))))
+  (define-syntax pointer-to-timex-time
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_TIMEX_TIME@ ?pointer
+         @OFFSETOF_TIMEX_TIME@))))
+  (define-syntax pointer-to-timex-tolerance-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_TIMEX_TOLERANCE@ ?pointer
+         @OFFSETOF_TIMEX_TOLERANCE@ ?value))))
+  (define-syntax pointer-to-timex-tolerance
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_TIMEX_TOLERANCE@ ?pointer
+         @OFFSETOF_TIMEX_TOLERANCE@))))
+  (define-syntax pointer-to-timex-precision-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_TIMEX_PRECISION@ ?pointer
+         @OFFSETOF_TIMEX_PRECISION@ ?value))))
+  (define-syntax pointer-to-timex-precision
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_TIMEX_PRECISION@ ?pointer
+         @OFFSETOF_TIMEX_PRECISION@))))
+  (define-syntax pointer-to-timex-constant-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_TIMEX_CONSTANT@ ?pointer
+         @OFFSETOF_TIMEX_CONSTANT@ ?value))))
+  (define-syntax pointer-to-timex-constant
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_TIMEX_CONSTANT@ ?pointer
+         @OFFSETOF_TIMEX_CONSTANT@))))
+  (define-syntax pointer-to-timex-status-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_TIMEX_STATUS@ ?pointer
+         @OFFSETOF_TIMEX_STATUS@ ?value))))
+  (define-syntax pointer-to-timex-status
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_TIMEX_STATUS@ ?pointer
+         @OFFSETOF_TIMEX_STATUS@))))
+  (define-syntax pointer-to-timex-esterror-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_TIMEX_ESTERROR@ ?pointer
+         @OFFSETOF_TIMEX_ESTERROR@ ?value))))
+  (define-syntax pointer-to-timex-esterror
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_TIMEX_ESTERROR@ ?pointer
+         @OFFSETOF_TIMEX_ESTERROR@))))
+  (define-syntax pointer-to-timex-maxerror-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_TIMEX_MAXERROR@ ?pointer
+         @OFFSETOF_TIMEX_MAXERROR@ ?value))))
+  (define-syntax pointer-to-timex-maxerror
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_TIMEX_MAXERROR@ ?pointer
+         @OFFSETOF_TIMEX_MAXERROR@))))
+  (define-syntax pointer-to-timex-freq-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_TIMEX_FREQ@ ?pointer
+         @OFFSETOF_TIMEX_FREQ@ ?value))))
+  (define-syntax pointer-to-timex-freq
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_TIMEX_FREQ@ ?pointer
+         @OFFSETOF_TIMEX_FREQ@))))
+  (define-syntax pointer-to-timex-offset-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_TIMEX_OFFSET@ ?pointer
+         @OFFSETOF_TIMEX_OFFSET@ ?value))))
+  (define-syntax pointer-to-timex-offset
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_TIMEX_OFFSET@ ?pointer
+         @OFFSETOF_TIMEX_OFFSET@))))
+  (define-syntax pointer-to-timex-modes-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_TIMEX_MODES@ ?pointer
+         @OFFSETOF_TIMEX_MODES@ ?value))))
+  (define-syntax pointer-to-timex-modes
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_TIMEX_MODES@ ?pointer
+         @OFFSETOF_TIMEX_MODES@))))
+  (define-class <struct-timex>
+    (nongenerative nausicaa:posix:<struct-timex>)
+    (protocol
+      (lambda (make-top)
+        (lambda (malloc)
+          ((make-top) (malloc (c-sizeof struct-timex))))))
+    (fields (immutable pointer))
     (virtual-fields (mutable stbcnt) (mutable errcnt)
       (mutable calcnt) (mutable jitcnt) (mutable stabil)
       (mutable shift) (mutable jitter) (mutable ppsfreq)
@@ -1169,354 +1785,622 @@
   (define-syntax <struct-timex>-stbcnt-set!
     (syntax-rules ()
       ((_ ?pointer ?value)
-       (pointer-c-set! @TYPEOF_TIMEX_STBCNT@ ?pointer
-         @OFFSETOF_TIMEX_STBCNT@ ?value))))
+       (pointer-to-timex-stbcnt-set!
+         (<struct-timex>-pointer ?pointer) ?value))))
   (define-syntax <struct-timex>-stbcnt
     (syntax-rules ()
       ((_ ?pointer)
-       (pointer-c-ref @TYPEOF_TIMEX_STBCNT@ ?pointer
-         @OFFSETOF_TIMEX_STBCNT@))))
+       (pointer-to-timex-stbcnt
+         (<struct-timex>-pointer ?pointer)))))
   (define-syntax <struct-timex>-errcnt-set!
     (syntax-rules ()
       ((_ ?pointer ?value)
-       (pointer-c-set! @TYPEOF_TIMEX_ERRCNT@ ?pointer
-         @OFFSETOF_TIMEX_ERRCNT@ ?value))))
+       (pointer-to-timex-errcnt-set!
+         (<struct-timex>-pointer ?pointer) ?value))))
   (define-syntax <struct-timex>-errcnt
     (syntax-rules ()
       ((_ ?pointer)
-       (pointer-c-ref @TYPEOF_TIMEX_ERRCNT@ ?pointer
-         @OFFSETOF_TIMEX_ERRCNT@))))
+       (pointer-to-timex-errcnt
+         (<struct-timex>-pointer ?pointer)))))
   (define-syntax <struct-timex>-calcnt-set!
     (syntax-rules ()
       ((_ ?pointer ?value)
-       (pointer-c-set! @TYPEOF_TIMEX_CALCNT@ ?pointer
-         @OFFSETOF_TIMEX_CALCNT@ ?value))))
+       (pointer-to-timex-calcnt-set!
+         (<struct-timex>-pointer ?pointer) ?value))))
   (define-syntax <struct-timex>-calcnt
     (syntax-rules ()
       ((_ ?pointer)
-       (pointer-c-ref @TYPEOF_TIMEX_CALCNT@ ?pointer
-         @OFFSETOF_TIMEX_CALCNT@))))
+       (pointer-to-timex-calcnt
+         (<struct-timex>-pointer ?pointer)))))
   (define-syntax <struct-timex>-jitcnt-set!
     (syntax-rules ()
       ((_ ?pointer ?value)
-       (pointer-c-set! @TYPEOF_TIMEX_JITCNT@ ?pointer
-         @OFFSETOF_TIMEX_JITCNT@ ?value))))
+       (pointer-to-timex-jitcnt-set!
+         (<struct-timex>-pointer ?pointer) ?value))))
   (define-syntax <struct-timex>-jitcnt
     (syntax-rules ()
       ((_ ?pointer)
-       (pointer-c-ref @TYPEOF_TIMEX_JITCNT@ ?pointer
-         @OFFSETOF_TIMEX_JITCNT@))))
+       (pointer-to-timex-jitcnt
+         (<struct-timex>-pointer ?pointer)))))
   (define-syntax <struct-timex>-stabil-set!
     (syntax-rules ()
       ((_ ?pointer ?value)
-       (pointer-c-set! @TYPEOF_TIMEX_STABIL@ ?pointer
-         @OFFSETOF_TIMEX_STABIL@ ?value))))
+       (pointer-to-timex-stabil-set!
+         (<struct-timex>-pointer ?pointer) ?value))))
   (define-syntax <struct-timex>-stabil
     (syntax-rules ()
       ((_ ?pointer)
-       (pointer-c-ref @TYPEOF_TIMEX_STABIL@ ?pointer
-         @OFFSETOF_TIMEX_STABIL@))))
+       (pointer-to-timex-stabil
+         (<struct-timex>-pointer ?pointer)))))
   (define-syntax <struct-timex>-shift-set!
     (syntax-rules ()
       ((_ ?pointer ?value)
-       (pointer-c-set! @TYPEOF_TIMEX_SHIFT@ ?pointer
-         @OFFSETOF_TIMEX_SHIFT@ ?value))))
+       (pointer-to-timex-shift-set!
+         (<struct-timex>-pointer ?pointer) ?value))))
   (define-syntax <struct-timex>-shift
     (syntax-rules ()
       ((_ ?pointer)
-       (pointer-c-ref @TYPEOF_TIMEX_SHIFT@ ?pointer
-         @OFFSETOF_TIMEX_SHIFT@))))
+       (pointer-to-timex-shift
+         (<struct-timex>-pointer ?pointer)))))
   (define-syntax <struct-timex>-jitter-set!
     (syntax-rules ()
       ((_ ?pointer ?value)
-       (pointer-c-set! @TYPEOF_TIMEX_JITTER@ ?pointer
-         @OFFSETOF_TIMEX_JITTER@ ?value))))
+       (pointer-to-timex-jitter-set!
+         (<struct-timex>-pointer ?pointer) ?value))))
   (define-syntax <struct-timex>-jitter
     (syntax-rules ()
       ((_ ?pointer)
-       (pointer-c-ref @TYPEOF_TIMEX_JITTER@ ?pointer
-         @OFFSETOF_TIMEX_JITTER@))))
+       (pointer-to-timex-jitter
+         (<struct-timex>-pointer ?pointer)))))
   (define-syntax <struct-timex>-ppsfreq-set!
     (syntax-rules ()
       ((_ ?pointer ?value)
-       (pointer-c-set! @TYPEOF_TIMEX_PPSFREQ@ ?pointer
-         @OFFSETOF_TIMEX_PPSFREQ@ ?value))))
+       (pointer-to-timex-ppsfreq-set!
+         (<struct-timex>-pointer ?pointer) ?value))))
   (define-syntax <struct-timex>-ppsfreq
     (syntax-rules ()
       ((_ ?pointer)
-       (pointer-c-ref @TYPEOF_TIMEX_PPSFREQ@ ?pointer
-         @OFFSETOF_TIMEX_PPSFREQ@))))
+       (pointer-to-timex-ppsfreq
+         (<struct-timex>-pointer ?pointer)))))
   (define-syntax <struct-timex>-tick-set!
     (syntax-rules ()
       ((_ ?pointer ?value)
-       (pointer-c-set! @TYPEOF_TIMEX_TICK@ ?pointer
-         @OFFSETOF_TIMEX_TICK@ ?value))))
+       (pointer-to-timex-tick-set!
+         (<struct-timex>-pointer ?pointer) ?value))))
   (define-syntax <struct-timex>-tick
     (syntax-rules ()
       ((_ ?pointer)
-       (pointer-c-ref @TYPEOF_TIMEX_TICK@ ?pointer
-         @OFFSETOF_TIMEX_TICK@))))
+       (pointer-to-timex-tick
+         (<struct-timex>-pointer ?pointer)))))
   (define-syntax <struct-timex>-time
     (syntax-rules ()
       ((_ ?pointer)
-       (pointer-c-ref @TYPEOF_TIMEX_TIME@ ?pointer
-         @OFFSETOF_TIMEX_TIME@))))
+       (pointer-to-timex-time
+         (<struct-timex>-pointer ?pointer)))))
   (define-syntax <struct-timex>-tolerance-set!
     (syntax-rules ()
       ((_ ?pointer ?value)
-       (pointer-c-set! @TYPEOF_TIMEX_TOLERANCE@ ?pointer
-         @OFFSETOF_TIMEX_TOLERANCE@ ?value))))
+       (pointer-to-timex-tolerance-set!
+         (<struct-timex>-pointer ?pointer) ?value))))
   (define-syntax <struct-timex>-tolerance
     (syntax-rules ()
       ((_ ?pointer)
-       (pointer-c-ref @TYPEOF_TIMEX_TOLERANCE@ ?pointer
-         @OFFSETOF_TIMEX_TOLERANCE@))))
+       (pointer-to-timex-tolerance
+         (<struct-timex>-pointer ?pointer)))))
   (define-syntax <struct-timex>-precision-set!
     (syntax-rules ()
       ((_ ?pointer ?value)
-       (pointer-c-set! @TYPEOF_TIMEX_PRECISION@ ?pointer
-         @OFFSETOF_TIMEX_PRECISION@ ?value))))
+       (pointer-to-timex-precision-set!
+         (<struct-timex>-pointer ?pointer) ?value))))
   (define-syntax <struct-timex>-precision
     (syntax-rules ()
       ((_ ?pointer)
-       (pointer-c-ref @TYPEOF_TIMEX_PRECISION@ ?pointer
-         @OFFSETOF_TIMEX_PRECISION@))))
+       (pointer-to-timex-precision
+         (<struct-timex>-pointer ?pointer)))))
   (define-syntax <struct-timex>-constant-set!
     (syntax-rules ()
       ((_ ?pointer ?value)
-       (pointer-c-set! @TYPEOF_TIMEX_CONSTANT@ ?pointer
-         @OFFSETOF_TIMEX_CONSTANT@ ?value))))
+       (pointer-to-timex-constant-set!
+         (<struct-timex>-pointer ?pointer) ?value))))
   (define-syntax <struct-timex>-constant
     (syntax-rules ()
       ((_ ?pointer)
-       (pointer-c-ref @TYPEOF_TIMEX_CONSTANT@ ?pointer
-         @OFFSETOF_TIMEX_CONSTANT@))))
+       (pointer-to-timex-constant
+         (<struct-timex>-pointer ?pointer)))))
   (define-syntax <struct-timex>-status-set!
     (syntax-rules ()
       ((_ ?pointer ?value)
-       (pointer-c-set! @TYPEOF_TIMEX_STATUS@ ?pointer
-         @OFFSETOF_TIMEX_STATUS@ ?value))))
+       (pointer-to-timex-status-set!
+         (<struct-timex>-pointer ?pointer) ?value))))
   (define-syntax <struct-timex>-status
     (syntax-rules ()
       ((_ ?pointer)
-       (pointer-c-ref @TYPEOF_TIMEX_STATUS@ ?pointer
-         @OFFSETOF_TIMEX_STATUS@))))
+       (pointer-to-timex-status
+         (<struct-timex>-pointer ?pointer)))))
   (define-syntax <struct-timex>-esterror-set!
     (syntax-rules ()
       ((_ ?pointer ?value)
-       (pointer-c-set! @TYPEOF_TIMEX_ESTERROR@ ?pointer
-         @OFFSETOF_TIMEX_ESTERROR@ ?value))))
+       (pointer-to-timex-esterror-set!
+         (<struct-timex>-pointer ?pointer) ?value))))
   (define-syntax <struct-timex>-esterror
     (syntax-rules ()
       ((_ ?pointer)
-       (pointer-c-ref @TYPEOF_TIMEX_ESTERROR@ ?pointer
-         @OFFSETOF_TIMEX_ESTERROR@))))
+       (pointer-to-timex-esterror
+         (<struct-timex>-pointer ?pointer)))))
   (define-syntax <struct-timex>-maxerror-set!
     (syntax-rules ()
       ((_ ?pointer ?value)
-       (pointer-c-set! @TYPEOF_TIMEX_MAXERROR@ ?pointer
-         @OFFSETOF_TIMEX_MAXERROR@ ?value))))
+       (pointer-to-timex-maxerror-set!
+         (<struct-timex>-pointer ?pointer) ?value))))
   (define-syntax <struct-timex>-maxerror
     (syntax-rules ()
       ((_ ?pointer)
-       (pointer-c-ref @TYPEOF_TIMEX_MAXERROR@ ?pointer
-         @OFFSETOF_TIMEX_MAXERROR@))))
+       (pointer-to-timex-maxerror
+         (<struct-timex>-pointer ?pointer)))))
   (define-syntax <struct-timex>-freq-set!
     (syntax-rules ()
       ((_ ?pointer ?value)
-       (pointer-c-set! @TYPEOF_TIMEX_FREQ@ ?pointer
-         @OFFSETOF_TIMEX_FREQ@ ?value))))
+       (pointer-to-timex-freq-set!
+         (<struct-timex>-pointer ?pointer) ?value))))
   (define-syntax <struct-timex>-freq
     (syntax-rules ()
       ((_ ?pointer)
-       (pointer-c-ref @TYPEOF_TIMEX_FREQ@ ?pointer
-         @OFFSETOF_TIMEX_FREQ@))))
+       (pointer-to-timex-freq
+         (<struct-timex>-pointer ?pointer)))))
   (define-syntax <struct-timex>-offset-set!
     (syntax-rules ()
       ((_ ?pointer ?value)
-       (pointer-c-set! @TYPEOF_TIMEX_OFFSET@ ?pointer
-         @OFFSETOF_TIMEX_OFFSET@ ?value))))
+       (pointer-to-timex-offset-set!
+         (<struct-timex>-pointer ?pointer) ?value))))
   (define-syntax <struct-timex>-offset
     (syntax-rules ()
       ((_ ?pointer)
-       (pointer-c-ref @TYPEOF_TIMEX_OFFSET@ ?pointer
-         @OFFSETOF_TIMEX_OFFSET@))))
+       (pointer-to-timex-offset
+         (<struct-timex>-pointer ?pointer)))))
   (define-syntax <struct-timex>-modes-set!
     (syntax-rules ()
       ((_ ?pointer ?value)
-       (pointer-c-set! @TYPEOF_TIMEX_MODES@ ?pointer
-         @OFFSETOF_TIMEX_MODES@ ?value))))
+       (pointer-to-timex-modes-set!
+         (<struct-timex>-pointer ?pointer) ?value))))
   (define-syntax <struct-timex>-modes
     (syntax-rules ()
       ((_ ?pointer)
-       (pointer-c-ref @TYPEOF_TIMEX_MODES@ ?pointer
-         @OFFSETOF_TIMEX_MODES@))))
-  (define-label <struct-itimerval>
+       (pointer-to-timex-modes
+         (<struct-timex>-pointer ?pointer)))))
+  (define-class <timex>
+    (nongenerative nausicaa:posix:<timex>)
+    (fields (mutable stbcnt) (mutable errcnt)
+      (mutable calcnt) (mutable jitcnt) (mutable stabil)
+      (mutable shift) (mutable jitter) (mutable ppsfreq)
+      (mutable tick) (mutable time) (mutable tolerance)
+      (mutable precision) (mutable constant)
+      (mutable status) (mutable esterror) (mutable maxerror)
+      (mutable freq) (mutable offset) (mutable modes)))
+  (define-label pointer-to-itimerval
+    (virtual-fields (immutable it_value)
+      (immutable it_interval)))
+  (define-syntax pointer-to-itimerval-it_value
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_ITIMERVAL_IT_VALUE@ ?pointer
+         @OFFSETOF_ITIMERVAL_IT_VALUE@))))
+  (define-syntax pointer-to-itimerval-it_interval
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_ITIMERVAL_IT_INTERVAL@
+         ?pointer @OFFSETOF_ITIMERVAL_IT_INTERVAL@))))
+  (define-class <struct-itimerval>
+    (nongenerative nausicaa:posix:<struct-itimerval>)
+    (protocol
+      (lambda (make-top)
+        (lambda (malloc)
+          ((make-top) (malloc (c-sizeof struct-itimerval))))))
+    (fields (immutable pointer))
     (virtual-fields (immutable it_value)
       (immutable it_interval)))
   (define-syntax <struct-itimerval>-it_value
     (syntax-rules ()
       ((_ ?pointer)
-       (pointer-c-ref @TYPEOF_ITIMERVAL_IT_VALUE@ ?pointer
-         @OFFSETOF_ITIMERVAL_IT_VALUE@))))
+       (pointer-to-itimerval-it_value
+         (<struct-itimerval>-pointer ?pointer)))))
   (define-syntax <struct-itimerval>-it_interval
     (syntax-rules ()
       ((_ ?pointer)
-       (pointer-c-ref @TYPEOF_ITIMERVAL_IT_INTERVAL@
-         ?pointer @OFFSETOF_ITIMERVAL_IT_INTERVAL@))))
-  (define-label <struct-FTW>
+       (pointer-to-itimerval-it_interval
+         (<struct-itimerval>-pointer ?pointer)))))
+  (define-class <itimerval>
+    (nongenerative nausicaa:posix:<itimerval>)
+    (fields (mutable it_value) (mutable it_interval)))
+  (define-label pointer-to-FTW
     (virtual-fields (mutable level) (mutable base)))
-  (define-syntax <struct-FTW>-level-set!
+  (define-syntax pointer-to-FTW-level-set!
     (syntax-rules ()
       ((_ ?pointer ?value)
        (pointer-c-set! @TYPEOF_FTW_LEVEL@ ?pointer
          @OFFSETOF_FTW_LEVEL@ ?value))))
-  (define-syntax <struct-FTW>-level
+  (define-syntax pointer-to-FTW-level
     (syntax-rules ()
       ((_ ?pointer)
        (pointer-c-ref @TYPEOF_FTW_LEVEL@ ?pointer
          @OFFSETOF_FTW_LEVEL@))))
-  (define-syntax <struct-FTW>-base-set!
+  (define-syntax pointer-to-FTW-base-set!
     (syntax-rules ()
       ((_ ?pointer ?value)
        (pointer-c-set! @TYPEOF_FTW_BASE@ ?pointer
          @OFFSETOF_FTW_BASE@ ?value))))
-  (define-syntax <struct-FTW>-base
+  (define-syntax pointer-to-FTW-base
     (syntax-rules ()
       ((_ ?pointer)
        (pointer-c-ref @TYPEOF_FTW_BASE@ ?pointer
          @OFFSETOF_FTW_BASE@))))
-  (define-label <struct-iovec>
+  (define-class <struct-FTW>
+    (nongenerative nausicaa:posix:<struct-FTW>)
+    (protocol
+      (lambda (make-top)
+        (lambda (malloc)
+          ((make-top) (malloc (c-sizeof struct-FTW))))))
+    (fields (immutable pointer))
+    (virtual-fields (mutable level) (mutable base)))
+  (define-syntax <struct-FTW>-level-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-to-FTW-level-set!
+         (<struct-FTW>-pointer ?pointer) ?value))))
+  (define-syntax <struct-FTW>-level
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-to-FTW-level (<struct-FTW>-pointer ?pointer)))))
+  (define-syntax <struct-FTW>-base-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-to-FTW-base-set!
+         (<struct-FTW>-pointer ?pointer) ?value))))
+  (define-syntax <struct-FTW>-base
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-to-FTW-base (<struct-FTW>-pointer ?pointer)))))
+  (define-class <FTW> (nongenerative nausicaa:posix:<FTW>)
+    (fields (mutable level) (mutable base)))
+  (define-label pointer-to-iovec
     (virtual-fields (mutable iov_len) (mutable iov_base)))
-  (define-syntax <struct-iovec>-iov_len-set!
+  (define-syntax pointer-to-iovec-iov_len-set!
     (syntax-rules ()
       ((_ ?pointer ?value)
        (pointer-c-set! @TYPEOF_IOVEC_IOV_LEN@ ?pointer
          @OFFSETOF_IOVEC_IOV_LEN@ ?value))))
-  (define-syntax <struct-iovec>-iov_len
+  (define-syntax pointer-to-iovec-iov_len
     (syntax-rules ()
       ((_ ?pointer)
        (pointer-c-ref @TYPEOF_IOVEC_IOV_LEN@ ?pointer
          @OFFSETOF_IOVEC_IOV_LEN@))))
-  (define-syntax <struct-iovec>-iov_base-set!
+  (define-syntax pointer-to-iovec-iov_base-set!
     (syntax-rules ()
       ((_ ?pointer ?value)
        (pointer-c-set! @TYPEOF_IOVEC_IOV_BASE@ ?pointer
          @OFFSETOF_IOVEC_IOV_BASE@ ?value))))
-  (define-syntax <struct-iovec>-iov_base
+  (define-syntax pointer-to-iovec-iov_base
     (syntax-rules ()
       ((_ ?pointer)
        (pointer-c-ref @TYPEOF_IOVEC_IOV_BASE@ ?pointer
          @OFFSETOF_IOVEC_IOV_BASE@))))
-  (define-label <struct-fdset> (virtual-fields))
-  (define-label <struct-passwd>
+  (define-class <struct-iovec>
+    (nongenerative nausicaa:posix:<struct-iovec>)
+    (protocol
+      (lambda (make-top)
+        (lambda (malloc)
+          ((make-top) (malloc (c-sizeof struct-iovec))))))
+    (fields (immutable pointer))
+    (virtual-fields (mutable iov_len) (mutable iov_base)))
+  (define-syntax <struct-iovec>-iov_len-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-to-iovec-iov_len-set!
+         (<struct-iovec>-pointer ?pointer) ?value))))
+  (define-syntax <struct-iovec>-iov_len
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-to-iovec-iov_len
+         (<struct-iovec>-pointer ?pointer)))))
+  (define-syntax <struct-iovec>-iov_base-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-to-iovec-iov_base-set!
+         (<struct-iovec>-pointer ?pointer) ?value))))
+  (define-syntax <struct-iovec>-iov_base
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-to-iovec-iov_base
+         (<struct-iovec>-pointer ?pointer)))))
+  (define-class <iovec>
+    (nongenerative nausicaa:posix:<iovec>)
+    (fields (mutable iov_len) (mutable iov_base)))
+  (define-label pointer-to-fdset (virtual-fields))
+  (define-class <struct-fdset>
+    (nongenerative nausicaa:posix:<struct-fdset>)
+    (protocol
+      (lambda (make-top)
+        (lambda (malloc)
+          ((make-top) (malloc (c-sizeof struct-fdset))))))
+    (fields (immutable pointer)) (virtual-fields))
+  (define-class <fdset>
+    (nongenerative nausicaa:posix:<fdset>) (fields))
+  (define-label pointer-to-passwd
+    (virtual-fields (mutable pw_shell) (mutable pw_dir)
+      (mutable pw_gecos) (mutable pw_gid) (mutable pw_uid)
+      (mutable pw_passwd) (mutable pw_name)))
+  (define-syntax pointer-to-passwd-pw_shell-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_PASSWD_PW_SHELL@ ?pointer
+         @OFFSETOF_PASSWD_PW_SHELL@ ?value))))
+  (define-syntax pointer-to-passwd-pw_shell
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_PASSWD_PW_SHELL@ ?pointer
+         @OFFSETOF_PASSWD_PW_SHELL@))))
+  (define-syntax pointer-to-passwd-pw_dir-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_PASSWD_PW_DIR@ ?pointer
+         @OFFSETOF_PASSWD_PW_DIR@ ?value))))
+  (define-syntax pointer-to-passwd-pw_dir
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_PASSWD_PW_DIR@ ?pointer
+         @OFFSETOF_PASSWD_PW_DIR@))))
+  (define-syntax pointer-to-passwd-pw_gecos-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_PASSWD_PW_GECOS@ ?pointer
+         @OFFSETOF_PASSWD_PW_GECOS@ ?value))))
+  (define-syntax pointer-to-passwd-pw_gecos
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_PASSWD_PW_GECOS@ ?pointer
+         @OFFSETOF_PASSWD_PW_GECOS@))))
+  (define-syntax pointer-to-passwd-pw_gid-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_PASSWD_PW_GID@ ?pointer
+         @OFFSETOF_PASSWD_PW_GID@ ?value))))
+  (define-syntax pointer-to-passwd-pw_gid
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_PASSWD_PW_GID@ ?pointer
+         @OFFSETOF_PASSWD_PW_GID@))))
+  (define-syntax pointer-to-passwd-pw_uid-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_PASSWD_PW_UID@ ?pointer
+         @OFFSETOF_PASSWD_PW_UID@ ?value))))
+  (define-syntax pointer-to-passwd-pw_uid
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_PASSWD_PW_UID@ ?pointer
+         @OFFSETOF_PASSWD_PW_UID@))))
+  (define-syntax pointer-to-passwd-pw_passwd-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_PASSWD_PW_PASSWD@ ?pointer
+         @OFFSETOF_PASSWD_PW_PASSWD@ ?value))))
+  (define-syntax pointer-to-passwd-pw_passwd
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_PASSWD_PW_PASSWD@ ?pointer
+         @OFFSETOF_PASSWD_PW_PASSWD@))))
+  (define-syntax pointer-to-passwd-pw_name-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_PASSWD_PW_NAME@ ?pointer
+         @OFFSETOF_PASSWD_PW_NAME@ ?value))))
+  (define-syntax pointer-to-passwd-pw_name
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_PASSWD_PW_NAME@ ?pointer
+         @OFFSETOF_PASSWD_PW_NAME@))))
+  (define-class <struct-passwd>
+    (nongenerative nausicaa:posix:<struct-passwd>)
+    (protocol
+      (lambda (make-top)
+        (lambda (malloc)
+          ((make-top) (malloc (c-sizeof struct-passwd))))))
+    (fields (immutable pointer))
     (virtual-fields (mutable pw_shell) (mutable pw_dir)
       (mutable pw_gecos) (mutable pw_gid) (mutable pw_uid)
       (mutable pw_passwd) (mutable pw_name)))
   (define-syntax <struct-passwd>-pw_shell-set!
     (syntax-rules ()
       ((_ ?pointer ?value)
-       (pointer-c-set! @TYPEOF_PASSWD_PW_SHELL@ ?pointer
-         @OFFSETOF_PASSWD_PW_SHELL@ ?value))))
+       (pointer-to-passwd-pw_shell-set!
+         (<struct-passwd>-pointer ?pointer) ?value))))
   (define-syntax <struct-passwd>-pw_shell
     (syntax-rules ()
       ((_ ?pointer)
-       (pointer-c-ref @TYPEOF_PASSWD_PW_SHELL@ ?pointer
-         @OFFSETOF_PASSWD_PW_SHELL@))))
+       (pointer-to-passwd-pw_shell
+         (<struct-passwd>-pointer ?pointer)))))
   (define-syntax <struct-passwd>-pw_dir-set!
     (syntax-rules ()
       ((_ ?pointer ?value)
-       (pointer-c-set! @TYPEOF_PASSWD_PW_DIR@ ?pointer
-         @OFFSETOF_PASSWD_PW_DIR@ ?value))))
+       (pointer-to-passwd-pw_dir-set!
+         (<struct-passwd>-pointer ?pointer) ?value))))
   (define-syntax <struct-passwd>-pw_dir
     (syntax-rules ()
       ((_ ?pointer)
-       (pointer-c-ref @TYPEOF_PASSWD_PW_DIR@ ?pointer
-         @OFFSETOF_PASSWD_PW_DIR@))))
+       (pointer-to-passwd-pw_dir
+         (<struct-passwd>-pointer ?pointer)))))
   (define-syntax <struct-passwd>-pw_gecos-set!
     (syntax-rules ()
       ((_ ?pointer ?value)
-       (pointer-c-set! @TYPEOF_PASSWD_PW_GECOS@ ?pointer
-         @OFFSETOF_PASSWD_PW_GECOS@ ?value))))
+       (pointer-to-passwd-pw_gecos-set!
+         (<struct-passwd>-pointer ?pointer) ?value))))
   (define-syntax <struct-passwd>-pw_gecos
     (syntax-rules ()
       ((_ ?pointer)
-       (pointer-c-ref @TYPEOF_PASSWD_PW_GECOS@ ?pointer
-         @OFFSETOF_PASSWD_PW_GECOS@))))
+       (pointer-to-passwd-pw_gecos
+         (<struct-passwd>-pointer ?pointer)))))
   (define-syntax <struct-passwd>-pw_gid-set!
     (syntax-rules ()
       ((_ ?pointer ?value)
-       (pointer-c-set! @TYPEOF_PASSWD_PW_GID@ ?pointer
-         @OFFSETOF_PASSWD_PW_GID@ ?value))))
+       (pointer-to-passwd-pw_gid-set!
+         (<struct-passwd>-pointer ?pointer) ?value))))
   (define-syntax <struct-passwd>-pw_gid
     (syntax-rules ()
       ((_ ?pointer)
-       (pointer-c-ref @TYPEOF_PASSWD_PW_GID@ ?pointer
-         @OFFSETOF_PASSWD_PW_GID@))))
+       (pointer-to-passwd-pw_gid
+         (<struct-passwd>-pointer ?pointer)))))
   (define-syntax <struct-passwd>-pw_uid-set!
     (syntax-rules ()
       ((_ ?pointer ?value)
-       (pointer-c-set! @TYPEOF_PASSWD_PW_UID@ ?pointer
-         @OFFSETOF_PASSWD_PW_UID@ ?value))))
+       (pointer-to-passwd-pw_uid-set!
+         (<struct-passwd>-pointer ?pointer) ?value))))
   (define-syntax <struct-passwd>-pw_uid
     (syntax-rules ()
       ((_ ?pointer)
-       (pointer-c-ref @TYPEOF_PASSWD_PW_UID@ ?pointer
-         @OFFSETOF_PASSWD_PW_UID@))))
+       (pointer-to-passwd-pw_uid
+         (<struct-passwd>-pointer ?pointer)))))
   (define-syntax <struct-passwd>-pw_passwd-set!
     (syntax-rules ()
       ((_ ?pointer ?value)
-       (pointer-c-set! @TYPEOF_PASSWD_PW_PASSWD@ ?pointer
-         @OFFSETOF_PASSWD_PW_PASSWD@ ?value))))
+       (pointer-to-passwd-pw_passwd-set!
+         (<struct-passwd>-pointer ?pointer) ?value))))
   (define-syntax <struct-passwd>-pw_passwd
     (syntax-rules ()
       ((_ ?pointer)
-       (pointer-c-ref @TYPEOF_PASSWD_PW_PASSWD@ ?pointer
-         @OFFSETOF_PASSWD_PW_PASSWD@))))
+       (pointer-to-passwd-pw_passwd
+         (<struct-passwd>-pointer ?pointer)))))
   (define-syntax <struct-passwd>-pw_name-set!
     (syntax-rules ()
       ((_ ?pointer ?value)
-       (pointer-c-set! @TYPEOF_PASSWD_PW_NAME@ ?pointer
-         @OFFSETOF_PASSWD_PW_NAME@ ?value))))
+       (pointer-to-passwd-pw_name-set!
+         (<struct-passwd>-pointer ?pointer) ?value))))
   (define-syntax <struct-passwd>-pw_name
     (syntax-rules ()
       ((_ ?pointer)
-       (pointer-c-ref @TYPEOF_PASSWD_PW_NAME@ ?pointer
-         @OFFSETOF_PASSWD_PW_NAME@))))
-  (define-label <struct-group>
+       (pointer-to-passwd-pw_name
+         (<struct-passwd>-pointer ?pointer)))))
+  (define-class <passwd>
+    (nongenerative nausicaa:posix:<passwd>)
+    (fields (mutable pw_shell) (mutable pw_dir)
+      (mutable pw_gecos) (mutable pw_gid) (mutable pw_uid)
+      (mutable pw_passwd) (mutable pw_name)))
+  (define-label pointer-to-group
+    (virtual-fields (mutable gr_mem) (mutable gr_gid)
+      (mutable gr_name)))
+  (define-syntax pointer-to-group-gr_mem-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_GROUP_GR_MEM@ ?pointer
+         @OFFSETOF_GROUP_GR_MEM@ ?value))))
+  (define-syntax pointer-to-group-gr_mem
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_GROUP_GR_MEM@ ?pointer
+         @OFFSETOF_GROUP_GR_MEM@))))
+  (define-syntax pointer-to-group-gr_gid-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_GROUP_GR_GID@ ?pointer
+         @OFFSETOF_GROUP_GR_GID@ ?value))))
+  (define-syntax pointer-to-group-gr_gid
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_GROUP_GR_GID@ ?pointer
+         @OFFSETOF_GROUP_GR_GID@))))
+  (define-syntax pointer-to-group-gr_name-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_GROUP_GR_NAME@ ?pointer
+         @OFFSETOF_GROUP_GR_NAME@ ?value))))
+  (define-syntax pointer-to-group-gr_name
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_GROUP_GR_NAME@ ?pointer
+         @OFFSETOF_GROUP_GR_NAME@))))
+  (define-class <struct-group>
+    (nongenerative nausicaa:posix:<struct-group>)
+    (protocol
+      (lambda (make-top)
+        (lambda (malloc)
+          ((make-top) (malloc (c-sizeof struct-group))))))
+    (fields (immutable pointer))
     (virtual-fields (mutable gr_mem) (mutable gr_gid)
       (mutable gr_name)))
   (define-syntax <struct-group>-gr_mem-set!
     (syntax-rules ()
       ((_ ?pointer ?value)
-       (pointer-c-set! @TYPEOF_GROUP_GR_MEM@ ?pointer
-         @OFFSETOF_GROUP_GR_MEM@ ?value))))
+       (pointer-to-group-gr_mem-set!
+         (<struct-group>-pointer ?pointer) ?value))))
   (define-syntax <struct-group>-gr_mem
     (syntax-rules ()
       ((_ ?pointer)
-       (pointer-c-ref @TYPEOF_GROUP_GR_MEM@ ?pointer
-         @OFFSETOF_GROUP_GR_MEM@))))
+       (pointer-to-group-gr_mem
+         (<struct-group>-pointer ?pointer)))))
   (define-syntax <struct-group>-gr_gid-set!
     (syntax-rules ()
       ((_ ?pointer ?value)
-       (pointer-c-set! @TYPEOF_GROUP_GR_GID@ ?pointer
-         @OFFSETOF_GROUP_GR_GID@ ?value))))
+       (pointer-to-group-gr_gid-set!
+         (<struct-group>-pointer ?pointer) ?value))))
   (define-syntax <struct-group>-gr_gid
     (syntax-rules ()
       ((_ ?pointer)
-       (pointer-c-ref @TYPEOF_GROUP_GR_GID@ ?pointer
-         @OFFSETOF_GROUP_GR_GID@))))
+       (pointer-to-group-gr_gid
+         (<struct-group>-pointer ?pointer)))))
   (define-syntax <struct-group>-gr_name-set!
     (syntax-rules ()
       ((_ ?pointer ?value)
-       (pointer-c-set! @TYPEOF_GROUP_GR_NAME@ ?pointer
-         @OFFSETOF_GROUP_GR_NAME@ ?value))))
+       (pointer-to-group-gr_name-set!
+         (<struct-group>-pointer ?pointer) ?value))))
   (define-syntax <struct-group>-gr_name
     (syntax-rules ()
       ((_ ?pointer)
-       (pointer-c-ref @TYPEOF_GROUP_GR_NAME@ ?pointer
-         @OFFSETOF_GROUP_GR_NAME@))))
-  (define-label <struct-utsname>
+       (pointer-to-group-gr_name
+         (<struct-group>-pointer ?pointer)))))
+  (define-class <group>
+    (nongenerative nausicaa:posix:<group>)
+    (fields (mutable gr_mem) (mutable gr_gid)
+      (mutable gr_name)))
+  (define-label pointer-to-utsname
+    (virtual-fields (immutable domainname)
+      (immutable nodename) (immutable machine)
+      (immutable version) (immutable release)
+      (immutable sysname)))
+  (define-syntax pointer-to-utsname-domainname
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_UTSNAME_DOMAINNAME@ ?pointer
+         @OFFSETOF_UTSNAME_DOMAINNAME@))))
+  (define-syntax pointer-to-utsname-nodename
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_UTSNAME_NODENAME@ ?pointer
+         @OFFSETOF_UTSNAME_NODENAME@))))
+  (define-syntax pointer-to-utsname-machine
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_UTSNAME_MACHINE@ ?pointer
+         @OFFSETOF_UTSNAME_MACHINE@))))
+  (define-syntax pointer-to-utsname-version
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_UTSNAME_VERSION@ ?pointer
+         @OFFSETOF_UTSNAME_VERSION@))))
+  (define-syntax pointer-to-utsname-release
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_UTSNAME_RELEASE@ ?pointer
+         @OFFSETOF_UTSNAME_RELEASE@))))
+  (define-syntax pointer-to-utsname-sysname
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_UTSNAME_SYSNAME@ ?pointer
+         @OFFSETOF_UTSNAME_SYSNAME@))))
+  (define-class <struct-utsname>
+    (nongenerative nausicaa:posix:<struct-utsname>)
+    (protocol
+      (lambda (make-top)
+        (lambda (malloc)
+          ((make-top) (malloc (c-sizeof struct-utsname))))))
+    (fields (immutable pointer))
     (virtual-fields (immutable domainname)
       (immutable nodename) (immutable machine)
       (immutable version) (immutable release)
@@ -1524,34 +2408,120 @@
   (define-syntax <struct-utsname>-domainname
     (syntax-rules ()
       ((_ ?pointer)
-       (pointer-c-ref @TYPEOF_UTSNAME_DOMAINNAME@ ?pointer
-         @OFFSETOF_UTSNAME_DOMAINNAME@))))
+       (pointer-to-utsname-domainname
+         (<struct-utsname>-pointer ?pointer)))))
   (define-syntax <struct-utsname>-nodename
     (syntax-rules ()
       ((_ ?pointer)
-       (pointer-c-ref @TYPEOF_UTSNAME_NODENAME@ ?pointer
-         @OFFSETOF_UTSNAME_NODENAME@))))
+       (pointer-to-utsname-nodename
+         (<struct-utsname>-pointer ?pointer)))))
   (define-syntax <struct-utsname>-machine
     (syntax-rules ()
       ((_ ?pointer)
-       (pointer-c-ref @TYPEOF_UTSNAME_MACHINE@ ?pointer
-         @OFFSETOF_UTSNAME_MACHINE@))))
+       (pointer-to-utsname-machine
+         (<struct-utsname>-pointer ?pointer)))))
   (define-syntax <struct-utsname>-version
     (syntax-rules ()
       ((_ ?pointer)
-       (pointer-c-ref @TYPEOF_UTSNAME_VERSION@ ?pointer
-         @OFFSETOF_UTSNAME_VERSION@))))
+       (pointer-to-utsname-version
+         (<struct-utsname>-pointer ?pointer)))))
   (define-syntax <struct-utsname>-release
     (syntax-rules ()
       ((_ ?pointer)
-       (pointer-c-ref @TYPEOF_UTSNAME_RELEASE@ ?pointer
-         @OFFSETOF_UTSNAME_RELEASE@))))
+       (pointer-to-utsname-release
+         (<struct-utsname>-pointer ?pointer)))))
   (define-syntax <struct-utsname>-sysname
     (syntax-rules ()
       ((_ ?pointer)
-       (pointer-c-ref @TYPEOF_UTSNAME_SYSNAME@ ?pointer
-         @OFFSETOF_UTSNAME_SYSNAME@))))
-  (define-label <struct-fstab>
+       (pointer-to-utsname-sysname
+         (<struct-utsname>-pointer ?pointer)))))
+  (define-class <utsname>
+    (nongenerative nausicaa:posix:<utsname>)
+    (fields (mutable domainname) (mutable nodename)
+      (mutable machine) (mutable version) (mutable release)
+      (mutable sysname)))
+  (define-label pointer-to-fstab
+    (virtual-fields (mutable fs_passno) (mutable fs_freq)
+      (mutable fs_type) (mutable fs_mntops)
+      (mutable fs_vfstype) (mutable fs_file)
+      (mutable fs_spec)))
+  (define-syntax pointer-to-fstab-fs_passno-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_FSTAB_FS_PASSNO@ ?pointer
+         @OFFSETOF_FSTAB_FS_PASSNO@ ?value))))
+  (define-syntax pointer-to-fstab-fs_passno
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_FSTAB_FS_PASSNO@ ?pointer
+         @OFFSETOF_FSTAB_FS_PASSNO@))))
+  (define-syntax pointer-to-fstab-fs_freq-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_FSTAB_FS_FREQ@ ?pointer
+         @OFFSETOF_FSTAB_FS_FREQ@ ?value))))
+  (define-syntax pointer-to-fstab-fs_freq
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_FSTAB_FS_FREQ@ ?pointer
+         @OFFSETOF_FSTAB_FS_FREQ@))))
+  (define-syntax pointer-to-fstab-fs_type-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_FSTAB_FS_TYPE@ ?pointer
+         @OFFSETOF_FSTAB_FS_TYPE@ ?value))))
+  (define-syntax pointer-to-fstab-fs_type
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_FSTAB_FS_TYPE@ ?pointer
+         @OFFSETOF_FSTAB_FS_TYPE@))))
+  (define-syntax pointer-to-fstab-fs_mntops-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_FSTAB_FS_MNTOPS@ ?pointer
+         @OFFSETOF_FSTAB_FS_MNTOPS@ ?value))))
+  (define-syntax pointer-to-fstab-fs_mntops
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_FSTAB_FS_MNTOPS@ ?pointer
+         @OFFSETOF_FSTAB_FS_MNTOPS@))))
+  (define-syntax pointer-to-fstab-fs_vfstype-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_FSTAB_FS_VFSTYPE@ ?pointer
+         @OFFSETOF_FSTAB_FS_VFSTYPE@ ?value))))
+  (define-syntax pointer-to-fstab-fs_vfstype
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_FSTAB_FS_VFSTYPE@ ?pointer
+         @OFFSETOF_FSTAB_FS_VFSTYPE@))))
+  (define-syntax pointer-to-fstab-fs_file-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_FSTAB_FS_FILE@ ?pointer
+         @OFFSETOF_FSTAB_FS_FILE@ ?value))))
+  (define-syntax pointer-to-fstab-fs_file
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_FSTAB_FS_FILE@ ?pointer
+         @OFFSETOF_FSTAB_FS_FILE@))))
+  (define-syntax pointer-to-fstab-fs_spec-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_FSTAB_FS_SPEC@ ?pointer
+         @OFFSETOF_FSTAB_FS_SPEC@ ?value))))
+  (define-syntax pointer-to-fstab-fs_spec
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_FSTAB_FS_SPEC@ ?pointer
+         @OFFSETOF_FSTAB_FS_SPEC@))))
+  (define-class <struct-fstab>
+    (nongenerative nausicaa:posix:<struct-fstab>)
+    (protocol
+      (lambda (make-top)
+        (lambda (malloc)
+          ((make-top) (malloc (c-sizeof struct-fstab))))))
+    (fields (immutable pointer))
     (virtual-fields (mutable fs_passno) (mutable fs_freq)
       (mutable fs_type) (mutable fs_mntops)
       (mutable fs_vfstype) (mutable fs_file)
@@ -1559,479 +2529,1019 @@
   (define-syntax <struct-fstab>-fs_passno-set!
     (syntax-rules ()
       ((_ ?pointer ?value)
-       (pointer-c-set! @TYPEOF_FSTAB_FS_PASSNO@ ?pointer
-         @OFFSETOF_FSTAB_FS_PASSNO@ ?value))))
+       (pointer-to-fstab-fs_passno-set!
+         (<struct-fstab>-pointer ?pointer) ?value))))
   (define-syntax <struct-fstab>-fs_passno
     (syntax-rules ()
       ((_ ?pointer)
-       (pointer-c-ref @TYPEOF_FSTAB_FS_PASSNO@ ?pointer
-         @OFFSETOF_FSTAB_FS_PASSNO@))))
+       (pointer-to-fstab-fs_passno
+         (<struct-fstab>-pointer ?pointer)))))
   (define-syntax <struct-fstab>-fs_freq-set!
     (syntax-rules ()
       ((_ ?pointer ?value)
-       (pointer-c-set! @TYPEOF_FSTAB_FS_FREQ@ ?pointer
-         @OFFSETOF_FSTAB_FS_FREQ@ ?value))))
+       (pointer-to-fstab-fs_freq-set!
+         (<struct-fstab>-pointer ?pointer) ?value))))
   (define-syntax <struct-fstab>-fs_freq
     (syntax-rules ()
       ((_ ?pointer)
-       (pointer-c-ref @TYPEOF_FSTAB_FS_FREQ@ ?pointer
-         @OFFSETOF_FSTAB_FS_FREQ@))))
+       (pointer-to-fstab-fs_freq
+         (<struct-fstab>-pointer ?pointer)))))
   (define-syntax <struct-fstab>-fs_type-set!
     (syntax-rules ()
       ((_ ?pointer ?value)
-       (pointer-c-set! @TYPEOF_FSTAB_FS_TYPE@ ?pointer
-         @OFFSETOF_FSTAB_FS_TYPE@ ?value))))
+       (pointer-to-fstab-fs_type-set!
+         (<struct-fstab>-pointer ?pointer) ?value))))
   (define-syntax <struct-fstab>-fs_type
     (syntax-rules ()
       ((_ ?pointer)
-       (pointer-c-ref @TYPEOF_FSTAB_FS_TYPE@ ?pointer
-         @OFFSETOF_FSTAB_FS_TYPE@))))
+       (pointer-to-fstab-fs_type
+         (<struct-fstab>-pointer ?pointer)))))
   (define-syntax <struct-fstab>-fs_mntops-set!
     (syntax-rules ()
       ((_ ?pointer ?value)
-       (pointer-c-set! @TYPEOF_FSTAB_FS_MNTOPS@ ?pointer
-         @OFFSETOF_FSTAB_FS_MNTOPS@ ?value))))
+       (pointer-to-fstab-fs_mntops-set!
+         (<struct-fstab>-pointer ?pointer) ?value))))
   (define-syntax <struct-fstab>-fs_mntops
     (syntax-rules ()
       ((_ ?pointer)
-       (pointer-c-ref @TYPEOF_FSTAB_FS_MNTOPS@ ?pointer
-         @OFFSETOF_FSTAB_FS_MNTOPS@))))
+       (pointer-to-fstab-fs_mntops
+         (<struct-fstab>-pointer ?pointer)))))
   (define-syntax <struct-fstab>-fs_vfstype-set!
     (syntax-rules ()
       ((_ ?pointer ?value)
-       (pointer-c-set! @TYPEOF_FSTAB_FS_VFSTYPE@ ?pointer
-         @OFFSETOF_FSTAB_FS_VFSTYPE@ ?value))))
+       (pointer-to-fstab-fs_vfstype-set!
+         (<struct-fstab>-pointer ?pointer) ?value))))
   (define-syntax <struct-fstab>-fs_vfstype
     (syntax-rules ()
       ((_ ?pointer)
-       (pointer-c-ref @TYPEOF_FSTAB_FS_VFSTYPE@ ?pointer
-         @OFFSETOF_FSTAB_FS_VFSTYPE@))))
+       (pointer-to-fstab-fs_vfstype
+         (<struct-fstab>-pointer ?pointer)))))
   (define-syntax <struct-fstab>-fs_file-set!
     (syntax-rules ()
       ((_ ?pointer ?value)
-       (pointer-c-set! @TYPEOF_FSTAB_FS_FILE@ ?pointer
-         @OFFSETOF_FSTAB_FS_FILE@ ?value))))
+       (pointer-to-fstab-fs_file-set!
+         (<struct-fstab>-pointer ?pointer) ?value))))
   (define-syntax <struct-fstab>-fs_file
     (syntax-rules ()
       ((_ ?pointer)
-       (pointer-c-ref @TYPEOF_FSTAB_FS_FILE@ ?pointer
-         @OFFSETOF_FSTAB_FS_FILE@))))
+       (pointer-to-fstab-fs_file
+         (<struct-fstab>-pointer ?pointer)))))
   (define-syntax <struct-fstab>-fs_spec-set!
     (syntax-rules ()
       ((_ ?pointer ?value)
-       (pointer-c-set! @TYPEOF_FSTAB_FS_SPEC@ ?pointer
-         @OFFSETOF_FSTAB_FS_SPEC@ ?value))))
+       (pointer-to-fstab-fs_spec-set!
+         (<struct-fstab>-pointer ?pointer) ?value))))
   (define-syntax <struct-fstab>-fs_spec
     (syntax-rules ()
       ((_ ?pointer)
-       (pointer-c-ref @TYPEOF_FSTAB_FS_SPEC@ ?pointer
-         @OFFSETOF_FSTAB_FS_SPEC@))))
-  (define-label <struct-mntent>
+       (pointer-to-fstab-fs_spec
+         (<struct-fstab>-pointer ?pointer)))))
+  (define-class <fstab>
+    (nongenerative nausicaa:posix:<fstab>)
+    (fields (mutable fs_passno) (mutable fs_freq)
+      (mutable fs_type) (mutable fs_mntops)
+      (mutable fs_vfstype) (mutable fs_file)
+      (mutable fs_spec)))
+  (define-label pointer-to-mntent
+    (virtual-fields (mutable mnt_passno) (mutable mnt_freq)
+      (mutable mnt_opts) (mutable mnt_type)
+      (mutable mnt_dir) (mutable mnt_fsname)))
+  (define-syntax pointer-to-mntent-mnt_passno-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_MNTENT_MNT_PASSNO@ ?pointer
+         @OFFSETOF_MNTENT_MNT_PASSNO@ ?value))))
+  (define-syntax pointer-to-mntent-mnt_passno
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_MNTENT_MNT_PASSNO@ ?pointer
+         @OFFSETOF_MNTENT_MNT_PASSNO@))))
+  (define-syntax pointer-to-mntent-mnt_freq-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_MNTENT_MNT_FREQ@ ?pointer
+         @OFFSETOF_MNTENT_MNT_FREQ@ ?value))))
+  (define-syntax pointer-to-mntent-mnt_freq
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_MNTENT_MNT_FREQ@ ?pointer
+         @OFFSETOF_MNTENT_MNT_FREQ@))))
+  (define-syntax pointer-to-mntent-mnt_opts-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_MNTENT_MNT_OPTS@ ?pointer
+         @OFFSETOF_MNTENT_MNT_OPTS@ ?value))))
+  (define-syntax pointer-to-mntent-mnt_opts
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_MNTENT_MNT_OPTS@ ?pointer
+         @OFFSETOF_MNTENT_MNT_OPTS@))))
+  (define-syntax pointer-to-mntent-mnt_type-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_MNTENT_MNT_TYPE@ ?pointer
+         @OFFSETOF_MNTENT_MNT_TYPE@ ?value))))
+  (define-syntax pointer-to-mntent-mnt_type
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_MNTENT_MNT_TYPE@ ?pointer
+         @OFFSETOF_MNTENT_MNT_TYPE@))))
+  (define-syntax pointer-to-mntent-mnt_dir-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_MNTENT_MNT_DIR@ ?pointer
+         @OFFSETOF_MNTENT_MNT_DIR@ ?value))))
+  (define-syntax pointer-to-mntent-mnt_dir
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_MNTENT_MNT_DIR@ ?pointer
+         @OFFSETOF_MNTENT_MNT_DIR@))))
+  (define-syntax pointer-to-mntent-mnt_fsname-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_MNTENT_MNT_FSNAME@ ?pointer
+         @OFFSETOF_MNTENT_MNT_FSNAME@ ?value))))
+  (define-syntax pointer-to-mntent-mnt_fsname
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_MNTENT_MNT_FSNAME@ ?pointer
+         @OFFSETOF_MNTENT_MNT_FSNAME@))))
+  (define-class <struct-mntent>
+    (nongenerative nausicaa:posix:<struct-mntent>)
+    (protocol
+      (lambda (make-top)
+        (lambda (malloc)
+          ((make-top) (malloc (c-sizeof struct-mntent))))))
+    (fields (immutable pointer))
     (virtual-fields (mutable mnt_passno) (mutable mnt_freq)
       (mutable mnt_opts) (mutable mnt_type)
       (mutable mnt_dir) (mutable mnt_fsname)))
   (define-syntax <struct-mntent>-mnt_passno-set!
     (syntax-rules ()
       ((_ ?pointer ?value)
-       (pointer-c-set! @TYPEOF_MNTENT_MNT_PASSNO@ ?pointer
-         @OFFSETOF_MNTENT_MNT_PASSNO@ ?value))))
+       (pointer-to-mntent-mnt_passno-set!
+         (<struct-mntent>-pointer ?pointer) ?value))))
   (define-syntax <struct-mntent>-mnt_passno
     (syntax-rules ()
       ((_ ?pointer)
-       (pointer-c-ref @TYPEOF_MNTENT_MNT_PASSNO@ ?pointer
-         @OFFSETOF_MNTENT_MNT_PASSNO@))))
+       (pointer-to-mntent-mnt_passno
+         (<struct-mntent>-pointer ?pointer)))))
   (define-syntax <struct-mntent>-mnt_freq-set!
     (syntax-rules ()
       ((_ ?pointer ?value)
-       (pointer-c-set! @TYPEOF_MNTENT_MNT_FREQ@ ?pointer
-         @OFFSETOF_MNTENT_MNT_FREQ@ ?value))))
+       (pointer-to-mntent-mnt_freq-set!
+         (<struct-mntent>-pointer ?pointer) ?value))))
   (define-syntax <struct-mntent>-mnt_freq
     (syntax-rules ()
       ((_ ?pointer)
-       (pointer-c-ref @TYPEOF_MNTENT_MNT_FREQ@ ?pointer
-         @OFFSETOF_MNTENT_MNT_FREQ@))))
+       (pointer-to-mntent-mnt_freq
+         (<struct-mntent>-pointer ?pointer)))))
   (define-syntax <struct-mntent>-mnt_opts-set!
     (syntax-rules ()
       ((_ ?pointer ?value)
-       (pointer-c-set! @TYPEOF_MNTENT_MNT_OPTS@ ?pointer
-         @OFFSETOF_MNTENT_MNT_OPTS@ ?value))))
+       (pointer-to-mntent-mnt_opts-set!
+         (<struct-mntent>-pointer ?pointer) ?value))))
   (define-syntax <struct-mntent>-mnt_opts
     (syntax-rules ()
       ((_ ?pointer)
-       (pointer-c-ref @TYPEOF_MNTENT_MNT_OPTS@ ?pointer
-         @OFFSETOF_MNTENT_MNT_OPTS@))))
+       (pointer-to-mntent-mnt_opts
+         (<struct-mntent>-pointer ?pointer)))))
   (define-syntax <struct-mntent>-mnt_type-set!
     (syntax-rules ()
       ((_ ?pointer ?value)
-       (pointer-c-set! @TYPEOF_MNTENT_MNT_TYPE@ ?pointer
-         @OFFSETOF_MNTENT_MNT_TYPE@ ?value))))
+       (pointer-to-mntent-mnt_type-set!
+         (<struct-mntent>-pointer ?pointer) ?value))))
   (define-syntax <struct-mntent>-mnt_type
     (syntax-rules ()
       ((_ ?pointer)
-       (pointer-c-ref @TYPEOF_MNTENT_MNT_TYPE@ ?pointer
-         @OFFSETOF_MNTENT_MNT_TYPE@))))
+       (pointer-to-mntent-mnt_type
+         (<struct-mntent>-pointer ?pointer)))))
   (define-syntax <struct-mntent>-mnt_dir-set!
     (syntax-rules ()
       ((_ ?pointer ?value)
-       (pointer-c-set! @TYPEOF_MNTENT_MNT_DIR@ ?pointer
-         @OFFSETOF_MNTENT_MNT_DIR@ ?value))))
+       (pointer-to-mntent-mnt_dir-set!
+         (<struct-mntent>-pointer ?pointer) ?value))))
   (define-syntax <struct-mntent>-mnt_dir
     (syntax-rules ()
       ((_ ?pointer)
-       (pointer-c-ref @TYPEOF_MNTENT_MNT_DIR@ ?pointer
-         @OFFSETOF_MNTENT_MNT_DIR@))))
+       (pointer-to-mntent-mnt_dir
+         (<struct-mntent>-pointer ?pointer)))))
   (define-syntax <struct-mntent>-mnt_fsname-set!
     (syntax-rules ()
       ((_ ?pointer ?value)
-       (pointer-c-set! @TYPEOF_MNTENT_MNT_FSNAME@ ?pointer
-         @OFFSETOF_MNTENT_MNT_FSNAME@ ?value))))
+       (pointer-to-mntent-mnt_fsname-set!
+         (<struct-mntent>-pointer ?pointer) ?value))))
   (define-syntax <struct-mntent>-mnt_fsname
     (syntax-rules ()
       ((_ ?pointer)
-       (pointer-c-ref @TYPEOF_MNTENT_MNT_FSNAME@ ?pointer
-         @OFFSETOF_MNTENT_MNT_FSNAME@))))
-  (define-label <struct-sockaddr>
+       (pointer-to-mntent-mnt_fsname
+         (<struct-mntent>-pointer ?pointer)))))
+  (define-class <mntent>
+    (nongenerative nausicaa:posix:<mntent>)
+    (fields (mutable mnt_passno) (mutable mnt_freq)
+      (mutable mnt_opts) (mutable mnt_type)
+      (mutable mnt_dir) (mutable mnt_fsname)))
+  (define-label pointer-to-sockaddr
     (virtual-fields (immutable sa_data) (mutable sa_family)))
-  (define-syntax <struct-sockaddr>-sa_data
+  (define-syntax pointer-to-sockaddr-sa_data
     (syntax-rules ()
       ((_ ?pointer)
        (pointer-c-ref @TYPEOF_SOCKADDR_SA_DATA@ ?pointer
          @OFFSETOF_SOCKADDR_SA_DATA@))))
-  (define-syntax <struct-sockaddr>-sa_family-set!
+  (define-syntax pointer-to-sockaddr-sa_family-set!
     (syntax-rules ()
       ((_ ?pointer ?value)
        (pointer-c-set! @TYPEOF_SOCKADDR_SA_FAMILY@ ?pointer
          @OFFSETOF_SOCKADDR_SA_FAMILY@ ?value))))
-  (define-syntax <struct-sockaddr>-sa_family
+  (define-syntax pointer-to-sockaddr-sa_family
     (syntax-rules ()
       ((_ ?pointer)
        (pointer-c-ref @TYPEOF_SOCKADDR_SA_FAMILY@ ?pointer
          @OFFSETOF_SOCKADDR_SA_FAMILY@))))
-  (define-label <struct-sockaddr_in>
+  (define-class <struct-sockaddr>
+    (nongenerative nausicaa:posix:<struct-sockaddr>)
+    (protocol
+      (lambda (make-top)
+        (lambda (malloc)
+          ((make-top) (malloc (c-sizeof struct-sockaddr))))))
+    (fields (immutable pointer))
+    (virtual-fields (immutable sa_data) (mutable sa_family)))
+  (define-syntax <struct-sockaddr>-sa_data
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-to-sockaddr-sa_data
+         (<struct-sockaddr>-pointer ?pointer)))))
+  (define-syntax <struct-sockaddr>-sa_family-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-to-sockaddr-sa_family-set!
+         (<struct-sockaddr>-pointer ?pointer) ?value))))
+  (define-syntax <struct-sockaddr>-sa_family
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-to-sockaddr-sa_family
+         (<struct-sockaddr>-pointer ?pointer)))))
+  (define-class <sockaddr>
+    (nongenerative nausicaa:posix:<sockaddr>)
+    (fields (mutable sa_data) (mutable sa_family)))
+  (define-label pointer-to-sockaddr_in
+    (virtual-fields (mutable sin_port) (immutable sin_addr)
+      (mutable sin_family)))
+  (define-syntax pointer-to-sockaddr_in-sin_port-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_SOCKADDR_IN_SIN_PORT@
+         ?pointer @OFFSETOF_SOCKADDR_IN_SIN_PORT@ ?value))))
+  (define-syntax pointer-to-sockaddr_in-sin_port
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_SOCKADDR_IN_SIN_PORT@ ?pointer
+         @OFFSETOF_SOCKADDR_IN_SIN_PORT@))))
+  (define-syntax pointer-to-sockaddr_in-sin_addr
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_SOCKADDR_IN_SIN_ADDR@ ?pointer
+         @OFFSETOF_SOCKADDR_IN_SIN_ADDR@))))
+  (define-syntax pointer-to-sockaddr_in-sin_family-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_SOCKADDR_IN_SIN_FAMILY@
+         ?pointer @OFFSETOF_SOCKADDR_IN_SIN_FAMILY@ ?value))))
+  (define-syntax pointer-to-sockaddr_in-sin_family
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_SOCKADDR_IN_SIN_FAMILY@
+         ?pointer @OFFSETOF_SOCKADDR_IN_SIN_FAMILY@))))
+  (define-class <struct-sockaddr_in>
+    (nongenerative nausicaa:posix:<struct-sockaddr_in>)
+    (protocol
+      (lambda (make-top)
+        (lambda (malloc)
+          ((make-top) (malloc (c-sizeof struct-sockaddr_in))))))
+    (fields (immutable pointer))
     (virtual-fields (mutable sin_port) (immutable sin_addr)
       (mutable sin_family)))
   (define-syntax <struct-sockaddr_in>-sin_port-set!
     (syntax-rules ()
       ((_ ?pointer ?value)
-       (pointer-c-set! @TYPEOF_SOCKADDR_IN_SIN_PORT@
-         ?pointer @OFFSETOF_SOCKADDR_IN_SIN_PORT@ ?value))))
+       (pointer-to-sockaddr_in-sin_port-set!
+         (<struct-sockaddr_in>-pointer ?pointer) ?value))))
   (define-syntax <struct-sockaddr_in>-sin_port
     (syntax-rules ()
       ((_ ?pointer)
-       (pointer-c-ref @TYPEOF_SOCKADDR_IN_SIN_PORT@ ?pointer
-         @OFFSETOF_SOCKADDR_IN_SIN_PORT@))))
+       (pointer-to-sockaddr_in-sin_port
+         (<struct-sockaddr_in>-pointer ?pointer)))))
   (define-syntax <struct-sockaddr_in>-sin_addr
     (syntax-rules ()
       ((_ ?pointer)
-       (pointer-c-ref @TYPEOF_SOCKADDR_IN_SIN_ADDR@ ?pointer
-         @OFFSETOF_SOCKADDR_IN_SIN_ADDR@))))
+       (pointer-to-sockaddr_in-sin_addr
+         (<struct-sockaddr_in>-pointer ?pointer)))))
   (define-syntax <struct-sockaddr_in>-sin_family-set!
     (syntax-rules ()
       ((_ ?pointer ?value)
-       (pointer-c-set! @TYPEOF_SOCKADDR_IN_SIN_FAMILY@
-         ?pointer @OFFSETOF_SOCKADDR_IN_SIN_FAMILY@ ?value))))
+       (pointer-to-sockaddr_in-sin_family-set!
+         (<struct-sockaddr_in>-pointer ?pointer) ?value))))
   (define-syntax <struct-sockaddr_in>-sin_family
     (syntax-rules ()
       ((_ ?pointer)
-       (pointer-c-ref @TYPEOF_SOCKADDR_IN_SIN_FAMILY@
-         ?pointer @OFFSETOF_SOCKADDR_IN_SIN_FAMILY@))))
-  (define-label <struct-sockaddr_in6>
+       (pointer-to-sockaddr_in-sin_family
+         (<struct-sockaddr_in>-pointer ?pointer)))))
+  (define-class <sockaddr_in>
+    (nongenerative nausicaa:posix:<sockaddr_in>)
+    (fields (mutable sin_port) (mutable sin_addr)
+      (mutable sin_family)))
+  (define-label pointer-to-sockaddr_in6
+    (virtual-fields (mutable sin6_port)
+      (immutable sin6_addr) (mutable sin6_family)))
+  (define-syntax pointer-to-sockaddr_in6-sin6_port-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_SOCKADDR_IN6_SIN6_PORT@
+         ?pointer @OFFSETOF_SOCKADDR_IN6_SIN6_PORT@ ?value))))
+  (define-syntax pointer-to-sockaddr_in6-sin6_port
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_SOCKADDR_IN6_SIN6_PORT@
+         ?pointer @OFFSETOF_SOCKADDR_IN6_SIN6_PORT@))))
+  (define-syntax pointer-to-sockaddr_in6-sin6_addr
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_SOCKADDR_IN6_SIN6_ADDR@
+         ?pointer @OFFSETOF_SOCKADDR_IN6_SIN6_ADDR@))))
+  (define-syntax pointer-to-sockaddr_in6-sin6_family-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_SOCKADDR_IN6_SIN6_FAMILY@
+         ?pointer @OFFSETOF_SOCKADDR_IN6_SIN6_FAMILY@ ?value))))
+  (define-syntax pointer-to-sockaddr_in6-sin6_family
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_SOCKADDR_IN6_SIN6_FAMILY@
+         ?pointer @OFFSETOF_SOCKADDR_IN6_SIN6_FAMILY@))))
+  (define-class <struct-sockaddr_in6>
+    (nongenerative nausicaa:posix:<struct-sockaddr_in6>)
+    (protocol
+      (lambda (make-top)
+        (lambda (malloc)
+          ((make-top)
+            (malloc (c-sizeof struct-sockaddr_in6))))))
+    (fields (immutable pointer))
     (virtual-fields (mutable sin6_port)
       (immutable sin6_addr) (mutable sin6_family)))
   (define-syntax <struct-sockaddr_in6>-sin6_port-set!
     (syntax-rules ()
       ((_ ?pointer ?value)
-       (pointer-c-set! @TYPEOF_SOCKADDR_IN6_SIN6_PORT@
-         ?pointer @OFFSETOF_SOCKADDR_IN6_SIN6_PORT@ ?value))))
+       (pointer-to-sockaddr_in6-sin6_port-set!
+         (<struct-sockaddr_in6>-pointer ?pointer) ?value))))
   (define-syntax <struct-sockaddr_in6>-sin6_port
     (syntax-rules ()
       ((_ ?pointer)
-       (pointer-c-ref @TYPEOF_SOCKADDR_IN6_SIN6_PORT@
-         ?pointer @OFFSETOF_SOCKADDR_IN6_SIN6_PORT@))))
+       (pointer-to-sockaddr_in6-sin6_port
+         (<struct-sockaddr_in6>-pointer ?pointer)))))
   (define-syntax <struct-sockaddr_in6>-sin6_addr
     (syntax-rules ()
       ((_ ?pointer)
-       (pointer-c-ref @TYPEOF_SOCKADDR_IN6_SIN6_ADDR@
-         ?pointer @OFFSETOF_SOCKADDR_IN6_SIN6_ADDR@))))
+       (pointer-to-sockaddr_in6-sin6_addr
+         (<struct-sockaddr_in6>-pointer ?pointer)))))
   (define-syntax <struct-sockaddr_in6>-sin6_family-set!
     (syntax-rules ()
       ((_ ?pointer ?value)
-       (pointer-c-set! @TYPEOF_SOCKADDR_IN6_SIN6_FAMILY@
-         ?pointer @OFFSETOF_SOCKADDR_IN6_SIN6_FAMILY@ ?value))))
+       (pointer-to-sockaddr_in6-sin6_family-set!
+         (<struct-sockaddr_in6>-pointer ?pointer) ?value))))
   (define-syntax <struct-sockaddr_in6>-sin6_family
     (syntax-rules ()
       ((_ ?pointer)
-       (pointer-c-ref @TYPEOF_SOCKADDR_IN6_SIN6_FAMILY@
-         ?pointer @OFFSETOF_SOCKADDR_IN6_SIN6_FAMILY@))))
-  (define-label <struct-sockaddr_un>
+       (pointer-to-sockaddr_in6-sin6_family
+         (<struct-sockaddr_in6>-pointer ?pointer)))))
+  (define-class <sockaddr_in6>
+    (nongenerative nausicaa:posix:<sockaddr_in6>)
+    (fields (mutable sin6_port) (mutable sin6_addr)
+      (mutable sin6_family)))
+  (define-label pointer-to-sockaddr_un
+    (virtual-fields (immutable sun_path)
+      (mutable sun_family)))
+  (define-syntax pointer-to-sockaddr_un-sun_path
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_SOCKADDR_UN_SUN_PATH@ ?pointer
+         @OFFSETOF_SOCKADDR_UN_SUN_PATH@))))
+  (define-syntax pointer-to-sockaddr_un-sun_family-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_SOCKADDR_UN_SUN_FAMILY@
+         ?pointer @OFFSETOF_SOCKADDR_UN_SUN_FAMILY@ ?value))))
+  (define-syntax pointer-to-sockaddr_un-sun_family
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_SOCKADDR_UN_SUN_FAMILY@
+         ?pointer @OFFSETOF_SOCKADDR_UN_SUN_FAMILY@))))
+  (define-class <struct-sockaddr_un>
+    (nongenerative nausicaa:posix:<struct-sockaddr_un>)
+    (protocol
+      (lambda (make-top)
+        (lambda (malloc)
+          ((make-top) (malloc (c-sizeof struct-sockaddr_un))))))
+    (fields (immutable pointer))
     (virtual-fields (immutable sun_path)
       (mutable sun_family)))
   (define-syntax <struct-sockaddr_un>-sun_path
     (syntax-rules ()
       ((_ ?pointer)
-       (pointer-c-ref @TYPEOF_SOCKADDR_UN_SUN_PATH@ ?pointer
-         @OFFSETOF_SOCKADDR_UN_SUN_PATH@))))
+       (pointer-to-sockaddr_un-sun_path
+         (<struct-sockaddr_un>-pointer ?pointer)))))
   (define-syntax <struct-sockaddr_un>-sun_family-set!
     (syntax-rules ()
       ((_ ?pointer ?value)
-       (pointer-c-set! @TYPEOF_SOCKADDR_UN_SUN_FAMILY@
-         ?pointer @OFFSETOF_SOCKADDR_UN_SUN_FAMILY@ ?value))))
+       (pointer-to-sockaddr_un-sun_family-set!
+         (<struct-sockaddr_un>-pointer ?pointer) ?value))))
   (define-syntax <struct-sockaddr_un>-sun_family
     (syntax-rules ()
       ((_ ?pointer)
-       (pointer-c-ref @TYPEOF_SOCKADDR_UN_SUN_FAMILY@
-         ?pointer @OFFSETOF_SOCKADDR_UN_SUN_FAMILY@))))
-  (define-label <struct-in_addr>
+       (pointer-to-sockaddr_un-sun_family
+         (<struct-sockaddr_un>-pointer ?pointer)))))
+  (define-class <sockaddr_un>
+    (nongenerative nausicaa:posix:<sockaddr_un>)
+    (fields (mutable sun_path) (mutable sun_family)))
+  (define-label pointer-to-in_addr
     (virtual-fields (mutable s_addr)))
-  (define-syntax <struct-in_addr>-s_addr-set!
+  (define-syntax pointer-to-in_addr-s_addr-set!
     (syntax-rules ()
       ((_ ?pointer ?value)
        (pointer-c-set! @TYPEOF_IN_ADDR_S_ADDR@ ?pointer
          @OFFSETOF_IN_ADDR_S_ADDR@ ?value))))
-  (define-syntax <struct-in_addr>-s_addr
+  (define-syntax pointer-to-in_addr-s_addr
     (syntax-rules ()
       ((_ ?pointer)
        (pointer-c-ref @TYPEOF_IN_ADDR_S_ADDR@ ?pointer
          @OFFSETOF_IN_ADDR_S_ADDR@))))
-  (define-label <struct-in6_addr>
+  (define-class <struct-in_addr>
+    (nongenerative nausicaa:posix:<struct-in_addr>)
+    (protocol
+      (lambda (make-top)
+        (lambda (malloc)
+          ((make-top) (malloc (c-sizeof struct-in_addr))))))
+    (fields (immutable pointer))
     (virtual-fields (mutable s_addr)))
-  (define-syntax <struct-in6_addr>-s_addr-set!
+  (define-syntax <struct-in_addr>-s_addr-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-to-in_addr-s_addr-set!
+         (<struct-in_addr>-pointer ?pointer) ?value))))
+  (define-syntax <struct-in_addr>-s_addr
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-to-in_addr-s_addr
+         (<struct-in_addr>-pointer ?pointer)))))
+  (define-class <in_addr>
+    (nongenerative nausicaa:posix:<in_addr>)
+    (fields (mutable s_addr)))
+  (define-label pointer-to-in6_addr
+    (virtual-fields (mutable s_addr)))
+  (define-syntax pointer-to-in6_addr-s_addr-set!
     (syntax-rules ()
       ((_ ?pointer ?value)
        (pointer-c-set! @TYPEOF_IN6_ADDR_S_ADDR@ ?pointer
          @OFFSETOF_IN6_ADDR_S_ADDR@ ?value))))
-  (define-syntax <struct-in6_addr>-s_addr
+  (define-syntax pointer-to-in6_addr-s_addr
     (syntax-rules ()
       ((_ ?pointer)
        (pointer-c-ref @TYPEOF_IN6_ADDR_S_ADDR@ ?pointer
          @OFFSETOF_IN6_ADDR_S_ADDR@))))
-  (define-label <struct-if_nameindex>
+  (define-class <struct-in6_addr>
+    (nongenerative nausicaa:posix:<struct-in6_addr>)
+    (protocol
+      (lambda (make-top)
+        (lambda (malloc)
+          ((make-top) (malloc (c-sizeof struct-in6_addr))))))
+    (fields (immutable pointer))
+    (virtual-fields (mutable s_addr)))
+  (define-syntax <struct-in6_addr>-s_addr-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-to-in6_addr-s_addr-set!
+         (<struct-in6_addr>-pointer ?pointer) ?value))))
+  (define-syntax <struct-in6_addr>-s_addr
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-to-in6_addr-s_addr
+         (<struct-in6_addr>-pointer ?pointer)))))
+  (define-class <in6_addr>
+    (nongenerative nausicaa:posix:<in6_addr>)
+    (fields (mutable s_addr)))
+  (define-label pointer-to-if_nameindex
     (virtual-fields (mutable if_name) (mutable if_index)))
-  (define-syntax <struct-if_nameindex>-if_name-set!
+  (define-syntax pointer-to-if_nameindex-if_name-set!
     (syntax-rules ()
       ((_ ?pointer ?value)
        (pointer-c-set! @TYPEOF_IF_NAMEINDEX_IF_NAME@
          ?pointer @OFFSETOF_IF_NAMEINDEX_IF_NAME@ ?value))))
-  (define-syntax <struct-if_nameindex>-if_name
+  (define-syntax pointer-to-if_nameindex-if_name
     (syntax-rules ()
       ((_ ?pointer)
        (pointer-c-ref @TYPEOF_IF_NAMEINDEX_IF_NAME@ ?pointer
          @OFFSETOF_IF_NAMEINDEX_IF_NAME@))))
-  (define-syntax <struct-if_nameindex>-if_index-set!
+  (define-syntax pointer-to-if_nameindex-if_index-set!
     (syntax-rules ()
       ((_ ?pointer ?value)
        (pointer-c-set! @TYPEOF_IF_NAMEINDEX_IF_INDEX@
          ?pointer @OFFSETOF_IF_NAMEINDEX_IF_INDEX@ ?value))))
-  (define-syntax <struct-if_nameindex>-if_index
+  (define-syntax pointer-to-if_nameindex-if_index
     (syntax-rules ()
       ((_ ?pointer)
        (pointer-c-ref @TYPEOF_IF_NAMEINDEX_IF_INDEX@
          ?pointer @OFFSETOF_IF_NAMEINDEX_IF_INDEX@))))
-  (define-label <struct-netent>
+  (define-class <struct-if_nameindex>
+    (nongenerative nausicaa:posix:<struct-if_nameindex>)
+    (protocol
+      (lambda (make-top)
+        (lambda (malloc)
+          ((make-top)
+            (malloc (c-sizeof struct-if_nameindex))))))
+    (fields (immutable pointer))
+    (virtual-fields (mutable if_name) (mutable if_index)))
+  (define-syntax <struct-if_nameindex>-if_name-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-to-if_nameindex-if_name-set!
+         (<struct-if_nameindex>-pointer ?pointer) ?value))))
+  (define-syntax <struct-if_nameindex>-if_name
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-to-if_nameindex-if_name
+         (<struct-if_nameindex>-pointer ?pointer)))))
+  (define-syntax <struct-if_nameindex>-if_index-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-to-if_nameindex-if_index-set!
+         (<struct-if_nameindex>-pointer ?pointer) ?value))))
+  (define-syntax <struct-if_nameindex>-if_index
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-to-if_nameindex-if_index
+         (<struct-if_nameindex>-pointer ?pointer)))))
+  (define-class <if_nameindex>
+    (nongenerative nausicaa:posix:<if_nameindex>)
+    (fields (mutable if_name) (mutable if_index)))
+  (define-label pointer-to-netent
+    (virtual-fields (mutable n_net) (mutable n_addrtype)
+      (mutable n_aliases) (mutable n_name)))
+  (define-syntax pointer-to-netent-n_net-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_NETENT_N_NET@ ?pointer
+         @OFFSETOF_NETENT_N_NET@ ?value))))
+  (define-syntax pointer-to-netent-n_net
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_NETENT_N_NET@ ?pointer
+         @OFFSETOF_NETENT_N_NET@))))
+  (define-syntax pointer-to-netent-n_addrtype-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_NETENT_N_ADDRTYPE@ ?pointer
+         @OFFSETOF_NETENT_N_ADDRTYPE@ ?value))))
+  (define-syntax pointer-to-netent-n_addrtype
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_NETENT_N_ADDRTYPE@ ?pointer
+         @OFFSETOF_NETENT_N_ADDRTYPE@))))
+  (define-syntax pointer-to-netent-n_aliases-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_NETENT_N_ALIASES@ ?pointer
+         @OFFSETOF_NETENT_N_ALIASES@ ?value))))
+  (define-syntax pointer-to-netent-n_aliases
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_NETENT_N_ALIASES@ ?pointer
+         @OFFSETOF_NETENT_N_ALIASES@))))
+  (define-syntax pointer-to-netent-n_name-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_NETENT_N_NAME@ ?pointer
+         @OFFSETOF_NETENT_N_NAME@ ?value))))
+  (define-syntax pointer-to-netent-n_name
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_NETENT_N_NAME@ ?pointer
+         @OFFSETOF_NETENT_N_NAME@))))
+  (define-class <struct-netent>
+    (nongenerative nausicaa:posix:<struct-netent>)
+    (protocol
+      (lambda (make-top)
+        (lambda (malloc)
+          ((make-top) (malloc (c-sizeof struct-netent))))))
+    (fields (immutable pointer))
     (virtual-fields (mutable n_net) (mutable n_addrtype)
       (mutable n_aliases) (mutable n_name)))
   (define-syntax <struct-netent>-n_net-set!
     (syntax-rules ()
       ((_ ?pointer ?value)
-       (pointer-c-set! @TYPEOF_NETENT_N_NET@ ?pointer
-         @OFFSETOF_NETENT_N_NET@ ?value))))
+       (pointer-to-netent-n_net-set!
+         (<struct-netent>-pointer ?pointer) ?value))))
   (define-syntax <struct-netent>-n_net
     (syntax-rules ()
       ((_ ?pointer)
-       (pointer-c-ref @TYPEOF_NETENT_N_NET@ ?pointer
-         @OFFSETOF_NETENT_N_NET@))))
+       (pointer-to-netent-n_net
+         (<struct-netent>-pointer ?pointer)))))
   (define-syntax <struct-netent>-n_addrtype-set!
     (syntax-rules ()
       ((_ ?pointer ?value)
-       (pointer-c-set! @TYPEOF_NETENT_N_ADDRTYPE@ ?pointer
-         @OFFSETOF_NETENT_N_ADDRTYPE@ ?value))))
+       (pointer-to-netent-n_addrtype-set!
+         (<struct-netent>-pointer ?pointer) ?value))))
   (define-syntax <struct-netent>-n_addrtype
     (syntax-rules ()
       ((_ ?pointer)
-       (pointer-c-ref @TYPEOF_NETENT_N_ADDRTYPE@ ?pointer
-         @OFFSETOF_NETENT_N_ADDRTYPE@))))
+       (pointer-to-netent-n_addrtype
+         (<struct-netent>-pointer ?pointer)))))
   (define-syntax <struct-netent>-n_aliases-set!
     (syntax-rules ()
       ((_ ?pointer ?value)
-       (pointer-c-set! @TYPEOF_NETENT_N_ALIASES@ ?pointer
-         @OFFSETOF_NETENT_N_ALIASES@ ?value))))
+       (pointer-to-netent-n_aliases-set!
+         (<struct-netent>-pointer ?pointer) ?value))))
   (define-syntax <struct-netent>-n_aliases
     (syntax-rules ()
       ((_ ?pointer)
-       (pointer-c-ref @TYPEOF_NETENT_N_ALIASES@ ?pointer
-         @OFFSETOF_NETENT_N_ALIASES@))))
+       (pointer-to-netent-n_aliases
+         (<struct-netent>-pointer ?pointer)))))
   (define-syntax <struct-netent>-n_name-set!
     (syntax-rules ()
       ((_ ?pointer ?value)
-       (pointer-c-set! @TYPEOF_NETENT_N_NAME@ ?pointer
-         @OFFSETOF_NETENT_N_NAME@ ?value))))
+       (pointer-to-netent-n_name-set!
+         (<struct-netent>-pointer ?pointer) ?value))))
   (define-syntax <struct-netent>-n_name
     (syntax-rules ()
       ((_ ?pointer)
-       (pointer-c-ref @TYPEOF_NETENT_N_NAME@ ?pointer
-         @OFFSETOF_NETENT_N_NAME@))))
-  (define-label <struct-linger>
+       (pointer-to-netent-n_name
+         (<struct-netent>-pointer ?pointer)))))
+  (define-class <netent>
+    (nongenerative nausicaa:posix:<netent>)
+    (fields (mutable n_net) (mutable n_addrtype)
+      (mutable n_aliases) (mutable n_name)))
+  (define-label pointer-to-linger
     (virtual-fields (mutable l_linger) (mutable l_onoff)))
-  (define-syntax <struct-linger>-l_linger-set!
+  (define-syntax pointer-to-linger-l_linger-set!
     (syntax-rules ()
       ((_ ?pointer ?value)
        (pointer-c-set! @TYPEOF_LINGER_L_LINGER@ ?pointer
          @OFFSETOF_LINGER_L_LINGER@ ?value))))
-  (define-syntax <struct-linger>-l_linger
+  (define-syntax pointer-to-linger-l_linger
     (syntax-rules ()
       ((_ ?pointer)
        (pointer-c-ref @TYPEOF_LINGER_L_LINGER@ ?pointer
          @OFFSETOF_LINGER_L_LINGER@))))
-  (define-syntax <struct-linger>-l_onoff-set!
+  (define-syntax pointer-to-linger-l_onoff-set!
     (syntax-rules ()
       ((_ ?pointer ?value)
        (pointer-c-set! @TYPEOF_LINGER_L_ONOFF@ ?pointer
          @OFFSETOF_LINGER_L_ONOFF@ ?value))))
-  (define-syntax <struct-linger>-l_onoff
+  (define-syntax pointer-to-linger-l_onoff
     (syntax-rules ()
       ((_ ?pointer)
        (pointer-c-ref @TYPEOF_LINGER_L_ONOFF@ ?pointer
          @OFFSETOF_LINGER_L_ONOFF@))))
-  (define-label <struct-hostent>
+  (define-class <struct-linger>
+    (nongenerative nausicaa:posix:<struct-linger>)
+    (protocol
+      (lambda (make-top)
+        (lambda (malloc)
+          ((make-top) (malloc (c-sizeof struct-linger))))))
+    (fields (immutable pointer))
+    (virtual-fields (mutable l_linger) (mutable l_onoff)))
+  (define-syntax <struct-linger>-l_linger-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-to-linger-l_linger-set!
+         (<struct-linger>-pointer ?pointer) ?value))))
+  (define-syntax <struct-linger>-l_linger
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-to-linger-l_linger
+         (<struct-linger>-pointer ?pointer)))))
+  (define-syntax <struct-linger>-l_onoff-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-to-linger-l_onoff-set!
+         (<struct-linger>-pointer ?pointer) ?value))))
+  (define-syntax <struct-linger>-l_onoff
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-to-linger-l_onoff
+         (<struct-linger>-pointer ?pointer)))))
+  (define-class <linger>
+    (nongenerative nausicaa:posix:<linger>)
+    (fields (mutable l_linger) (mutable l_onoff)))
+  (define-label pointer-to-hostent
+    (virtual-fields (mutable h_addr) (mutable h_addr_list)
+      (mutable h_length) (mutable h_addrtype)
+      (mutable h_aliases) (mutable h_name)))
+  (define-syntax pointer-to-hostent-h_addr-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_HOSTENT_H_ADDR@ ?pointer
+         @OFFSETOF_HOSTENT_H_ADDR@ ?value))))
+  (define-syntax pointer-to-hostent-h_addr
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_HOSTENT_H_ADDR@ ?pointer
+         @OFFSETOF_HOSTENT_H_ADDR@))))
+  (define-syntax pointer-to-hostent-h_addr_list-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_HOSTENT_H_ADDR_LIST@ ?pointer
+         @OFFSETOF_HOSTENT_H_ADDR_LIST@ ?value))))
+  (define-syntax pointer-to-hostent-h_addr_list
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_HOSTENT_H_ADDR_LIST@ ?pointer
+         @OFFSETOF_HOSTENT_H_ADDR_LIST@))))
+  (define-syntax pointer-to-hostent-h_length-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_HOSTENT_H_LENGTH@ ?pointer
+         @OFFSETOF_HOSTENT_H_LENGTH@ ?value))))
+  (define-syntax pointer-to-hostent-h_length
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_HOSTENT_H_LENGTH@ ?pointer
+         @OFFSETOF_HOSTENT_H_LENGTH@))))
+  (define-syntax pointer-to-hostent-h_addrtype-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_HOSTENT_H_ADDRTYPE@ ?pointer
+         @OFFSETOF_HOSTENT_H_ADDRTYPE@ ?value))))
+  (define-syntax pointer-to-hostent-h_addrtype
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_HOSTENT_H_ADDRTYPE@ ?pointer
+         @OFFSETOF_HOSTENT_H_ADDRTYPE@))))
+  (define-syntax pointer-to-hostent-h_aliases-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_HOSTENT_H_ALIASES@ ?pointer
+         @OFFSETOF_HOSTENT_H_ALIASES@ ?value))))
+  (define-syntax pointer-to-hostent-h_aliases
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_HOSTENT_H_ALIASES@ ?pointer
+         @OFFSETOF_HOSTENT_H_ALIASES@))))
+  (define-syntax pointer-to-hostent-h_name-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_HOSTENT_H_NAME@ ?pointer
+         @OFFSETOF_HOSTENT_H_NAME@ ?value))))
+  (define-syntax pointer-to-hostent-h_name
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_HOSTENT_H_NAME@ ?pointer
+         @OFFSETOF_HOSTENT_H_NAME@))))
+  (define-class <struct-hostent>
+    (nongenerative nausicaa:posix:<struct-hostent>)
+    (protocol
+      (lambda (make-top)
+        (lambda (malloc)
+          ((make-top) (malloc (c-sizeof struct-hostent))))))
+    (fields (immutable pointer))
     (virtual-fields (mutable h_addr) (mutable h_addr_list)
       (mutable h_length) (mutable h_addrtype)
       (mutable h_aliases) (mutable h_name)))
   (define-syntax <struct-hostent>-h_addr-set!
     (syntax-rules ()
       ((_ ?pointer ?value)
-       (pointer-c-set! @TYPEOF_HOSTENT_H_ADDR@ ?pointer
-         @OFFSETOF_HOSTENT_H_ADDR@ ?value))))
+       (pointer-to-hostent-h_addr-set!
+         (<struct-hostent>-pointer ?pointer) ?value))))
   (define-syntax <struct-hostent>-h_addr
     (syntax-rules ()
       ((_ ?pointer)
-       (pointer-c-ref @TYPEOF_HOSTENT_H_ADDR@ ?pointer
-         @OFFSETOF_HOSTENT_H_ADDR@))))
+       (pointer-to-hostent-h_addr
+         (<struct-hostent>-pointer ?pointer)))))
   (define-syntax <struct-hostent>-h_addr_list-set!
     (syntax-rules ()
       ((_ ?pointer ?value)
-       (pointer-c-set! @TYPEOF_HOSTENT_H_ADDR_LIST@ ?pointer
-         @OFFSETOF_HOSTENT_H_ADDR_LIST@ ?value))))
+       (pointer-to-hostent-h_addr_list-set!
+         (<struct-hostent>-pointer ?pointer) ?value))))
   (define-syntax <struct-hostent>-h_addr_list
     (syntax-rules ()
       ((_ ?pointer)
-       (pointer-c-ref @TYPEOF_HOSTENT_H_ADDR_LIST@ ?pointer
-         @OFFSETOF_HOSTENT_H_ADDR_LIST@))))
+       (pointer-to-hostent-h_addr_list
+         (<struct-hostent>-pointer ?pointer)))))
   (define-syntax <struct-hostent>-h_length-set!
     (syntax-rules ()
       ((_ ?pointer ?value)
-       (pointer-c-set! @TYPEOF_HOSTENT_H_LENGTH@ ?pointer
-         @OFFSETOF_HOSTENT_H_LENGTH@ ?value))))
+       (pointer-to-hostent-h_length-set!
+         (<struct-hostent>-pointer ?pointer) ?value))))
   (define-syntax <struct-hostent>-h_length
     (syntax-rules ()
       ((_ ?pointer)
-       (pointer-c-ref @TYPEOF_HOSTENT_H_LENGTH@ ?pointer
-         @OFFSETOF_HOSTENT_H_LENGTH@))))
+       (pointer-to-hostent-h_length
+         (<struct-hostent>-pointer ?pointer)))))
   (define-syntax <struct-hostent>-h_addrtype-set!
     (syntax-rules ()
       ((_ ?pointer ?value)
-       (pointer-c-set! @TYPEOF_HOSTENT_H_ADDRTYPE@ ?pointer
-         @OFFSETOF_HOSTENT_H_ADDRTYPE@ ?value))))
+       (pointer-to-hostent-h_addrtype-set!
+         (<struct-hostent>-pointer ?pointer) ?value))))
   (define-syntax <struct-hostent>-h_addrtype
     (syntax-rules ()
       ((_ ?pointer)
-       (pointer-c-ref @TYPEOF_HOSTENT_H_ADDRTYPE@ ?pointer
-         @OFFSETOF_HOSTENT_H_ADDRTYPE@))))
+       (pointer-to-hostent-h_addrtype
+         (<struct-hostent>-pointer ?pointer)))))
   (define-syntax <struct-hostent>-h_aliases-set!
     (syntax-rules ()
       ((_ ?pointer ?value)
-       (pointer-c-set! @TYPEOF_HOSTENT_H_ALIASES@ ?pointer
-         @OFFSETOF_HOSTENT_H_ALIASES@ ?value))))
+       (pointer-to-hostent-h_aliases-set!
+         (<struct-hostent>-pointer ?pointer) ?value))))
   (define-syntax <struct-hostent>-h_aliases
     (syntax-rules ()
       ((_ ?pointer)
-       (pointer-c-ref @TYPEOF_HOSTENT_H_ALIASES@ ?pointer
-         @OFFSETOF_HOSTENT_H_ALIASES@))))
+       (pointer-to-hostent-h_aliases
+         (<struct-hostent>-pointer ?pointer)))))
   (define-syntax <struct-hostent>-h_name-set!
     (syntax-rules ()
       ((_ ?pointer ?value)
-       (pointer-c-set! @TYPEOF_HOSTENT_H_NAME@ ?pointer
-         @OFFSETOF_HOSTENT_H_NAME@ ?value))))
+       (pointer-to-hostent-h_name-set!
+         (<struct-hostent>-pointer ?pointer) ?value))))
   (define-syntax <struct-hostent>-h_name
     (syntax-rules ()
       ((_ ?pointer)
-       (pointer-c-ref @TYPEOF_HOSTENT_H_NAME@ ?pointer
-         @OFFSETOF_HOSTENT_H_NAME@))))
-  (define-label <struct-protoent>
+       (pointer-to-hostent-h_name
+         (<struct-hostent>-pointer ?pointer)))))
+  (define-class <hostent>
+    (nongenerative nausicaa:posix:<hostent>)
+    (fields (mutable h_addr) (mutable h_addr_list)
+      (mutable h_length) (mutable h_addrtype)
+      (mutable h_aliases) (mutable h_name)))
+  (define-label pointer-to-protoent
+    (virtual-fields (mutable p_proto) (mutable p_aliases)
+      (mutable p_name)))
+  (define-syntax pointer-to-protoent-p_proto-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_PROTOENT_P_PROTO@ ?pointer
+         @OFFSETOF_PROTOENT_P_PROTO@ ?value))))
+  (define-syntax pointer-to-protoent-p_proto
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_PROTOENT_P_PROTO@ ?pointer
+         @OFFSETOF_PROTOENT_P_PROTO@))))
+  (define-syntax pointer-to-protoent-p_aliases-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_PROTOENT_P_ALIASES@ ?pointer
+         @OFFSETOF_PROTOENT_P_ALIASES@ ?value))))
+  (define-syntax pointer-to-protoent-p_aliases
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_PROTOENT_P_ALIASES@ ?pointer
+         @OFFSETOF_PROTOENT_P_ALIASES@))))
+  (define-syntax pointer-to-protoent-p_name-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_PROTOENT_P_NAME@ ?pointer
+         @OFFSETOF_PROTOENT_P_NAME@ ?value))))
+  (define-syntax pointer-to-protoent-p_name
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_PROTOENT_P_NAME@ ?pointer
+         @OFFSETOF_PROTOENT_P_NAME@))))
+  (define-class <struct-protoent>
+    (nongenerative nausicaa:posix:<struct-protoent>)
+    (protocol
+      (lambda (make-top)
+        (lambda (malloc)
+          ((make-top) (malloc (c-sizeof struct-protoent))))))
+    (fields (immutable pointer))
     (virtual-fields (mutable p_proto) (mutable p_aliases)
       (mutable p_name)))
   (define-syntax <struct-protoent>-p_proto-set!
     (syntax-rules ()
       ((_ ?pointer ?value)
-       (pointer-c-set! @TYPEOF_PROTOENT_P_PROTO@ ?pointer
-         @OFFSETOF_PROTOENT_P_PROTO@ ?value))))
+       (pointer-to-protoent-p_proto-set!
+         (<struct-protoent>-pointer ?pointer) ?value))))
   (define-syntax <struct-protoent>-p_proto
     (syntax-rules ()
       ((_ ?pointer)
-       (pointer-c-ref @TYPEOF_PROTOENT_P_PROTO@ ?pointer
-         @OFFSETOF_PROTOENT_P_PROTO@))))
+       (pointer-to-protoent-p_proto
+         (<struct-protoent>-pointer ?pointer)))))
   (define-syntax <struct-protoent>-p_aliases-set!
     (syntax-rules ()
       ((_ ?pointer ?value)
-       (pointer-c-set! @TYPEOF_PROTOENT_P_ALIASES@ ?pointer
-         @OFFSETOF_PROTOENT_P_ALIASES@ ?value))))
+       (pointer-to-protoent-p_aliases-set!
+         (<struct-protoent>-pointer ?pointer) ?value))))
   (define-syntax <struct-protoent>-p_aliases
     (syntax-rules ()
       ((_ ?pointer)
-       (pointer-c-ref @TYPEOF_PROTOENT_P_ALIASES@ ?pointer
-         @OFFSETOF_PROTOENT_P_ALIASES@))))
+       (pointer-to-protoent-p_aliases
+         (<struct-protoent>-pointer ?pointer)))))
   (define-syntax <struct-protoent>-p_name-set!
     (syntax-rules ()
       ((_ ?pointer ?value)
-       (pointer-c-set! @TYPEOF_PROTOENT_P_NAME@ ?pointer
-         @OFFSETOF_PROTOENT_P_NAME@ ?value))))
+       (pointer-to-protoent-p_name-set!
+         (<struct-protoent>-pointer ?pointer) ?value))))
   (define-syntax <struct-protoent>-p_name
     (syntax-rules ()
       ((_ ?pointer)
-       (pointer-c-ref @TYPEOF_PROTOENT_P_NAME@ ?pointer
-         @OFFSETOF_PROTOENT_P_NAME@))))
-  (define-label <struct-servent>
+       (pointer-to-protoent-p_name
+         (<struct-protoent>-pointer ?pointer)))))
+  (define-class <protoent>
+    (nongenerative nausicaa:posix:<protoent>)
+    (fields (mutable p_proto) (mutable p_aliases)
+      (mutable p_name)))
+  (define-label pointer-to-servent
+    (virtual-fields (mutable s_proto) (mutable s_port)
+      (mutable s_aliases) (mutable s_name)))
+  (define-syntax pointer-to-servent-s_proto-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_SERVENT_S_PROTO@ ?pointer
+         @OFFSETOF_SERVENT_S_PROTO@ ?value))))
+  (define-syntax pointer-to-servent-s_proto
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_SERVENT_S_PROTO@ ?pointer
+         @OFFSETOF_SERVENT_S_PROTO@))))
+  (define-syntax pointer-to-servent-s_port-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_SERVENT_S_PORT@ ?pointer
+         @OFFSETOF_SERVENT_S_PORT@ ?value))))
+  (define-syntax pointer-to-servent-s_port
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_SERVENT_S_PORT@ ?pointer
+         @OFFSETOF_SERVENT_S_PORT@))))
+  (define-syntax pointer-to-servent-s_aliases-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_SERVENT_S_ALIASES@ ?pointer
+         @OFFSETOF_SERVENT_S_ALIASES@ ?value))))
+  (define-syntax pointer-to-servent-s_aliases
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_SERVENT_S_ALIASES@ ?pointer
+         @OFFSETOF_SERVENT_S_ALIASES@))))
+  (define-syntax pointer-to-servent-s_name-set!
+    (syntax-rules ()
+      ((_ ?pointer ?value)
+       (pointer-c-set! @TYPEOF_SERVENT_S_NAME@ ?pointer
+         @OFFSETOF_SERVENT_S_NAME@ ?value))))
+  (define-syntax pointer-to-servent-s_name
+    (syntax-rules ()
+      ((_ ?pointer)
+       (pointer-c-ref @TYPEOF_SERVENT_S_NAME@ ?pointer
+         @OFFSETOF_SERVENT_S_NAME@))))
+  (define-class <struct-servent>
+    (nongenerative nausicaa:posix:<struct-servent>)
+    (protocol
+      (lambda (make-top)
+        (lambda (malloc)
+          ((make-top) (malloc (c-sizeof struct-servent))))))
+    (fields (immutable pointer))
     (virtual-fields (mutable s_proto) (mutable s_port)
       (mutable s_aliases) (mutable s_name)))
   (define-syntax <struct-servent>-s_proto-set!
     (syntax-rules ()
       ((_ ?pointer ?value)
-       (pointer-c-set! @TYPEOF_SERVENT_S_PROTO@ ?pointer
-         @OFFSETOF_SERVENT_S_PROTO@ ?value))))
+       (pointer-to-servent-s_proto-set!
+         (<struct-servent>-pointer ?pointer) ?value))))
   (define-syntax <struct-servent>-s_proto
     (syntax-rules ()
       ((_ ?pointer)
-       (pointer-c-ref @TYPEOF_SERVENT_S_PROTO@ ?pointer
-         @OFFSETOF_SERVENT_S_PROTO@))))
+       (pointer-to-servent-s_proto
+         (<struct-servent>-pointer ?pointer)))))
   (define-syntax <struct-servent>-s_port-set!
     (syntax-rules ()
       ((_ ?pointer ?value)
-       (pointer-c-set! @TYPEOF_SERVENT_S_PORT@ ?pointer
-         @OFFSETOF_SERVENT_S_PORT@ ?value))))
+       (pointer-to-servent-s_port-set!
+         (<struct-servent>-pointer ?pointer) ?value))))
   (define-syntax <struct-servent>-s_port
     (syntax-rules ()
       ((_ ?pointer)
-       (pointer-c-ref @TYPEOF_SERVENT_S_PORT@ ?pointer
-         @OFFSETOF_SERVENT_S_PORT@))))
+       (pointer-to-servent-s_port
+         (<struct-servent>-pointer ?pointer)))))
   (define-syntax <struct-servent>-s_aliases-set!
     (syntax-rules ()
       ((_ ?pointer ?value)
-       (pointer-c-set! @TYPEOF_SERVENT_S_ALIASES@ ?pointer
-         @OFFSETOF_SERVENT_S_ALIASES@ ?value))))
+       (pointer-to-servent-s_aliases-set!
+         (<struct-servent>-pointer ?pointer) ?value))))
   (define-syntax <struct-servent>-s_aliases
     (syntax-rules ()
       ((_ ?pointer)
-       (pointer-c-ref @TYPEOF_SERVENT_S_ALIASES@ ?pointer
-         @OFFSETOF_SERVENT_S_ALIASES@))))
+       (pointer-to-servent-s_aliases
+         (<struct-servent>-pointer ?pointer)))))
   (define-syntax <struct-servent>-s_name-set!
     (syntax-rules ()
       ((_ ?pointer ?value)
-       (pointer-c-set! @TYPEOF_SERVENT_S_NAME@ ?pointer
-         @OFFSETOF_SERVENT_S_NAME@ ?value))))
+       (pointer-to-servent-s_name-set!
+         (<struct-servent>-pointer ?pointer) ?value))))
   (define-syntax <struct-servent>-s_name
     (syntax-rules ()
       ((_ ?pointer)
-       (pointer-c-ref @TYPEOF_SERVENT_S_NAME@ ?pointer
-         @OFFSETOF_SERVENT_S_NAME@)))))
+       (pointer-to-servent-s_name
+         (<struct-servent>-pointer ?pointer)))))
+  (define-class <servent>
+    (nongenerative nausicaa:posix:<servent>)
+    (fields (mutable s_proto) (mutable s_port)
+      (mutable s_aliases) (mutable s_name))))
 
 
 ;;; end of file

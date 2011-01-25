@@ -7,7 +7,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2008, 2009, 2010, 2011 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2008-2011 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -24,6 +24,7 @@
 ;;;
 
 
+#!r6rs
 (library (nausicaa posix fd)
   (export
     open			open-function
@@ -79,9 +80,9 @@
     (only (nausicaa ffi memory)
 	  malloc-block/c)
     (nausicaa posix helpers)
-    (only (nausicaa ffi peekers-and-pokers)
-	  pointer-set-c-uint8!
-	  pointer-ref-c-uint8)
+    (prefix (only (nausicaa ffi peekers-and-pokers)
+		  pointer-c-set! pointer-c-ref)
+	    ffi.)
     (prefix (nausicaa posix fd primitives) primitive:)
     (only (nausicaa posix sizeof)
 	  SEEK_CUR SEEK_SET))
@@ -154,7 +155,7 @@
       (do ((i 0 (+ 1 i)))
 	  ((= i len)
 	   len)
-	(bytevector-u8-set! bv (+ start i) (pointer-ref-c-uint8 p i))))))
+	(bytevector-u8-set! bv (+ start i) (ffi.pointer-c-ref uint8 p i))))))
 
 (define (custom-binary-write fd bv start count)
   (with-compensations
@@ -162,7 +163,7 @@
       (do ((i 0 (+ 1 i)))
 	  ((= i count)
 	   (write fd p count))
-	(pointer-set-c-uint8! p i (bytevector-u8-ref bv (+ start i)))))))
+	(ffi.pointer-c-set! uint8 p i (bytevector-u8-ref bv (+ start i)))))))
 
 (define (fd->binary-input-port fd)
   (make-custom-binary-input-port
@@ -200,7 +201,7 @@
 	  ((= i len)
 	   len)
 	(string-set! str (+ start i)
-		     (integer->char (pointer-ref-c-uint8 p i)))))))
+		     (integer->char (ffi.pointer-c-ref uint8 p i)))))))
 
 (define (custom-textual-write fd str start count)
   (with-compensations
@@ -208,7 +209,7 @@
       (do ((i 0 (+ 1 i)))
 	  ((= i count)
 	   (write fd p count))
-	(pointer-set-c-uint8! p i (char->integer (string-ref str (+ start i))))))))
+	(ffi.pointer-c-set! uint8 p i (char->integer (string-ref str (+ start i))))))))
 
 
 (define (fd->textual-input-port fd)

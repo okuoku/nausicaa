@@ -1,53 +1,62 @@
 ;;; -*- coding: utf-8-unix -*-
 ;;;
 ;;;Part of: Nausicaa/Scheme
-;;;Contents: FFI types for Ypsilon
+;;;Contents: FFI types for Mosh
 ;;;Date: Mon Nov 30, 2009
 ;;;
 ;;;Abstract
 ;;;
-;;;In Ypsilon  revision 503, it appears  that an argument  to a function
-;;;can be one among:
+;;;	According to "lib/mosh/ffi.ss" (revision 2185):
 ;;;
-;;;  bool		char		size_t
-;;;  short		int		long		long-long
-;;;  unsigned-short	unsigned-int	unsigned-long	unsigned-long-long
-;;;  float		double
-;;;  void*
-;;;  int8_t		int16_t		int32_t		int64_t
-;;;  uint8_t		uint16_t	uint32_t	uint64_t
-;;;
-;;;the return type of a callout function can be one among:
+;;;* The accepted return values for callouts are:
 ;;;
 ;;;  void
 ;;;  bool		char		size_t
 ;;;  short		int		long		long-long
 ;;;  unsigned-short	unsigned-int	unsigned-long	unsigned-long-long
-;;;  float		double
-;;;  void*		char*
 ;;;  int8_t		int16_t		int32_t		int64_t
 ;;;  uint8_t		uint16_t	uint32_t	uint64_t
+;;;  float		double
+;;;  void*
 ;;;
-;;;the return type of a callback function can be one among:
+;;;* The accepted arguments for callouts are:
 ;;;
 ;;;  void
 ;;;  bool		char		size_t
 ;;;  short		int		long		long-long
 ;;;  unsigned-short	unsigned-int	unsigned-long	unsigned-long-long
-;;;  float		double
-;;;  void*
 ;;;  int8_t		int16_t		int32_t		int64_t
 ;;;  uint8_t		uint16_t	uint32_t	uint64_t
+;;;  float		double
+;;;  char*		void*
 ;;;
-;;;Care  must  be  taken  in  selecting  types,  because:
+;;;  an empty list represents no arguments.
 ;;;
-;;;* Selecting "void*" as Ypsilon  type will cause Ypsilon to allocate a
-;;;  bytevector and use it as value.
+;;;* The accepted return values for callbacks are:
 ;;;
-;;;* Selecting "char*" as Ypsilon  type will cause Ypsilon to allocate a
-;;;  string and use it as value.
+;;;  void
+;;;  bool		char		size_t
+;;;  short		int		long		long-long
+;;;  unsigned-short	unsigned-int	unsigned-long	unsigned-long-long
+;;;  int8_t		int16_t		int32_t		int64_t
+;;;  uint8_t		uint16_t	uint32_t	uint64_t
+;;;  float		double
+;;;  void*
 ;;;
-;;;Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;* The accepted arguments for callbacks are:
+;;;
+;;;  void
+;;;  bool		char		size_t
+;;;  short		int		long		long-long
+;;;  unsigned-short	unsigned-int	unsigned-long	unsigned-long-long
+;;;  int8_t		int16_t		int32_t		int64_t
+;;;  uint8_t		uint16_t	uint32_t	uint64_t
+;;;  float		double
+;;;  void*
+;;;
+;;;  an empty list represents no arguments.
+;;;
+;;;Copyright (c) 2009-2011 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -65,20 +74,19 @@
 
 
 #!r6rs
-(library (nausicaa ffi clang-data-types compat)
+(library (nausicaa ffi clang type-translation compat)
   (export enum-clang-types clang-types clang-internal-type->clang-type)
   (import (rnrs))
 
 
 (define-enumeration enum-clang-types
   ( ;;
-   bool			char		size_t
-   short		int		long		long-long
-   unsigned-short	unsigned-int	unsigned-long	unsigned-long-long
-   float		double
-   void*
-   int8_t		int16_t		int32_t		int64_t
-   uint8_t		uint16_t	uint32_t	uint64_t)
+   int8_t int16_t int32_t int64_t
+   uint8_t uint16_t uint32_t uint64_t
+   char short unsigned-short
+   int unsigned-int long unsigned-long
+   long-long unsigned-long-long
+   float double pointer void bool)
   clang-types)
 
 (define (clang-internal-type->clang-type type)
@@ -90,7 +98,7 @@
     ((uint8_t)				'uint8_t)
     ((uint16_t)				'uint16_t)
     ((uint32_t)				'uint32_t)
-    ((uint64_t)				'uint32_t)
+    ((uint64_t)				'uint64_t)
     ((signed-char)			'char)
     ((unsigned-char)			'char)
     ((signed-short)			'short)
@@ -108,7 +116,7 @@
     ((void)				'void)
     (else
      (assertion-violation #f
-       "C language data type unknown to Ypsilon Scheme" type))))
+       "C language type identifier unknown by Mosh Scheme" type))))
 
 
 ;;;; done

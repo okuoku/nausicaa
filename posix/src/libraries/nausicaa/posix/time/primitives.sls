@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009, 2010, 2011 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2009-2011 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -25,6 +25,7 @@
 ;;;
 
 
+#!r6rs
 (library (nausicaa posix time primitives)
   (export
 
@@ -35,68 +36,41 @@
     time
 
     ;; structure/record conversion
-    <tms>->pointer		pointer-><tms>
-    <timeval>->pointer		pointer-><timeval>
+    ;; <tms>->pointer		pointer-><tms>
+    ;; <timeval>->pointer		pointer-><timeval>
     )
-  (import (rnrs)
-    (nausicaa language extensions)
-    (nausicaa language compensations)
-    (only (nausicaa ffi sizeof) sizeof-double-array)
-    (only (nausicaa ffi peekers-and-pokers) array-ref-c-double)
-    (only (nausicaa ffi pointers) pointer-null)
+  (import (nausicaa)
+    (prefix (nausicaa ffi sizeof) ffi.)
     (only (nausicaa ffi memory) malloc-block/c)
     (only (nausicaa ffi errno) raise-errno-error)
-    (nausicaa posix typedefs)
-    (nausicaa posix sizeof)
-    (prefix (nausicaa posix time platform) platform:))
-
-
-(define (pointer-><tms> pointer)
-  (make-<tms> (platform:struct-tms-tms_utime-ref  pointer)
-		     (platform:struct-tms-tms_stime-ref  pointer)
-		     (platform:struct-tms-tms_cutime-ref pointer)
-		     (platform:struct-tms-tms_cutime-ref pointer)))
-
-(define (<tms>->pointer record malloc)
-  (begin0-let ((pointer (malloc sizeof-tms)))
-    (platform:struct-tms-tms_utime-set!  pointer (<tms>-utime  record))
-    (platform:struct-tms-tms_stime-set!  pointer (<tms>-stime  record))
-    (platform:struct-tms-tms_cutime-set! pointer (<tms>-cutime record))
-    (platform:struct-tms-tms_cstime-set! pointer (<tms>-cstime record))))
-
-;;; --------------------------------------------------------------------
-
-(define (pointer-><timeval> pointer)
-  (make-<timeval> (struct-timeval-tv_sec-ref  pointer)
-			 (struct-timeval-tv_usec-ref pointer)))
-
-(define (<timeval>->pointer record malloc)
-  (begin0-let ((pointer (malloc sizeof-timeval)))
-    (struct-timeval-tv_sec-set!  pointer (<timeval>-sec  record))
-    (struct-timeval-tv_usec-set! pointer (<timeval>-usec record))))
+;;    (nausicaa posix typedefs)
+    (prefix (nausicaa posix sizeof) so.)
+    (nausicaa posix time typedefs)
+    (prefix (nausicaa posix time platform) platform.))
 
 
 ;;;; clock ticks and CPU time
 
 (define (clock)
   (receive (result errno)
-      (platform:clock)
+      (platform.clock)
     (if (= -1 result)
 	(raise-errno-error 'clock errno)
       result)))
 
 (define (times)
   (with-compensations
-    (let* ((struct-tms*	(malloc-block/c sizeof-tms))
-	   (result	(platform:times struct-tms*)))
-      (values result (pointer-><tms> struct-tms*)))))
+    (let* ((tms*	(malloc-block/c (so.c-sizeof struct-tms)))
+	   (result	(platform.times tms*)))
+      (values result (make <tms>
+		       (pointer: tms*))))))
 
 
 ;;;; calendar time
 
 (define (time)
   (receive (result errno)
-      (platform:time)
+      (platform.time)
     (if (= -1 result)
 	(raise-errno-error 'time errno)
       result)))
