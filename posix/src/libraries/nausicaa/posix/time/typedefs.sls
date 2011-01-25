@@ -94,12 +94,15 @@
 
 (define-syntax %make-pointer-to-tms
   (syntax-rules (sentinel)
+    ((_ sentinel sentinel sentinel ?malloc)
+     (?malloc (c-sizeof struct-tms)))
     ((_ ?pointer sentinel sentinel ?malloc)
      (tms-pointer->tms-pointer ?pointer ?malloc))
     ((_ sentinel ?wrapper sentinel ?malloc)
      (tms-wrapper->tms-pointer ?wrapper ?malloc))
     ((_ sentinel sentinel ?mirror ?malloc)
-     (tms-mirror->tms-pointer ?mirror ?malloc))))
+     (tms-mirror->tms-pointer ?mirror ?malloc))
+    ))
 
 (define (tms-pointer->tms-pointer (src pointer-to-tms) malloc)
   (let (((dst pointer-to-tms) (malloc (c-sizeof struct-tms))))
@@ -144,6 +147,8 @@
 
 (define-syntax <struct-tms>-maker
   (syntax-rules (sentinel)
+    ((_ ?constructor sentinel sentinel sentinel ?malloc)
+     (?constructor (?malloc (c-sizeof struct-tms))))
     ((_ ?constructor ?pointer sentinel sentinel ?malloc)
      (tms-pointer->tms-wrapper ?constructor ?pointer ?malloc))
     ((_ ?constructor sentinel ?wrapper sentinel ?malloc)
@@ -151,29 +156,14 @@
     ((_ ?constructor sentinel sentinel ?mirror ?malloc)
      (tms-mirror->tms-wrapper  ?constructor ?mirror ?malloc))))
 
-(define (tms-pointer->tms-wrapper constructor (pointer pointer-to-tms) malloc)
-  (let (((wrapper <struct-tms>) (constructor (malloc (c-sizeof struct-tms)))))
-    (set! wrapper.tms_stime  pointer.tms_stime)
-    (set! wrapper.tms_utime  pointer.tms_utime)
-    (set! wrapper.tms_cstime pointer.tms_cstime)
-    (set! wrapper.tms_cutime pointer.tms_cutime)
-    wrapper))
+(define (tms-pointer->tms-wrapper constructor pointer malloc)
+  (constructor (tms-pointer->tms-pointer pointer malloc)))
 
-(define (tms-wrapper->tms-wrapper constructor (src <struct-tms>) malloc)
-  (let (((dst <struct-tms>) (constructor (malloc (c-sizeof struct-tms)))))
-    (set! dst.tms_stime  src.tms_stime)
-    (set! dst.tms_utime  src.tms_utime)
-    (set! dst.tms_cstime src.tms_cstime)
-    (set! dst.tms_cutime src.tms_cutime)
-    dst))
+(define (tms-wrapper->tms-wrapper constructor wrapper malloc)
+  (constructor (tms-wrapper->tms-pointer wrapper malloc)))
 
-(define (tms-mirror->tms-wrapper constructor (mirror <tms>) malloc)
-  (let (((wrapper <struct-tms>) (constructor (malloc (c-sizeof struct-tms)))))
-    (set! wrapper.tms_stime  mirror.stime)
-    (set! wrapper.tms_utime  mirror.utime)
-    (set! wrapper.tms_cstime mirror.cstime)
-    (set! wrapper.tms_cutime mirror.cutime)
-    wrapper))
+(define (tms-mirror->tms-wrapper constructor mirror malloc)
+  (constructor (tms-mirror->tms-pointer mirror malloc)))
 
 (define-syntax <struct-tms>-tms_utime
   (syntax-rules ()
@@ -240,16 +230,16 @@
      (tms-mirror->tms-mirror  ?constructor ?mirror))))
 
 (define (tms-pointer->tms-mirror constructor (pointer pointer-to-tms))
-  (constructor pointer.tms_stime
-	       pointer.tms_utime
-	       pointer.tms_cstime
-	       pointer.tms_cutime))
+  (constructor pointer.tms_utime
+	       pointer.tms_stime
+	       pointer.tms_cutime
+	       pointer.tms_cstime))
 
 (define (tms-wrapper->tms-mirror constructor (wrapper <struct-tms>))
-  (constructor wrapper.tms_stime
-	       wrapper.tms_utime
-	       wrapper.tms_cstime
-	       wrapper.tms_cutime))
+  (constructor wrapper.tms_utime
+	       wrapper.tms_stime
+	       wrapper.tms_cutime
+	       wrapper.tms_cstime))
 
 (define (tms-mirror->tms-mirror constructor (mirror <tms>))
   (constructor mirror.utime
