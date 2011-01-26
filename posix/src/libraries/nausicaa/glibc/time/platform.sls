@@ -25,6 +25,7 @@
 ;;;
 
 
+#!r6rs
 (library (nausicaa glibc time platform)
   (export
     ;; simple calendar time
@@ -53,22 +54,12 @@
     alarm
 
     ;; sleeping
-    sleep		nanosleep
-    )
+    sleep		nanosleep)
   (import (rnrs)
     (nausicaa ffi)
-    (nausicaa ffi sizeof)
     (nausicaa posix sizeof)
-    (nausicaa posix shared-object))
-
-
-;;;; type aliases
-
-(define struct-tm*		'pointer)
-(define struct-ntptimeval*	'pointer)
-(define struct-timex*		'pointer)
-(define struct-itimerval*	'pointer)
-(define struct-timespec*	'pointer)
+    (nausicaa posix shared-object)
+    (nausicaa posix clang type-translation))
 
 
 (define-c-functions/with-errno libc-shared-object
@@ -89,12 +80,34 @@
   (sleep		(unsigned sleep (unsigned))))
 
 (define-c-functions/with-errno libnausicaa-posix
-  (stime		(int nausicaa_posix_stime (double)))
-  (localtime_r		(struct-tm* nausicaa_posix_localtime_r (double struct-tm*)))
-  (gmtime_r		(struct-tm* nausicaa_posix_gmtime_r (double struct-tm*)))
-  (timelocal		(double nausicaa_posix_timelocal (struct-tm*)))
-  (timegm		(double nausicaa_posix_timegm (struct-tm*)))
-  (ctime_r		(char* nausicaa_posix_ctime_r (double char*))))
+  (%stime		(int nausicaa_posix_stime (double)))
+  (%localtime_r		(struct-tm* nausicaa_posix_localtime_r (double struct-tm*)))
+  (%gmtime_r		(struct-tm* nausicaa_posix_gmtime_r (double struct-tm*)))
+  (%timelocal		(double nausicaa_posix_timelocal (struct-tm*)))
+  (%timegm		(double nausicaa_posix_timegm (struct-tm*)))
+  (%ctime_r		(char* nausicaa_posix_ctime_r (double char*))))
+
+(define (stime x)
+  (let-values (((retval errno) (%stime x)))
+    (values (exact retval) errno)))
+
+(define (localtime_r x p)
+  (%localtime_r (inexact x) p))
+
+(define (gmtime_r x p)
+  (%gmtime_r (inexact x) p))
+
+(define (timelocal p)
+  (let-values (((retval errno) (%timelocal p)))
+    (values (exact retval) errno)))
+
+(define (timegm p)
+  (let-values (((retval errno) (%timegm p)))
+    (values (exact retval) errno)))
+
+(define (ctime_r x p)
+  (let-values (((retval errno) (%ctime_r (inexact x) p)))
+    (values retval errno)))
 
 
 ;;;; done

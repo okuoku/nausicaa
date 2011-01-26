@@ -29,12 +29,10 @@
 (import (nausicaa)
   (inspector-maker))
 
-(class-uid "nausicaa:posix")
+(class-uid-prefix "nausicaa:posix")
 
 
-;;; --------------------------------------------------------------------
-;;; Inspection: typedefs.
-;;; --------------------------------------------------------------------
+;;;; inspection: typedefs
 
 (define-c-type blkcnt_t		unsigned-int)
 (define-c-type clock_t		signed-int)
@@ -53,9 +51,7 @@
 (define-c-type-alias socklen_t*	pointer)
 
 
-;;; --------------------------------------------------------------------
-;;; Struct types inspection.
-;;; --------------------------------------------------------------------
+;;;; inspection: struct types
 
 (define-c-struct flock
   "struct flock"
@@ -251,22 +247,16 @@ AC_CHECK_MEMBERS([struct stat.st_ctime_usec])
   (signed-int		mnt_freq)
   (signed-int		mnt_passno))
 
-(define-c-type-alias sockaddr*	pointer)
-
 (define-c-struct sockaddr
   "struct sockaddr"
   (signed-int		sa_family)
   (embedded		sa_data))
-
-(define-c-type-alias sockaddr_in*	pointer)
 
 (define-c-struct sockaddr_in
   "struct sockaddr_in"
   (signed-int		sin_family)
   (embedded		sin_addr)
   (unsigned-int		sin_port))
-
-(define-c-type-alias sockaddr_in6*	pointer)
 
 (define-c-struct sockaddr_in6
   "struct sockaddr_in6"
@@ -277,33 +267,23 @@ AC_CHECK_MEMBERS([struct stat.st_ctime_usec])
 ;;;  (unsigned-int		sin6_flowinfo)
   (unsigned-int		sin6_port))
 
-(define-c-type-alias sockaddr_un*	pointer)
-
 (define-c-struct sockaddr_un
   "struct sockaddr_un"
   (signed-int		sun_family)
   (embedded		sun_path))
 
-(define-c-type-alias in_addr*		pointer)
-
 (define-c-struct in_addr
   "struct in_addr"
-  (unsigned		s_addr))
-
-(define-c-type-alias in6_addr*		pointer)
+  (unsigned-int		s_addr))
 
 (define-c-struct in6_addr
   "struct in6_addr"
-  (unsigned		s_addr))
-
-(define-c-type-alias if_nameindex*	pointer)
+  (options no-label no-wrapper no-mirror))
 
 (define-c-struct if_nameindex
   "struct if_nameindex"
   (unsigned-int		if_index)
   (pointer		if_name))
-
-(define-c-type-alias netent*		pointer)
 
 (define-c-struct netent
   "struct netent"
@@ -342,16 +322,14 @@ AC_CHECK_MEMBERS([struct stat.st_ctime_usec])
 (autoconf-lib "AC_CACHE_SAVE")
 
 
-;;; --------------------------------------------------------------------
-;;; Constants.
-;;; --------------------------------------------------------------------
+;;;; inspection: constants
 
-(define-c-defines "seek whence arguments"
+(define-c-defines/public "seek whence arguments"
   SEEK_SET
   SEEK_CUR
   SEEK_END)
 
-(define-c-defines "file descriptor related flags"
+(define-c-defines/public "file descriptor related flags"
   O_ACCMODE
   O_APPEND
   O_ASYNC
@@ -389,7 +367,7 @@ AC_CHECK_MEMBERS([struct stat.st_ctime_usec])
 
 (autoconf-lib "AC_CACHE_SAVE")
 
-(define-c-defines "ioctl action selection"
+(define-c-defines/public "ioctl action selection"
   F_DUPFD
   F_GETFD
   F_GETFL
@@ -405,7 +383,7 @@ AC_CHECK_MEMBERS([struct stat.st_ctime_usec])
   F_UNLCK
   F_WRLCK)
 
-(define-c-defines "miscellaneous file-related constants"
+(define-c-defines/public "miscellaneous file-related constants"
   WNOHANG
   WUNTRACED
   WCONTINUED
@@ -415,13 +393,13 @@ AC_CHECK_MEMBERS([struct stat.st_ctime_usec])
   X_OK
   F_OK)
 
-(define-c-defines "miscellaneous constants"
+(define-c-defines/public "miscellaneous constants"
   L_ctermid
   L_tmpnam
 
   CLOCKS_PER_SEC)
 
-(define-c-defines "mode bits"
+(define-c-defines/public "mode bits"
   S_IRUSR
   S_IWUSR
   S_IXUSR
@@ -473,7 +451,7 @@ AC_SUBST([NAU_DIRENT_HAVE_D_TYPE])
  (define DIRENT_HAVE_D_OFF	^NAU_DIRENT_HAVE_D_OFF^)
  (define DIRENT_HAVE_D_TYPE	^NAU_DIRENT_HAVE_D_TYPE^))
 
-(define-c-defines "dirent stuff"
+(define-c-defines/public "dirent stuff"
   DT_BLK
   DT_CHR
   DT_DIR
@@ -483,7 +461,7 @@ AC_SUBST([NAU_DIRENT_HAVE_D_TYPE])
   DT_SOCK
   DT_UNKNOWN)
 
-(define-c-defines "constants related to ftw() and nftw()"
+(define-c-defines/public "constants related to ftw() and nftw()"
   FTW_F
   FTW_D
   FTW_NS
@@ -501,17 +479,17 @@ AC_SUBST([NAU_DIRENT_HAVE_D_TYPE])
   FTW_SKIP_SUBTREE
   FTW_SKIP_SIBLINGS)
 
-(define-c-defines "setitimer() stuff"
+(define-c-defines/public "setitimer() stuff"
   ITIMER_REAL
   ITIMER_VIRTUAL
   ITIMER_PROF)
 
-(define-c-defines "miscellaneous"
+(define-c-defines/public "miscellaneous"
   EOF
   MAXSYMLINKS
   MAXPATHLEN)
 
-(define-c-defines "mmap constants"
+(define-c-defines/public "mmap constants"
   MAP_PRIVATE		MAP_SHARED
   MAP_FIXED
   MAP_ANON		MAP_ANONYMOUS
@@ -530,13 +508,13 @@ AC_SUBST([NAU_DIRENT_HAVE_D_TYPE])
 
   MREMAP_MAYMOVE)
 
-(define-c-defines "select related symbols"
+(define-c-defines/public "select related symbols"
   FD_SETSIZE)
 
-(define-c-defines "max size of string for cuserid()"
+(define-c-defines/public "max size of string for cuserid()"
   L_cuserid)
 
-(define-c-defines "system capacity limitations"
+(define-c-defines/public "system capacity limitations"
   ARG_MAX	_POSIX_ARG_MAX
   CHILD_MAX	_POSIX_CHILD_MAX
   OPEN_MAX	_POSIX_OPEN_MAX
@@ -546,7 +524,7 @@ AC_SUBST([NAU_DIRENT_HAVE_D_TYPE])
   SSIZE_MAX
   RE_DUP_MAX)
 
-(define-c-defines "overall system options"
+(define-c-defines/public "overall system options"
   _POSIX_JOB_CONTROL
   _POSIX_SAVED_IDS
   _POSIX2_C_DEV
@@ -555,11 +533,11 @@ AC_SUBST([NAU_DIRENT_HAVE_D_TYPE])
   _POSIX2_LOCALEDEF
   _POSIX2_SW_DEV)
 
-(define-c-defines "supported POSIX version"
+(define-c-defines/public "supported POSIX version"
   _POSIX_VERSION
   _POSIX2_C_VERSION)
 
-(define-c-defines "sysconf constants"
+(define-c-defines/public "sysconf constants"
   _SC_ARG_MAX
   _SC_CHILD_MAX
   _SC_CLK_TCK
@@ -765,7 +743,7 @@ AC_SUBST([NAU_DIRENT_HAVE_D_TYPE])
   _SC_IPV6
   _SC_RAW_SOCKETS)
 
-(define-c-defines "limits on file system capacity"
+(define-c-defines/public "limits on file system capacity"
   LINK_MAX
   MAX_CANON
   MAX_INPUT
@@ -775,12 +753,12 @@ AC_SUBST([NAU_DIRENT_HAVE_D_TYPE])
   MAXNAMLEN
   FILENAME_MAX)
 
-(define-c-defines "optional features in file support"
+(define-c-defines/public "optional features in file support"
   _POSIX_CHOWN_RESTRICTED
   _POSIX_NO_TRUNC
   _POSIX_VDISABLE)
 
-(define-c-defines "minimum values for file system limits"
+(define-c-defines/public "minimum values for file system limits"
   _POSIX_LINK_MAX
   _POSIX_MAX_CANON
   _POSIX_MAX_INPUT
@@ -793,7 +771,7 @@ AC_SUBST([NAU_DIRENT_HAVE_D_TYPE])
   POSIX_REC_MIN_XFER_SIZE
   POSIX_REC_XFER_ALIGN)
 
-(define-c-defines "constants for pathconf and fpathconf"
+(define-c-defines/public "constants for pathconf and fpathconf"
   _PC_LINK_MAX
   _PC_MAX_CANON
   _PC_MAX_INPUT
@@ -812,7 +790,7 @@ AC_SUBST([NAU_DIRENT_HAVE_D_TYPE])
   _PC_REC_MIN_XFER_SIZE
   _PC_REC_XFER_ALIGN)
 
-(define-c-defines "glibc system inspection constants"
+(define-c-defines/public "glibc system inspection constants"
   BC_BASE_MAX		_POSIX_BC_BASE_MAX
   BC_DIM_MAX		_POSIX_BC_DIM_MAX
   BC_SCALE_MAX		_POSIX_BC_SCALE_MAX
@@ -822,7 +800,7 @@ AC_SUBST([NAU_DIRENT_HAVE_D_TYPE])
   LINE_MAX		_POSIX_LINE_MAX
   EQUIV_CLASS_MAX	_POSIX_EQUIV_CLASS_MAX)
 
-(define-c-defines "string-valued system configuration parameters"
+(define-c-defines/public "string-valued system configuration parameters"
   _CS_PATH
   _CS_LFS_CFLAGS
   _CS_LFS_LDFLAGS
@@ -858,7 +836,7 @@ AC_SUBST([NAU_DIRENT_HAVE_D_TYPE])
   MNTOPT_NOSUID
   MNTOPT_NOAUTO)
 
-(define-c-defines "options for mount"
+(define-c-defines/public "options for mount"
   MS_MGC_MASK
   MS_REMOUNT
   MS_RDONLY
@@ -872,10 +850,10 @@ AC_SUBST([NAU_DIRENT_HAVE_D_TYPE])
   MS_NOATIME
   MS_NODIRATIME)
 
-(define-c-defines "flags for umount2"
+(define-c-defines/public "flags for umount2"
   MNT_FORCE)
 
-(define-c-defines "interprocess signal constants"
+(define-c-defines/public "interprocess signal constants"
   NSIG
 
   ;; program error
@@ -912,7 +890,7 @@ AC_SUBST([NAU_DIRENT_HAVE_D_TYPE])
   SIGUSR1	SIGUSR2
   SIGWINCH	SIGINFO)
 
-(define-c-defines "sockets constants"
+(define-c-defines/public "sockets constants"
   SOCK_STREAM	SOCK_DGRAM
   SOCK_RAW	SOCK_RDM
   SOCK_SEQPACKET
@@ -942,7 +920,8 @@ AC_SUBST([NAU_DIRENT_HAVE_D_TYPE])
   SO_LINGER	SO_BROADCAST
   SO_OOBINLINE	SO_SNDBUF
   SO_RCVBUF
-  SO_TYPE	SO_ERROR
+  SO_TYPE	SO_STYLE
+  SO_ERROR
 
   INADDR_LOOPBACK
   INADDR_ANY
@@ -957,9 +936,6 @@ AC_SUBST([NAU_DIRENT_HAVE_D_TYPE])
   NO_RECOVERY
   NO_ADDRESS
   )
-
-(sizeof-lib
- (define valueof-SO_STYLE valueof-SO_TYPE))
 
 (autoconf-lib "AC_CACHE_SAVE")
 

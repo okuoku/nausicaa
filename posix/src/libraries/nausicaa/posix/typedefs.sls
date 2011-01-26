@@ -49,71 +49,9 @@
     uid=? gid=?
     pid-zero? pid=? pid<? pid<=? pid>? pid>=? pid<>?
 
-    struct-flock
-    make-struct-flock		struct-flock?
-    struct-flock->pointer	pointer->struct-flock
-
-    struct-in-addr		struct-in-addr?
-    struct-in-addr->pointer	pointer->struct-in-addr
-
-    struct-in6-addr		struct-in6-addr?
-    struct-in6-addr->pointer	pointer->struct-in6-addr
-
 ;;; --------------------------------------------------------------------
 
-    <passwd>			<passwd-rtd>
-    make-<passwd>		<passwd>?
-    <passwd>-name		<passwd>-name-set!
-    <passwd>-passwd		<passwd>-passwd-set!
-    <passwd>-uid		<passwd>-uid-set!
-    <passwd>-gid		<passwd>-gid-set!
-    <passwd>-gecos		<passwd>-gecos-set!
-    <passwd>-dir		<passwd>-dir-set!
-    <passwd>-shell		<passwd>-shell-set!
-
-;;; --------------------------------------------------------------------
-
-    <group>			<group-rtd>
-    make-<group>		<group>?
-    <group>-name		<group>-name-set!
-    <group>-gid			<group>-gid-set!
-    <group>-mem			<group>-mem-set!
-
-;;; --------------------------------------------------------------------
-
-    <utsname>			<utsname-rtd>
-    make-<utsname>		<utsname>?
-    <utsname>-sysname		<utsname>-sysname-set!
-    <utsname>-release		<utsname>-release-set!
-    <utsname>-version		<utsname>-version-set!
-    <utsname>-machine		<utsname>-machine-set!
-
-;;; --------------------------------------------------------------------
-
-    <fstab>			<fstab-rtd>
-    make-<fstab>		<fstab>?
-    <fstab>-spec		<fstab>-spec-set!
-    <fstab>-file		<fstab>-file-set!
-    <fstab>-vfstype		<fstab>-vfstype-set!
-    <fstab>-mntops		<fstab>-mntops-set!
-    <fstab>-type		<fstab>-type-set!
-    <fstab>-freq		<fstab>-freq-set!
-    <fstab>-passno		<fstab>-passno-set!
-
-;;; --------------------------------------------------------------------
-
-    <mntent>			<mntent-rtd>
-    make-<mntent>		<mntent>?
-    <mntent>-fsname		<mntent>-fsname-set!
-    <mntent>-dir		<mntent>-dir-set!
-    <mntent>-type		<mntent>-type-set!
-    <mntent>-opts		<mntent>-opts-set!
-    <mntent>-freq		<mntent>-freq-set!
-    <mntent>-passno		<mntent>-passno-set!
-
-;;; --------------------------------------------------------------------
-
-    <process-term-status>	<process-term-status-rtd>
+    <process-term-status>
     make-<process-term-status>	<process-term-status>?
     WIFEXITED?			WEXITSTATUS?
     WIFSIGNALED?		WTERMSIG?
@@ -122,7 +60,7 @@
 
 ;;; --------------------------------------------------------------------
 
-    <stat>			<stat-rtd>
+    <stat>
     make-<stat>			<stat>?
     <stat>-mode
     <stat>-ino
@@ -142,67 +80,11 @@
 
 ;;; --------------------------------------------------------------------
 
-    <socket>			<socket-rtd>
+    <socket>
     make-<socket>		<socket>?
     <socket>-namespace
     <socket>-style
     <socket>-protocol
-
-    <sockaddr>			<sockaddr-rtd>
-    make-<sockaddr>		<sockaddr>?
-    <sockaddr>-family
-
-    <sockaddr-in>		<sockaddr-in-rtd>
-    make-<sockaddr-in>		<sockaddr-in>?
-    <sockaddr-in>-family
-    <sockaddr-in>-addr		<sockaddr-in>-addr-set!
-    <sockaddr-in>-port		<sockaddr-in>-port-set!
-
-    <sockaddr-in6>		<sockaddr-in6-rtd>
-    make-<sockaddr-in6>		<sockaddr-in6>?
-    <sockaddr-in6>-family
-    <sockaddr-in6>-addr		<sockaddr-in6>-addr-set!
-    <sockaddr-in6>-port		<sockaddr-in6>-port-set!
-
-    <sockaddr-un>		<sockaddr-un-rtd>
-    make-<sockaddr-un>		<sockaddr-un>?
-    <sockaddr-un>-family
-    <sockaddr-un>-pathname	<sockaddr-un>-pathname-set!
-
-    <if-nameindex>		<if-nameindex-rtd>
-    make-<if-nameindex>		<if-nameindex>?
-    <if-nameindex>-index
-    <if-nameindex>-name
-
-;;; --------------------------------------------------------------------
-
-    <hostent>			<hostent-rtd>
-    make-<hostent>		<hostent>?
-    <hostent>-name
-    <hostent>-aliases
-    <hostent>-addrtype
-    <hostent>-addrlist
-    <hostent>-addr
-
-    <netent>			<netent-rtd>
-    make-<netent>		<netent>?
-    <netent>-name
-    <netent>-aliases
-    <netent>-addrtype
-    <netent>-net
-
-    <protoent>			<protoent-rtd>
-    make-<protoent>		<protoent>?
-    <protoent>-name
-    <protoent>-aliases
-    <protoent>-proto
-
-    <servent>			<servent-rtd>
-    make-<servent>		<servent>?
-    <servent>-name
-    <servent>-aliases
-    <servent>-port
-    <servent>-proto
 
 ;;; --------------------------------------------------------------------
 
@@ -271,7 +153,7 @@
     )
   (import (nausicaa)
     (nausicaa enumerations)
-    (prefix (nausicaa posix sizeof) so.))
+    (nausicaa posix sizeof))
 
 
 (define-class (fd integer->fd fd?)
@@ -324,7 +206,7 @@
   (fields (immutable object fdset->pointer)))
 
 (define (make-fdset malloc)
-  (pointer->fdset (malloc (so.c-sizeof struct-fdset))))
+  (pointer->fdset (malloc (c-sizeof struct-fdset))))
 
 ;;; --------------------------------------------------------------------
 
@@ -333,71 +215,7 @@
   (fields (immutable object struct-flock->pointer)))
 
 (define (make-struct-flock malloc)
-  (pointer->struct-flock (malloc (so.c-sizeof struct-flock))))
-
-
-(define-class <passwd>
-  (nongenerative nausicaa:posix:<passwd>)
-  (fields (mutable name)
-	  (mutable passwd)
-	  (mutable uid)
-	  (mutable gid)
-	  (mutable gecos)
-	  (mutable dir)
-	  (mutable shell)))
-
-(define <passwd-rtd>
-  (record-type-descriptor <passwd>))
-
-;;; --------------------------------------------------------------------
-
-(define-class <group>
-  (nongenerative nausicaa:posix:<group>)
-  (fields (mutable name)
-	  (mutable gid)
-	  (mutable mem)))
-
-(define <group-rtd>
-  (record-type-descriptor <group>))
-
-
-(define-class <utsname>
-  (nongenerative nausicaa:posix:<utsname>)
-  (fields (mutable sysname)
-	  (mutable release)
-	  (mutable version)
-	  (mutable machine)))
-
-(define <utsname-rtd>
-  (record-type-descriptor <utsname>))
-
-
-(define-class <fstab>
-  (nongenerative nausicaa:posix:<fstab>)
-  (fields (mutable spec)
-	  (mutable file)
-	  (mutable vfstype)
-	  (mutable mntops)
-	  (mutable type)
-	  (mutable freq)
-	  (mutable passno)))
-
-(define <fstab-rtd>
-  (record-type-descriptor <fstab>))
-
-;;; --------------------------------------------------------------------
-
-(define-class <mntent>
-  (nongenerative nausicaa:posix:<mntent>)
-  (fields (mutable fsname)
-	  (mutable dir)
-	  (mutable type)
-	  (mutable opts)
-	  (mutable freq)
-	  (mutable passno)))
-
-(define <mntent-rtd>
-  (record-type-descriptor <mntent>))
+  (pointer->struct-flock (malloc (c-sizeof struct-flock))))
 
 
 (define-class <process-term-status>
@@ -409,9 +227,6 @@
 	  (immutable WCOREDUMP		WCOREDUMP?)
 	  (immutable WIFSTOPPED		WIFSTOPPED?)
 	  (immutable WSTOPSIG		WSTOPSIG?)))
-
-(define <process-term-status-rtd>
-  (record-type-descriptor <process-term-status>))
 
 
 (define-class <stat>
@@ -432,149 +247,13 @@
 	  (immutable blocks)
 	  (immutable blksize)))
 
-(define <stat-rtd>
-  (record-type-descriptor <stat>))
-
 
-(define-class <sockaddr>
-  (nongenerative nausicaa:posix:<sockaddr>)
-  (fields (immutable family)))
-
-(define <sockaddr-rtd>
-  (record-type-descriptor <sockaddr>))
-
-;;; --------------------------------------------------------------------
-
-(define-class (<sockaddr-in> %make-<sockaddr-in> <sockaddr-in>?)
-  (nongenerative nausicaa:posix:<sockaddr-in>)
-  (parent <sockaddr>)
-  (fields (mutable addr)
-	  (mutable port)))
-
-(define <sockaddr-in-rtd>
-  (record-type-descriptor <sockaddr-in>))
-
-(define (make-<sockaddr-in> addr port)
-  (%make-<sockaddr-in> (socket-address-format inet) addr port))
-
-(define <sockaddr-in>-family		<sockaddr>-family)
-
-;;; --------------------------------------------------------------------
-
-(define-class (<sockaddr-in6> %make-<sockaddr-in6> <sockaddr-in6>?)
-  (nongenerative nausicaa:posix:<sockaddr-in6>)
-  (parent <sockaddr>)
-  (fields (mutable addr)
-	  (mutable port)))
-
-(define <sockaddr-in6-rtd>
-  (record-type-descriptor <sockaddr-in6>))
-
-(define (make-<sockaddr-in6> addr port)
-  (%make-<sockaddr-in6> (socket-address-format inet6) addr port))
-
-(define <sockaddr-in6>-family		<sockaddr>-family)
-
-;;; --------------------------------------------------------------------
-
-(define-class (<sockaddr-un> %make-<sockaddr-un> <sockaddr-un>?)
-  (nongenerative nausicaa:posix:<sockaddr-un>)
-  (parent <sockaddr>)
-  (fields (mutable pathname)))
-
-(define <sockaddr-un-rtd>
-  (record-type-descriptor <sockaddr-un>))
-
-(define (make-<sockaddr-un> pathname)
-  (%make-<sockaddr-un> (socket-address-format local) pathname))
-
-(define <sockaddr-un>-family		<sockaddr>-family)
-
-;;; --------------------------------------------------------------------
-
-(define-class <if-nameindex>
-  (nongenerative nausicaa:posix:<if-nameindex>)
-  (fields (immutable index)
-	  (immutable name)))
-
-(define <if-nameindex-rtd>
-  (record-type-descriptor <if-nameindex>))
-
-
-(define-class <netent>
-  (nongenerative nausicaa:posix:<netent>)
-  (fields (immutable name)
-	  (immutable aliases)
-	  (immutable addrtype)
-	  (immutable net)))
-
-(define <netent-rtd>
-  (record-type-descriptor <netent>))
-
-;;; --------------------------------------------------------------------
-
-(define-class <hostent>
-  (nongenerative nausicaa:posix:<hostent>)
-  (fields (immutable name)
-	  (immutable aliases)
-	  (immutable addrtype)
-	  (immutable addrlist)))
-
-(define <hostent-rtd>
-  (record-type-descriptor <hostent>))
-
-(define (<hostent>-addr h)
-  (car (<hostent>-addrlist h)))
-
-;;; --------------------------------------------------------------------
-
-(define-class <protoent>
-  (nongenerative nausicaa:posix:<protoent>)
-  (fields (immutable name)
-	  (immutable aliases)
-	  (immutable proto)))
-
-(define <protoent-rtd>
-  (record-type-descriptor <protoent>))
-
-;;; --------------------------------------------------------------------
-
-(define-class <servent>
-  (nongenerative nausicaa:posix:<servent>)
-  (fields (immutable name)
-	  (immutable aliases)
-	  (immutable port)
-	  (immutable proto)))
-
-(define <servent-rtd>
-  (record-type-descriptor <servent>))
-
-
-(define-class struct-in-addr
-  (nongenerative nausicaa:posix:struct-in-addr)
-  (fields (immutable pointer struct-in-addr->pointer)))
-
-(define pointer->struct-in-addr make-struct-in-addr)
-
-;;; --------------------------------------------------------------------
-
-(define-class struct-in6-addr
-  (nongenerative nausicaa:posix:struct-in6-addr)
-  (fields (immutable pointer struct-in6-addr->pointer)))
-
-(define pointer->struct-in6-addr make-struct-in6-addr)
-
-;;; --------------------------------------------------------------------
-
 (define-class <socket>
   (nongenerative nausicaa:posix:<socket>)
-  (parent fd)
+  (inherit fd)
   (fields (immutable namespace)
 	  (immutable style)
 	  (immutable protocol)))
-
-(define <socket-rtd>
-  (record-type-descriptor <socket>))
 
 
 (define-c-ior-flags access-permissions
@@ -755,11 +434,11 @@
   ;;namespace.  It may not be significant.
   ;;
   (cond ((enum-set-subset? set (%socket-namespace local unix file))
-	 (so.c-sizeof sockaddr_un))
+	 (c-sizeof struct-sockaddr_un))
 	((enum-set=? set (socket-namespace inet))
-	 (so.c-sizeof sockaddr_in))
+	 (c-sizeof struct-sockaddr_in))
 	((enum-set=? set (socket-namespace inet6))
-	 (so.c-sizeof sockaddr_in6))
+	 (c-sizeof struct-sockaddr_in6))
 	((enum-set=? set (socket-namespace unspec))
 	 (error 'socket-namespace->socklen
 	   "unknown socket address structure size for selected namespace"

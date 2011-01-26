@@ -47,21 +47,21 @@
       (with-compensations ;from mirror to any
 	(let (((M <tms>) (make* <tms> 1 2 3 4)))
 
-	  (let (((P pointer-to-tms) (make pointer-to-tms
-				      (mirror: M)
-				      (malloc: mem.malloc-block/c))))
-	    (check P.tms_utime	=> 1)
-	    (check P.tms_stime	=> 2)
-	    (check P.tms_cutime	=> 3)
-	    (check P.tms_cstime	=> 4))
+	  (let (((P <pointer-to-tms>) (make <pointer-to-tms>
+					(mirror: M)
+					(malloc: mem.malloc-block/c))))
+	    (check P.utime	=> 1)
+	    (check P.stime	=> 2)
+	    (check P.cutime	=> 3)
+	    (check P.cstime	=> 4))
 
 	  (let (((W <struct-tms>) (make <struct-tms>
 				    (mirror: M)
 				    (malloc: mem.malloc-block/c))))
-	    (check W.tms_utime	=> 1)
-	    (check W.tms_stime	=> 2)
-	    (check W.tms_cutime	=> 3)
-	    (check W.tms_cstime	=> 4))
+	    (check W.utime	=> 1)
+	    (check W.stime	=> 2)
+	    (check W.cutime	=> 3)
+	    (check W.cstime	=> 4))
 
 	  (let (((D <tms>) (make <tms>
 			     (mirror: M))))
@@ -75,26 +75,26 @@
       (with-compensations ;from wrapper to any
 	(let (((W <struct-tms>) (make <struct-tms>
 				  (malloc: mem.malloc-block/c))))
-	  (set! W.tms_utime  1)
-	  (set! W.tms_stime  2)
-	  (set! W.tms_cutime 3)
-	  (set! W.tms_cstime 4)
+	  (set! W.utime  1)
+	  (set! W.stime  2)
+	  (set! W.cutime 3)
+	  (set! W.cstime 4)
 
-	  (let (((P pointer-to-tms) (make pointer-to-tms
-				      (wrapper: W)
-				      (malloc: mem.malloc-block/c))))
-	    (check P.tms_utime	=> 1)
-	    (check P.tms_stime	=> 2)
-	    (check P.tms_cutime	=> 3)
-	    (check P.tms_cstime	=> 4))
+	  (let (((P <pointer-to-tms>) (make <pointer-to-tms>
+					(wrapper: W)
+					(malloc: mem.malloc-block/c))))
+	    (check P.utime	=> 1)
+	    (check P.stime	=> 2)
+	    (check P.cutime	=> 3)
+	    (check P.cstime	=> 4))
 
 	  (let (((W <struct-tms>) (make <struct-tms>
 				    (wrapper: W)
 				    (malloc: mem.malloc-block/c))))
-	    (check W.tms_utime	=> 1)
-	    (check W.tms_stime	=> 2)
-	    (check W.tms_cutime	=> 3)
-	    (check W.tms_cstime	=> 4))
+	    (check W.utime	=> 1)
+	    (check W.stime	=> 2)
+	    (check W.cutime	=> 3)
+	    (check W.cstime	=> 4))
 
 	  (let (((D <tms>) (make <tms>
 			     (wrapper: W))))
@@ -106,28 +106,28 @@
 	  #f))
 
       (with-compensations ;from pointer to any
-	(let (((P pointer-to-tms) (make pointer-to-tms
-				    (malloc: mem.malloc-block/c))))
-	  (set! P.tms_utime  1)
-	  (set! P.tms_stime  2)
-	  (set! P.tms_cutime 3)
-	  (set! P.tms_cstime 4)
-
-	  (let (((Q pointer-to-tms) (make pointer-to-tms
-				      (pointer: P)
+	(let (((P <pointer-to-tms>) (make <pointer-to-tms>
 				      (malloc: mem.malloc-block/c))))
-	    (check Q.tms_utime	=> 1)
-	    (check Q.tms_stime	=> 2)
-	    (check Q.tms_cutime	=> 3)
-	    (check Q.tms_cstime	=> 4))
+	  (set! P.utime  1)
+	  (set! P.stime  2)
+	  (set! P.cutime 3)
+	  (set! P.cstime 4)
+
+	  (let (((Q <pointer-to-tms>) (make <pointer-to-tms>
+					(pointer: P)
+					(malloc: mem.malloc-block/c))))
+	    (check Q.utime	=> 1)
+	    (check Q.stime	=> 2)
+	    (check Q.cutime	=> 3)
+	    (check Q.cstime	=> 4))
 
 	  (let (((W <struct-tms>) (make <struct-tms>
 				    (pointer: P)
 				    (malloc: mem.malloc-block/c))))
-	    (check W.tms_utime	=> 1)
-	    (check W.tms_stime	=> 2)
-	    (check W.tms_cutime	=> 3)
-	    (check W.tms_cstime	=> 4))
+	    (check W.utime	=> 1)
+	    (check W.stime	=> 2)
+	    (check W.cutime	=> 3)
+	    (check W.cstime	=> 4))
 
 	  (let (((M <tms>) (make <tms>
 			     (pointer: P))))

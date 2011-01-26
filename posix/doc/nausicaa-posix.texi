@@ -7900,9 +7900,9 @@ Unless otherwise specified, the bindings documented in this chapter are
 exported by the following libraries:
 
 @example
-(posix time)
-(posix time primitives)
-(posix time platform)
+(nausicaa posix time)
+(nausicaa posix time primitives)
+(nausicaa posix time platform)
 @end example
 
 @noindent
@@ -7910,9 +7910,9 @@ it is explicitly stated when bindings are exported by the following
 libraries:
 
 @example
-(glibc time)
-(glibc time primitives)
-(glibc time platform)
+(nausicaa glibc time)
+(nausicaa glibc time primitives)
+(nausicaa glibc time platform)
 @end example
 
 @menu
@@ -7946,17 +7946,25 @@ documentation.  @glibcref{Time Basics, Time Basics}.
 @subsubheading About the @code{time_t} type
 
 
-The @code{time_t} type is used by several functions, but it is not fully
-specified@footnote{See for example (@aurl{} last verified Thu Nov 12,
-2009):
+The @code{time_t} type represents the number of seconds elapsed since
+the Unix Epoch; it is not fully specified by the standards.  For details
+on @code{time_t} see (@aurl{} last verified Wed Jan 26, 2011):
 
-@center @url{http://en.wikipedia.org/wiki/Unix_time}
-}; it represents the @dfn{epoch}: The number of seconds elapsed since
-00:00:00 on January 1, 1970, Coordinated Universal Time.
+@center @url{http://en.wikipedia.org/wiki/Unix_time#Representing_the_number}
+
+@noindent
+and also @glibcref{Simple Calendar Time, time_t}.
+
+The @code{clock_t} type represents the number of clock ticks as returned
+by the @cfunc{clock} function; it is not fully specified.  @glibcref{CPU
+Time, clock_t}.
 
 To solve the representation problem, @code{time_t} values are casted to
-native @code{double} values and then converted to Scheme inexact real
-numbers, whatever they are for the underlying Scheme representation.
+native @code{double} values by the stub C library and then converted to
+and from Scheme inexact real numbers (whatever they are for the
+underlying Scheme representation) by the @ffi{} infrastructure; the
+functions exported by the @code{platform} libraries convert the inexact
+reals to and from exact integers.
 
 @c page
 @node time structs

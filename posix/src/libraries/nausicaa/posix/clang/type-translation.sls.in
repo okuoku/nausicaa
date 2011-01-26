@@ -28,6 +28,7 @@
 (library (nausicaa posix clang type-translation)
   (export clang-foreign-type->clang-external-type
     clang-maybe-foreign-type->clang-external-type
+    clang-maybe-foreign-type->clang-external-type*
     enum-clang-foreign-types clang-foreign-types)
   (import
     (rnrs)
@@ -46,18 +47,16 @@
       struct-fdset struct-fdset* struct-passwd
       struct-passwd* struct-group struct-group*
       struct-utsname struct-utsname* struct-fstab
-      struct-fstab* struct-mntent struct-mntent* sockaddr*
-      struct-sockaddr struct-sockaddr* sockaddr_in*
-      struct-sockaddr_in struct-sockaddr_in* sockaddr_in6*
-      struct-sockaddr_in6 struct-sockaddr_in6* sockaddr_un*
-      struct-sockaddr_un struct-sockaddr_un* in_addr*
-      struct-in_addr struct-in_addr* in6_addr*
-      struct-in6_addr struct-in6_addr* if_nameindex*
-      struct-if_nameindex struct-if_nameindex* netent*
-      struct-netent struct-netent* struct-linger
-      struct-linger* struct-hostent struct-hostent*
-      struct-protoent struct-protoent* struct-servent
-      struct-servent*)
+      struct-fstab* struct-mntent struct-mntent*
+      struct-sockaddr struct-sockaddr* struct-sockaddr_in
+      struct-sockaddr_in* struct-sockaddr_in6
+      struct-sockaddr_in6* struct-sockaddr_un
+      struct-sockaddr_un* struct-in_addr struct-in_addr*
+      struct-in6_addr struct-in6_addr* struct-if_nameindex
+      struct-if_nameindex* struct-netent struct-netent*
+      struct-linger struct-linger* struct-hostent
+      struct-hostent* struct-protoent struct-protoent*
+      struct-servent struct-servent*)
     clang-foreign-types)
   (define (clang-foreign-type->clang-external-type type)
     (case type
@@ -113,28 +112,20 @@
       ((struct-fstab*) 'pointer)
       ((struct-mntent) 'struct-mntent)
       ((struct-mntent*) 'pointer)
-      ((sockaddr*) 'pointer)
       ((struct-sockaddr) 'struct-sockaddr)
       ((struct-sockaddr*) 'pointer)
-      ((sockaddr_in*) 'pointer)
       ((struct-sockaddr_in) 'struct-sockaddr_in)
       ((struct-sockaddr_in*) 'pointer)
-      ((sockaddr_in6*) 'pointer)
       ((struct-sockaddr_in6) 'struct-sockaddr_in6)
       ((struct-sockaddr_in6*) 'pointer)
-      ((sockaddr_un*) 'pointer)
       ((struct-sockaddr_un) 'struct-sockaddr_un)
       ((struct-sockaddr_un*) 'pointer)
-      ((in_addr*) 'pointer)
       ((struct-in_addr) 'struct-in_addr)
       ((struct-in_addr*) 'pointer)
-      ((in6_addr*) 'pointer)
       ((struct-in6_addr) 'struct-in6_addr)
       ((struct-in6_addr*) 'pointer)
-      ((if_nameindex*) 'pointer)
       ((struct-if_nameindex) 'struct-if_nameindex)
       ((struct-if_nameindex*) 'pointer)
-      ((netent*) 'pointer)
       ((struct-netent) 'struct-netent)
       ((struct-netent*) 'pointer)
       ((struct-linger) 'struct-linger)
@@ -148,8 +139,15 @@
       (else #f)))
   (define (clang-maybe-foreign-type->clang-external-type
             type)
+    (unless (symbol? type) (set! type (syntax->datum type)))
     (or (clang-foreign-type->clang-external-type type)
-        (ffi.clang-foreign-type->clang-external-type type))))
+        (ffi.clang-foreign-type->clang-external-type type)))
+  (define (clang-maybe-foreign-type->clang-external-type*
+            type)
+    (or (clang-maybe-foreign-type->clang-external-type type)
+        (assertion-violation
+          'clang-maybe-foreign-type->clang-external-type*
+          "unknown type specifier" type))))
 
 
 ;;; end of file

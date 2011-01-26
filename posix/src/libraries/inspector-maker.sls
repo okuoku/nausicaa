@@ -36,10 +36,11 @@
     define-shared-object
     clang-type-translation-lib-write
 
-    class-uid
+    class-uid-prefix
 
     ;; inspection
-    define-c-defines		define-c-string-defines
+    define-c-defines		define-c-defines/public
+    define-c-string-defines
     define-c-enumeration	define-c-type-alias
     define-c-type		define-c-struct
 
@@ -93,7 +94,7 @@
 (define (format-symbol . args)
   (string->symbol (apply format args)))
 
-(define class-uid
+(define class-uid-prefix
   (make-parameter "nausicaa:default:"
     (lambda (uid)
       (cond ((string? uid)
@@ -101,7 +102,7 @@
 	    ((symbol? uid)
 	     (symbol->string uid))
 	    (else
-	     (assertion-violation 'class-uid "expected string or symbol as class UID prefix" uid))))))
+	     (assertion-violation 'class-uid-prefix "expected string or symbol as class UID prefix" uid))))))
 
 
 ;;;; Autoconf library
@@ -138,6 +139,7 @@
 (define $sizeof-library			'())
 (define $sizeof-lib-exports		'())
 (define $sizeof-lib-drop-exports	'())
+(define $sizeof-lib-renamed-exports	'())
 
 (define-syntax sizeof-lib
   (syntax-rules ()
@@ -170,46 +172,157 @@
   ;;
   (set! $sizeof-lib-drop-exports (append $sizeof-lib-drop-exports ell)))
 
+(define (%sizeof-renamed-exports list-of-renamings)
+  (set! $sizeof-lib-renamed-exports (append $sizeof-lib-renamed-exports list-of-renamings)))
+
 (define (sizeof-lib-write filename libname libname-clang-types)
   ;;Write to  the specified FILENAME  the contents of the  sizeof Scheme
   ;;library.     LIBNAME   must    be    the   library    specification.
   ;;LIBNAME-CLANG-TYPES must be the clang library specification.
   ;;
-  (let ((libout `(library ,libname
-		   (export
-		     c-sizeof c-strideof c-alignof c-valueof c-inspect
-		     pointer-c-ref pointer-c-set! pointer-c-accessor pointer-c-mutator
-		     array-c-ref array-c-set! array-c-pointer-to
-		     ,@(filter (lambda (S)
-				 (not (memq S $sizeof-lib-drop-exports)))
-			 $sizeof-lib-exports)
-		     ,@(filter (lambda (S)
-				 (not (memq S $sizeof-lib-drop-exports)))
-			 $structs-lib-exports))
-		   (import (nausicaa)
-		     (for ,libname-clang-types expand)
-		     (nausicaa ffi syntax-helpers)
-		     ;;Notice that the "ffi:" prefix is hardcoded in the
-		     ;;library (nausicaa ffi extension-utilities).
-		     (prefix (nausicaa ffi pointers)		ffi:)
-		     (prefix (nausicaa ffi sizeof)		ffi:)
-		     (prefix (nausicaa ffi peekers-and-pokers)	ffi:)
-		     (nausicaa ffi extension-utilities))
-		   (define-sizeof-macros)
-		   ,@$sizeof-library
-		   ,@$structs-library)))
-    (let ((strout (call-with-string-output-port
-		      (lambda (port)
-			(pretty-print libout port)))))
-      (set! strout (hat->at strout))
-      (let ((port (transcoded-port (open-file-output-port filename (file-options no-fail))
-       				   (make-transcoder (utf-8-codec)))))
-	(format port ";;; ~s --\n" libname)
-	(display $sizeof-license port)
-	(display "\n\n" port)
-	(display strout port)
-	(display "\n\n;;; end of file\n" port)
-	(close-port port)))))
+  (define lib-exports
+    (let ((ell `( ;;
+		 c-sizeof c-strideof c-alignof c-valueof c-inspect
+		 pointer-c-ref pointer-c-set!
+		 pointer-c-accessor pointer-c-mutator
+		 array-c-ref array-c-set! array-c-pointer-to
+		 pointer: wrapper: mirror: malloc:
+		 ,@(filter (lambda (S)
+			     (not (memq S $sizeof-lib-drop-exports)))
+		     $sizeof-lib-exports)
+		 ,@(filter (lambda (S)
+			     (not (memq S $sizeof-lib-drop-exports)))
+		     $structs-lib-exports))))
+      (unless (null? $sizeof-lib-renamed-exports)
+	(set! ell (append ell `((rename ,@$sizeof-lib-renamed-exports)))))
+      ell))
+  (define libout
+    `(library ,libname
+       (export ,@lib-exports)
+       (import (nausicaa)
+	 (nausicaa language makers)
+	 (for (prefix (rename (only ,libname-clang-types
+				    clang-maybe-foreign-type->clang-external-type
+				    clang-maybe-foreign-type->clang-external-type*)
+			      ;; return false when type not found
+			      (clang-maybe-foreign-type->clang-external-type  translate-type)
+			      ;; assertion violation when type not found
+			      (clang-maybe-foreign-type->clang-external-type* translate-type*))
+		      ffi.)
+	      expand)
+	 (nausicaa posix clang embedded-accessors-and-mutators)
+	 (for (prefix (only (nausicaa ffi syntax-helpers) %prepend) ffi.) expand)
+	 (prefix (only (nausicaa ffi memory) memcpy) mem.)
+	 (prefix (nausicaa ffi pointers) ffi.)
+	 (prefix (nausicaa ffi sizeof) ffi.)
+	 (prefix (nausicaa ffi peekers-and-pokers) ffi.))
+
+       (define-auxiliary-syntaxes
+	 pointer: wrapper: mirror: malloc:)
+
+       (define-syntax* (c-sizeof stx)
+	 (syntax-case stx ()
+	   ((_ ?type ?number-of-elements)
+	    (identifier? #'?type)
+	    #`(* ?number-of-elements
+		 #,(ffi.%prepend #'?c-sizeof "strideof-" (ffi.translate-type* #'?type))))
+	   ((_ ?type)
+	    (identifier? #'?type)
+	    (ffi.%prepend #'?c-sizeof "sizeof-" (ffi.translate-type* #'?type)))
+	   (_
+	    (synner "invalid C language sizeof specification"))))
+
+       (define-syntax* (c-strideof stx)
+	 (syntax-case stx ()
+	   ((_ ?type)
+	    (identifier? #'?type)
+	    (ffi.%prepend #'c-strideof "strideof-" (ffi.translate-type* #'?type)))
+	   (_
+	    (synner "invalid C language strideof specification"))))
+
+       (define-syntax* (c-alignof stx)
+	 (syntax-case stx ()
+	   ((_ ?type)
+	    (identifier? #'?type)
+	    (ffi.%prepend #'c-alignof "alignof-" (ffi.translate-type* #'?type)))
+	   (_
+	    (synner "invalid C language alignof specification"))))
+
+       (define-syntax* (c-valueof stx)
+	 (syntax-case stx ()
+	   ((_ ?thing)
+	    (identifier? #'?thing)
+	    (ffi.%prepend #'c-valueof "valueof-" #'?thing))
+	   (_
+	    (synner "invalid C language valueof specification"))))
+
+       (define-syntax* (c-inspect stx)
+	 (syntax-case stx ()
+	   ((_ ?thing)
+	    (identifier? #'?thing)
+	    (ffi.%prepend #'c-inspect "inspect-" #'?thing))
+	   (_
+	    (synner "invalid C language valueof specification"))))
+
+       (define-syntax* (pointer-c-ref stx)
+	 (syntax-case stx ()
+	   ((_ ?type ?pointer ?offset)
+	    #`(ffi.pointer-c-ref #,(let ((type (ffi.translate-type #'?type)))
+				     (if type (datum->syntax #'?type type) #'?type))
+				 ?pointer ?offset))
+	   (_
+	    (synner "invalid syntax for C language raw memory getter"))))
+
+       (define-syntax* (pointer-c-set! stx)
+	 (syntax-case stx ()
+	   ((_ ?type ?pointer ?offset ?value)
+	    #`(ffi.pointer-c-set! #,(let ((type (ffi.translate-type #'?type)))
+				      (if type (datum->syntax #'?type type) #'?type))
+				  ?pointer ?offset ?value))
+	   (_
+	    (synner "invalid syntax for C language raw memory setter"))))
+
+       (define-syntax* (pointer-c-accessor stx)
+	 (syntax-case stx ()
+	   ((_ ?type)
+	    #`(ffi.pointer-c-accessor #,(let ((type (ffi.translate-type #'?type)))
+					  (if type (datum->syntax #'?type type) #'?type))))
+	   (_
+	    (synner "invalid syntax for C language raw memory getter"))))
+
+       (define-syntax* (pointer-c-mutator stx)
+	 (syntax-case stx ()
+	   ((_ ?type)
+	    #`(ffi.pointer-c-mutator #,(let ((type (ffi.translate-type #'?type)))
+					 (if type (datum->syntax #'?type type) #'?type))))
+	   (_
+	    (synner "invalid syntax for C language raw memory setter"))))
+
+       (define-inline (array-c-ref ?type ?pointer ?index)
+	 (pointer-c-ref ?type ?pointer (* ?index (c-strideof ?type))))
+
+       (define-inline (array-c-set! ?type ?pointer ?index ?value)
+	 (pointer-c-set! ?type ?pointer (* ?index (c-strideof ?type)) ?value))
+
+       (define-inline (array-c-pointer-to ?type ?pointer ?index)
+	 (ffi.pointer-add ?pointer (* ?index (c-strideof ?type))))
+
+       ,@$sizeof-library
+       ,@$structs-library))
+
+  (define strout
+    (hat->at (call-with-string-output-port
+		 (lambda (port)
+		   (pretty-print libout port)))))
+  (define port
+    (transcoded-port (open-file-output-port filename (file-options no-fail))
+		     (make-transcoder (utf-8-codec))))
+  (format port ";;; ~s --\n" libname)
+  (display $sizeof-license port)
+  (display "\n\n" port)
+  (display strout port)
+  (display "\n\n;;; end of file\n" port)
+  (close-port port))
 
 
 ;;;; sizeof library, structs section
@@ -245,6 +358,7 @@ As an example, it should be something like:
   (library (nausicaa XXX clang type-translation)
     (export clang-foreign-type->clang-external-type
 	    clang-maybe-foreign-type->clang-external-type
+	    clang-maybe-foreign-type->clang-external-type*
 	    enum-clang-foreign-types clang-foreign-types)
     (import (rnrs)
       (prefix (nausicaa ffi clang type-translation) ffi.))
@@ -257,10 +371,15 @@ As an example, it should be something like:
 	((beta_t)	'@TYPEOF_BETA_T@)
 	((gamma_t)	'pointer)
 	(else #f)))
-    (define (clang-maybe-foreign-type->clang-external-type
-	     type)
+    (define (clang-maybe-foreign-type->clang-external-type type)
+      (unless (symbol? type)
+	(set! type (syntax->datum type)))
       (or (clang-foreign-type->clang-external-type type)
-          (ffi.clang-foreign-type->clang-external-type type))))
+          (ffi.clang-foreign-type->clang-external-type type)))
+    (define (clang-maybe-foreign-type->clang-external-type* type)
+      (or (clang-maybe-foreign-type->clang-external-type type)
+          (assertion-violation 'clang-maybe-foreign-type->clang-external-type*
+	    "unknown type specifier" type))))
 
 |#
 
@@ -275,34 +394,44 @@ As an example, it should be something like:
   ;;Write to  the specified  FILENAME the contents  of the  clang Scheme
   ;;library.  CLANG-LIBNAME must  be the library specification.
   ;;
-  (let* ((libout `(library ,clang-libname
-		    (export clang-foreign-type->clang-external-type
-			    clang-maybe-foreign-type->clang-external-type
-			    enum-clang-foreign-types clang-foreign-types)
-		    (import (rnrs)
-		      (prefix (nausicaa ffi clang type-translation) ffi.))
-		    (define-enumeration enum-clang-foreign-types
-		      ,(reverse $clang-type-translation-enum)
-		      clang-foreign-types)
-		    (define (clang-foreign-type->clang-external-type type)
-		      (case type
-			,@(reverse $clang-type-translation-map)
-			(else #f)))
-		    (define (clang-maybe-foreign-type->clang-external-type type)
-		      (or (clang-foreign-type->clang-external-type type)
-			  (ffi.clang-foreign-type->clang-external-type type)))
-		    ))
-	 (strout (hat->at (call-with-string-output-port
-			      (lambda (port)
-				(pretty-print libout port)))))
-	 (port (transcoded-port (open-file-output-port filename (file-options no-fail))
-				(make-transcoder (utf-8-codec)))))
-    (format port ";;; ~s --\n" clang-libname)
-    (display $clang-license port)
-    (display "\n#!r6rs\n" port)
-    (display strout port)
-    (display "\n\n;;; end of file\n" port)
-    (close-port port)))
+  (define libout
+    `(library ,clang-libname
+       (export clang-foreign-type->clang-external-type
+	       clang-maybe-foreign-type->clang-external-type
+	       clang-maybe-foreign-type->clang-external-type*
+	       enum-clang-foreign-types clang-foreign-types)
+       (import (rnrs)
+	 (prefix (nausicaa ffi clang type-translation) ffi.))
+       (define-enumeration enum-clang-foreign-types
+	 ,(reverse $clang-type-translation-enum)
+	 clang-foreign-types)
+       (define (clang-foreign-type->clang-external-type type)
+	 (case type
+	   ,@(reverse $clang-type-translation-map)
+	   (else #f)))
+       (define (clang-maybe-foreign-type->clang-external-type type)
+	 (unless (symbol? type)
+	   (set! type (syntax->datum type)))
+	 (or (clang-foreign-type->clang-external-type type)
+	     (ffi.clang-foreign-type->clang-external-type type)))
+       (define (clang-maybe-foreign-type->clang-external-type* type)
+	 (or (clang-maybe-foreign-type->clang-external-type type)
+	     (assertion-violation 'clang-maybe-foreign-type->clang-external-type*
+	       "unknown type specifier" type)))
+       ))
+  (define strout
+    (hat->at (call-with-string-output-port
+		 (lambda (port)
+		   (pretty-print libout port)))))
+  (define port
+    (transcoded-port (open-file-output-port filename (file-options no-fail))
+		     (make-transcoder (utf-8-codec))))
+  (format port ";;; ~s --\n" clang-libname)
+  (display $clang-license port)
+  (display "\n#!r6rs\n" port)
+  (display strout port)
+  (display "\n\n;;; end of file\n" port)
+  (close-port port))
 
 
 ;;;; shared library
@@ -374,10 +503,25 @@ As an example, it should be something like:
 	      (let ((valueof-symbol (string->symbol (string-append "valueof-" (symbol->string symbol)))))
 		(autoconf-lib (format "NAUSICAA_DEFINE_VALUE([~a])" symbol))
 		(let ((at-symbol (format-symbol "^VALUEOF_~a^" symbol)))
-		  (%sizeof-lib `((define ,valueof-symbol ,at-symbol)))
-		  ;;(%sizeof-lib-exports symbol)
-		  )))
+		  (%sizeof-lib `((define ,valueof-symbol ,at-symbol))))))
     symbol-names))
+
+(define-syntax define-c-defines/public
+  ;;Register in the output libraries  a set of C preprocessor constants.
+  ;;Example:
+  ;;
+  ;;  (define-c-defines/public "seek whence values"
+  ;;    SEEK_SET SEEK_CUR SEEK_END)
+  ;;
+  (syntax-rules ()
+    ((_ ?description ?symbol-name0 ?symbol-name ...)
+     (%register-preprocessor-symbols/public ?description (quote (?symbol-name0 ?symbol-name ...))))))
+
+(define (%register-preprocessor-symbols/public description symbol-names)
+  (%sizeof-renamed-exports (map (lambda (symbol)
+				  (list (format-symbol "valueof-~a" symbol) symbol))
+			     symbol-names))
+  (%register-preprocessor-symbols description symbol-names))
 
 ;;; --------------------------------------------------------------------
 
@@ -395,9 +539,7 @@ As an example, it should be something like:
 	      (let ((valueof-symbol (string->symbol (string-append "valueof-" (symbol->string symbol)))))
 		(autoconf-lib (format "NAUSICAA_STRING_TEST([~a],[~a])" symbol symbol))
 		(let ((at-symbol (format "^STRINGOF_~a^" symbol)))
-		  (%sizeof-lib `((define ,valueof-symbol ,at-symbol)))
-		  ;;(%sizeof-lib-exports symbol)
-		  )))
+		  (%sizeof-lib `((define ,valueof-symbol ,at-symbol))))))
     symbol-names))
 
 
@@ -409,10 +551,7 @@ As an example, it should be something like:
      (%register-type-alias (quote ?alias) (quote ?type)))))
 
 (define (%register-type-alias alias type)
-  (%clang-type-translation-register-type-alias alias type)
-;;;  (%sizeof-lib `((define ,alias (quote ,type))))
-;;;  (%sizeof-lib-exports alias)
-  )
+  (%clang-type-translation-register-type-alias alias type))
 
 
 ;;;; C type inspection
@@ -427,30 +566,11 @@ As an example, it should be something like:
 (define (%register-type name type-category string-typedef)
   (let* ((keyword		(string-upcase (symbol->string name)))
 	 (ac-symbol-typeof	(format-symbol "^TYPEOF_~a^"	keyword))
-;;;	 (ac-symbol-sizeof	(format-symbol "^SIZEOF_~a^"	keyword))
-;;;	 (ac-symbol-alignof	(format-symbol "^ALIGNOF_~a^"	keyword))
-;;;	 (ac-symbol-strideof	(format-symbol "^STRIDEOF_~a^"	keyword))
-;;;	 (name-typeof		name)
-;;;	 (name-sizeof		(format-symbol "sizeof-~s"	name))
-;;;	 (name-alignof		(format-symbol "alignof-~s"	name))
-;;;	 (name-strideof		(format-symbol "strideof-~s"	name))
-	 (string-typedef	(cond ((string=? "#t" string-typedef)
-				       "\"#t\"")
-				      ((string=? "#f" string-typedef)
-				       "\"#f\"")
-				      (else
-				       string-typedef))))
-    (autoconf-lib (format "NAUSICAA_SIZEOF_TEST([~a],[~a])"
-		    keyword string-typedef))
-    (autoconf-lib (format "NAUSICAA_BASE_TYPE_TEST([~a],[~a],[~a])"
-		    keyword string-typedef type-category))
-;;; (autoconf-lib (format "NAUSICAA_INSPECT_TYPE([~a],[~a],[~a],[#f])"
-;;;                       keyword string-typedef type-category))
-;;; (%sizeof-lib `((define ,name-typeof		(quote ,ac-symbol-typeof))
-;;; 		   (define ,name-sizeof		,ac-symbol-sizeof)
-;;; 		   (define ,name-alignof	,ac-symbol-alignof)
-;;; 		   (define ,name-strideof	,ac-symbol-strideof)))
-;;; (%sizeof-lib-exports name-typeof name-sizeof name-alignof name-strideof)
+	 (string-typedef	(cond ((string=? "#t" string-typedef)	"\"#t\"")
+				      ((string=? "#f" string-typedef)	"\"#f\"")
+				      (else				string-typedef))))
+    (autoconf-lib (format "NAUSICAA_SIZEOF_TEST([~a],[~a])" keyword string-typedef))
+    (autoconf-lib (format "NAUSICAA_BASE_TYPE_TEST([~a],[~a],[~a])" keyword string-typedef type-category))
     (%clang-type-translation-register-type-alias name ac-symbol-typeof)))
 
 
@@ -461,17 +581,20 @@ As an example, it should be something like:
   ;;
   ;;   (define-c-struct timeval
   ;;     "struct timeval"
-  ;;     (signed-int    tv_sec)
-  ;;     (signed-int    tv_usec))
+  ;;     (signed-int    tv_sec	(name: sec))
+  ;;     (signed-int    tv_usec	(name: sec)))
   ;;
   (define (main stx)
     (syntax-case stx (options)
       ((_ ?name ?type-string (options ?option ...) . ?field-specs)
-       (let-values (((label? wrapper? mirror?)		(%parse-struct-options #'(?option ...)))
-		    ((field-type-categories
-		      field-names mirror-field-names)	(%parse-struct-fields #'?field-specs)))
+       (let-values
+	   (((label? wrapper? mirror?)
+	     (%parse-struct-options #'(?option ...)))
+	    ((field-type-categories C-field-names Scheme-field-names)
+	     (%parse-struct-fields #'?field-specs)))
 	 #`(%generate-struct-type #,label? #,wrapper? #,mirror? '?name ?type-string
-				  '#,field-type-categories '#,field-names '#,mirror-field-names)))
+				  '#,field-type-categories '#,C-field-names
+				  '#,Scheme-field-names)))
 
       ((_ ?name ?type-string . ?field-specs)
        #'(define-c-struct ?name ?type-string (options label wrapper mirror) . ?field-specs))
@@ -502,29 +625,39 @@ As an example, it should be something like:
   (define (%parse-struct-fields stx)
     (let next-field ((stx		stx)
 		     (categories	'())
-		     (fields		'())
-		     (mirror-fields	'()))
+		     (C-fields		'())
+		     (Scheme-fields	'()))
       (syntax-case stx ()
 	(()
-	 (values (reverse categories) (reverse fields) (reverse mirror-fields)))
-	(((?type-category ?field-name ?mirror-field-name) ?spec ...)
-	 (next-field #'(?spec ...)
-		     (cons #'?type-category	categories)
-		     (cons #'?field-name	fields)
-		     (cons #'?mirror-field-name	mirror-fields)))
-	(((?type-category ?field-name) ?spec ...)
-	 (next-field #'(?spec ...)
-		     (cons #'?type-category	categories)
-		     (cons #'?field-name	fields)
-		     (cons #'?field-name	mirror-fields)))
+	 (values (reverse categories) (reverse C-fields) (reverse Scheme-fields)))
+	(((?type-category ?C-field-name . ?field-options) ?spec ...)
+	 (let-values (((Scheme-field-name) (%parse-field-options #'?C-field-name #'?field-options)))
+	   (next-field #'(?spec ...)
+		       (cons #'?type-category	categories)
+		       (cons #'?C-field-name	C-fields)
+		       (cons Scheme-field-name	Scheme-fields))))
 	(?subform
 	 (synner "invalid field specification in struct definition" #'?subform)))))
+
+  (define (%parse-field-options C-field-name stx)
+    (let ((Scheme-field-name C-field-name))
+      (let next-option ((stx stx))
+	(syntax-case stx (name:)
+	  (()
+	   (values Scheme-field-name))
+	  (((name: ?Scheme-field-name) . ?options)
+	   (begin
+	     (set! Scheme-field-name #'?Scheme-field-name)
+	     (next-option #'?options)))
+	  ((?subform . ?options)
+	   (synner "invalid field option in struct definition" #'?subform))
+	  ))))
 
   (main stx))
 
 (define (%generate-struct-type label? wrapper? mirror?
 			       struct-name struct-string-typedef
-			       field-type-categories field-names mirror-field-names)
+			       field-type-categories C-field-names Scheme-field-names)
   ;;Build what is needed to handle a C struct type.
   ;;
   ;;LABEL?,  WRAPPER?  and  MIRROR?  are  boolean values:  true  when the
@@ -540,16 +673,17 @@ As an example, it should be something like:
   ;;guessed  type of the  fields; to  be used  by GNU  Autoconf Nausicaa
   ;;inspection macros in the "configure.ac" template.
   ;;
-  ;;FIELD-NAMES is a list of  Scheme symbols representing the bare names
-  ;;of the  struct fields: they  are used by  the label and  the pointer
-  ;;wrapper class.
+  ;;C-FIELD-NAMES  is a  list of  Scheme symbols  representing  the bare
+  ;;names  of the struct  fields: they  are used  by Autoconf  macros to
+  ;;inspect the C struct.
   ;;
-  ;;MIRROR-FIELD-NAMES is a list of Scheme symbols representing the bare
-  ;;names of the struct fields: they are used by the mirror class.
+  ;;SCHEME-FIELD-NAMES is a list of Scheme symbols representing the bare
+  ;;names of the struct fields: they are used by labels and classes.
   ;;
   ;;*NOTE*  There  is  a  lot  of code  duplication  in  this  function,
-  ;;especially the symbols  to output to files; this  is because keeping
-  ;;the code readable was a priority.  Beware when changing things!!!
+  ;;especially  the building  of symbols  to  output to  files; this  is
+  ;;because  keeping the  code  readable was  a  priority.  Beware  when
+  ;;changing things!!!
   ;;
   (define (main)
     (%generate-type-translation)
@@ -562,124 +696,245 @@ As an example, it should be something like:
     (when mirror?
       (%generate-mirror-class)))
 
+  ;;Scheme  symbol to  be  used  as argument  for  C-SIZEOF and  similar
+  ;;macros.
+  (define struct-name-for-inspection
+    (format-symbol "struct-~a" struct-name))
+
+  (define struct-name-upcase
+    (string-upcase (symbol->string struct-name)))
+
+  ;;Scheme symbols representing Autoconf substitution symbols; they have
+  ;;the "@" replaced by "^" because R6RS does not allow "@" in symbols.
+  (define ac-symbol-sizeof
+    (format-symbol "^SIZEOF_~a^" struct-name-upcase))
+  (define ac-symbol-alignof
+    (format-symbol "^ALIGNOF_~a^" struct-name-upcase))
+  (define ac-symbol-strideof
+    (format-symbol "^STRIDEOF_~a^" struct-name-upcase))
+
+  ;;Scheme  symbols  used  as  identifier names  for  struct  inspection
+  ;;bindings;  these are the  bindings used  internally by  the C-SIZEOF
+  ;;macro and similar.
+  (define sizeof-struct
+    (format-symbol "sizeof-~a"	struct-name-for-inspection))
+  (define alignof-struct
+    (format-symbol "alignof-~a"	struct-name-for-inspection))
+  (define strideof-struct
+    (format-symbol "strideof-~a" struct-name-for-inspection))
+
+  ;;Scheme  symbol  used as  identifier  name  of  the generated  struct
+  ;;pointer interface label.
+  (define label-name
+    (format-symbol "<pointer-to-~a>" struct-name))
+
+  ;;Scheme  symbol  used as  identifier  name  of  the generated  struct
+  ;;pointer interface class wrapper.
+  (define wrapper-name
+    (format-symbol "<struct-~a>" struct-name))
+
+  ;;Scheme symbol used as UID in the NONGENERATIVE clause of the wrapper
+  ;;class definition.
+  (define wrapper-uid
+    (format-symbol "~a:~a" (class-uid-prefix) wrapper-name))
+
+  ;;Scheme symbol used as identifier name of the generated struct mirror
+  ;;class.
+  (define mirror-name
+    (format-symbol "<~a>" struct-name))
+
+  ;;Scheme symbol used as UID  in the NONGENERATIVE clause of the mirror
+  ;;class definition.
+  (define mirror-uid
+    (format-symbol "~a:~a" (class-uid-prefix) mirror-name))
+
+  ;;Scheme  symbols used  as identifier  names for  conversion functions
+  ;;between labels, wrapper classes and mirror classes.
+  (define pointer->pointer	(format-symbol "~a-pointer->~a-pointer" struct-name struct-name))
+  (define wrapper->pointer	(format-symbol "~a-wrapper->~a-pointer" struct-name struct-name))
+  (define mirror->pointer	(format-symbol "~a-mirror->~a-pointer"  struct-name struct-name))
+  (define pointer->wrapper	(format-symbol "~a-pointer->~a-wrapper" struct-name struct-name))
+  (define wrapper->wrapper	(format-symbol "~a-wrapper->~a-wrapper" struct-name struct-name))
+  (define mirror->wrapper	(format-symbol "~a-mirror->~a-wrapper"  struct-name struct-name))
+  (define pointer->mirror	(format-symbol "~a-pointer->~a-mirror"  struct-name struct-name))
+  (define wrapper->mirror	(format-symbol "~a-wrapper->~a-mirror"  struct-name struct-name))
+  (define mirror->mirror	(format-symbol "~a-mirror->~a-mirror"   struct-name struct-name))
+
+  ;;Lists of  symbols representing source and destination  fields in dot
+  ;;notation.  They are used in the convertion functions between labels,
+  ;;wrapper classes and mirror classes.
+  (define src-fields
+    (map (lambda (field-name)
+	   (format-symbol "src.~a" field-name))
+      Scheme-field-names))
+  (define dst-fields
+    (map (lambda (field-name)
+	   (format-symbol "dst.~a" field-name))
+      Scheme-field-names))
+  (define src-fields->dst-fields
+    (map (lambda (src dst)
+	   `(set! ,dst ,src))
+      src-fields
+      dst-fields))
+
   (define (%generate-type-translation)
-    (let* ((str	(format "struct-~a" struct-name))
-	   (sym	(string->symbol str)))
-      ;;Every struct type has a type alias for its name.  It is NOT used
-      ;;for  callout function  arguments; rather,  it is  used  for type
-      ;;inspection by C-SIZEOF etc.
-      ;;
-      (%register-type-alias sym sym)
-      ;;Every struct type has a  pointer type alias; for example "struct
-      ;;flock" is associated to  "struct-flock*" as alias for "pointer".
-      ;;Such alias is meant to be used in callout functions definition.
-      ;;
-      (%register-type-alias (format-symbol "~a*" str) 'pointer)))
+    ;;Every struct type  has a type alias for its name.   It is NOT used
+    ;;for  callout  function arguments;  rather,  it  is  used for  type
+    ;;inspection by C-SIZEOF etc.
+    ;;
+    (%register-type-alias struct-name-for-inspection struct-name-for-inspection)
+    ;;Every struct  type has a  pointer type alias; for  example "struct
+    ;;flock" is  associated to  "struct-flock*" as alias  for "pointer".
+    ;;Such alias is meant to be used in callout functions definition.
+    ;;
+    (%register-type-alias (format-symbol "~a*"  struct-name-for-inspection) 'pointer))
 
   (define (%generate-autoconf-macros)
     (autoconf-lib (format "\ndnl Struct inspection: ~a" struct-name))
-    (let* ((struct-keyword	(string-upcase (symbol->string struct-name)))
-	   (ac-symbol-sizeof	(format-symbol "^SIZEOF_~a^"	struct-keyword))
-	   (ac-symbol-alignof	(format-symbol "^ALIGNOF_~a^"	struct-keyword))
-	   (ac-symbol-strideof	(format-symbol "^STRIDEOF_~a^"	struct-keyword)))
-      (autoconf-lib (format "NAUSICAA_INSPECT_STRUCT_TYPE([~a],[~a],[\"#f\"])"
-		      struct-keyword struct-string-typedef))
-      (for-each
-	  (lambda (field-name field-type-category)
-	    (let ((field-keyword (dot->underscore (string-upcase (symbol->string field-name)))))
-	      (if (eq? 'embedded field-type-category)
-		  (autoconf-lib (format "NAUSICAA_INSPECT_FIELD_TYPE_POINTER([~a_~a],[~a],[~a])"
-				  struct-keyword field-keyword struct-string-typedef field-name))
-		(autoconf-lib (format "NAUSICAA_INSPECT_FIELD_TYPE([~a_~a],[~a],[~a],[~a])"
-				struct-keyword field-keyword
-				struct-string-typedef field-name field-type-category)))))
-	field-names field-type-categories)))
+    (autoconf-lib (format "NAUSICAA_INSPECT_STRUCT_TYPE([~a],[~a],[\"#f\"])"
+		    struct-name-upcase struct-string-typedef))
+    (for-each
+	(lambda (C-field-name field-type-category)
+	  (define field-keyword
+	    (dot->underscore (string-upcase (symbol->string C-field-name))))
+	  (if (eq? 'embedded field-type-category)
+	      (autoconf-lib (format "NAUSICAA_INSPECT_FIELD_TYPE_POINTER([~a_~a],[~a],[~a])"
+			      struct-name-upcase field-keyword struct-string-typedef C-field-name))
+	    (autoconf-lib (format "NAUSICAA_INSPECT_FIELD_TYPE([~a_~a],[~a],[~a],[~a])"
+			    struct-name-upcase field-keyword
+			    struct-string-typedef C-field-name field-type-category))))
+      C-field-names field-type-categories))
 
   (define (%generate-constants)
-    (let* ((name	(format "struct-~a" struct-name))
-	   (sizeof	(format-symbol "sizeof-~a"	name))
-	   (alignof	(format-symbol "alignof-~a"	name))
-	   (strideof	(format-symbol "strideof-~a"	name))
-	   (keyword	(string-upcase (symbol->string struct-name)))
-	   (ac-sizeof	(format-symbol "^SIZEOF_~a^"	keyword))
-	   (ac-alignof	(format-symbol "^ALIGNOF_~a^"	keyword))
-	   (ac-strideof	(format-symbol "^STRIDEOF_~a^"	keyword)))
-      (%sizeof-lib `((define ,sizeof	,ac-sizeof)
-		     (define ,alignof	,ac-alignof)
-		     (define ,strideof	,ac-strideof)))))
+    (%sizeof-lib `((define ,sizeof-struct	,ac-symbol-sizeof)
+		   (define ,alignof-struct	,ac-symbol-alignof)
+		   (define ,strideof-struct	,ac-symbol-strideof))))
 
   (define (%generate-label-interface-to-struct)
     ;;A structure definition like:
     ;;
     ;; (define-c-struct timeval
     ;;   "struct timeval"
-    ;;   (signed-int	tv_sec)
-    ;;   (signed-int	tv_usec))
+    ;;   (signed-int    tv_sec	sec)
+    ;;   (signed-int    tv_usec	usec))
     ;;
     ;;should become:
     ;;
-    ;; (define-label pointer-to-timeval
-    ;;   (virtual-fields (mutable tv_sec)
-    ;;                   (mutable tv_usec)))
+    ;; (define-label <pointer-to-timeval>
+    ;;   (custom-maker <pointer-to-timeval>-maker)
+    ;;   (virtual-fields (mutable sec)
+    ;;                   (mutable usec)))
     ;;
-    ;; (define-syntax pointer-to-timeval-tv_sec-ref
-    ;;   (syntax-rules ()
-    ;;     ((_ ?pointer)
-    ;;      (pointer-c-ref @TYPEOF_TIMEVAL_TV_SEC@ ?pointer @OFFSETOF_TIMEVAL_TV_USEC@))))
+    ;; (define-inline (<pointer-to-timeval>-sec-ref ?pointer)
+    ;;   (pointer-c-ref @TYPEOF_TIMEVAL_TV_SEC@ ?pointer @OFFSETOF_TIMEVAL_TV_USEC@))
     ;;
-    ;; (define-syntax pointer-to-timeval-tv_sec-set!
-    ;;   (syntax-rules ()
-    ;;     ((_ ?pointer ?value)
-    ;;      (pointer-c-ref @TYPEOF_TIMEVAL_TV_SEC@ ?pointer @OFFSETOF_TIMEVAL_TV_SEC@ ?value))))
+    ;; (define-inline (<pointer-to-timeval>-sec-set! ?pointer ?value)
+    ;;   (pointer-c-ref @TYPEOF_TIMEVAL_TV_SEC@ ?pointer @OFFSETOF_TIMEVAL_TV_SEC@ ?value))
     ;;
-    ;; (define-syntax pointer-to-timeval-tv_usec-ref
-    ;;   (syntax-rules ()
-    ;;     ((_ ?pointer)
-    ;;      (pointer-c-ref @TYPEOF_TIMEVAL_TV_USEC@ ?pointer @OFFSETOF_TIMEVAL_TV_USEC@))))
+    ;; (define-inline (<pointer-to-timeval>-usec-ref ?pointer)
+    ;;   (pointer-c-ref @TYPEOF_TIMEVAL_TV_USEC@ ?pointer @OFFSETOF_TIMEVAL_TV_USEC@))
     ;;
-    ;; (define-syntax pointer-to-timeval-tv_usec-set!
-    ;;   (syntax-rules ()
-    ;;     ((_ ?pointer ?value)
-    ;;      (pointer-c-ref @TYPEOF_TIMEVAL_TV_USEC@ ?pointer @OFFSETOF_TIMEVAL_TV_USEC@ ?value))))
+    ;; (define-inline (<pointer-to-timeval>-usec-set! ?pointer ?value)
+    ;;   (pointer-c-ref @TYPEOF_TIMEVAL_TV_USEC@ ?pointer @OFFSETOF_TIMEVAL_TV_USEC@ ?value))
     ;;
-    (let ((label-name			(format-symbol "pointer-to-~a" struct-name))
-	  (fields			'())
-	  (accessors-and-mutators	'())
-	  (struct-keyword		(string-upcase (symbol->string struct-name))))
+    ;; (define-maker <pointer-to-timeval>-maker %<pointer-to-timeval>-maker
+    ;;   ((pointer:     sentinel        (without wrapper: mirror:))
+    ;;    (wrapper:     sentinel        (without pointer: mirror:))
+    ;;    (mirror:      sentinel        (without pointer: wrapper:))
+    ;;    (malloc:      sentinel        (mandatory))))
+    ;;
+    ;; (define-syntax %<pointer-to-timeval>-maker
+    ;;   (syntax-rules (sentinel)
+    ;;     ((_ sentinel sentinel sentinel ?malloc) (?malloc (c-sizeof ,struct-id)))
+    ;;     ((_ ?pointer sentinel sentinel ?malloc) (timeval-pointer->timeval-pointer ?pointer ?malloc))
+    ;;     ((_ sentinel ?wrapper sentinel ?malloc) (timeval-wrapper->timeval-pointer ?wrapper ?malloc))
+    ;;     ((_ sentinel sentinel ?mirror  ?malloc) (timeval-mirror->timeval-pointer  ?mirror  ?malloc))))
+    ;;
+    ;; (define (timeval-pointer->timeval-pointer (src <pointer-to-timeval>) malloc)
+    ;;   (let (((dst <pointer-to-timeval>) (malloc (c-sizeof struct-timeval))))
+    ;;     (set! dst.sec  src.sec)
+    ;;     (set! dst.usec src.usec)
+    ;;     dst))
+    ;;
+    ;; (define (timeval-wrapper->timeval-pointer (src <struct-timeval>) malloc)
+    ;;   (let (((dst <pointer-to-timeval>) (malloc (c-sizeof struct-timeval))))
+    ;;     (set! dst.sec  src.sec)
+    ;;     (set! dst.usec src.usec)
+    ;;     dst))
+    ;;
+    ;; (define (timeval-mirror->timeval-pointer (src <timeval>) malloc)
+    ;;   (let (((dst <pointer-to-timeval>) (malloc (c-sizeof struct-timeval))))
+    ;;     (set! dst.sec  src.sec)
+    ;;     (set! dst.usec src.usec)
+    ;;     dst))
+    ;;
+    (let ((fields                       '())
+          (accessors-and-mutators       '())
+          (struct-keyword               (string-upcase (symbol->string struct-name))))
       (for-each
-	  (lambda (field-name field-type-category)
-	    (let* ((accessor	(format-symbol "~a-~a"      label-name field-name))
-		   (mutator	(format-symbol "~a-~a-set!" label-name field-name))
-		   (keyword	(dot->underscore (string-upcase (symbol->string field-name))))
+	  (lambda (C-field-name Scheme-field-name field-type-category)
+	    (let* ((accessor	(format-symbol "~a-~a"      label-name Scheme-field-name))
+		   (mutator	(format-symbol "~a-~a-set!" label-name Scheme-field-name))
+		   (keyword	(dot->underscore (string-upcase (symbol->string C-field-name))))
 		   (typeof	(format-symbol "^TYPEOF_~a_~a^"   struct-keyword keyword))
 		   (offset	(format-symbol "^OFFSETOF_~a_~a^" struct-keyword keyword)))
 	      (if (eq? 'embedded field-type-category)
 		  (begin
-		    (set-cons! fields `(immutable ,field-name))
+		    (set-cons! fields `(mutable ,Scheme-field-name))
+		    ;; (set-cons! accessors-and-mutators
+		    ;; 	       `(define-inline (,accessor ?pointer)
+		    ;; 		  (ffi:pointer-add ?pointer ,offset)))
 		    (set-cons! accessors-and-mutators
-			       `(define-syntax ,accessor
-				  (syntax-rules ()
-				    ((_ ?pointer)
-				     (ffi:pointer-add ?pointer ,offset))))))
+		    	       `(define-inline (,accessor ?pointer)
+		    		  (null-accessor ?pointer ,offset)))
+		    (set-cons! accessors-and-mutators
+		    	       `(define-inline (,mutator ?pointer ?value)
+		    		  (null-mutator ?pointer ,offset ?value))))
 		(begin
-		  (set-cons! fields `(mutable ,field-name))
+		  (set-cons! fields `(mutable ,Scheme-field-name))
 		  (set-cons! accessors-and-mutators
-			     `(define-syntax ,accessor
-				(syntax-rules ()
-				  ((_ ?pointer)
-				   (pointer-c-ref ,typeof ?pointer ,offset)))))
+			     `(define-inline (,accessor ?pointer)
+				(pointer-c-ref ,typeof ?pointer ,offset)))
 		  (set-cons! accessors-and-mutators
-			     `(define-syntax ,mutator
-				(syntax-rules ()
-				  ((_ ?pointer ?value)
-				   (pointer-c-set! ,typeof ?pointer ,offset ?value)))))
+			     `(define-inline (,mutator ?pointer ?value)
+				(pointer-c-set! ,typeof ?pointer ,offset ?value)))
 		  ))))
-	field-names field-type-categories)
+	C-field-names Scheme-field-names field-type-categories)
       ;; register sexps to the sizeof library, structs section
       (%structs-lib-exports label-name)
-      (%structs-lib `((define-label ,label-name
-			(virtual-fields ,@fields))
-		      ,@accessors-and-mutators))))
+      (let* ((maker-name	(format-symbol "~a-maker" label-name))
+	     (constructor-name	(format-symbol "%~a"      maker-name))
+	     (pointer->pointer	(format-symbol "~a-pointer->~a-pointer" struct-name struct-name))
+	     (wrapper->pointer	(format-symbol "~a-wrapper->~a-pointer" struct-name struct-name))
+	     (mirror->pointer	(format-symbol "~a-mirror->~a-pointer"  struct-name struct-name)))
+	(%structs-lib
+	 `((define-label ,label-name (custom-maker ,maker-name) (virtual-fields ,@fields))
+	   ,@accessors-and-mutators
+	   (define-maker ,maker-name ,constructor-name
+	     ((pointer:	sentinel	(without wrapper: mirror:))
+	      (wrapper:	sentinel	(without pointer: mirror:))
+	      (mirror:	sentinel	(without pointer: wrapper:))
+	      (malloc:	sentinel	(mandatory))))
+	   (define-syntax ,constructor-name
+	     (syntax-rules (sentinel)
+	       ((_ sentinel sentinel sentinel ?malloc) (?malloc (c-sizeof ,struct-name-for-inspection)))
+	       ((_ ?pointer sentinel sentinel ?malloc) (,pointer->pointer ?pointer ?malloc))
+	       ((_ sentinel ?wrapper sentinel ?malloc) (,wrapper->pointer ?wrapper ?malloc))
+	       ((_ sentinel sentinel ?mirror  ?malloc) (,mirror->pointer  ?mirror  ?malloc))))
+	   (define (,pointer->pointer (src ,label-name) malloc)
+	     (let (((dst ,label-name) (malloc (c-sizeof ,struct-name-for-inspection))))
+	       (mem.memcpy dst src (c-sizeof ,struct-name-for-inspection))
+	       dst))
+	   (define (,wrapper->pointer (src ,wrapper-name) malloc)
+	     (let (((dst ,label-name) (malloc (c-sizeof ,struct-name-for-inspection))))
+	       (mem.memcpy dst src (c-sizeof ,struct-name-for-inspection))
+	       dst))
+	   (define (,mirror->pointer (src ,mirror-name) malloc)
+	     (let (((dst ,label-name) (malloc (c-sizeof ,struct-name-for-inspection))))
+	       ,@src-fields->dst-fields
+	       dst))
+	   )))
+      ))
 
   (define (%generate-class-wrapper-for-pointer)
     ;;A structure definition like:
@@ -697,75 +952,83 @@ As an example, it should be something like:
     ;;   (virtual-fields (mutable tv_sec)
     ;;                   (mutable tv_usec)))
     ;;
-    ;; (define-syntax <struct-timeval>-tv_sec-ref
-    ;;   (syntax-rules ()
-    ;;     ((_ ?pointer)
-    ;;      (pointer-to-timeval-tv_sec (<struct-timeval>-pointer ?pointer)))))
+    ;; (define-inline (<struct-timeval>-tv_sec-ref ?wrapper)
+    ;;   (<pointer-to-timeval>-tv_sec (<struct-timeval>-pointer ?wrapper)))
     ;;
-    ;; (define-syntax <struct-timeval>-tv_sec-set!
-    ;;   (syntax-rules ()
-    ;;     ((_ ?pointer ?value)
-    ;;      (pointer-to-timeval-tv-sec-set! (<struct-timeval>-pointer ?pointer) ?value))))
+    ;; (define-inline (<struct-timeval>-tv_sec-set! ?wrapper ?value)
+    ;;   (<pointer-to-timeval>-tv-sec-set! (<struct-timeval>-pointer ?wrapper) ?value))
     ;;
-    ;; (define-syntax <struct-timeval>-tv_usec-ref
-    ;;   (syntax-rules ()
-    ;;     ((_ ?pointer)
-    ;;      (pointer-to-timeval-tv_usec (<struct-timeval>-pointer ?pointer)))))
+    ;; (define-inline (<struct-timeval>-tv_usec-ref ?wrapper)
+    ;;   (<pointer-to-timeval>-tv_usec (<struct-timeval>-pointer ?wrapper)))
     ;;
-    ;; (define-syntax <struct-timeval>-tv_usec-set!
-    ;;   (syntax-rules ()
-    ;;     ((_ ?pointer ?value)
-    ;;      (pointer-to-timeval-tv_usec-set! (<struct-timeval>-pointer ?pointer) ?value))))
+    ;; (define-inline (<struct-timeval>-tv_usec-set! ?wrapper ?value)
+    ;;   (<pointer-to-timeval>-tv_usec-set! (<struct-timeval>-pointer ?wrapper) ?value))
     ;;
-    (let* ((class-name			(format-symbol "<struct-~a>" struct-name))
-	   (label-name			(format-symbol "pointer-to-~a" struct-name))
-	   (uid				(format-symbol "~a:~a" (class-uid) class-name))
-	   (fields			'())
+    (let* ((fields			'())
 	   (accessors-and-mutators	'())
 	   (struct-keyword		(string-upcase (symbol->string struct-name))))
       (for-each
-	  (lambda (field-name field-type-category)
-	    (let* ((accessor	(format-symbol "~a-~a"      class-name field-name))
-		   (mutator	(format-symbol "~a-~a-set!" class-name field-name))
-		   (L-accessor	(format-symbol "~a-~a"      label-name field-name))
-		   (L-mutator	(format-symbol "~a-~a-set!" label-name field-name))
-		   (pointer	(format-symbol "~a-pointer" class-name))
-		   (keyword	(dot->underscore (string-upcase (symbol->string field-name))))
+	  (lambda (C-field-name Scheme-field-name field-type-category)
+	    (let* ((accessor	(format-symbol "~a-~a"      wrapper-name Scheme-field-name))
+		   (mutator	(format-symbol "~a-~a-set!" wrapper-name Scheme-field-name))
+		   (L-accessor	(format-symbol "~a-~a"      label-name Scheme-field-name))
+		   (L-mutator	(format-symbol "~a-~a-set!" label-name Scheme-field-name))
+		   (pointer	(format-symbol "~a-pointer" wrapper-name))
+		   (keyword	(dot->underscore (string-upcase (symbol->string C-field-name))))
 		   (typeof	(format-symbol "^TYPEOF_~a_~a^"   struct-keyword keyword))
 		   (offset	(format-symbol "^OFFSETOF_~a_~a^" struct-keyword keyword)))
 	      (if (eq? 'embedded field-type-category)
 		  (begin
-		    (set-cons! fields `(immutable ,field-name))
+		    (set-cons! fields `(immutable ,Scheme-field-name))
 		    (set-cons! accessors-and-mutators
-			       `(define-syntax ,accessor
-				  (syntax-rules ()
-				    ((_ ?pointer)
-				     (,L-accessor (,pointer ?pointer)))))))
+			       `(define-inline (,accessor ?wrapper)
+				  (,L-accessor (,pointer ?wrapper)))))
 		(begin
-		  (set-cons! fields `(mutable ,field-name))
+		  (set-cons! fields `(mutable ,Scheme-field-name))
 		  (set-cons! accessors-and-mutators
-			     `(define-syntax ,accessor
-				(syntax-rules ()
-				  ((_ ?pointer)
-				   (,L-accessor (,pointer ?pointer))))))
+			     `(define-inline (,accessor ?wrapper)
+				(,L-accessor (,pointer ?wrapper))))
 		  (set-cons! accessors-and-mutators
-			     `(define-syntax ,mutator
-				(syntax-rules ()
-				  ((_ ?pointer ?value)
-				   (,L-mutator (,pointer ?pointer) ?value)))))
+			     `(define-inline (,mutator ?wrapper ?value)
+				(,L-mutator (,pointer ?wrapper) ?value)))
 		  ))))
-	field-names field-type-categories)
+	C-field-names Scheme-field-names field-type-categories)
       ;;register sexps to the sizeof library, structs section
-      (%structs-lib-exports class-name)
-      (let ((sizeof (format-symbol "struct-~a" struct-name)))
-	(%structs-lib `((define-class ,class-name
-			  (nongenerative ,uid)
-			  (protocol (lambda (make-top)
-				      (lambda (malloc)
-					((make-top) (malloc (c-sizeof ,sizeof))))))
-			  (fields (immutable pointer))
-			  (virtual-fields ,@fields))
-			,@accessors-and-mutators)))))
+      (%structs-lib-exports wrapper-name)
+      (let ((maker-name (format-symbol "~a-maker-transformer" wrapper-name)))
+	(%structs-lib
+	 `((define-class ,wrapper-name
+	     (nongenerative ,wrapper-uid)
+	     (maker ()
+		    (pointer:	sentinel	(without wrapper: mirror:))
+		    (wrapper:	sentinel	(without pointer: mirror:))
+		    (mirror:	sentinel	(without pointer: wrapper:))
+		    (malloc:	sentinel	(mandatory)))
+	     (maker-transformer ,maker-name)
+	     (protocol (lambda (make-top)
+			 (lambda (malloc)
+			   ((make-top) (malloc (c-sizeof ,struct-name-for-inspection))))))
+	     (fields (immutable pointer))
+	     (virtual-fields ,@fields))
+	   ,@accessors-and-mutators
+	   (define-syntax ,maker-name
+	     (syntax-rules (sentinel)
+	       ((_ ?constructor sentinel sentinel sentinel ?malloc)
+		(?constructor (?malloc (c-sizeof ,struct-name-for-inspection))))
+	       ((_ ?constructor ?pointer sentinel sentinel ?malloc)
+		(,pointer->wrapper ?constructor ?pointer ?malloc))
+	       ((_ ?constructor sentinel ?wrapper sentinel ?malloc)
+		(,wrapper->wrapper ?constructor ?wrapper ?malloc))
+	       ((_ ?constructor sentinel sentinel ?mirror  ?malloc)
+		(,mirror->wrapper  ?constructor ?mirror  ?malloc))))
+	   (define (,pointer->wrapper constructor pointer malloc)
+	     (constructor (,pointer->pointer pointer malloc)))
+ 	   (define (,wrapper->wrapper constructor wrapper malloc)
+	     (constructor (,wrapper->pointer wrapper malloc)))
+	   (define (,mirror->wrapper  constructor mirror  malloc)
+	     (constructor (,mirror->pointer  mirror  malloc)))
+	   )))
+      ))
 
   (define (%generate-mirror-class)
     ;;A structure definition like:
@@ -778,22 +1041,39 @@ As an example, it should be something like:
     ;;should become:
     ;;
     ;; (define-class <timeval>
-    ;;   (nongenerative nausicaa:<timeval>)
+    ;;   (nongenerative nausicaa:posix:<timeval>)
     ;;   (fields (immutable tv_sec)
     ;;           (immutable tv_usec)))
     ;;
-    (let* ((class-name	(format-symbol "<~a>" struct-name))
-	   (uid		(format-symbol "~a:~a" (class-uid) class-name))
-	   (fields	'()))
-      (for-each
-	  (lambda (field-name field-type-category)
-	    (set-cons! fields `(mutable ,field-name)))
-	field-names field-type-categories)
-      ;;register sexps to the sizeof library, structs section
-      (%structs-lib-exports class-name)
-      (%structs-lib `((define-class ,class-name
-			(nongenerative ,uid)
-			(fields ,@fields))))))
+    (%structs-lib-exports mirror-name)
+    (let ((maker-name (format-symbol "~a-maker-transformer" mirror-name)))
+      (%structs-lib
+       `((define-class ,mirror-name
+	   (nongenerative ,mirror-uid)
+	   (maker ()
+		  (pointer:	sentinel	(without wrapper: mirror:))
+		  (wrapper:	sentinel	(without pointer: mirror:))
+		  (mirror:	sentinel	(without pointer: wrapper:)))
+	   (maker-transformer ,maker-name)
+	   (fields ,@(map (lambda (name)
+			    `(mutable ,name))
+		       Scheme-field-names)))
+	 (define-syntax ,maker-name
+	   (syntax-rules (sentinel)
+	     ((_ ?constructor ?pointer sentinel sentinel)
+	      (,pointer->mirror ?constructor ?pointer))
+	     ((_ ?constructor sentinel ?wrapper sentinel)
+	      (,wrapper->mirror ?constructor ?wrapper))
+	     ((_ ?constructor sentinel sentinel ?mirror)
+	      (,mirror->mirror  ?constructor ?mirror))))
+	 (define (,pointer->mirror constructor (src ,label-name))
+	   (constructor ,@src-fields))
+	 (define (,wrapper->mirror constructor (src ,wrapper-name))
+	   (constructor ,@src-fields))
+	 (define (,mirror->mirror constructor (src ,mirror-name))
+	   (constructor ,@src-fields))
+	 ))
+      ))
 
   (main))
 
