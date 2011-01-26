@@ -12,7 +12,7 @@ dnl
 dnl     Full  documentation  for the  macros  in  this  file is  in  the
 dnl   Nausicaa/Scheme texinfo  documentation.
 dnl
-dnl Copyright (c) 2008, 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
+dnl Copyright (c) 2008, 2009, 2010, 2011 Marco Maggi <marco.maggi-ipsu@poste.it>
 dnl
 dnl This program is free software: you can redistribute it and/or modify
 dnl it under the terms of the GNU General Public License as published by
@@ -536,7 +536,7 @@ AC_DEFUN([NAUSICAA_VALUEOF_TEST],
            [$2],
            [NAUSICAA_INCLUDES_DEFAULT([$4])],
            [nausicaa_cv_valueof_$1="$nausicaa_default_valueof_$1"])])
-      VALUEOF_$1="$nausicaa_cv_valueof_$1"],[#f])
+      VALUEOF_$1="$nausicaa_cv_valueof_$1"],["#f"])
    AC_SUBST([VALUEOF_$1])])
 
 dnl 1 output-variable-suffix/enum name
@@ -562,7 +562,7 @@ AC_DEFUN([NAUSICAA_SIZEOF_TEST],
            [sizeof($2)],
            [NAUSICAA_INCLUDES_DEFAULT([$4])],
            [nausicaa_cv_sizeof_$1="$nausicaa_default_sizeof_$1"])])
-      SIZEOF_$1="$nausicaa_cv_sizeof_$1"],[#f])
+      SIZEOF_$1="$nausicaa_cv_sizeof_$1"],["#f"])
    AC_SUBST([SIZEOF_$1])])
 
 dnl 1 output-variable-suffix
@@ -585,7 +585,7 @@ AC_DEFUN([NAUSICAA_ALIGNOF_TEST],
            [nausicaa_cv_alignof_$1=`cat conftest.val`],
            [nausicaa_cv_alignof_$1="$nausicaa_default_alignof_$1"])
          rm -f conftest.val])
-      ALIGNOF_$1="$nausicaa_cv_alignof_$1"],[#f])
+      ALIGNOF_$1="$nausicaa_cv_alignof_$1"],["#f"])
    AC_SUBST([ALIGNOF_$1])])
 
 dnl 1 output-variable-suffix
@@ -605,7 +605,7 @@ AC_DEFUN([NAUSICAA_STRIDEOF_TEST],
            [nausicaa_cv_strideof_$1=`cat conftest.val`],
            [nausicaa_cv_strideof_$1="$nausicaa_default_strideof_$1"])
          rm -f conftest.val])
-      STRIDEOF_$1="$nausicaa_cv_strideof_$1"],[#f])
+      STRIDEOF_$1="$nausicaa_cv_strideof_$1"],["#f"])
    AC_SUBST([STRIDEOF_$1])])
 
 dnl 1 variable-suffix
@@ -614,14 +614,14 @@ dnl 3 struct-field-name
 dnl 4 optional-headers
 AC_DEFUN([NAUSICAA_OFFSETOF_FIELD_TEST],
   [NAUSICAA_OPTIONAL_TEST([OFFSETOF_$1],
-     [NAUSICAA_DEFAULT_VALUE([offsetof_$1],[#f])
+     [NAUSICAA_DEFAULT_VALUE([offsetof_$1],["#f"])
       AC_CACHE_CHECK([the offset of field '$3' in '$2'],
         [nausicaa_cv_offsetof_$1],
         [AC_COMPUTE_INT([nausicaa_cv_offsetof_$1],
            [offsetof($2,$3)],
            [NAUSICAA_INCLUDES_DEFAULT([$4])],
            [nausicaa_cv_offsetof_$1="$nausicaa_default_offsetof_$1"])])
-      OFFSETOF_$1="$nausicaa_cv_offsetof_$1"],[#f])
+      OFFSETOF_$1="$nausicaa_cv_offsetof_$1"],["#f"])
    AC_SUBST([OFFSETOF_$1])])
 
 dnl 1 variable-suffix
@@ -631,7 +631,7 @@ dnl 4 default-value
 dnl 5 optional-headers
 AC_DEFUN([NAUSICAA_SIZEOF_FIELD_TEST],
   [NAUSICAA_OPTIONAL_TEST([SIZEOF_$1],
-     [NAUSICAA_DEFAULT_VALUE([sizeof_field_$1],[#f])
+     [NAUSICAA_DEFAULT_VALUE([sizeof_field_$1],["#f"])
       AC_CACHE_CHECK([the size of field '$3' in struct '$2'],
         [nausicaa_cv_sizeof_field_$1],
         [AC_RUN_IFELSE([AC_LANG_PROGRAM([NAUSICAA_INCLUDES_DEFAULT([$5])],
@@ -642,7 +642,7 @@ AC_DEFUN([NAUSICAA_SIZEOF_FIELD_TEST],
            [nausicaa_cv_sizeof_field_$1=`cat conftest.val`],
            [nausicaa_cv_sizeof_field_$1="$nausicaa_default_sizeof_field_$1"])
          rm -f conftest.val])
-      SIZEOF_$1="$nausicaa_cv_sizeof_field_$1"],[#f])
+      SIZEOF_$1="$nausicaa_cv_sizeof_field_$1"],["#f"])
    AC_SUBST([SIZEOF_$1])])
 
 dnl 1 output-variable-suffix
@@ -661,7 +661,7 @@ AC_DEFUN([NAUSICAA_STRING_TEST],
            [nausicaa_cv_stringof_$1=`cat conftest.val`],
            [nausicaa_cv_stringof_$1="$nausicaa_default_stringof_$1"])
          rm -f conftest.val])
-      STRINGOF_$1="$nausicaa_cv_stringof_$1"],[#f])
+      STRINGOF_$1="$nausicaa_cv_stringof_$1"],["#f"])
    AC_SUBST([STRINGOF_$1])])
 
 dnl page
@@ -691,7 +691,7 @@ AC_DEFUN([NAUSICAA_BASE_TYPE_TEST],
           AC_SUBST([TYPEOF_$1])
       else
           AC_MSG_WARN([cannot determine base type of '$2' from guess '$3'])
-      fi],[#f])
+      fi],["#f"])
    AC_SUBST([TYPEOF_$1])])
 
 dnl 1 variable-suffix
@@ -699,7 +699,7 @@ dnl 2 type-definition
 AC_DEFUN([NAUSICAA_INTTYPE_TEST],
   [NAUSICAA_OPTIONAL_TEST([TYPEOF_$1],
      [AC_REQUIRE([NAUSICAA_SIZEOF])
-      NAUSICAA_DEFAULT_VALUE([typeof_$1],[#f])
+      NAUSICAA_DEFAULT_VALUE([typeof_$1],["#f"])
       AC_CACHE_CHECK([equivalent integer type of '$2'],
         [nausicaa_cv_typeof_$1],
         [if   test "${SIZEOF_$1}" = "${SIZEOF_INT}" ; then
@@ -716,7 +716,7 @@ AC_DEFUN([NAUSICAA_INTTYPE_TEST],
             AC_MSG_WARN([cannot determine signed integer type of '$2'])
             nausicaa_cv_typeof_$1="$nausicaa_default_typeof_$1"
          fi])
-      TYPEOF_$1="$nausicaa_cv_typeof_$1"],[#f])
+      TYPEOF_$1="$nausicaa_cv_typeof_$1"],["#f"])
    AC_SUBST([TYPEOF_$1])])
 
 dnl 1 variable-suffix
@@ -724,7 +724,7 @@ dnl 2 type-definition
 AC_DEFUN([NAUSICAA_UINTTYPE_TEST],
   [NAUSICAA_OPTIONAL_TEST([TYPEOF_$1],
      [AC_REQUIRE([NAUSICAA_SIZEOF])
-      NAUSICAA_DEFAULT_VALUE([typeof_$1],[#f])
+      NAUSICAA_DEFAULT_VALUE([typeof_$1],["#f"])
       AC_CACHE_CHECK([equivalent unsigned integer type of '$2'],
         [nausicaa_cv_typeof_$1],
         [if   test "${SIZEOF_$1}" = "${SIZEOF_UINT}" ; then
@@ -741,7 +741,7 @@ AC_DEFUN([NAUSICAA_UINTTYPE_TEST],
              AC_MSG_WARN([cannot determine unsigned integer type of '$2'])
              nausicaa_cv_typeof_$1="$nausicaa_default_typeof_$1"
          fi])
-      TYPEOF_$1="$nausicaa_cv_typeof_$1"],[#f])
+      TYPEOF_$1="$nausicaa_cv_typeof_$1"],["#f"])
    AC_SUBST([TYPEOF_$1])])
 
 dnl 1 variable-suffix
@@ -749,7 +749,7 @@ dnl 2 type-definition
 AC_DEFUN([NAUSICAA_FLOATTYPE_TEST],
   [NAUSICAA_OPTIONAL_TEST([TYPEOF_$1],
      [AC_REQUIRE([NAUSICAA_SIZEOF])
-      NAUSICAA_DEFAULT_VALUE([typeof_$1],[#f])
+      NAUSICAA_DEFAULT_VALUE([typeof_$1],["#f"])
       AC_CACHE_CHECK([equivalent floating point type of '$2'],
         [nausicaa_cv_typeof_$1],
         [if   test "${SIZEOF_$1}" = "${SIZEOF_FLOAT}" ; then
@@ -762,7 +762,7 @@ AC_DEFUN([NAUSICAA_FLOATTYPE_TEST],
             AC_MSG_WARN([cannot determine floating point type of '$2'])
             nausicaa_cv_typeof_$1="$nausicaa_default_typeof_$1"
          fi])
-      TYPEOF_$1="$nausicaa_cv_typeof_$1"],[#f])
+      TYPEOF_$1="$nausicaa_cv_typeof_$1"],["#f"])
    AC_SUBST([TYPEOF_$1])])
 
 dnl page
@@ -925,7 +925,7 @@ AC_DEFUN([NAUSICAA_C_TYPES_LIMITS],
    NAUSICAA_VALUEOF_TEST([ULONG_LONG_MAX],[ULONG_LONG_MAX])
    NAUSICAA_VALUEOF_TEST([WCHAR_MAX],[WCHAR_MAX])
    NAUSICAA_VALUEOF_TEST([SSIZE_MAX],[SSIZE_MAX])
-   AC_C_BIGENDIAN([AC_SUBST(WORDS_BIGENDIAN,[#t])],[AC_SUBST(WORDS_BIGENDIAN,[#f])])
+   AC_C_BIGENDIAN([AC_SUBST(WORDS_BIGENDIAN,[#t])],[AC_SUBST(WORDS_BIGENDIAN,["#f"])])
    AC_CACHE_SAVE])
 
 AC_DEFUN([NAUSICAA_C_ERRNO],
