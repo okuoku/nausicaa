@@ -33,16 +33,16 @@
     <pointer-to-flock> <struct-flock> <flock>
     <pointer-to-timeval> <struct-timeval> <timeval>
     <pointer-to-timespec> <struct-timespec> <timespec>
-    <pointer-to-dirent> <struct-dirent> <dirent>
-    <pointer-to-utimbuf> <struct-utimbuf> <utimbuf>
-    <pointer-to-timezone> <struct-timezone> <timezone>
-    <pointer-to-tm> <struct-tm> <tm> <pointer-to-ntptimeval>
-    <struct-ntptimeval> <ntptimeval> <pointer-to-timex>
-    <struct-timex> <timex> <pointer-to-itimerval>
-    <struct-itimerval> <itimerval> <pointer-to-FTW>
-    <struct-FTW> <FTW> <pointer-to-iovec> <struct-iovec>
-    <iovec> <pointer-to-fdset> <struct-fdset> <fdset>
-    <pointer-to-passwd> <struct-passwd> <passwd>
+    <pointer-to-tms> <struct-tms> <tms> <pointer-to-dirent>
+    <struct-dirent> <dirent> <pointer-to-utimbuf>
+    <struct-utimbuf> <utimbuf> <pointer-to-timezone>
+    <struct-timezone> <timezone> <pointer-to-tm> <struct-tm>
+    <tm> <pointer-to-ntptimeval> <struct-ntptimeval>
+    <ntptimeval> <pointer-to-timex> <struct-timex> <timex>
+    <pointer-to-itimerval> <struct-itimerval> <itimerval>
+    <pointer-to-FTW> <struct-FTW> <FTW> <pointer-to-iovec>
+    <struct-iovec> <iovec> <pointer-to-fdset> <struct-fdset>
+    <fdset> <pointer-to-passwd> <struct-passwd> <passwd>
     <pointer-to-group> <struct-group> <group>
     <pointer-to-utsname> <struct-utsname> <utsname>
     <pointer-to-fstab> <struct-fstab> <fstab>
@@ -567,7 +567,8 @@
     (prefix (only (nausicaa ffi memory) memcpy) mem.)
     (prefix (nausicaa ffi pointers) ffi.)
     (prefix (nausicaa ffi sizeof) ffi.)
-    (prefix (nausicaa ffi peekers-and-pokers) ffi.))
+    (prefix (nausicaa ffi peekers-and-pokers) ffi.)
+    (prefix (nausicaa posix clang stub-functions) stub.))
   (define-auxiliary-syntaxes pointer: wrapper: mirror:
     malloc:)
   (define-syntax* (c-sizeof stx)
@@ -1487,15 +1488,13 @@
        (flock-mirror->flock-pointer ?mirror ?malloc))))
   (define (flock-pointer->flock-pointer
             (src <pointer-to-flock>) malloc)
-    (let (((dst <pointer-to-flock>)
-           (malloc (c-sizeof struct-flock))))
+    (let ((dst (malloc (c-sizeof struct-flock))))
       (mem.memcpy dst src (c-sizeof struct-flock))
       dst))
   (define (flock-wrapper->flock-pointer (src <struct-flock>)
             malloc)
-    (let (((dst <pointer-to-flock>)
-           (malloc (c-sizeof struct-flock))))
-      (mem.memcpy dst src (c-sizeof struct-flock))
+    (let ((dst (malloc (c-sizeof struct-flock))))
+      (mem.memcpy dst src.pointer (c-sizeof struct-flock))
       dst))
   (define (flock-mirror->flock-pointer (src <flock>) malloc)
     (let (((dst <pointer-to-flock>)
@@ -1636,15 +1635,13 @@
        (timeval-mirror->timeval-pointer ?mirror ?malloc))))
   (define (timeval-pointer->timeval-pointer
             (src <pointer-to-timeval>) malloc)
-    (let (((dst <pointer-to-timeval>)
-           (malloc (c-sizeof struct-timeval))))
+    (let ((dst (malloc (c-sizeof struct-timeval))))
       (mem.memcpy dst src (c-sizeof struct-timeval))
       dst))
   (define (timeval-wrapper->timeval-pointer
             (src <struct-timeval>) malloc)
-    (let (((dst <pointer-to-timeval>)
-           (malloc (c-sizeof struct-timeval))))
-      (mem.memcpy dst src (c-sizeof struct-timeval))
+    (let ((dst (malloc (c-sizeof struct-timeval))))
+      (mem.memcpy dst src.pointer (c-sizeof struct-timeval))
       dst))
   (define (timeval-mirror->timeval-pointer (src <timeval>)
             malloc)
@@ -1762,15 +1759,13 @@
        (timespec-mirror->timespec-pointer ?mirror ?malloc))))
   (define (timespec-pointer->timespec-pointer
             (src <pointer-to-timespec>) malloc)
-    (let (((dst <pointer-to-timespec>)
-           (malloc (c-sizeof struct-timespec))))
+    (let ((dst (malloc (c-sizeof struct-timespec))))
       (mem.memcpy dst src (c-sizeof struct-timespec))
       dst))
   (define (timespec-wrapper->timespec-pointer
             (src <struct-timespec>) malloc)
-    (let (((dst <pointer-to-timespec>)
-           (malloc (c-sizeof struct-timespec))))
-      (mem.memcpy dst src (c-sizeof struct-timespec))
+    (let ((dst (malloc (c-sizeof struct-timespec))))
+      (mem.memcpy dst src.pointer (c-sizeof struct-timespec))
       dst))
   (define (timespec-mirror->timespec-pointer
             (src <timespec>) malloc)
@@ -1854,15 +1849,161 @@
   (define (timespec-mirror->timespec-mirror constructor
             (src <timespec>))
     (constructor src.tv_sec src.tv_nsec))
+  (define-label <pointer-to-tms>
+    (custom-maker <pointer-to-tms>-maker)
+    (virtual-fields (mutable tms_cstime)
+      (mutable tms_cutime) (mutable tms_stime)
+      (mutable tms_utime)))
+  (define-inline
+    (<pointer-to-tms>-tms_cstime-set! ?pointer ?value)
+    (stub.<pointer-to-tms>-tms_cstime-set! ?pointer ?value))
+  (define-inline (<pointer-to-tms>-tms_cstime ?pointer)
+    (stub.<pointer-to-tms>-tms_cstime ?pointer))
+  (define-inline
+    (<pointer-to-tms>-tms_cutime-set! ?pointer ?value)
+    (stub.<pointer-to-tms>-tms_cutime-set! ?pointer ?value))
+  (define-inline (<pointer-to-tms>-tms_cutime ?pointer)
+    (stub.<pointer-to-tms>-tms_cutime ?pointer))
+  (define-inline
+    (<pointer-to-tms>-tms_stime-set! ?pointer ?value)
+    (stub.<pointer-to-tms>-tms_stime-set! ?pointer ?value))
+  (define-inline (<pointer-to-tms>-tms_stime ?pointer)
+    (stub.<pointer-to-tms>-tms_stime ?pointer))
+  (define-inline
+    (<pointer-to-tms>-tms_utime-set! ?pointer ?value)
+    (stub.<pointer-to-tms>-tms_utime-set! ?pointer ?value))
+  (define-inline (<pointer-to-tms>-tms_utime ?pointer)
+    (stub.<pointer-to-tms>-tms_utime ?pointer))
+  (define-maker <pointer-to-tms>-maker
+    %<pointer-to-tms>-maker
+    ((pointer: sentinel (without wrapper: mirror:))
+      (wrapper: sentinel (without pointer: mirror:))
+      (mirror: sentinel (without pointer: wrapper:))
+      (malloc: sentinel (mandatory))))
+  (define-syntax %<pointer-to-tms>-maker
+    (syntax-rules (sentinel)
+      ((_ sentinel sentinel sentinel ?malloc)
+       (?malloc (c-sizeof struct-tms)))
+      ((_ ?pointer sentinel sentinel ?malloc)
+       (tms-pointer->tms-pointer ?pointer ?malloc))
+      ((_ sentinel ?wrapper sentinel ?malloc)
+       (tms-wrapper->tms-pointer ?wrapper ?malloc))
+      ((_ sentinel sentinel ?mirror ?malloc)
+       (tms-mirror->tms-pointer ?mirror ?malloc))))
+  (define (tms-pointer->tms-pointer (src <pointer-to-tms>)
+            malloc)
+    (let ((dst (malloc (c-sizeof struct-tms))))
+      (mem.memcpy dst src (c-sizeof struct-tms))
+      dst))
+  (define (tms-wrapper->tms-pointer (src <struct-tms>)
+            malloc)
+    (let ((dst (malloc (c-sizeof struct-tms))))
+      (mem.memcpy dst src.pointer (c-sizeof struct-tms))
+      dst))
+  (define (tms-mirror->tms-pointer (src <tms>) malloc)
+    (let (((dst <pointer-to-tms>)
+           (malloc (c-sizeof struct-tms))))
+      (set! dst.tms_utime src.tms_utime)
+      (set! dst.tms_stime src.tms_stime)
+      (set! dst.tms_cutime src.tms_cutime)
+      (set! dst.tms_cstime src.tms_cstime)
+      dst))
+  (define-class <struct-tms>
+    (nongenerative nausicaa:posix:<struct-tms>)
+    (maker () (pointer: sentinel (without wrapper: mirror:))
+      (wrapper: sentinel (without pointer: mirror:))
+      (mirror: sentinel (without pointer: wrapper:))
+      (malloc: sentinel (mandatory)))
+    (maker-transformer <struct-tms>-maker-transformer)
+    (fields (immutable pointer))
+    (virtual-fields (mutable tms_cstime)
+      (mutable tms_cutime) (mutable tms_stime)
+      (mutable tms_utime)))
+  (define-inline
+    (<struct-tms>-tms_cstime-set! ?wrapper ?value)
+    (<pointer-to-tms>-tms_cstime-set!
+      (<struct-tms>-pointer ?wrapper) ?value))
+  (define-inline (<struct-tms>-tms_cstime ?wrapper)
+    (<pointer-to-tms>-tms_cstime
+      (<struct-tms>-pointer ?wrapper)))
+  (define-inline
+    (<struct-tms>-tms_cutime-set! ?wrapper ?value)
+    (<pointer-to-tms>-tms_cutime-set!
+      (<struct-tms>-pointer ?wrapper) ?value))
+  (define-inline (<struct-tms>-tms_cutime ?wrapper)
+    (<pointer-to-tms>-tms_cutime
+      (<struct-tms>-pointer ?wrapper)))
+  (define-inline
+    (<struct-tms>-tms_stime-set! ?wrapper ?value)
+    (<pointer-to-tms>-tms_stime-set!
+      (<struct-tms>-pointer ?wrapper) ?value))
+  (define-inline (<struct-tms>-tms_stime ?wrapper)
+    (<pointer-to-tms>-tms_stime
+      (<struct-tms>-pointer ?wrapper)))
+  (define-inline
+    (<struct-tms>-tms_utime-set! ?wrapper ?value)
+    (<pointer-to-tms>-tms_utime-set!
+      (<struct-tms>-pointer ?wrapper) ?value))
+  (define-inline (<struct-tms>-tms_utime ?wrapper)
+    (<pointer-to-tms>-tms_utime
+      (<struct-tms>-pointer ?wrapper)))
+  (define-syntax <struct-tms>-maker-transformer
+    (syntax-rules (sentinel)
+      ((_ ?constructor sentinel sentinel sentinel ?malloc)
+       (?constructor (?malloc (c-sizeof struct-tms))))
+      ((_ ?constructor ?pointer sentinel sentinel ?malloc)
+       (tms-pointer->tms-wrapper ?constructor ?pointer
+         ?malloc))
+      ((_ ?constructor sentinel ?wrapper sentinel ?malloc)
+       (tms-wrapper->tms-wrapper ?constructor ?wrapper
+         ?malloc))
+      ((_ ?constructor sentinel sentinel ?mirror ?malloc)
+       (tms-mirror->tms-wrapper ?constructor ?mirror ?malloc))))
+  (define (tms-pointer->tms-wrapper constructor pointer
+            malloc)
+    (constructor (tms-pointer->tms-pointer pointer malloc)))
+  (define (tms-wrapper->tms-wrapper constructor wrapper
+            malloc)
+    (constructor (tms-wrapper->tms-pointer wrapper malloc)))
+  (define (tms-mirror->tms-wrapper constructor mirror malloc)
+    (constructor (tms-mirror->tms-pointer mirror malloc)))
+  (define-class <tms> (nongenerative nausicaa:posix:<tms>)
+    (maker () (pointer: sentinel (without wrapper: mirror:))
+      (wrapper: sentinel (without pointer: mirror:))
+      (mirror: sentinel (without pointer: wrapper:)))
+    (maker-transformer <tms>-maker-transformer)
+    (fields (mutable tms_utime) (mutable tms_stime)
+      (mutable tms_cutime) (mutable tms_cstime)))
+  (define-syntax <tms>-maker-transformer
+    (syntax-rules (sentinel)
+      ((_ ?constructor ?pointer sentinel sentinel)
+       (tms-pointer->tms-mirror ?constructor ?pointer))
+      ((_ ?constructor sentinel ?wrapper sentinel)
+       (tms-wrapper->tms-mirror ?constructor ?wrapper))
+      ((_ ?constructor sentinel sentinel ?mirror)
+       (tms-mirror->tms-mirror ?constructor ?mirror))))
+  (define (tms-pointer->tms-mirror constructor
+            (src <pointer-to-tms>))
+    (constructor src.tms_utime src.tms_stime src.tms_cutime
+      src.tms_cstime))
+  (define (tms-wrapper->tms-mirror constructor
+            (src <struct-tms>))
+    (constructor src.tms_utime src.tms_stime src.tms_cutime
+      src.tms_cstime))
+  (define (tms-mirror->tms-mirror constructor (src <tms>))
+    (constructor src.tms_utime src.tms_stime src.tms_cutime
+      src.tms_cstime))
   (define-label <pointer-to-dirent>
     (custom-maker <pointer-to-dirent>-maker)
     (virtual-fields (mutable d_name) (mutable d_type)
       (mutable d_reclen) (mutable d_off) (mutable d_ino)))
   (define-inline
     (<pointer-to-dirent>-d_name-set! ?pointer ?value)
-    (null-mutator ?pointer @OFFSETOF_DIRENT_D_NAME@ ?value))
+    ((error #f "missing field mutator") ?pointer
+      @OFFSETOF_DIRENT_D_NAME@ ?value))
   (define-inline (<pointer-to-dirent>-d_name ?pointer)
-    (null-accessor ?pointer @OFFSETOF_DIRENT_D_NAME@))
+    ((error #f "missing field accessor") ?pointer
+      @OFFSETOF_DIRENT_D_NAME@))
   (define-inline
     (<pointer-to-dirent>-d_type-set! ?pointer ?value)
     (pointer-c-set! @TYPEOF_DIRENT_D_TYPE@ ?pointer
@@ -1909,15 +2050,13 @@
        (dirent-mirror->dirent-pointer ?mirror ?malloc))))
   (define (dirent-pointer->dirent-pointer
             (src <pointer-to-dirent>) malloc)
-    (let (((dst <pointer-to-dirent>)
-           (malloc (c-sizeof struct-dirent))))
+    (let ((dst (malloc (c-sizeof struct-dirent))))
       (mem.memcpy dst src (c-sizeof struct-dirent))
       dst))
   (define (dirent-wrapper->dirent-pointer
             (src <struct-dirent>) malloc)
-    (let (((dst <pointer-to-dirent>)
-           (malloc (c-sizeof struct-dirent))))
-      (mem.memcpy dst src (c-sizeof struct-dirent))
+    (let ((dst (malloc (c-sizeof struct-dirent))))
+      (mem.memcpy dst src.pointer (c-sizeof struct-dirent))
       dst))
   (define (dirent-mirror->dirent-pointer (src <dirent>)
             malloc)
@@ -2058,15 +2197,13 @@
        (utimbuf-mirror->utimbuf-pointer ?mirror ?malloc))))
   (define (utimbuf-pointer->utimbuf-pointer
             (src <pointer-to-utimbuf>) malloc)
-    (let (((dst <pointer-to-utimbuf>)
-           (malloc (c-sizeof struct-utimbuf))))
+    (let ((dst (malloc (c-sizeof struct-utimbuf))))
       (mem.memcpy dst src (c-sizeof struct-utimbuf))
       dst))
   (define (utimbuf-wrapper->utimbuf-pointer
             (src <struct-utimbuf>) malloc)
-    (let (((dst <pointer-to-utimbuf>)
-           (malloc (c-sizeof struct-utimbuf))))
-      (mem.memcpy dst src (c-sizeof struct-utimbuf))
+    (let ((dst (malloc (c-sizeof struct-utimbuf))))
+      (mem.memcpy dst src.pointer (c-sizeof struct-utimbuf))
       dst))
   (define (utimbuf-mirror->utimbuf-pointer (src <utimbuf>)
             malloc)
@@ -2187,15 +2324,13 @@
        (timezone-mirror->timezone-pointer ?mirror ?malloc))))
   (define (timezone-pointer->timezone-pointer
             (src <pointer-to-timezone>) malloc)
-    (let (((dst <pointer-to-timezone>)
-           (malloc (c-sizeof struct-timezone))))
+    (let ((dst (malloc (c-sizeof struct-timezone))))
       (mem.memcpy dst src (c-sizeof struct-timezone))
       dst))
   (define (timezone-wrapper->timezone-pointer
             (src <struct-timezone>) malloc)
-    (let (((dst <pointer-to-timezone>)
-           (malloc (c-sizeof struct-timezone))))
-      (mem.memcpy dst src (c-sizeof struct-timezone))
+    (let ((dst (malloc (c-sizeof struct-timezone))))
+      (mem.memcpy dst src.pointer (c-sizeof struct-timezone))
       dst))
   (define (timezone-mirror->timezone-pointer
             (src <timezone>) malloc)
@@ -2380,14 +2515,12 @@
        (tm-mirror->tm-pointer ?mirror ?malloc))))
   (define (tm-pointer->tm-pointer (src <pointer-to-tm>)
             malloc)
-    (let (((dst <pointer-to-tm>)
-           (malloc (c-sizeof struct-tm))))
+    (let ((dst (malloc (c-sizeof struct-tm))))
       (mem.memcpy dst src (c-sizeof struct-tm))
       dst))
   (define (tm-wrapper->tm-pointer (src <struct-tm>) malloc)
-    (let (((dst <pointer-to-tm>)
-           (malloc (c-sizeof struct-tm))))
-      (mem.memcpy dst src (c-sizeof struct-tm))
+    (let ((dst (malloc (c-sizeof struct-tm))))
+      (mem.memcpy dst src.pointer (c-sizeof struct-tm))
       dst))
   (define (tm-mirror->tm-pointer (src <tm>) malloc)
     (let (((dst <pointer-to-tm>)
@@ -2541,9 +2674,11 @@
       @OFFSETOF_NTPTIMEVAL_MAXERROR@))
   (define-inline
     (<pointer-to-ntptimeval>-time-set! ?pointer ?value)
-    (null-mutator ?pointer @OFFSETOF_NTPTIMEVAL_TIME@ ?value))
+    ((error #f "missing field mutator") ?pointer
+      @OFFSETOF_NTPTIMEVAL_TIME@ ?value))
   (define-inline (<pointer-to-ntptimeval>-time ?pointer)
-    (null-accessor ?pointer @OFFSETOF_NTPTIMEVAL_TIME@))
+    ((error #f "missing field accessor") ?pointer
+      @OFFSETOF_NTPTIMEVAL_TIME@))
   (define-maker <pointer-to-ntptimeval>-maker
     %<pointer-to-ntptimeval>-maker
     ((pointer: sentinel (without wrapper: mirror:))
@@ -2565,15 +2700,14 @@
          ?malloc))))
   (define (ntptimeval-pointer->ntptimeval-pointer
             (src <pointer-to-ntptimeval>) malloc)
-    (let (((dst <pointer-to-ntptimeval>)
-           (malloc (c-sizeof struct-ntptimeval))))
+    (let ((dst (malloc (c-sizeof struct-ntptimeval))))
       (mem.memcpy dst src (c-sizeof struct-ntptimeval))
       dst))
   (define (ntptimeval-wrapper->ntptimeval-pointer
             (src <struct-ntptimeval>) malloc)
-    (let (((dst <pointer-to-ntptimeval>)
-           (malloc (c-sizeof struct-ntptimeval))))
-      (mem.memcpy dst src (c-sizeof struct-ntptimeval))
+    (let ((dst (malloc (c-sizeof struct-ntptimeval))))
+      (mem.memcpy dst src.pointer
+        (c-sizeof struct-ntptimeval))
       dst))
   (define (ntptimeval-mirror->ntptimeval-pointer
             (src <ntptimeval>) malloc)
@@ -2737,9 +2871,11 @@
       @OFFSETOF_TIMEX_TICK@))
   (define-inline
     (<pointer-to-timex>-time-set! ?pointer ?value)
-    (null-mutator ?pointer @OFFSETOF_TIMEX_TIME@ ?value))
+    ((error #f "missing field mutator") ?pointer
+      @OFFSETOF_TIMEX_TIME@ ?value))
   (define-inline (<pointer-to-timex>-time ?pointer)
-    (null-accessor ?pointer @OFFSETOF_TIMEX_TIME@))
+    ((error #f "missing field accessor") ?pointer
+      @OFFSETOF_TIMEX_TIME@))
   (define-inline
     (<pointer-to-timex>-tolerance-set! ?pointer ?value)
     (pointer-c-set! @TYPEOF_TIMEX_TOLERANCE@ ?pointer
@@ -2821,15 +2957,13 @@
        (timex-mirror->timex-pointer ?mirror ?malloc))))
   (define (timex-pointer->timex-pointer
             (src <pointer-to-timex>) malloc)
-    (let (((dst <pointer-to-timex>)
-           (malloc (c-sizeof struct-timex))))
+    (let ((dst (malloc (c-sizeof struct-timex))))
       (mem.memcpy dst src (c-sizeof struct-timex))
       dst))
   (define (timex-wrapper->timex-pointer (src <struct-timex>)
             malloc)
-    (let (((dst <pointer-to-timex>)
-           (malloc (c-sizeof struct-timex))))
-      (mem.memcpy dst src (c-sizeof struct-timex))
+    (let ((dst (malloc (c-sizeof struct-timex))))
+      (mem.memcpy dst src.pointer (c-sizeof struct-timex))
       dst))
   (define (timex-mirror->timex-pointer (src <timex>) malloc)
     (let (((dst <pointer-to-timex>)
@@ -3065,17 +3199,19 @@
     (virtual-fields (mutable it_value) (mutable it_interval)))
   (define-inline
     (<pointer-to-itimerval>-it_value-set! ?pointer ?value)
-    (null-mutator ?pointer @OFFSETOF_ITIMERVAL_IT_VALUE@
-      ?value))
+    ((error #f "missing field mutator") ?pointer
+      @OFFSETOF_ITIMERVAL_IT_VALUE@ ?value))
   (define-inline (<pointer-to-itimerval>-it_value ?pointer)
-    (null-accessor ?pointer @OFFSETOF_ITIMERVAL_IT_VALUE@))
+    ((error #f "missing field accessor") ?pointer
+      @OFFSETOF_ITIMERVAL_IT_VALUE@))
   (define-inline
     (<pointer-to-itimerval>-it_interval-set! ?pointer ?value)
-    (null-mutator ?pointer @OFFSETOF_ITIMERVAL_IT_INTERVAL@
-      ?value))
+    ((error #f "missing field mutator") ?pointer
+      @OFFSETOF_ITIMERVAL_IT_INTERVAL@ ?value))
   (define-inline
     (<pointer-to-itimerval>-it_interval ?pointer)
-    (null-accessor ?pointer @OFFSETOF_ITIMERVAL_IT_INTERVAL@))
+    ((error #f "missing field accessor") ?pointer
+      @OFFSETOF_ITIMERVAL_IT_INTERVAL@))
   (define-maker <pointer-to-itimerval>-maker
     %<pointer-to-itimerval>-maker
     ((pointer: sentinel (without wrapper: mirror:))
@@ -3096,15 +3232,14 @@
        (itimerval-mirror->itimerval-pointer ?mirror ?malloc))))
   (define (itimerval-pointer->itimerval-pointer
             (src <pointer-to-itimerval>) malloc)
-    (let (((dst <pointer-to-itimerval>)
-           (malloc (c-sizeof struct-itimerval))))
+    (let ((dst (malloc (c-sizeof struct-itimerval))))
       (mem.memcpy dst src (c-sizeof struct-itimerval))
       dst))
   (define (itimerval-wrapper->itimerval-pointer
             (src <struct-itimerval>) malloc)
-    (let (((dst <pointer-to-itimerval>)
-           (malloc (c-sizeof struct-itimerval))))
-      (mem.memcpy dst src (c-sizeof struct-itimerval))
+    (let ((dst (malloc (c-sizeof struct-itimerval))))
+      (mem.memcpy dst src.pointer
+        (c-sizeof struct-itimerval))
       dst))
   (define (itimerval-mirror->itimerval-pointer
             (src <itimerval>) malloc)
@@ -3216,15 +3351,13 @@
        (FTW-mirror->FTW-pointer ?mirror ?malloc))))
   (define (FTW-pointer->FTW-pointer (src <pointer-to-FTW>)
             malloc)
-    (let (((dst <pointer-to-FTW>)
-           (malloc (c-sizeof struct-FTW))))
+    (let ((dst (malloc (c-sizeof struct-FTW))))
       (mem.memcpy dst src (c-sizeof struct-FTW))
       dst))
   (define (FTW-wrapper->FTW-pointer (src <struct-FTW>)
             malloc)
-    (let (((dst <pointer-to-FTW>)
-           (malloc (c-sizeof struct-FTW))))
-      (mem.memcpy dst src (c-sizeof struct-FTW))
+    (let ((dst (malloc (c-sizeof struct-FTW))))
+      (mem.memcpy dst src.pointer (c-sizeof struct-FTW))
       dst))
   (define (FTW-mirror->FTW-pointer (src <FTW>) malloc)
     (let (((dst <pointer-to-FTW>)
@@ -3328,15 +3461,13 @@
        (iovec-mirror->iovec-pointer ?mirror ?malloc))))
   (define (iovec-pointer->iovec-pointer
             (src <pointer-to-iovec>) malloc)
-    (let (((dst <pointer-to-iovec>)
-           (malloc (c-sizeof struct-iovec))))
+    (let ((dst (malloc (c-sizeof struct-iovec))))
       (mem.memcpy dst src (c-sizeof struct-iovec))
       dst))
   (define (iovec-wrapper->iovec-pointer (src <struct-iovec>)
             malloc)
-    (let (((dst <pointer-to-iovec>)
-           (malloc (c-sizeof struct-iovec))))
-      (mem.memcpy dst src (c-sizeof struct-iovec))
+    (let ((dst (malloc (c-sizeof struct-iovec))))
+      (mem.memcpy dst src.pointer (c-sizeof struct-iovec))
       dst))
   (define (iovec-mirror->iovec-pointer (src <iovec>) malloc)
     (let (((dst <pointer-to-iovec>)
@@ -3435,15 +3566,13 @@
        (fdset-mirror->fdset-pointer ?mirror ?malloc))))
   (define (fdset-pointer->fdset-pointer
             (src <pointer-to-fdset>) malloc)
-    (let (((dst <pointer-to-fdset>)
-           (malloc (c-sizeof struct-fdset))))
+    (let ((dst (malloc (c-sizeof struct-fdset))))
       (mem.memcpy dst src (c-sizeof struct-fdset))
       dst))
   (define (fdset-wrapper->fdset-pointer (src <struct-fdset>)
             malloc)
-    (let (((dst <pointer-to-fdset>)
-           (malloc (c-sizeof struct-fdset))))
-      (mem.memcpy dst src (c-sizeof struct-fdset))
+    (let ((dst (malloc (c-sizeof struct-fdset))))
+      (mem.memcpy dst src.pointer (c-sizeof struct-fdset))
       dst))
   (define (fdset-mirror->fdset-pointer (src <fdset>) malloc)
     (let (((dst <pointer-to-fdset>)
@@ -3576,15 +3705,13 @@
        (passwd-mirror->passwd-pointer ?mirror ?malloc))))
   (define (passwd-pointer->passwd-pointer
             (src <pointer-to-passwd>) malloc)
-    (let (((dst <pointer-to-passwd>)
-           (malloc (c-sizeof struct-passwd))))
+    (let ((dst (malloc (c-sizeof struct-passwd))))
       (mem.memcpy dst src (c-sizeof struct-passwd))
       dst))
   (define (passwd-wrapper->passwd-pointer
             (src <struct-passwd>) malloc)
-    (let (((dst <pointer-to-passwd>)
-           (malloc (c-sizeof struct-passwd))))
-      (mem.memcpy dst src (c-sizeof struct-passwd))
+    (let ((dst (malloc (c-sizeof struct-passwd))))
+      (mem.memcpy dst src.pointer (c-sizeof struct-passwd))
       dst))
   (define (passwd-mirror->passwd-pointer (src <passwd>)
             malloc)
@@ -3755,15 +3882,13 @@
        (group-mirror->group-pointer ?mirror ?malloc))))
   (define (group-pointer->group-pointer
             (src <pointer-to-group>) malloc)
-    (let (((dst <pointer-to-group>)
-           (malloc (c-sizeof struct-group))))
+    (let ((dst (malloc (c-sizeof struct-group))))
       (mem.memcpy dst src (c-sizeof struct-group))
       dst))
   (define (group-wrapper->group-pointer (src <struct-group>)
             malloc)
-    (let (((dst <pointer-to-group>)
-           (malloc (c-sizeof struct-group))))
-      (mem.memcpy dst src (c-sizeof struct-group))
+    (let ((dst (malloc (c-sizeof struct-group))))
+      (mem.memcpy dst src.pointer (c-sizeof struct-group))
       dst))
   (define (group-mirror->group-pointer (src <group>) malloc)
     (let (((dst <pointer-to-group>)
@@ -3859,36 +3984,46 @@
       (mutable sysname)))
   (define-inline
     (<pointer-to-utsname>-domainname-set! ?pointer ?value)
-    (null-mutator ?pointer @OFFSETOF_UTSNAME_DOMAINNAME@
-      ?value))
+    ((error #f "missing field mutator") ?pointer
+      @OFFSETOF_UTSNAME_DOMAINNAME@ ?value))
   (define-inline (<pointer-to-utsname>-domainname ?pointer)
-    (null-accessor ?pointer @OFFSETOF_UTSNAME_DOMAINNAME@))
+    ((error #f "missing field accessor") ?pointer
+      @OFFSETOF_UTSNAME_DOMAINNAME@))
   (define-inline
     (<pointer-to-utsname>-nodename-set! ?pointer ?value)
-    (null-mutator ?pointer @OFFSETOF_UTSNAME_NODENAME@
-      ?value))
+    ((error #f "missing field mutator") ?pointer
+      @OFFSETOF_UTSNAME_NODENAME@ ?value))
   (define-inline (<pointer-to-utsname>-nodename ?pointer)
-    (null-accessor ?pointer @OFFSETOF_UTSNAME_NODENAME@))
+    ((error #f "missing field accessor") ?pointer
+      @OFFSETOF_UTSNAME_NODENAME@))
   (define-inline
     (<pointer-to-utsname>-machine-set! ?pointer ?value)
-    (null-mutator ?pointer @OFFSETOF_UTSNAME_MACHINE@ ?value))
+    ((error #f "missing field mutator") ?pointer
+      @OFFSETOF_UTSNAME_MACHINE@ ?value))
   (define-inline (<pointer-to-utsname>-machine ?pointer)
-    (null-accessor ?pointer @OFFSETOF_UTSNAME_MACHINE@))
+    ((error #f "missing field accessor") ?pointer
+      @OFFSETOF_UTSNAME_MACHINE@))
   (define-inline
     (<pointer-to-utsname>-version-set! ?pointer ?value)
-    (null-mutator ?pointer @OFFSETOF_UTSNAME_VERSION@ ?value))
+    ((error #f "missing field mutator") ?pointer
+      @OFFSETOF_UTSNAME_VERSION@ ?value))
   (define-inline (<pointer-to-utsname>-version ?pointer)
-    (null-accessor ?pointer @OFFSETOF_UTSNAME_VERSION@))
+    ((error #f "missing field accessor") ?pointer
+      @OFFSETOF_UTSNAME_VERSION@))
   (define-inline
     (<pointer-to-utsname>-release-set! ?pointer ?value)
-    (null-mutator ?pointer @OFFSETOF_UTSNAME_RELEASE@ ?value))
+    ((error #f "missing field mutator") ?pointer
+      @OFFSETOF_UTSNAME_RELEASE@ ?value))
   (define-inline (<pointer-to-utsname>-release ?pointer)
-    (null-accessor ?pointer @OFFSETOF_UTSNAME_RELEASE@))
+    ((error #f "missing field accessor") ?pointer
+      @OFFSETOF_UTSNAME_RELEASE@))
   (define-inline
     (<pointer-to-utsname>-sysname-set! ?pointer ?value)
-    (null-mutator ?pointer @OFFSETOF_UTSNAME_SYSNAME@ ?value))
+    ((error #f "missing field mutator") ?pointer
+      @OFFSETOF_UTSNAME_SYSNAME@ ?value))
   (define-inline (<pointer-to-utsname>-sysname ?pointer)
-    (null-accessor ?pointer @OFFSETOF_UTSNAME_SYSNAME@))
+    ((error #f "missing field accessor") ?pointer
+      @OFFSETOF_UTSNAME_SYSNAME@))
   (define-maker <pointer-to-utsname>-maker
     %<pointer-to-utsname>-maker
     ((pointer: sentinel (without wrapper: mirror:))
@@ -3907,15 +4042,13 @@
        (utsname-mirror->utsname-pointer ?mirror ?malloc))))
   (define (utsname-pointer->utsname-pointer
             (src <pointer-to-utsname>) malloc)
-    (let (((dst <pointer-to-utsname>)
-           (malloc (c-sizeof struct-utsname))))
+    (let ((dst (malloc (c-sizeof struct-utsname))))
       (mem.memcpy dst src (c-sizeof struct-utsname))
       dst))
   (define (utsname-wrapper->utsname-pointer
             (src <struct-utsname>) malloc)
-    (let (((dst <pointer-to-utsname>)
-           (malloc (c-sizeof struct-utsname))))
-      (mem.memcpy dst src (c-sizeof struct-utsname))
+    (let ((dst (malloc (c-sizeof struct-utsname))))
+      (mem.memcpy dst src.pointer (c-sizeof struct-utsname))
       dst))
   (define (utsname-mirror->utsname-pointer (src <utsname>)
             malloc)
@@ -4087,15 +4220,13 @@
        (fstab-mirror->fstab-pointer ?mirror ?malloc))))
   (define (fstab-pointer->fstab-pointer
             (src <pointer-to-fstab>) malloc)
-    (let (((dst <pointer-to-fstab>)
-           (malloc (c-sizeof struct-fstab))))
+    (let ((dst (malloc (c-sizeof struct-fstab))))
       (mem.memcpy dst src (c-sizeof struct-fstab))
       dst))
   (define (fstab-wrapper->fstab-pointer (src <struct-fstab>)
             malloc)
-    (let (((dst <pointer-to-fstab>)
-           (malloc (c-sizeof struct-fstab))))
-      (mem.memcpy dst src (c-sizeof struct-fstab))
+    (let ((dst (malloc (c-sizeof struct-fstab))))
+      (mem.memcpy dst src.pointer (c-sizeof struct-fstab))
       dst))
   (define (fstab-mirror->fstab-pointer (src <fstab>) malloc)
     (let (((dst <pointer-to-fstab>)
@@ -4288,15 +4419,13 @@
        (mntent-mirror->mntent-pointer ?mirror ?malloc))))
   (define (mntent-pointer->mntent-pointer
             (src <pointer-to-mntent>) malloc)
-    (let (((dst <pointer-to-mntent>)
-           (malloc (c-sizeof struct-mntent))))
+    (let ((dst (malloc (c-sizeof struct-mntent))))
       (mem.memcpy dst src (c-sizeof struct-mntent))
       dst))
   (define (mntent-wrapper->mntent-pointer
             (src <struct-mntent>) malloc)
-    (let (((dst <pointer-to-mntent>)
-           (malloc (c-sizeof struct-mntent))))
-      (mem.memcpy dst src (c-sizeof struct-mntent))
+    (let ((dst (malloc (c-sizeof struct-mntent))))
+      (mem.memcpy dst src.pointer (c-sizeof struct-mntent))
       dst))
   (define (mntent-mirror->mntent-pointer (src <mntent>)
             malloc)
@@ -4421,10 +4550,11 @@
     (virtual-fields (mutable sa_data) (mutable sa_family)))
   (define-inline
     (<pointer-to-sockaddr>-sa_data-set! ?pointer ?value)
-    (null-mutator ?pointer @OFFSETOF_SOCKADDR_SA_DATA@
-      ?value))
+    ((error #f "missing field mutator") ?pointer
+      @OFFSETOF_SOCKADDR_SA_DATA@ ?value))
   (define-inline (<pointer-to-sockaddr>-sa_data ?pointer)
-    (null-accessor ?pointer @OFFSETOF_SOCKADDR_SA_DATA@))
+    ((error #f "missing field accessor") ?pointer
+      @OFFSETOF_SOCKADDR_SA_DATA@))
   (define-inline
     (<pointer-to-sockaddr>-sa_family-set! ?pointer ?value)
     (pointer-c-set! @TYPEOF_SOCKADDR_SA_FAMILY@ ?pointer
@@ -4450,15 +4580,13 @@
        (sockaddr-mirror->sockaddr-pointer ?mirror ?malloc))))
   (define (sockaddr-pointer->sockaddr-pointer
             (src <pointer-to-sockaddr>) malloc)
-    (let (((dst <pointer-to-sockaddr>)
-           (malloc (c-sizeof struct-sockaddr))))
+    (let ((dst (malloc (c-sizeof struct-sockaddr))))
       (mem.memcpy dst src (c-sizeof struct-sockaddr))
       dst))
   (define (sockaddr-wrapper->sockaddr-pointer
             (src <struct-sockaddr>) malloc)
-    (let (((dst <pointer-to-sockaddr>)
-           (malloc (c-sizeof struct-sockaddr))))
-      (mem.memcpy dst src (c-sizeof struct-sockaddr))
+    (let ((dst (malloc (c-sizeof struct-sockaddr))))
+      (mem.memcpy dst src.pointer (c-sizeof struct-sockaddr))
       dst))
   (define (sockaddr-mirror->sockaddr-pointer
             (src <sockaddr>) malloc)
@@ -4552,11 +4680,12 @@
       @OFFSETOF_SOCKADDR_IN_SIN_PORT@))
   (define-inline
     (<pointer-to-sockaddr_in>-sin_addr-set! ?pointer ?value)
-    (null-mutator ?pointer @OFFSETOF_SOCKADDR_IN_SIN_ADDR@
-      ?value))
+    ((error #f "missing field mutator") ?pointer
+      @OFFSETOF_SOCKADDR_IN_SIN_ADDR@ ?value))
   (define-inline
     (<pointer-to-sockaddr_in>-sin_addr ?pointer)
-    (null-accessor ?pointer @OFFSETOF_SOCKADDR_IN_SIN_ADDR@))
+    ((error #f "missing field accessor") ?pointer
+      @OFFSETOF_SOCKADDR_IN_SIN_ADDR@))
   (define-inline
     (<pointer-to-sockaddr_in>-sin_family-set! ?pointer
       ?value)
@@ -4587,15 +4716,14 @@
          ?malloc))))
   (define (sockaddr_in-pointer->sockaddr_in-pointer
             (src <pointer-to-sockaddr_in>) malloc)
-    (let (((dst <pointer-to-sockaddr_in>)
-           (malloc (c-sizeof struct-sockaddr_in))))
+    (let ((dst (malloc (c-sizeof struct-sockaddr_in))))
       (mem.memcpy dst src (c-sizeof struct-sockaddr_in))
       dst))
   (define (sockaddr_in-wrapper->sockaddr_in-pointer
             (src <struct-sockaddr_in>) malloc)
-    (let (((dst <pointer-to-sockaddr_in>)
-           (malloc (c-sizeof struct-sockaddr_in))))
-      (mem.memcpy dst src (c-sizeof struct-sockaddr_in))
+    (let ((dst (malloc (c-sizeof struct-sockaddr_in))))
+      (mem.memcpy dst src.pointer
+        (c-sizeof struct-sockaddr_in))
       dst))
   (define (sockaddr_in-mirror->sockaddr_in-pointer
             (src <sockaddr_in>) malloc)
@@ -4704,11 +4832,11 @@
   (define-inline
     (<pointer-to-sockaddr_in6>-sin6_addr-set! ?pointer
       ?value)
-    (null-mutator ?pointer @OFFSETOF_SOCKADDR_IN6_SIN6_ADDR@
-      ?value))
+    ((error #f "missing field mutator") ?pointer
+      @OFFSETOF_SOCKADDR_IN6_SIN6_ADDR@ ?value))
   (define-inline
     (<pointer-to-sockaddr_in6>-sin6_addr ?pointer)
-    (null-accessor ?pointer
+    ((error #f "missing field accessor") ?pointer
       @OFFSETOF_SOCKADDR_IN6_SIN6_ADDR@))
   (define-inline
     (<pointer-to-sockaddr_in6>-sin6_family-set! ?pointer
@@ -4740,15 +4868,14 @@
          ?malloc))))
   (define (sockaddr_in6-pointer->sockaddr_in6-pointer
             (src <pointer-to-sockaddr_in6>) malloc)
-    (let (((dst <pointer-to-sockaddr_in6>)
-           (malloc (c-sizeof struct-sockaddr_in6))))
+    (let ((dst (malloc (c-sizeof struct-sockaddr_in6))))
       (mem.memcpy dst src (c-sizeof struct-sockaddr_in6))
       dst))
   (define (sockaddr_in6-wrapper->sockaddr_in6-pointer
             (src <struct-sockaddr_in6>) malloc)
-    (let (((dst <pointer-to-sockaddr_in6>)
-           (malloc (c-sizeof struct-sockaddr_in6))))
-      (mem.memcpy dst src (c-sizeof struct-sockaddr_in6))
+    (let ((dst (malloc (c-sizeof struct-sockaddr_in6))))
+      (mem.memcpy dst src.pointer
+        (c-sizeof struct-sockaddr_in6))
       dst))
   (define (sockaddr_in6-mirror->sockaddr_in6-pointer
             (src <sockaddr_in6>) malloc)
@@ -4849,11 +4976,12 @@
     (virtual-fields (mutable sun_path) (mutable sun_family)))
   (define-inline
     (<pointer-to-sockaddr_un>-sun_path-set! ?pointer ?value)
-    (null-mutator ?pointer @OFFSETOF_SOCKADDR_UN_SUN_PATH@
-      ?value))
+    ((error #f "missing field mutator") ?pointer
+      @OFFSETOF_SOCKADDR_UN_SUN_PATH@ ?value))
   (define-inline
     (<pointer-to-sockaddr_un>-sun_path ?pointer)
-    (null-accessor ?pointer @OFFSETOF_SOCKADDR_UN_SUN_PATH@))
+    ((error #f "missing field accessor") ?pointer
+      @OFFSETOF_SOCKADDR_UN_SUN_PATH@))
   (define-inline
     (<pointer-to-sockaddr_un>-sun_family-set! ?pointer
       ?value)
@@ -4884,15 +5012,14 @@
          ?malloc))))
   (define (sockaddr_un-pointer->sockaddr_un-pointer
             (src <pointer-to-sockaddr_un>) malloc)
-    (let (((dst <pointer-to-sockaddr_un>)
-           (malloc (c-sizeof struct-sockaddr_un))))
+    (let ((dst (malloc (c-sizeof struct-sockaddr_un))))
       (mem.memcpy dst src (c-sizeof struct-sockaddr_un))
       dst))
   (define (sockaddr_un-wrapper->sockaddr_un-pointer
             (src <struct-sockaddr_un>) malloc)
-    (let (((dst <pointer-to-sockaddr_un>)
-           (malloc (c-sizeof struct-sockaddr_un))))
-      (mem.memcpy dst src (c-sizeof struct-sockaddr_un))
+    (let ((dst (malloc (c-sizeof struct-sockaddr_un))))
+      (mem.memcpy dst src.pointer
+        (c-sizeof struct-sockaddr_un))
       dst))
   (define (sockaddr_un-mirror->sockaddr_un-pointer
             (src <sockaddr_un>) malloc)
@@ -5004,15 +5131,13 @@
        (in_addr-mirror->in_addr-pointer ?mirror ?malloc))))
   (define (in_addr-pointer->in_addr-pointer
             (src <pointer-to-in_addr>) malloc)
-    (let (((dst <pointer-to-in_addr>)
-           (malloc (c-sizeof struct-in_addr))))
+    (let ((dst (malloc (c-sizeof struct-in_addr))))
       (mem.memcpy dst src (c-sizeof struct-in_addr))
       dst))
   (define (in_addr-wrapper->in_addr-pointer
             (src <struct-in_addr>) malloc)
-    (let (((dst <pointer-to-in_addr>)
-           (malloc (c-sizeof struct-in_addr))))
-      (mem.memcpy dst src (c-sizeof struct-in_addr))
+    (let ((dst (malloc (c-sizeof struct-in_addr))))
+      (mem.memcpy dst src.pointer (c-sizeof struct-in_addr))
       dst))
   (define (in_addr-mirror->in_addr-pointer (src <in_addr>)
             malloc)
@@ -5127,15 +5252,14 @@
          ?malloc))))
   (define (if_nameindex-pointer->if_nameindex-pointer
             (src <pointer-to-if_nameindex>) malloc)
-    (let (((dst <pointer-to-if_nameindex>)
-           (malloc (c-sizeof struct-if_nameindex))))
+    (let ((dst (malloc (c-sizeof struct-if_nameindex))))
       (mem.memcpy dst src (c-sizeof struct-if_nameindex))
       dst))
   (define (if_nameindex-wrapper->if_nameindex-pointer
             (src <struct-if_nameindex>) malloc)
-    (let (((dst <pointer-to-if_nameindex>)
-           (malloc (c-sizeof struct-if_nameindex))))
-      (mem.memcpy dst src (c-sizeof struct-if_nameindex))
+    (let ((dst (malloc (c-sizeof struct-if_nameindex))))
+      (mem.memcpy dst src.pointer
+        (c-sizeof struct-if_nameindex))
       dst))
   (define (if_nameindex-mirror->if_nameindex-pointer
             (src <if_nameindex>) malloc)
@@ -5274,15 +5398,13 @@
        (netent-mirror->netent-pointer ?mirror ?malloc))))
   (define (netent-pointer->netent-pointer
             (src <pointer-to-netent>) malloc)
-    (let (((dst <pointer-to-netent>)
-           (malloc (c-sizeof struct-netent))))
+    (let ((dst (malloc (c-sizeof struct-netent))))
       (mem.memcpy dst src (c-sizeof struct-netent))
       dst))
   (define (netent-wrapper->netent-pointer
             (src <struct-netent>) malloc)
-    (let (((dst <pointer-to-netent>)
-           (malloc (c-sizeof struct-netent))))
-      (mem.memcpy dst src (c-sizeof struct-netent))
+    (let ((dst (malloc (c-sizeof struct-netent))))
+      (mem.memcpy dst src.pointer (c-sizeof struct-netent))
       dst))
   (define (netent-mirror->netent-pointer (src <netent>)
             malloc)
@@ -5419,15 +5541,13 @@
        (linger-mirror->linger-pointer ?mirror ?malloc))))
   (define (linger-pointer->linger-pointer
             (src <pointer-to-linger>) malloc)
-    (let (((dst <pointer-to-linger>)
-           (malloc (c-sizeof struct-linger))))
+    (let ((dst (malloc (c-sizeof struct-linger))))
       (mem.memcpy dst src (c-sizeof struct-linger))
       dst))
   (define (linger-wrapper->linger-pointer
             (src <struct-linger>) malloc)
-    (let (((dst <pointer-to-linger>)
-           (malloc (c-sizeof struct-linger))))
-      (mem.memcpy dst src (c-sizeof struct-linger))
+    (let ((dst (malloc (c-sizeof struct-linger))))
+      (mem.memcpy dst src.pointer (c-sizeof struct-linger))
       dst))
   (define (linger-mirror->linger-pointer (src <linger>)
             malloc)
@@ -5573,15 +5693,13 @@
        (hostent-mirror->hostent-pointer ?mirror ?malloc))))
   (define (hostent-pointer->hostent-pointer
             (src <pointer-to-hostent>) malloc)
-    (let (((dst <pointer-to-hostent>)
-           (malloc (c-sizeof struct-hostent))))
+    (let ((dst (malloc (c-sizeof struct-hostent))))
       (mem.memcpy dst src (c-sizeof struct-hostent))
       dst))
   (define (hostent-wrapper->hostent-pointer
             (src <struct-hostent>) malloc)
-    (let (((dst <pointer-to-hostent>)
-           (malloc (c-sizeof struct-hostent))))
-      (mem.memcpy dst src (c-sizeof struct-hostent))
+    (let ((dst (malloc (c-sizeof struct-hostent))))
+      (mem.memcpy dst src.pointer (c-sizeof struct-hostent))
       dst))
   (define (hostent-mirror->hostent-pointer (src <hostent>)
             malloc)
@@ -5746,15 +5864,13 @@
        (protoent-mirror->protoent-pointer ?mirror ?malloc))))
   (define (protoent-pointer->protoent-pointer
             (src <pointer-to-protoent>) malloc)
-    (let (((dst <pointer-to-protoent>)
-           (malloc (c-sizeof struct-protoent))))
+    (let ((dst (malloc (c-sizeof struct-protoent))))
       (mem.memcpy dst src (c-sizeof struct-protoent))
       dst))
   (define (protoent-wrapper->protoent-pointer
             (src <struct-protoent>) malloc)
-    (let (((dst <pointer-to-protoent>)
-           (malloc (c-sizeof struct-protoent))))
-      (mem.memcpy dst src (c-sizeof struct-protoent))
+    (let ((dst (malloc (c-sizeof struct-protoent))))
+      (mem.memcpy dst src.pointer (c-sizeof struct-protoent))
       dst))
   (define (protoent-mirror->protoent-pointer
             (src <protoent>) malloc)
@@ -5898,15 +6014,13 @@
        (servent-mirror->servent-pointer ?mirror ?malloc))))
   (define (servent-pointer->servent-pointer
             (src <pointer-to-servent>) malloc)
-    (let (((dst <pointer-to-servent>)
-           (malloc (c-sizeof struct-servent))))
+    (let ((dst (malloc (c-sizeof struct-servent))))
       (mem.memcpy dst src (c-sizeof struct-servent))
       dst))
   (define (servent-wrapper->servent-pointer
             (src <struct-servent>) malloc)
-    (let (((dst <pointer-to-servent>)
-           (malloc (c-sizeof struct-servent))))
-      (mem.memcpy dst src (c-sizeof struct-servent))
+    (let ((dst (malloc (c-sizeof struct-servent))))
+      (mem.memcpy dst src.pointer (c-sizeof struct-servent))
       dst))
   (define (servent-mirror->servent-pointer (src <servent>)
             malloc)

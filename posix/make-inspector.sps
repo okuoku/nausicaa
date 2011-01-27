@@ -31,6 +31,9 @@
 
 (class-uid-prefix "nausicaa:posix")
 
+(sizeof-lib-imports/quote
+ (prefix (nausicaa posix clang stub-functions) stub.))
+
 
 ;;;; inspection: typedefs
 
@@ -85,9 +88,25 @@
 ;;Here we just  need to determine the size, stride  and alignment of the
 ;;struct.
 ;;
+;; (define-c-struct tms
+;;   "struct tms"
+;;   (options no-label no-wrapper no-mirror))
+
 (define-c-struct tms
   "struct tms"
-  (options no-label no-wrapper no-mirror))
+  (options no-fields-inspection)
+  (dummy tms_utime
+	 (struct-accessor: stub.<pointer-to-tms>-tms_utime)
+	 (struct-mutator:  stub.<pointer-to-tms>-tms_utime-set!))
+  (dummy tms_stime
+	 (struct-accessor: stub.<pointer-to-tms>-tms_stime)
+	 (struct-mutator:  stub.<pointer-to-tms>-tms_stime-set!))
+  (dummy tms_cutime
+	 (struct-accessor: stub.<pointer-to-tms>-tms_cutime)
+	 (struct-mutator:  stub.<pointer-to-tms>-tms_cutime-set!))
+  (dummy tms_cstime
+	 (struct-accessor: stub.<pointer-to-tms>-tms_cstime)
+	 (struct-mutator:  stub.<pointer-to-tms>-tms_cstime-set!)))
 
 (define-c-struct dirent
   "struct dirent"

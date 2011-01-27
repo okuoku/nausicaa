@@ -45,7 +45,7 @@
     (only (nausicaa ffi errno) raise-errno-error)
 ;;    (nausicaa posix typedefs)
     (prefix (nausicaa posix sizeof) so.)
-    (nausicaa posix time typedefs)
+;;    (nausicaa posix time typedefs)
     (prefix (nausicaa posix time platform) platform.))
 
 
@@ -62,8 +62,8 @@
   (with-compensations
     (let* ((tms*	(malloc-block/c (so.c-sizeof struct-tms)))
 	   (result	(platform.times tms*)))
-      (values result (make <tms>
-		       (pointer: tms*))))))
+      (values result (make so.<tms>
+		       (so.pointer: tms*))))))
 
 
 ;;;; calendar time

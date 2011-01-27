@@ -29,7 +29,6 @@
 (import (nausicaa)
   (nausicaa checks)
   (prefix (nausicaa ffi memory) mem.)
-  (nausicaa posix time typedefs)
   (nausicaa posix sizeof)
   (prefix (nausicaa posix time) px.))
 

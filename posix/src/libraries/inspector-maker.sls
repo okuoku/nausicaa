@@ -38,6 +38,7 @@
     sizeof-lib-exports		sizeof-lib-exports/quote
     sizeof-lib-drop-exports	sizeof-lib-drop-exports/quote
     sizeof-renamed-exports
+    sizeof-lib-imports		sizeof-lib-imports/quote
     sizeof-lib-write
 
     ;; main control
@@ -57,7 +58,10 @@
     options
     label			no-label
     wrapper			no-wrapper
-    mirror			no-mirror)
+    mirror			no-mirror
+    fields-inspection		no-fields-inspection
+    name:
+    struct-accessor:		struct-mutator:)
   (import (nausicaa)
     (nausicaa formations)
     (nausicaa times-and-dates)
@@ -68,9 +72,12 @@
 
 (define-auxiliary-syntaxes
   options
-  label		no-label
-  wrapper	no-wrapper
-  mirror	no-mirror)
+  label			no-label
+  wrapper		no-wrapper
+  mirror		no-mirror
+  fields-inspection	no-fields-inspection
+  name:
+  struct-accessor:	struct-mutator:)
 
 (define-inline (append! ?var ?ell)
   (set! ?var (append ?var ?ell)))
@@ -183,6 +190,10 @@
 ;;definitions section.
 (define $structs-library-body		'())
 
+;;A list of import specification to be added to the generated library.
+;;
+(define $sizeof-lib-imports		'())
+
 ;;A  list of  symbols  representing  bindings to  be  exported from  the
 ;;generated library, without the struct section.
 ;;
@@ -236,7 +247,7 @@
   ;;
   (syntax-rules ()
     ((_ ?symbol0 ?symbol ...)
-     (%sizeof-lib-exports (quote ?symbol0) (quote ?symbol) ...))))
+     (sizeof-lib-exports (quote ?symbol0) (quote ?symbol) ...))))
 
 (define (sizeof-lib-exports . ell)
   ;;Add a  list of export specifications  to the list of  exports in the
@@ -250,7 +261,7 @@
   ;;
   (syntax-rules ()
     ((_ ?symbol0 ?symbol ...)
-     (%sizeof-lib-drop-exports (quote ?symbol0) (quote ?symbol) ...))))
+     (sizeof-lib-drop-exports (quote ?symbol0) (quote ?symbol) ...))))
 
 (define (sizeof-lib-drop-exports . ell)
   ;;Add a list of  symbols to the list of exports to  drop in the sizeof
@@ -262,6 +273,18 @@
   ;;Register a list of renamings for the export list.
   ;;
   (append! $sizeof-lib-renamed-exports list-of-renamings))
+
+(define-syntax sizeof-lib-imports/quote
+  ;;Register a list of import specs for the generated library.
+  ;;
+  (syntax-rules ()
+    ((_ ?spec0 ?spec ...)
+     (sizeof-lib-imports (quote ?spec0) (quote ?spec) ...))))
+
+(define (sizeof-lib-imports . ell)
+  ;;Register a list of import specifications for the generated library.
+  ;;
+  (append! $sizeof-lib-imports ell))
 
 (define (sizeof-lib-write filename libname libname-type-translation)
   ;;Write to  the specified FILENAME  the contents of the  sizeof Scheme
@@ -302,7 +325,8 @@
       (prefix (only (nausicaa ffi memory) memcpy) mem.)
       (prefix (nausicaa ffi pointers) ffi.)
       (prefix (nausicaa ffi sizeof) ffi.)
-      (prefix (nausicaa ffi peekers-and-pokers) ffi.)))
+      (prefix (nausicaa ffi peekers-and-pokers) ffi.)
+      ,@$sizeof-lib-imports))
   (define libout
     `(library ,libname
        (export ,@lib-exports)
@@ -660,13 +684,14 @@ As an example, it should be something like:
     (syntax-case stx (options)
       ((_ ?name ?type-string (options ?option ...) . ?field-specs)
        (let-values
-	   (((label? wrapper? mirror?)
+	   (((label? wrapper? mirror? fields-inspection?)
 	     (%parse-struct-options #'(?option ...)))
-	    ((field-type-categories C-field-names Scheme-field-names)
+	    ((field-type-categories C-field-names Scheme-field-names struct-accessors struct-mutators)
 	     (%parse-struct-fields #'?field-specs)))
-	 #`(%generate-struct-type #,label? #,wrapper? #,mirror? '?name ?type-string
+	 #`(%generate-struct-type #,label? #,wrapper? #,mirror? #,fields-inspection?
+				  '?name ?type-string
 				  '#,field-type-categories '#,C-field-names
-				  '#,Scheme-field-names)))
+				  '#,Scheme-field-names '#,struct-accessors '#,struct-mutators)))
 
       ((_ ?name ?type-string . ?field-specs)
        #'(define-c-struct ?name ?type-string (options label wrapper mirror) . ?field-specs))
@@ -675,21 +700,35 @@ As an example, it should be something like:
        (synner "invalid struct definition"))))
 
   (define (%parse-struct-options stx)
-    (let next-option ((stx	stx)
-		      (label?	#t)
-		      (wrapper?	#t)
-		      (mirror?	#t))
-      (syntax-case stx (struct-label label no-label wrapper no-wrapper mirror no-mirror)
-	(()				(values label? wrapper? mirror?))
+    (let next-option ((stx			stx)
+		      (label?			#t)
+		      (wrapper?			#t)
+		      (mirror?			#t)
+		      (fields-inspection?	#t))
+      (syntax-case stx (struct-label label no-label wrapper no-wrapper mirror no-mirror
+				     fields-inspection no-fields-inspection)
+	(()
+	 (values label? wrapper? mirror? fields-inspection?))
 
-	((label ?option ...)		(next-option #'(?option ...) #t wrapper? mirror?))
-	((no-label ?option ...)		(next-option #'(?option ...) #f wrapper? mirror?))
+	((label ?option ...)
+	 (next-option #'(?option ...) #t wrapper? mirror? fields-inspection?))
+	((no-label ?option ...)
+	 (next-option #'(?option ...) #f wrapper? mirror? fields-inspection?))
 
-	((wrapper ?option ...)		(next-option #'(?option ...) label? #t mirror?))
-	((no-wrapper ?option ...)	(next-option #'(?option ...) label? #f mirror?))
+	((wrapper ?option ...)
+	 (next-option #'(?option ...) label? #t mirror? fields-inspection?))
+	((no-wrapper ?option ...)
+	 (next-option #'(?option ...) label? #f mirror? fields-inspection?))
 
-	((mirror ?option ...)		(next-option #'(?option ...) label? wrapper? #t))
-	((no-mirror ?option ...)	(next-option #'(?option ...) label? wrapper? #f))
+	((mirror ?option ...)
+	 (next-option #'(?option ...) label? wrapper? #t fields-inspection?))
+	((no-mirror ?option ...)
+	 (next-option #'(?option ...) label? wrapper? #f fields-inspection?))
+
+	((fields-inspection ?option ...)
+	 (next-option #'(?option ...) label? wrapper? mirror? #t))
+	((no-fields-inspection ?option ...)
+	 (next-option #'(?option ...) label? wrapper? mirror? #f))
 
 	(?subform
 	 (synner "invalid options in struct definition" #'?subform)))))
@@ -698,28 +737,44 @@ As an example, it should be something like:
     (let next-field ((stx		stx)
 		     (categories	'())
 		     (C-fields		'())
-		     (Scheme-fields	'()))
+		     (Scheme-fields	'())
+		     (struct-accessors	'())
+		     (struct-mutators	'()))
       (syntax-case stx ()
 	(()
-	 (values (reverse categories) (reverse C-fields) (reverse Scheme-fields)))
+	 (values (reverse categories) (reverse C-fields) (reverse Scheme-fields)
+		 (reverse struct-accessors) (reverse struct-mutators)))
 	(((?type-category ?C-field-name . ?field-options) ?spec ...)
-	 (let-values (((Scheme-field-name) (%parse-field-options #'?C-field-name #'?field-options)))
+	 (let-values (((Scheme-field-name accessor mutator)
+		       (%parse-field-options #'?C-field-name #'?field-options)))
 	   (next-field #'(?spec ...)
 		       (cons #'?type-category	categories)
 		       (cons #'?C-field-name	C-fields)
-		       (cons Scheme-field-name	Scheme-fields))))
+		       (cons Scheme-field-name	Scheme-fields)
+		       (cons accessor		struct-accessors)
+		       (cons mutator		struct-mutators))))
 	(?subform
 	 (synner "invalid field specification in struct definition" #'?subform)))))
 
   (define (%parse-field-options C-field-name stx)
-    (let ((Scheme-field-name C-field-name))
+    (let ((Scheme-field-name	C-field-name)
+	  (struct-accessor	#f)
+	  (struct-mutator	#f))
       (let next-option ((stx stx))
-	(syntax-case stx (name:)
+	(syntax-case stx (name: struct-accessor: struct-mutator:)
 	  (()
-	   (values Scheme-field-name))
+	   (values Scheme-field-name struct-accessor struct-mutator))
 	  (((name: ?Scheme-field-name) . ?options)
 	   (begin
 	     (set! Scheme-field-name #'?Scheme-field-name)
+	     (next-option #'?options)))
+	  (((struct-accessor: ?accessor) . ?options)
+	   (begin
+	     (set! struct-accessor #'?accessor)
+	     (next-option #'?options)))
+	  (((struct-mutator: ?mutator) . ?options)
+	   (begin
+	     (set! struct-mutator #'?mutator)
 	     (next-option #'?options)))
 	  ((?subform . ?options)
 	   (synner "invalid field option in struct definition" #'?subform))
@@ -727,9 +782,10 @@ As an example, it should be something like:
 
   (main stx))
 
-(define (%generate-struct-type label? wrapper? mirror?
+(define (%generate-struct-type label? wrapper? mirror? fields-inspection?
 			       struct-name struct-string-typedef
-			       field-type-categories C-field-names Scheme-field-names)
+			       field-type-categories C-field-names Scheme-field-names
+			       struct-accessors struct-mutators)
   ;;Build what is needed to handle a C struct type.
   ;;
   ;;LABEL?,  WRAPPER?  and  MIRROR?  are  boolean values:  true  when the
@@ -752,14 +808,21 @@ As an example, it should be something like:
   ;;SCHEME-FIELD-NAMES is a list of Scheme symbols representing the bare
   ;;names of the struct fields: they are used by labels and classes.
   ;;
-  ;;*NOTE*  There  is  a  lot  of code  duplication  in  this  function,
-  ;;especially  the building  of symbols  to  output to  files; this  is
-  ;;because  keeping the  code  readable was  a  priority.  Beware  when
-  ;;changing things!!!
+  ;;STRUCT-ACCESSORS is a list  of Scheme symbols and false representing
+  ;;the functions  to be used to  extract field values  from the foreign
+  ;;structure.  When  false: the automatically generated  accessor is to
+  ;;be used.
+  ;;
+  ;;STRUCT-MUTATORS is  a list of Scheme symbols  and false representing
+  ;;the  functions to  be used  to mutate  field values  in  the foreign
+  ;;structure.  When false: the automatically generated mutator is to be
+  ;;used.
   ;;
   (define (main)
     (%generate-type-translation)
-    (%generate-autoconf-macros)
+    (%generate-autoconf-struct-inspection)
+    (when fields-inspection?
+      (%generate-autoconf-struct-fields-inspection))
     (%generate-constants)
     (when label?
       (%generate-label-interface-to-struct))
@@ -861,10 +924,12 @@ As an example, it should be something like:
     ;;
     (%register-type-alias (format-symbol "~a*"  struct-name-for-inspection) 'pointer))
 
-  (define (%generate-autoconf-macros)
+  (define (%generate-autoconf-struct-inspection)
     (autoconf-lib (format "\ndnl Struct inspection: ~a" struct-name))
     (autoconf-lib (format "NAUSICAA_INSPECT_STRUCT_TYPE([~a],[~a],[\"#f\"])"
-		    struct-name-upcase struct-string-typedef))
+		    struct-name-upcase struct-string-typedef)))
+
+  (define (%generate-autoconf-struct-fields-inspection)
     (for-each
 	(lambda (C-field-name field-type-category)
 	  (define field-keyword
@@ -944,7 +1009,8 @@ As an example, it should be something like:
           (accessors-and-mutators       '())
           (struct-keyword               (string-upcase (symbol->string struct-name))))
       (for-each
-	  (lambda (C-field-name Scheme-field-name field-type-category)
+	  (lambda (C-field-name Scheme-field-name field-type-category
+			   struct-accessor struct-mutator)
 	    (let* ((accessor	(format-symbol "~a-~a"      label-name Scheme-field-name))
 		   (mutator	(format-symbol "~a-~a-set!" label-name Scheme-field-name))
 		   (keyword	(dot->underscore (string-upcase (symbol->string C-field-name))))
@@ -958,20 +1024,26 @@ As an example, it should be something like:
 		    ;; 		  (ffi:pointer-add ?pointer ,offset)))
 		    (set-cons! accessors-and-mutators
 		    	       `(define-inline (,accessor ?pointer)
-		    		  (null-accessor ?pointer ,offset)))
+		    		  (,(or struct-accessor '(error #f "missing field accessor"))
+				   ?pointer ,offset)))
 		    (set-cons! accessors-and-mutators
 		    	       `(define-inline (,mutator ?pointer ?value)
-		    		  (null-mutator ?pointer ,offset ?value))))
+		    		  (,(or struct-mutator '(error #f "missing field mutator"))
+				   ?pointer ,offset ?value))))
 		(begin
 		  (set-cons! fields `(mutable ,Scheme-field-name))
 		  (set-cons! accessors-and-mutators
 			     `(define-inline (,accessor ?pointer)
-				(pointer-c-ref ,typeof ?pointer ,offset)))
+				,(if struct-accessor
+				     `(,struct-accessor ?pointer)
+				   `(pointer-c-ref ,typeof ?pointer ,offset))))
 		  (set-cons! accessors-and-mutators
 			     `(define-inline (,mutator ?pointer ?value)
-				(pointer-c-set! ,typeof ?pointer ,offset ?value)))
+				,(if struct-mutator
+				     `(,struct-mutator ?pointer ?value)
+				   `(pointer-c-set! ,typeof ?pointer ,offset ?value))))
 		  ))))
-	C-field-names Scheme-field-names field-type-categories)
+	C-field-names Scheme-field-names field-type-categories struct-accessors struct-mutators)
       ;; register sexps to the sizeof library, structs section
       (%structs-lib-exports label-name)
       (let* ((maker-name	(format-symbol "~a-maker" label-name))
@@ -994,12 +1066,12 @@ As an example, it should be something like:
 	       ((_ sentinel ?wrapper sentinel ?malloc) (,wrapper->pointer ?wrapper ?malloc))
 	       ((_ sentinel sentinel ?mirror  ?malloc) (,mirror->pointer  ?mirror  ?malloc))))
 	   (define (,pointer->pointer (src ,label-name) malloc)
-	     (let (((dst ,label-name) (malloc (c-sizeof ,struct-name-for-inspection))))
+	     (let ((dst (malloc (c-sizeof ,struct-name-for-inspection))))
 	       (mem.memcpy dst src (c-sizeof ,struct-name-for-inspection))
 	       dst))
 	   (define (,wrapper->pointer (src ,wrapper-name) malloc)
-	     (let (((dst ,label-name) (malloc (c-sizeof ,struct-name-for-inspection))))
-	       (mem.memcpy dst src (c-sizeof ,struct-name-for-inspection))
+	     (let ((dst (malloc (c-sizeof ,struct-name-for-inspection))))
+	       (mem.memcpy dst src.pointer (c-sizeof ,struct-name-for-inspection))
 	       dst))
 	   (define (,mirror->pointer (src ,mirror-name) malloc)
 	     (let (((dst ,label-name) (malloc (c-sizeof ,struct-name-for-inspection))))
