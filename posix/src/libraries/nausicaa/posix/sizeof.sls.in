@@ -1513,10 +1513,6 @@
       (mirror: sentinel (without pointer: wrapper:))
       (malloc: sentinel (mandatory)))
     (maker-transformer <struct-flock>-maker-transformer)
-    (protocol
-      (lambda (make-top)
-        (lambda (malloc)
-          ((make-top) (malloc (c-sizeof struct-flock))))))
     (fields (immutable pointer))
     (virtual-fields (mutable l_pid) (mutable l_len)
       (mutable l_start) (mutable l_whence) (mutable l_type)))
@@ -1664,10 +1660,6 @@
       (mirror: sentinel (without pointer: wrapper:))
       (malloc: sentinel (mandatory)))
     (maker-transformer <struct-timeval>-maker-transformer)
-    (protocol
-      (lambda (make-top)
-        (lambda (malloc)
-          ((make-top) (malloc (c-sizeof struct-timeval))))))
     (fields (immutable pointer))
     (virtual-fields (mutable tv_usec) (mutable tv_sec)))
   (define-inline
@@ -1794,10 +1786,6 @@
       (mirror: sentinel (without pointer: wrapper:))
       (malloc: sentinel (mandatory)))
     (maker-transformer <struct-timespec>-maker-transformer)
-    (protocol
-      (lambda (make-top)
-        (lambda (malloc)
-          ((make-top) (malloc (c-sizeof struct-timespec))))))
     (fields (immutable pointer))
     (virtual-fields (mutable tv_nsec) (mutable tv_sec)))
   (define-inline
@@ -1948,10 +1936,6 @@
       (mirror: sentinel (without pointer: wrapper:))
       (malloc: sentinel (mandatory)))
     (maker-transformer <struct-dirent>-maker-transformer)
-    (protocol
-      (lambda (make-top)
-        (lambda (malloc)
-          ((make-top) (malloc (c-sizeof struct-dirent))))))
     (fields (immutable pointer))
     (virtual-fields (immutable d_name) (mutable d_type)
       (mutable d_reclen) (mutable d_off) (mutable d_ino)))
@@ -2098,10 +2082,6 @@
       (mirror: sentinel (without pointer: wrapper:))
       (malloc: sentinel (mandatory)))
     (maker-transformer <struct-utimbuf>-maker-transformer)
-    (protocol
-      (lambda (make-top)
-        (lambda (malloc)
-          ((make-top) (malloc (c-sizeof struct-utimbuf))))))
     (fields (immutable pointer))
     (virtual-fields (mutable modtime) (mutable actime)))
   (define-inline
@@ -2231,10 +2211,6 @@
       (mirror: sentinel (without pointer: wrapper:))
       (malloc: sentinel (mandatory)))
     (maker-transformer <struct-timezone>-maker-transformer)
-    (protocol
-      (lambda (make-top)
-        (lambda (malloc)
-          ((make-top) (malloc (c-sizeof struct-timezone))))))
     (fields (immutable pointer))
     (virtual-fields (mutable tz_dsttime)
       (mutable tz_minuteswest)))
@@ -2435,10 +2411,6 @@
       (mirror: sentinel (without pointer: wrapper:))
       (malloc: sentinel (mandatory)))
     (maker-transformer <struct-tm>-maker-transformer)
-    (protocol
-      (lambda (make-top)
-        (lambda (malloc)
-          ((make-top) (malloc (c-sizeof struct-tm))))))
     (fields (immutable pointer))
     (virtual-fields (mutable tm_zone) (mutable tm_gmtoff)
       (mutable tm_isdst) (mutable tm_yday) (mutable tm_wday)
@@ -2618,10 +2590,6 @@
       (mirror: sentinel (without pointer: wrapper:))
       (malloc: sentinel (mandatory)))
     (maker-transformer <struct-ntptimeval>-maker-transformer)
-    (protocol
-      (lambda (make-top)
-        (lambda (malloc)
-          ((make-top) (malloc (c-sizeof struct-ntptimeval))))))
     (fields (immutable pointer))
     (virtual-fields (mutable esterror) (mutable maxerror)
       (immutable time)))
@@ -2893,10 +2861,6 @@
       (mirror: sentinel (without pointer: wrapper:))
       (malloc: sentinel (mandatory)))
     (maker-transformer <struct-timex>-maker-transformer)
-    (protocol
-      (lambda (make-top)
-        (lambda (malloc)
-          ((make-top) (malloc (c-sizeof struct-timex))))))
     (fields (immutable pointer))
     (virtual-fields (mutable stbcnt) (mutable errcnt)
       (mutable calcnt) (mutable jitcnt) (mutable stabil)
@@ -3156,10 +3120,6 @@
       (mirror: sentinel (without pointer: wrapper:))
       (malloc: sentinel (mandatory)))
     (maker-transformer <struct-itimerval>-maker-transformer)
-    (protocol
-      (lambda (make-top)
-        (lambda (malloc)
-          ((make-top) (malloc (c-sizeof struct-itimerval))))))
     (fields (immutable pointer))
     (virtual-fields (immutable it_value)
       (immutable it_interval)))
@@ -3279,10 +3239,6 @@
       (mirror: sentinel (without pointer: wrapper:))
       (malloc: sentinel (mandatory)))
     (maker-transformer <struct-FTW>-maker-transformer)
-    (protocol
-      (lambda (make-top)
-        (lambda (malloc)
-          ((make-top) (malloc (c-sizeof struct-FTW))))))
     (fields (immutable pointer))
     (virtual-fields (mutable level) (mutable base)))
   (define-inline (<struct-FTW>-level-set! ?wrapper ?value)
@@ -3395,10 +3351,6 @@
       (mirror: sentinel (without pointer: wrapper:))
       (malloc: sentinel (mandatory)))
     (maker-transformer <struct-iovec>-maker-transformer)
-    (protocol
-      (lambda (make-top)
-        (lambda (malloc)
-          ((make-top) (malloc (c-sizeof struct-iovec))))))
     (fields (immutable pointer))
     (virtual-fields (mutable iov_len) (mutable iov_base)))
   (define-inline
@@ -3504,10 +3456,6 @@
       (mirror: sentinel (without pointer: wrapper:))
       (malloc: sentinel (mandatory)))
     (maker-transformer <struct-fdset>-maker-transformer)
-    (protocol
-      (lambda (make-top)
-        (lambda (malloc)
-          ((make-top) (malloc (c-sizeof struct-fdset))))))
     (fields (immutable pointer)) (virtual-fields))
   (define-syntax <struct-fdset>-maker-transformer
     (syntax-rules (sentinel)
@@ -3657,10 +3605,6 @@
       (mirror: sentinel (without pointer: wrapper:))
       (malloc: sentinel (mandatory)))
     (maker-transformer <struct-passwd>-maker-transformer)
-    (protocol
-      (lambda (make-top)
-        (lambda (malloc)
-          ((make-top) (malloc (c-sizeof struct-passwd))))))
     (fields (immutable pointer))
     (virtual-fields (mutable pw_shell) (mutable pw_dir)
       (mutable pw_gecos) (mutable pw_gid) (mutable pw_uid)
@@ -3835,10 +3779,6 @@
       (mirror: sentinel (without pointer: wrapper:))
       (malloc: sentinel (mandatory)))
     (maker-transformer <struct-group>-maker-transformer)
-    (protocol
-      (lambda (make-top)
-        (lambda (malloc)
-          ((make-top) (malloc (c-sizeof struct-group))))))
     (fields (immutable pointer))
     (virtual-fields (mutable gr_mem) (mutable gr_gid)
       (mutable gr_name)))
@@ -3995,10 +3935,6 @@
       (mirror: sentinel (without pointer: wrapper:))
       (malloc: sentinel (mandatory)))
     (maker-transformer <struct-utsname>-maker-transformer)
-    (protocol
-      (lambda (make-top)
-        (lambda (malloc)
-          ((make-top) (malloc (c-sizeof struct-utsname))))))
     (fields (immutable pointer))
     (virtual-fields (immutable domainname)
       (immutable nodename) (immutable machine)
@@ -4179,10 +4115,6 @@
       (mirror: sentinel (without pointer: wrapper:))
       (malloc: sentinel (mandatory)))
     (maker-transformer <struct-fstab>-maker-transformer)
-    (protocol
-      (lambda (make-top)
-        (lambda (malloc)
-          ((make-top) (malloc (c-sizeof struct-fstab))))))
     (fields (immutable pointer))
     (virtual-fields (mutable fs_passno) (mutable fs_freq)
       (mutable fs_type) (mutable fs_mntops)
@@ -4384,10 +4316,6 @@
       (mirror: sentinel (without pointer: wrapper:))
       (malloc: sentinel (mandatory)))
     (maker-transformer <struct-mntent>-maker-transformer)
-    (protocol
-      (lambda (make-top)
-        (lambda (malloc)
-          ((make-top) (malloc (c-sizeof struct-mntent))))))
     (fields (immutable pointer))
     (virtual-fields (mutable mnt_passno) (mutable mnt_freq)
       (mutable mnt_opts) (mutable mnt_type)
@@ -4546,10 +4474,6 @@
       (mirror: sentinel (without pointer: wrapper:))
       (malloc: sentinel (mandatory)))
     (maker-transformer <struct-sockaddr>-maker-transformer)
-    (protocol
-      (lambda (make-top)
-        (lambda (malloc)
-          ((make-top) (malloc (c-sizeof struct-sockaddr))))))
     (fields (immutable pointer))
     (virtual-fields (immutable sa_data) (mutable sa_family)))
   (define-inline (<struct-sockaddr>-sa_data ?wrapper)
@@ -4689,10 +4613,6 @@
       (malloc: sentinel (mandatory)))
     (maker-transformer
       <struct-sockaddr_in>-maker-transformer)
-    (protocol
-      (lambda (make-top)
-        (lambda (malloc)
-          ((make-top) (malloc (c-sizeof struct-sockaddr_in))))))
     (fields (immutable pointer))
     (virtual-fields (mutable sin_port) (immutable sin_addr)
       (mutable sin_family)))
@@ -4846,11 +4766,6 @@
       (malloc: sentinel (mandatory)))
     (maker-transformer
       <struct-sockaddr_in6>-maker-transformer)
-    (protocol
-      (lambda (make-top)
-        (lambda (malloc)
-          ((make-top)
-            (malloc (c-sizeof struct-sockaddr_in6))))))
     (fields (immutable pointer))
     (virtual-fields (mutable sin6_port)
       (immutable sin6_addr) (mutable sin6_family)))
@@ -4994,10 +4909,6 @@
       (malloc: sentinel (mandatory)))
     (maker-transformer
       <struct-sockaddr_un>-maker-transformer)
-    (protocol
-      (lambda (make-top)
-        (lambda (malloc)
-          ((make-top) (malloc (c-sizeof struct-sockaddr_un))))))
     (fields (immutable pointer))
     (virtual-fields (immutable sun_path)
       (mutable sun_family)))
@@ -5116,10 +5027,6 @@
       (mirror: sentinel (without pointer: wrapper:))
       (malloc: sentinel (mandatory)))
     (maker-transformer <struct-in_addr>-maker-transformer)
-    (protocol
-      (lambda (make-top)
-        (lambda (malloc)
-          ((make-top) (malloc (c-sizeof struct-in_addr))))))
     (fields (immutable pointer))
     (virtual-fields (mutable s_addr)))
   (define-inline
@@ -5245,11 +5152,6 @@
       (malloc: sentinel (mandatory)))
     (maker-transformer
       <struct-if_nameindex>-maker-transformer)
-    (protocol
-      (lambda (make-top)
-        (lambda (malloc)
-          ((make-top)
-            (malloc (c-sizeof struct-if_nameindex))))))
     (fields (immutable pointer))
     (virtual-fields (mutable if_name) (mutable if_index)))
   (define-inline
@@ -5398,10 +5300,6 @@
       (mirror: sentinel (without pointer: wrapper:))
       (malloc: sentinel (mandatory)))
     (maker-transformer <struct-netent>-maker-transformer)
-    (protocol
-      (lambda (make-top)
-        (lambda (malloc)
-          ((make-top) (malloc (c-sizeof struct-netent))))))
     (fields (immutable pointer))
     (virtual-fields (mutable n_net) (mutable n_addrtype)
       (mutable n_aliases) (mutable n_name)))
@@ -5545,10 +5443,6 @@
       (mirror: sentinel (without pointer: wrapper:))
       (malloc: sentinel (mandatory)))
     (maker-transformer <struct-linger>-maker-transformer)
-    (protocol
-      (lambda (make-top)
-        (lambda (malloc)
-          ((make-top) (malloc (c-sizeof struct-linger))))))
     (fields (immutable pointer))
     (virtual-fields (mutable l_linger) (mutable l_onoff)))
   (define-inline
@@ -5707,10 +5601,6 @@
       (mirror: sentinel (without pointer: wrapper:))
       (malloc: sentinel (mandatory)))
     (maker-transformer <struct-hostent>-maker-transformer)
-    (protocol
-      (lambda (make-top)
-        (lambda (malloc)
-          ((make-top) (malloc (c-sizeof struct-hostent))))))
     (fields (immutable pointer))
     (virtual-fields (mutable h_addr) (mutable h_addr_list)
       (mutable h_length) (mutable h_addrtype)
@@ -5881,10 +5771,6 @@
       (mirror: sentinel (without pointer: wrapper:))
       (malloc: sentinel (mandatory)))
     (maker-transformer <struct-protoent>-maker-transformer)
-    (protocol
-      (lambda (make-top)
-        (lambda (malloc)
-          ((make-top) (malloc (c-sizeof struct-protoent))))))
     (fields (immutable pointer))
     (virtual-fields (mutable p_proto) (mutable p_aliases)
       (mutable p_name)))
@@ -6038,10 +5924,6 @@
       (mirror: sentinel (without pointer: wrapper:))
       (malloc: sentinel (mandatory)))
     (maker-transformer <struct-servent>-maker-transformer)
-    (protocol
-      (lambda (make-top)
-        (lambda (malloc)
-          ((make-top) (malloc (c-sizeof struct-servent))))))
     (fields (immutable pointer))
     (virtual-fields (mutable s_proto) (mutable s_port)
       (mutable s_aliases) (mutable s_name)))

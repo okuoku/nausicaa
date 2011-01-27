@@ -1077,9 +1077,6 @@ As an example, it should be something like:
 		    (mirror:	sentinel	(without pointer: wrapper:))
 		    (malloc:	sentinel	(mandatory)))
 	     (maker-transformer ,maker-name)
-	     (protocol (lambda (make-top)
-			 (lambda (malloc)
-			   ((make-top) (malloc (c-sizeof ,struct-name-for-inspection))))))
 	     (fields (immutable pointer))
 	     (virtual-fields ,@fields))
 	   ,@accessors-and-mutators

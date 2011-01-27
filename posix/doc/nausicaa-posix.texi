@@ -96,6 +96,10 @@ Revised^6 Report on the algorithmic language Scheme
 @code{<\NAME\>}
 @end macro
 
+@macro aclass{NAME}
+<\NAME\>
+@end macro
+
 @macro objtype{NAME}
 @code{\NAME\}
 @end macro
@@ -257,79 +261,115 @@ Revised^6 Report on the algorithmic language Scheme
 @c To be used in normal text.
 
 @macro meta{THING}
-<\THING\>
+@var{<\THING\>}
+@end macro
+
+@macro metao{THING}
+@var{<\THING\0>}
 @end macro
 
 @macro metai{THING}
-<\THING\1>
+@var{<\THING\1>}
 @end macro
 
 @macro metaii{THING}
-<\THING\2>
+@var{<\THING\2>}
 @end macro
 
 @macro metaiii{THING}
-<\THING\3>
+@var{<\THING\3>}
+@end macro
+
+@macro metan{THING}
+@var{<\THING\N>}
+@end macro
+
+@macro metani{THING}
+@var{<\THING\N+1>}
 @end macro
 
 @c ------------------------------------------------------------
 @c To be used inside @example environment and @samp directives.
 
 @macro cmeta{THING}
-<\THING\>
+@var{<\THING\>}
+@end macro
+
+@macro cmetao{THING}
+@var{<\THING\0>}
 @end macro
 
 @macro cmetai{THING}
-<\THING\1>
+@var{<\THING\1>}
 @end macro
 
 @macro cmetaii{THING}
-<\THING\2>
+@var{<\THING\2>}
 @end macro
 
 @macro cmetaiii{THING}
-<\THING\3>
+@var{<\THING\3>}
+@end macro
+
+@macro cmetan{THING}
+@var{<\THING\N>}
+@end macro
+
+@macro cmetani{THING}
+@var{<\THING\N+1>}
 @end macro
 
 @c ------------------------------------------------------------
 @c To be used inside argument lists.
 
 @macro ameta{THING}
-<\THING\>
+@var{<\THING\>}
+@end macro
+
+@macro ametao{THING}
+@var{<\THING\0>}
 @end macro
 
 @macro ametai{THING}
-<\THING\1>
+@var{<\THING\1>}
 @end macro
 
 @macro ametaii{THING}
-<\THING\2>
+@var{<\THING\2>}
 @end macro
 
 @macro ametaiii{THING}
-<\THING\3>
+@var{<\THING\3>}
+@end macro
+
+@macro ametan{THING}
+@var{<\THING\N>}
+@end macro
+
+@macro ametani{THING}
+@var{<\THING\N+1>}
 @end macro
 
 @c ------------------------------------------------------------
 
 @macro hyper{THING}
-<\THING\>
+@var{<\THING\>}
 @end macro
 
 @macro hyperi{THING}
-<\THING\1>
+@var{<\THING\1>}
 @end macro
 
 @macro hyperii{THING}
-<\THING\2>
+@var{<\THING\2>}
 @end macro
 
 @macro hyperiii{THING}
-<\THING\3>
+@var{<\THING\3>}
 @end macro
 
 @macro hypern{THING}
-<\THING\n>
+@var{<\THING\n>}
 @end macro
 
 @c ------------------------------------------------------------
@@ -358,6 +398,10 @@ Revised^6 Report on the algorithmic language Scheme
 @var{\THING\n}
 @end macro
 
+@macro varni{THING}
+@var{\THING\n+1}
+@end macro
+
 @macro vark{THING}
 @var{\THING\k}
 @end macro
@@ -365,7 +409,6 @@ Revised^6 Report on the algorithmic language Scheme
 @macro varj{THING}
 @var{\THING\j}
 @end macro
-
 
 @c ------------------------------------------------------------
 @c Macros for references to external documents.
@@ -440,7 +483,7 @@ interface to the Scheme language level; some @gnu{} C Library and
 Linux--specific extensions are also exposed.  This package is built on
 top of the Nausicaa/Scheme package, making use of its foreign--functions
 interface; at present, it supports only @gnu{}+Linux systems and the
-Ikarus, Mosh and Ypsilon Scheme implementations.
+Mosh and Vicare Scheme implementations.
 
 The package is distributed under the terms of the @gnu{} General Public
 License (@gpl{}) and can be downloaded from:
@@ -847,9 +890,9 @@ exposing the @posix{} interface to the Scheme language level; some
 @gnu{} C Library extensions and Linux extensions are also exposed.
 
 The libraries are built on top of the Nausicaa/Scheme package, making
-use of its foreign-functions interface; some libraries depend upon the C
-language library @samp{libnausicaa-posix}, which is built and installed
-by this package.
+use of its foreign-functions interface; some Scheme libraries depend
+upon the C language library @samp{libnausicaa-posix}, which is built and
+installed by this package.
 
 @menu
 * overview libraries::          Libraries organisation.
@@ -864,8 +907,9 @@ by this package.
 
 The distribution attempts to split functions compliant to the @posix{}
 standard from functions available only through extensions; this
-splitting is meant to make it easier to port the distribution on
-non--@gnu{} systems.
+splitting is meant to make it easier to port the distribution to
+non--@gnu{} systems.  Functions deprecated by the @posix{} standard are
+considered ``extensions''.
 
 @quotation
 @strong{NOTE} As of this version of the project, correct splitting is
@@ -880,7 +924,8 @@ Unless otherwise specified, libraries are split in three sets:
 @itemx nausicaa glibc --- platform
 @itemx nausicaa linux --- platform
 The low--level interface: faster but raw.  In this documentation, all
-the bindings from these libraries are tagged as @dfn{Platform Function}.
+the function bindings from these libraries are tagged as @dfn{Platform
+Function}.
 
 Some functions are exposed by these libraries but not by the upper level
 libraries (for example many non--reentrant functions which have a
@@ -898,8 +943,12 @@ tagged as @dfn{Primitive Function}.
 @itemx nausicaa glibc ---
 @itemx nausicaa linux ---
 The high--level interface: slower but user friendly, it is built on top
-of the @code{primitives} libraries.  We should really import these
-libraries by prefixing the identifiers; for example:
+of the @code{primitives} libraries.  In this documentation, all the
+bindings to functions from these libraries are tagged as
+@dfn{Parametrised Function}.
+
+We should really import these libraries by prefixing the identifiers;
+for example:
 
 @example
 (import (rnrs)
@@ -915,19 +964,6 @@ Additionally, the following libraries are installed:
 @item sizeof
 Exports bindings for constant values (like @samp{O_CREAT}) and data
 structure accessors and mutators.
-
-@item typedefs
-Defines new Scheme object types to be used as wrappers for system
-objects (file descriptors, pointers to specific data structures, etc.).
-This library defines a lot of record types, but it depends only upon the
-@library{posix sizeof} library; so it is fine to import it for the
-@code{expand} phase.
-
-@item extensions
-Defines extensions for the types exported by @library{posix
-typedefs}, to be used with the @library{records} library (from the
-Nausicaa/Scheme package).  For this purpose, this library must be
-imported for the @code{expand} phase.
 @end table
 
 @c page
@@ -935,31 +971,32 @@ imported for the @code{expand} phase.
 @section Interface organisation
 
 
-For all the functions only a brief description is given: We have to use
-the foreign function's own documentation to have all the details.
+For all the functions only a brief description is given: we have to use
+the foreign function's own documentation to know all the details.
 Unless otherwise specified, the interface adheres to the following
-pattern for function @func{x}:
+pattern for function @func{X}:
 
-@deffn {Parametrised Function} x @var{arg} ...
-@deffnx Parameter x-function
-@deffnx {Primitive Function} x @var{arg} ...
-@deffnx {Platform Function} x @var{c-arg} ...
+
+@deffn {Parametrised Function} X @var{arg} ...
+@deffnx Parameter X-function
+@deffnx {Primitive Function} X @var{arg} ...
+@deffnx {Platform Function} X @var{c-arg} ...
 This is an interface for the @cfunc{x} foreign function.
 
-The Parametrised @func{x} and Primitive @func{x} do something with the
+The parametrised @func{X} and primitive @func{X} do something with the
 arguments, which are regular Scheme values.  They take the same
 arguments and return the same return values.  If successful they return
 values representing the result; in case of error they raise an
 @samp{&errno} condition.  @nauref{errno, C language system errors}.
 
-Parametrised @func{x} does the job by applying to the arguments the
-current value of the @func{x-function} parameter, which must be a
-function; the parameter is initialised to Primitive @func{x}.
+Parametrised @func{X} does the job by applying to the arguments the
+current value of the @func{X-function} parameter, which must be a
+function; the parameter is initialised to primitive @func{X}.
 
-The platform function @func{x} is the direct wrapper for the foreign
-function.  It accepts C language level arguments (like C strings), and
-returns 2 values: the return value from the foreign function call and
-the value of @samp{errno} right after the call.
+The platform function @func{X} is the direct wrapper for the foreign C
+language function.  It accepts C language level arguments (like C
+strings), and returns 2 values: the return value from the foreign
+function call and the value of @samp{errno} right after the call.
 
 Notice that, for almost all the functions, the value of @samp{errno} is
 meaningful only if the return value from the foreign function call
@@ -975,20 +1012,20 @@ This interface gives us 3 choices:
 
 @enumerate
 @item
-To call directly the foreign function using the Platform @func{x}
+To call directly the foreign function using the platform @func{X}
 callout; in this case we are responsible to convert the Scheme arguments
-to the appropriate C language level values (beware to non--garbage
+to the appropriate C language level values (beware of non--garbage
 collected values!).
 
 @item
-To call the Scheme adapter Primitive @func{x}; this gives us: automatic
+To call the Scheme adapter primitive @func{X}; this gives us: automatic
 conversion of arguments, exceptions in case of errors, automatic
 retrying in case the foreign function call is interrupted by an
 @samp{EINTR} signal (unless otherwise specified).
 
 @item
-To call the high--level, Parametrised, @func{x} interface; this gives us
-everything Primitive @func{x} does and additionally allows us to replace
+To call the high--level, parametrised, @func{X} interface; this gives us
+everything primitive @func{X} does and additionally allows us to replace
 the primitive function with a version that returns controlled values, or
 raises an error, and/or logs the operation.  This feature can be used to
 test Scheme code execution paths that handle exceptions.
@@ -1012,93 +1049,160 @@ Example of usage of failing primitive fork function:
 @section Type definitions
 
 
-All the new record types are defined in the library @library{posix
-typedefs}; all of them are @code{nongenerative} definitions.  For
-example:
+Unless otherwise specified, all the Scheme type definitions make use of
+the @library{nausicaa language classes} library and are exported by the
+@library{nausicaa posix sizeof} library.  We have to remember that all
+the bindings exported by @library{nausicaa language classes} are
+reexported by @library{nausicaa}.
 
-@example
-(define-record-type (fd integer->fd fd?)
-  (nongenerative nausicaa:posix:fd)
-  (fields (immutable object fd->integer)))
-@end example
+For every interfaced foreign data structure there are 3 Scheme types: a
+label type to access struct fields through a pointer; a @dfn{wrapper
+class} which embeds a structure pointer and shows better in debugging
+stack traces than the raw pointer; a @dfn{mirror class} which represents
+with Scheme values the values of a foreign structure.
 
-@noindent
-the @code{nongenerative} tag is always @code{nausicaa:posix:} with the
-record type name appended.
+Unless otherwise specified, the interface adheres to the following
+pattern for structure @func{X}.
 
-So, when building a package which may need type definitions usable with
-@value{PACKAGE}, we just copy the definition from @library{posix
-typedefs} into a new library:
+@c ------------------------------------------------------------
 
-@example
-(library (my-package typedefs)
-  (export fd fd? integer->fd fd->integer)
-  (import (rnrs)
-  (define-record-type (fd integer->fd fd?)
-    (nongenerative nausicaa:posix:fd)
-    (fields (immutable object fd->integer)))))
-@end example
+@subsubheading Pointer labels
 
-@noindent
-achieving compatibility for the type @objtype{fd} without forcing a
-dependency upon @value{PACKAGE} for the new package.
 
-@quotation
-The outlined mechanism works as shown in the following example:
+@deftp {Pointer Label} @aclass{pointer-to-X}
+Label type associated to pointer values; it is used to access the fields
+of a C structure of type @code{struct X}.
 
-@example
-(library (one)
-  (export make-<T>)
-  (import (rnrs))
-  (define-record-type <T>
-    (nongenerative the-t)
-    (fields (mutable a))))
+The @func{is-a?} syntax from @library{nausicaa language classes}
+@strong{cannot} be used to recognise a pointer suitable to be associated
+to the @class{pointer-to-X} label.
 
-(library (two)
-  (export <T>-a)
-  (import (rnrs))
-  (define-record-type <T>
-    (nongenerative the-t)
-    (fields (mutable a))))
+The label has a mutable virtual field for each public field in the
+@code{struct X} type, each virtual field having the same name of the
+foreign field.
+@end deftp
 
-;;; the program
-(import (rnrs)
-  (prefix (one) one:)
-  (prefix (two) two:))
-(define o (one:make-<T> 123))
-(display (two:<T>-a o))
-(newline)
-@end example
 
-@noindent
-the two record type definitions are identical, having also the same
-@code{nongenerative} tag; the program will execute correctly recognising
-the types as equivalent.
+@deffn Syntax {make @aclass{pointer-to-X}} @meta{clause} ...
+@deffnx {Auxiliary Syntax} pointer: @var{pointer}
+@deffnx {Auxiliary Syntax} wrapper: @var{wrapper-class}
+@deffnx {Auxiliary Syntax} mirror: @var{mirror-class}
+@deffnx {Auxiliary Syntax} malloc: @var{malloc-function}
+Allocate a new memory block big enough to hold a @code{struct X} value;
+return a pointer to it.  The @code{malloc:} clause is mandatory and
+@var{malloc-function}, which must be a function with the same interface
+of @func{malloc} from @library{nausicaa ffi memory}, is used to allocate
+memory.
 
-But if we remove one of the @code{nongenerative} forms:
+The @code{pointer:}, @code{wrapper:} and @code{mirror:} clauses are
+mutually exclusive.
 
-@example
-(library (two)
-  (export <T>-a)
-  (import (rnrs))
-  (define-record-type <T>
-    (fields (mutable a))))
-@end example
+@var{pointer} must be a pointer to @code{struct X}, whose fields are
+used to initialise the fields of the new structure.
 
-@noindent
-the two type definitions are no more equivalent, so running the program
-will fail with (under Ikarus Scheme):
+@var{wrapper-class} must be an instance of the @class{struct-X} class,
+holding a pointer to @code{struct X}, whose fields are used to
+initialise the fields of the new structure.
 
-@example
-Unhandled exception:
- Condition components:
-   1. &assertion
-   2. &who: record-accessor
-   3. &message: "invalid type"
-   4. &irritants: (#[<T> 123] #<record-type-descriptor <T>>)
-@end example
-@end quotation
+@var{mirror-class} must be an instance of the @class{X} class, whose
+fields are used to initialise the fields of the new structure.
+@end deffn
 
+@c ------------------------------------------------------------
+
+@subsubheading Wrapper classes
+
+
+@deftp {Wrapper Class} @aclass{struct-X}
+Class type holding a pointer value; it is used to access the fields of a
+C structure of type @code{struct X}.  The memory referenced by the
+pointer is @strong{not} subject to garbage collection, unless this
+behaviour is achieved with mechanisms outside @value{PACKAGE}.
+
+The wrapper class has a mutable virtual field for each public field in
+the @code{struct X} type, each virtual field having the same name of the
+foreign field.
+@end deftp
+
+
+@defcv {Immutable Field} @aclass{struct-X} pointer
+A pointer value referencing a @code{struct X} value.
+@end defcv
+
+
+@deffn Syntax {make @aclass{struct-X}} @meta{clause} ...
+@deffnx {Auxiliary Syntax} pointer: @var{pointer}
+@deffnx {Auxiliary Syntax} wrapper: @var{wrapper-class}
+@deffnx {Auxiliary Syntax} mirror: @var{mirror-class}
+@deffnx {Auxiliary Syntax} malloc: @var{malloc-function}
+Allocate a new memory block big enough to hold a @code{struct X} value;
+return an instance of @class{struct-X} class holding the pointer in its
+field.  The @code{malloc:} clause is mandatory and
+@var{malloc-function}, which must be a function with the same interface
+of @func{malloc} from @library{nausicaa ffi memory}, is used to allocate
+memory.
+
+The @code{pointer:}, @code{wrapper:} and @code{mirror:} clauses are
+mutually exclusive.
+
+@var{pointer} must be a pointer to @code{struct X}, whose fields are
+used to initialise the fields of the new structure.
+
+@var{wrapper-class} must be an instance of the @class{struct-X} class,
+holding a pointer to @code{struct X}, whose fields are used to
+initialise the fields of the new structure.
+
+@var{mirror-class} must be an instance of the @class{X} class, whose
+fields are used to initialise the fields of the new structure.
+@end deffn
+
+
+@deffn Syntax {make* @aclass{struct-X}} @var{pointer}
+Build and return a new instance of @class{struct-X} holding
+@var{pointer}, which must reference a @code{struct X} value.
+@end deffn
+
+@c ------------------------------------------------------------
+
+@subsubheading Mirror classes
+
+
+@deftp {Mirror Class} @aclass{X}
+Class type mirroring foreign values of type @code{struct X}.
+
+The mirror class has a mutable concrete field for each public field in
+the @code{struct X} type, each concrete field having the same name of
+the foreign field.
+@end deftp
+
+
+@deffn Syntax {make @aclass{X}} @meta{clause} ...
+@deffnx {Auxiliary Syntax} pointer: @var{pointer}
+@deffnx {Auxiliary Syntax} wrapper: @var{wrapper-class}
+@deffnx {Auxiliary Syntax} mirror: @var{mirror-class}
+Build and return a new instance of @class{X}.
+
+The @code{pointer:}, @code{wrapper:} and @code{mirror:} clauses are
+mutually exclusive.
+
+@var{pointer} must be a pointer to @code{struct X}, whose fields are
+used to initialise the fields of the new instance.
+
+@var{wrapper-class} must be an instance of the @class{struct-X} class,
+holding a pointer to @code{struct X}, whose fields are used to
+initialise the fields of the new instance.
+
+@var{mirror-class} must be an instance of the @class{X} class, whose
+fields' values are @strong{shared} with the fields of the new instance.
+@end deffn
+
+
+@deffn Syntax {make* @aclass{X}} @var{arg} ...
+Build and return a new instance of @class{X} whose fields are
+initialised with the @var{arg} values.  To use this maker it is of
+paramount importance to know the order of the fields in the class
+definition.
+@end deffn
 
 @c page
 @node file
