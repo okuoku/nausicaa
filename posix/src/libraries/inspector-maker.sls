@@ -29,13 +29,22 @@
 (library (inspector-maker)
   (export
 
+    ;; Autoconf library
+    autoconf-lib		autoconf-lib/no-newline
+    autoconf-lib-write
+
+    ;; sizeof library
+    sizeof-lib			sizeof-lib/quote
+    sizeof-lib-exports		sizeof-lib-exports/quote
+    sizeof-lib-drop-exports	sizeof-lib-drop-exports/quote
+    sizeof-renamed-exports
+    sizeof-lib-write
+
     ;; main control
-    sizeof-lib			sizeof-lib-write
-    sizeof-lib-exports		sizeof-lib-drop-exports
-    autoconf-lib		autoconf-lib-write
     define-shared-object
     clang-type-translation-lib-write
 
+    ;; auxiliary functions
     class-uid-prefix
 
     ;; inspection
@@ -63,13 +72,16 @@
   wrapper	no-wrapper
   mirror	no-mirror)
 
+(define-inline (append! ?var ?ell)
+  (set! ?var (append ?var ?ell)))
+
 (define (hat->at str)
-  ;;GNU Autoconf  wants symbols enclosed  in "@...@", but we  cannot use
-  ;;#\@  in R6RS symbols.   So, to  be able  to use  quasiquotation when
-  ;;composing the body of Scheme libraries: we build Scheme symbols with
-  ;;#\^  characters in place  of #\@;  convert the  S-expression library
-  ;;body into  a string; use  this function to  map #\^ to  #\@; finally
-  ;;write the body to a file.
+  ;;GNU  Autoconf wants  symbols enclosed  in "@...@"  for  its variable
+  ;;substitutions, but  we cannot  use #\@ in  R6RS symbols.  So,  to be
+  ;;able  to  use  S-expressions  when  composing  the  body  of  Scheme
+  ;;libraries: we build  Scheme symbols with #\^ characters  in place of
+  ;;#\@; we convert the S-expression  library body into a string; we use
+  ;;this function to map #\^ to #\@; finally write the body to a file.
   ;;
   (string-map (lambda (idx ch)
 		(if (char=? #\^ ch)
@@ -102,18 +114,36 @@
 	    ((symbol? uid)
 	     (symbol->string uid))
 	    (else
-	     (assertion-violation 'class-uid-prefix "expected string or symbol as class UID prefix" uid))))))
+	     (assertion-violation 'class-uid-prefix
+	       "expected string or symbol as class UID prefix" uid))))))
 
 
 ;;;; Autoconf library
+;;
+;;The definitions  in this code page  compose a library  of GNU Autoconf
+;;macros used to inspect the data  types defined by a foreign C library;
+;;the result  is a file that  should be included by  "aclocal.m4" in the
+;;Autoconf infrastructure.
+;;
+;;The generated macro  file holds a single macro  whose name is selected
+;;by the call to the AUTOCONF-LIB-WRITE function.
+;;
 
-(define $autoconf-library	"")
+(define-values ($autoconf-port $autoconf-getter)
+  (open-string-output-port))
 
-(define (autoconf-lib str)
-  ;;Append STR  to the current Autoconf  library; add a new  line at the
+(define (autoconf-lib text-line)
+  ;;Append TEXT-LINE to the Autoconf  library text; add a newline at the
   ;;end.
   ;;
-  (set! $autoconf-library (string-append $autoconf-library str "\n")))
+  (autoconf-lib/no-newline text-line)
+  (newline $autoconf-port))
+
+(define (autoconf-lib/no-newline text-line)
+  ;;Append  TEXT-LINE  to  the  Autoconf  library text  (do  NOT  add  a
+  ;;newline).
+  ;;
+  (display text-line $autoconf-port))
 
 (define (autoconf-lib-write filename libname macro-name)
   ;;Write  to  the  specified  FILENAME  the contents  of  the  Autoconf
@@ -125,7 +155,7 @@
     (format port "dnl ~a --\n" libname)
     (display $autoconf-license port)
     (display (string-append "\nAC_DEFUN([" (symbol->string/maybe macro-name) "],[\n\n") port)
-    (display $autoconf-library port)
+    (display ($autoconf-getter) port)
     (display "\n\n])\n\n\
               dnl end of file\n\
               dnl Local Variables:\n\
@@ -135,87 +165,148 @@
 
 
 ;;;; sizeof library
+;;
+;;The definitions  in this code page  compose an R6RS  library with type
+;;and constant definitions resulting from  the inspection of a foreign C
+;;language  library;   the  library  is  built  upon   the  features  of
+;;Nausicaa/Scheme, making use of its FFI (foreign functions interface).
+;;
+;;
+;;
 
-(define $sizeof-library			'())
+;;The S-expression representing the  generated library body, without the
+;;struct section.
+;;
+(define $sizeof-library-body		'())
+
+;;The  S-expression  representing  the  generated library  body,  struct
+;;definitions section.
+(define $structs-library-body		'())
+
+;;A  list of  symbols  representing  bindings to  be  exported from  the
+;;generated library, without the struct section.
+;;
 (define $sizeof-lib-exports		'())
+
+;;A  list of  symbols  representing  bindings to  be  exported from  the
+;;generated library for the struct section.
+;;
+(define $structs-lib-exports	'())
+
+;;A list of symbols representing bindings that must NOT be exported from
+;;the   generated  library.    It  is   used  to   exclude   symbols  in
+;;$SIZEOF-LIB-EXPORTS.  It makes sense because some symbols are appended
+;;to be  exported by  automatic procedures, and  we may want  to exclude
+;;some of them by hand picking.
+;;
 (define $sizeof-lib-drop-exports	'())
+
+;;A list  of lists, each of which  holding two symbols.  It  is added to
+;;the  export  list  of  the   generated  library  as  a  RENAME  export
+;;specification.
+;;
 (define $sizeof-lib-renamed-exports	'())
 
-(define-syntax sizeof-lib
+(define-syntax sizeof-lib/quote
+  ;;Append S-expressions to the end of the current sizeof library.
+  ;;
   (syntax-rules ()
     ((_ ?sexp0 ?sexp ...)
-     (%sizeof-lib (quote (?sexp0 ?sexp ...))))))
+     (sizeof-lib (quote (?sexp0 ?sexp ...))))))
 
-(define (%sizeof-lib sexp)
+(define (sizeof-lib sexp)
   ;;Append an S-expression to the end of the current sizeof library.
   ;;
-  (set! $sizeof-library (append $sizeof-library sexp)))
+  (append! $sizeof-library-body sexp))
 
-(define-syntax sizeof-lib-exports
+(define (%structs-lib sexp)
+  ;;Append  an S-expression  to the  end  of the  library body,  structs
+  ;;section.
+  ;;
+  (append! $structs-library-body sexp))
+
+(define (%structs-lib-exports . ell)
+  ;;Add  a list  of  symbols to  the  list of  exports  for the  structs
+  ;;section.
+  ;;
+  (append! $structs-lib-exports ell))
+
+(define-syntax sizeof-lib-exports/quote
+  ;;Add a list of symbols to the list of exports in the sizeof library.
+  ;;
   (syntax-rules ()
     ((_ ?symbol0 ?symbol ...)
      (%sizeof-lib-exports (quote ?symbol0) (quote ?symbol) ...))))
 
-(define (%sizeof-lib-exports . ell)
-  ;;Add a list of symbols to the list of exports in the sizeof library.
+(define (sizeof-lib-exports . ell)
+  ;;Add a  list of export specifications  to the list of  exports in the
+  ;;sizeof library.
   ;;
-  (set! $sizeof-lib-exports (append $sizeof-lib-exports ell)))
+  (append! $sizeof-lib-exports ell))
 
-(define-syntax sizeof-lib-drop-exports
+(define-syntax sizeof-lib-drop-exports/quote
+  ;;Add a list of  symbols to the list of exports to  drop in the sizeof
+  ;;library.
+  ;;
   (syntax-rules ()
     ((_ ?symbol0 ?symbol ...)
      (%sizeof-lib-drop-exports (quote ?symbol0) (quote ?symbol) ...))))
 
-(define (%sizeof-lib-drop-exports . ell)
+(define (sizeof-lib-drop-exports . ell)
   ;;Add a list of  symbols to the list of exports to  drop in the sizeof
   ;;library.
   ;;
-  (set! $sizeof-lib-drop-exports (append $sizeof-lib-drop-exports ell)))
+  (append! $sizeof-lib-drop-exports ell))
 
-(define (%sizeof-renamed-exports list-of-renamings)
-  (set! $sizeof-lib-renamed-exports (append $sizeof-lib-renamed-exports list-of-renamings)))
-
-(define (sizeof-lib-write filename libname libname-clang-types)
-  ;;Write to  the specified FILENAME  the contents of the  sizeof Scheme
-  ;;library.     LIBNAME   must    be    the   library    specification.
-  ;;LIBNAME-CLANG-TYPES must be the clang library specification.
+(define (sizeof-renamed-exports list-of-renamings)
+  ;;Register a list of renamings for the export list.
   ;;
+  (append! $sizeof-lib-renamed-exports list-of-renamings))
+
+(define (sizeof-lib-write filename libname libname-type-translation)
+  ;;Write to  the specified FILENAME  the contents of the  sizeof Scheme
+  ;;library.
+  ;;
+  ;;LIBNAME must be the library specification.  LIBNAME-TYPE-TRANSLATION
+  ;;must be the library specification for the type translation library.
+  ;;
+  (define (%filter-exports symbols-list)
+    (filter (lambda (S)
+	      (not (memq S $sizeof-lib-drop-exports)))
+      symbols-list))
   (define lib-exports
-    (let ((ell `( ;;
-		 c-sizeof c-strideof c-alignof c-valueof c-inspect
-		 pointer-c-ref pointer-c-set!
-		 pointer-c-accessor pointer-c-mutator
-		 array-c-ref array-c-set! array-c-pointer-to
-		 pointer: wrapper: mirror: malloc:
-		 ,@(filter (lambda (S)
-			     (not (memq S $sizeof-lib-drop-exports)))
-		     $sizeof-lib-exports)
-		 ,@(filter (lambda (S)
-			     (not (memq S $sizeof-lib-drop-exports)))
-		     $structs-lib-exports))))
+    (begin0-let ((ell `( ;;
+			c-sizeof c-strideof c-alignof c-valueof c-inspect
+			pointer-c-ref pointer-c-set!
+			pointer-c-accessor pointer-c-mutator
+			array-c-ref array-c-set! array-c-pointer-to
+			pointer: wrapper: mirror: malloc:
+			,@(%filter-exports $sizeof-lib-exports)
+			,@(%filter-exports $structs-lib-exports))))
       (unless (null? $sizeof-lib-renamed-exports)
-	(set! ell (append ell `((rename ,@$sizeof-lib-renamed-exports)))))
-      ell))
+	(append! ell `((rename ,@$sizeof-lib-renamed-exports))))))
+  (define lib-imports
+    `((nausicaa)
+      (nausicaa language makers)
+      (for (prefix (rename (only ,libname-type-translation
+				 clang-maybe-foreign-type->clang-external-type
+				 clang-maybe-foreign-type->clang-external-type*)
+			   ;; return false when type not found
+			   (clang-maybe-foreign-type->clang-external-type  translate-type)
+			   ;; assertion violation when type not found
+			   (clang-maybe-foreign-type->clang-external-type* translate-type*))
+		   ffi.)
+	   expand)
+      (nausicaa posix clang embedded-accessors-and-mutators)
+      (for (prefix (only (nausicaa ffi syntax-helpers) %prepend) ffi.) expand)
+      (prefix (only (nausicaa ffi memory) memcpy) mem.)
+      (prefix (nausicaa ffi pointers) ffi.)
+      (prefix (nausicaa ffi sizeof) ffi.)
+      (prefix (nausicaa ffi peekers-and-pokers) ffi.)))
   (define libout
     `(library ,libname
        (export ,@lib-exports)
-       (import (nausicaa)
-	 (nausicaa language makers)
-	 (for (prefix (rename (only ,libname-clang-types
-				    clang-maybe-foreign-type->clang-external-type
-				    clang-maybe-foreign-type->clang-external-type*)
-			      ;; return false when type not found
-			      (clang-maybe-foreign-type->clang-external-type  translate-type)
-			      ;; assertion violation when type not found
-			      (clang-maybe-foreign-type->clang-external-type* translate-type*))
-		      ffi.)
-	      expand)
-	 (nausicaa posix clang embedded-accessors-and-mutators)
-	 (for (prefix (only (nausicaa ffi syntax-helpers) %prepend) ffi.) expand)
-	 (prefix (only (nausicaa ffi memory) memcpy) mem.)
-	 (prefix (nausicaa ffi pointers) ffi.)
-	 (prefix (nausicaa ffi sizeof) ffi.)
-	 (prefix (nausicaa ffi peekers-and-pokers) ffi.))
+       (import ,@lib-imports)
 
        (define-auxiliary-syntaxes
 	 pointer: wrapper: mirror: malloc:)
@@ -307,8 +398,8 @@
        (define-inline (array-c-pointer-to ?type ?pointer ?index)
 	 (ffi.pointer-add ?pointer (* ?index (c-strideof ?type))))
 
-       ,@$sizeof-library
-       ,@$structs-library))
+       ,@$sizeof-library-body
+       ,@$structs-library-body))
 
   (define strout
     (hat->at (call-with-string-output-port
@@ -323,22 +414,6 @@
   (display strout port)
   (display "\n\n;;; end of file\n" port)
   (close-port port))
-
-
-;;;; sizeof library, structs section
-
-(define $structs-library	'())
-(define $structs-lib-exports	'())
-
-(define (%structs-lib sexp)
-  ;;Append an S-expression to the end of the current structs library.
-  ;;
-  (set! $structs-library (append $structs-library sexp)))
-
-(define (%structs-lib-exports . ell)
-  ;;Add a list of symbols to the list of exports in the structs library.
-  ;;
-  (set! $structs-lib-exports (append $structs-lib-exports ell)))
 
 
 ;;;; C language type translation library
@@ -451,10 +526,9 @@ As an example, it should be something like:
     (autoconf-lib (format "NAU_DS_WITH_OPTION([~a],[~a-shared-object],[~a],
   [~a shared library file],[select ~a shared library file])"
 		    varname dnname default-library-name tiname tiname))
-    ;;FIXME This will fail with Ikarus up to revision 1870.  Use Mosh!.
     (let ((at-symbol (format "^~a^" varname)))
-      (%sizeof-lib `((define ,varname-sym ,at-symbol)))
-      (%sizeof-lib-exports varname-sym))))
+      (sizeof-lib `((define ,varname-sym ,at-symbol)))
+      (sizeof-lib-exports varname-sym))))
 
 
 ;;;; enumerations
@@ -478,9 +552,7 @@ As an example, it should be something like:
 	      (let ((valueof-symbol (string->symbol (string-append "valueof-" (symbol->string symbol)))))
 		(autoconf-lib (format "NAUSICAA_ENUM_VALUE([~a])" symbol))
 		(let ((at-symbol (format-symbol "^VALUEOF_~a^" symbol)))
-		  (%sizeof-lib `((define ,valueof-symbol ,at-symbol)))
-		  ;;(%sizeof-lib-exports symbol)
-		  )))
+		  (sizeof-lib `((define ,valueof-symbol ,at-symbol))))))
     symbol-names))
 
 
@@ -503,7 +575,7 @@ As an example, it should be something like:
 	      (let ((valueof-symbol (string->symbol (string-append "valueof-" (symbol->string symbol)))))
 		(autoconf-lib (format "NAUSICAA_DEFINE_VALUE([~a])" symbol))
 		(let ((at-symbol (format-symbol "^VALUEOF_~a^" symbol)))
-		  (%sizeof-lib `((define ,valueof-symbol ,at-symbol))))))
+		  (sizeof-lib `((define ,valueof-symbol ,at-symbol))))))
     symbol-names))
 
 (define-syntax define-c-defines/public
@@ -518,7 +590,7 @@ As an example, it should be something like:
      (%register-preprocessor-symbols/public ?description (quote (?symbol-name0 ?symbol-name ...))))))
 
 (define (%register-preprocessor-symbols/public description symbol-names)
-  (%sizeof-renamed-exports (map (lambda (symbol)
+  (sizeof-renamed-exports (map (lambda (symbol)
 				  (list (format-symbol "valueof-~a" symbol) symbol))
 			     symbol-names))
   (%register-preprocessor-symbols description symbol-names))
@@ -539,7 +611,7 @@ As an example, it should be something like:
 	      (let ((valueof-symbol (string->symbol (string-append "valueof-" (symbol->string symbol)))))
 		(autoconf-lib (format "NAUSICAA_STRING_TEST([~a],[~a])" symbol symbol))
 		(let ((at-symbol (format "^STRINGOF_~a^" symbol)))
-		  (%sizeof-lib `((define ,valueof-symbol ,at-symbol))))))
+		  (sizeof-lib `((define ,valueof-symbol ,at-symbol))))))
     symbol-names))
 
 
@@ -806,9 +878,9 @@ As an example, it should be something like:
       C-field-names field-type-categories))
 
   (define (%generate-constants)
-    (%sizeof-lib `((define ,sizeof-struct	,ac-symbol-sizeof)
-		   (define ,alignof-struct	,ac-symbol-alignof)
-		   (define ,strideof-struct	,ac-symbol-strideof))))
+    (sizeof-lib `((define ,sizeof-struct	,ac-symbol-sizeof)
+		  (define ,alignof-struct	,ac-symbol-alignof)
+		  (define ,strideof-struct	,ac-symbol-strideof))))
 
   (define (%generate-label-interface-to-struct)
     ;;A structure definition like:
@@ -1140,12 +1212,17 @@ As an example, it should be something like:
 (define $autoconf-license
   (string-append "dnl
 dnl Part of: Nausicaa
-dnl Contents: foreign library inspection generation
+dnl Contents: foreign library inspection Autoconf macros
 dnl Date: " #;(date->string $date "~a ~b ~e, ~Y") "
 dnl
 dnl Abstract
 dnl
+dnl	This file has been automatically generated by the inspector
+dnl	maker Nausicaa library; it is meant to be included by the
+dnl	\"aclocal.m4\" file in the Autoconf infrastructure.
 dnl
+dnl	  This file defines an Autoconf macro which expands in the set
+dnl	of Autoconf tests needed to inspect a foreign C language library.
 dnl
 dnl Copyright (c) " #;(date->string $date "~Y") " Marco Maggi <marco.maggi-ipsu@poste.it>
 dnl

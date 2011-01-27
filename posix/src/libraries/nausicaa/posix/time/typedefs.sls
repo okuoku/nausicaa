@@ -42,45 +42,45 @@
 ;;;; label interface to "struct tms" pointers
 
 (define-c-functions libnausicaa-posix
-  (%pointer-to-tms-utime	(double nausicaa_posix_tms_utime_ref (void*)))
-  (%pointer-to-tms-stime	(double nausicaa_posix_tms_stime_ref (void*)))
-  (%pointer-to-tms-cutime	(double nausicaa_posix_tms_cutime_ref (void*)))
-  (%pointer-to-tms-cstime	(double nausicaa_posix_tms_cstime_ref (void*)))
-  (%pointer-to-tms-utime-set!	(void nausicaa_posix_tms_utime_set (void* double)))
-  (%pointer-to-tms-stime-set!	(void nausicaa_posix_tms_stime_set (void* double)))
-  (%pointer-to-tms-cutime-set!	(void nausicaa_posix_tms_cutime_set (void* double)))
-  (%pointer-to-tms-cstime-set!	(void nausicaa_posix_tms_cstime_set (void* double))))
+  (%pointer-to-tms-tms_utime	(double nausicaa_posix_tms_utime_ref (void*)))
+  (%pointer-to-tms-tms_stime	(double nausicaa_posix_tms_stime_ref (void*)))
+  (%pointer-to-tms-tms_cutime	(double nausicaa_posix_tms_cutime_ref (void*)))
+  (%pointer-to-tms-tms_cstime	(double nausicaa_posix_tms_cstime_ref (void*)))
+  (%pointer-to-tms-tms_utime-set!	(void nausicaa_posix_tms_utime_set (void* double)))
+  (%pointer-to-tms-tms_stime-set!	(void nausicaa_posix_tms_stime_set (void* double)))
+  (%pointer-to-tms-tms_cutime-set!	(void nausicaa_posix_tms_cutime_set (void* double)))
+  (%pointer-to-tms-tms_cstime-set!	(void nausicaa_posix_tms_cstime_set (void* double))))
 
-(define-inline (<pointer-to-tms>-utime pointer)
-  (exact (%pointer-to-tms-utime pointer)))
+(define-inline (<pointer-to-tms>-tms_utime pointer)
+  (exact (%pointer-to-tms-tms_utime pointer)))
 
-(define-inline (<pointer-to-tms>-stime pointer)
-  (exact (%pointer-to-tms-stime pointer)))
+(define-inline (<pointer-to-tms>-tms_stime pointer)
+  (exact (%pointer-to-tms-tms_stime pointer)))
 
-(define-inline (<pointer-to-tms>-cutime pointer)
-  (exact (%pointer-to-tms-cutime pointer)))
+(define-inline (<pointer-to-tms>-tms_cutime pointer)
+  (exact (%pointer-to-tms-tms_cutime pointer)))
 
-(define-inline (<pointer-to-tms>-cstime pointer)
-  (exact (%pointer-to-tms-cstime pointer)))
+(define-inline (<pointer-to-tms>-tms_cstime pointer)
+  (exact (%pointer-to-tms-tms_cstime pointer)))
 
-(define-inline (<pointer-to-tms>-utime-set! pointer value)
-  (%pointer-to-tms-utime-set! pointer (inexact value)))
+(define-inline (<pointer-to-tms>-tms_utime-set! pointer value)
+  (%pointer-to-tms-tms_utime-set! pointer (inexact value)))
 
-(define-inline (<pointer-to-tms>-stime-set! pointer value)
-  (%pointer-to-tms-stime-set! pointer (inexact value)))
+(define-inline (<pointer-to-tms>-tms_stime-set! pointer value)
+  (%pointer-to-tms-tms_stime-set! pointer (inexact value)))
 
-(define-inline (<pointer-to-tms>-cutime-set! pointer value)
-  (%pointer-to-tms-cutime-set! pointer (inexact value)))
+(define-inline (<pointer-to-tms>-tms_cutime-set! pointer value)
+  (%pointer-to-tms-tms_cutime-set! pointer (inexact value)))
 
-(define-inline (<pointer-to-tms>-cstime-set! pointer value)
-  (%pointer-to-tms-cstime-set! pointer (inexact value)))
+(define-inline (<pointer-to-tms>-tms_cstime-set! pointer value)
+  (%pointer-to-tms-tms_cstime-set! pointer (inexact value)))
 
 (define-label <pointer-to-tms>
   (custom-maker <pointer-to-tms>-maker)
-  (virtual-fields (mutable stime)
-		  (mutable utime)
-		  (mutable cutime)
-		  (mutable cstime)))
+  (virtual-fields (mutable tms_stime)
+		  (mutable tms_utime)
+		  (mutable tms_cutime)
+		  (mutable tms_cstime)))
 
 (define-maker <pointer-to-tms>-maker
   %<pointer-to-tms>-maker
@@ -103,26 +103,26 @@
 
 (define (tms-pointer->tms-pointer (src <pointer-to-tms>) malloc)
   (let (((dst <pointer-to-tms>) (malloc (c-sizeof struct-tms))))
-    (set! dst.stime  src.stime)
-    (set! dst.utime  src.utime)
-    (set! dst.cstime src.cstime)
-    (set! dst.cutime src.cutime)
+    (set! dst.tms_stime  src.tms_stime)
+    (set! dst.tms_utime  src.tms_utime)
+    (set! dst.tms_cstime src.tms_cstime)
+    (set! dst.tms_cutime src.tms_cutime)
     dst))
 
 (define (tms-wrapper->tms-pointer (src <struct-tms>) malloc)
   (let (((dst <pointer-to-tms>) (malloc (c-sizeof struct-tms))))
-    (set! dst.stime  src.stime)
-    (set! dst.utime  src.utime)
-    (set! dst.cstime src.cstime)
-    (set! dst.cutime src.cutime)
+    (set! dst.tms_stime  src.tms_stime)
+    (set! dst.tms_utime  src.tms_utime)
+    (set! dst.tms_cstime src.tms_cstime)
+    (set! dst.tms_cutime src.tms_cutime)
     dst))
 
 (define (tms-mirror->tms-pointer (src <tms>) malloc)
   (let (((dst <pointer-to-tms>) (malloc (c-sizeof struct-tms))))
-    (set! dst.stime  src.stime)
-    (set! dst.utime  src.utime)
-    (set! dst.cstime src.cstime)
-    (set! dst.cutime src.cutime)
+    (set! dst.tms_stime  src.tms_stime)
+    (set! dst.tms_utime  src.tms_utime)
+    (set! dst.tms_cstime src.tms_cstime)
+    (set! dst.tms_cutime src.tms_cutime)
     dst))
 
 
@@ -137,10 +137,10 @@
 	 (malloc:	sentinel	(mandatory)))
   (maker-transformer <struct-tms>-maker)
   (fields (immutable pointer))
-  (virtual-fields (mutable utime)
-		  (mutable stime)
-		  (mutable cutime)
-		  (mutable cstime)))
+  (virtual-fields (mutable tms_utime)
+		  (mutable tms_stime)
+		  (mutable tms_cutime)
+		  (mutable tms_cstime)))
 
 (define-syntax <struct-tms>-maker
   (syntax-rules (sentinel)
@@ -162,45 +162,45 @@
 (define (tms-mirror->tms-wrapper constructor mirror malloc)
   (constructor (tms-mirror->tms-pointer mirror malloc)))
 
-(define-syntax <struct-tms>-utime
+(define-syntax <struct-tms>-tms_utime
   (syntax-rules ()
     ((_ ?pointer)
-     (<pointer-to-tms>-utime (<struct-tms>-pointer ?pointer)))))
+     (<pointer-to-tms>-tms_utime (<struct-tms>-pointer ?pointer)))))
 
-(define-syntax <struct-tms>-utime-set!
+(define-syntax <struct-tms>-tms_utime-set!
   (syntax-rules ()
     ((_ ?pointer ?value)
-     (<pointer-to-tms>-utime-set! (<struct-tms>-pointer ?pointer) ?value))))
+     (<pointer-to-tms>-tms_utime-set! (<struct-tms>-pointer ?pointer) ?value))))
 
-(define-syntax <struct-tms>-stime
+(define-syntax <struct-tms>-tms_stime
   (syntax-rules ()
     ((_ ?pointer)
-     (<pointer-to-tms>-stime (<struct-tms>-pointer ?pointer)))))
+     (<pointer-to-tms>-tms_stime (<struct-tms>-pointer ?pointer)))))
 
-(define-syntax <struct-tms>-stime-set!
+(define-syntax <struct-tms>-tms_stime-set!
   (syntax-rules ()
     ((_ ?pointer ?value)
-     (<pointer-to-tms>-stime-set! (<struct-tms>-pointer ?pointer) ?value))))
+     (<pointer-to-tms>-tms_stime-set! (<struct-tms>-pointer ?pointer) ?value))))
 
-(define-syntax <struct-tms>-cutime
+(define-syntax <struct-tms>-tms_cutime
   (syntax-rules ()
     ((_ ?pointer)
-     (<pointer-to-tms>-cutime (<struct-tms>-pointer ?pointer)))))
+     (<pointer-to-tms>-tms_cutime (<struct-tms>-pointer ?pointer)))))
 
-(define-syntax <struct-tms>-cutime-set!
+(define-syntax <struct-tms>-tms_cutime-set!
   (syntax-rules ()
     ((_ ?pointer ?value)
-     (<pointer-to-tms>-cutime-set! (<struct-tms>-pointer ?pointer) ?value))))
+     (<pointer-to-tms>-tms_cutime-set! (<struct-tms>-pointer ?pointer) ?value))))
 
-(define-syntax <struct-tms>-cstime
+(define-syntax <struct-tms>-tms_cstime
   (syntax-rules ()
     ((_ ?pointer)
-     (<pointer-to-tms>-cstime (<struct-tms>-pointer ?pointer)))))
+     (<pointer-to-tms>-tms_cstime (<struct-tms>-pointer ?pointer)))))
 
-(define-syntax <struct-tms>-cstime-set!
+(define-syntax <struct-tms>-tms_cstime-set!
   (syntax-rules ()
     ((_ ?pointer ?value)
-     (<pointer-to-tms>-cstime-set! (<struct-tms>-pointer ?pointer) ?value))))
+     (<pointer-to-tms>-tms_cstime-set! (<struct-tms>-pointer ?pointer) ?value))))
 
 
 ;;;; class mirror for "struct tms"
@@ -212,10 +212,10 @@
 	 (wrapper:	sentinel	(without pointer: mirror:))
 	 (mirror:	sentinel	(without pointer: wrapper:)))
   (maker-transformer <tms>-maker)
-  (fields (mutable utime)
-	  (mutable stime)
-	  (mutable cutime)
-	  (mutable cstime)))
+  (fields (mutable tms_utime)
+	  (mutable tms_stime)
+	  (mutable tms_cutime)
+	  (mutable tms_cstime)))
 
 (define-syntax <tms>-maker
   (syntax-rules (sentinel)
@@ -227,22 +227,22 @@
      (tms-mirror->tms-mirror  ?constructor ?mirror))))
 
 (define (tms-pointer->tms-mirror constructor (pointer <pointer-to-tms>))
-  (constructor pointer.utime
-	       pointer.stime
-	       pointer.cutime
-	       pointer.cstime))
+  (constructor pointer.tms_utime
+	       pointer.tms_stime
+	       pointer.tms_cutime
+	       pointer.tms_cstime))
 
 (define (tms-wrapper->tms-mirror constructor (wrapper <struct-tms>))
-  (constructor wrapper.utime
-	       wrapper.stime
-	       wrapper.cutime
-	       wrapper.cstime))
+  (constructor wrapper.tms_utime
+	       wrapper.tms_stime
+	       wrapper.tms_cutime
+	       wrapper.tms_cstime))
 
 (define (tms-mirror->tms-mirror constructor (mirror <tms>))
-  (constructor mirror.utime
-	       mirror.stime
-	       mirror.cutime
-	       mirror.cstime))
+  (constructor mirror.tms_utime
+	       mirror.tms_stime
+	       mirror.tms_cutime
+	       mirror.tms_cstime))
 
 
 ;;;; done
