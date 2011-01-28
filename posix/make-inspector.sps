@@ -32,7 +32,173 @@
 (class-uid-prefix "nausicaa:posix")
 
 (sizeof-lib-imports/quote
- (prefix (nausicaa posix clang stub-functions) stub.))
+ (prefix (nausicaa posix clang stub-functions) stub.)
+ (prefix (nausicaa ffi cstrings) ffi.))
+
+
+;;;; primitive accessors and mutators
+
+(sizeof-lib/quote
+
+ (define (embedded.bytevector->memory! bv pointer number-of-bytes)
+   ;;Copy the selected  number of bytes from a  bytevector into a memory
+   ;;block into.
+   ;;
+   (do ((i 0 (+ 1 i)))
+       ((= i number-of-bytes))
+     (ffi.pointer-c-set! uint8_t pointer i (bytevector-u8-ref bv i))))
+
+ (define (embedded.memory->bytevector! pointer bv number-of-bytes)
+   ;;Copy  the selected  number  of bytes  from  a memory  block into  a
+   ;;bytevector.
+   ;;
+   (do ((i 0 (+ 1 i)))
+       ((= i number-of-bytes))
+     (bytevector-u8-set! bv i (ffi.pointer-c-ref uint8_t pointer i))))
+
+;;; --------------------------------------------------------------------
+
+ (define (embedded.generic-struct-pointer-bytevector struct-pointer field-offset number-of-bytes)
+   ;;Generic  embedded   memory  block  accessor.   Store   into  a  new
+   ;;bytevector  the selected number  of bytes  embedded into  a struct;
+   ;;return the bytevector.
+   ;;
+   (let ((bv (make-bytevector number-of-bytes)))
+     (embedded.memory->bytevector! (ffi.pointer-add struct-pointer field-offset) bv number-of-bytes)
+     bv))
+
+ (define (embedded.generic-struct-pointer-bytevector-set! struct-pointer field-offset number-of-bytes bv)
+   ;;Generic embedded  memory block mutator.  Store the  given number of
+   ;;bytes from bytevector into a memory block embedded into a struct.
+   ;;
+   (embedded.bytevector->memory! bv (ffi.pointer-add struct-pointer field-offset) number-of-bytes))
+
+;;; --------------------------------------------------------------------
+
+ (define-inline (embedded.generic-struct-pointer-cstring struct-pointer field-offset)
+   ;;Generic embedded C string accessor.  Convert a C string embedded in
+   ;;a struct into a Scheme string; return the Scheme string.
+   ;;
+   (ffi.cstring->string (ffi.pointer-add struct-pointer field-offset)))
+
+ (define (embedded.generic-struct-pointer-cstring-set! struct-pointer field-offset str)
+   ;;Generic embedded C string mutator.  Convert the given Scheme string
+   ;;into  a UTF8  bytevector  and  store the  bytes  into the  embedded
+   ;;string.
+   ;;
+   ;;Beware using this function!!!
+   ;;
+   (let (((bv <bytevector>) (string->utf8 str))
+	 (fp* (ffi.pointer-add struct-pointer field-offset)))
+     (embedded.bytevector->memory! bv fp* bv.length)
+     ;;terminate with a zero byte
+     (pointer-c-set! uint8_t (ffi.pointer-add fp* bv.length) 0 0)))
+
+;;; --------------------------------------------------------------------
+
+ (define (embedded.generic-struct-pointer-timeval struct-pointer field-offset)
+   ;;Generic embedded "struct timeval"  accessor.  Extract the fields of
+   ;;the embedded structure and return an instance of <timeval>.
+   ;;
+   (make <timeval>
+     (pointer: (ffi.pointer-add struct-pointer field-offset))))
+
+ (define (embedded.generic-struct-pointer-timeval-set! struct-pointer field-offset (tv <timeval>))
+   ;;Generic embedded "struct timeval" mutator.  Extract the fields of a
+   ;;<timeval> instance  and store the values into  the embedded "struct
+   ;;timeval".
+   ;;
+   (let (((tv* <pointer-to-timeval>) (ffi.pointer-add struct-pointer field-offset)))
+     (set! tv*.tv_sec  tv.tv_sec)
+     (set! tv*.tv_usec tv.tv_usec)))
+
+ )
+
+
+;;;; accessor and mutator definition utilities
+
+(sizeof-lib/quote
+
+ (define-syntax embedded.define-cstring-accessor
+   (identifier-syntax embedded.generic-struct-pointer-cstring))
+
+;;; --------------------------------------------------------------------
+
+ (define-syntax embedded.define-timeval-accessor
+   (identifier-syntax embedded.generic-struct-pointer-timeval))
+
+ (define-syntax embedded.define-timeval-mutator
+   (identifier-syntax embedded.generic-struct-pointer-timeval-set!))
+
+ (define-syntax embedded.define-timeval-accessor-and-mutator
+   (syntax-rules ()
+     ((_ ?accesor ?mutator)
+      (begin
+	(embedded.define-timeval-accessor ?accessor)
+	(embedded.define-timeval-mutator  ?mutator)))))
+
+;;; --------------------------------------------------------------------
+
+ (define-syntax embedded.define-bytevector-accessor
+   (syntax-rules ()
+     ((_ ?accessor ?number-of-bytes)
+      (define-inline (?accessor struct-pointer field-offset)
+	(embedded.generic-struct-pointer-bytevector struct-pointer field-offset ?number-of-bytes)))))
+
+ (define-syntax embedded.define-bytevector-mutator
+   (syntax-rules ()
+     ((_ ?mutator ?number-of-bytes)
+      (define-inline (?mutator struct-pointer field-offset bv)
+	(embedded.generic-struct-pointer-bytevector-set! struct-pointer field-offset
+							 ?number-of-bytes bv)))))
+
+ (define-syntax embedded.define-bytevector-accessor-and-mutator
+   (syntax-rules ()
+     ((_ ?accessor ?mutator ?number-of-bytes)
+      (begin
+	(embedded.define-bytevector-accessor ?accessor ?number-of-bytes)
+	(embedded.define-bytevector-mutator  ?mutator  ?number-of-bytes)))))
+
+;;; --------------------------------------------------------------------
+
+ (define-syntax embedded.define-error-accessor
+   ;;Define an accessor which raises an error when invoked.  This is for
+   ;;fields  embedded  in  C  structs  which cannot  be  modified,  like
+   ;;"sa_data" in "struct sockaddr".
+   ;;
+   (lambda (stx)
+     (syntax-case stx ()
+       ((_ ?name ?struct-name ?field-name)
+	(with-syntax
+	    ((MESSAGE (string-append "embedded field \"" (syntax->datum #'?field-name)
+				     "\" of C struct \"" (syntax->datum #'?struct-name)
+				     "\" cannot be accessed")))
+	  #'(define (?name struct-pointer field-offset value)
+	      (error '?name MESSAGE)))))))
+
+ (define-syntax embedded.define-error-mutator
+   ;;Define a mutator  which raises an error when  invoked.  This is for
+   ;;fields  embedded  in  C  structs  which cannot  be  modified,  like
+   ;;"d_name" in "struct dirent".
+   ;;
+   (lambda (stx)
+     (syntax-case stx ()
+       ((_ ?name ?struct-name ?field-name)
+	(with-syntax
+	    ((MESSAGE (string-append "embedded field \"" (syntax->datum #'?field-name)
+				     "\" of C struct \"" (syntax->datum #'?struct-name)
+				     "\" cannot be modified")))
+	  #'(define (?name struct-pointer field-offset)
+	      (error '?name MESSAGE)))))))
+
+ (define-syntax embedded.define-error-accessor-and-mutator
+   (syntax-rules ()
+     ((_ ?accesor ?mutator ?number-of-bytes)
+      (begin
+	(embedded.define-error-accessor ?accessor)
+	(embedded.define-error-mutator  ?mutator)))))
+
+ )
 
 
 ;;;; inspection: typedefs
@@ -74,24 +240,6 @@
   (signed-int		tv_sec)
   (signed-int		tv_nsec))
 
-;;All the  fields of  "struct tms"  are of type  "clock_t", which  is an
-;;unspecified type for values returned by "clock()".  We normalise it to
-;;"double".
-;;
-;;The stub library  in this package has code  implementing accessors and
-;;mutators for "struct tms", which normalise such values to "double".
-;;
-;;The library "(nausicaa posix time typedefs)" has code implementing the
-;;Nausicaa label  and classes types needed  to access the  fields of the
-;;structure given a pointer to it.
-;;
-;;Here we just  need to determine the size, stride  and alignment of the
-;;struct.
-;;
-;; (define-c-struct tms
-;;   "struct tms"
-;;   (options no-label no-wrapper no-mirror))
-
 (define-c-struct tms
   "struct tms"
   (options no-fields-inspection)
@@ -114,7 +262,12 @@
   (signed-int		d_off)
   (unsigned-int		d_reclen)
   (unsigned-int		d_type)
-  (embedded		d_name))
+  (embedded		d_name
+			(struct-accessor: embedded.generic-struct-pointer-cstring)
+			(struct-mutator:  embedded.pointer-to-dirent-d_name-set!)))
+
+(sizeof-lib/quote
+ (embedded.define-error-mutator embedded.pointer-to-dirent-d_name-set! "dirent" "d_name"))
 
 ;;The stat structure  is "special", so the following  tests do not work.
 ;;We relay  on the stub library  to access it.  Note  that the following
@@ -178,7 +331,9 @@ AC_CHECK_MEMBERS([struct stat.st_ctime_usec])
 
 (define-c-struct ntptimeval
   "struct ntptimeval"
-  (embedded		time)
+  (embedded		time
+			(struct-accessor: embedded.generic-struct-pointer-timeval)
+			(struct-mutator:  embedded.generic-struct-pointer-timeval-set!))
   (signed-int		maxerror)
   (signed-int		esterror))
 
@@ -193,7 +348,9 @@ AC_CHECK_MEMBERS([struct stat.st_ctime_usec])
   (signed-int		constant)
   (signed-int		precision)
   (signed-int		tolerance)
-  (embedded		time)
+  (embedded		time
+			(struct-accessor: embedded.generic-struct-pointer-timeval)
+			(struct-mutator:  embedded.generic-struct-pointer-timeval-set!))
   (signed-int		tick)
   (signed-int		ppsfreq)
   (signed-int		jitter)
@@ -206,8 +363,12 @@ AC_CHECK_MEMBERS([struct stat.st_ctime_usec])
 
 (define-c-struct itimerval
   "struct itimerval"
-  (embedded		it_interval)
-  (embedded		it_value))
+  (embedded	it_interval
+		(struct-accessor: embedded.generic-struct-pointer-timeval)
+		(struct-mutator:  embedded.generic-struct-pointer-timeval-set!))
+  (embedded	it_value
+		(struct-accessor: embedded.generic-struct-pointer-timeval)
+		(struct-mutator:  embedded.generic-struct-pointer-timeval-set!)))
 
 (define-c-struct FTW
   "struct FTW"
@@ -240,12 +401,32 @@ AC_CHECK_MEMBERS([struct stat.st_ctime_usec])
 
 (define-c-struct utsname
   "struct utsname"
-  (embedded		sysname)
-  (embedded		release)
-  (embedded		version)
-  (embedded		machine)
-  (embedded		nodename)
-  (embedded		domainname))
+  (embedded		sysname
+			(struct-accessor: embedded.generic-struct-pointer-cstring)
+			(struct-mutator:  embedded.pointer-to-utsname-sysname-set!))
+  (embedded		release
+			(struct-accessor: embedded.generic-struct-pointer-cstring)
+			(struct-mutator:  embedded.pointer-to-utsname-release-set!))
+  (embedded		version
+			(struct-accessor: embedded.generic-struct-pointer-cstring)
+			(struct-mutator:  embedded.pointer-to-utsname-version-set!))
+  (embedded		machine
+			(struct-accessor: embedded.generic-struct-pointer-cstring)
+			(struct-mutator:  embedded.pointer-to-utsname-machine-set!))
+  (embedded		nodename
+			(struct-accessor: embedded.generic-struct-pointer-cstring)
+			(struct-mutator:  embedded.pointer-to-utsname-nodename-set!))
+  (embedded		domainname
+			(struct-accessor: embedded.generic-struct-pointer-cstring)
+			(struct-mutator:  embedded.pointer-to-utsname-domainname-set!)))
+
+(sizeof-lib/quote
+ (embedded.define-error-mutator embedded.pointer-to-utsname-sysname-set! "utsname" "sysname")
+ (embedded.define-error-mutator embedded.pointer-to-utsname-release-set! "utsname" "release")
+ (embedded.define-error-mutator embedded.pointer-to-utsname-version-set! "utsname" "version")
+ (embedded.define-error-mutator embedded.pointer-to-utsname-machine-set! "utsname" "machine")
+ (embedded.define-error-mutator embedded.pointer-to-utsname-nodename-set! "utsname" "nodename")
+ (embedded.define-error-mutator embedded.pointer-to-utsname-domainname-set! "utsname" "domainname"))
 
 (define-c-struct fstab
   "struct fstab"
@@ -269,27 +450,53 @@ AC_CHECK_MEMBERS([struct stat.st_ctime_usec])
 (define-c-struct sockaddr
   "struct sockaddr"
   (signed-int		sa_family)
-  (embedded		sa_data))
+;;;The dimension of this field is format-dependent, so we leave it out.
+;;;  (embedded		sa_data)
+  )
 
 (define-c-struct sockaddr_in
   "struct sockaddr_in"
   (signed-int		sin_family)
-  (embedded		sin_addr)
+  (embedded		sin_addr
+			(struct-accessor: embedded.pointer-to-sockaddr_in-sin_addr)
+			(struct-mutator:  embedded.pointer-to-sockaddr_in-sin_addr-set!))
   (unsigned-int		sin_port))
+
+(sizeof-lib/quote
+ ;; (embedded.define-bytevector-accessor embedded.pointer-to-sockaddr_in-sin_addr
+ ;; 				      (c-sizeof struct-in_addr))
+ ;; (embedded.define-bytevector-mutator  embedded.pointer-to-sockaddr_in-sin_addr-set!
+ ;; 				      (c-sizeof struct-in_addr))
+ (embedded.define-bytevector-accessor-and-mutator embedded.pointer-to-sockaddr_in-sin_addr
+						  embedded.pointer-to-sockaddr_in-sin_addr-set!
+						  (c-sizeof struct-in_addr)))
 
 (define-c-struct sockaddr_in6
   "struct sockaddr_in6"
   (signed-int		sin6_family)
-  (embedded		sin6_addr)
+  (embedded		sin6_addr
+			(struct-accessor: embedded.pointer-to-sockaddr_in6-sin6_addr)
+			(struct-mutator:  embedded.pointer-to-sockaddr_in6-sin6_addr-set!))
 ;;;This field is documented as unimplemented in Glibc.
 ;;;
 ;;;  (unsigned-int		sin6_flowinfo)
   (unsigned-int		sin6_port))
 
+(sizeof-lib/quote
+ (embedded.define-bytevector-accessor embedded.pointer-to-sockaddr_in6-sin6_addr
+				      (c-sizeof struct-in6_addr))
+ (embedded.define-bytevector-mutator  embedded.pointer-to-sockaddr_in6-sin6_addr-set!
+				      (c-sizeof struct-in6_addr))
+ #;(embedded.define-bytevector-accessor-and-mutator embedded.pointer-to-sockaddr_in6-sin6_addr
+						  embedded.pointer-to-sockaddr_in6-sin6_addr-set!
+						  (c-sizeof struct-in6_addr)))
+
 (define-c-struct sockaddr_un
   "struct sockaddr_un"
   (signed-int		sun_family)
-  (embedded		sun_path))
+  (embedded		sun_path
+			(struct-accessor: embedded.generic-struct-pointer-cstring)
+			(struct-mutator:  embedded.generic-struct-pointer-cstring-set!)))
 
 (define-c-struct in_addr
   "struct in_addr"

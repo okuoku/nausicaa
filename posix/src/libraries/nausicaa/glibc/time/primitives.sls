@@ -66,14 +66,14 @@
     (prefix (nausicaa ffi sizeof) ffi.)
     (only (nausicaa ffi memory)
 	  malloc-small/c
-	  malloc-block/c)
+	  malloc-block/c
+	  pointer-c-ref)
     (only (nausicaa ffi cstrings)
 	  cstring->string
 	  string->cstring/c)
     (only (nausicaa ffi errno)
 	  raise-errno-error)
     (prefix (nausicaa posix sizeof) so.)
-    (nausicaa posix typedefs)
     (prefix (nausicaa glibc time platform) platform.))
 
 
@@ -91,21 +91,21 @@
 
 (define (gettimeofday)
   (with-compensations
-    (let ((timeval*	(malloc-block/c sizeof-timeval))
-	  (timezone*	(malloc-block/c sizeof-timezone)))
+    (let ((timeval*	(malloc-block/c (so.c-sizeof struct-timeval)))
+	  (timezone*	(malloc-block/c (so.c-sizeof struct-timezone))))
       (receive (result errno)
 	  (platform.gettimeofday timeval* timezone*)
 	(if (= -1 result)
 	    (raise-errno-error 'gettimeofday errno)
-	  (values (make <timeval>  (so.pointer: timeval*))
-		  (make <timezone> (so.pointer: timezone*))))))))
+	  (values (make so.<timeval>  (so.pointer: timeval*))
+		  (make so.<timezone> (so.pointer: timezone*))))))))
 
-(define (settimeofday (timeval <timeval>) (timezone <timezone>))
+(define (settimeofday (timeval so.<timeval>) (timezone so.<timezone>))
   (with-compensations
-    (let ((timeval*	(make <pointer-to-timeval>
+    (let ((timeval*	(make so.<pointer-to-timeval>
 			  (so.mirror: timeval)
 			  (so.malloc: malloc-block/c)))
-	  (timezone*	(make <pointer-to-timezone>
+	  (timezone*	(make so.<pointer-to-timezone>
 			  (so.mirror: timezone)
 			  (so.malloc: malloc-block/c))))
       (receive (result errno)
@@ -114,25 +114,25 @@
 	    (raise-errno-error 'settimeofday errno (list timeval timezone))
 	  result)))))
 
-(define (adjtime (delta <timeval>))
+(define (adjtime (delta so.<timeval>))
   (with-compensations
-    (let ((delta*	(make <pointer-to-timeval>
+    (let ((delta*	(make so.<pointer-to-timeval>
 			  (so.mirror: delta)
 			  (so.malloc: malloc-block/c)))
-	  (old-delta*	(make <pointer-to-timeval>
+	  (old-delta*	(make so.<pointer-to-timeval>
 			  (so.malloc: malloc-block/c))))
       (receive (result errno)
 	  (platform.adjtime delta* old-delta*)
 	(if (= -1 result)
 	    (raise-errno-error 'adjtime errno delta)
-	  (values result (make <timeval>
+	  (values result (make so.<timeval>
 			   (so.pointer: old-delta*))))))))
 
 
 ;;;; broken-down time
 
 (define (localtime time malloc)
-  (let ((tm* (make <pointer-to-tm>
+  (let ((tm* (make so.<pointer-to-tm>
 	       (so.malloc: malloc))))
     (receive (result errno)
 	(platform.localtime_r time tm*)
@@ -142,11 +142,11 @@
 
 (define (localtime* time)
   (with-compensations
-    (make <tm>
+    (make so.<tm>
       (so.pointer: (localtime time malloc-block/c)))))
 
 (define (gmtime time malloc)
-  (let ((tm* (make <pointer-to-tm>
+  (let ((tm* (make so.<pointer-to-tm>
 	       (so.malloc: malloc))))
     (receive (result errno)
 	(platform.gmtime_r time tm*)
@@ -156,7 +156,7 @@
 
 (define (gmtime* time)
   (with-compensations
-    (make <tm>
+    (make so.<tm>
       (so.pointer: (gmtime time malloc-block/c)))))
 
 (define (timelocal tm*)
@@ -166,9 +166,9 @@
 	(raise-errno-error 'timelocal errno tm*)
       result)))
 
-(define (timelocal* (O <tm>))
+(define (timelocal* (O so.<tm>))
   (with-compensations
-    (timelocal (make <pointer-to-tm>
+    (timelocal (make so.<pointer-to-tm>
 		 (so.mirror: O)
 		 (so.malloc: malloc-block/c)))))
 
@@ -179,16 +179,16 @@
 	(raise-errno-error 'timegm errno tm*)
       result)))
 
-(define (timegm* (O <tm>))
+(define (timegm* (O so.<tm>))
   (with-compensations
-    (timegm (make <pointer-to-tm>
-	      (so.pointer: O)
+    (timegm (make so.<pointer-to-tm>
+	      (so.mirror: O)
 	      (so.malloc:  malloc-block/c)))))
 
 
 ;;;; high-accuracy time
 
-(define (ntp_gettime (P <pointer-to-ntptimeval>))
+(define (ntp_gettime (P so.<pointer-to-ntptimeval>))
   (receive (result errno)
       (platform.ntp_gettime P)
     (if (= 0 result)
@@ -197,10 +197,10 @@
 
 (define (ntp_gettime*)
   (with-compensations
-    (let ((P (make <pointer-to-ntptimeval>
+    (let ((P (make so.<pointer-to-ntptimeval>
 	       (so.malloc: malloc-block/c))))
       (platform.ntp_gettime P)
-      (make <ntptimeval>
+      (make so.<ntptimeval>
 	(so.pointer: P)))))
 
 (define (ntp_adjtime timex*)
@@ -210,13 +210,13 @@
 	result
       (raise-errno-error 'ntp_adjtime errno timex*))))
 
-(define (ntp_adjtime* (O <timex>))
+(define (ntp_adjtime* (O so.<timex>))
   (with-compensations
-    (let ((P (make <pointer-to-timex>
+    (let ((P (make so.<pointer-to-timex>
 	       (so.pointer: O)
 	       (so.malloc:  malloc-block/c))))
       (platform.ntp_gettime P)
-      (make <timex>
+      (make so.<timex>
 	(so.pointer: P)))))
 
 
@@ -231,10 +231,10 @@
 	    (raise-errno-error 'asctime errno struct-tm*)
 	  (cstring->string cstr))))))
 
-(define (asctime* (O <tm>))
+(define (asctime* (O so.<tm>))
   (with-compensations
-    (asctime (make <pointer-to-tm>
-	       (so.pointer: O)
+    (asctime (make so.<pointer-to-tm>
+	       (so.mirror: O)
 	       (so.malloc:  malloc-block/c)))))
 
 (define (ctime calendar-time)
@@ -261,11 +261,11 @@
 	      (raise-errno-error 'strftime errno (list template struct-tm*)))
 	  (cstring->string output required-len))))))
 
-(define (strftime* template (O <tm>))
+(define (strftime* template (O so.<tm>))
   (with-compensations
-    (strftime template (make <pointer-to-tm>
-			 (so.pointer: O)
-			 (so.malloc:  malloc-block/c)))))
+    (strftime template (make so.<pointer-to-tm>
+			 (so.mirror: O)
+			 (so.malloc: malloc-block/c)))))
 
 
 ;;;; parsing time strings
@@ -276,27 +276,29 @@
 	   (template*	(string->cstring/c template-string))
 	   (result	(platform.strptime input* template* struct-tm*)))
       (when (or (pointer-null? result)
-		(not (= 0 (pointer-ref-c-uint8 result 0))))
+		(not (zero? (pointer-c-ref uint8_t result 0))))
 	(error 'strptime
 	  "unable to parse date/time string according to the template"
 	  (list input-string template-string))))))
 
 (define (strptime* input-string template-string)
   (with-compensations
-    (let ((struct-tm* (malloc-block/c sizeof-tm)))
-      (struct-tm-tm_sec-set!    struct-tm* valueof-int-max)
-      (struct-tm-tm_min-set!    struct-tm* valueof-int-max)
-      (struct-tm-tm_hour-set!   struct-tm* valueof-int-max)
-      (struct-tm-tm_mday-set!   struct-tm* valueof-int-max)
-      (struct-tm-tm_mon-set!    struct-tm* valueof-int-max)
-      (struct-tm-tm_year-set!   struct-tm* valueof-int-max)
-      (struct-tm-tm_wday-set!   struct-tm* valueof-int-max)
-      (struct-tm-tm_yday-set!   struct-tm* valueof-int-max)
-      (struct-tm-tm_isdst-set!  struct-tm* valueof-int-max)
-      (struct-tm-tm_gmtoff-set! struct-tm* valueof-int-max)
-      (struct-tm-tm_zone-set!   struct-tm* pointer-null)
-      (strptime input-string template-string struct-tm*)
-      (pointer-><tm> struct-tm*))))
+    (let (((tm* so.<pointer-to-tm>) (make so.<pointer-to-tm>
+				      (so.malloc: malloc-block/c))))
+      (set! tm*.tm_sec		(ffi.c-valueof int-max))
+      (set! tm*.tm_min		(ffi.c-valueof int-max))
+      (set! tm*.tm_hour		(ffi.c-valueof int-max))
+      (set! tm*.tm_mday		(ffi.c-valueof int-max))
+      (set! tm*.tm_mon		(ffi.c-valueof int-max))
+      (set! tm*.tm_year		(ffi.c-valueof int-max))
+      (set! tm*.tm_wday		(ffi.c-valueof int-max))
+      (set! tm*.tm_yday		(ffi.c-valueof int-max))
+      (set! tm*.tm_isdst	(ffi.c-valueof int-max))
+      (set! tm*.tm_gmtoff	(ffi.c-valueof int-max))
+      (set! tm*.tm_zone		pointer-null)
+      (strptime input-string template-string tm*)
+      (make so.<tm>
+	(so.pointer: tm*)))))
 
 
 ;;;; setting alarms
@@ -324,23 +326,23 @@
 
 ;;; --------------------------------------------------------------------
 
-(define (setitimer* which (O <itimerval>))
+(define (setitimer* which (O so.<itimerval>))
   (with-compensations
-    (let ((new*	(make <pointer-to-itimerval>
+    (let ((new*	(make so.<pointer-to-itimerval>
 		  (so.mirror: O)
 		  (so.malloc: malloc-block/c)))
-	  (old*	(make <pointer-to-itimerval>
+	  (old*	(make so.<pointer-to-itimerval>
 		  (so.malloc: malloc-block/c))))
       (setitimer which new* old*)
-      (make <itimerval>
+      (make so.<itimerval>
 	(so.pointer: old*)))))
 
 (define (getitimer* which)
   (with-compensations
-    (let ((old* (make <pointer-to-itimerval>
+    (let ((old* (make so.<pointer-to-itimerval>
 		  (so.malloc: malloc-block/c))))
       (getitimer which old*)
-      (make <itimerval>
+      (make so.<itimerval>
 	(so.pointer: old*)))))
 
 
@@ -353,15 +355,15 @@
 	(raise-errno-error 'nanosleep errno (list requested-time* remaining-time*))
       result)))
 
-(define (nanosleep* (requested-time <timespec>))
+(define (nanosleep* (requested-time so.<timespec>))
   (with-compensations
-    (let ((requested-time*	(make <pointer-to-timespec>
+    (let ((requested-time*	(make so.<pointer-to-timespec>
 				  (so.mirror: requested-time)
 				  (so.malloc: malloc-block/c)))
-	  (remaining-time*	(make <pointer-to-timespec>
+	  (remaining-time*	(make so.<pointer-to-timespec>
 				  (so.malloc: malloc-block/c))))
       (nanosleep requested-time* remaining-time*)
-      (make <timespec>
+      (make so.<timespec>
 	(so.pointer: remaining-time*)))))
 
 

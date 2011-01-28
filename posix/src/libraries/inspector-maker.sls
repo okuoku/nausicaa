@@ -320,7 +320,6 @@
 			   (clang-maybe-foreign-type->clang-external-type* translate-type*))
 		   ffi.)
 	   expand)
-      (nausicaa posix clang embedded-accessors-and-mutators)
       (for (prefix (only (nausicaa ffi syntax-helpers) %prepend) ffi.) expand)
       (prefix (only (nausicaa ffi memory) memcpy) mem.)
       (prefix (nausicaa ffi pointers) ffi.)

@@ -25,7 +25,6 @@
 
 (import
     (only (nausicaa posix clang type-translation))
-  (only (nausicaa posix clang embedded-accessors-and-mutators))
   (only (nausicaa posix sizeof))
   (only (nausicaa posix typedefs))
 
@@ -42,7 +41,7 @@
   ;; (only (nausicaa glibc sockets))
   ;; (only (nausicaa glibc streams))
   ;; (only (nausicaa glibc system))
-  (only (nausicaa glibc time platform))
+  (only (nausicaa glibc time))
 
   ;; (only (nausicaa linux fd))
 

@@ -33,12 +33,6 @@
     (only (nausicaa ffi pointers) pointer-add))
 
 
-(define (null-accessor struct-pointer field-offset)
-  (pointer-add struct-pointer field-offset))
-
-(define (null-mutator struct-pointer field-offset value)
-  (values))
-
 
 ;;;; done
 

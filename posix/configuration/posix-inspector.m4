@@ -209,7 +209,6 @@ NAUSICAA_INSPECT_FIELD_TYPE([MNTENT_MNT_PASSNO],[struct mntent],[mnt_passno],[si
 dnl Struct inspection: sockaddr
 NAUSICAA_INSPECT_STRUCT_TYPE([SOCKADDR],[struct sockaddr],["#f"])
 NAUSICAA_INSPECT_FIELD_TYPE([SOCKADDR_SA_FAMILY],[struct sockaddr],[sa_family],[signed-int])
-NAUSICAA_INSPECT_FIELD_TYPE_POINTER([SOCKADDR_SA_DATA],[struct sockaddr],[sa_data])
 
 dnl Struct inspection: sockaddr_in
 NAUSICAA_INSPECT_STRUCT_TYPE([SOCKADDR_IN],[struct sockaddr_in],["#f"])

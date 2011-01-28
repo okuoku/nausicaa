@@ -559,7 +559,6 @@
             translate-type*))
         ffi.)
       expand)
-    (nausicaa posix clang embedded-accessors-and-mutators)
     (for
       (prefix (only (nausicaa ffi syntax-helpers) %prepend)
         ffi.)
@@ -568,7 +567,8 @@
     (prefix (nausicaa ffi pointers) ffi.)
     (prefix (nausicaa ffi sizeof) ffi.)
     (prefix (nausicaa ffi peekers-and-pokers) ffi.)
-    (prefix (nausicaa posix clang stub-functions) stub.))
+    (prefix (nausicaa posix clang stub-functions) stub.)
+    (prefix (nausicaa ffi cstrings) ffi.))
   (define-auxiliary-syntaxes pointer: wrapper: mirror:
     malloc:)
   (define-syntax* (c-sizeof stx)
@@ -658,6 +658,123 @@
       (* ?index (c-strideof ?type)) ?value))
   (define-inline (array-c-pointer-to ?type ?pointer ?index)
     (ffi.pointer-add ?pointer (* ?index (c-strideof ?type))))
+  (define (embedded.bytevector->memory! bv pointer
+            number-of-bytes)
+    (do ((i 0 (+ 1 i))) ((= i number-of-bytes))
+      (ffi.pointer-c-set! uint8_t pointer i
+        (bytevector-u8-ref bv i))))
+  (define (embedded.memory->bytevector! pointer bv
+            number-of-bytes)
+    (do ((i 0 (+ 1 i))) ((= i number-of-bytes))
+      (bytevector-u8-set! bv i
+        (ffi.pointer-c-ref uint8_t pointer i))))
+  (define (embedded.generic-struct-pointer-bytevector
+            struct-pointer field-offset number-of-bytes)
+    (let ((bv (make-bytevector number-of-bytes)))
+      (embedded.memory->bytevector!
+        (ffi.pointer-add struct-pointer field-offset) bv
+        number-of-bytes)
+      bv))
+  (define (embedded.generic-struct-pointer-bytevector-set!
+            struct-pointer field-offset number-of-bytes bv)
+    (embedded.bytevector->memory! bv
+      (ffi.pointer-add struct-pointer field-offset)
+      number-of-bytes))
+  (define-inline
+    (embedded.generic-struct-pointer-cstring struct-pointer
+      field-offset)
+    (ffi.cstring->string
+      (ffi.pointer-add struct-pointer field-offset)))
+  (define (embedded.generic-struct-pointer-cstring-set!
+            struct-pointer field-offset str)
+    (let (((bv <bytevector>) (string->utf8 str))
+          (fp* (ffi.pointer-add struct-pointer field-offset)))
+      (embedded.bytevector->memory! bv fp* bv.length)
+      (pointer-c-set! uint8_t
+        (ffi.pointer-add fp* bv.length) 0 0)))
+  (define (embedded.generic-struct-pointer-timeval
+            struct-pointer field-offset)
+    (make <timeval>
+      (pointer:
+        (ffi.pointer-add struct-pointer field-offset))))
+  (define (embedded.generic-struct-pointer-timeval-set!
+            struct-pointer field-offset (tv <timeval>))
+    (let (((tv* <pointer-to-timeval>)
+           (ffi.pointer-add struct-pointer field-offset)))
+      (set! tv*.tv_sec tv.tv_sec)
+      (set! tv*.tv_usec tv.tv_usec)))
+  (define-syntax embedded.define-cstring-accessor
+    (identifier-syntax
+      embedded.generic-struct-pointer-cstring))
+  (define-syntax embedded.define-timeval-accessor
+    (identifier-syntax
+      embedded.generic-struct-pointer-timeval))
+  (define-syntax embedded.define-timeval-mutator
+    (identifier-syntax
+      embedded.generic-struct-pointer-timeval-set!))
+  (define-syntax
+    embedded.define-timeval-accessor-and-mutator
+    (syntax-rules ()
+      ((_ ?accesor ?mutator)
+       (begin
+         (embedded.define-timeval-accessor ?accessor)
+         (embedded.define-timeval-mutator ?mutator)))))
+  (define-syntax embedded.define-bytevector-accessor
+    (syntax-rules ()
+      ((_ ?accessor ?number-of-bytes)
+       (define-inline
+         (?accessor struct-pointer field-offset)
+         (embedded.generic-struct-pointer-bytevector
+           struct-pointer field-offset ?number-of-bytes)))))
+  (define-syntax embedded.define-bytevector-mutator
+    (syntax-rules ()
+      ((_ ?mutator ?number-of-bytes)
+       (define-inline
+         (?mutator struct-pointer field-offset bv)
+         (embedded.generic-struct-pointer-bytevector-set!
+           struct-pointer field-offset ?number-of-bytes bv)))))
+  (define-syntax
+    embedded.define-bytevector-accessor-and-mutator
+    (syntax-rules ()
+      ((_ ?accessor ?mutator ?number-of-bytes)
+       (begin
+         (embedded.define-bytevector-accessor ?accessor
+           ?number-of-bytes)
+         (embedded.define-bytevector-mutator ?mutator
+           ?number-of-bytes)))))
+  (define-syntax embedded.define-error-accessor
+    (lambda (stx)
+      (syntax-case stx ()
+        ((_ ?name ?struct-name ?field-name)
+          (with-syntax
+            ((MESSAGE
+               (string-append "embedded field \""
+                 (syntax->datum #'?field-name)
+                 "\" of C struct \""
+                 (syntax->datum #'?struct-name)
+                 "\" cannot be accessed")))
+            #'(define (?name struct-pointer field-offset
+                        value)
+                (error '?name MESSAGE)))))))
+  (define-syntax embedded.define-error-mutator
+    (lambda (stx)
+      (syntax-case stx ()
+        ((_ ?name ?struct-name ?field-name)
+          (with-syntax
+            ((MESSAGE
+               (string-append "embedded field \""
+                 (syntax->datum #'?field-name)
+                 "\" of C struct \""
+                 (syntax->datum #'?struct-name)
+                 "\" cannot be modified")))
+            #'(define (?name struct-pointer field-offset)
+                (error '?name MESSAGE)))))))
+  (define-syntax embedded.define-error-accessor-and-mutator
+    (syntax-rules ()
+      ((_ ?accesor ?mutator ?number-of-bytes)
+       (begin
+         (embedded.define-error-accessor ?accessor)
+         (embedded.define-error-mutator ?mutator)))))
   (define sizeof-struct-flock @SIZEOF_FLOCK@)
   (define alignof-struct-flock @ALIGNOF_FLOCK@)
   (define strideof-struct-flock @STRIDEOF_FLOCK@)
@@ -673,6 +790,8 @@
   (define sizeof-struct-dirent @SIZEOF_DIRENT@)
   (define alignof-struct-dirent @ALIGNOF_DIRENT@)
   (define strideof-struct-dirent @STRIDEOF_DIRENT@)
+  (embedded.define-error-mutator
+    embedded.pointer-to-dirent-d_name-set! "dirent" "d_name")
   (define sizeof-struct-utimbuf @SIZEOF_UTIMBUF@)
   (define alignof-struct-utimbuf @ALIGNOF_UTIMBUF@)
   (define strideof-struct-utimbuf @STRIDEOF_UTIMBUF@)
@@ -709,6 +828,24 @@
   (define sizeof-struct-utsname @SIZEOF_UTSNAME@)
   (define alignof-struct-utsname @ALIGNOF_UTSNAME@)
   (define strideof-struct-utsname @STRIDEOF_UTSNAME@)
+  (embedded.define-error-mutator
+    embedded.pointer-to-utsname-sysname-set! "utsname"
+    "sysname")
+  (embedded.define-error-mutator
+    embedded.pointer-to-utsname-release-set! "utsname"
+    "release")
+  (embedded.define-error-mutator
+    embedded.pointer-to-utsname-version-set! "utsname"
+    "version")
+  (embedded.define-error-mutator
+    embedded.pointer-to-utsname-machine-set! "utsname"
+    "machine")
+  (embedded.define-error-mutator
+    embedded.pointer-to-utsname-nodename-set! "utsname"
+    "nodename")
+  (embedded.define-error-mutator
+    embedded.pointer-to-utsname-domainname-set! "utsname"
+    "domainname")
   (define sizeof-struct-fstab @SIZEOF_FSTAB@)
   (define alignof-struct-fstab @ALIGNOF_FSTAB@)
   (define strideof-struct-fstab @STRIDEOF_FSTAB@)
@@ -721,10 +858,20 @@
   (define sizeof-struct-sockaddr_in @SIZEOF_SOCKADDR_IN@)
   (define alignof-struct-sockaddr_in @ALIGNOF_SOCKADDR_IN@)
   (define strideof-struct-sockaddr_in @STRIDEOF_SOCKADDR_IN@)
+  (embedded.define-bytevector-accessor-and-mutator
+    embedded.pointer-to-sockaddr_in-sin_addr
+    embedded.pointer-to-sockaddr_in-sin_addr-set!
+    (c-sizeof struct-in_addr))
   (define sizeof-struct-sockaddr_in6 @SIZEOF_SOCKADDR_IN6@)
   (define alignof-struct-sockaddr_in6 @ALIGNOF_SOCKADDR_IN6@)
   (define strideof-struct-sockaddr_in6
     @STRIDEOF_SOCKADDR_IN6@)
+  (embedded.define-bytevector-accessor
+    embedded.pointer-to-sockaddr_in6-sin6_addr
+    (c-sizeof struct-in6_addr))
+  (embedded.define-bytevector-mutator
+    embedded.pointer-to-sockaddr_in6-sin6_addr-set!
+    (c-sizeof struct-in6_addr))
   (define sizeof-struct-sockaddr_un @SIZEOF_SOCKADDR_UN@)
   (define alignof-struct-sockaddr_un @ALIGNOF_SOCKADDR_UN@)
   (define strideof-struct-sockaddr_un @STRIDEOF_SOCKADDR_UN@)
@@ -1999,10 +2146,10 @@
       (mutable d_reclen) (mutable d_off) (mutable d_ino)))
   (define-inline
     (<pointer-to-dirent>-d_name-set! ?pointer ?value)
-    ((error #f "missing field mutator") ?pointer
+    (embedded.pointer-to-dirent-d_name-set! ?pointer
       @OFFSETOF_DIRENT_D_NAME@ ?value))
   (define-inline (<pointer-to-dirent>-d_name ?pointer)
-    ((error #f "missing field accessor") ?pointer
+    (embedded.generic-struct-pointer-cstring ?pointer
       @OFFSETOF_DIRENT_D_NAME@))
   (define-inline
     (<pointer-to-dirent>-d_type-set! ?pointer ?value)
@@ -2674,10 +2821,10 @@
       @OFFSETOF_NTPTIMEVAL_MAXERROR@))
   (define-inline
     (<pointer-to-ntptimeval>-time-set! ?pointer ?value)
-    ((error #f "missing field mutator") ?pointer
+    (embedded.generic-struct-pointer-timeval-set! ?pointer
       @OFFSETOF_NTPTIMEVAL_TIME@ ?value))
   (define-inline (<pointer-to-ntptimeval>-time ?pointer)
-    ((error #f "missing field accessor") ?pointer
+    (embedded.generic-struct-pointer-timeval ?pointer
       @OFFSETOF_NTPTIMEVAL_TIME@))
   (define-maker <pointer-to-ntptimeval>-maker
     %<pointer-to-ntptimeval>-maker
@@ -2871,10 +3018,10 @@
       @OFFSETOF_TIMEX_TICK@))
   (define-inline
     (<pointer-to-timex>-time-set! ?pointer ?value)
-    ((error #f "missing field mutator") ?pointer
+    (embedded.generic-struct-pointer-timeval-set! ?pointer
       @OFFSETOF_TIMEX_TIME@ ?value))
   (define-inline (<pointer-to-timex>-time ?pointer)
-    ((error #f "missing field accessor") ?pointer
+    (embedded.generic-struct-pointer-timeval ?pointer
       @OFFSETOF_TIMEX_TIME@))
   (define-inline
     (<pointer-to-timex>-tolerance-set! ?pointer ?value)
@@ -3199,18 +3346,18 @@
     (virtual-fields (mutable it_value) (mutable it_interval)))
   (define-inline
     (<pointer-to-itimerval>-it_value-set! ?pointer ?value)
-    ((error #f "missing field mutator") ?pointer
+    (embedded.generic-struct-pointer-timeval-set! ?pointer
       @OFFSETOF_ITIMERVAL_IT_VALUE@ ?value))
   (define-inline (<pointer-to-itimerval>-it_value ?pointer)
-    ((error #f "missing field accessor") ?pointer
+    (embedded.generic-struct-pointer-timeval ?pointer
       @OFFSETOF_ITIMERVAL_IT_VALUE@))
   (define-inline
     (<pointer-to-itimerval>-it_interval-set! ?pointer ?value)
-    ((error #f "missing field mutator") ?pointer
+    (embedded.generic-struct-pointer-timeval-set! ?pointer
       @OFFSETOF_ITIMERVAL_IT_INTERVAL@ ?value))
   (define-inline
     (<pointer-to-itimerval>-it_interval ?pointer)
-    ((error #f "missing field accessor") ?pointer
+    (embedded.generic-struct-pointer-timeval ?pointer
       @OFFSETOF_ITIMERVAL_IT_INTERVAL@))
   (define-maker <pointer-to-itimerval>-maker
     %<pointer-to-itimerval>-maker
@@ -3984,45 +4131,45 @@
       (mutable sysname)))
   (define-inline
     (<pointer-to-utsname>-domainname-set! ?pointer ?value)
-    ((error #f "missing field mutator") ?pointer
+    (embedded.pointer-to-utsname-domainname-set! ?pointer
       @OFFSETOF_UTSNAME_DOMAINNAME@ ?value))
   (define-inline (<pointer-to-utsname>-domainname ?pointer)
-    ((error #f "missing field accessor") ?pointer
+    (embedded.generic-struct-pointer-cstring ?pointer
       @OFFSETOF_UTSNAME_DOMAINNAME@))
   (define-inline
     (<pointer-to-utsname>-nodename-set! ?pointer ?value)
-    ((error #f "missing field mutator") ?pointer
+    (embedded.pointer-to-utsname-nodename-set! ?pointer
       @OFFSETOF_UTSNAME_NODENAME@ ?value))
   (define-inline (<pointer-to-utsname>-nodename ?pointer)
-    ((error #f "missing field accessor") ?pointer
+    (embedded.generic-struct-pointer-cstring ?pointer
       @OFFSETOF_UTSNAME_NODENAME@))
   (define-inline
     (<pointer-to-utsname>-machine-set! ?pointer ?value)
-    ((error #f "missing field mutator") ?pointer
+    (embedded.pointer-to-utsname-machine-set! ?pointer
       @OFFSETOF_UTSNAME_MACHINE@ ?value))
   (define-inline (<pointer-to-utsname>-machine ?pointer)
-    ((error #f "missing field accessor") ?pointer
+    (embedded.generic-struct-pointer-cstring ?pointer
       @OFFSETOF_UTSNAME_MACHINE@))
   (define-inline
     (<pointer-to-utsname>-version-set! ?pointer ?value)
-    ((error #f "missing field mutator") ?pointer
+    (embedded.pointer-to-utsname-version-set! ?pointer
       @OFFSETOF_UTSNAME_VERSION@ ?value))
   (define-inline (<pointer-to-utsname>-version ?pointer)
-    ((error #f "missing field accessor") ?pointer
+    (embedded.generic-struct-pointer-cstring ?pointer
       @OFFSETOF_UTSNAME_VERSION@))
   (define-inline
     (<pointer-to-utsname>-release-set! ?pointer ?value)
-    ((error #f "missing field mutator") ?pointer
+    (embedded.pointer-to-utsname-release-set! ?pointer
       @OFFSETOF_UTSNAME_RELEASE@ ?value))
   (define-inline (<pointer-to-utsname>-release ?pointer)
-    ((error #f "missing field accessor") ?pointer
+    (embedded.generic-struct-pointer-cstring ?pointer
       @OFFSETOF_UTSNAME_RELEASE@))
   (define-inline
     (<pointer-to-utsname>-sysname-set! ?pointer ?value)
-    ((error #f "missing field mutator") ?pointer
+    (embedded.pointer-to-utsname-sysname-set! ?pointer
       @OFFSETOF_UTSNAME_SYSNAME@ ?value))
   (define-inline (<pointer-to-utsname>-sysname ?pointer)
-    ((error #f "missing field accessor") ?pointer
+    (embedded.generic-struct-pointer-cstring ?pointer
       @OFFSETOF_UTSNAME_SYSNAME@))
   (define-maker <pointer-to-utsname>-maker
     %<pointer-to-utsname>-maker
@@ -4547,14 +4694,7 @@
       src.mnt_opts src.mnt_freq src.mnt_passno))
   (define-label <pointer-to-sockaddr>
     (custom-maker <pointer-to-sockaddr>-maker)
-    (virtual-fields (mutable sa_data) (mutable sa_family)))
-  (define-inline
-    (<pointer-to-sockaddr>-sa_data-set! ?pointer ?value)
-    ((error #f "missing field mutator") ?pointer
-      @OFFSETOF_SOCKADDR_SA_DATA@ ?value))
-  (define-inline (<pointer-to-sockaddr>-sa_data ?pointer)
-    ((error #f "missing field accessor") ?pointer
-      @OFFSETOF_SOCKADDR_SA_DATA@))
+    (virtual-fields (mutable sa_family)))
   (define-inline
     (<pointer-to-sockaddr>-sa_family-set! ?pointer ?value)
     (pointer-c-set! @TYPEOF_SOCKADDR_SA_FAMILY@ ?pointer
@@ -4593,7 +4733,6 @@
     (let (((dst <pointer-to-sockaddr>)
            (malloc (c-sizeof struct-sockaddr))))
       (set! dst.sa_family src.sa_family)
-      (set! dst.sa_data src.sa_data)
       dst))
   (define-class <struct-sockaddr>
     (nongenerative nausicaa:posix:<struct-sockaddr>)
@@ -4603,10 +4742,7 @@
       (malloc: sentinel (mandatory)))
     (maker-transformer <struct-sockaddr>-maker-transformer)
     (fields (immutable pointer))
-    (virtual-fields (immutable sa_data) (mutable sa_family)))
-  (define-inline (<struct-sockaddr>-sa_data ?wrapper)
-    (<pointer-to-sockaddr>-sa_data
-      (<struct-sockaddr>-pointer ?wrapper)))
+    (virtual-fields (mutable sa_family)))
   (define-inline
     (<struct-sockaddr>-sa_family-set! ?wrapper ?value)
     (<pointer-to-sockaddr>-sa_family-set!
@@ -4645,7 +4781,7 @@
       (wrapper: sentinel (without pointer: mirror:))
       (mirror: sentinel (without pointer: wrapper:)))
     (maker-transformer <sockaddr>-maker-transformer)
-    (fields (mutable sa_family) (mutable sa_data)))
+    (fields (mutable sa_family)))
   (define-syntax <sockaddr>-maker-transformer
     (syntax-rules (sentinel)
       ((_ ?constructor ?pointer sentinel sentinel)
@@ -4659,13 +4795,13 @@
          ?mirror))))
   (define (sockaddr-pointer->sockaddr-mirror constructor
             (src <pointer-to-sockaddr>))
-    (constructor src.sa_family src.sa_data))
+    (constructor src.sa_family))
   (define (sockaddr-wrapper->sockaddr-mirror constructor
             (src <struct-sockaddr>))
-    (constructor src.sa_family src.sa_data))
+    (constructor src.sa_family))
   (define (sockaddr-mirror->sockaddr-mirror constructor
             (src <sockaddr>))
-    (constructor src.sa_family src.sa_data))
+    (constructor src.sa_family))
   (define-label <pointer-to-sockaddr_in>
     (custom-maker <pointer-to-sockaddr_in>-maker)
     (virtual-fields (mutable sin_port) (mutable sin_addr)
@@ -4680,11 +4816,11 @@
       @OFFSETOF_SOCKADDR_IN_SIN_PORT@))
   (define-inline
     (<pointer-to-sockaddr_in>-sin_addr-set! ?pointer ?value)
-    ((error #f "missing field mutator") ?pointer
+    (embedded.pointer-to-sockaddr_in-sin_addr-set! ?pointer
       @OFFSETOF_SOCKADDR_IN_SIN_ADDR@ ?value))
   (define-inline
     (<pointer-to-sockaddr_in>-sin_addr ?pointer)
-    ((error #f "missing field accessor") ?pointer
+    (embedded.pointer-to-sockaddr_in-sin_addr ?pointer
       @OFFSETOF_SOCKADDR_IN_SIN_ADDR@))
   (define-inline
     (<pointer-to-sockaddr_in>-sin_family-set! ?pointer
@@ -4832,11 +4968,11 @@
   (define-inline
     (<pointer-to-sockaddr_in6>-sin6_addr-set! ?pointer
       ?value)
-    ((error #f "missing field mutator") ?pointer
-      @OFFSETOF_SOCKADDR_IN6_SIN6_ADDR@ ?value))
+    (embedded.pointer-to-sockaddr_in6-sin6_addr-set!
+      ?pointer @OFFSETOF_SOCKADDR_IN6_SIN6_ADDR@ ?value))
   (define-inline
     (<pointer-to-sockaddr_in6>-sin6_addr ?pointer)
-    ((error #f "missing field accessor") ?pointer
+    (embedded.pointer-to-sockaddr_in6-sin6_addr ?pointer
       @OFFSETOF_SOCKADDR_IN6_SIN6_ADDR@))
   (define-inline
     (<pointer-to-sockaddr_in6>-sin6_family-set! ?pointer
@@ -4976,11 +5112,11 @@
     (virtual-fields (mutable sun_path) (mutable sun_family)))
   (define-inline
     (<pointer-to-sockaddr_un>-sun_path-set! ?pointer ?value)
-    ((error #f "missing field mutator") ?pointer
+    (embedded.generic-struct-pointer-cstring-set! ?pointer
       @OFFSETOF_SOCKADDR_UN_SUN_PATH@ ?value))
   (define-inline
     (<pointer-to-sockaddr_un>-sun_path ?pointer)
-    ((error #f "missing field accessor") ?pointer
+    (embedded.generic-struct-pointer-cstring ?pointer
       @OFFSETOF_SOCKADDR_UN_SUN_PATH@))
   (define-inline
     (<pointer-to-sockaddr_un>-sun_family-set! ?pointer
