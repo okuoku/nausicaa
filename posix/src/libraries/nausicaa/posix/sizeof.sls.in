@@ -1660,8 +1660,8 @@
       (malloc: sentinel (mandatory)))
     (maker-transformer <struct-flock>-maker-transformer)
     (fields (immutable pointer))
-    (virtual-fields (mutable l_pid) (mutable l_len)
-      (mutable l_start) (mutable l_whence) (mutable l_type)))
+    (virtual-fields (mutable l_type) (mutable l_whence)
+      (mutable l_start) (mutable l_len) (mutable l_pid)))
   (define-inline (<struct-flock>-l_pid-set! ?wrapper ?value)
     (<pointer-to-flock>-l_pid-set!
       (<struct-flock>-pointer ?wrapper) ?value))
@@ -1805,7 +1805,7 @@
       (malloc: sentinel (mandatory)))
     (maker-transformer <struct-timeval>-maker-transformer)
     (fields (immutable pointer))
-    (virtual-fields (mutable tv_usec) (mutable tv_sec)))
+    (virtual-fields (mutable tv_sec) (mutable tv_usec)))
   (define-inline
     (<struct-timeval>-tv_usec-set! ?wrapper ?value)
     (<pointer-to-timeval>-tv_usec-set!
@@ -1929,7 +1929,7 @@
       (malloc: sentinel (mandatory)))
     (maker-transformer <struct-timespec>-maker-transformer)
     (fields (immutable pointer))
-    (virtual-fields (mutable tv_nsec) (mutable tv_sec)))
+    (virtual-fields (mutable tv_sec) (mutable tv_nsec)))
   (define-inline
     (<struct-timespec>-tv_nsec-set! ?wrapper ?value)
     (<pointer-to-timespec>-tv_nsec-set!
@@ -2063,9 +2063,8 @@
       (malloc: sentinel (mandatory)))
     (maker-transformer <struct-tms>-maker-transformer)
     (fields (immutable pointer))
-    (virtual-fields (mutable tms_cstime)
-      (mutable tms_cutime) (mutable tms_stime)
-      (mutable tms_utime)))
+    (virtual-fields (mutable tms_utime) (mutable tms_stime)
+      (mutable tms_cutime) (mutable tms_cstime)))
   (define-inline
     (<struct-tms>-tms_cstime-set! ?wrapper ?value)
     (<pointer-to-tms>-tms_cstime-set!
@@ -2223,8 +2222,12 @@
       (malloc: sentinel (mandatory)))
     (maker-transformer <struct-dirent>-maker-transformer)
     (fields (immutable pointer))
-    (virtual-fields (immutable d_name) (mutable d_type)
-      (mutable d_reclen) (mutable d_off) (mutable d_ino)))
+    (virtual-fields (mutable d_ino) (mutable d_off)
+      (mutable d_reclen) (mutable d_type) (mutable d_name)))
+  (define-inline
+    (<struct-dirent>-d_name-set! ?wrapper ?value)
+    (<pointer-to-dirent>-d_name-set!
+      (<struct-dirent>-pointer ?wrapper) ?value))
   (define-inline (<struct-dirent>-d_name ?wrapper)
     (<pointer-to-dirent>-d_name
       (<struct-dirent>-pointer ?wrapper)))
@@ -2367,7 +2370,7 @@
       (malloc: sentinel (mandatory)))
     (maker-transformer <struct-utimbuf>-maker-transformer)
     (fields (immutable pointer))
-    (virtual-fields (mutable modtime) (mutable actime)))
+    (virtual-fields (mutable actime) (mutable modtime)))
   (define-inline
     (<struct-utimbuf>-modtime-set! ?wrapper ?value)
     (<pointer-to-utimbuf>-modtime-set!
@@ -2494,8 +2497,8 @@
       (malloc: sentinel (mandatory)))
     (maker-transformer <struct-timezone>-maker-transformer)
     (fields (immutable pointer))
-    (virtual-fields (mutable tz_dsttime)
-      (mutable tz_minuteswest)))
+    (virtual-fields (mutable tz_minuteswest)
+      (mutable tz_dsttime)))
   (define-inline
     (<struct-timezone>-tz_dsttime-set! ?wrapper ?value)
     (<pointer-to-timezone>-tz_dsttime-set!
@@ -2692,10 +2695,11 @@
       (malloc: sentinel (mandatory)))
     (maker-transformer <struct-tm>-maker-transformer)
     (fields (immutable pointer))
-    (virtual-fields (mutable tm_zone) (mutable tm_gmtoff)
-      (mutable tm_isdst) (mutable tm_yday) (mutable tm_wday)
-      (mutable tm_year) (mutable tm_mon) (mutable tm_mday)
-      (mutable tm_hour) (mutable tm_min) (mutable tm_sec)))
+    (virtual-fields (mutable tm_sec) (mutable tm_min)
+      (mutable tm_hour) (mutable tm_mday) (mutable tm_mon)
+      (mutable tm_year) (mutable tm_wday) (mutable tm_yday)
+      (mutable tm_isdst) (mutable tm_gmtoff)
+      (mutable tm_zone)))
   (define-inline (<struct-tm>-tm_zone-set! ?wrapper ?value)
     (<pointer-to-tm>-tm_zone-set!
       (<struct-tm>-pointer ?wrapper) ?value))
@@ -2804,7 +2808,7 @@
   (define-label <pointer-to-ntptimeval>
     (custom-maker <pointer-to-ntptimeval>-maker)
     (virtual-fields (mutable esterror) (mutable maxerror)
-      (mutable time)))
+      (mutable (time <timeval>))))
   (define-inline
     (<pointer-to-ntptimeval>-esterror-set! ?pointer ?value)
     (pointer-c-set! @TYPEOF_NTPTIMEVAL_ESTERROR@ ?pointer
@@ -2872,8 +2876,8 @@
       (malloc: sentinel (mandatory)))
     (maker-transformer <struct-ntptimeval>-maker-transformer)
     (fields (immutable pointer))
-    (virtual-fields (mutable esterror) (mutable maxerror)
-      (immutable time)))
+    (virtual-fields (mutable (time <timeval>))
+      (mutable maxerror) (mutable esterror)))
   (define-inline
     (<struct-ntptimeval>-esterror-set! ?wrapper ?value)
     (<pointer-to-ntptimeval>-esterror-set!
@@ -2888,6 +2892,10 @@
   (define-inline (<struct-ntptimeval>-maxerror ?wrapper)
     (<pointer-to-ntptimeval>-maxerror
       (<struct-ntptimeval>-pointer ?wrapper)))
+  (define-inline
+    (<struct-ntptimeval>-time-set! ?wrapper ?value)
+    (<pointer-to-ntptimeval>-time-set!
+      (<struct-ntptimeval>-pointer ?wrapper) ?value))
   (define-inline (<struct-ntptimeval>-time ?wrapper)
     (<pointer-to-ntptimeval>-time
       (<struct-ntptimeval>-pointer ?wrapper)))
@@ -2922,7 +2930,7 @@
       (wrapper: sentinel (without pointer: mirror:))
       (mirror: sentinel (without pointer: wrapper:)))
     (maker-transformer <ntptimeval>-maker-transformer)
-    (fields (mutable time) (mutable maxerror)
+    (fields (mutable (time <timeval>)) (mutable maxerror)
       (mutable esterror)))
   (define-syntax <ntptimeval>-maker-transformer
     (syntax-rules (sentinel)
@@ -3143,13 +3151,13 @@
       (malloc: sentinel (mandatory)))
     (maker-transformer <struct-timex>-maker-transformer)
     (fields (immutable pointer))
-    (virtual-fields (mutable stbcnt) (mutable errcnt)
-      (mutable calcnt) (mutable jitcnt) (mutable stabil)
-      (mutable shift) (mutable jitter) (mutable ppsfreq)
-      (mutable tick) (immutable time) (mutable tolerance)
-      (mutable precision) (mutable constant)
-      (mutable status) (mutable esterror) (mutable maxerror)
-      (mutable freq) (mutable offset) (mutable modes)))
+    (virtual-fields (mutable modes) (mutable offset)
+      (mutable freq) (mutable maxerror) (mutable esterror)
+      (mutable status) (mutable constant)
+      (mutable precision) (mutable tolerance) (mutable time)
+      (mutable tick) (mutable ppsfreq) (mutable jitter)
+      (mutable shift) (mutable stabil) (mutable jitcnt)
+      (mutable calcnt) (mutable errcnt) (mutable stbcnt)))
   (define-inline
     (<struct-timex>-stbcnt-set! ?wrapper ?value)
     (<pointer-to-timex>-stbcnt-set!
@@ -3211,6 +3219,9 @@
   (define-inline (<struct-timex>-tick ?wrapper)
     (<pointer-to-timex>-tick
       (<struct-timex>-pointer ?wrapper)))
+  (define-inline (<struct-timex>-time-set! ?wrapper ?value)
+    (<pointer-to-timex>-time-set!
+      (<struct-timex>-pointer ?wrapper) ?value))
   (define-inline (<struct-timex>-time ?wrapper)
     (<pointer-to-timex>-time
       (<struct-timex>-pointer ?wrapper)))
@@ -3403,11 +3414,18 @@
       (malloc: sentinel (mandatory)))
     (maker-transformer <struct-itimerval>-maker-transformer)
     (fields (immutable pointer))
-    (virtual-fields (immutable it_value)
-      (immutable it_interval)))
+    (virtual-fields (mutable it_interval) (mutable it_value)))
+  (define-inline
+    (<struct-itimerval>-it_value-set! ?wrapper ?value)
+    (<pointer-to-itimerval>-it_value-set!
+      (<struct-itimerval>-pointer ?wrapper) ?value))
   (define-inline (<struct-itimerval>-it_value ?wrapper)
     (<pointer-to-itimerval>-it_value
       (<struct-itimerval>-pointer ?wrapper)))
+  (define-inline
+    (<struct-itimerval>-it_interval-set! ?wrapper ?value)
+    (<pointer-to-itimerval>-it_interval-set!
+      (<struct-itimerval>-pointer ?wrapper) ?value))
   (define-inline (<struct-itimerval>-it_interval ?wrapper)
     (<pointer-to-itimerval>-it_interval
       (<struct-itimerval>-pointer ?wrapper)))
@@ -3520,7 +3538,7 @@
       (malloc: sentinel (mandatory)))
     (maker-transformer <struct-FTW>-maker-transformer)
     (fields (immutable pointer))
-    (virtual-fields (mutable level) (mutable base)))
+    (virtual-fields (mutable base) (mutable level)))
   (define-inline (<struct-FTW>-level-set! ?wrapper ?value)
     (<pointer-to-FTW>-level-set!
       (<struct-FTW>-pointer ?wrapper) ?value))
@@ -3630,7 +3648,7 @@
       (malloc: sentinel (mandatory)))
     (maker-transformer <struct-iovec>-maker-transformer)
     (fields (immutable pointer))
-    (virtual-fields (mutable iov_len) (mutable iov_base)))
+    (virtual-fields (mutable iov_base) (mutable iov_len)))
   (define-inline
     (<struct-iovec>-iov_len-set! ?wrapper ?value)
     (<pointer-to-iovec>-iov_len-set!
@@ -3880,9 +3898,9 @@
       (malloc: sentinel (mandatory)))
     (maker-transformer <struct-passwd>-maker-transformer)
     (fields (immutable pointer))
-    (virtual-fields (mutable pw_shell) (mutable pw_dir)
-      (mutable pw_gecos) (mutable pw_gid) (mutable pw_uid)
-      (mutable pw_passwd) (mutable pw_name)))
+    (virtual-fields (mutable pw_name) (mutable pw_passwd)
+      (mutable pw_uid) (mutable pw_gid) (mutable pw_gecos)
+      (mutable pw_dir) (mutable pw_shell)))
   (define-inline
     (<struct-passwd>-pw_shell-set! ?wrapper ?value)
     (<pointer-to-passwd>-pw_shell-set!
@@ -4052,8 +4070,8 @@
       (malloc: sentinel (mandatory)))
     (maker-transformer <struct-group>-maker-transformer)
     (fields (immutable pointer))
-    (virtual-fields (mutable gr_mem) (mutable gr_gid)
-      (mutable gr_name)))
+    (virtual-fields (mutable gr_name) (mutable gr_gid)
+      (mutable gr_mem)))
   (define-inline
     (<struct-group>-gr_mem-set! ?wrapper ?value)
     (<pointer-to-group>-gr_mem-set!
@@ -4216,25 +4234,48 @@
       (malloc: sentinel (mandatory)))
     (maker-transformer <struct-utsname>-maker-transformer)
     (fields (immutable pointer))
-    (virtual-fields (immutable domainname)
-      (immutable nodename) (immutable machine)
-      (immutable version) (immutable release)
-      (immutable sysname)))
+    (virtual-fields (mutable sysname) (mutable release)
+      (mutable version) (mutable machine) (mutable nodename)
+      (mutable domainname)))
+  (define-inline
+    (<struct-utsname>-domainname-set! ?wrapper ?value)
+    (<pointer-to-utsname>-domainname-set!
+      (<struct-utsname>-pointer ?wrapper) ?value))
   (define-inline (<struct-utsname>-domainname ?wrapper)
     (<pointer-to-utsname>-domainname
       (<struct-utsname>-pointer ?wrapper)))
+  (define-inline
+    (<struct-utsname>-nodename-set! ?wrapper ?value)
+    (<pointer-to-utsname>-nodename-set!
+      (<struct-utsname>-pointer ?wrapper) ?value))
   (define-inline (<struct-utsname>-nodename ?wrapper)
     (<pointer-to-utsname>-nodename
       (<struct-utsname>-pointer ?wrapper)))
+  (define-inline
+    (<struct-utsname>-machine-set! ?wrapper ?value)
+    (<pointer-to-utsname>-machine-set!
+      (<struct-utsname>-pointer ?wrapper) ?value))
   (define-inline (<struct-utsname>-machine ?wrapper)
     (<pointer-to-utsname>-machine
       (<struct-utsname>-pointer ?wrapper)))
+  (define-inline
+    (<struct-utsname>-version-set! ?wrapper ?value)
+    (<pointer-to-utsname>-version-set!
+      (<struct-utsname>-pointer ?wrapper) ?value))
   (define-inline (<struct-utsname>-version ?wrapper)
     (<pointer-to-utsname>-version
       (<struct-utsname>-pointer ?wrapper)))
+  (define-inline
+    (<struct-utsname>-release-set! ?wrapper ?value)
+    (<pointer-to-utsname>-release-set!
+      (<struct-utsname>-pointer ?wrapper) ?value))
   (define-inline (<struct-utsname>-release ?wrapper)
     (<pointer-to-utsname>-release
       (<struct-utsname>-pointer ?wrapper)))
+  (define-inline
+    (<struct-utsname>-sysname-set! ?wrapper ?value)
+    (<pointer-to-utsname>-sysname-set!
+      (<struct-utsname>-pointer ?wrapper) ?value))
   (define-inline (<struct-utsname>-sysname ?wrapper)
     (<pointer-to-utsname>-sysname
       (<struct-utsname>-pointer ?wrapper)))
@@ -4394,10 +4435,10 @@
       (malloc: sentinel (mandatory)))
     (maker-transformer <struct-fstab>-maker-transformer)
     (fields (immutable pointer))
-    (virtual-fields (mutable fs_passno) (mutable fs_freq)
-      (mutable fs_type) (mutable fs_mntops)
-      (mutable fs_vfstype) (mutable fs_file)
-      (mutable fs_spec)))
+    (virtual-fields (mutable fs_spec) (mutable fs_file)
+      (mutable fs_vfstype) (mutable fs_mntops)
+      (mutable fs_type) (mutable fs_freq)
+      (mutable fs_passno)))
   (define-inline
     (<struct-fstab>-fs_passno-set! ?wrapper ?value)
     (<pointer-to-fstab>-fs_passno-set!
@@ -4593,9 +4634,9 @@
       (malloc: sentinel (mandatory)))
     (maker-transformer <struct-mntent>-maker-transformer)
     (fields (immutable pointer))
-    (virtual-fields (mutable mnt_passno) (mutable mnt_freq)
-      (mutable mnt_opts) (mutable mnt_type)
-      (mutable mnt_dir) (mutable mnt_fsname)))
+    (virtual-fields (mutable mnt_fsname) (mutable mnt_dir)
+      (mutable mnt_type) (mutable mnt_opts)
+      (mutable mnt_freq) (mutable mnt_passno)))
   (define-inline
     (<struct-mntent>-mnt_passno-set! ?wrapper ?value)
     (<pointer-to-mntent>-mnt_passno-set!
@@ -4878,8 +4919,8 @@
     (maker-transformer
       <struct-sockaddr_in>-maker-transformer)
     (fields (immutable pointer))
-    (virtual-fields (mutable sin_port) (immutable sin_addr)
-      (mutable sin_family)))
+    (virtual-fields (mutable sin_family) (mutable sin_addr)
+      (mutable sin_port)))
   (define-inline
     (<struct-sockaddr_in>-sin_port-set! ?wrapper ?value)
     (<pointer-to-sockaddr_in>-sin_port-set!
@@ -4887,6 +4928,10 @@
   (define-inline (<struct-sockaddr_in>-sin_port ?wrapper)
     (<pointer-to-sockaddr_in>-sin_port
       (<struct-sockaddr_in>-pointer ?wrapper)))
+  (define-inline
+    (<struct-sockaddr_in>-sin_addr-set! ?wrapper ?value)
+    (<pointer-to-sockaddr_in>-sin_addr-set!
+      (<struct-sockaddr_in>-pointer ?wrapper) ?value))
   (define-inline (<struct-sockaddr_in>-sin_addr ?wrapper)
     (<pointer-to-sockaddr_in>-sin_addr
       (<struct-sockaddr_in>-pointer ?wrapper)))
@@ -5030,8 +5075,8 @@
     (maker-transformer
       <struct-sockaddr_in6>-maker-transformer)
     (fields (immutable pointer))
-    (virtual-fields (mutable sin6_port)
-      (immutable sin6_addr) (mutable sin6_family)))
+    (virtual-fields (mutable sin6_family)
+      (mutable sin6_addr) (mutable sin6_port)))
   (define-inline
     (<struct-sockaddr_in6>-sin6_port-set! ?wrapper ?value)
     (<pointer-to-sockaddr_in6>-sin6_port-set!
@@ -5039,6 +5084,10 @@
   (define-inline (<struct-sockaddr_in6>-sin6_port ?wrapper)
     (<pointer-to-sockaddr_in6>-sin6_port
       (<struct-sockaddr_in6>-pointer ?wrapper)))
+  (define-inline
+    (<struct-sockaddr_in6>-sin6_addr-set! ?wrapper ?value)
+    (<pointer-to-sockaddr_in6>-sin6_addr-set!
+      (<struct-sockaddr_in6>-pointer ?wrapper) ?value))
   (define-inline (<struct-sockaddr_in6>-sin6_addr ?wrapper)
     (<pointer-to-sockaddr_in6>-sin6_addr
       (<struct-sockaddr_in6>-pointer ?wrapper)))
@@ -5173,8 +5222,11 @@
     (maker-transformer
       <struct-sockaddr_un>-maker-transformer)
     (fields (immutable pointer))
-    (virtual-fields (immutable sun_path)
-      (mutable sun_family)))
+    (virtual-fields (mutable sun_family) (mutable sun_path)))
+  (define-inline
+    (<struct-sockaddr_un>-sun_path-set! ?wrapper ?value)
+    (<pointer-to-sockaddr_un>-sun_path-set!
+      (<struct-sockaddr_un>-pointer ?wrapper) ?value))
   (define-inline (<struct-sockaddr_un>-sun_path ?wrapper)
     (<pointer-to-sockaddr_un>-sun_path
       (<struct-sockaddr_un>-pointer ?wrapper)))
@@ -5413,7 +5465,7 @@
     (maker-transformer
       <struct-if_nameindex>-maker-transformer)
     (fields (immutable pointer))
-    (virtual-fields (mutable if_name) (mutable if_index)))
+    (virtual-fields (mutable if_index) (mutable if_name)))
   (define-inline
     (<struct-if_nameindex>-if_name-set! ?wrapper ?value)
     (<pointer-to-if_nameindex>-if_name-set!
@@ -5559,8 +5611,8 @@
       (malloc: sentinel (mandatory)))
     (maker-transformer <struct-netent>-maker-transformer)
     (fields (immutable pointer))
-    (virtual-fields (mutable n_net) (mutable n_addrtype)
-      (mutable n_aliases) (mutable n_name)))
+    (virtual-fields (mutable n_name) (mutable n_aliases)
+      (mutable n_addrtype) (mutable n_net)))
   (define-inline
     (<struct-netent>-n_net-set! ?wrapper ?value)
     (<pointer-to-netent>-n_net-set!
@@ -5700,7 +5752,7 @@
       (malloc: sentinel (mandatory)))
     (maker-transformer <struct-linger>-maker-transformer)
     (fields (immutable pointer))
-    (virtual-fields (mutable l_linger) (mutable l_onoff)))
+    (virtual-fields (mutable l_onoff) (mutable l_linger)))
   (define-inline
     (<struct-linger>-l_linger-set! ?wrapper ?value)
     (<pointer-to-linger>-l_linger-set!
@@ -5856,9 +5908,9 @@
       (malloc: sentinel (mandatory)))
     (maker-transformer <struct-hostent>-maker-transformer)
     (fields (immutable pointer))
-    (virtual-fields (mutable h_addr) (mutable h_addr_list)
-      (mutable h_length) (mutable h_addrtype)
-      (mutable h_aliases) (mutable h_name)))
+    (virtual-fields (mutable h_name) (mutable h_aliases)
+      (mutable h_addrtype) (mutable h_length)
+      (mutable h_addr_list) (mutable h_addr)))
   (define-inline
     (<struct-hostent>-h_addr-set! ?wrapper ?value)
     (<pointer-to-hostent>-h_addr-set!
@@ -6024,8 +6076,8 @@
       (malloc: sentinel (mandatory)))
     (maker-transformer <struct-protoent>-maker-transformer)
     (fields (immutable pointer))
-    (virtual-fields (mutable p_proto) (mutable p_aliases)
-      (mutable p_name)))
+    (virtual-fields (mutable p_name) (mutable p_aliases)
+      (mutable p_proto)))
   (define-inline
     (<struct-protoent>-p_proto-set! ?wrapper ?value)
     (<pointer-to-protoent>-p_proto-set!
@@ -6175,8 +6227,8 @@
       (malloc: sentinel (mandatory)))
     (maker-transformer <struct-servent>-maker-transformer)
     (fields (immutable pointer))
-    (virtual-fields (mutable s_proto) (mutable s_port)
-      (mutable s_aliases) (mutable s_name)))
+    (virtual-fields (mutable s_name) (mutable s_aliases)
+      (mutable s_port) (mutable s_proto)))
   (define-inline
     (<struct-servent>-s_proto-set! ?wrapper ?value)
     (<pointer-to-servent>-s_proto-set!

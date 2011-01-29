@@ -333,7 +333,8 @@ AC_CHECK_MEMBERS([struct stat.st_ctime_usec])
   "struct ntptimeval"
   (embedded		time
 			(struct-accessor: embedded.generic-struct-pointer-timeval)
-			(struct-mutator:  embedded.generic-struct-pointer-timeval-set!))
+			(struct-mutator:  embedded.generic-struct-pointer-timeval-set!)
+			(field-tags: <timeval>))
   (signed-int		maxerror)
   (signed-int		esterror))
 

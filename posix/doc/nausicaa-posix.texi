@@ -589,6 +589,8 @@ Overview
 
 File system
 
+* file constants::              Constant values.
+* file enumerations::           Enumeration sets.
 * file working directory::      The working directory.
 * file directory access::       Accessing directory entries.
 * file links::                  Hard and symbolic links.
@@ -599,6 +601,10 @@ File system
 * file temp::                   Temporary files.
 * file times::                  Setting file times.
 * file stat::                   Inspecting file attributes.
+
+Enumeration sets
+
+* file enumerations access::    Access flags.
 
 Accessing directory entries
 
@@ -669,6 +675,12 @@ Enumeration sets
 * fd enumerations perms::       Access permissions.
 * fd enumerations open::        Open modes.
 * fd enumerations pipe2::       Flags for @func{pipe2}.
+
+Waiting for input or output
+
+* fd select intro::             Introduction to @func{select}.
+* fd select fdset::             Handling file descriptor sets.
+* fd select select::            Variants of @func{select} function.
 
 Sockets
 
@@ -768,8 +780,6 @@ Date and time
 
 * time intro::                  Introduction.
 * time structs::                Data structures.
-* time typedefs::               Object type definitions.
-* time records::                Record types.
 * time constants::              Constant values.
 * time clock::                  Processor time.
 * time calendar::               Simple calendar time.
@@ -780,32 +790,6 @@ Date and time
 * time parsing::                Parsing time strings.
 * time alarm::                  Setting time alarms.
 * time sleep::                  Sleeping.
-
-Data structures
-
-* time structs timeval::        @code{struct timeval} inspection.
-* time structs timespec::       @code{struct timespec} inspection.
-* time structs tms::            @code{struct tms} inspection.
-* time structs timezone::       @code{struct timezone} inspection.
-* time structs tm::             @code{struct tm} inspection.
-* time structs ntptimeval::     @code{struct ntptimeval} inspection.
-* time structs timex::          @code{struct timex} inspection.
-* time structs itimerval::      @code{struct itimerval} inspection.
-
-Object type definitions
-
-* time typedefs timeval::       Wrapper for @code{struct timeval}.
-
-Record types
-
-* time records timeval::        @code{struct timeval} mirror.
-* time records timespec::       @code{struct timespec} mirror.
-* time records tms::            @code{struct tms} mirror.
-* time records timezone::       @code{struct timezone} mirror.
-* time records tm::             @code{struct tm} mirror.
-* time records ntptimeval::     @code{struct ntptimeval} mirror.
-* time records timex::          @code{struct timex} mirror.
-* time records itimerval::      @code{struct itimerval} mirror.
 
 Processes
 
@@ -1062,7 +1046,7 @@ stack traces than the raw pointer; a @dfn{mirror class} which represents
 with Scheme values the values of a foreign structure.
 
 Unless otherwise specified, the interface adheres to the following
-pattern for structure @func{X}.
+pattern for @code{struct X}.
 
 @c ------------------------------------------------------------
 
@@ -1203,6 +1187,25 @@ initialised with the @var{arg} values.  To use this maker it is of
 paramount importance to know the order of the fields in the class
 definition.
 @end deffn
+
+@c ------------------------------------------------------------
+
+@subsubheading Constants
+
+
+The @library{nausicaa posix sizeof} library exports the following
+syntaxes which can be used to inspect the size of a foreign data
+structure.
+
+
+@deffn {Constant Syntax} c-sizeof struct-X
+@deffnx {Constant Syntax} c-alignof struct-X
+@deffnx {Constant Syntax} c-strideof struct-X
+The number of bytes required to hold the structure; the alignment of
+this structure when embedded into another structure; the number of bytes
+between two elements in an array of these structures.
+@end deffn
+
 
 @c page
 @node file
@@ -8021,8 +8024,6 @@ libraries:
 @menu
 * time intro::                  Introduction.
 * time structs::                Data structures.
-* time typedefs::               Object type definitions.
-* time records::                Record types.
 * time constants::              Constant values.
 * time clock::                  Processor time.
 * time calendar::               Simple calendar time.
@@ -8046,7 +8047,7 @@ documentation.  @glibcref{Time Basics, Time Basics}.
 
 @c ------------------------------------------------------------
 
-@subsubheading About the @code{time_t} type
+@subsubheading About @code{time_t} and @code{clock_t}
 
 
 The @code{time_t} type represents the number of seconds elapsed since
@@ -8062,12 +8063,12 @@ The @code{clock_t} type represents the number of clock ticks as returned
 by the @cfunc{clock} function; it is not fully specified.  @glibcref{CPU
 Time, clock_t}.
 
-To solve the representation problem, @code{time_t} values are casted to
-native @code{double} values by the stub C library and then converted to
-and from Scheme inexact real numbers (whatever they are for the
-underlying Scheme representation) by the @ffi{} infrastructure; the
-functions exported by the @code{platform} libraries convert the inexact
-reals to and from exact integers.
+To solve the representation problem, @code{time_t} and @code{clock_t}
+values are casted to native @code{double} values by the stub C library
+and converted to and from Scheme inexact real numbers (whatever they are
+for the underlying Scheme representation) by the @ffi{} infrastructure;
+the functions exported by the @code{platform} libraries convert the
+inexact reals to and from exact integers.
 
 @c page
 @node time structs
@@ -8075,787 +8076,164 @@ reals to and from exact integers.
 
 
 Unless otherwise specified, the bindings documented in this section are
-exported by the @library{posix sizeof} library.
-
-@menu
-* time structs timeval::        @code{struct timeval} inspection.
-* time structs timespec::       @code{struct timespec} inspection.
-* time structs tms::            @code{struct tms} inspection.
-* time structs timezone::       @code{struct timezone} inspection.
-* time structs tm::             @code{struct tm} inspection.
-* time structs ntptimeval::     @code{struct ntptimeval} inspection.
-* time structs timex::          @code{struct timex} inspection.
-* time structs itimerval::      @code{struct itimerval} inspection.
-@end menu
-
-@c page
-@node time structs timeval
-@subsection @code{struct timeval} inspection
+exported by the @library{nausicaa posix sizeof} library; @ref{overview
+typedefs} for details on the foreign struct interfaces.
 
 
-@defvr Constant sizeof-timeval
-@defvrx Constant alignof-timeval
-@defvrx Constant strideof-timeval
-These are: the number of bytes required to hold a @code{struct timeval};
-the alignment of this structure when embedded into another structure;
-the number of bytes between two elements in an array of these
-structures.
-@end defvr
-
-
-@deffn Syntax struct-timeval-tv_sec-ref @var{pointer}
-@deffnx Syntax struct-timeval-tv_sec-set! @var{pointer} @var{value}
-@deffnx Syntax struct-timeval-tv_usec-ref @var{pointer}
-@deffnx Syntax struct-timeval-tv_usec-set! @var{pointer} @var{value}
-Accessors and mutators for the fields of a @code{struct timeval}.
-@end deffn
-
-@c page
-@node time structs timespec
-@subsection @code{struct timespec} inspection
-
-
-@defvr Constant sizeof-timespec
-@defvrx Constant alignof-timespec
-@defvrx Constant strideof-timespec
-These are: the number of bytes required to hold a @code{struct timespec};
-the alignment of this structure when embedded into another structure;
-the number of bytes between two elements in an array of these
-structures.
-@end defvr
-
-
-@deffn Syntax struct-timespec-tv_sec-set! @var{pointer} @var{value}
-@deffnx Syntax struct-timespec-tv_sec-ref @var{pointer}
-@deffnx Syntax struct-timespec-tv_nsec-set! @var{pointer} @var{value}
-@deffnx Syntax struct-timespec-tv_nsec-ref @var{pointer}
-Accessors and mutators for the fields of a @code{struct timespec}.
-@end deffn
-
-@c page
-@node time structs tms
-@subsection @code{struct tms} inspection
-
-
-@defvr Constant sizeof-tms
-@defvrx Constant alignof-tms
-@defvrx Constant strideof-tms
-These are: the number of bytes required to hold a @code{struct tms}; the
-alignment of this structure when embedded into another structure; the
-number of bytes between two elements in an array of these structures.
-@end defvr
-
-
-@defun struct-tms-tms_utime-ref @var{pointer}
-@defunx struct-tms-tms_utime-set! @var{pointer} @var{value}
-@defunx struct-tms-tms_stime-ref @var{pointer}
-@defunx struct-tms-tms_stime-set! @var{pointer} @var{value}
-@defunx struct-tms-tms_cutime-ref @var{pointer}
-@defunx struct-tms-tms_cutime-set! @var{pointer} @var{value}
-@defunx struct-tms-tms_cstime-ref @var{pointer}
-@defunx struct-tms-tms_cstime-set! @var{pointer} @var{value}
-Accessors for the fields of a @code{struct tms} type.
-
-These bindings are exported by the @library{posix time platform}
-library.
-@end defun
-
-@c page
-@node time structs timezone
-@subsection @code{struct timezone} inspection
-
-
-@defvr Constant sizeof-timezone
-@defvrx Constant alignof-timezone
-@defvrx Constant strideof-timezone
-These are: the number of bytes required to hold a @code{struct
-timezone}; the alignment of this structure when embedded into another
-structure; the number of bytes between two elements in an array of these
-structures.
-@end defvr
-
-
-@deffn Syntax struct-timezone-tz_minuteswest-ref @var{pointer}
-@deffnx Syntax struct-timezone-tz_minuteswest-set! @var{pointer} @var{value}
-@deffnx Syntax struct-timezone-tz_dsttime-ref @var{pointer}
-@deffnx Syntax struct-timezone-tz_dsttime-set! @var{pointer} @var{value}
-Peekers and pokers for the fields of a @code{struct timezone}.
-@end deffn
-
-@c page
-@node time structs tm
-@subsection @code{struct tm} inspection
-
-
-@defvar sizeof-tm
-@defvarx alignof-tm
-@defvarx strideof-tm
-These are: the number of bytes required to hold a @code{struct tm}; the
-alignment of this structure when embedded into another structure; the
-number of bytes between two elements in an array of these structures.
-@end defvar
-
-
-@deffn Syntax struct-tm-tm_sec-ref @var{pointer}
-@deffnx Syntax struct-tm-tm_sec-set! @var{pointer} @var{value}
-@deffnx Syntax struct-tm-tm_min-ref @var{pointer}
-@deffnx Syntax struct-tm-tm_min-set! @var{pointer} @var{value}
-@deffnx Syntax struct-tm-tm_hour-ref @var{pointer}
-@deffnx Syntax struct-tm-tm_hour-set! @var{pointer} @var{value}
-@deffnx Syntax struct-tm-tm_mday-ref @var{pointer}
-@deffnx Syntax struct-tm-tm_mday-set! @var{pointer} @var{value}
-@deffnx Syntax struct-tm-tm_mon-ref @var{pointer}
-@deffnx Syntax struct-tm-tm_mon-set! @var{pointer} @var{value}
-@deffnx Syntax struct-tm-tm_year-ref @var{pointer}
-@deffnx Syntax struct-tm-tm_year-set! @var{pointer} @var{value}
-@deffnx Syntax struct-tm-tm_wday-ref @var{pointer}
-@deffnx Syntax struct-tm-tm_wday-set! @var{pointer} @var{value}
-@deffnx Syntax struct-tm-tm_yday-ref @var{pointer}
-@deffnx Syntax struct-tm-tm_yday-set! @var{pointer} @var{value}
-@deffnx Syntax struct-tm-tm_isdst-ref @var{pointer}
-@deffnx Syntax struct-tm-tm_isdst-set! @var{pointer} @var{value}
-@deffnx Syntax struct-tm-tm_gmtoff-ref @var{pointer}
-@deffnx Syntax struct-tm-tm_gmtoff-set! @var{pointer} @var{value}
-@deffnx Syntax struct-tm-tm_zone-ref @var{pointer}
-@deffnx Syntax struct-tm-tm_zone-set! @var{pointer} @var{value}
-Accessors and mutators for the fields of a @code{struct tm}.
-@end deffn
-
-@c page
-@node time structs ntptimeval
-@subsection @code{struct ntptimeval} inspection
-
-
-
-@defvar sizeof-ntptimeval
-@defvarx alignof-ntptimeval
-@defvarx strideof-ntptimeval
-These are: the number of bytes required to hold a @code{struct
-ntptimeval}; the alignment of this structure when embedded into another
-structure; the number of bytes between two elements in an array of these
-structures.
-@end defvar
-
-
-@deffn Syntax struct-ntptimeval-time-ref @var{pointer}
-Given a pointer to a @code{struct ntptimeval} instance, evaluates to a
-pointer to the first byte of the @code{struct timeval time} field of the
-structure.
-@end deffn
-
-
-@deffn Syntax struct-ntptimeval-maxerror-ref @var{pointer}
-@deffnx Syntax struct-ntptimeval-maxerror-set! @var{pointer} @var{value}
-@deffnx Syntax struct-ntptimeval-esterror-ref @var{pointer}
-@deffnx Syntax struct-ntptimeval-esterror-set! @var{pointer} @var{value}
-Accessors and mutators for the fields of a @code{struct ntptimeval}
-type.
-@end deffn
-
-@c page
-@node time structs timex
-@subsection @code{struct timex} inspection
-
-
-The following bindings implement inspection for the @code{struct timex}
-type.  @glibcref{High Accuracy Clock, High Accuracy Clock}.
-
-
-@defvar sizeof-timex
-@defvarx alignof-timex
-@defvarx strideof-timex
-These are: the number of bytes required to hold a @code{struct
-timex}; the alignment of this structure when embedded into another
-structure; the number of bytes between two elements in an array of these
-structures.
-@end defvar
-
-
-@deffn Syntax struct-timex-time-ref @var{pointer}
-Given a pointer to a @code{struct timex} instance, evaluates to a
-pointer to the first byte of the @code{struct timeval time} field of the
-structure.
-@end deffn
-
-
-@deffn Syntax struct-timex-modes-ref @var{pointer}
-@deffnx Syntax struct-timex-modes-set! @var{pointer} @var{value}
-@deffnx Syntax struct-timex-offset-ref @var{pointer}
-@deffnx Syntax struct-timex-offset-set! @var{pointer} @var{value}
-@deffnx Syntax struct-timex-freq-ref @var{pointer}
-@deffnx Syntax struct-timex-freq-set! @var{pointer} @var{value}
-@deffnx Syntax struct-timex-maxerror-ref @var{pointer}
-@deffnx Syntax struct-timex-maxerror-set! @var{pointer} @var{value}
-@deffnx Syntax struct-timex-esterror-ref @var{pointer}
-@deffnx Syntax struct-timex-esterror-set! @var{pointer} @var{value}
-@deffnx Syntax struct-timex-status-ref @var{pointer}
-@deffnx Syntax struct-timex-status-set! @var{pointer} @var{value}
-@deffnx Syntax struct-timex-constant-ref @var{pointer}
-@deffnx Syntax struct-timex-constant-set! @var{pointer} @var{value}
-@deffnx Syntax struct-timex-precision-ref @var{pointer}
-@deffnx Syntax struct-timex-precision-set! @var{pointer} @var{value}
-@deffnx Syntax struct-timex-tolerance-ref @var{pointer}
-@deffnx Syntax struct-timex-tolerance-set! @var{pointer} @var{value}
-@deffnx Syntax struct-timex-tick-ref @var{pointer}
-@deffnx Syntax struct-timex-tick-set! @var{pointer} @var{value}
-@deffnx Syntax struct-timex-ppsfreq-ref @var{pointer}
-@deffnx Syntax struct-timex-ppsfreq-set! @var{pointer} @var{value}
-@deffnx Syntax struct-timex-jitter-ref @var{pointer}
-@deffnx Syntax struct-timex-jitter-set! @var{pointer} @var{value}
-@deffnx Syntax struct-timex-shift-ref @var{pointer}
-@deffnx Syntax struct-timex-shift-set! @var{pointer} @var{value}
-@deffnx Syntax struct-timex-stabil-ref @var{pointer}
-@deffnx Syntax struct-timex-stabil-set! @var{pointer} @var{value}
-@deffnx Syntax struct-timex-jitcnt-ref @var{pointer}
-@deffnx Syntax struct-timex-jitcnt-set! @var{pointer} @var{value}
-@deffnx Syntax struct-timex-calcnt-ref @var{pointer}
-@deffnx Syntax struct-timex-calcnt-set! @var{pointer} @var{value}
-@deffnx Syntax struct-timex-errcnt-ref @var{pointer}
-@deffnx Syntax struct-timex-errcnt-set! @var{pointer} @var{value}
-@deffnx Syntax struct-timex-stbcnt-ref @var{pointer}
-@deffnx Syntax struct-timex-stbcnt-set! @var{pointer} @var{value}
-Accessors and mutators for the fields of a @code{struct timex}
-type.
-@end deffn
-
-@c page
-@node time structs itimerval
-@subsection @code{struct itimerval} inspection
-
-
-The following bindings implement inspection for the @code{struct
-itimerval} type.  @glibcref{Setting an Alarm, Setting an Alarm}.
-
-
-@defvar sizeof-itimerval
-@defvarx alignof-itimerval
-@defvarx strideof-itimerval
-These are: the number of bytes required to hold a @code{struct
-itimerval}; the alignment of this structure when embedded into another
-structure; the number of bytes between two elements in an array of these
-structures.
-@end defvar
-
-
-@deffn Syntax struct-itimerval-it_value-ref @var{pointer}
-@deffnx Syntax struct-itimerval-it_interval-ref @var{pointer}
-Given a pointer to a @code{struct itimerval} instance, evaluate to a
-pointer to the first byte of the @code{struct timeval it_interval} and
-@code{struct timeval it_value} fields of the structure.
-@end deffn
-
-@c page
-@node time typedefs
-@section Object type definitions
-
-
-Unless otherwise specified, the bindings described in this section are
-exported by the @library{posix typedefs} library.
-
-@menu
-* time typedefs timeval::       Wrapper for @code{struct timeval}.
-@end menu
-
-@c page
-@node time typedefs timeval
-@subsection Wrapper for @code{struct timeval}
-
-
-The following object type is different from the @class{timeval}
-record type.  @ref{time records timeval, @code{struct timeval} mirror}.
-
-
-@deftp {Object Type} struct-timeval
-Object type used to wrap pointers to @code{struct timeval} C language
-data structures.  It is disjoint from the other Scheme object types.
+@deftp {Pointer Label} @aclass{pointer-to-timeval}
+@deftpx {Wrapper Class} @aclass{struct-timeval}
+@deftpx {Mirror Class} @aclass{timeval}
+Pointer label, wrapper class and mirror class interfaces for the
+@code{struct timeval} type.
 @end deftp
 
 
-@defun struct-timeval? @var{obj}
-Return true if @var{obj} is of type @code{struct-timeval}.
-@end defun
+@defcv {Mutable Field} @aclass{timeval} tv_sec
+@defcvx {Mutable Field} @aclass{timeval} tv_usec
+Fields of the @code{struct timeval} interfaces in the order of
+definition for the @class{timeval} class.
+@end defcv
 
+@c ------------------------------------------------------------
 
-@defun pointer->struct-timeval @var{pointer}
-@defunx struct-timeval->pointer @var{timeval}
-Convert between pointer objects and @code{struct-timeval} objects.
-@end defun
-
-
-@defun make-struct-timeval @var{malloc}
-Build and return a new @code{struct-timeval} object referencing a newly
-allocated @code{struct timeval}.
-
-Memory for the foreign structure is allocated with the @var{malloc}
-function, whose interface protocol must match the one of @func{malloc}
-from the @library{foreign memory} library.  @nauref{memory alloc high,
-Exception raising functions}.
-@end defun
-
-@c page
-@node time records
-@section Record types
-
-
-Unless otherwise specified, the bindings described in this section are
-exported by the @library{posix typedefs} library.
-
-@menu
-* time records timeval::        @code{struct timeval} mirror.
-* time records timespec::       @code{struct timespec} mirror.
-* time records tms::            @code{struct tms} mirror.
-* time records timezone::       @code{struct timezone} mirror.
-* time records tm::             @code{struct tm} mirror.
-* time records ntptimeval::     @code{struct ntptimeval} mirror.
-* time records timex::          @code{struct timex} mirror.
-* time records itimerval::      @code{struct itimerval} mirror.
-@end menu
-
-@c page
-@node time records timeval
-@subsection @code{struct timeval} mirror
-
-
-The record type described here is used to mirror the C language data
-type @code{struct timeval}.  @glibcref{Elapsed Time, Elapsed Time}.
-
-This record type is different from the @code{struct-timeval} object.
-@ref{time typedefs timeval, Wrapper for @code{struc timeval}}.
-
-
-@deftp {Record Type Name} <timeval>
-@deftpx {Record Type Descriptor} <timeval-rtd>
-Record type that mirrors the @code{struct timeval} type.  It has the
-following fields, one for each field of the @code{struct timeval} type:
-@code{sec}, @code{usec}.
+@deftp {Pointer Label} @aclass{pointer-to-timespec}
+@deftpx {Wrapper Class} @aclass{struct-timespec}
+@deftpx {Mirror Class} @aclass{timespec}
+Pointer label, wrapper class and mirror class interfaces for the
+@code{struct timespec} type.
 @end deftp
 
 
-@defun make-<timeval> @var{tv_sec} @var{tv_usec}
-@defunx <timeval>? @var{obj}
-Constructor and predicate for @class{timeval} records.
-@end defun
+@defcv {Mutable Field} @aclass{timespec} tv_sec
+@defcvx {Mutable Field} @aclass{timespec} tv_nsec
+Fields of the @code{struct timespec} interfaces in the order of
+definition for the @class{timespec} class.
+@end defcv
 
+@c ------------------------------------------------------------
 
-@defun <timeval>-sec @var{timeval-record}
-@defunx <timeval>-sec-set! @var{timeval-record} @var{value}
-@defunx <timeval>-usec @var{timeval-record}
-@defunx <timeval>-usec-set! @var{timeval-record} @var{value}
-Accessors and mutators @class{timeval} records.
-@end defun
-
-
-@defun pointer-><timeval> @var{struct-timeval-pointer}
-@defunx <timeval>->pointer @var{timeval-record} @var{malloc}
-Convert between a pointer to a @code{struct timeval} instance and a
-record of type @class{timeval}.
-
-Memory for the foreign structure is allocated with the @var{malloc}
-function, whose interface protocol must match the one of @func{malloc}
-from the @library{foreign memory} library.  @nauref{memory alloc high,
-Exception raising functions}.
-
-These bindings are exported by the @library{posix time primitives}
-library.
-@end defun
-
-@c page
-@node time records timespec
-@subsection @code{struct timespec} mirror
-
-
-The record type described here is used to mirror the C language data
-type @code{struct timespec}.  @glibcref{Elapsed Time, Elapsed Time}.
-
-
-@deftp {Record Type Name} <timespec>
-@deftpx {Record Type Descriptor} <timespec-rtd>
-Record type that mirrors the @code{struct timespec} type.  It has the
-following fields, one for each field of the @code{struct timespec} type:
-@code{sec}, @code{nsec}.
+@deftp {Pointer Label} @aclass{pointer-to-tms}
+@deftpx {Wrapper Class} @aclass{struct-tms}
+@deftpx {Mirror Class} @aclass{tms}
+Pointer label, wrapper class and mirror class interfaces for the
+@code{struct tms} type.
 @end deftp
 
 
-@defun make-<timespec> @var{tv_sec} @var{tv_nsec}
-@defunx <timespec>? @var{obj}
-Constructor and predicate for @class{timespec} records.
-@end defun
+@defcv {Mutable Field} @aclass{tms} tms_utime
+@defcvx {Mutable Field} @aclass{tms} tms_stime
+@defcvx {Mutable Field} @aclass{tms} tms_cutime
+@defcvx {Mutable Field} @aclass{tms} tms_cstime
+Fields of the @code{struct tms} interfaces in the order of definition
+for the @class{tms} class.
+@end defcv
 
+@c ------------------------------------------------------------
 
-@defun <timespec>-sec @var{timespec-record}
-@defunx <timespec>-sec-set! @var{timespec-record} @var{value}
-@defunx <timespec>-nsec @var{timespec-record}
-@defunx <timespec>-nsec-set! @var{timespec-record} @var{value}
-Accessors and mutators @class{timespec} records.
-@end defun
-
-
-@defun pointer-><timespec> @var{struct-timespec-pointer}
-@defunx <timespec>->pointer @var{timespec-record} @var{malloc}
-Convert between a pointer to a @code{struct timespec} instance and a
-record of type @class{timespec}.
-
-Memory for the foreign structure is allocated with the @var{malloc}
-function, whose interface protocol must match the one of @func{malloc}
-from the @library{foreign memory} library.  @nauref{memory alloc high,
-Exception raising functions}.
-
-These bindings are exported by the @library{posix glibc primitives}
-library.
-@end defun
-
-@c page
-@node time records tms
-@subsection @code{struct tms} mirror
-
-
-The record type described here is used to mirror the C language data
-type @code{struct tms}.  @glibcref{Processor Time, Processor Time
-Inquiry}.
-
-
-@deftp {Record Type Name} <tms>
-@deftpx {Record Type Descriptor} <tms-rtd>
-A Scheme record used to hold normalised results of @func{times}
-invocations.  It has the following fields, one for each field of the
-@code{struct tms} type: @code{utime}, @code{stime}, @code{cutime},
-@code{cstime}; all the values are inexact real numbers.
+@deftp {Pointer Label} @aclass{pointer-to-timezone}
+@deftpx {Wrapper Class} @aclass{struct-timezone}
+@deftpx {Mirror Class} @aclass{timezone}
+Pointer label, wrapper class and mirror class interfaces for the
+@code{struct timezone} type.
 @end deftp
 
 
-@defun make-<tms> @var{utime} @var{stime} @var{cutime} @var{cstime}
-@defunx <tms>? @var{obj}
-Constructor and predicate for records of type @class{tms}.
-@end defun
+@defcv {Mutable Field} @aclass{timezone} tz_minuteswest
+@defcvx {Mutable Field} @aclass{timezone} tz_dsttime
+Fields of the @code{struct timezone} interfaces in the order of
+definition for the @class{timezone} class.
+@end defcv
 
+@c ------------------------------------------------------------
 
-@defun <tms>-utime @var{tms}
-@defunx <tms>-utime-set! @var{tms} @var{value}
-@defunx <tms>-stime @var{tms}
-@defunx <tms>-stime-set! @var{tms} @var{value}
-@defunx <tms>-cutime @var{tms}
-@defunx <tms>-cutime-set! @var{tms} @var{value}
-@defunx <tms>-cstime @var{tms}
-@defunx <tms>-cstime-set! @var{tms} @var{value}
-Accessors and mutators for @class{tms} records.
-@end defun
-
-
-@defun pointer-><tms> @var{pointer}
-@defunx <tms>->pointer @var{record} @var{malloc}
-Convert between a pointer to a @code{struct tms} instance and a record
-of type @class{tms}.
-
-Memory for the foreign structure is allocated with the @var{malloc}
-function, whose interface protocol must match the one of @func{malloc}
-from the @library{foreign memory} library.  @nauref{memory alloc high,
-Exception raising functions}.
-
-These bindings are exported by the @library{posix time primitives}
-library.
-@end defun
-
-@c page
-@node time records timezone
-@subsection @code{struct timezone} mirror
-
-
-The record type described here is used to mirror the C language data
-type @code{struct timezone}.  @glibcref{High-Resolution Calendar,
-High--Resolution Calendar}.
-
-
-@deftp {Record Type Name} <timezone>
-@deftpx {Record Type Descriptor} <timezone-rtd>
-Record type that mirrors the @code{struct timezone} type.  It has the
-following fields, one for each field in the @code{struct timezone} type:
-@code{minuteswest}, @code{dsttime}.
+@deftp {Pointer Label} @aclass{pointer-to-tm}
+@deftpx {Wrapper Class} @aclass{struct-tm}
+@deftpx {Mirror Class} @aclass{tm}
+Pointer label, wrapper class and mirror class interfaces for the
+@code{struct tm} type.
 @end deftp
 
 
-@defun make-<timezone> @var{tz_minuteswest} @var{tz_dsttime}
-@defunx <timezone>? @var{obj}
-Constructor and predicate for @class{timezone} records.
-@end defun
+@defcv {Mutable Field} @aclass{tm} tm_sec
+@defcvx {Mutable Field} @aclass{tm} tm_min
+@defcvx {Mutable Field} @aclass{tm} tm_hour
+@defcvx {Mutable Field} @aclass{tm} tm_mday
+@defcvx {Mutable Field} @aclass{tm} tm_mon
+@defcvx {Mutable Field} @aclass{tm} tm_year
+@defcvx {Mutable Field} @aclass{tm} tm_wday
+@defcvx {Mutable Field} @aclass{tm} tm_yday
+@defcvx {Mutable Field} @aclass{tm} tm_isdst
+@defcvx {Mutable Field} @aclass{tm} tm_gmtoff
+@defcvx {Mutable Field} @aclass{tm} tm_zone
+Fields of the @code{struct tm} interfaces in the order of definition for
+the @class{tm} class.
+@end defcv
 
+@c ------------------------------------------------------------
 
-@defun <timezone>-minuteswest @var{timezone-record}
-@defunx <timezone>-minuteswest-set! @var{timezone-record} @var{value}
-@defunx <timezone>-dsttime @var{timezone-record}
-@defunx <timezone>-dsttime-set! @var{timezone-record} @var{value}
-Accessors and mutators @class{timezone} records.
-@end defun
-
-
-@defun pointer-><timezone> @var{struct-timezone-pointer}
-@defunx <timezone>->pointer @var{timezone-record} @var{malloc}
-Convert between a pointer to a @code{struct timezone} instance and a
-record of type @class{timezone}.
-
-Memory for the foreign structure is allocated with the @var{malloc}
-function, whose interface protocol must match the one of @func{malloc}
-from the @library{foreign memory} library.  @nauref{memory alloc high,
-Exception raising functions}.
-
-These bindings are exported by the @library{posix glibc primitives}
-library.
-@end defun
-
-@c page
-@node time records tm
-@subsection @code{struct tm} mirror
-
-
-The record type described here is used to mirror the C language data
-type @code{struct tm}.  @glibcref{Broken-down Time, Broken--down Time}.
-
-
-@deftp {Record Type Name} <tm>
-@deftpx {Record Type Descriptor} <tm-rtd>
-Record type that mirrors the @code{struct tm} type.  It has the
-following fields, one for each field in the @code{struct tm} type:
-@code{sec}, @code{min}, @code{hour}, @code{mday}, @code{mon},
-@code{year}, @code{wday}, @code{yday}, @code{isdst}, @code{gmtoff},
-@code{zone}.
-
-Notice that the @code{zone} field is meant to hold a pointer to a C
-string.
+@deftp {Pointer Label} @aclass{pointer-to-ntptimeval}
+@deftpx {Wrapper Class} @aclass{struct-ntptimeval}
+@deftpx {Mirror Class} @aclass{ntptimeval}
+Pointer label, wrapper class and mirror class interfaces for the
+@code{struct ntptimeval} type.
 @end deftp
 
 
-@defun make-<tm> @var{tm_sec} @var{tm_min} @var{tm_hour} @var{tm_mday} @var{tm_mon} @var{tm_year} @var{tm_wday} @var{tm_yday} @var{tm_isdst} @var{tm_gmtoff} @var{tm_zone}
-@defunx <tm>? @var{obj}
-Constructor and predicate for @class{tm} records.
-@end defun
+@defcv {Mutable Field} @aclass{ntptimeval} time
+@defcvx {Mutable Field} @aclass{ntptimeval} maxerror
+@defcvx {Mutable Field} @aclass{ntptimeval} esterror
+Fields of the @code{struct ntptimeval} interfaces in the order of
+definition for the @class{ntptimeval} class.
+@end defcv
 
+@c ------------------------------------------------------------
 
-@defun <tm>-sec @var{tm-record}
-@defunx <tm>-sec-set! @var{tm-record} @var{value}
-@defunx <tm>-min @var{tm-record}
-@defunx <tm>-min-set! @var{tm-record} @var{value}
-@defunx <tm>-hour @var{tm-record}
-@defunx <tm>-hour-set! @var{tm-record} @var{value}
-@defunx <tm>-mday @var{tm-record}
-@defunx <tm>-mday-set! @var{tm-record} @var{value}
-@defunx <tm>-mon @var{tm-record}
-@defunx <tm>-mon-set! @var{tm-record} @var{value}
-@defunx <tm>-year @var{tm-record}
-@defunx <tm>-year-set! @var{tm-record} @var{value}
-@defunx <tm>-wday @var{tm-record}
-@defunx <tm>-wday-set! @var{tm-record} @var{value}
-@defunx <tm>-yday @var{tm-record}
-@defunx <tm>-yday-set! @var{tm-record} @var{value}
-@defunx <tm>-isdst @var{tm-record}
-@defunx <tm>-isdst-set! @var{tm-record} @var{value}
-@defunx <tm>-gmtoff @var{tm-record}
-@defunx <tm>-gmtoff-set! @var{tm-record} @var{value}
-@defunx <tm>-zone @var{tm-record}
-@defunx <tm>-zone-set! @var{tm-record} @var{value}
-Accessors and mutators @class{tm} records.
-@end defun
-
-
-@defun pointer-><tm> @var{struct-tm-pointer}
-@defunx <tm>->pointer @var{tm-record} @var{malloc}
-Convert between a pointer to a @code{struct tm} instance and a
-record of type @class{tm}.
-
-Memory for the foreign structure is allocated with the @var{malloc}
-function, whose interface protocol must match the one of @func{malloc}
-from the @library{foreign memory} library.  @nauref{memory alloc high,
-Exception raising functions}.
-
-Notice that no conversion is performed on the value in the @code{zone}
-field; we have to explicitly convert between C strings and Scheme
-strings.
-
-These bindings are exported by the @library{posix glibc primitives}
-library.
-@end defun
-
-@c page
-@node time records ntptimeval
-@subsection @code{struct ntptimeval} mirror
-
-
-The record type described here is used to mirror the C language data
-type @code{struct ntptimeval}.  @glibcref{High Accuracy Clock, High
-Accuracy Clock}.
-
-
-@deftp {Record Type Name} <ntptimeval>
-@deftpx {Record Type Descriptor} <ntptimeval-rtd>
-Record type that mirrors the @code{struct ntptimeval} type.  It has the
-following fields, one for each field in the @code{struct ntptimeval} type:
-@code{time}, @code{maxerror}, @code{esterror}.  The @code{time} field
-contains a @class{timeval} record.
+@deftp {Pointer Label} @aclass{pointer-to-timex}
+@deftpx {Wrapper Class} @aclass{struct-timex}
+@deftpx {Mirror Class} @aclass{timex}
+Pointer label, wrapper class and mirror class interfaces for the
+@code{struct timex} type.
 @end deftp
 
 
-@defun make-<ntptimeval> @var{time}, @var{maxerror}, @var{esterror}
-@defunx <ntptimeval>? @var{obj}
-Constructor and predicate for @class{ntptimeval} records.
-@end defun
+@defcv {Mutable Field} @aclass{timex} modes
+@defcvx {Mutable Field} @aclass{timex} offset
+@defcvx {Mutable Field} @aclass{timex} freq
+@defcvx {Mutable Field} @aclass{timex} maxerror
+@defcvx {Mutable Field} @aclass{timex} esterror
+@defcvx {Mutable Field} @aclass{timex} status
+@defcvx {Mutable Field} @aclass{timex} constant
+@defcvx {Mutable Field} @aclass{timex} precision
+@defcvx {Mutable Field} @aclass{timex} tolerance
+@defcvx {Mutable Field} @aclass{timex} time
+@defcvx {Mutable Field} @aclass{timex} tick
+@defcvx {Mutable Field} @aclass{timex} ppsfreq
+@defcvx {Mutable Field} @aclass{timex} jitter
+@defcvx {Mutable Field} @aclass{timex} shift
+@defcvx {Mutable Field} @aclass{timex} stabil
+@defcvx {Mutable Field} @aclass{timex} jitcnt
+@defcvx {Mutable Field} @aclass{timex} calcnt
+@defcvx {Mutable Field} @aclass{timex} errcnt
+@defcvx {Mutable Field} @aclass{timex} stbcnt
+Fields of the @code{struct timex} interfaces in the order of definition
+for the @class{timex} class.
+@end defcv
 
+@c ------------------------------------------------------------
 
-@defun <ntptimeval>-time @var{pointer}
-@defunx <ntptimeval>-time-set! @var{pointer} @var{value}
-@defunx <ntptimeval>-maxerror @var{pointer}
-@defunx <ntptimeval>-maxerror-set! @var{pointer} @var{value}
-@defunx <ntptimeval>-esterror @var{pointer}
-@defunx <ntptimeval>-esterror-set! @var{pointer} @var{value}
-Accessors and mutators @class{ntptimeval} records.
-@end defun
-
-
-@defun pointer-><ntptimeval> @var{struct-ntptimeval-pointer}
-@defunx <ntptimeval>->pointer @var{ntptimeval-record} @var{malloc}
-Convert between a pointer to a @code{struct ntptimeval} instance and a
-record of type @class{ntptimeval}.
-
-Memory for the foreign structure is allocated with the @var{malloc}
-function, whose interface protocol must match the one of @func{malloc}
-from the @library{foreign memory} library.  @nauref{memory alloc high,
-Exception raising functions}.
-
-These bindings are exported by the @library{posix glibc primitives}
-library.
-@end defun
-
-@c page
-@node time records timex
-@subsection @code{struct timex} mirror
-
-
-The record type described here is used to mirror the C language data
-type @code{struct timex}.  @glibcref{High Accuracy Clock, High Accuracy
-Clock}.
-
-
-@deftp {Record Type Name} <timex>
-@deftpx {Record Type Descriptor} <timex-rtd>
-Record type that mirrors the @code{struct timex} type.  It has the
-following fields, one for each field in the @code{struct timex} type:
-@code{modes}, @code{offset}, @code{freq}, @code{maxerror},
-@code{esterror}, @code{status}, @code{constant}, @code{precision},
-@code{tolerance}, @code{time}, @code{tick}, @code{ppsfreq},
-@code{jitter}, @code{shift}, @code{stabil}, @code{jitcnt},
-@code{calcnt}, @code{errcnt}, @code{stbcnt}.  The @code{time} field
-contains a @class{timeval} record.
+@deftp {Pointer Label} @aclass{pointer-to-itimerval}
+@deftpx {Wrapper Class} @aclass{struct-itimerval}
+@deftpx {Mirror Class} @aclass{itimerval}
+Pointer label, wrapper class and mirror class interfaces for the
+@code{struct itimerval} type.
 @end deftp
 
 
-@defun <timex>-modes @var{pointer}
-@defunx <timex>-modes-set! @var{pointer} @var{value}
-@defunx <timex>-offset @var{pointer}
-@defunx <timex>-offset-set! @var{pointer} @var{value}
-@defunx <timex>-freq @var{pointer}
-@defunx <timex>-freq-set! @var{pointer} @var{value}
-@defunx <timex>-maxerror @var{pointer}
-@defunx <timex>-maxerror-set! @var{pointer} @var{value}
-@defunx <timex>-esterror @var{pointer}
-@defunx <timex>-esterror-set! @var{pointer} @var{value}
-@defunx <timex>-status @var{pointer}
-@defunx <timex>-status-set! @var{pointer} @var{value}
-@defunx <timex>-constant @var{pointer}
-@defunx <timex>-constant-set! @var{pointer} @var{value}
-@defunx <timex>-precision @var{pointer}
-@defunx <timex>-precision-set! @var{pointer} @var{value}
-@defunx <timex>-tolerance @var{pointer}
-@defunx <timex>-tolerance-set! @var{pointer} @var{value}
-@defunx <timex>-time @var{pointer}
-@defunx <timex>-time-set! @var{pointer} @var{value}
-@defunx <timex>-tick @var{pointer}
-@defunx <timex>-tick-set! @var{pointer} @var{value}
-@defunx <timex>-ppsfreq @var{pointer}
-@defunx <timex>-ppsfreq-set! @var{pointer} @var{value}
-@defunx <timex>-jitter @var{pointer}
-@defunx <timex>-jitter-set! @var{pointer} @var{value}
-@defunx <timex>-shift @var{pointer}
-@defunx <timex>-shift-set! @var{pointer} @var{value}
-@defunx <timex>-stabil @var{pointer}
-@defunx <timex>-stabil-set! @var{pointer} @var{value}
-@defunx <timex>-jitcnt @var{pointer}
-@defunx <timex>-jitcnt-set! @var{pointer} @var{value}
-@defunx <timex>-calcnt @var{pointer}
-@defunx <timex>-calcnt-set! @var{pointer} @var{value}
-@defunx <timex>-errcnt @var{pointer}
-@defunx <timex>-errcnt-set! @var{pointer} @var{value}
-@defunx <timex>-stbcnt @var{pointer}
-@defunx <timex>-stbcnt-set! @var{pointer} @var{value}
-Accessors and mutators @class{timex} records.
-@end defun
-
-
-@defun make-<timex> @var{modes} @var{offset} @var{freq} @var{maxerror} @var{esterror} @var{status} @var{constant} @var{precision} @var{tolerance} @var{time} @var{tick} @var{ppsfreq} @var{jitter} @var{shift} @var{stabil} @var{jitcnt} @var{calcnt} @var{errcnt} @var{stbcnt}
-@defunx <timex>? @var{obj}
-Constructor and predicate for @class{timex} records.
-
-These bindings are exported by the @library{posix glibc primitives}
-library.
-@end defun
-
-
-@defun pointer-><timex> @var{struct-timex-pointer}
-@defunx <timex>->pointer @var{timex-record} @var{malloc}
-Convert between a pointer to a @code{struct timex} instance and a record
-of type @class{timex}.
-
-Memory for the foreign structure is allocated with the @var{malloc}
-function, whose interface protocol must match the one of @func{malloc}
-from the @library{foreign memory} library.  @nauref{memory alloc high,
-Exception raising functions}.
-
-These bindings are exported by the @library{posix glibc primitives}
-library.
-@end defun
-
-@c page
-@node time records itimerval
-@subsection @code{struct itimerval} mirror
-
-
-The record type described here is used to mirror the C language data
-type @code{struct itimerval}.  @glibcref{Setting an Alarm, Setting an
-Alarm}.
-
-
-@deftp {Record Type Name} <itimerval>
-@deftpx {Record Type Descriptor} <itimerval-rtd>
-Record type that mirrors the @code{struct itimerval} type.  It has the
-following fields, one for each field in the @code{struct itimerval}
-type: @code{interval}, @code{value}.  Both the fields contain a
-@class{timeval} record.
-@end deftp
-
-
-@defun make-<itimerval> @var{interval} @var{value}
-@defunx <itimerval>? @var{obj}
-Constructor and predicate for @class{itimerval} records.
-@end defun
-
-
-@defun <itimerval>-interval @var{pointer}
-@defunx <itimerval>-interval-set! @var{pointer} @var{value}
-@defunx <itimerval>-value @var{pointer}
-@defunx <itimerval>-value-set! @var{pointer} @var{value}
-Accessors and mutators @class{itimerval} records.
-@end defun
-
-
-@defun pointer-><itimerval> @var{struct-itimerval-pointer}
-@defunx <itimerval>->pointer @var{itimerval-record} @var{malloc}
-Convert between a pointer to a @code{struct itimerval} instance and a
-record of type @class{itimerval}.
-
-Memory for the foreign structure is allocated with the @var{malloc}
-function, whose interface protocol must match the one of @func{malloc}
-from the @library{foreign memory} library.  @nauref{memory alloc high,
-Exception raising functions}.
-
-These bindings are exported by the @library{posix glibc primitives}
-library.
-@end defun
+@defcv {Mutable Field} @aclass{itimerval} it_interval
+@defcvx {Mutable Field} @aclass{itimerval} it_value
+Fields of the @code{struct itimerval} interfaces in the order of
+definition for the @class{itimerval} class.
+@end defcv
 
 @c page
 @node time constants

@@ -61,7 +61,8 @@
     mirror			no-mirror
     fields-inspection		no-fields-inspection
     name:
-    struct-accessor:		struct-mutator:)
+    struct-accessor:		struct-mutator:
+    field-tags:)
   (import (nausicaa)
     (nausicaa formations)
     (nausicaa times-and-dates)
@@ -77,7 +78,8 @@
   mirror		no-mirror
   fields-inspection	no-fields-inspection
   name:
-  struct-accessor:	struct-mutator:)
+  struct-accessor:	struct-mutator:
+  field-tags:)
 
 (define-inline (append! ?var ?ell)
   (set! ?var (append ?var ?ell)))
@@ -685,12 +687,14 @@ As an example, it should be something like:
        (let-values
 	   (((label? wrapper? mirror? fields-inspection?)
 	     (%parse-struct-options #'(?option ...)))
-	    ((field-type-categories C-field-names Scheme-field-names struct-accessors struct-mutators)
+	    ((field-type-categories C-field-names Scheme-field-names
+				    struct-accessors struct-mutators field-tags)
 	     (%parse-struct-fields #'?field-specs)))
 	 #`(%generate-struct-type #,label? #,wrapper? #,mirror? #,fields-inspection?
 				  '?name ?type-string
 				  '#,field-type-categories '#,C-field-names
-				  '#,Scheme-field-names '#,struct-accessors '#,struct-mutators)))
+				  '#,Scheme-field-names '#,struct-accessors '#,struct-mutators
+				  '#,field-tags)))
 
       ((_ ?name ?type-string . ?field-specs)
        #'(define-c-struct ?name ?type-string (options label wrapper mirror) . ?field-specs))
@@ -738,31 +742,34 @@ As an example, it should be something like:
 		     (C-fields		'())
 		     (Scheme-fields	'())
 		     (struct-accessors	'())
-		     (struct-mutators	'()))
+		     (struct-mutators	'())
+		     (field-tags	'()))
       (syntax-case stx ()
 	(()
 	 (values (reverse categories) (reverse C-fields) (reverse Scheme-fields)
-		 (reverse struct-accessors) (reverse struct-mutators)))
+		 (reverse struct-accessors) (reverse struct-mutators) (reverse field-tags)))
 	(((?type-category ?C-field-name . ?field-options) ?spec ...)
-	 (let-values (((Scheme-field-name accessor mutator)
+	 (let-values (((Scheme-field-name accessor mutator tags)
 		       (%parse-field-options #'?C-field-name #'?field-options)))
 	   (next-field #'(?spec ...)
 		       (cons #'?type-category	categories)
 		       (cons #'?C-field-name	C-fields)
 		       (cons Scheme-field-name	Scheme-fields)
 		       (cons accessor		struct-accessors)
-		       (cons mutator		struct-mutators))))
+		       (cons mutator		struct-mutators)
+		       (cons tags		field-tags))))
 	(?subform
 	 (synner "invalid field specification in struct definition" #'?subform)))))
 
   (define (%parse-field-options C-field-name stx)
     (let ((Scheme-field-name	C-field-name)
 	  (struct-accessor	#f)
-	  (struct-mutator	#f))
+	  (struct-mutator	#f)
+	  (field-tags		#f))
       (let next-option ((stx stx))
-	(syntax-case stx (name: struct-accessor: struct-mutator:)
+	(syntax-case stx (name: struct-accessor: struct-mutator: field-tags:)
 	  (()
-	   (values Scheme-field-name struct-accessor struct-mutator))
+	   (values Scheme-field-name struct-accessor struct-mutator field-tags))
 	  (((name: ?Scheme-field-name) . ?options)
 	   (begin
 	     (set! Scheme-field-name #'?Scheme-field-name)
@@ -775,6 +782,10 @@ As an example, it should be something like:
 	   (begin
 	     (set! struct-mutator #'?mutator)
 	     (next-option #'?options)))
+	  (((field-tags: . ?tags) . ?options)
+	   (begin
+	     (set! field-tags #'?tags)
+	     (next-option #'?options)))
 	  ((?subform . ?options)
 	   (synner "invalid field option in struct definition" #'?subform))
 	  ))))
@@ -784,7 +795,7 @@ As an example, it should be something like:
 (define (%generate-struct-type label? wrapper? mirror? fields-inspection?
 			       struct-name struct-string-typedef
 			       field-type-categories C-field-names Scheme-field-names
-			       struct-accessors struct-mutators)
+			       struct-accessors struct-mutators field-tags)
   ;;Build what is needed to handle a C struct type.
   ;;
   ;;LABEL?,  WRAPPER?  and  MIRROR?  are  boolean values:  true  when the
@@ -1009,18 +1020,17 @@ As an example, it should be something like:
           (struct-keyword               (string-upcase (symbol->string struct-name))))
       (for-each
 	  (lambda (C-field-name Scheme-field-name field-type-category
-			   struct-accessor struct-mutator)
+			   struct-accessor struct-mutator tags)
 	    (let* ((accessor	(format-symbol "~a-~a"      label-name Scheme-field-name))
 		   (mutator	(format-symbol "~a-~a-set!" label-name Scheme-field-name))
 		   (keyword	(dot->underscore (string-upcase (symbol->string C-field-name))))
 		   (typeof	(format-symbol "^TYPEOF_~a_~a^"   struct-keyword keyword))
 		   (offset	(format-symbol "^OFFSETOF_~a_~a^" struct-keyword keyword)))
+	      (set-cons! fields (if tags
+				    `(mutable (,Scheme-field-name ,@tags))
+				  `(mutable ,Scheme-field-name)))
 	      (if (eq? 'embedded field-type-category)
 		  (begin
-		    (set-cons! fields `(mutable ,Scheme-field-name))
-		    ;; (set-cons! accessors-and-mutators
-		    ;; 	       `(define-inline (,accessor ?pointer)
-		    ;; 		  (ffi:pointer-add ?pointer ,offset)))
 		    (set-cons! accessors-and-mutators
 		    	       `(define-inline (,accessor ?pointer)
 		    		  (,(or struct-accessor '(error #f "missing field accessor"))
@@ -1030,7 +1040,6 @@ As an example, it should be something like:
 		    		  (,(or struct-mutator '(error #f "missing field mutator"))
 				   ?pointer ,offset ?value))))
 		(begin
-		  (set-cons! fields `(mutable ,Scheme-field-name))
 		  (set-cons! accessors-and-mutators
 			     `(define-inline (,accessor ?pointer)
 				,(if struct-accessor
@@ -1042,7 +1051,8 @@ As an example, it should be something like:
 				     `(,struct-mutator ?pointer ?value)
 				   `(pointer-c-set! ,typeof ?pointer ,offset ?value))))
 		  ))))
-	C-field-names Scheme-field-names field-type-categories struct-accessors struct-mutators)
+	C-field-names Scheme-field-names field-type-categories
+	struct-accessors struct-mutators field-tags)
       ;; register sexps to the sizeof library, structs section
       (%structs-lib-exports label-name)
       (let* ((maker-name	(format-symbol "~a-maker" label-name))
@@ -1111,7 +1121,7 @@ As an example, it should be something like:
 	   (accessors-and-mutators	'())
 	   (struct-keyword		(string-upcase (symbol->string struct-name))))
       (for-each
-	  (lambda (C-field-name Scheme-field-name field-type-category)
+	  (lambda (C-field-name Scheme-field-name field-type-category tags)
 	    (let* ((accessor	(format-symbol "~a-~a"      wrapper-name Scheme-field-name))
 		   (mutator	(format-symbol "~a-~a-set!" wrapper-name Scheme-field-name))
 		   (L-accessor	(format-symbol "~a-~a"      label-name Scheme-field-name))
@@ -1120,22 +1130,17 @@ As an example, it should be something like:
 		   (keyword	(dot->underscore (string-upcase (symbol->string C-field-name))))
 		   (typeof	(format-symbol "^TYPEOF_~a_~a^"   struct-keyword keyword))
 		   (offset	(format-symbol "^OFFSETOF_~a_~a^" struct-keyword keyword)))
-	      (if (eq? 'embedded field-type-category)
-		  (begin
-		    (set-cons! fields `(immutable ,Scheme-field-name))
-		    (set-cons! accessors-and-mutators
-			       `(define-inline (,accessor ?wrapper)
-				  (,L-accessor (,pointer ?wrapper)))))
-		(begin
-		  (set-cons! fields `(mutable ,Scheme-field-name))
-		  (set-cons! accessors-and-mutators
-			     `(define-inline (,accessor ?wrapper)
-				(,L-accessor (,pointer ?wrapper))))
-		  (set-cons! accessors-and-mutators
-			     `(define-inline (,mutator ?wrapper ?value)
-				(,L-mutator (,pointer ?wrapper) ?value)))
-		  ))))
-	C-field-names Scheme-field-names field-type-categories)
+	      (set-cons! fields (if tags
+				    `(mutable (,Scheme-field-name ,@tags))
+				  `(mutable ,Scheme-field-name)))
+	      (set-cons! accessors-and-mutators
+			 `(define-inline (,accessor ?wrapper)
+			    (,L-accessor (,pointer ?wrapper))))
+	      (set-cons! accessors-and-mutators
+			 `(define-inline (,mutator ?wrapper ?value)
+			    (,L-mutator (,pointer ?wrapper) ?value)))
+	      ))
+	C-field-names Scheme-field-names field-type-categories field-tags)
       ;;register sexps to the sizeof library, structs section
       (%structs-lib-exports wrapper-name)
       (let ((maker-name (format-symbol "~a-maker-transformer" wrapper-name)))
@@ -1149,7 +1154,7 @@ As an example, it should be something like:
 		    (malloc:	sentinel	(mandatory)))
 	     (maker-transformer ,maker-name)
 	     (fields (immutable pointer))
-	     (virtual-fields ,@fields))
+	     (virtual-fields ,@(reverse fields)))
 	   ,@accessors-and-mutators
 	   (define-syntax ,maker-name
 	     (syntax-rules (sentinel)
@@ -1182,8 +1187,8 @@ As an example, it should be something like:
     ;;
     ;; (define-class <timeval>
     ;;   (nongenerative nausicaa:posix:<timeval>)
-    ;;   (fields (immutable tv_sec)
-    ;;           (immutable tv_usec)))
+    ;;   (fields (mutable tv_sec)
+    ;;           (mutable tv_usec)))
     ;;
     (%structs-lib-exports mirror-name)
     (let ((maker-name (format-symbol "~a-maker-transformer" mirror-name)))
@@ -1195,9 +1200,11 @@ As an example, it should be something like:
 		  (wrapper:	sentinel	(without pointer: mirror:))
 		  (mirror:	sentinel	(without pointer: wrapper:)))
 	   (maker-transformer ,maker-name)
-	   (fields ,@(map (lambda (name)
-			    `(mutable ,name))
-		       Scheme-field-names)))
+	   (fields ,@(map (lambda (name tags)
+			    (if tags
+				`(mutable (,name ,@tags))
+			      `(mutable ,name)))
+		       Scheme-field-names field-tags)))
 	 (define-syntax ,maker-name
 	   (syntax-rules (sentinel)
 	     ((_ ?constructor ?pointer sentinel sentinel)
