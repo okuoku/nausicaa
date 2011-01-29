@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2009-2011 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -29,11 +29,13 @@
 (library (nausicaa language compensations)
   (export
     with-compensations with-compensations/on-error
-    compensate run-compensations push-compensation)
+    compensate run-compensations push-compensation
+    with)
   (import (rnrs)
     (only (nausicaa language extensions) begin0)
     (nausicaa language parameters)
-    (nausicaa language deferred-exceptions))
+    (nausicaa language deferred-exceptions)
+    (only (nausicaa language auxiliary-syntaxes) with))
 
 
 (define compensations
@@ -77,7 +79,7 @@
 (define-syntax compensate
   ;;Splitting  COMPENSATE in  this macro  and %COMPENSATE  allows  us to
   ;;catch missing WITH subform errors.
-  (syntax-rules (begin with)
+  (syntax-rules ()
     ((_ ?alloc ?form0 ?form ...)
      (%compensate (begin ?alloc) ?form0 ?form ...))))
 

@@ -40,6 +40,9 @@
     public-protocol maker-protocol superclass-protocol virtual-fields
     methods method method-syntax custom-maker mixins satisfies
 
+    ;; makers
+    mandatory optional with without
+
     ;; bindings for string and vector views
     view start past
 
@@ -87,6 +90,10 @@
        <>
        <...>
 
+       ;; makers
+       mandatory optional with without
+
+       ;; string and vector views
        view
        start
        past

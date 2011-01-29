@@ -871,11 +871,6 @@
     letrec-make				letrec*-make
     letrec-make*			letrec*-make*
 
-    ;; auxiliary syntaxes
-    inherit predicate maker maker-transformer setter getter bindings
-    public-protocol maker-protocol superclass-protocol virtual-fields
-    methods method method-syntax custom-maker mixins satisfies
-
     ;; builtin classes
     <top> <builtin> <pair> <list>
     <char> <string> <vector> <bytevector> <hashtable> <condition>
@@ -904,24 +899,56 @@
     match match-lambda match-lambda* match-define match-define*
     match-let match-letrec match-named-let match-let*
 
-    ;; auxiliary syntaxes
-    :predicate
-    :accessor
-    :and
-    :or
-    :not
-    :setter
-    :getter
-    :free-identifier
-    :bound-identifier
-
     ;; conditions
     &match-mismatch
     make-match-mismatch-condition
     match-mismatch-condition?
     condition-match-mismatch/expression
     match-mismatch-error
-  )
+
+
+;;;; auxiliary syntaxes
+
+;; classes
+bindings
+custom-maker
+getter
+inherit
+maker
+maker-protocol
+maker-transformer
+method
+method-syntax
+methods
+mixins
+predicate
+public-protocol
+satisfies
+setter
+superclass-protocol
+virtual-fields
+
+;; matches
+:accessor
+:and
+:bound-identifier
+:free-identifier
+:getter
+:not
+:or
+:predicate
+:setter
+
+;; makers
+mandatory
+optional
+with
+without
+
+
+;;;; done exports
+
+)
 
 
   (import (for (except (rnrs)

@@ -27,19 +27,23 @@
 
 #!r6rs
 (library (nausicaa language makers)
-  (export define-maker define-auxiliary-syntax define-auxiliary-syntaxes
-	  mandatory optional with without)
+  (export
+    define-maker
+    define-auxiliary-syntax
+    define-auxiliary-syntaxes
+    ;; auxiliary syntaxes
+    mandatory optional with without)
   (import (rnrs)
     ;;Notice that  we need  to have the  helpers in a  different library
     ;;loaded for  expand, because  the functions are  used by  the newly
     ;;defined macros, not only by DEFINE-MAKER.
     (for (nausicaa language makers helpers) expand)
+    (only (nausicaa language auxiliary-syntaxes)
+	  mandatory optional with without)
     (only (nausicaa language extensions)
 	  define-auxiliary-syntax
 	  define-auxiliary-syntaxes)
     (for (nausicaa language syntax-utilities) expand run))
-
-  (define-auxiliary-syntaxes mandatory optional with without)
 
 
 (define-syntax define-maker
