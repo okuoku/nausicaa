@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2010, 2011 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -28,7 +28,7 @@
 #!r6rs
 (import (nausicaa)
   (rnrs eval)
-  (nausicaa language makers)
+;;  (nausicaa language makers)
   (prefix (makers-lib) lib.)	;this is in the tests directory
   (nausicaa checks)
   (nausicaa language sentinel))
