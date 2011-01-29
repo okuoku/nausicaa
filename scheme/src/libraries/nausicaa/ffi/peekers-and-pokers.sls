@@ -7,7 +7,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2009-2011 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -54,7 +54,7 @@
 	    (pointer-set-c-int64!	pointer-set-c-int64_t!)
 	    (pointer-set-c-uint64!	pointer-set-c-uint64_t!))
     (for (nausicaa ffi syntax-helpers) expand)
-    (for (nausicaa ffi clang-data-types) expand))
+    (for (nausicaa ffi clang type-translation) expand))
 
 
 (define-syntax pointer-c-ref

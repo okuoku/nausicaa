@@ -9,7 +9,7 @@
 ;;;	conversion functions.   Not all the constants may  be defined on
 ;;;	your platform, if a symbol is not defined its value is #f.
 ;;;
-;;;Copyright (c) 2008-2010 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2008-2011 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -97,7 +97,7 @@
     (only (nausicaa ffi)
 	  define-c-functions
 	  libc-shared-object)
-    (only (nausicaa ffi clang-data-types)
+    (only (nausicaa ffi clang type-translation)
 	  clang-maybe-foreign-type->clang-external-type)
     (only (nausicaa ffi cstrings)
 	  cstring->string))

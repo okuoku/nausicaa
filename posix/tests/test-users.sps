@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2009-2011 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -26,14 +26,11 @@
 
 
 (import (nausicaa)
-  (strings)
-  (compensations)
-  (deferred-exceptions)
-  (records)
-  (foreign errno)
-  (for (posix typedefs) expand run)
-  (prefix (posix system) posix:)
-  (prefix (glibc streams) glibc:)
+  (nausicaa strings)
+  (nausicaa ffi errno)
+  (for (nausicaa posix typedefs) expand run)
+  (prefix (nausicaa posix system) px.)
+  (prefix (nausicaa glibc streams) glibc.)
   (checks))
 
 (check-set-mode! 'report-failed)
@@ -49,27 +46,27 @@
     (lambda ()
 
       (check
-	  (uid? (posix:getuid))
+	  (uid? (px.getuid))
 	=> #t)
 
       (check
-	  (gid? (posix:getgid))
+	  (gid? (px.getgid))
 	=> #t)
 
       (check
-	  (uid? (posix:geteuid))
+	  (uid? (px.geteuid))
 	=> #t)
 
       (check
-	  (gid? (posix:getegid))
+	  (gid? (px.getegid))
 	=> #t)
 
       (check
-	  (for-all gid? (posix:getgroups))
+	  (for-all gid? (px.getgroups))
 	=> #t)
 
       (check
-	  (for-all gid? (posix:getgrouplist "marco" (posix:getgid)))
+	  (for-all gid? (px.getgrouplist "marco" (px.getgid)))
 	=> #t)
 
       #t)))
@@ -84,19 +81,19 @@
     (lambda ()
 
       (check
-	  (posix:setuid (posix:getuid))
+	  (px.setuid (px.getuid))
 	=> 0)
 
       (check
-	  (posix:setgid (posix:getgid))
+	  (px.setgid (px.getgid))
 	=> 0)
 
       (check
-	  (posix:seteuid (posix:geteuid))
+	  (px.seteuid (px.geteuid))
 	=> 0)
 
       (check
-	  (posix:setegid (posix:getegid))
+	  (px.setegid (px.getegid))
 	=> 0)
 
       (check
@@ -105,7 +102,7 @@
 		     (errno-symbolic-value E))
 		    (else
 		     #f))
-	    (posix:setgroups (posix:getgroups)))
+	    (px.setgroups (px.getgroups)))
 	=> 'EPERM)
 
       #t)))
@@ -120,11 +117,11 @@
     (lambda ()
 
       (check
-	  (posix:getlogin)
+	  (px.getlogin)
 	=> "marco")
 
       (check
-	  (posix:cuserid)
+	  (px.cuserid)
 	=> "marco")
 
       #t)))
@@ -139,20 +136,20 @@
     (lambda ()
 
       (check
-	  (let ((record (posix:getpwuid (posix:getuid))))
+	  (let ((record (px.getpwuid (px.getuid))))
 	    (<passwd>? record))
 	=> #t)
 
       (check
-	  (let ((pwd (posix:getpwuid (posix:getuid))))
+	  (let ((pwd (px.getpwuid (px.getuid))))
 	    (with-fields* ((name <passwd-rtd> pwd))
 	      pwd.name))
 	=> "marco")
 
       (check
-	  (let ((pwd (posix:getpwuid (posix:getuid))))
+	  (let ((pwd (px.getpwuid (px.getuid))))
 	    (with-fields* ((name <passwd-rtd> pwd))
-	      (let ((pwd (posix:getpwnam pwd.name)))
+	      (let ((pwd (px.getpwnam pwd.name)))
 		(with-fields* ((name <passwd-rtd> pwd))
 		  pwd.name))))
 	=> "marco")
@@ -160,11 +157,11 @@
       (check
 	  (let ((pwds (with-compensations
 			(letrec ((file* (compensate
-					    (glibc:fopen "/etc/passwd" "r")
+					    (glibc.fopen "/etc/passwd" "r")
 					  (with
-					   (glibc:fclose file*)))))
+					   (glibc.fclose file*)))))
 			  (let loop ((pwds '()))
-			    (let ((pwd (posix:fgetpwent file*)))
+			    (let ((pwd (px.fgetpwent file*)))
 			      (if pwd
 				  (loop (cons pwd pwds))
 				pwds)))))))
@@ -186,20 +183,20 @@
     (lambda ()
 
       (check
-	  (let ((record (posix:getgrgid (posix:getgid))))
+	  (let ((record (px.getgrgid (px.getgid))))
 	    (<group>? record))
 	=> #t)
 
       (check
-	  (let ((grp (posix:getgrgid (posix:getgid))))
+	  (let ((grp (px.getgrgid (px.getgid))))
 	    (with-fields* ((name <group-rtd> grp))
 	      grp.name))
 	=> "marco")
 
       (check
-	  (let ((grp (posix:getgrgid (posix:getgid))))
+	  (let ((grp (px.getgrgid (px.getgid))))
 	    (with-fields* ((name <group-rtd> grp))
-	      (let ((grp (posix:getgrnam grp.name)))
+	      (let ((grp (px.getgrnam grp.name)))
 		(with-fields* ((name <group-rtd> grp))
 		  grp.name))))
 	=> "marco")
@@ -207,11 +204,11 @@
       (check
       	  (let ((grps (with-compensations
       			(letrec ((file* (compensate
-      					    (glibc:fopen "/etc/group" "r")
+      					    (glibc.fopen "/etc/group" "r")
       					  (with
-      					   (glibc:fclose file*)))))
+      					   (glibc.fclose file*)))))
       			  (let loop ((grps '()))
-      			    (let ((grp (posix:fgetgrent file*)))
+      			    (let ((grp (px.fgetgrent file*)))
       			      (if grp
       				  (loop (cons grp grps))
       				grps)))))))

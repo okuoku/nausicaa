@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2009, 2010, 2011 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -417,7 +417,7 @@
 	  (name-sizeof		(format-symbol "sizeof-~s"	struct-name))
 	  (name-alignof		(format-symbol "alignof-~s"	struct-name))
 	  (name-strideof	(format-symbol "strideof-~s"	struct-name)))
-      (autoconf-lib (format "NAUSICAA_INSPECT_STRUCT_TYPE([~a],[~a],[#f])"
+      (autoconf-lib (format "NAUSICAA_INSPECT_STRUCT_TYPE([~a],[~a],[\"#f\"])"
 		      struct-keyword struct-string-typedef))
       (%sizeof-lib `((define ,name-sizeof	,ac-symbol-sizeof)
 		     (define ,name-alignof	,ac-symbol-alignof)
@@ -481,20 +481,20 @@
 
 ;;;; license notices
 
-(define $date
-  (current-date))
+;; (define $date
+;;   (current-date))
 
 (define $sizeof-license
   (string-append ";;;
 ;;;Part of: Nausicaa
 ;;;Contents: foreign library inspection generation
-;;;Date: " (date->string $date "~a ~b ~e, ~Y") "
+;;;Date: " #;(date->string $date "~a ~b ~e, ~Y") "
 ;;;
 ;;;Abstract
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) " (date->string $date "~Y") " Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) " #;(date->string $date "~Y") " Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -515,13 +515,13 @@
   (string-append ";;;
 ;;;Part of: Nausicaa
 ;;;Contents: foreign library C language type mapping
-;;;Date: " (date->string $date "~a ~b ~e, ~Y") "
+;;;Date: " #;(date->string $date "~a ~b ~e, ~Y") "
 ;;;
 ;;;Abstract
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) " (date->string $date "~Y") " Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) " #;(date->string $date "~Y") " Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -542,13 +542,13 @@
   (string-append "dnl
 dnl Part of: Nausicaa
 dnl Contents: foreign library inspection generation
-dnl Date: " (date->string $date "~a ~b ~e, ~Y") "
+dnl Date: " #;(date->string $date "~a ~b ~e, ~Y") "
 dnl
 dnl Abstract
 dnl
 dnl
 dnl
-dnl Copyright (c) " (date->string $date "~Y") " Marco Maggi <marco.maggi-ipsu@poste.it>
+dnl Copyright (c) " #;(date->string $date "~Y") " Marco Maggi <marco.maggi-ipsu@poste.it>
 dnl
 dnl This program is free software:  you can redistribute it and/or modify
 dnl it under the terms of the  GNU General Public License as published by

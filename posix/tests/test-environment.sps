@@ -7,7 +7,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2008, 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2008-2011 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -25,9 +25,9 @@
 
 
 (import (nausicaa)
-  (checks)
-  (posix system)
-  (glibc system))
+  (nausicaa checks)
+  (nausicaa posix system)
+  (nausicaa glibc system))
 
 (check-set-mode! 'report-failed)
 (display "*** testing POSIX and Glibc environment variables access\n")

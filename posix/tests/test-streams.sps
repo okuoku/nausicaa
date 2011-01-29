@@ -7,7 +7,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2008-2010 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2008-2011 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -25,16 +25,15 @@
 
 
 (import (nausicaa)
-  (checks)
-  (strings)
-  (compensations)
-  (foreign ffi)
-  (foreign memory)
-  (foreign cstrings)
-  (foreign errno)
-  (posix sizeof)
-  (glibc streams)
-  (prefix (glibc streams platform) platform:))
+  (nausicaa checks)
+  (nausicaa strings)
+  (nausicaa ffi)
+  (nausicaa ffi memory)
+  (nausicaa ffi cstrings)
+  (nausicaa ffi errno)
+  (nausicaa posix sizeof)
+  (nausicaa glibc streams)
+  (prefix (nausicaa glibc streams platform) platform.))
 
 (check-set-mode! 'report-failed)
 
@@ -136,7 +135,7 @@ Ses ailes de geant l'empechent de marcher.
 	    (fseek S 0 SEEK_SET)
 	    (let loop ()
 	      (receive (result errno)
-		  (platform:getline *pointer *count (FILE*->pointer S))
+		  (platform.getline *pointer *count (FILE*->pointer S))
 		(cond ((ferror S)
 		       (free)
 		       (raise-errno-error 'reading-line errno S))
@@ -174,7 +173,7 @@ Ses ailes de geant l'empechent de marcher.
 	    (fseek S 0 SEEK_SET)
 	    (let loop ()
 	      (receive (result errno)
-		  (platform:getline *pointer *count (FILE*->pointer S))
+		  (platform.getline *pointer *count (FILE*->pointer S))
 		(cond ((ferror S)
 		       (primitive-free (getp))
 		       (raise-errno-error 'reading-line errno S))
@@ -247,7 +246,7 @@ Ses ailes de geant l'empechent de marcher.
 	    (fseek S 0 SEEK_SET)
 	    (let loop ()
 	      (receive (result errno)
-		  (platform:getdelim *pointer *count (char->integer #\newline) (FILE*->pointer S))
+		  (platform.getdelim *pointer *count (char->integer #\newline) (FILE*->pointer S))
 		(cond ((ferror S)
 		       (primitive-free (getp))
 		       (raise-errno-error 'reading-line errno S))
@@ -282,7 +281,7 @@ Ses ailes de geant l'empechent de marcher.
 	    (fseek S 0 SEEK_SET)
 	    (let loop ()
 	      (receive (result errno)
-		  (platform:getdelim *pointer *count (char->integer #\newline) (FILE*->pointer S))
+		  (platform.getdelim *pointer *count (char->integer #\newline) (FILE*->pointer S))
 		(cond ((ferror S)
 		       (primitive-free (getp))
 		       (raise-errno-error 'reading-line errno S))

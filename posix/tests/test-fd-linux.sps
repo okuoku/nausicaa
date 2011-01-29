@@ -7,7 +7,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2010, 2011 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -25,20 +25,17 @@
 
 
 (import (nausicaa)
-  (checks)
-  (strings)
-  (records)
-  (foreign ffi)
-  (foreign memory)
-  (foreign cstrings)
-  (foreign errno)
-  (for (posix typedefs) expand run)
-  (for (posix extensions) expand)
-  (prefix (posix fd) posix:)
-  (prefix (linux fd) linux:)
-  (posix sizeof)
-  (deferred-exceptions)
-  (compensations))
+  (nausicaa checks)
+  (nausicaa strings)
+  (nausicaa ffi)
+  (nausicaa ffi memory)
+  (nausicaa ffi cstrings)
+  (nausicaa ffi errno)
+  (for (nausicaa posix typedefs) expand run)
+  (for (nausicaa posix extensions) expand)
+  (prefix (nausicaa posix fd) posix:)
+  (prefix (nausicaa linux fd) linux:)
+  (nausicaa posix sizeof))
 
 (check-set-mode! 'report-failed)
 (display "*** testing Linux fd\n")

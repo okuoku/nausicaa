@@ -7,7 +7,7 @@
 #
 #
 #
-# Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
+# Copyright (c) 2009, 2010, 2011 Marco Maggi <marco.maggi-ipsu@poste.it>
 #
 # This program is  free software: you can redistribute  it and/or modify
 # it under the  terms of the GNU General Public  License as published by
@@ -28,26 +28,27 @@
 ## Installation of source and fasl libraries.
 ## --------------------------------------------------------------------
 
-$(eval $(call nau-libraries,posix,posix))
-$(eval $(call nau-libraries,posix_fd,posix/fd))
-$(eval $(call nau-libraries,posix_file,posix/file))
-$(eval $(call nau-libraries,posix_process,posix/process))
-$(eval $(call nau-libraries,posix_sockets,posix/sockets))
-$(eval $(call nau-libraries,posix_signals,posix/signals))
-$(eval $(call nau-libraries,posix_system,posix/system))
-$(eval $(call nau-libraries,posix_time,posix/time))
+$(eval $(call nau-libraries,posix,nausicaa/posix))
+$(eval $(call nau-libraries,posix_clang,nausicaa/posix/clang))
+$(eval $(call nau-libraries,posix_fd,nausicaa/posix/fd))
+$(eval $(call nau-libraries,posix_file,nausicaa/posix/file))
+$(eval $(call nau-libraries,posix_process,nausicaa/posix/process))
+$(eval $(call nau-libraries,posix_sockets,nausicaa/posix/sockets))
+$(eval $(call nau-libraries,posix_signals,nausicaa/posix/signals))
+$(eval $(call nau-libraries,posix_system,nausicaa/posix/system))
+$(eval $(call nau-libraries,posix_time,nausicaa/posix/time))
 
-$(eval $(call nau-libraries,glibc,glibc))
-$(eval $(call nau-libraries,glibc_cstrings,glibc/cstrings))
-$(eval $(call nau-libraries,glibc_file,glibc/file))
-$(eval $(call nau-libraries,glibc_signals,glibc/signals))
-$(eval $(call nau-libraries,glibc_sockets,glibc/sockets))
-$(eval $(call nau-libraries,glibc_streams,glibc/streams))
-$(eval $(call nau-libraries,glibc_system,glibc/system))
-$(eval $(call nau-libraries,glibc_time,glibc/time))
+$(eval $(call nau-libraries,glibc,nausicaa/glibc))
+$(eval $(call nau-libraries,glibc_cstrings,nausicaa/glibc/cstrings))
+$(eval $(call nau-libraries,glibc_file,nausicaa/glibc/file))
+$(eval $(call nau-libraries,glibc_signals,nausicaa/glibc/signals))
+$(eval $(call nau-libraries,glibc_sockets,nausicaa/glibc/sockets))
+$(eval $(call nau-libraries,glibc_streams,nausicaa/glibc/streams))
+$(eval $(call nau-libraries,glibc_system,nausicaa/glibc/system))
+$(eval $(call nau-libraries,glibc_time,nausicaa/glibc/time))
 
-$(eval $(call nau-libraries,linux,linux))
-$(eval $(call nau-libraries,linux_fd,linux/fd))
+$(eval $(call nau-libraries,linux,nausicaa/linux))
+$(eval $(call nau-libraries,linux_fd,nausicaa/linux/fd))
 
 ### end of file
 # Local Variables:

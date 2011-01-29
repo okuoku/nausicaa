@@ -9,7 +9,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2009-2011 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -27,12 +27,181 @@
 
 
 (import (nausicaa)
-  (foreign ffi inspector-maker))
+  (inspector-maker))
+
+(class-uid-prefix "nausicaa:posix")
+
+(sizeof-lib-imports/quote
+ (prefix (nausicaa posix clang stub-functions) stub.)
+ (prefix (nausicaa ffi cstrings) ffi.))
 
 
+;;;; primitive accessors and mutators
+
+(sizeof-lib/quote
+
+ (define (embedded.bytevector->memory! bv pointer number-of-bytes)
+   ;;Copy the selected  number of bytes from a  bytevector into a memory
+   ;;block into.
+   ;;
+   (do ((i 0 (+ 1 i)))
+       ((= i number-of-bytes))
+     (ffi.pointer-c-set! uint8_t pointer i (bytevector-u8-ref bv i))))
+
+ (define (embedded.memory->bytevector! pointer bv number-of-bytes)
+   ;;Copy  the selected  number  of bytes  from  a memory  block into  a
+   ;;bytevector.
+   ;;
+   (do ((i 0 (+ 1 i)))
+       ((= i number-of-bytes))
+     (bytevector-u8-set! bv i (ffi.pointer-c-ref uint8_t pointer i))))
+
 ;;; --------------------------------------------------------------------
-;;; Inspection: typedefs.
+
+ (define (embedded.generic-struct-pointer-bytevector struct-pointer field-offset number-of-bytes)
+   ;;Generic  embedded   memory  block  accessor.   Store   into  a  new
+   ;;bytevector  the selected number  of bytes  embedded into  a struct;
+   ;;return the bytevector.
+   ;;
+   (let ((bv (make-bytevector number-of-bytes)))
+     (embedded.memory->bytevector! (ffi.pointer-add struct-pointer field-offset) bv number-of-bytes)
+     bv))
+
+ (define (embedded.generic-struct-pointer-bytevector-set! struct-pointer field-offset number-of-bytes bv)
+   ;;Generic embedded  memory block mutator.  Store the  given number of
+   ;;bytes from bytevector into a memory block embedded into a struct.
+   ;;
+   (embedded.bytevector->memory! bv (ffi.pointer-add struct-pointer field-offset) number-of-bytes))
+
 ;;; --------------------------------------------------------------------
+
+ (define-inline (embedded.generic-struct-pointer-cstring struct-pointer field-offset)
+   ;;Generic embedded C string accessor.  Convert a C string embedded in
+   ;;a struct into a Scheme string; return the Scheme string.
+   ;;
+   (ffi.cstring->string (ffi.pointer-add struct-pointer field-offset)))
+
+ (define (embedded.generic-struct-pointer-cstring-set! struct-pointer field-offset str)
+   ;;Generic embedded C string mutator.  Convert the given Scheme string
+   ;;into  a UTF8  bytevector  and  store the  bytes  into the  embedded
+   ;;string.
+   ;;
+   ;;Beware using this function!!!
+   ;;
+   (let (((bv <bytevector>) (string->utf8 str))
+	 (fp* (ffi.pointer-add struct-pointer field-offset)))
+     (embedded.bytevector->memory! bv fp* bv.length)
+     ;;terminate with a zero byte
+     (pointer-c-set! uint8_t (ffi.pointer-add fp* bv.length) 0 0)))
+
+;;; --------------------------------------------------------------------
+
+ (define (embedded.generic-struct-pointer-timeval struct-pointer field-offset)
+   ;;Generic embedded "struct timeval"  accessor.  Extract the fields of
+   ;;the embedded structure and return an instance of <timeval>.
+   ;;
+   (make <timeval>
+     (pointer: (ffi.pointer-add struct-pointer field-offset))))
+
+ (define (embedded.generic-struct-pointer-timeval-set! struct-pointer field-offset (tv <timeval>))
+   ;;Generic embedded "struct timeval" mutator.  Extract the fields of a
+   ;;<timeval> instance  and store the values into  the embedded "struct
+   ;;timeval".
+   ;;
+   (let (((tv* <pointer-to-timeval>) (ffi.pointer-add struct-pointer field-offset)))
+     (set! tv*.tv_sec  tv.tv_sec)
+     (set! tv*.tv_usec tv.tv_usec)))
+
+ )
+
+
+;;;; accessor and mutator definition utilities
+
+(sizeof-lib/quote
+
+ (define-syntax embedded.define-cstring-accessor
+   (identifier-syntax embedded.generic-struct-pointer-cstring))
+
+;;; --------------------------------------------------------------------
+
+ (define-syntax embedded.define-timeval-accessor
+   (identifier-syntax embedded.generic-struct-pointer-timeval))
+
+ (define-syntax embedded.define-timeval-mutator
+   (identifier-syntax embedded.generic-struct-pointer-timeval-set!))
+
+ (define-syntax embedded.define-timeval-accessor-and-mutator
+   (syntax-rules ()
+     ((_ ?accesor ?mutator)
+      (begin
+	(embedded.define-timeval-accessor ?accessor)
+	(embedded.define-timeval-mutator  ?mutator)))))
+
+;;; --------------------------------------------------------------------
+
+ (define-syntax embedded.define-bytevector-accessor
+   (syntax-rules ()
+     ((_ ?accessor ?number-of-bytes)
+      (define-inline (?accessor struct-pointer field-offset)
+	(embedded.generic-struct-pointer-bytevector struct-pointer field-offset ?number-of-bytes)))))
+
+ (define-syntax embedded.define-bytevector-mutator
+   (syntax-rules ()
+     ((_ ?mutator ?number-of-bytes)
+      (define-inline (?mutator struct-pointer field-offset bv)
+	(embedded.generic-struct-pointer-bytevector-set! struct-pointer field-offset
+							 ?number-of-bytes bv)))))
+
+ (define-syntax embedded.define-bytevector-accessor-and-mutator
+   (syntax-rules ()
+     ((_ ?accessor ?mutator ?number-of-bytes)
+      (begin
+	(embedded.define-bytevector-accessor ?accessor ?number-of-bytes)
+	(embedded.define-bytevector-mutator  ?mutator  ?number-of-bytes)))))
+
+;;; --------------------------------------------------------------------
+
+ (define-syntax embedded.define-error-accessor
+   ;;Define an accessor which raises an error when invoked.  This is for
+   ;;fields  embedded  in  C  structs  which cannot  be  modified,  like
+   ;;"sa_data" in "struct sockaddr".
+   ;;
+   (lambda (stx)
+     (syntax-case stx ()
+       ((_ ?name ?struct-name ?field-name)
+	(with-syntax
+	    ((MESSAGE (string-append "embedded field \"" (syntax->datum #'?field-name)
+				     "\" of C struct \"" (syntax->datum #'?struct-name)
+				     "\" cannot be accessed")))
+	  #'(define (?name struct-pointer field-offset value)
+	      (error '?name MESSAGE)))))))
+
+ (define-syntax embedded.define-error-mutator
+   ;;Define a mutator  which raises an error when  invoked.  This is for
+   ;;fields  embedded  in  C  structs  which cannot  be  modified,  like
+   ;;"d_name" in "struct dirent".
+   ;;
+   (lambda (stx)
+     (syntax-case stx ()
+       ((_ ?name ?struct-name ?field-name)
+	(with-syntax
+	    ((MESSAGE (string-append "embedded field \"" (syntax->datum #'?field-name)
+				     "\" of C struct \"" (syntax->datum #'?struct-name)
+				     "\" cannot be modified")))
+	  #'(define (?name struct-pointer field-offset)
+	      (error '?name MESSAGE)))))))
+
+ (define-syntax embedded.define-error-accessor-and-mutator
+   (syntax-rules ()
+     ((_ ?accesor ?mutator ?number-of-bytes)
+      (begin
+	(embedded.define-error-accessor ?accessor)
+	(embedded.define-error-mutator  ?mutator)))))
+
+ )
+
+
+;;;; inspection: typedefs
 
 (define-c-type blkcnt_t		unsigned-int)
 (define-c-type clock_t		signed-int)
@@ -51,9 +220,7 @@
 (define-c-type-alias socklen_t*	pointer)
 
 
-;;; --------------------------------------------------------------------
-;;; Struct types inspection.
-;;; --------------------------------------------------------------------
+;;;; inspection: struct types
 
 (define-c-struct flock
   "struct flock"
@@ -74,7 +241,20 @@
   (signed-int		tv_nsec))
 
 (define-c-struct tms
-  "struct tms")
+  "struct tms"
+  (options no-fields-inspection)
+  (dummy tms_utime
+	 (struct-accessor: stub.<pointer-to-tms>-tms_utime)
+	 (struct-mutator:  stub.<pointer-to-tms>-tms_utime-set!))
+  (dummy tms_stime
+	 (struct-accessor: stub.<pointer-to-tms>-tms_stime)
+	 (struct-mutator:  stub.<pointer-to-tms>-tms_stime-set!))
+  (dummy tms_cutime
+	 (struct-accessor: stub.<pointer-to-tms>-tms_cutime)
+	 (struct-mutator:  stub.<pointer-to-tms>-tms_cutime-set!))
+  (dummy tms_cstime
+	 (struct-accessor: stub.<pointer-to-tms>-tms_cstime)
+	 (struct-mutator:  stub.<pointer-to-tms>-tms_cstime-set!)))
 
 (define-c-struct dirent
   "struct dirent"
@@ -82,7 +262,12 @@
   (signed-int		d_off)
   (unsigned-int		d_reclen)
   (unsigned-int		d_type)
-  (embedded		d_name))
+  (embedded		d_name
+			(struct-accessor: embedded.generic-struct-pointer-cstring)
+			(struct-mutator:  embedded.pointer-to-dirent-d_name-set!)))
+
+(sizeof-lib/quote
+ (embedded.define-error-mutator embedded.pointer-to-dirent-d_name-set! "dirent" "d_name"))
 
 ;;The stat structure  is "special", so the following  tests do not work.
 ;;We relay  on the stub library  to access it.  Note  that the following
@@ -146,7 +331,10 @@ AC_CHECK_MEMBERS([struct stat.st_ctime_usec])
 
 (define-c-struct ntptimeval
   "struct ntptimeval"
-  (embedded		time)
+  (embedded		time
+			(struct-accessor: embedded.generic-struct-pointer-timeval)
+			(struct-mutator:  embedded.generic-struct-pointer-timeval-set!)
+			(field-tags: <timeval>))
   (signed-int		maxerror)
   (signed-int		esterror))
 
@@ -161,7 +349,9 @@ AC_CHECK_MEMBERS([struct stat.st_ctime_usec])
   (signed-int		constant)
   (signed-int		precision)
   (signed-int		tolerance)
-  (embedded		time)
+  (embedded		time
+			(struct-accessor: embedded.generic-struct-pointer-timeval)
+			(struct-mutator:  embedded.generic-struct-pointer-timeval-set!))
   (signed-int		tick)
   (signed-int		ppsfreq)
   (signed-int		jitter)
@@ -174,8 +364,12 @@ AC_CHECK_MEMBERS([struct stat.st_ctime_usec])
 
 (define-c-struct itimerval
   "struct itimerval"
-  (embedded		it_interval)
-  (embedded		it_value))
+  (embedded	it_interval
+		(struct-accessor: embedded.generic-struct-pointer-timeval)
+		(struct-mutator:  embedded.generic-struct-pointer-timeval-set!))
+  (embedded	it_value
+		(struct-accessor: embedded.generic-struct-pointer-timeval)
+		(struct-mutator:  embedded.generic-struct-pointer-timeval-set!)))
 
 (define-c-struct FTW
   "struct FTW"
@@ -208,12 +402,32 @@ AC_CHECK_MEMBERS([struct stat.st_ctime_usec])
 
 (define-c-struct utsname
   "struct utsname"
-  (embedded		sysname)
-  (embedded		release)
-  (embedded		version)
-  (embedded		machine)
-  (embedded		nodename)
-  (embedded		domainname))
+  (embedded		sysname
+			(struct-accessor: embedded.generic-struct-pointer-cstring)
+			(struct-mutator:  embedded.pointer-to-utsname-sysname-set!))
+  (embedded		release
+			(struct-accessor: embedded.generic-struct-pointer-cstring)
+			(struct-mutator:  embedded.pointer-to-utsname-release-set!))
+  (embedded		version
+			(struct-accessor: embedded.generic-struct-pointer-cstring)
+			(struct-mutator:  embedded.pointer-to-utsname-version-set!))
+  (embedded		machine
+			(struct-accessor: embedded.generic-struct-pointer-cstring)
+			(struct-mutator:  embedded.pointer-to-utsname-machine-set!))
+  (embedded		nodename
+			(struct-accessor: embedded.generic-struct-pointer-cstring)
+			(struct-mutator:  embedded.pointer-to-utsname-nodename-set!))
+  (embedded		domainname
+			(struct-accessor: embedded.generic-struct-pointer-cstring)
+			(struct-mutator:  embedded.pointer-to-utsname-domainname-set!)))
+
+(sizeof-lib/quote
+ (embedded.define-error-mutator embedded.pointer-to-utsname-sysname-set! "utsname" "sysname")
+ (embedded.define-error-mutator embedded.pointer-to-utsname-release-set! "utsname" "release")
+ (embedded.define-error-mutator embedded.pointer-to-utsname-version-set! "utsname" "version")
+ (embedded.define-error-mutator embedded.pointer-to-utsname-machine-set! "utsname" "machine")
+ (embedded.define-error-mutator embedded.pointer-to-utsname-nodename-set! "utsname" "nodename")
+ (embedded.define-error-mutator embedded.pointer-to-utsname-domainname-set! "utsname" "domainname"))
 
 (define-c-struct fstab
   "struct fstab"
@@ -234,59 +448,69 @@ AC_CHECK_MEMBERS([struct stat.st_ctime_usec])
   (signed-int		mnt_freq)
   (signed-int		mnt_passno))
 
-(define-c-type-alias sockaddr*	pointer)
-
 (define-c-struct sockaddr
   "struct sockaddr"
   (signed-int		sa_family)
-  (embedded		sa_data))
-
-(define-c-type-alias sockaddr_in*	pointer)
+;;;The dimension of this field is format-dependent, so we leave it out.
+;;;  (embedded		sa_data)
+  )
 
 (define-c-struct sockaddr_in
   "struct sockaddr_in"
   (signed-int		sin_family)
-  (embedded		sin_addr)
+  (embedded		sin_addr
+			(struct-accessor: embedded.pointer-to-sockaddr_in-sin_addr)
+			(struct-mutator:  embedded.pointer-to-sockaddr_in-sin_addr-set!))
   (unsigned-int		sin_port))
 
-(define-c-type-alias sockaddr_in6*	pointer)
+(sizeof-lib/quote
+ ;; (embedded.define-bytevector-accessor embedded.pointer-to-sockaddr_in-sin_addr
+ ;; 				      (c-sizeof struct-in_addr))
+ ;; (embedded.define-bytevector-mutator  embedded.pointer-to-sockaddr_in-sin_addr-set!
+ ;; 				      (c-sizeof struct-in_addr))
+ (embedded.define-bytevector-accessor-and-mutator embedded.pointer-to-sockaddr_in-sin_addr
+						  embedded.pointer-to-sockaddr_in-sin_addr-set!
+						  (c-sizeof struct-in_addr)))
 
 (define-c-struct sockaddr_in6
   "struct sockaddr_in6"
   (signed-int		sin6_family)
-  (embedded		sin6_addr)
+  (embedded		sin6_addr
+			(struct-accessor: embedded.pointer-to-sockaddr_in6-sin6_addr)
+			(struct-mutator:  embedded.pointer-to-sockaddr_in6-sin6_addr-set!))
 ;;;This field is documented as unimplemented in Glibc.
 ;;;
 ;;;  (unsigned-int		sin6_flowinfo)
   (unsigned-int		sin6_port))
 
-(define-c-type-alias sockaddr_un*	pointer)
+(sizeof-lib/quote
+ (embedded.define-bytevector-accessor embedded.pointer-to-sockaddr_in6-sin6_addr
+				      (c-sizeof struct-in6_addr))
+ (embedded.define-bytevector-mutator  embedded.pointer-to-sockaddr_in6-sin6_addr-set!
+				      (c-sizeof struct-in6_addr))
+ #;(embedded.define-bytevector-accessor-and-mutator embedded.pointer-to-sockaddr_in6-sin6_addr
+						  embedded.pointer-to-sockaddr_in6-sin6_addr-set!
+						  (c-sizeof struct-in6_addr)))
 
 (define-c-struct sockaddr_un
   "struct sockaddr_un"
   (signed-int		sun_family)
-  (embedded		sun_path))
-
-(define-c-type-alias in_addr*		pointer)
+  (embedded		sun_path
+			(struct-accessor: embedded.generic-struct-pointer-cstring)
+			(struct-mutator:  embedded.generic-struct-pointer-cstring-set!)))
 
 (define-c-struct in_addr
   "struct in_addr"
-  (unsigned		s_addr))
-
-(define-c-type-alias in6_addr*		pointer)
+  (unsigned-int		s_addr))
 
 (define-c-struct in6_addr
   "struct in6_addr"
-  (unsigned		s_addr))
-
-(define-c-type-alias if_nameindex*	pointer)
+  (options no-label no-wrapper no-mirror))
 
 (define-c-struct if_nameindex
   "struct if_nameindex"
   (unsigned-int		if_index)
   (pointer		if_name))
-
-(define-c-type-alias netent*		pointer)
 
 (define-c-struct netent
   "struct netent"
@@ -325,16 +549,14 @@ AC_CHECK_MEMBERS([struct stat.st_ctime_usec])
 (autoconf-lib "AC_CACHE_SAVE")
 
 
-;;; --------------------------------------------------------------------
-;;; Constants.
-;;; --------------------------------------------------------------------
+;;;; inspection: constants
 
-(define-c-defines "seek whence arguments"
+(define-c-defines/public "seek whence arguments"
   SEEK_SET
   SEEK_CUR
   SEEK_END)
 
-(define-c-defines "file descriptor related flags"
+(define-c-defines/public "file descriptor related flags"
   O_ACCMODE
   O_APPEND
   O_ASYNC
@@ -372,7 +594,7 @@ AC_CHECK_MEMBERS([struct stat.st_ctime_usec])
 
 (autoconf-lib "AC_CACHE_SAVE")
 
-(define-c-defines "ioctl action selection"
+(define-c-defines/public "ioctl action selection"
   F_DUPFD
   F_GETFD
   F_GETFL
@@ -388,7 +610,7 @@ AC_CHECK_MEMBERS([struct stat.st_ctime_usec])
   F_UNLCK
   F_WRLCK)
 
-(define-c-defines "miscellaneous file-related constants"
+(define-c-defines/public "miscellaneous file-related constants"
   WNOHANG
   WUNTRACED
   WCONTINUED
@@ -398,13 +620,13 @@ AC_CHECK_MEMBERS([struct stat.st_ctime_usec])
   X_OK
   F_OK)
 
-(define-c-defines "miscellaneous constants"
+(define-c-defines/public "miscellaneous constants"
   L_ctermid
   L_tmpnam
 
   CLOCKS_PER_SEC)
 
-(define-c-defines "mode bits"
+(define-c-defines/public "mode bits"
   S_IRUSR
   S_IWUSR
   S_IXUSR
@@ -428,13 +650,21 @@ AC_CHECK_MEMBERS([struct stat.st_ctime_usec])
 ;;; "struct dirent" related stuff
 
 (autoconf-lib "
-AC_CHECK_DECL([_DIRENT_HAVE_D_NAMELEN],[NAU_DIRENT_HAVE_D_NAMELEN=#t],[NAU_DIRENT_HAVE_D_NAMELEN=#f],
+AC_CHECK_DECL([_DIRENT_HAVE_D_NAMELEN],
+  [NAU_DIRENT_HAVE_D_NAMELEN=\"#t\"],
+  [NAU_DIRENT_HAVE_D_NAMELEN=\"#f\"],
   [NAU_POSIX_INCLUDES])
-AC_CHECK_DECL([_DIRENT_HAVE_D_RECLEN],[NAU_DIRENT_HAVE_D_RECLEN=#t],[NAU_DIRENT_HAVE_D_RECLEN=#f],
+AC_CHECK_DECL([_DIRENT_HAVE_D_RECLEN],
+  [NAU_DIRENT_HAVE_D_RECLEN=\"#t\"],
+  [NAU_DIRENT_HAVE_D_RECLEN=\"#f\"],
   [NAU_POSIX_INCLUDES])
-AC_CHECK_DECL([_DIRENT_HAVE_D_OFF],[NAU_DIRENT_HAVE_D_OFF=#t],[NAU_DIRENT_HAVE_D_OFF=#f],
+AC_CHECK_DECL([_DIRENT_HAVE_D_OFF],
+  [NAU_DIRENT_HAVE_D_OFF=\"#t\"],
+  [NAU_DIRENT_HAVE_D_OFF=\"#f\"],
   [NAU_POSIX_INCLUDES])
-AC_CHECK_DECL([_DIRENT_HAVE_D_TYPE],[NAU_DIRENT_HAVE_D_TYPE=#t],[NAU_DIRENT_HAVE_D_TYPE=#f],
+AC_CHECK_DECL([_DIRENT_HAVE_D_TYPE],
+  [NAU_DIRENT_HAVE_D_TYPE=\"#t\"],
+  [NAU_DIRENT_HAVE_D_TYPE=\"#f\"],
   [NAU_POSIX_INCLUDES])
 AC_SUBST([NAU_DIRENT_HAVE_D_NAMELEN])
 AC_SUBST([NAU_DIRENT_HAVE_D_RECLEN])
@@ -442,17 +672,13 @@ AC_SUBST([NAU_DIRENT_HAVE_D_OFF])
 AC_SUBST([NAU_DIRENT_HAVE_D_TYPE])
 ")
 
-(sizeof-lib
- (define _DIRENT_HAVE_D_NAMELEN	^NAU_DIRENT_HAVE_D_NAMELEN^)
- (define _DIRENT_HAVE_D_RECLEN	^NAU_DIRENT_HAVE_D_RECLEN^)
- (define _DIRENT_HAVE_D_OFF	^NAU_DIRENT_HAVE_D_OFF^)
- (define _DIRENT_HAVE_D_TYPE	^NAU_DIRENT_HAVE_D_TYPE^))
+(sizeof-lib/quote
+ (define DIRENT_HAVE_D_NAMELEN	^NAU_DIRENT_HAVE_D_NAMELEN^)
+ (define DIRENT_HAVE_D_RECLEN	^NAU_DIRENT_HAVE_D_RECLEN^)
+ (define DIRENT_HAVE_D_OFF	^NAU_DIRENT_HAVE_D_OFF^)
+ (define DIRENT_HAVE_D_TYPE	^NAU_DIRENT_HAVE_D_TYPE^))
 
-(sizeof-lib-exports
- _DIRENT_HAVE_D_NAMELEN		_DIRENT_HAVE_D_RECLEN
- _DIRENT_HAVE_D_OFF		_DIRENT_HAVE_D_TYPE)
-
-(define-c-defines "dirent stuff"
+(define-c-defines/public "dirent stuff"
   DT_BLK
   DT_CHR
   DT_DIR
@@ -462,7 +688,7 @@ AC_SUBST([NAU_DIRENT_HAVE_D_TYPE])
   DT_SOCK
   DT_UNKNOWN)
 
-(define-c-defines "constants related to ftw() and nftw()"
+(define-c-defines/public "constants related to ftw() and nftw()"
   FTW_F
   FTW_D
   FTW_NS
@@ -480,17 +706,17 @@ AC_SUBST([NAU_DIRENT_HAVE_D_TYPE])
   FTW_SKIP_SUBTREE
   FTW_SKIP_SIBLINGS)
 
-(define-c-defines "setitimer() stuff"
+(define-c-defines/public "setitimer() stuff"
   ITIMER_REAL
   ITIMER_VIRTUAL
   ITIMER_PROF)
 
-(define-c-defines "miscellaneous"
+(define-c-defines/public "miscellaneous"
   EOF
   MAXSYMLINKS
   MAXPATHLEN)
 
-(define-c-defines "mmap constants"
+(define-c-defines/public "mmap constants"
   MAP_PRIVATE		MAP_SHARED
   MAP_FIXED
   MAP_ANON		MAP_ANONYMOUS
@@ -509,13 +735,13 @@ AC_SUBST([NAU_DIRENT_HAVE_D_TYPE])
 
   MREMAP_MAYMOVE)
 
-(define-c-defines "select related symbols"
+(define-c-defines/public "select related symbols"
   FD_SETSIZE)
 
-(define-c-defines "max size of string for cuserid()"
+(define-c-defines/public "max size of string for cuserid()"
   L_cuserid)
 
-(define-c-defines "system capacity limitations"
+(define-c-defines/public "system capacity limitations"
   ARG_MAX	_POSIX_ARG_MAX
   CHILD_MAX	_POSIX_CHILD_MAX
   OPEN_MAX	_POSIX_OPEN_MAX
@@ -525,7 +751,7 @@ AC_SUBST([NAU_DIRENT_HAVE_D_TYPE])
   SSIZE_MAX
   RE_DUP_MAX)
 
-(define-c-defines "overall system options"
+(define-c-defines/public "overall system options"
   _POSIX_JOB_CONTROL
   _POSIX_SAVED_IDS
   _POSIX2_C_DEV
@@ -534,11 +760,11 @@ AC_SUBST([NAU_DIRENT_HAVE_D_TYPE])
   _POSIX2_LOCALEDEF
   _POSIX2_SW_DEV)
 
-(define-c-defines "supported POSIX version"
+(define-c-defines/public "supported POSIX version"
   _POSIX_VERSION
   _POSIX2_C_VERSION)
 
-(define-c-defines "sysconf constants"
+(define-c-defines/public "sysconf constants"
   _SC_ARG_MAX
   _SC_CHILD_MAX
   _SC_CLK_TCK
@@ -744,7 +970,7 @@ AC_SUBST([NAU_DIRENT_HAVE_D_TYPE])
   _SC_IPV6
   _SC_RAW_SOCKETS)
 
-(define-c-defines "limits on file system capacity"
+(define-c-defines/public "limits on file system capacity"
   LINK_MAX
   MAX_CANON
   MAX_INPUT
@@ -754,12 +980,12 @@ AC_SUBST([NAU_DIRENT_HAVE_D_TYPE])
   MAXNAMLEN
   FILENAME_MAX)
 
-(define-c-defines "optional features in file support"
+(define-c-defines/public "optional features in file support"
   _POSIX_CHOWN_RESTRICTED
   _POSIX_NO_TRUNC
   _POSIX_VDISABLE)
 
-(define-c-defines "minimum values for file system limits"
+(define-c-defines/public "minimum values for file system limits"
   _POSIX_LINK_MAX
   _POSIX_MAX_CANON
   _POSIX_MAX_INPUT
@@ -772,7 +998,7 @@ AC_SUBST([NAU_DIRENT_HAVE_D_TYPE])
   POSIX_REC_MIN_XFER_SIZE
   POSIX_REC_XFER_ALIGN)
 
-(define-c-defines "constants for pathconf and fpathconf"
+(define-c-defines/public "constants for pathconf and fpathconf"
   _PC_LINK_MAX
   _PC_MAX_CANON
   _PC_MAX_INPUT
@@ -791,7 +1017,7 @@ AC_SUBST([NAU_DIRENT_HAVE_D_TYPE])
   _PC_REC_MIN_XFER_SIZE
   _PC_REC_XFER_ALIGN)
 
-(define-c-defines "glibc system inspection constants"
+(define-c-defines/public "glibc system inspection constants"
   BC_BASE_MAX		_POSIX_BC_BASE_MAX
   BC_DIM_MAX		_POSIX_BC_DIM_MAX
   BC_SCALE_MAX		_POSIX_BC_SCALE_MAX
@@ -801,7 +1027,7 @@ AC_SUBST([NAU_DIRENT_HAVE_D_TYPE])
   LINE_MAX		_POSIX_LINE_MAX
   EQUIV_CLASS_MAX	_POSIX_EQUIV_CLASS_MAX)
 
-(define-c-defines "string-valued system configuration parameters"
+(define-c-defines/public "string-valued system configuration parameters"
   _CS_PATH
   _CS_LFS_CFLAGS
   _CS_LFS_LDFLAGS
@@ -837,7 +1063,7 @@ AC_SUBST([NAU_DIRENT_HAVE_D_TYPE])
   MNTOPT_NOSUID
   MNTOPT_NOAUTO)
 
-(define-c-defines "options for mount"
+(define-c-defines/public "options for mount"
   MS_MGC_MASK
   MS_REMOUNT
   MS_RDONLY
@@ -851,10 +1077,10 @@ AC_SUBST([NAU_DIRENT_HAVE_D_TYPE])
   MS_NOATIME
   MS_NODIRATIME)
 
-(define-c-defines "flags for umount2"
+(define-c-defines/public "flags for umount2"
   MNT_FORCE)
 
-(define-c-defines "interprocess signal constants"
+(define-c-defines/public "interprocess signal constants"
   NSIG
 
   ;; program error
@@ -891,7 +1117,7 @@ AC_SUBST([NAU_DIRENT_HAVE_D_TYPE])
   SIGUSR1	SIGUSR2
   SIGWINCH	SIGINFO)
 
-(define-c-defines "sockets constants"
+(define-c-defines/public "sockets constants"
   SOCK_STREAM	SOCK_DGRAM
   SOCK_RAW	SOCK_RDM
   SOCK_SEQPACKET
@@ -921,7 +1147,8 @@ AC_SUBST([NAU_DIRENT_HAVE_D_TYPE])
   SO_LINGER	SO_BROADCAST
   SO_OOBINLINE	SO_SNDBUF
   SO_RCVBUF
-  SO_TYPE	SO_ERROR
+  SO_TYPE	SO_STYLE
+  SO_ERROR
 
   INADDR_LOOPBACK
   INADDR_ANY
@@ -937,22 +1164,31 @@ AC_SUBST([NAU_DIRENT_HAVE_D_TYPE])
   NO_ADDRESS
   )
 
-(sizeof-lib
- (define SO_STYLE SO_TYPE))
-
-(sizeof-lib-exports
- SO_STYLE)
-
 (autoconf-lib "AC_CACHE_SAVE")
 
 
 ;;;; done
 
 (define posix-library-spec
-  '(posix sizeof))
+  '(nausicaa posix sizeof))
 
-(autoconf-lib-write "configuration/posix-inspector.m4" posix-library-spec
+(define posix-structs-library-spec
+  '(nausicaa posix structs))
+
+(define posix-clang-types-library-spec
+  '(nausicaa posix clang type-translation))
+
+(autoconf-lib-write "configuration/posix-inspector.m4"
+		    posix-library-spec
 		    "NAUSICAA_POSIX")
-(sizeof-lib-write   "src/libraries/posix/sizeof.sls.in" posix-library-spec)
+
+(sizeof-lib-write   "src/libraries/nausicaa/posix/sizeof.sls.in"
+		    posix-library-spec
+		    posix-clang-types-library-spec)
+
+(clang-type-translation-lib-write
+ "src/libraries/nausicaa/posix/clang/type-translation.sls.in"
+ posix-clang-types-library-spec)
+
 
 ;;; end of file

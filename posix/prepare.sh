@@ -19,10 +19,10 @@ set -x
     --config-cache                              \
     --with-abi=local-slackware                  \
     --enable-use-sudo                           \
-    --enable-ikarus                             \
-    --disable-larceny                           \
+    --enable-vicare                             \
     --enable-mosh                               \
-    --enable-ypsilon                            \
+    --disable-ypsilon                           \
+    --disable-petite                            \
     --enable-doc-ps                             \
     --enable-time-tests                         \
     "$@"

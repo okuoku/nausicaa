@@ -7,7 +7,7 @@ dnl Abstract
 dnl
 dnl
 dnl
-dnl Copyright (c) 2008, 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
+dnl Copyright (c) 2008-2011 Marco Maggi <marco.maggi-ipsu@poste.it>
 dnl
 dnl This  program  is free  software:  you  can redistribute  it
 dnl and/or modify it under the terms of the GNU General Public
@@ -32,14 +32,14 @@ dnl Setup.
 dnl --------------------------------------------------------------------
 
 AC_INIT([nausicaa-posix],[0.1a6],[marco.maggi-ipsu@poste.it])
-DS_BEGIN([./src/libraries/posix/fd.sls])
+DS_BEGIN([./src/libraries/nausicaa/posix/fd.sls])
 NAUSICAA_BEGIN
 NAUSICAA_SYSTEM_SETUP
 DS_EXCLUDE_SECTION([CONFIG_INSPECTION_SCRIPT])
 DS_EXCLUDE_SECTION([AUTOCONF])
 DS_EXCLUDE_SECTION([PKGCONFIG])
 
-NAUSICAA_SCHEME_CHECK_LIBRARY([NAU_FOREIGN],[(foreign ffi)])
+NAUSICAA_SCHEME_CHECK_LIBRARY([NAU_FOREIGN],[(nausicaa ffi)])
 
 DS_C99_LANGUAGE_COMMON_SETUP
 DS_EXCLUDE_SECTION([DEV_RULES])
@@ -196,8 +196,9 @@ dnl --------------------------------------------------------------------
 dnl Done.
 dnl --------------------------------------------------------------------
 
-AC_CONFIG_FILES([../src/libraries/posix/sizeof.sls:../src/libraries/posix/sizeof.sls.in])
 AC_CONFIG_FILES([meta.d/makefiles/library.make:../configuration/library.make])
+AC_CONFIG_FILES([../src/libraries/nausicaa/posix/sizeof.sls:../src/libraries/nausicaa/posix/sizeof.sls.in])
+AC_CONFIG_FILES([../src/libraries/nausicaa/posix/clang/type-translation.sls:src/libraries/nausicaa/posix/clang/type-translation.sls.in])
 
 DS_CONFIG_FILE_SLACKWARE_BIN_DESC
 DS_CONFIG_FILE_SLACKWARE_DOC_DESC

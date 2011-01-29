@@ -71,7 +71,8 @@ define nau-sls-libraries
 nau_sls_$(1)_DIR	= $(2)
 
 $$(eval $$(call ds-srcdir,nau_sls_$(1),$$(nau_sls_SRCDIR)/$(2)))
-$$(eval $$(call ds-builddir,nau_sls_$(1),$$(nau_sls_BUILDDIR)/$$(nau_sls_$(1)_DIR)))
+$$(eval $$(call ds-builddir,nau_sls_$(1),$$(nau_sls_BUILDDIR)/$(2)))
+#$$(eval $$(call ds-builddir,nau_sls_$(1),$$(nau_sls_BUILDDIR)/$$(nau_sls_$(1)_DIR)))
 
 nau_sls_$(1)_SOURCES	= $$(call ds-glob,nau_sls_$(1),*.sls)
 nau_sls_$(1)_TARGETS	= $$(addprefix $$(nau_sls_$(1)_BUILDDIR),\
@@ -331,7 +332,7 @@ endif
 
 nau_test_ENV		= LD_LIBRARY_PATH=$(nau_test_LDPATH):$(LD_LIBRARY_PATH) \
 			  SCHEME_LIBPATH=$(nau_sls_BUILDDIR)			\
-			  NAUSICAA_MSGCAT=$(nau_sls_BUILDDIR)/msgcat:$(NAUSICAA_MSGCAT)
+			  NAUSICAA_MSGCAT=$(nau_sls_BUILDDIR)/nausicaa/msgcat:$(NAUSICAA_MSGCAT)
 
 # The variable  "name" is available to  the user on the  command line of
 # "make": It selects specific tests.

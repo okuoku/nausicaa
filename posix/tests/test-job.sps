@@ -7,7 +7,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2008, 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2008-2011 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -25,9 +25,9 @@
 
 
 (import (nausicaa)
-  (checks)
-  (posix typedefs)
-  (prefix (posix process) posix:))
+  (nausicaa checks)
+  (nausicaa posix typedefs)
+  (prefix (nausicaa posix process) px.))
 
 (check-set-mode! 'report-failed)
 (display "*** testing POSIX job control\n")
@@ -37,7 +37,7 @@
 	      (debugging	#t))
 
   (check
-      (posix:ctermid)
+      (px.ctermid)
     => "/dev/tty")
 
   #t)
@@ -46,23 +46,23 @@
 (parametrise ((check-test-name 'group))
 
   (check
-      (let ((pid (posix:fork)))
+      (let ((pid (px.fork)))
 	(unless pid
-	  (posix:setsid)
+	  (px.setsid)
 	  (exit))
 	#t)
     => #t)
 
   (check
-      (pid? (posix:getsid (posix:getpid)))
+      (pid? (px.getsid (px.getpid)))
     => #t)
 
   (check
-      (pid? (posix:getpgrp))
+      (pid? (px.getpgrp))
     => #t)
 
   (check
-      (posix:setpgid (integer->pid 0) (integer->pid 0))
+      (px.setpgid (integer->pid 0) (integer->pid 0))
     => 0)
 
   #t)
@@ -71,20 +71,20 @@
 (parametrise ((check-test-name 'access))
 
   (check
-      (pid? (posix:tcgetpgrp (integer->fd 1)))
+      (pid? (px.tcgetpgrp (integer->fd 1)))
     => #t)
 
 ;;; Is there a way to test this without losing control of the terminal?
 ;;   (check
-;;       (let ((pid (posix:fork)))
+;;       (let ((pid (px.fork)))
 ;; 	(unless pid
-;; 	  (posix:tcsetpgrp (integer->fd 1) (posix:getpgrp))
+;; 	  (px.tcsetpgrp (integer->fd 1) (px.getpgrp))
 ;; 	  (exit))
 ;; 	#t)
 ;;     => #t)
 
   (check
-      (pid? (posix:tcgetsid (integer->fd 1)))
+      (pid? (px.tcgetsid (integer->fd 1)))
     => #t)
 
   #t)

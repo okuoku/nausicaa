@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2009-2011 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -26,19 +26,17 @@
 
 
 (import (nausicaa)
-  (pretty-print)
-  (foreign cstrings)
-  (foreign memory)
-  (compensations)
-  (posix sizeof)
-  (posix typedefs)
-  (prefix (posix system) posix:)
-  (prefix (posix sockets) posix:)
-  (prefix (posix fd) posix:)
-  (prefix (posix file) posix:)
-  (prefix (posix process) posix:)
-  (prefix (glibc sockets) glibc:)
-  (prefix (glibc time) glibc:)
+  (nausicaa ffi cstrings)
+  (nausicaa ffi memory)
+  (nausicaa posix sizeof)
+  (nausicaa posix typedefs)
+  (prefix (nausicaa posix system) px.)
+  (prefix (nausicaa posix sockets) px.)
+  (prefix (nausicaa posix fd) px.)
+  (prefix (nausicaa posix file) px.)
+  (prefix (nausicaa posix process) px.)
+  (prefix (nausicaa glibc sockets) glibc.)
+  (prefix (nausicaa glibc time) glibc.)
   (checks))
 
 (check-set-mode! 'report-failed)
@@ -48,61 +46,61 @@
 (define tcp/ip-port 8080)
 
 (define (wait-for-awhile)
-  (glibc:nanosleep* (make-<timespec> 0 (* 2 (expt 10 6)))))
+  (glibc.nanosleep* (make-<timespec> 0 (* 2 (expt 10 6)))))
 
 
 (parametrise ((check-test-name	'inet-addr))
 
   (let ((host "255.255.255.255"))
     (check
-	(posix:inet-ntoa (posix:inet-aton host))
+	(px.inet-ntoa (px.inet-aton host))
       => host)
 
     (check
-	(posix:inet-ntop (socket-address-format inet)
-			 (posix:inet-aton host))
+	(px.inet-ntop (socket-address-format inet)
+			 (px.inet-aton host))
       => host))
 
   (let ((host "0.0.0.0"))
     (check
-	(posix:inet-ntoa (posix:inet-aton host))
+	(px.inet-ntoa (px.inet-aton host))
       => host)
 
     (check
-	(posix:inet-ntop (socket-address-format inet)
-			 (posix:inet-aton host))
+	(px.inet-ntop (socket-address-format inet)
+			 (px.inet-aton host))
       => host))
 
   (let ((host "127.0.0.1"))
     (check
-	(posix:inet-ntoa (posix:inet-aton host))
+	(px.inet-ntoa (px.inet-aton host))
       => host)
 
     (check
-	(posix:inet-ntop (socket-address-format inet) (posix:inet-aton host))
+	(px.inet-ntop (socket-address-format inet) (px.inet-aton host))
       => host))
 
   (let ((host '#vu8(127 0 0 1)))
     (check
-	(posix:inet-aton (posix:inet-ntoa host))
+	(px.inet-aton (px.inet-ntoa host))
       => host))
 
   (let ((host "127.0.0.1"))
     (check
-	(posix:inet-ntop (socket-address-format inet)
-			 (posix:inet-pton (socket-address-format inet) host))
+	(px.inet-ntop (socket-address-format inet)
+			 (px.inet-pton (socket-address-format inet) host))
       => host))
 
   (let ((host "0:0:0:0:0:0:0:1"))
     (check
-  	(posix:inet-ntop (socket-address-format inet6)
-  			 (posix:inet-pton (socket-address-format inet6) host))
+  	(px.inet-ntop (socket-address-format inet6)
+  			 (px.inet-pton (socket-address-format inet6) host))
       => "::1"))
 
   (let ((host "::1"))
     (check
-  	(posix:inet-ntop (socket-address-format inet6)
-  			 (posix:inet-pton (socket-address-format inet6) host))
+  	(px.inet-ntop (socket-address-format inet6)
+  			 (px.inet-pton (socket-address-format inet6) host))
       => "::1"))
 
   #t)
@@ -117,21 +115,21 @@
 ;;;
 
   (check
-      (let ((hostent (posix:gethostbyname "localhost")))
+      (let ((hostent (px.gethostbyname "localhost")))
 ;;;	(write hostent)(newline)
 	(not (member "localhost" (cons* (<hostent>-name hostent)
 					(<hostent>-aliases hostent)))))
     => #f)
 
   (check
-      (let ((hostent (glibc:gethostbyname2 "localhost" (socket-address-format inet))))
+      (let ((hostent (glibc.gethostbyname2 "localhost" (socket-address-format inet))))
 ;;;	(write hostent)(newline)
 	(not (member "localhost" (cons* (<hostent>-name hostent)
 					(<hostent>-aliases hostent)))))
     => #f)
 
   (check
-      (let ((hostent (posix:gethostbyaddr '#vu8(127 0 0 1))))
+      (let ((hostent (px.gethostbyaddr '#vu8(127 0 0 1))))
 ;;;	(write hostent)(newline)
 	(not (member "localhost" (cons* (<hostent>-name hostent)
 					(<hostent>-aliases hostent)))))
@@ -140,21 +138,21 @@
 ;;; --------------------------------------------------------------------
 
   (check
-      (let ((hostent (glibc:gethostbyname_r "localhost")))
+      (let ((hostent (glibc.gethostbyname_r "localhost")))
 ;;;	(write hostent)(newline)
 	(not (member "localhost" (cons* (<hostent>-name hostent)
 					(<hostent>-aliases hostent)))))
     => #f)
 
   (check
-      (let ((hostent (glibc:gethostbyname2_r "localhost" (socket-address-format inet))))
+      (let ((hostent (glibc.gethostbyname2_r "localhost" (socket-address-format inet))))
 ;;;	(write hostent)(newline)
 	(not (member "localhost" (cons* (<hostent>-name hostent)
 					(<hostent>-aliases hostent)))))
     => #f)
 
   (check
-      (let ((hostent (glibc:gethostbyaddr_r '#vu8(127 0 0 1))))
+      (let ((hostent (glibc.gethostbyaddr_r '#vu8(127 0 0 1))))
 ;;;	(write hostent)(newline)
 	(not (member "localhost" (cons* (<hostent>-name hostent)
 					(<hostent>-aliases hostent)))))
@@ -165,11 +163,11 @@
   (check
       (with-compensations
 	  (compensate
-	      (posix:sethostent)
+	      (px.sethostent)
 	    (with
-	     (posix:endhostent)))
+	     (px.endhostent)))
 	(let ((ell '()))
-	  (do ((hostent (posix:gethostent) (posix:gethostent)))
+	  (do ((hostent (px.gethostent) (px.gethostent)))
 	      ((not hostent)
 	       (for-all <hostent>? ell))
 	    (set! ell (cons hostent ell)))))
@@ -178,13 +176,13 @@
   (check
       (with-compensations
 	  (compensate
-	      (posix:sethostent #t)
+	      (px.sethostent #t)
 	    (with
-	     (posix:endhostent)))
+	     (px.endhostent)))
 	(let loop ((ell		'())
-		   (hostent	(posix:gethostent)))
+		   (hostent	(px.gethostent)))
 	  (if hostent
-	      (loop (cons hostent ell) (posix:gethostent))
+	      (loop (cons hostent ell) (px.gethostent))
 	    (for-all <hostent>? ell))))
     => #t)
 
@@ -200,14 +198,14 @@
 ;;;
 
   (check
-      (let ((netent (posix:getnetbyname "loopback")))
+      (let ((netent (px.getnetbyname "loopback")))
 ;;;	(write netent)(newline)
 	(not (member "loopback" (cons* (<netent>-name netent)
 				       (<netent>-aliases netent)))))
     => #f)
 
   (check
-      (let ((netent (posix:getnetbyaddr '#vu8(127 0 0 0))))
+      (let ((netent (px.getnetbyaddr '#vu8(127 0 0 0))))
 ;;;	(write netent)(newline)
 	(not (member "loopback" (cons* (<netent>-name netent)
 				       (<netent>-aliases netent)))))
@@ -218,13 +216,13 @@
   (check
       (with-compensations
 	  (compensate
-	      (posix:setnetent #t)
+	      (px.setnetent #t)
 	    (with
-	     (posix:endnetent)))
+	     (px.endnetent)))
 	(let loop ((ell		'())
-		   (netent	(posix:getnetent)))
+		   (netent	(px.getnetent)))
 	  (if netent
-	      (loop (cons netent ell) (posix:getnetent))
+	      (loop (cons netent ell) (px.getnetent))
 	    (for-all <netent>? ell))))
     => #t)
 
@@ -240,14 +238,14 @@
 ;;;
 
   (check
-      (let ((protoent (posix:getprotobyname "tcp")))
+      (let ((protoent (px.getprotobyname "tcp")))
 ;;;	(write protoent)(newline)
 	(not (member "tcp" (cons* (<protoent>-name protoent)
 				  (<protoent>-aliases protoent)))))
     => #f)
 
   (check
-      (let ((protoent (posix:getprotobynumber 6)))
+      (let ((protoent (px.getprotobynumber 6)))
 ;;;	(write protoent)(newline)
 	(not (member "tcp" (cons* (<protoent>-name protoent)
 				  (<protoent>-aliases protoent)))))
@@ -258,13 +256,13 @@
   (check
       (with-compensations
 	  (compensate
-	      (posix:setprotoent #t)
+	      (px.setprotoent #t)
 	    (with
-	     (posix:endprotoent)))
+	     (px.endprotoent)))
 	(let loop ((ell		'())
-		   (protoent	(posix:getprotoent)))
+		   (protoent	(px.getprotoent)))
 	  (if protoent
-	      (loop (cons protoent ell) (posix:getprotoent))
+	      (loop (cons protoent ell) (px.getprotoent))
 	    (begin
 ;;;	      (pretty-print ell)(newline)
 	      (for-all <protoent>? ell)))))
@@ -282,7 +280,7 @@
 ;;;
 
   (check
-      (let ((servent (posix:getservbyname 'smtp 'tcp)))
+      (let ((servent (px.getservbyname 'smtp 'tcp)))
 ;;;	(write servent)(newline)
 	(and (<servent>? servent)
 	     (not (not (member "smtp" (cons* (<servent>-name servent)
@@ -290,7 +288,7 @@
     => #t)
 
   (check
-      (let ((servent (posix:getservbyport* 25 'tcp)))
+      (let ((servent (px.getservbyport* 25 'tcp)))
 ;;;	(write servent)(newline)
 	(and (<servent>? servent)
 	     (not (not (member "smtp" (cons* (<servent>-name servent)
@@ -302,13 +300,13 @@
   (check
       (with-compensations
 	  (compensate
-	      (posix:setservent #t)
+	      (px.setservent #t)
 	    (with
-	     (posix:endservent)))
+	     (px.endservent)))
 	(let loop ((ell		'())
-		   (servent	(posix:getservent)))
+		   (servent	(px.getservent)))
 	  (if servent
-	      (loop (cons servent ell) (posix:getservent))
+	      (loop (cons servent ell) (px.getservent))
 	    (begin
 ;;;	      (pretty-print ell)(newline)
 	      (for-all <servent>? ell)))))
@@ -320,15 +318,15 @@
 (parametrise ((check-test-name	'if-name))
 
   (check
-      (posix:if-indextoname (posix:if-nametoindex "eth0"))
+      (px.if-indextoname (px.if-nametoindex "eth0"))
     => "eth0")
 
   (check
-      (posix:if-indextoname (posix:if-nametoindex "lo"))
+      (px.if-indextoname (px.if-nametoindex "lo"))
     => "lo")
 
   (check
-      (let ((l (posix:if-nameindex)))
+      (let ((l (px.if-nameindex)))
 ;;;	(pretty-print l)(newline)
 	(for-all <if-nameindex>? l))
     => #t)
@@ -491,17 +489,17 @@
 
   (define (make-sock/c)
     (letrec ((sock (compensate
-		       (posix:socket* (namespace local)
+		       (px.socket* (namespace local)
 				      (style stream))
 		     (with
-		      (posix:close sock)))))
+		      (px.close sock)))))
       sock))
 
 ;;; --------------------------------------------------------------------
 
   (check
       (with-compensations
-	(posix:getsockopt (make-sock/c) (socket-option debug)))
+	(px.getsockopt (make-sock/c) (socket-option debug)))
     => #f)
 
   ;;SETSOCKOPT fails with "permission denied".
@@ -509,85 +507,85 @@
   ;; (check
   ;;     (with-compensations
   ;; 	(let ((sock (make-sock/c)))
-  ;; 	  (posix:setsockopt sock (socket-option debug) #t)
-  ;; 	  (posix:getsockopt sock (socket-option debug))))
+  ;; 	  (px.setsockopt sock (socket-option debug) #t)
+  ;; 	  (px.getsockopt sock (socket-option debug))))
   ;;   => #t)
 
 ;;; --------------------------------------------------------------------
 
   (check
       (with-compensations
-	(posix:getsockopt (make-sock/c) (socket-option reuseaddr)))
+	(px.getsockopt (make-sock/c) (socket-option reuseaddr)))
     => #f)
 
   (check
       (with-compensations
 	(let ((sock (make-sock/c)))
-	  (posix:setsockopt sock (socket-option reuseaddr) #t)
-	  (posix:getsockopt sock (socket-option reuseaddr))))
+	  (px.setsockopt sock (socket-option reuseaddr) #t)
+	  (px.getsockopt sock (socket-option reuseaddr))))
     => #t)
 
 ;;; --------------------------------------------------------------------
 
   (check
       (with-compensations
-	(posix:getsockopt (make-sock/c) (socket-option keepalive)))
+	(px.getsockopt (make-sock/c) (socket-option keepalive)))
     => #f)
 
   (check
       (with-compensations
 	(let ((sock (make-sock/c)))
-	  (posix:setsockopt sock (socket-option keepalive) #t)
-	  (posix:getsockopt sock (socket-option keepalive))))
+	  (px.setsockopt sock (socket-option keepalive) #t)
+	  (px.getsockopt sock (socket-option keepalive))))
     => #t)
 
 ;;; --------------------------------------------------------------------
 
   (check
       (with-compensations
-	(posix:getsockopt (make-sock/c) (socket-option dontroute)))
+	(px.getsockopt (make-sock/c) (socket-option dontroute)))
     => #f)
 
   (check
       (with-compensations
 	(let ((sock (make-sock/c)))
-	  (posix:setsockopt sock (socket-option dontroute) #t)
-	  (posix:getsockopt sock (socket-option dontroute))))
+	  (px.setsockopt sock (socket-option dontroute) #t)
+	  (px.getsockopt sock (socket-option dontroute))))
     => #t)
 
 ;;; --------------------------------------------------------------------
 
   (check
       (with-compensations
-	(posix:getsockopt (make-sock/c) (socket-option broadcast)))
+	(px.getsockopt (make-sock/c) (socket-option broadcast)))
     => #f)
 
   (check
       (with-compensations
 	(let ((sock (make-sock/c)))
-	  (posix:setsockopt sock (socket-option broadcast) #t)
-	  (posix:getsockopt sock (socket-option broadcast))))
+	  (px.setsockopt sock (socket-option broadcast) #t)
+	  (px.getsockopt sock (socket-option broadcast))))
     => #t)
 
 ;;; --------------------------------------------------------------------
 
   (check
       (with-compensations
-	(posix:getsockopt (make-sock/c) (socket-option oobinline)))
+	(px.getsockopt (make-sock/c) (socket-option oobinline)))
     => #f)
 
   (check
       (with-compensations
 	(let ((sock (make-sock/c)))
-	  (posix:setsockopt sock (socket-option oobinline) #t)
-	  (posix:getsockopt sock (socket-option oobinline))))
+	  (px.setsockopt sock (socket-option oobinline) #t)
+	  (px.getsockopt sock (socket-option oobinline))))
     => #t)
 
 ;;; --------------------------------------------------------------------
 
   ;; (check
   ;;     (with-compensations
-  ;; 	(posix:getsockopt (make-sock/c) (socket-option sndbuf)))
+  ;; 	(px.getsockopt (make-sock/c) (socket-option sndbuf)))
   ;;   => 111616)
 
 ;;;This test fails  for no documented reason; it looks  like the size of
@@ -598,15 +596,15 @@
   (check
       (with-compensations
 	(let ((sock (make-sock/c)))
-	  (posix:setsockopt sock (socket-option sndbuf) 1000)
-	  (posix:getsockopt sock (socket-option sndbuf))))
+	  (px.setsockopt sock (socket-option sndbuf) 1000)
+	  (px.getsockopt sock (socket-option sndbuf))))
     => 1000)
 
 ;;; --------------------------------------------------------------------
 
   ;; (check
   ;;     (with-compensations
-  ;; 	(posix:getsockopt (make-sock/c) (socket-option rcvbuf)))
+  ;; 	(px.getsockopt (make-sock/c) (socket-option rcvbuf)))
   ;;   => 111616)
 
 ;;;This test fails  for no documented reason; it looks  like the size of
@@ -617,51 +615,51 @@
   (check
       (with-compensations
 	(let ((sock (make-sock/c)))
-	  (posix:setsockopt sock (socket-option rcvbuf) 1000)
-	  (posix:getsockopt sock (socket-option rcvbuf))))
+	  (px.setsockopt sock (socket-option rcvbuf) 1000)
+	  (px.getsockopt sock (socket-option rcvbuf))))
     => 1000)
 
 ;;; --------------------------------------------------------------------
 
   (check
       (with-compensations
-	(posix:getsockopt (make-sock/c) (socket-option linger)))
+	(px.getsockopt (make-sock/c) (socket-option linger)))
     => #f)
 
   (check
       (with-compensations
 	(let ((sock (make-sock/c)))
-	  (posix:setsockopt sock (socket-option linger) 100)
-	  (posix:getsockopt sock (socket-option linger))))
+	  (px.setsockopt sock (socket-option linger) 100)
+	  (px.getsockopt sock (socket-option linger))))
     => 100)
 
   (check
       (with-compensations
 	(let ((sock (make-sock/c)))
-	  (posix:setsockopt sock (socket-option linger) 0)
-	  (posix:getsockopt sock (socket-option linger))))
+	  (px.setsockopt sock (socket-option linger) 0)
+	  (px.getsockopt sock (socket-option linger))))
     => #f)
 
   (check
       (with-compensations
 	(let ((sock (make-sock/c)))
-	  (posix:setsockopt sock (socket-option linger) 100)
-	  (posix:setsockopt sock (socket-option linger) #f)
-	  (posix:getsockopt sock (socket-option linger))))
+	  (px.setsockopt sock (socket-option linger) 100)
+	  (px.setsockopt sock (socket-option linger) #f)
+	  (px.getsockopt sock (socket-option linger))))
     => #f)
 
 ;;; --------------------------------------------------------------------
 
   (check
       (with-compensations
-	(posix:getsockopt (make-sock/c) (socket-option style)))
+	(px.getsockopt (make-sock/c) (socket-option style)))
     (=> enum-set=?) (socket-style stream))
 
 ;;; --------------------------------------------------------------------
 
   (check
       (with-compensations
-	(posix:getsockopt (make-sock/c) (socket-option error)))
+	(px.getsockopt (make-sock/c) (socket-option error)))
     => 0)
 
   #t)
@@ -671,40 +669,40 @@
 
   (define (make-sock/c)
     (letrec ((sock (compensate
-		       (posix:socket* (namespace local) (style stream))
+		       (px.socket* (namespace local) (style stream))
 		     (with
-		      (posix:close sock)))))
+		      (px.close sock)))))
       sock))
 
   (check	;strings
       (with-result
        (with-compensations
-	 (let* ((pathname	(string-append (posix:getenv "TMPDIR") "/proof"))
+	 (let* ((pathname	(string-append (px.getenv "TMPDIR") "/proof"))
 		(sockaddr	(make-<sockaddr-un> pathname)))
 	   (when (file-exists? pathname)
-	     (posix:unlink pathname))
+	     (px.unlink pathname))
 	   (push-compensation (when (file-exists? pathname)
-				(posix:unlink pathname)))
+				(px.unlink pathname)))
 	   (letrec ((master-sock (make-sock/c))
 		    (client-sock (make-sock/c)))
-	     (posix:setsockopt master-sock (socket-option reuseaddr) #t)
-	     (posix:bind   master-sock sockaddr)
-	     (posix:listen master-sock 2)
-	     (posix:connect client-sock sockaddr)
+	     (px.setsockopt master-sock (socket-option reuseaddr) #t)
+	     (px.bind   master-sock sockaddr)
+	     (px.listen master-sock 2)
+	     (px.connect client-sock sockaddr)
 	     (receive (server-sock client-address)
-		 (posix:accept master-sock)
-	       (push-compensation (posix:close server-sock))
+		 (px.accept master-sock)
+	       (push-compensation (px.close server-sock))
 	       (add-result (<sockaddr-un>? sockaddr))
-	       (posix:send/string server-sock "ciao client")
-	       (add-result (posix:recv/string client-sock 100))
-	       (posix:send/string client-sock "ciao server")
-	       (add-result (posix:recv/string server-sock 100))
-	       (posix:send/string server-sock "quit client")
-	       (add-result (posix:recv/string client-sock 100))
-	       (posix:send/string client-sock "quit server")
-	       (add-result (posix:recv/string server-sock 100))
-	       (posix:shutdown* server-sock both)
-	       (posix:shutdown* client-sock both)
+	       (px.send/string server-sock "ciao client")
+	       (add-result (px.recv/string client-sock 100))
+	       (px.send/string client-sock "ciao server")
+	       (add-result (px.recv/string server-sock 100))
+	       (px.send/string server-sock "quit client")
+	       (add-result (px.recv/string client-sock 100))
+	       (px.send/string client-sock "quit server")
+	       (add-result (px.recv/string server-sock 100))
+	       (px.shutdown* server-sock both)
+	       (px.shutdown* client-sock both)
 	       #t)))))
     => '(#t (#t "ciao client" "ciao server" "quit client" "quit server")))
 
@@ -713,30 +711,30 @@
   (check 	;bytevectors
       (with-result
        (with-compensations
-	 (let* ((pathname	(string-append (posix:getenv "TMPDIR") "/proof"))
+	 (let* ((pathname	(string-append (px.getenv "TMPDIR") "/proof"))
 		(sockaddr	(make-<sockaddr-un> pathname)))
 	   (when (file-exists? pathname)
-	     (posix:unlink pathname))
+	     (px.unlink pathname))
 	   (push-compensation (when (file-exists? pathname)
-				(posix:unlink pathname)))
+				(px.unlink pathname)))
 	   (letrec ((master-sock (make-sock/c))
 		    (client-sock (make-sock/c)))
-	     (posix:setsockopt master-sock (socket-option reuseaddr) #t)
-	     (posix:bind   master-sock sockaddr)
-	     (posix:listen master-sock 2)
-	     (posix:connect client-sock sockaddr)
+	     (px.setsockopt master-sock (socket-option reuseaddr) #t)
+	     (px.bind   master-sock sockaddr)
+	     (px.listen master-sock 2)
+	     (px.connect client-sock sockaddr)
 	     (receive (server-sock client-address)
-		 (posix:accept master-sock)
-	       (push-compensation (posix:close server-sock))
+		 (px.accept master-sock)
+	       (push-compensation (px.close server-sock))
 	       (add-result (<sockaddr-un>? sockaddr))
-	       (posix:send/bytevector server-sock (string->utf8 "ciao client"))
-	       (add-result (utf8->string (posix:recv/bytevector client-sock 100)))
-	       (posix:send/bytevector client-sock (string->utf8 "ciao server"))
-	       (add-result (utf8->string (posix:recv/bytevector server-sock 100)))
-	       (posix:send/bytevector server-sock (string->utf8 "quit client"))
-	       (add-result (utf8->string (posix:recv/bytevector client-sock 100)))
-	       (posix:send/bytevector client-sock (string->utf8 "quit server"))
-	       (add-result (utf8->string (posix:recv/bytevector server-sock 100)))
+	       (px.send/bytevector server-sock (string->utf8 "ciao client"))
+	       (add-result (utf8->string (px.recv/bytevector client-sock 100)))
+	       (px.send/bytevector client-sock (string->utf8 "ciao server"))
+	       (add-result (utf8->string (px.recv/bytevector server-sock 100)))
+	       (px.send/bytevector server-sock (string->utf8 "quit client"))
+	       (add-result (utf8->string (px.recv/bytevector client-sock 100)))
+	       (px.send/bytevector client-sock (string->utf8 "quit server"))
+	       (add-result (utf8->string (px.recv/bytevector server-sock 100)))
 	       #t)))))
     => '(#t (#t "ciao client" "ciao server" "quit client" "quit server")))
 
@@ -745,30 +743,30 @@
   (check	;memblocks
       (with-result
        (with-compensations
-	 (let* ((pathname	(string-append (posix:getenv "TMPDIR") "/proof"))
+	 (let* ((pathname	(string-append (px.getenv "TMPDIR") "/proof"))
 		(sockaddr	(make-<sockaddr-un> pathname)))
 	   (when (file-exists? pathname)
-	     (posix:unlink pathname))
+	     (px.unlink pathname))
 	   (push-compensation (when (file-exists? pathname)
-				(posix:unlink pathname)))
+				(px.unlink pathname)))
 	   (letrec ((master-sock (make-sock/c))
 		    (client-sock (make-sock/c)))
-	     (posix:setsockopt master-sock (socket-option reuseaddr) #t)
-	     (posix:bind   master-sock sockaddr)
-	     (posix:listen master-sock 2)
-	     (posix:connect client-sock sockaddr)
+	     (px.setsockopt master-sock (socket-option reuseaddr) #t)
+	     (px.bind   master-sock sockaddr)
+	     (px.listen master-sock 2)
+	     (px.connect client-sock sockaddr)
 	     (receive (server-sock client-address)
-		 (posix:accept master-sock)
-	       (push-compensation (posix:close server-sock))
+		 (px.accept master-sock)
+	       (push-compensation (px.close server-sock))
 	       (add-result (<sockaddr-un>? sockaddr))
-	       (posix:send/memblock server-sock (string->memblock "ciao client" malloc/c))
-	       (add-result (memblock->string (posix:recv/memblock client-sock 100 malloc/c)))
-	       (posix:send/memblock client-sock (string->memblock "ciao server" malloc/c))
-	       (add-result (memblock->string (posix:recv/memblock server-sock 100 malloc/c)))
-	       (posix:send/memblock server-sock (string->memblock "quit client" malloc/c))
-	       (add-result (memblock->string (posix:recv/memblock client-sock 100 malloc/c)))
-	       (posix:send/memblock client-sock (string->memblock "quit server" malloc/c))
-	       (add-result (memblock->string (posix:recv/memblock server-sock 100 malloc/c)))
+	       (px.send/memblock server-sock (string->memblock "ciao client" malloc/c))
+	       (add-result (memblock->string (px.recv/memblock client-sock 100 malloc/c)))
+	       (px.send/memblock client-sock (string->memblock "ciao server" malloc/c))
+	       (add-result (memblock->string (px.recv/memblock server-sock 100 malloc/c)))
+	       (px.send/memblock server-sock (string->memblock "quit client" malloc/c))
+	       (add-result (memblock->string (px.recv/memblock client-sock 100 malloc/c)))
+	       (px.send/memblock client-sock (string->memblock "quit server" malloc/c))
+	       (add-result (memblock->string (px.recv/memblock server-sock 100 malloc/c)))
 	       #t)))))
     => '(#t (#t "ciao client" "ciao server" "quit client" "quit server")))
 
@@ -776,49 +774,49 @@
 
   (check	;processes
       (with-compensations
-	(let* ((pathname (string-append (posix:getenv "TMPDIR") "/proof"))
+	(let* ((pathname (string-append (px.getenv "TMPDIR") "/proof"))
 	       (sockaddr (make-<sockaddr-un> pathname)))
 	  (when (file-exists? pathname)
-	    (posix:unlink pathname))
-	  (let ((pid (posix:fork)))
+	    (px.unlink pathname))
+	  (let ((pid (px.fork)))
 	    (if pid
 		(begin ;parent, server
 		  (push-compensation (when (file-exists? pathname)
-				       (posix:remove pathname)))
+				       (px.remove pathname)))
 		  (letrec ((server-sock (make-sock/c)))
-		    (posix:setsockopt server-sock (socket-option reuseaddr) #t)
-		    (posix:bind   server-sock sockaddr)
-		    (posix:listen server-sock 2)
+		    (px.setsockopt server-sock (socket-option reuseaddr) #t)
+		    (px.bind   server-sock sockaddr)
+		    (px.listen server-sock 2)
 		    (receive (client-sock client-address)
-			(posix:accept server-sock)
-		      (push-compensation (posix:close client-sock))
+			(px.accept server-sock)
+		      (push-compensation (px.close client-sock))
 		      (with-result
 		       (add-result (<sockaddr-un>? client-address))
-		       (posix:send/string client-sock "ciao client")
-		       (add-result (posix:recv/string client-sock 100))
-		       (posix:send/string client-sock "quit client")
-		       (add-result (posix:recv/string client-sock 100))
+		       (px.send/string client-sock "ciao client")
+		       (add-result (px.recv/string client-sock 100))
+		       (px.send/string client-sock "quit client")
+		       (add-result (px.recv/string client-sock 100))
 		       (receive (pid1 status)
-			   (posix:waitpid pid 0)
+			   (px.waitpid pid 0)
 			 (pid=? pid pid1))))))
 	      (begin ;child, client
 		(letrec ((client-sock (make-sock/c)))
 		  ;;Give the  server some time to setup  itself and reach
 		  ;;the ACCEPT call.
 		  (wait-for-awhile)
-		  (posix:connect client-sock sockaddr)
-		  (posix:recv/string client-sock 100)
-		  (posix:send/string client-sock "ciao server")
-		  (posix:recv/string client-sock 100)
-		  (posix:send/string client-sock "quit server")
+		  (px.connect client-sock sockaddr)
+		  (px.recv/string client-sock 100)
+		  (px.send/string client-sock "ciao server")
+		  (px.recv/string client-sock 100)
+		  (px.send/string client-sock "quit server")
 		  (exit)))))))
     => '(#t (#t "ciao server" "quit server")))
 
 ;;; --------------------------------------------------------------------
 
-  (let* ((pathname (string-append (posix:getenv "TMPDIR") "/proof")))
+  (let* ((pathname (string-append (px.getenv "TMPDIR") "/proof")))
     (when (file-exists? pathname)
-      (posix:unlink pathname))
+      (px.unlink pathname))
 
     (check	;get peer address
 	(with-result
@@ -826,16 +824,16 @@
 	   (letrec ((sockaddr (make-<sockaddr-un> pathname)))
 	     (letrec ((master-sock (make-sock/c))
 		      (client-sock (make-sock/c)))
-	       (posix:setsockopt master-sock (socket-option reuseaddr) #t)
+	       (px.setsockopt master-sock (socket-option reuseaddr) #t)
 	       (compensate
-		   (posix:bind master-sock sockaddr)
+		   (px.bind master-sock sockaddr)
 		 (with
 		  (when (file-exists? pathname)
-		    (posix:unlink pathname))))
-	       (posix:listen master-sock 2)
-	       (posix:connect client-sock sockaddr)
-	       (let ((client-sockaddr (posix:getsockname client-sock))
-		     (server-sockaddr (posix:getpeername client-sock)))
+		    (px.unlink pathname))))
+	       (px.listen master-sock 2)
+	       (px.connect client-sock sockaddr)
+	       (let ((client-sockaddr (px.getsockname client-sock))
+		     (server-sockaddr (px.getpeername client-sock)))
 		 (add-result (<sockaddr-un>-pathname server-sockaddr))
 		 (add-result (<sockaddr-un>-pathname client-sockaddr))
 		 #t)))))
@@ -848,45 +846,45 @@
 
   (define (make-sock/c)
     (letrec ((sock (compensate
-		       (posix:socket* (namespace local)
+		       (px.socket* (namespace local)
 				      (style datagram))
 		     (with
-		      (posix:close sock)))))
+		      (px.close sock)))))
       sock))
 
   (check	;strings
       (with-result
        (with-compensations
-	 (let* ((TMPDIR		(posix:getenv "TMPDIR"))
+	 (let* ((TMPDIR		(px.getenv "TMPDIR"))
 		(one-pathname	(string-append TMPDIR "/proof-one"))
 		(two-pathname	(string-append TMPDIR "/proof-two")))
-	   (when (file-exists? one-pathname) (posix:unlink one-pathname))
-	   (when (file-exists? two-pathname) (posix:unlink two-pathname))
+	   (when (file-exists? one-pathname) (px.unlink one-pathname))
+	   (when (file-exists? two-pathname) (px.unlink two-pathname))
 	   (let ((one-addr	(make-<sockaddr-un> one-pathname))
 		 (two-addr	(make-<sockaddr-un> two-pathname)))
 	     (push-compensation (when (file-exists? one-pathname)
-				  (posix:unlink one-pathname)))
+				  (px.unlink one-pathname)))
 	     (push-compensation (when (file-exists? two-pathname)
-				  (posix:unlink two-pathname)))
+				  (px.unlink two-pathname)))
 	     (let ((one-sock (make-sock/c))
 		   (two-sock (make-sock/c)))
-	       (posix:bind one-sock one-addr)
-	       (posix:bind two-sock two-addr)
-	       (posix:sendto/string one-sock "ciao i'm one" two-addr)
+	       (px.bind one-sock one-addr)
+	       (px.bind two-sock two-addr)
+	       (px.sendto/string one-sock "ciao i'm one" two-addr)
 	       (receive (result peer-address)
-		   (posix:recvfrom/string two-sock 100)
+		   (px.recvfrom/string two-sock 100)
 		 (add-result result)
-		 (posix:sendto/string two-sock "ciao i'm two" peer-address))
+		 (px.sendto/string two-sock "ciao i'm two" peer-address))
 	       (receive (result peer-address)
-		   (posix:recvfrom/string one-sock 100)
+		   (px.recvfrom/string one-sock 100)
 		 (add-result result)
-		 (posix:sendto/string one-sock "one quits" peer-address))
+		 (px.sendto/string one-sock "one quits" peer-address))
 	       (receive (result peer-address)
-		   (posix:recvfrom/string two-sock 100)
+		   (px.recvfrom/string two-sock 100)
 		 (add-result result)
-		 (posix:sendto/string one-sock "two quits" peer-address))
+		 (px.sendto/string one-sock "two quits" peer-address))
 	       (receive (result peer-address)
-	       	 (posix:recvfrom/string one-sock 100)
+	       	 (px.recvfrom/string one-sock 100)
 	         (add-result result))
 	       #t)))))
     => '(#t ("ciao i'm one" "ciao i'm two" "one quits" "two quits")))
@@ -896,48 +894,48 @@
   (check	;processes
       (with-result
        (with-compensations
-	 (let* ((TMPDIR		(posix:getenv "TMPDIR"))
+	 (let* ((TMPDIR		(px.getenv "TMPDIR"))
 		(one-pathname	(string-append TMPDIR "/proof-one"))
 		(two-pathname	(string-append TMPDIR "/proof-two")))
-	   (when (file-exists? one-pathname) (posix:unlink one-pathname))
-	   (when (file-exists? two-pathname) (posix:unlink two-pathname))
+	   (when (file-exists? one-pathname) (px.unlink one-pathname))
+	   (when (file-exists? two-pathname) (px.unlink two-pathname))
 	   (let ((one-addr	(make-<sockaddr-un> one-pathname))
 		 (two-addr	(make-<sockaddr-un> two-pathname)))
 	     (push-compensation (when (file-exists? one-pathname)
-				  (posix:unlink one-pathname)))
+				  (px.unlink one-pathname)))
 	     (push-compensation (when (file-exists? two-pathname)
-				  (posix:unlink two-pathname)))
-	     (let ((pid (posix:fork)))
+				  (px.unlink two-pathname)))
+	     (let ((pid (px.fork)))
 	       (if pid
 		   (let ((sock (make-sock/c))) ;parent, one
-		     (posix:bind sock one-addr)
+		     (px.bind sock one-addr)
 		     (wait-for-awhile)
-		     (posix:sendto/string sock "ciao i'm one" two-addr)
+		     (px.sendto/string sock "ciao i'm one" two-addr)
 		     (receive (result peer-address)
-			 (posix:recvfrom/string sock 100)
+			 (px.recvfrom/string sock 100)
 		       (add-result result)
-		       (posix:sendto/string sock "one quits" peer-address))
+		       (px.sendto/string sock "one quits" peer-address))
 		     (receive (result peer-address)
-			 (posix:recvfrom/string sock 100)
+			 (px.recvfrom/string sock 100)
 		       (add-result result))
 		     (receive (pid1 status)
-			 (posix:waitpid pid 0)
+			 (px.waitpid pid 0)
 		       (pid=? pid pid1)))
 		 (let ((sock (make-sock/c))) ;child, two
-		   (posix:bind sock two-addr)
+		   (px.bind sock two-addr)
 		   (wait-for-awhile)
 		   (receive (result peer-address)
-		       (posix:recvfrom/string sock 100)
-		     (posix:sendto/string sock "ciao i'm two" peer-address))
+		       (px.recvfrom/string sock 100)
+		     (px.sendto/string sock "ciao i'm two" peer-address))
 		   (receive (result peer-address)
-		       (posix:recvfrom/string sock 100)
-		     (posix:sendto/string sock "two quits" peer-address))
+		       (px.recvfrom/string sock 100)
+		     (px.sendto/string sock "two quits" peer-address))
 		   (exit))))))))
     => '(#t ("ciao i'm two" "two quits")))
 
 ;;; --------------------------------------------------------------------
 
-  (let* ((TMPDIR	(posix:getenv "TMPDIR"))
+  (let* ((TMPDIR	(px.getenv "TMPDIR"))
 	 (one-pathname	(string-append TMPDIR "/proof-one"))
 	 (two-pathname	(string-append TMPDIR "/proof-two")))
 
@@ -946,24 +944,24 @@
 	;;sockets, it raises the "endpoint not connected" error.
 	(with-result
 	 (with-compensations
-	   (when (file-exists? one-pathname) (posix:unlink one-pathname))
-	   (when (file-exists? two-pathname) (posix:unlink two-pathname))
+	   (when (file-exists? one-pathname) (px.unlink one-pathname))
+	   (when (file-exists? two-pathname) (px.unlink two-pathname))
 	   (let ((one-addr (make-<sockaddr-un> one-pathname))
 		 (two-addr (make-<sockaddr-un> two-pathname))
 		 (one-sock (make-sock/c))
 		 (two-sock (make-sock/c)))
 	       (compensate
-		   (posix:bind one-sock one-addr)
+		   (px.bind one-sock one-addr)
 		 (with
 		  (when (file-exists? one-pathname)
-		    (posix:unlink one-pathname))))
+		    (px.unlink one-pathname))))
 	       (compensate
-		   (posix:bind two-sock two-addr)
+		   (px.bind two-sock two-addr)
 		 (with
 		  (when (file-exists? two-pathname)
-		    (posix:unlink two-pathname))))
-	       (posix:sendto/string one-sock "ciao i'm one" two-addr)
-	       (let ((one-sockaddr (posix:getsockname one-sock)))
+		    (px.unlink two-pathname))))
+	       (px.sendto/string one-sock "ciao i'm one" two-addr)
+	       (let ((one-sockaddr (px.getsockname one-sock)))
 		 (add-result (<sockaddr-un>-pathname one-sockaddr))
 		 #t))))
       => `(#t (,one-pathname))))
@@ -975,43 +973,43 @@
 
   (define (make-sock/c)
     (letrec ((sock (compensate
-		       (posix:socket* (namespace inet)
+		       (px.socket* (namespace inet)
 				      (style stream))
 		     (with
-		      (posix:close sock)))))
+		      (px.close sock)))))
       sock))
 
   (define (make-sock6/c)
     (letrec ((sock (compensate
-		       (posix:socket* (namespace inet6)
+		       (px.socket* (namespace inet6)
 				      (style stream))
 		     (with
-		      (posix:close sock)))))
+		      (px.close sock)))))
       sock))
 
   (check	;inet
       (with-result
        (with-compensations
-  	 (let ((hostent (posix:gethostbyname "localhost")))
+  	 (let ((hostent (px.gethostbyname "localhost")))
 	   (when hostent
 	     (let ((sockaddr	(make-<sockaddr-in> (car (<hostent>-addrlist hostent)) tcp/ip-port))
 		   (master-sock	(make-sock/c))
 		   (client-sock	(make-sock/c)))
-	       (posix:setsockopt master-sock (socket-option reuseaddr) #t)
-	       (posix:bind   master-sock sockaddr)
-	       (posix:listen master-sock 2)
-	       (posix:connect client-sock sockaddr)
+	       (px.setsockopt master-sock (socket-option reuseaddr) #t)
+	       (px.bind   master-sock sockaddr)
+	       (px.listen master-sock 2)
+	       (px.connect client-sock sockaddr)
 	       (receive (server-sock client-address)
-		   (posix:accept master-sock)
-		 (push-compensation (posix:close server-sock))
-		 (posix:send/string server-sock "ciao client")
-		 (add-result (posix:recv/string client-sock 100))
-		 (posix:send/string client-sock "ciao server")
-		 (add-result (posix:recv/string server-sock 100))
-		 (posix:send/string server-sock "quit client")
-		 (add-result (posix:recv/string client-sock 100))
-		 (posix:send/string client-sock "quit server")
-		 (add-result (posix:recv/string server-sock 100))
+		   (px.accept master-sock)
+		 (push-compensation (px.close server-sock))
+		 (px.send/string server-sock "ciao client")
+		 (add-result (px.recv/string client-sock 100))
+		 (px.send/string client-sock "ciao server")
+		 (add-result (px.recv/string server-sock 100))
+		 (px.send/string server-sock "quit client")
+		 (add-result (px.recv/string client-sock 100))
+		 (px.send/string client-sock "quit server")
+		 (add-result (px.recv/string server-sock 100))
 		 #t))))))
     => '(#t ("ciao client" "ciao server" "quit client" "quit server")))
 
@@ -1021,21 +1019,21 @@
 	 (let ((sockaddr	(make-<sockaddr-in6> '#vu8(0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1) tcp/ip-port))
 	       (master-sock	(make-sock6/c))
 	       (client-sock	(make-sock6/c)))
-	   (posix:setsockopt master-sock (socket-option reuseaddr) #t)
-	   (posix:bind   master-sock sockaddr)
-	   (posix:listen master-sock 2)
-	   (posix:connect client-sock sockaddr)
+	   (px.setsockopt master-sock (socket-option reuseaddr) #t)
+	   (px.bind   master-sock sockaddr)
+	   (px.listen master-sock 2)
+	   (px.connect client-sock sockaddr)
 	   (receive (server-sock client-address)
-	       (posix:accept master-sock)
-	     (push-compensation (posix:close server-sock))
-	     (posix:send/string server-sock "ciao client")
-	     (add-result (posix:recv/string client-sock 100))
-	     (posix:send/string client-sock "ciao server")
-	     (add-result (posix:recv/string server-sock 100))
-	     (posix:send/string server-sock "quit client")
-	     (add-result (posix:recv/string client-sock 100))
-	     (posix:send/string client-sock "quit server")
-	     (add-result (posix:recv/string server-sock 100))
+	       (px.accept master-sock)
+	     (push-compensation (px.close server-sock))
+	     (px.send/string server-sock "ciao client")
+	     (add-result (px.recv/string client-sock 100))
+	     (px.send/string client-sock "ciao server")
+	     (add-result (px.recv/string server-sock 100))
+	     (px.send/string server-sock "quit client")
+	     (add-result (px.recv/string client-sock 100))
+	     (px.send/string client-sock "quit server")
+	     (add-result (px.recv/string server-sock 100))
 	     #t))))
     => '(#t ("ciao client" "ciao server" "quit client" "quit server")))
 
@@ -1044,22 +1042,22 @@
   (check	;get peer name, inet
       (with-result
        (with-compensations
-  	 (let ((hostent (posix:gethostbyname "localhost")))
+  	 (let ((hostent (px.gethostbyname "localhost")))
 	   (when hostent
 	     (let ((sockaddr	(make-<sockaddr-in> (car (<hostent>-addrlist hostent)) tcp/ip-port))
 		   (master-sock	(make-sock/c))
 		   (client-sock	(make-sock/c)))
-	       (posix:setsockopt master-sock (socket-option reuseaddr) #t)
-	       (posix:bind   master-sock sockaddr)
-	       (posix:listen master-sock 2)
-	       (posix:connect client-sock sockaddr)
+	       (px.setsockopt master-sock (socket-option reuseaddr) #t)
+	       (px.bind   master-sock sockaddr)
+	       (px.listen master-sock 2)
+	       (px.connect client-sock sockaddr)
 	       (receive (server-sock client-address)
-		   (posix:accept master-sock)
-		 (let ((master-sockaddr (posix:getsockname master-sock))
-		       (server-sockaddr (posix:getsockname server-sock))
-		       (client-sockaddr (posix:getpeername server-sock)))
-		   (add-result (posix:inet-ntoa (<sockaddr-in>-addr server-sockaddr)))
-		   (add-result (posix:inet-ntoa (<sockaddr-in>-addr client-sockaddr)))
+		   (px.accept master-sock)
+		 (let ((master-sockaddr (px.getsockname master-sock))
+		       (server-sockaddr (px.getsockname server-sock))
+		       (client-sockaddr (px.getpeername server-sock)))
+		   (add-result (px.inet-ntoa (<sockaddr-in>-addr server-sockaddr)))
+		   (add-result (px.inet-ntoa (<sockaddr-in>-addr client-sockaddr)))
 		   (add-result (<sockaddr-in>-port master-sockaddr))
 		   #t)))))))
     => `(#t ("127.0.0.1" "127.0.0.1" ,tcp/ip-port)))
@@ -1070,18 +1068,18 @@
 	 (let ((sockaddr	(make-<sockaddr-in6> '#vu8(0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1) tcp/ip-port))
 	       (master-sock	(make-sock6/c))
 	       (client-sock	(make-sock6/c)))
-	   (posix:setsockopt master-sock (socket-option reuseaddr) #t)
-	   (posix:bind   master-sock sockaddr)
-	   (posix:listen master-sock 2)
-	   (posix:connect client-sock sockaddr)
+	   (px.setsockopt master-sock (socket-option reuseaddr) #t)
+	   (px.bind   master-sock sockaddr)
+	   (px.listen master-sock 2)
+	   (px.connect client-sock sockaddr)
 	   (receive (server-sock client-address)
-	       (posix:accept master-sock)
-	     (let ((master-sockaddr (posix:getsockname master-sock))
-		   (server-sockaddr (posix:getsockname server-sock))
-		   (client-sockaddr (posix:getpeername server-sock)))
-	       (add-result (posix:inet-ntop (socket-address-format inet6)
+	       (px.accept master-sock)
+	     (let ((master-sockaddr (px.getsockname master-sock))
+		   (server-sockaddr (px.getsockname server-sock))
+		   (client-sockaddr (px.getpeername server-sock)))
+	       (add-result (px.inet-ntop (socket-address-format inet6)
 					    (<sockaddr-in6>-addr server-sockaddr)))
-	       (add-result (posix:inet-ntop (socket-address-format inet6)
+	       (add-result (px.inet-ntop (socket-address-format inet6)
 					    (<sockaddr-in6>-addr client-sockaddr)))
 	       (add-result (<sockaddr-in6>-port master-sockaddr))
 	       #t)))))
@@ -1096,17 +1094,17 @@
       (with-result
        (with-compensations
   	 (receive (one-sock two-sock)
-	     (posix:socketpair* (namespace local) (style stream))
-	   (push-compensation (posix:close one-sock))
-	   (push-compensation (posix:close two-sock))
-	   (posix:send/string one-sock "ciao two")
-	   (add-result (posix:recv/string two-sock 100))
-	   (posix:send/string two-sock "ciao one")
-	   (add-result (posix:recv/string one-sock 100))
-	   (posix:send/string one-sock "quit two")
-	   (add-result (posix:recv/string two-sock 100))
-	   (posix:send/string two-sock "quit one")
-	   (add-result (posix:recv/string one-sock 100))
+	     (px.socketpair* (namespace local) (style stream))
+	   (push-compensation (px.close one-sock))
+	   (push-compensation (px.close two-sock))
+	   (px.send/string one-sock "ciao two")
+	   (add-result (px.recv/string two-sock 100))
+	   (px.send/string two-sock "ciao one")
+	   (add-result (px.recv/string one-sock 100))
+	   (px.send/string one-sock "quit two")
+	   (add-result (px.recv/string two-sock 100))
+	   (px.send/string two-sock "quit one")
+	   (add-result (px.recv/string one-sock 100))
 	   #t)))
     => '(#t ("ciao two" "ciao one" "quit two" "quit one")))
 

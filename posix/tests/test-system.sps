@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2009-2011 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -26,15 +26,12 @@
 
 
 (import (nausicaa)
-  (strings)
-  (compensations)
-  (deferred-exceptions)
-  (pretty-print)
-  (foreign errno)
-  (posix sizeof)
-  (posix typedefs)
-  (prefix (posix system) posix:)
-  (prefix (glibc system) glibc:)
+  (nausicaa strings)
+  (nausicaa ffi errno)
+  (nausicaa posix sizeof)
+  (nausicaa posix typedefs)
+  (prefix (nausicaa posix system) px.)
+  (prefix (nausicaa glibc system) glibc.)
   (checks))
 
 (check-set-mode! 'report-failed)
@@ -50,15 +47,15 @@
     (lambda ()
 
       (check
-	  (integer? (posix:sysconf _SC_ARG_MAX))
+	  (integer? (px.sysconf _SC_ARG_MAX))
 	=> #t)
 
       (check
-	  (integer? (posix:pathconf "/bin/ls" _PC_NAME_MAX))
+	  (integer? (px.pathconf "/bin/ls" _PC_NAME_MAX))
 	=> #t)
 
       (check
-	  (posix:confstr _CS_PATH)
+	  (px.confstr _CS_PATH)
 	=> "/bin:/usr/bin")
 
       #t)))
@@ -73,20 +70,20 @@
     (lambda ()
 
       (check
-	  (posix:gethostname)
+	  (px.gethostname)
 	=> "rapitore")
 
       (check
-	  (posix:getdomainname)
+	  (px.getdomainname)
 	=> "(none)")
 
       (check
-	  (let ((r (posix:uname)))
+	  (let ((r (px.uname)))
 	    (<utsname>? r))
 	=> #t)
 
       (check
-	  (let ((r (posix:uname)))
+	  (let ((r (px.uname)))
 	    (<utsname>-sysname r))
 	=> "Linux")
 
@@ -103,13 +100,13 @@
 
       (check
 	  (begin
-	    (glibc:setfsent)
+	    (glibc.setfsent)
 	    (let ((tabs (let loop ((tabs '()))
-			  (let ((t (glibc:getfsent)))
+			  (let ((t (glibc.getfsent)))
 			    (if t
 				(loop (cons t tabs))
 			      (begin
-				(glibc:endfsent)
+				(glibc.endfsent)
 				tabs))))))
 ;;;(pretty-print tabs)
 	      (for-all <fstab>? tabs)))
@@ -117,18 +114,18 @@
 
       (check
 	  (begin
-	    (glibc:setfsent)
-	    (let ((tab (glibc:getfsspec "/dev/sda3")))
-	      (glibc:endfsent)
+	    (glibc.setfsent)
+	    (let ((tab (glibc.getfsspec "/dev/sda3")))
+	      (glibc.endfsent)
 ;;;(pretty-print tab)(newline)
 	      (<fstab>? tab)))
 	=> #t)
 
       (check
 	  (begin
-	    (glibc:setfsent)
-	    (let ((tab (glibc:getfsfile "/")))
-	      (glibc:endfsent)
+	    (glibc.setfsent)
+	    (let ((tab (glibc.getfsfile "/")))
+	      (glibc.endfsent)
 ;;;(pretty-print tab)(newline)
 	      (<fstab>? tab)))
 	=> #t)
@@ -145,13 +142,13 @@
     (lambda ()
 
       (check
-	  (let* ((stream (glibc:setmntent _PATH_MOUNTED "r"))
+	  (let* ((stream (glibc.setmntent _PATH_MOUNTED "r"))
 		 (tabs	 (let loop ((tabs '())
-				    (entry (glibc:getmntent stream)))
+				    (entry (glibc.getmntent stream)))
 			   (if entry
-			       (loop (cons entry tabs) (glibc:getmntent stream))
+			       (loop (cons entry tabs) (glibc.getmntent stream))
 			     (begin
-			       (glibc:endmntent stream)
+			       (glibc.endmntent stream)
 			       tabs)))))
 ;;;(pretty-print tabs)
 	    (for-all <mntent>? tabs))

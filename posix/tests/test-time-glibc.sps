@@ -7,7 +7,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2008, 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2008-2011 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -26,17 +26,14 @@
 
 
 (import (nausicaa)
-  (checks)
-  (deferred-exceptions)
-  (compensations)
-  (only (foreign ffi sizeof) valueof-int-max)
-  (foreign memory)
-  (foreign cstrings)
-  (foreign errno)
-  (posix sizeof)
-  (posix typedefs)
-  (prefix (posix time) posix:)
-  (prefix (glibc time) glibc:))
+  (nausicaa checks)
+  (prefix (nausicaa ffi sizeof) ffi.)
+  (prefix (nausicaa ffi memory) ffi.)
+  (nausicaa ffi cstrings)
+  (nausicaa ffi errno)
+  (nausicaa posix sizeof)
+  (prefix (nausicaa posix time) px.)
+  (prefix (nausicaa glibc time) glibc.))
 
 (check-set-mode! 'report-failed)
 (display "*** testing Glibc time\n")
@@ -44,29 +41,18 @@
 
 ;;;; helpers
 
-(define (equal-<tm>? a b)
-  (and (equal? (<tm>-sec a)
-	       (<tm>-sec b))
-       (equal? (<tm>-min a)
-	       (<tm>-min b))
-       (equal? (<tm>-hour a)
-	       (<tm>-hour b))
-       (equal? (<tm>-mday a)
-	       (<tm>-mday b))
-       (equal? (<tm>-mon a)
-	       (<tm>-mon b))
-       (equal? (<tm>-year a)
-	       (<tm>-year b))
-       (equal? (<tm>-wday a)
-	       (<tm>-wday b))
-       (equal? (<tm>-yday a)
-	       (<tm>-yday b))
-       (equal? (<tm>-isdst a)
-	       (<tm>-isdst b))
-       (equal? (<tm>-gmtoff a)
-	       (<tm>-gmtoff b))
-       (pointer=? (<tm>-zone a)
-		  (<tm>-zone b))))
+(define (equal-<tm>? (a <tm>) (b <tm>))
+  (and (= a.tm_sec b.tm_sec)
+       (= a.tm_min b.tm_min)
+       (= a.tm_hour b.tm_hour)
+       (= a.tm_mday b.tm_mday)
+       (= a.tm_mon b.tm_mon)
+       (= a.tm_year b.tm_year)
+       (= a.tm_wday b.tm_wday)
+       (= a.tm_yday b.tm_yday)
+       (= a.tm_isdst b.tm_isdst)
+       (= a.tm_gmtoff b.tm_gmtoff)
+       (ffi.pointer=? a.tm_zone b.tm_zone)))
 
 
 (parametrise ((check-test-name 'simple-calendar))
@@ -82,7 +68,7 @@
       ;; 		     (errno-symbolic-value E))
       ;; 		    (else
       ;; 		     #f))
-      ;; 	    (glibc:stime (posix:time)))
+      ;; 	    (glibc.stime (px.time)))
       ;; 	=> 'EPERM)
 
       #t)))
@@ -96,7 +82,7 @@
     (lambda ()
 
       (check
-	  (let-values (((timeval timezone) (glibc:gettimeofday)))
+	  (let-values (((timeval timezone) (glibc.gettimeofday)))
 	    #t)
 	=> #t)
 
@@ -105,8 +91,8 @@
       ;; 	  (guard (E ((errno-condition? E)
       ;; 		     (errno-symbolic-value E))
       ;; 		    (else #f))
-      ;; 	    (let-values (((timeval timezone) (glibc:gettimeofday)))
-      ;; 	      (glibc:settimeofday timeval timezone)))
+      ;; 	    (let-values (((timeval timezone) (glibc.gettimeofday)))
+      ;; 	      (glibc.settimeofday timeval timezone)))
       ;; 	=> 'EPERM)
 
       ;; (check
@@ -114,7 +100,7 @@
       ;; 	  (guard (E ((errno-condition? E)
       ;; 		     (errno-symbolic-value E))
       ;; 		    (else #f))
-      ;; 	    (glibc:adjtime (make-<timeval> 0 0)))
+      ;; 	    (glibc.adjtime (make-<timeval> 0 0)))
       ;; 	=> 'EPERM)
 
       #t)))
@@ -122,7 +108,7 @@
 
 (parametrise ((check-test-name 'broken-down-time))
 
-  (define the-time (posix:time))
+  (define the-time (px.time))
 
   (with-deferred-exceptions-handler
       (lambda (E)
@@ -131,52 +117,52 @@
 
       (check
 	  (with-compensations
-	    (let ((tm* (glibc:localtime (posix:time) malloc-block/c)))
+	    (let ((tm* (glibc.localtime (px.time) ffi.malloc-block/c)))
 	      #t))
 	=> #t)
 
       (check
-	  (<tm>? (glibc:localtime* (posix:time)))
+	  (is-a? (glibc.localtime* (px.time)) <tm>)
 	=> #t)
 
 ;;; --------------------------------------------------------------------
 
       (check
 	  (with-compensations
-	    (let ((tm* (glibc:localtime (posix:time) malloc-block/c)))
+	    (let ((tm* (glibc.localtime (px.time) ffi.malloc-block/c)))
 	      #t))
 	=> #t)
 
       (check
-	  (<tm>? (glibc:localtime* (posix:time)))
+	  (is-a? (glibc.localtime* (px.time)) <tm>)
 	=> #t)
 
 ;;; --------------------------------------------------------------------
 
       (check
 	  (with-compensations
-	    (let ((tm* (glibc:localtime the-time malloc-block/c)))
-	      (glibc:timelocal tm*)))
+	    (let ((tm* (glibc.localtime the-time ffi.malloc-block/c)))
+	      (glibc.timelocal tm*)))
 	=> the-time)
 
       (check
 	  (with-compensations
-	    (let ((tm-record (glibc:localtime* the-time)))
-	      (glibc:timelocal* tm-record)))
+	    (let ((tm-record (glibc.localtime* the-time)))
+	      (glibc.timelocal* tm-record)))
 	=> the-time)
 
 ;;; --------------------------------------------------------------------
 
       (check
 	  (with-compensations
-	    (let ((tm* (glibc:gmtime the-time malloc-block/c)))
-	      (glibc:timegm tm*)))
+	    (let ((tm* (glibc.gmtime the-time ffi.malloc-block/c)))
+	      (glibc.timegm tm*)))
 	=> the-time)
 
       (check
 	  (with-compensations
-	    (let ((tm-record (glibc:gmtime* the-time)))
-	      (glibc:timegm* tm-record)))
+	    (let ((tm-record (glibc.gmtime* the-time)))
+	      (glibc.timegm* tm-record)))
 	=> the-time)
 
       #t)))
@@ -190,7 +176,7 @@
     (lambda ()
 
       (check
-	  (<ntptimeval>? (glibc:ntp_gettime*))
+	  (is-a? (glibc.ntp_gettime*) <ntptimeval>)
       	=> #t)
 
       ;; (check
@@ -198,7 +184,7 @@
       ;; 	  (guard (E ((errno-condition? E)
       ;; 		     (errno-symbolic-value E))
       ;; 		    (else (write E) #f))
-      ;; 	    (glibc:ntp_adjtime* (make-<timex>
+      ;; 	    (glibc.ntp_adjtime* (make-<timex>
       ;; 				 100 ;modes
       ;; 				 100 ;offset
       ;; 				 100 ;frequency
@@ -230,36 +216,34 @@
       (lambda (E)
 	(debug-print-condition "deferred condition in format broken-down" E))
     (lambda ()
-
       (define broken
-	(make-<tm> 0			;sec
-			  1			;min
-			  2			;hour
-			  3			;mday
-			  4			;mon
-			  5			;year
-			  3			;wday
-			  122			;yday, this is wrong
-			  0			;isdst
-			  0			;gmtoff
-			  (string->cstring/c "CET") ;zone
-			  ))
-
+	(make* <tm>
+	  0			      ;sec
+	  1			      ;min
+	  2			      ;hour
+	  3			      ;mday
+	  4			      ;mon
+	  5			      ;year
+	  3			      ;wday
+	  122			      ;yday, this is wrong
+	  0			      ;isdst
+	  0			      ;gmtoff
+	  (string->cstring/c "CET"))) ;zone
       (define the-time
-	(glibc:timelocal* broken))
+	(glibc.timelocal* broken))
 
 ;;; --------------------------------------------------------------------
 
       (check
-	  (glibc:asctime* broken)
+	  (glibc.asctime* broken)
 	=> "Wed May  3 02:01:00 1905\n")
 
       (check
-	  (glibc:ctime the-time)
+	  (glibc.ctime the-time)
 	=> "Wed May  3 02:01:00 1905\n")
 
       (check
-	  (glibc:strftime* "%a %h %d %H:%M:%S %Y" broken)
+	  (glibc.strftime* "%a %h %d %H:%M:%S %Y" broken)
 	=> "Wed May 03 02:01:00 1905")
 
       #t)))
@@ -271,26 +255,23 @@
       (lambda (E)
 	(debug-print-condition "deferred condition in parsing strings" E))
     (lambda ()
-
       (define broken
-	(make-<tm> 0			;sec
-			  1			;min
-			  2			;hour
-			  3			;mday
-			  4			;mon
-			  5			;year
-			  3			;wday
-			  122			;yday, this is wrong
-			  valueof-int-max	;isdst
-			  valueof-int-max	;gmtoff
-			  pointer-null		;zone
-			  ))
-
+	(make* <tm>
+	  0			  ;sec
+	  1			  ;min
+	  2			  ;hour
+	  3			  ;mday
+	  4			  ;mon
+	  5			  ;year
+	  3			  ;wday
+	  122			  ;yday, this is wrong
+	  (ffi.c-valueof int-max) ;isdst
+	  (ffi.c-valueof int-max) ;gmtoff
+	  ffi.pointer-null))	  ;zone
       (define template "%a %h %d %H:%M:%S %Y")
       (define the-string "Wed May 03 02:01:00 1905")
-
       (check
-	  (glibc:strptime* the-string template)
+	  (glibc.strptime* the-string template)
 	(=> equal-<tm>?)
 	broken)
 
@@ -305,20 +286,21 @@
     (lambda ()
 
       (check
-	  (<itimerval>?
-	   (glibc:setitimer* ITIMER_REAL (make-<itimerval>
-					  (make-<timeval> 0 0)
-					  (make-<timeval> 999999 1))))
+	  (is-a?
+	   (glibc.setitimer* ITIMER_REAL (make* <itimerval>
+					   (make* <timeval> 0 0)
+					   (make* <timeval> 999999 1)))
+	   <itimerval>)
 	=> #t)
 
       ;;The record returned by GETITIMER* has unpredictable values.
       ;;
       ;; (check
       ;; 	  (begin
-      ;; 	    (glibc:setitimer* ITIMER_REAL (make-<itimerval>
+      ;; 	    (glibc.setitimer* ITIMER_REAL (make-<itimerval>
       ;; 					   (make-<timeval> 0 0)
       ;; 					   (make-<timeval> 999999 1)))
-      ;; 	    (let* ((r (glibc:getitimer* ITIMER_REAL))
+      ;; 	    (let* ((r (glibc.getitimer* ITIMER_REAL))
       ;; 		   (i (<itimerval>-interval r))
       ;; 		   (v (<itimerval>-value    r)))
       ;; 	      (list (<timeval>-sec  i)
@@ -328,11 +310,11 @@
       ;; 	=> '(0 0 999999 1))
 
       (check
-	  (<itimerval>? (glibc:getitimer* ITIMER_REAL))
+	  (is-a? (glibc.getitimer* (c-valueof ITIMER_REAL)) <itimerval>)
 	=> #t)
 
       (check
-	  (glibc:alarm 999999)
+	  (glibc.alarm 999999)
 	=> 999999)
 
       #t)))
@@ -346,13 +328,12 @@
     (lambda ()
 
       (check
-	  (glibc:sleep 1)
+	  (glibc.sleep 1)
 	=> 0)
 
       (check
-	  (let ((r (glibc:nanosleep* (make-<timespec> 1 0))))
-	    (list (<timespec>-sec  r)
-		  (<timespec>-nsec r)))
+	  (let (((r <timespec>) (glibc.nanosleep* (make* <timespec> 1 0))))
+	    (list r.tv_sec r.tv_nsec))
 	=> '(0 0))
 
       #t)))
