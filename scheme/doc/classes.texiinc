@@ -573,8 +573,9 @@ some other way.
 There is a special syntax to specify a class or label as tag for fields
 and virtual fields of a class or label; this syntax is used to enable
 dot notation to access fields and methods of those fields.  At present
-no validation of tagged field values is performed by field accessors and
-mutators nor by constructor functions of classes and labels.
+validation of tagged field values is performed neither by field
+accessors and mutators nor by constructor functions of classes and
+labels.
 
 The plain forms to specify a field in a @code{field} or
 @code{virtual-field} auxiliary syntax are the same supported by
@@ -603,7 +604,8 @@ by @rsixlibrary{records syntactic}.  @func{define-class} and
 @end example
 
 @noindent
-where each @var{class} is a class or label identifier.
+where each @var{class} is a class or label identifier; see below for a
+further extension.
 
 To use dot notation with non--tagged fields we do:
 
@@ -655,6 +657,100 @@ and to:
              (o.c  <alpha>))
   (list o.c o.c.a o.c.b))
 @end example
+
+@c ------------------------------------------------------------
+
+@subsubheading Field getters
+
+Let's consider this simple case of tagged field:
+
+@example
+(define-class <alpha>
+  (fields (mutable a)))
+
+(define-class <beta>
+  (fields (mutable (b <alpha>))))
+
+(let* (((A <alpha>) (make <alpha> 1))
+       ((B <beta>)  (make <beta> A)))
+  (list A.a B.b.a))
+@result{} (1 1)
+@end example
+
+@noindent
+the identifier syntax @code{B.b.a} expands to:
+
+@example
+(<alpha>-a B.b)
+@end example
+
+@noindent
+which in turn expands to:
+
+@example
+(<alpha>-a (<beta>-b B))
+@end example
+
+In some rare case we would like the outer accessor (@func{<alpha>-a} in
+the example) to be applied to a value different from the return value of
+the inner accessor (@func{<beta>-b} in the example).  This is possible
+by specifying a custom field getter to be used only when building nested
+dot notation expansion forms:
+
+@example
+(define-class <alpha>
+  (fields (mutable a)))
+
+(define-class <beta>
+  (fields (mutable (b <alpha> (getter b-getter)))))
+
+(define (b-getter (o <beta>))
+  (make <alpha> 2))
+
+(let* (((A <alpha>) (make <alpha> 1))
+       ((B <beta>)  (make <beta>  A)))
+  (list A.a B.b.a))
+@result{} (1 2)
+@end example
+
+@noindent
+here the identifier syntax @code{B.b.a} expands to:
+
+@example
+(<alpha>-a B.b)
+@end example
+
+@noindent
+which in turn expands to:
+
+@example
+(<alpha>-a (b-getter B))
+@end example
+
+@noindent
+but the identifier syntax @code{B.b} would still expand to:
+
+@example
+(<beta>-b B)
+@end example
+
+So the @code{field} and @code{virtual-field} auxiliary syntax of
+@func{define-class} and @func{define-label} support the following forms:
+
+@example
+(@var{field} @var{class/getter} ...)
+(mutable (@var{field} @var{class/getter} ...))
+(mutable (@var{field} @var{class/getter} ...) @var{accessor} @var{mutator})
+(immutable (@var{field} @var{class/getter} ...))
+(immutable (@var{field} @var{class/getter} ...) @var{accessor})
+@end example
+
+@noindent
+where: @var{field}, @var{accessor} and @var{mutator} are identifiers;
+@code{mutable} and @code{immutable} are the auxiliary syntaxes exported
+by @rsixlibrary{records syntactic}; @var{class/getter} are class or
+label identifiers or @code{(getter @var{getter})} forms.  The can be at
+most one @func{getter} form for each field clause.
 
 @c ------------------------------------------------------------
 

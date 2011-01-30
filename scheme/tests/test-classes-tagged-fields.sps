@@ -1,4 +1,4 @@
-;;; -*- coding: utf-8 -*-
+;;; -*- coding: utf-8-unix -*-
 ;;;
 ;;;Part of: Nausicaa/Scheme
 ;;;Contents: tests for class tagged fields
@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2010, 2011 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -405,6 +405,170 @@
 		 #f)
 	      (environment '(nausicaa))))
     => '<beta>)
+
+  #t)
+
+
+(parametrise ((check-test-name	'getter-class))
+
+;;;Tests for field getters.
+
+  (let ()	;without getter
+
+    (define-class <alpha>
+      (fields (mutable a)))
+
+    (define-class <beta>
+      (fields (mutable (b <alpha>))))
+
+    (check
+	(let*-make ((A <alpha>	1)
+		    (B <beta>	A))
+	  (list A.a B.b.a))
+      => '(1 1))
+
+    #f)
+
+  (let ()	;with getter
+
+    (define-class <alpha>
+      (fields (mutable a)))
+
+    (define-class <beta>
+      (fields (mutable (b <alpha> (getter b-getter)))))
+
+    (define (b-getter (o <beta>))
+      (make <alpha> 2))
+
+    (check
+	(let*-make ((A <alpha>	1)
+		    (B <beta>	A))
+	  (list A.a B.b.a))
+      => '(1 2))
+
+    #f)
+
+  (let ()	;with getter as first clause
+
+    (define-class <alpha>
+      (fields (mutable a)))
+
+    (define-class <beta>
+      (fields (mutable (b (getter b-getter) <alpha>))))
+
+    (define (b-getter (o <beta>))
+      (make <alpha> 2))
+
+    (check
+	(let*-make ((A <alpha>	1)
+		    (B <beta>	A))
+	  (list A.a B.b.a))
+      => '(1 2))
+
+    #f)
+
+  (let ()	;with getter but no tag, the getter is ignored
+
+    (define-class <alpha>
+      (fields (mutable a)))
+
+    (define-class <beta>
+      (fields (mutable (b (getter b-getter)))))
+
+    (define (b-getter (o <beta>))
+      (make <alpha> 2))
+
+    (check
+	(let-make ((B <beta> 1))
+	  B.b)
+      => 1)
+
+    #f)
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (guard (E ((syntax-violation? E)
+;;;(write (condition-message E))(newline)
+		 (syntax-violation-subform E))
+		(else E))
+	(eval '(define-class <beta>
+		 (fields (mutable (b (getter b-getter) (getter b-getter-2) <alpha>))))
+	      (environment '(nausicaa))))
+    => '(b (getter b-getter) (getter b-getter-2) <alpha>))
+
+
+  #t)
+
+
+(parametrise ((check-test-name	'getter-label))
+
+;;;Tests for field getters.
+
+  (let ()	;without getter
+
+    (define-class <alpha>
+      (fields (mutable a)))
+
+    (define-label <beta>
+      (virtual-fields (immutable (b <alpha>) car)))
+
+    (check
+	(let* (((A <alpha>) (make <alpha> 1))
+	       ((B <beta>)  `(,A)))
+	  (list A.a B.b.a))
+      => '(1 1))
+
+    #f)
+
+  (let ()	;with getter
+
+    (define-class <alpha>
+      (fields (mutable a)))
+
+    (define-label <beta>
+      (virtual-fields (immutable (b <alpha> (getter b-getter)) car)))
+
+    (define (b-getter (o <beta>))
+      (make <alpha> 2))
+
+    (check
+	(let* (((A <alpha>) (make <alpha> 1))
+	       ((B <beta>)  `(,A)))
+	  (list A.a B.b.a))
+      => '(1 2))
+
+    #f)
+
+  (let ()	;with getter but no tag, the getter is ignored
+
+    (define-class <alpha>
+      (fields (mutable a)))
+
+    (define-label <beta>
+      (virtual-fields (immutable (b (getter b-getter)) car)))
+
+    (define (b-getter (o <beta>))
+      (make <alpha> 2))
+
+    (check
+	(let (((B <beta>) `(1)))
+	  B.b)
+      => 1)
+
+    #f)
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (guard (E ((syntax-violation? E)
+;;;(write (condition-message E))(newline)
+		 (syntax-violation-subform E))
+		(else E))
+	(eval '(define-label <beta>
+		 (virtual-fields (immutable (b (getter b-getter) (getter b-getter-2) <alpha>) car)))
+	      (environment '(nausicaa))))
+    => '(b (getter b-getter) (getter b-getter-2) <alpha>))
 
   #t)
 

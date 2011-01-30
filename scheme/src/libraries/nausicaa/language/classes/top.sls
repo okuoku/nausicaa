@@ -85,8 +85,8 @@
       ((_ :is-a? ?arg)
        #'(<top>? ?arg))
 
-      ((_ :with-class-bindings-of ?inherit-options ?variable-name ?body0 ?body ...)
-       #'(begin ?body0 ?body ...))
+      ((_ :with-class-bindings-of ?inherit-options ?variable-name ?instance . ?body)
+       #'(begin . ?body))
 
       ((_ ?keyword . ?rest)
        (syntax-violation '<top>
@@ -95,7 +95,7 @@
 
 (define-syntax <top>-bindings
   (syntax-rules ()
-    ((_ ?class-name ?identifier . ?body)
+    ((_ ?class-name ?variable-name ?instance . ?body)
      (begin . ?body))))
 
 ;;This  should be  here but  is  instead in  (nausicaa language  classes

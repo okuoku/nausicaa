@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2010, 2011 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -195,7 +195,7 @@
     (define-syntax <alpha>-bindings
       (lambda (stx)
 	(syntax-case stx ()
-	  ((_ ?class-name ?identifier . ?body)
+	  ((_ ?class-name ?identifier ?instance . ?body)
 	   (with-syntax ((A (datum->syntax #'?identifier 'a)))
 	     #`(let ((A 123)) . ?body))))))
 

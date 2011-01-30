@@ -35,75 +35,81 @@
     make-method-bindings
     make-setter-getter-bindings)
   (import (rnrs)
-    (nausicaa language syntax-utilities)
+    (prefix (nausicaa language syntax-utilities) synux.)
     (prefix (nausicaa language classes helpers) help.))
 
 
-(define (make-field-bindings use-dot-notation? variable-stx clauses-stx synner)
+(define (make-field-bindings use-dot-notation? variable-id instance-id clauses-stx synner)
   ;;Build and return a list of lists representing LET-SYNTAX bindings to
   ;;be used to access the fields of a class or label.
   ;;
   ;;USE-DOT-NOTATION? must be a boolean value: true if dot notation must
   ;;be used, false if the field name identifiers must be used directly.
   ;;
-  ;;VARIABLE-STX  must be  the identifier  bound to  the class  or label
-  ;;instance;  if  USE-DOT-NOTATION?   is  false,  VARIABLE-STX  is  the
-  ;;identifier of the "this" method argument.
+  ;;VARIABLE-ID must be the identifier to use as prefix in dot notation;
+  ;;if USE-DOT-NOTATION?  is false, VARIABLE-ID is the identifier of the
+  ;;"this" method argument.
+  ;;
+  ;;INSTANCE-ID  must be  the identifier  bound  to the  class or  label
+  ;;instance.
   ;;
   ;;CLAUSES-STX must  be the list  of clauses defining the  fields; each
   ;;clause must be in one of the forms:
   ;;
-  ;;   (mutable   ?field ?accessor ?mutator ?field-class ...)
-  ;;   (immutable ?field ?accessor ?field-class ...)
+  ;;   (mutable   ?field ?accessor ?mutator ?field-getter ?field-class ...)
+  ;;   (immutable ?field ?accessor ?field-getter ?field-class ...)
   ;;
   ;;SYNNER must be a function used to raise syntax violation errors with
   ;;the context of the caller.
   ;;
   (define (main)
     (assert (boolean? use-dot-notation?))
-    (assert (identifier? variable-stx))
+    (assert (identifier? variable-id))
     (map (lambda (clause-stx)
     	   (make-single-field-binding clause-stx synner))
-      (unwrap-syntax-object clauses-stx)))
+      (synux.unwrap-syntax-object clauses-stx)))
 
   (define (make-single-field-binding clause-stx synner)
     (define (make-keyword field-stx)
       (if use-dot-notation?
-	  (syntax-dot-notation-identifier variable-stx field-stx)
-	;;If dot notation is off,  VARIABLE-STX is the identifier of the
+	  (synux.syntax-dot-notation-identifier variable-id field-stx)
+	;;If dot notation is off,  VARIABLE-ID is the identifier of the
 	;;"this" method argument.
 	;;
 	;;Notice that  FIELD-STX was not introduced in  the same context
-	;;of VARIABLE-STX,  so we have  to create a new  identifier with
+	;;of VARIABLE-ID,  so we have  to create a new  identifier with
 	;;the  same   name  of  FIELD-STX   and  the  same   context  of
-	;;VARIABLE-STX.
-	(datum->syntax variable-stx (syntax->datum field-stx))))
+	;;VARIABLE-ID.
+	(datum->syntax variable-id (syntax->datum field-stx))))
     (syntax-case clause-stx (mutable immutable)
       ((mutable ?field ?accessor ?mutator ?field-class ...)
        #`(#,(make-keyword #'?field)
 	  (identifier-syntax
-	   (_              (?accessor #,variable-stx))
-	   ((set! _ ?expr) (?mutator  #,variable-stx ?expr)))))
+	   (_              (?accessor #,instance-id))
+	   ((set! _ ?expr) (?mutator  #,instance-id ?expr)))))
       ((immutable ?field ?accessor ?field-class ...)
        #`(#,(make-keyword #'?field)
 	  (identifier-syntax
-	   (?accessor #,variable-stx))))
+	   (?accessor #,instance-id))))
       (_
        (synner "invalid syntax in field clause" clause-stx))))
 
   (main))
 
 
-(define (make-method-bindings use-dot-notation variable-stx clauses-stx synner)
+(define (make-method-bindings use-dot-notation variable-id instance-id clauses-stx synner)
   ;;Build and return a list of lists representing LET-SYNTAX bindings to
   ;;be used to call the methods of a class or label.
   ;;
   ;;USE-DOT-NOTATION? must be a boolean value: true if dot notation must
   ;;be used, false if the method name identifiers must be used directly.
   ;;
-  ;;VARIABLE-STX  must be  the identifier  bound to  the class  or label
-  ;;instance;  if  USE-DOT-NOTATION?   is  false,  VARIABLE-STX  is  the
-  ;;identifier of the "this" method argument.
+  ;;VARIABLE-ID must be the identifier to use as prefix in dot notation;
+  ;;if USE-DOT-NOTATION?  is false, VARIABLE-ID is the identifier of the
+  ;;"this" method argument.
+  ;;
+  ;;INSTANCE-ID  must be  the identifier  bound  to the  class or  label
+  ;;instance.
   ;;
   ;;CLAUSE-STX must  be a syntax object  holding the list  of clauses in
   ;;the form:
@@ -117,35 +123,36 @@
     (map (lambda (clause-stx)
 	   (syntax-case clause-stx ()
 	     ((?method ?function-name)
-	      (make-single-method-binding use-dot-notation variable-stx
-					  #'?method #'?function-name))
+	      (make-single-method-binding use-dot-notation #'?method #'?function-name))
 	     (_
 	      (synner "invalid method specification clause" clause-stx))))
-      (unwrap-syntax-object clauses-stx)))
+      (synux.unwrap-syntax-object clauses-stx)))
 
-  (define (make-single-method-binding use-dot-notation? variable-stx method-stx function-name-stx)
+  (define (make-single-method-binding use-dot-notation? method-stx function-name-stx)
     #`(#,(if use-dot-notation?
-	     (syntax-dot-notation-identifier variable-stx method-stx)
-	   ;;If dot  notation is off, VARIABLE-STX is  the identifier of
+	     (synux.syntax-dot-notation-identifier variable-id method-stx)
+	   ;;If dot  notation is off, VARIABLE-ID is  the identifier of
 	   ;;the "this" method argument.
 	   ;;
 	   ;;Notice  that  METHOD-STX was  not  introduced  in the  same
-	   ;;context  of  VARIABLE-STX,  so  we  have to  create  a  new
+	   ;;context  of  VARIABLE-ID,  so  we  have to  create  a  new
 	   ;;identifier with  the same name  of METHOD-STX and  the same
-	   ;;context of VARIABLE-STX.
-	   (datum->syntax variable-stx (syntax->datum method-stx)))
+	   ;;context of VARIABLE-ID.
+	   (datum->syntax variable-id (syntax->datum method-stx)))
        (syntax-rules ()
 	 ((_ ?arg (... ...))
-	  (#,function-name-stx #,variable-stx ?arg (... ...))))))
+	  (#,function-name-stx #,instance-id ?arg (... ...))))))
 
   (main))
 
 
-(define (make-setter-getter-bindings variable-stx Setter-stx Getter-stx)
+(define (make-setter-getter-bindings variable-id instance-id Setter-stx Getter-stx)
   ;;Build and return a list of lists representing LET-SYNTAX bindings to
   ;;be used by the setter and getter macros.
   ;;
-  ;;VARIABLE-STX  must be  the identifier  bound to  the class  or label
+  ;;VARIABLE-ID must be the identifier to use as prefix in dot notation.
+  ;;
+  ;;INSTANCE-ID  must be  the identifier  bound  to the  class or  label
   ;;instance.
   ;;
   ;;SETTER-STX and  GETTER-STX must be  identifiers bound to  the setter
@@ -157,22 +164,22 @@
   (define (main)
     (append (if (not (syntax->datum Setter-stx))
 		'()
-	      (list (make-Setter-binding variable-stx Setter-stx)))
+	      (list (make-Setter-binding  Setter-stx)))
 	    (if (not (syntax->datum Getter-stx))
 		'()
-	      (list (make-Getter-binding variable-stx Getter-stx)))))
+	      (list (make-Getter-binding Getter-stx)))))
 
-  (define (make-Setter-binding variable-stx setter-stx)
-    #`(#,(help.variable-name->Setter-name variable-stx)
+  (define (make-Setter-binding setter-stx)
+    #`(#,(help.variable-name->Setter-name variable-id)
        (syntax-rules ()
 	 ((_ key0 key (... ...) value)
-	  (#,setter-stx #,variable-stx key0 key (... ...) value)))))
+	  (#,setter-stx #,instance-id key0 key (... ...) value)))))
 
-  (define (make-Getter-binding variable-stx getter-stx)
-    #`(#,(help.variable-name->Getter-name variable-stx)
+  (define (make-Getter-binding getter-stx)
+    #`(#,(help.variable-name->Getter-name variable-id)
        (syntax-rules ()
 	 ((_ key0 key (... ...))
-	  (#,getter-stx #,variable-stx key0 key (... ...))))))
+	  (#,getter-stx #,instance-id key0 key (... ...))))))
 
   (main))
 

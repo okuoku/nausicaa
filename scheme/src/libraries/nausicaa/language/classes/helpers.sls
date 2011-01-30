@@ -280,8 +280,8 @@
   ;;FIELDS and VIRTUAL-FIELDS must be syntax objects holding a list of
   ;;field specifications in the following format:
   ;;
-  ;;    (mutable   ?field ?accessor ?mutator ?field-class ...)
-  ;;    (immutable ?field ?accessor ?field-class ...)
+  ;;    (mutable   ?field ?accessor ?mutator  . ?rest)
+  ;;    (immutable ?field ?accessor  . ?rest)
   ;;
   ;;the  order of  the field  specifications must  match the  order of
   ;;fields in the RTD definition.
@@ -314,12 +314,12 @@
       (()
        (make-field-accessor-or-mutator-transformer-function class-identifier case-branches))
 
-      (((mutable ?field ?accessor ?mutator ?field-class ...) . ?clauses)
+      (((mutable ?field ?accessor ?mutator  . ?rest) . ?clauses)
        (loop (cons #'((?field) #'?accessor) case-branches)
 	     (+ 1 field-index)
 	     #'?clauses))
 
-      (((immutable ?field ?accessor ?field-class ...) . ?clauses)
+      (((immutable ?field ?accessor  . ?rest) . ?clauses)
        (loop (cons #'((?field) #'?accessor) case-branches)
 	     (+ 1 field-index)
 	     #'?clauses))
@@ -336,8 +336,8 @@
   ;;FIELDS and VIRTUAL-FIELDS must be syntax objects holding a list of
   ;;field specifications in the following format:
   ;;
-  ;;    (mutable   ?field ?accessor ?mutator ?field-class ...)
-  ;;    (immutable ?field ?accessor ?field-class ...)
+  ;;    (mutable   ?field ?accessor ?mutator  . ?rest)
+  ;;    (immutable ?field ?accessor  . ?rest)
   ;;
   ;;the  order of  the field  specifications must  match the  order of
   ;;fields in the RTD definition.
@@ -366,12 +366,12 @@
       (()
        (make-field-accessor-or-mutator-transformer-function class-identifier case-branches))
 
-      (((mutable ?field ?accessor ?mutator ?field-class ...) . ?clauses)
+      (((mutable ?field ?accessor ?mutator  . ?rest) . ?clauses)
        (loop (cons #'((?field) #'?mutator) case-branches)
 	     (+ 1 field-index)
 	     #'?clauses))
 
-      (((immutable ?field ?accessor ?field-class ...) . ?clauses)
+      (((immutable ?field ?accessor  . ?rest) . ?clauses)
        (loop case-branches
 	     (+ 1 field-index)
 	     #'?clauses))
@@ -404,13 +404,13 @@
 
 (define (make-with-field-class-bindings fields virtual-fields synner)
   ;;Build and  return the list of  bindings for a  WITH-CLASS use, which
-  ;;define the bindings of typed fields.
+  ;;defines the bindings of typed fields.
   ;;
   ;;FIELDS and VIRTUAL-FIELDS must be syntax objects holding a list of
   ;;field specifications in the following format:
   ;;
-  ;;    (mutable   ?field ?accessor ?mutator ?field-class ...)
-  ;;    (immutable ?field ?accessor ?field-class ...)
+  ;;    (mutable   ?field ?accessor ?mutator ?field-getter ?field-class ...)
+  ;;    (immutable ?field ?accessor ?field-getter ?field-class ...)
   ;;
   ;;SYNNER must  be the closure  used to raise  a syntax violation  if a
   ;;parse  error happens;  it  must accept  two  arguments: the  message
@@ -422,15 +422,14 @@
       (()
        bindings)
 
-      (((mutable ?field ?accessor ?mutator ?field-class ...) . ?fields)
-       (loop #'?fields (cons #'(?field ?field-class ...) bindings)))
+      (((mutable ?field ?accessor ?mutator ?field-getter ?field-class ...) . ?fields)
+       (loop #'?fields (cons #'(?field ?field-getter ?field-class ...) bindings)))
 
-      (((immutable ?field ?accessor ?field-class ...) . ?fields)
-       (loop #'?fields (cons #'(?field ?field-class ...) bindings)))
+      (((immutable ?field ?accessor ?field-getter ?field-class ...) . ?fields)
+       (loop #'?fields (cons #'(?field ?field-getter ?field-class ...) bindings)))
 
       ((?spec . ?fields)
-       (synner "invalid field specification while building typed fields bindings"
-		#'?spec)))))
+       (synner "invalid field specification while building typed fields bindings" #'?spec)))))
 
 (define (list-of-unique-field-types fields virtual-fields tail synner)
   ;;Build and return a list of identifiers representing all the types of
@@ -441,8 +440,8 @@
   ;;FIELDS and VIRTUAL-FIELDS must be syntax objects holding a list of
   ;;field specifications in the following format:
   ;;
-  ;;    (mutable   ?field ?accessor ?mutator ?field-class ...)
-  ;;    (immutable ?field ?accessor ?field-class ...)
+  ;;    (mutable   ?field ?accessor ?mutator ?field-getter ?field-class ...)
+  ;;    (immutable ?field ?accessor ?field-getter ?field-class ...)
   ;;
   ;;TAIL must be null, or a wrapped or unwrapped syntax object holding a
   ;;proper  list of  identifiers  representing the  field  types of  the
@@ -459,10 +458,10 @@
       (()
        (synux.delete-duplicate-identifiers types))
 
-      (((mutable ?field ?accessor ?mutator . ?field-classes) . ?fields)
+      (((mutable ?field ?accessor ?mutator ?field-getter . ?field-classes) . ?fields)
        (loop #'?fields (synux.syntax->list #'?field-classes types)))
 
-      (((immutable ?field ?accessor . ?field-classes) . ?fields)
+      (((immutable ?field ?accessor ?field-getter . ?field-classes) . ?fields)
        (loop #'?fields (synux.syntax->list #'?field-classes types)))
 
       ((?spec . ?fields)

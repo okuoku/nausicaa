@@ -715,7 +715,7 @@
     (define-syntax <alpha>-bindings
       (lambda (stx)
 	(syntax-case stx ()
-	  ((_ ?class-name ?identifier . ?body)
+	  ((_ ?class-name ?identifier ?instance . ?body)
 	   (with-syntax ((A (datum->syntax #'?identifier 'a)))
 	     #`(let ((A 123)) . ?body))))))
 

@@ -646,11 +646,11 @@
   ;;Return null  or a validated  list of virtual fields  having elements
   ;;with format:
   ;;
-  ;;    (immutable <field name> <field accessor>)
-  ;;    (mutable   <field name> <field accessor> <field mutator>)
+  ;;    (immutable <field name> <field accessor> <getter name> <field class> ...)
+  ;;    (mutable   <field name> <field accessor> <field mutator> <getter name> <field class> ...)
   ;;
-  ;;where IMMUTABLE and  MUTABLE are symbols and the  other elements are
-  ;;identifiers.
+  ;;where IMMUTABLE and MUTABLE are the auxiliary syntaxes and the other
+  ;;elements are identifiers.
   ;;
   ;;SYNNER must  be the closure  used to raise  a syntax violation  if a
   ;;parse  error  occurs; it  must  accept  two  arguments: the  message
@@ -663,7 +663,8 @@
       (syntax-case (car clauses) (fields)
 	((fields ?field-clause ...)
 	 (next-clause (cdr clauses)
-		      (%parse-clause/fields thing-identifier (cdar clauses) synner collected)))
+		      (%parse-clause/fields-or-virtual-fields thing-identifier (cdar clauses)
+							      synner collected "concrete")))
 	(_
 	 (synner "invalid fields clause" (car clauses)))
 	))))
@@ -680,10 +681,10 @@
   ;;Return null  or a validated  list of virtual fields  having elements
   ;;with format:
   ;;
-  ;;    (immutable <field name> <field accessor>)
-  ;;    (mutable   <field name> <field accessor> <field mutator>)
+  ;;    (immutable <field name> <field accessor> <getter name> <field class> ...)
+  ;;    (mutable   <field name> <field accessor> <field mutator> <getter name> <field class> ...)
   ;;
-  ;;where  IMMUTABLE and  MUTABLE are  symbols and  the other
+  ;;where IMMUTABLE and MUTABLE are the auxiliary syntaxes and the other
   ;;elements are identifiers.
   ;;
   ;;SYNNER must  be the closure  used to raise  a syntax violation  if a
@@ -697,7 +698,8 @@
       (syntax-case (car clauses) (virtual-fields)
 	((virtual-fields ?field-clause ...)
 	 (next-clause (cdr clauses)
-		      (%parse-clause/virtual-fields thing-identifier (cdar clauses) synner collected)))
+		      (%parse-clause/fields-or-virtual-fields thing-identifier (cdar clauses)
+							      synner collected "virtual")))
 	(_
 	 (synner "invalid virtual-fields clause" (car clauses)))
 	))))
@@ -900,7 +902,7 @@
 
 ;;;; definition clauses parsers
 
-(define (%parse-clause/fields thing-name field-clauses synner collected-fields)
+(define (%parse-clause/fields-or-virtual-fields thing-name field-clauses synner collected-fields descr)
   ;;This   is   a    recursive   function   accumulating   elements   in
   ;;COLLECTED-FIELDS, which  must be  null at the  entry call.   Given a
   ;;list  of  concrete   fields  specifications  in  FIELD-CLAUSES,  for
@@ -911,8 +913,8 @@
   ;;parse  it and accumulate  a list  of normalised  specifications each
   ;;with one of the formats:
   ;;
-  ;;    (immutable <field name> <accessor name> <field class> ...)
-  ;;    (mutable   <field name> <accessor name> <mutator name> <field class> ...)
+  ;;    (immutable <field name> <accessor name> <getter name> <field class> ...)
+  ;;    (mutable   <field name> <accessor name> <mutator name> <getter name> <field class> ...)
   ;;
   ;;THING-NAME  must be  an identifier  representing the  class  name or
   ;;label  name to  which the  fields belong:  it is  used to  build the
@@ -922,129 +924,124 @@
   ;;parse  error happens;  it  must accept  two  arguments: the  message
   ;;string, the subform.
   ;;
-  (define (recurse field-spec)
-    (%parse-clause/fields thing-name (cdr field-clauses) synner
-			  (cons field-spec collected-fields)))
-  (if (null? field-clauses)
-      collected-fields ;It  is important to  keep the order;  we reverse
-		;the  list in  the calling  function  rather than
-		;doing it here.
-    (syntax-case (car field-clauses) (mutable immutable)
+  (define (recurse field-name field-spec default-tagged-field-getter field-tags)
+    (let ((getter/tags (%parse-field-tags field-name field-tags default-tagged-field-getter)))
+      (%parse-clause/fields-or-virtual-fields thing-name (cdr field-clauses) synner
+					      (cons #`(#,@field-spec #,@getter/tags)
+						    collected-fields)
+					      descr)))
 
+  (define (main)
+    (if (null? field-clauses)
+	collected-fields
+		;It is important to keep  the order; we reverse the list
+		;in the calling function rather than doing it here.
+      (syntax-case (car field-clauses) (mutable immutable)
 
-      ((mutable (?field ?field-class ...) ?accessor ?mutator)
-       (synux.all-identifiers? #'(?field ?field-class ... ?accessor ?mutator))
-       (recurse #'(mutable ?field ?accessor ?mutator ?field-class ...)))
-      ((mutable ?field ?accessor ?mutator)
-       (synux.all-identifiers? #'(?field ?accessor ?mutator))
-       (recurse #'(mutable ?field ?accessor ?mutator)))
+	((mutable ?field-spec . ?accessor-and-mutator)
+	 (let-values (((field-name field-classes) (%parse-field-name #'?field-spec)))
+	   (syntax-case #'?accessor-and-mutator ()
+	     ((?accessor ?mutator)
+	      (synux.all-identifiers? #'(?accessor ?mutator))
+	      (recurse field-name #`(mutable #,field-name ?accessor ?mutator) #'?accessor field-classes))
+	     (()
+	      (with-syntax ((ACCESSOR (%accessor-name field-name))
+			    (MUTATOR  (%mutator-name  field-name)))
+		(recurse field-name #`(mutable #,field-name ACCESSOR MUTATOR) #'ACCESSOR field-classes)))
+	     (_
+	      (synner (string-append "invalid mutable " descr " field accessor and mutator specification")
+		      #'?field-spec))
+	     )))
 
-      ((mutable (?field ?field-class ...))
-       (synux.all-identifiers? #'(?field ?field-class ...))
-       (recurse #`(mutable ?field
-			   #,(synux.syntax-accessor-identifier thing-name #'?field)
-			   #,(synux.syntax-mutator-identifier  thing-name #'?field)
-			   ?field-class ...)))
-      ((mutable ?field)
-       (identifier? #'?field)
-       (recurse #`(mutable ?field
-			   #,(synux.syntax-accessor-identifier thing-name #'?field)
-			   #,(synux.syntax-mutator-identifier  thing-name #'?field))))
+	((immutable ?field-spec . ?accessor)
+	 (let-values (((field-name field-classes) (%parse-field-name #'?field-spec)))
+	   (syntax-case #'?accessor ()
+	     ((?accessor)
+	      (identifier? #'?accessor)
+	      (recurse field-name #`(immutable #,field-name ?accessor) #'?accessor field-classes))
+	     (()
+	      (with-syntax ((ACCESSOR (%accessor-name field-name)))
+		(recurse field-name #`(immutable #,field-name ACCESSOR) #'ACCESSOR field-classes)))
+	     (_
+	      (synner (string-append "invalid immutable " descr " field accessor and mutator specification")
+		      #'?field-spec))
+	     )))
 
-      ((immutable (?field ?field-class ...) ?accessor)
-       (synux.all-identifiers? #'(?field ?field-class ... ?accessor ?mutator))
-       (recurse #'(immutable ?field ?accessor ?field-class ...)))
-      ((immutable ?field ?accessor)
-       (synux.all-identifiers? #'(?field ?accessor ?mutator))
-       (recurse #'(immutable ?field ?accessor)))
+	(?field-spec
+	 (let-values (((field-name field-classes) (%parse-field-name #'?field-spec)))
+	   (with-syntax ((ACCESSOR (%accessor-name field-name)))
+	     (recurse field-name #`(immutable #,field-name ACCESSOR) #'ACCESSOR field-classes))))
 
-      ((immutable (?field ?field-class ...))
-       (synux.all-identifiers? #'(?field ?field-class ...))
-       (recurse #`(immutable ?field #,(synux.syntax-accessor-identifier thing-name #'?field) ?field-class ...)))
-      ((immutable ?field)
-       (identifier? #'?field)
-       (recurse #`(immutable ?field #,(synux.syntax-accessor-identifier thing-name #'?field))))
+	(_
+	 (synner (string-append "invalid " descr " fields clause") (car field-clauses))))))
 
+  (define (%parse-field-tags field-name field-tags default-tagged-field-getter)
+    ;;Parse the field tags specification,  which must be a syntax object
+    ;;of the format:
+    ;;
+    ;;	(<field class> ...)
+    ;;
+    ;;where <FIELD CLASS> can be a class identifier or the clause:
+    ;;
+    ;;	(getter <field getter>)
+    ;;
+    ;;FIELD-NAME must  be an identifier representing the  field name: it
+    ;;is  used   when  reporting  syntax  violations  to   give  a  more
+    ;;descriptive context.
+    ;;
+    ;;Return a list whose car is the <FIELD GETTER> element or its given
+    ;;default, and whose cdr is  the possibly null list of <FIELD CLASS>
+    ;;identifiers.
+    ;;
+    (let loop ((stx		field-tags)
+	       (field-classes	'())
+	       (field-getter	#f))
+      (syntax-case stx (getter)
+	(()
+	 (cons (or field-getter default-tagged-field-getter) (reverse field-classes)))
+	((?field-class . ?rest)
+	 (identifier? #'?field-class)
+	 (loop #'?rest (cons #'?field-class field-classes) field-getter))
+	(((getter ?field-getter) . ?rest)
+	 (identifier? #'?field-getter)
+	 (if field-getter
+	     (synner (string-append "field getter clause used twice in " descr " field definition")
+		     (cons field-name field-tags))
+	   (loop #'?rest field-classes #'?field-getter)))
+	(_
+	 (synner (string-append "invalid " descr " field tags specification")
+		 (cons field-name field-tags))))))
+
+  (define (%accessor-name field-name)
+    (synux.syntax-accessor-identifier thing-name field-name))
+
+  (define (%mutator-name  field-name)
+    (synux.syntax-mutator-identifier  thing-name field-name))
+
+  (define (%parse-field-name field-spec)
+    ;;Parse a field name specification which must be of the format:
+    ;;
+    ;;	<field identifier>
+    ;;	(<field identifier> <field class> ...)
+    ;;
+    ;;where <FIELD CLASS> can be a class identifier or the clause:
+    ;;
+    ;;	(getter <field getter>)
+    ;;
+    ;;Return two values: the field name identifier, a possibly null list
+    ;;syntax object holding the <FIELD CLASS> elements.
+    ;;
+    (syntax-case field-spec ()
       ((?field ?field-class ...)
-       (synux.all-identifiers? #'(?field ?field-class ...))
-       (recurse #`(immutable ?field #,(synux.syntax-accessor-identifier thing-name #'?field) ?field-class ...)))
+       (identifier? #'?field)
+       (values #'?field #'(?field-class ...)))
       (?field
        (identifier? #'?field)
-       (recurse #`(immutable ?field #,(synux.syntax-accessor-identifier thing-name #'?field))))
-
+       (values #'?field '()))
       (_
-       (synner "invalid fields clause" (car field-clauses))))))
+       (synner (string-append "invalid " descr " field specification") field-spec))))
 
-(define (%parse-clause/virtual-fields thing-name field-clauses synner collected-fields)
-  ;;This   is   a    recursive   function   accumulating   elements   in
-  ;;COLLECTED-FIELDS, which  must be  null at the  entry call.   Given a
-  ;;list of virtual fields specifications in FIELD-CLAUSES, for example:
-  ;;
-  ;;    ((mutable a) (immutable b) (mutable c cacc cmut))
-  ;;
-  ;;parse  it and accumulate  a list  of normalised  specifications each
-  ;;with one of the formats:
-  ;;
-  ;;    (immutable <field name> <accessor name> <field class> ...)
-  ;;    (mutable   <field name> <accessor name> <mutator name> <field class> ...)
-  ;;
-  ;;THING-NAME must  be an identifier  representing the thing  (class or
-  ;;label) name  to which  the fields  belong: it is  used to  build the
-  ;;accessor and mutator names when not given in the input specs.
-  ;;
-  ;;SYNNER must  be the closure  used to raise  a syntax violation  if a
-  ;;parse  error happens;  it  must accept  two  arguments: the  message
-  ;;string, the subform.
-  ;;
-  (define (recurse field-spec)
-    (%parse-clause/virtual-fields thing-name (cdr field-clauses) synner
-				  (cons field-spec collected-fields)))
-  (if (null? field-clauses)
-      (reverse collected-fields) ;it is important to keep the order
-    (syntax-case (car field-clauses) (mutable immutable)
-
-      ((mutable (?field ?field-class ...) ?accessor ?mutator)
-       (synux.all-identifiers? #'(?field ?field-class ... ?accessor ?mutator))
-       (recurse #'(mutable ?field ?accessor ?mutator ?field-class ...)))
-      ((mutable ?field ?accessor ?mutator)
-       (synux.all-identifiers? #'(?field ?accessor ?mutator))
-       (recurse #'(mutable ?field ?accessor ?mutator)))
-
-      ((mutable (?field ?field-class ...))
-       (synux.all-identifiers? #'(?field ?field-class ...))
-       (recurse #`(mutable ?field
-			   #,(synux.syntax-accessor-identifier thing-name #'?field)
-			   #,(synux.syntax-mutator-identifier  thing-name #'?field)
-			   ?field-class ...)))
-      ((mutable ?field)
-       (identifier? #'?field)
-       (recurse #`(mutable ?field
-			   #,(synux.syntax-accessor-identifier thing-name #'?field)
-			   #,(synux.syntax-mutator-identifier  thing-name #'?field))))
-
-      ((immutable (?field ?field-class ...) ?accessor)
-       (synux.all-identifiers? #'(?field ?field-class ... ?accessor ?mutator))
-       (recurse #'(immutable ?field ?accessor ?field-class ...)))
-      ((immutable ?field ?accessor)
-       (synux.all-identifiers? #'(?field ?accessor ?mutator))
-       (recurse #'(immutable ?field ?accessor)))
-
-      ((immutable (?field ?field-class ...))
-       (synux.all-identifiers? #'(?field ?field-class ...))
-       (recurse #`(immutable ?field #,(synux.syntax-accessor-identifier thing-name #'?field) ?field-class ...)))
-      ((immutable ?field)
-       (identifier? #'?field)
-       (recurse #`(immutable ?field #,(synux.syntax-accessor-identifier thing-name #'?field))))
-
-      ((?field ?field-class ...)
-       (synux.all-identifiers? #'(?field ?field-class ...))
-       (recurse #`(immutable ?field #,(synux.syntax-accessor-identifier thing-name #'?field) ?field-class ...)))
-      (?field
-       (identifier? #'?field)
-       (recurse #`(immutable ?field #,(synux.syntax-accessor-identifier thing-name #'?field))))
-
-      (_
-       (synner "invalid virtual-fields clause" (car field-clauses))))))
+  (main))
 
 (define (%parse-clause/methods thing-name methods-clauses synner collected-methods)
   ;;This   is   a    recursive   function   accumulating   elements   in

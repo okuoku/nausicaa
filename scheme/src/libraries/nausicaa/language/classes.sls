@@ -104,6 +104,7 @@
     <fixnum> <flonum> <integer> <integer-valued> <rational> <rational-valued>
     <real> <real-valued> <complex> <number>)
   (import (rnrs)
+(nausicaa language pretty-print)
     (for (prefix (only (nausicaa language syntax-utilities)
 		       all-identifiers?
 		       duplicate-identifiers?
@@ -620,22 +621,22 @@
 	 ((bindings-macro)
 	  (%collect-clause/bindings clauses %synner))
 
-	 ;;Null or a validated list of concrete fields having elements
+	 ;;Null or  a validated list of concrete  fields having elements
 	 ;;with format:
 	 ;;
-	 ;;    (immutable <field name> <field accessor> <field class> ...)
-	 ;;    (mutable   <field name> <field accessor> <field mutator> <field class> ...)
+	 ;;    (immutable <field name> <field accessor> <field getter> <field class> ...)
+	 ;;    (mutable   <field name> <field accessor> <field mutator> <field getter> <field class> ...)
 	 ;;
-	 ;;where  IMMUTABLE and  MUTABLE are  symbols and  the other
+	 ;;where  IMMUTABLE  and  MUTABLE  are  symbols  and  the  other
 	 ;;elements are identifiers.
 	 ((fields)
 	  (%collect-clause/fields class-identifier clauses %synner))
 
-	 ;;Null  or  a  validated  list  of  virtual  fields  having
-	 ;;elements with format:
+	 ;;Null or  a validated list  of virtual fields  having elements
+	 ;;with format:
 	 ;;
-	 ;;    (immutable <field name> <field accessor> <field class> ...)
-	 ;;    (mutable   <field name> <field accessor> <field mutator> <field class> ...)
+	 ;;    (immutable <field name> <field accessor> <field getter> <field class> ...)
+	 ;;    (mutable   <field name> <field accessor> <field mutator> <field getter> <field class> ...)
 	 ;;
 	 ;;where  IMMUTABLE and  MUTABLE are  symbols and  the other
 	 ;;elements are identifiers.
@@ -730,32 +731,24 @@
 	      '())))
 
 	(let ((id (synux.duplicate-identifiers? (append (map cadr fields)
-						  (map cadr virtual-fields)
-						  (map car  all-methods)))))
+							(map cadr virtual-fields)
+							(map car  all-methods)))))
 	  (when id
 	    (%synner "duplicate field names" id)))
 
 	(with-syntax
 	    ((THE-CLASS			class-identifier)
 	     (THE-SUPERCLASS		superclass-identifier)
-	     (THE-RTD			#'the-rtd
-					#;(synux.identifier-prefix "rtd-of-" class-identifier))
-	     (THE-PARENT-CD		#'the-parent-cd
-					#;(synux.identifier-prefix "parent-cd-of-" class-identifier))
-	     (THE-PUBLIC-CD		#'the-public-cd
-					#;(synux.identifier-prefix "public-cd-of-" class-identifier))
+	     (THE-RTD			#'the-rtd)
+	     (THE-PARENT-CD		#'the-parent-cd)
+	     (THE-PUBLIC-CD		#'the-public-cd)
 	     (THE-PUBLIC-CONSTRUCTOR	constructor-identifier)
-	     (THE-MAKER-CONSTRUCTOR	#'the-maker-constructor
-					#;(synux.identifier-prefix "maker-constructor-of-" class-identifier))
-	     (THE-FROM-FIELDS-PROTOCOL	#'the-from-fields-protocol
-					#;(synux.identifier-prefix "from-fields-protocol-of-" class-identifier))
-	     (THE-COMMON-PROTOCOL	#'the-common-protocol
-					#;(synux.identifier-prefix "common-protocol-of-" class-identifier))
-	     (THE-MAKER-PROTOCOL	#'the-maker-protocol
-					#;(synux.identifier-prefix "maker-protocol-of-" class-identifier))
+	     (THE-MAKER-CONSTRUCTOR	#'the-maker-constructor)
+	     (THE-FROM-FIELDS-PROTOCOL	#'the-from-fields-protocol)
+	     (THE-COMMON-PROTOCOL	#'the-common-protocol)
+	     (THE-MAKER-PROTOCOL	#'the-maker-protocol)
 	     (THE-PREDICATE		predicate-identifier)
-	     (THE-MAKER			#'the-maker
-					#;(synux.identifier-prefix "maker-of-" class-identifier))
+	     (THE-MAKER			#'the-maker)
 
 	     (PARENT-RTD-FORM		parent-rtd)
 	     (PARENT-CD-FORM		parent-cd)
@@ -964,19 +957,20 @@
 			   ?inherit-virtual-fields
 			   ?inherit-methods
 			   ?inherit-setter-and-getter)
-			  ?variable-name ?arg (... ...))
-		       (for-all boolean? (syntax->datum #'(?use-dot-notation
-							   ?inherit-concrete-fields
-							   ?inherit-virtual-fields
-							   ?inherit-methods
-							   ?inherit-setter-and-getter)))
+			  ?variable-name ?instance ?arg (... ...))
+		       (and (identifier? #'?variable-name)
+			    (for-all boolean? (syntax->datum #'(?use-dot-notation
+								?inherit-concrete-fields
+								?inherit-virtual-fields
+								?inherit-methods
+								?inherit-setter-and-getter))))
 		       #'(with-class-bindings
 			  (?use-dot-notation
 			   ?inherit-concrete-fields
 			   ?inherit-virtual-fields
 			   ?inherit-methods
 			   ?inherit-setter-and-getter)
-			  ?variable-name ?arg (... ...)))
+			  ?variable-name ?instance ?arg (... ...)))
 
 		      ((_ :slot-accessor ?slot-name)
 		       (identifier? #'?slot-name)
@@ -1022,38 +1016,42 @@
 		    ((_ (?use-dot-notation
 			 ?inherit-concrete-fields ?inherit-virtual-fields
 			 ?inherit-methods ?inherit-setter-and-getter)
-			?variable-name ?body0 ?body (... ...))
-		     (let ((use-dot-notation? (syntax->datum #'?use-dot-notation)))
+			?variable-name ?instance ?body0 ?body (... ...))
+		     (let ((use-dot-notation?	(syntax->datum #'?use-dot-notation)))
 		       (with-syntax
-			   ((((CVAR CVAL) (... ...))
+			   ((((CVAR CVAL) (... ...))	;concrete fields
 			     (or-null #'?inherit-concrete-fields
-				      (make-field-bindings use-dot-notation? #'?variable-name
+				      (make-field-bindings use-dot-notation?
+							   #'?variable-name #'?instance
 							   #'FIELD-SPECS synner)))
-			    (((VVAR VVAL) (... ...))
+			    (((VVAR VVAL) (... ...))	;virtual fields
 			     (or-null #'?inherit-virtual-fields
-				      (make-field-bindings use-dot-notation? #'?variable-name
+				      (make-field-bindings use-dot-notation?
+							   #'?variable-name #'?instance
 							   #'VIRTUAL-FIELD-SPECS synner)))
-			    (((MVAR MVAL) (... ...))
+			    (((MVAR MVAL) (... ...))	;methods
 			     (or-null #'?inherit-methods
-				      (make-method-bindings use-dot-notation? #'?variable-name
+				      (make-method-bindings use-dot-notation?
+							    #'?variable-name #'?instance
 							    #'METHOD-SPECS synner)))
-			    (((SVAR SVAL) (... ...))
+			    (((SVAR SVAL) (... ...))	;setter and getter
 			     (or-null #'?inherit-setter-and-getter
-				      (make-setter-getter-bindings #'?variable-name #'SETTER #'GETTER))))
-			 #'(THE-SUPERCLASS
+				      (make-setter-getter-bindings #'?variable-name #'?instance
+								   #'SETTER #'GETTER))))
+			 #`(THE-SUPERCLASS
 			    :with-class-bindings-of
 			    (?use-dot-notation
 			     INHERIT-CONCRETE-FIELDS?
 			     INHERIT-VIRTUAL-FIELDS?
 			     INHERIT-METHODS?
 			     INHERIT-SETTER-AND-GETTER?)
-			    ?variable-name
+			    ?variable-name ?instance
 			    (let-syntax ((CVAR CVAL) (... ...)
 					 (VVAR VVAL) (... ...)
 					 (MVAR MVAL) (... ...)
 					 (SVAR SVAL) (... ...))
-			      (BINDINGS-MACRO THE-CLASS ?variable-name
-					      (with-field-class ?variable-name
+			      (BINDINGS-MACRO THE-CLASS ?variable-name ?instance
+					      (with-field-class ?variable-name ?instance
 								WITH-FIELD-CLASS-BINDINGS
 								?body0 ?body (... ...)))))
 			 )))))
@@ -1073,8 +1071,8 @@
     ;;FIELDS  must  be   a  syntax  object  holding  a   list  of  field
     ;;specifications in the following format:
     ;;
-    ;;    (mutable   ?field ?accessor ?mutator ?field-class ...)
-    ;;    (immutable ?field ?accessor ?field-class ...)
+    ;;    (mutable   ?field ?accessor ?mutator . ?rest)
+    ;;    (immutable ?field ?accessor . ?rest)
     ;;
     ;;the  order of  the field  specifications must  match the  order of
     ;;fields in the RTD definition.
@@ -1107,14 +1105,14 @@
 	(()
 	 definitions)
 
-	(((mutable ?field ?accessor ?mutator ?field-class ...) . ?clauses)
+	(((mutable ?field ?accessor ?mutator . ?rest) . ?clauses)
 	 (loop (cons* #`(define ?accessor  (record-accessor #,rtd-name #,field-index))
 		      #`(define ?mutator   (record-mutator  #,rtd-name #,field-index))
 		      definitions)
 	       (+ 1 field-index)
 	       #'?clauses))
 
-	(((immutable ?field ?accessor ?field-class ...) . ?clauses)
+	(((immutable ?field ?accessor . ?rest) . ?clauses)
 	 (loop (cons* #`(define ?accessor  (record-accessor #,rtd-name #,field-index))
 		      definitions)
 	       (+ 1 field-index)
@@ -1297,8 +1295,8 @@
        ;;Null or a validated list of virtual fields having elements with
        ;;format:
        ;;
-       ;;    (immutable <field name> <field accessor>)
-       ;;    (mutable   <field name> <field accessor> <field mutator>)
+       ;;    (immutable <field name> <field accessor> <field getter> <field class> ...)
+       ;;    (mutable   <field name> <field accessor> <field mutator> <field getter> <field class> ...)
        ;;
        ;;where IMMUTABLE and MUTABLE  are symbols and the other elements
        ;;are identifiers.
@@ -1460,7 +1458,7 @@
 		       ?inherit-virtual-fields
 		       ?inherit-methods
 		       ?inherit-setter-and-getter)
-		      ?variable-name ?arg (... ...))
+		      ?variable-name ?instance ?arg (... ...))
 		   (for-all boolean? (syntax->datum #'(?use-dot-notation
 						       ?inherit-concrete-fields
 						       ?inherit-virtual-fields
@@ -1472,7 +1470,7 @@
 		       ?inherit-virtual-fields
 		       ?inherit-methods
 		       ?inherit-setter-and-getter)
-		      ?variable-name ?arg (... ...)))
+		      ?variable-name ?instance ?arg (... ...)))
 
 		  ((_ :slot-accessor ?slot-name)
 		   (identifier? #'?slot-name)
@@ -1517,20 +1515,23 @@
 		((_ (?use-dot-notation
 		     ?inherit-concrete-fields ?inherit-virtual-fields
 		     ?inherit-methods ?inherit-setter-and-getter)
-		    ?variable-name ?body0 ?body (... ...))
+		    ?variable-name ?instance ?body0 ?body (... ...))
 		 (let ((use-dot-notation? (syntax->datum #'?use-dot-notation)))
 		   (with-syntax
 		       ((((VVAR VVAL) (... ...))
 			 (or-null #'?inherit-virtual-fields
-				  (make-field-bindings use-dot-notation? #'?variable-name
+				  (make-field-bindings use-dot-notation?
+						       #'?variable-name #'?instance
 						       #'VIRTUAL-FIELD-SPECS synner)))
 			(((MVAR MVAL) (... ...))
 			 (or-null #'?inherit-methods
-				  (make-method-bindings use-dot-notation? #'?variable-name
+				  (make-method-bindings use-dot-notation?
+							#'?variable-name #'?instance
 							#'METHOD-SPECS synner)))
 			(((SVAR SVAL) (... ...))
 			 (or-null #'?inherit-setter-and-getter
-				  (make-setter-getter-bindings #'?variable-name #'SETTER #'GETTER))))
+				  (make-setter-getter-bindings #'?variable-name #'?instance
+							       #'SETTER #'GETTER))))
 		     #'(THE-SUPERLABEL
 			:with-class-bindings-of
 			(?use-dot-notation
@@ -1538,12 +1539,12 @@
 			 INHERIT-VIRTUAL-FIELDS?
 			 INHERIT-METHODS?
 			 INHERIT-SETTER-AND-GETTER?)
-			?variable-name
+			?variable-name ?instance
 			(let-syntax ((VVAR VVAL) (... ...)
 				     (MVAR MVAL) (... ...)
 				     (SVAR SVAL) (... ...))
-			  (BINDINGS-MACRO THE-LABEL ?variable-name
-					  (with-field-class ?variable-name
+			  (BINDINGS-MACRO THE-LABEL ?variable-name ?instance
+					  (with-field-class ?variable-name ?instance
 							    WITH-FIELD-CLASS-BINDINGS
 							    ?body0 ?body (... ...)))))
 		     )))))
@@ -1682,8 +1683,8 @@
 	    ;;Null  or  a  validated  list  of  concrete  fields  having
 	    ;;elements with format:
 	    ;;
-	    ;;    (immutable <field name> <field accessor> <field class> ...)
-	    ;;    (mutable   <field name> <field accessor> <field mutator> <field class> ...)
+	    ;;    (immutable <field name> <field accessor> <field getter> <field class> ...)
+	    ;;    (mutable   <field name> <field accessor> <field getter> <field mutator> <field class> ...)
 	    ;;
 	    ;;where  IMMUTABLE and  MUTABLE are  symbols and  the other
 	    ;;elements are identifiers.
@@ -1693,8 +1694,8 @@
 	    ;;Null or a validated list of virtual fields having elements
 	    ;;with format:
 	    ;;
-	    ;;    (immutable <field name> <field accessor> <field class> ...)
-	    ;;    (mutable   <field name> <field accessor> <field mutator> <field class> ...)
+	    ;;    (immutable <field name> <field accessor> <field getter> <field class> ...)
+	    ;;    (mutable   <field name> <field accessor> <field getter> <field mutator> <field class> ...)
 	    ;;
 	    ;;where  IMMUTABLE and  MUTABLE  are symbols  and the  other
 	    ;;elements are identifiers.
@@ -1883,88 +1884,133 @@
   ;;getter access;  the name  WITH-CLASS is a  bit misleading but  it is
   ;;cute.  The gist of it is to expand:
   ;;
+  ;;  (with-class (((<var> <instance>) <class>) . <body>))
+  ;;
+  ;;into:
+  ;;
+  ;;  (<class> :with-class-bindings-of (#t #t #t #t #t) <var> <instance> . <body>)
+  ;;
+  ;;and:
+  ;;
   ;;  (with-class ((<var> <class>) . <body>))
   ;;
   ;;into:
   ;;
-  ;;  (<class> :with-class-bindings-of (#t #t #t #t #t) <var> . <body>)
+  ;;  (<class> :with-class-bindings-of (#t #t #t #t #t) <var> <var> . <body>)
   ;;
   ;;which is the syntax having  knowledge of the context of <class>; the
-  ;;list of  #t values enables all  the dot notation  syntaxes.  We want
-  ;;the full expansion of:
+  ;;list of #t values enables all the dot notation syntaxes.
+  ;;
+  ;;<VAR> is meant to be the identifier to use as prefix in dot notation:
+  ;;
+  ;;	<var>.field
+  ;;	<var>.method
+  ;;
+  ;;while  <INSTANCE> is  meant to  be an  expression evaluating  to the
+  ;;instance object; when  <INSTANCE> is not used, <VAR>  is used in its
+  ;;place.
+  ;;
+  ;;We want the full expansion of:
   ;;
   ;;  (with-class ((<var> <class0> <class1>)) . <body>)
   ;;
   ;;to be:
   ;;
-  ;;  (<class0> :with-class-bindings-of (#t #t #t #t #t) <var>
-  ;;    (<class1> :with-class-bindings-of (#t #t #t #t #t) <var>
+  ;;  (<class0> :with-class-bindings-of (#t #t #t #t #t) <var> <var>
+  ;;    (<class1> :with-class-bindings-of (#t #t #t #t #t) <var> <var>
   ;;      . <body>))
   ;;
   ;;We  allow  an  empty list  of  clauses  because  it is  useful  when
   ;;expanding other macros into WITH-CLASS uses.
   ;;
   (syntax-case stx (<top>)
-    ((_ () ?body0 ?body ...)
-     #'(begin  ?body0 ?body ...))
-
-    ;;no body, no syntaxes
-    ((_ ?field-clauses)
+    ;;no body
+    ((_ ((?var ?class ...) ...))
+     (map synux.all-identifiers? (synux.syntax->list #'((?var ?class ...) ...)))
+     #'(values))
+    ((_ (((?var ?instance) ?class ...) ...))
+     (map synux.all-identifiers? (synux.syntax->list #'((?var ?class ...) ...)))
      #'(values))
 
-    ((_ ((?var) ?clause ...) . ?body)
-     (identifier? #'?var)
-     #'(with-class (?clause ...) . ?body))
+    ;;no clauses
+    ((_ () . ?body)
+     #'(begin . ?body))
 
-    ((_ ((?var <top> ?class ...) ?clause ...) . ?body)
+    ;;no classes, skip the clause
+    ((_ (((?var ?instance)) . ?clauses) . ?body)
      (identifier? #'?var)
-     #'(with-class ((?var ?class ...) ?clause ...) . ?body))
+     #'(with-class ?clauses . ?body))
 
-    ((_ ((?var ?class0 ?class ...) ?clause ...) . ?body)
+    ;;no classes, skip the clause
+    ((_ ((?var) . ?clauses) . ?body)
+     (identifier? #'?var)
+     #'(with-class ?clauses . ?body))
+
+    ;;discard <top> class
+    ((_ ((?var/instance <top> . ?classes) . ?clauses) . ?body)
+     #'(with-class ((?var/instance . ?classes) . ?clauses) . ?body))
+
+    ;;explicit instance expression
+    ((_ (((?var ?instance) ?class0 . ?classes) . ?clauses) . ?body)
      (and (identifier? #'?var) (identifier? #'?class0))
-     #'(?class0 :with-class-bindings-of (#t #t #t #t #t) ?var
-		(with-class ((?var ?class ...) ?clause ...) . ?body)))
+     #'(?class0 :with-class-bindings-of (#t #t #t #t #t) ?var ?instance
+		(with-class (((?var ?instance) . ?classes) . ?clauses) . ?body)))
 
+    ;;instance is bound to ?VAR
+    ((_ ((?var ?class0 . ?classes) . ?clauses) . ?body)
+     (and (identifier? #'?var) (identifier? #'?class0))
+     #'(?class0 :with-class-bindings-of (#t #t #t #t #t) ?var ?var
+                (with-class ((?var . ?classes) . ?clauses) . ?body)))
+
+    ((_ (?clause0 . ?clauses) . ?body)
+     (synner "invalid clause in with-class form" #'?clause0))
     (_
-     (synner "invalid clause in with-class form"))))
+     (synner "invalid syntax for with-class"))))
 
 (define-syntax* (with-field-class stx)
   ;;This is the public entry point  for typed fields.  The gist of it is
   ;;to expand:
   ;;
-  ;;  (with-field-class <var> ((<field> <class>)) . <body>)
+  ;;  (with-field-class <var> <instance> ((<field> <getter> <class>)) . <body>)
   ;;
   ;;into:
   ;;
-  ;;  (with-class ((<var>.<field> <class>) . <body>)
+  ;;  (with-class ((((<var>.<field> (<getter> <instance>)) <class>)) . <body>)
   ;;
   ;;We  allow  an  empty list  of  clauses  because  it is  useful  when
   ;;expanding other macros into WITH-CLASS uses.
   ;;
   (syntax-case stx (<top>)
-    ((_ ?var () ?body0 ?body ...)
-     #'(begin  ?body0 ?body ...))
-
-    ;;no body, no syntaxes
-    ((_ ?var ?field-clauses)
+    ;;no body
+    ((_ ?var ?instance ((?field ?getter ?class ...) ...))
+     (and (synux.all-identifiers? #'(?field  ...))
+	  (synux.all-identifiers? #'(?getter ...))
+	  (map synux.all-identifiers? (synux.syntax->list #'((?class ...) ...))))
      #'(values))
 
-    ;;detect fully untyped fields
-    ((_ ?var ((?field) ...) . ?body)
-     (synux.all-identifiers? #'(?field ...))
+    ;;no field clauses
+    ((_ ?var ?instance () . ?body)
      #'(begin . ?body))
 
-    ((_ ?var ((?field ?class ...) ...) . ?body)
+    ;;detect fully non-tagged fields
+    ((_ ?var ?instance ((?field ?getter) ...) . ?body)
+     (and (synux.all-identifiers? #'(?field  ...))
+	  (synux.all-identifiers? #'(?getter ...)))
+     #'(begin . ?body))
+
+    ((_ ?var ?instance ((?field ?getter ?class ...) ...) . ?body)
+     (and (synux.all-identifiers? #'(?field  ...))
+	  (synux.all-identifiers? #'(?getter ...))
+	  (map synux.all-identifiers? (synux.syntax->list #'((?class ...) ...))))
      (with-syntax (((VAR ...) (map (lambda (field)
 				     (synux.syntax-dot-notation-identifier #'?var field))
 				(synux.unwrap-syntax-object #'(?field ...)))))
-       #'(with-class ((VAR ?class ...) ...) . ?body)))
+       #'(with-class (((VAR (?getter ?instance)) ?class ...) ...) . ?body)))
 
-    ((_ ?var (?field-clause . ?field-clauses) . ?body)
+    ((_ ?var ?instance (?field-clause . ?field-clauses) . ?body)
      (synner "invalid field clause" #'?field-clause))
-
     (_
-     (synner "invalid syntax in with-field-class form"))))
+     (synner "invalid syntax for with-field-class"))))
 
 (define-syntax* (setf stx)
   (syntax-case stx (setter setter-multi-key set!)
@@ -2302,7 +2348,7 @@
 	 #'(define/with-class (FUNCNAME THIS . ?args)
 	     (?class :with-class-bindings-of
 		     (#f #t #t #t #t) ;enable everything, but dot notation
-	 	     THIS ?body0 ?body ...)))))))
+	 	     THIS THIS ?body0 ?body ...)))))))
 
 (define-syntax defmethod-virtual
   (lambda (stx)
@@ -2345,7 +2391,7 @@
 	     (define/with-class (the-method THIS . ?args)
 	       (?class :with-class-bindings-of
 		       (#f #t #t #t #t) ;enable everything, but dot notation
-		       THIS ?body0 ?body ...))
+		       THIS THIS ?body0 ?body ...))
 	     (define-virtual-method ?class ?method-name the-method))
 	 )))))
 

@@ -58,13 +58,13 @@
   (define-syntax <l>-ops
     (lambda (stx)
       (syntax-case stx ()
-	((_ ?class ?var . ?body)
+	((_ ?class ?var ?instance . ?body)
 	 (with-syntax ((VARD (syn.identifier-suffix #'?var ".")))
 	   #'(let-syntax
 		 ((VARD (syntax-rules ()
 			  ((_ ?clause (... ...))
 			   (<l>-expand-operations-sequence
-			    ?var ?var ?clause (... ...))))))
+			    ?instance ?var ?clause (... ...))))))
 	       . ?body))))))
 
   (define-auxiliary-syntaxes
@@ -113,7 +113,7 @@
   (define-syntax <l1>-ops
     (lambda (stx)
       (syntax-case stx ()
-	((_ ?class ?var . ?body)
+	((_ ?class ?var ?instance . ?body)
 	 (with-syntax ((VARD (syn.identifier-suffix #'?var ".")))
 	   #'(let-syntax
 		 ((VARD (syntax-rules ()
@@ -126,27 +126,27 @@
   (define-syntax <l2>-ops
     (lambda (stx)
       (syntax-case stx ()
-	((_ ?class ?var . ?body)
+	((_ ?class ?var ?instance . ?body)
 	 (with-syntax ((VARD (syn.identifier-suffix #'?var ".")))
 	   #'(let-syntax
 		 ((VARD (syntax-rules ()
 			  ((_ ?clause (... ...))
 			   (<l2>-expand-operations-sequence
 			    <l2>-expand-operations-sequence #f
-			    ?var ?var ?clause (... ...))))))
+			    ?instance ?var ?clause (... ...))))))
 	       . ?body))))))
 
   (define-syntax <l3>-ops
     (lambda (stx)
       (syntax-case stx ()
-	((_ ?class ?var . ?body)
+	((_ ?class ?var ?instance . ?body)
 	 (with-syntax ((VARD (syn.identifier-suffix #'?var ".")))
 	   #'(let-syntax
 		 ((VARD (syntax-rules ()
 			  ((_ ?clause (... ...))
 			   (<l3>-expand-operations-sequence
 			    <l3>-expand-operations-sequence #f
-			    ?var ?var ?clause (... ...))))))
+			    ?instance ?var ?clause (... ...))))))
 	       . ?body))))))
 
   (define-auxiliary-syntaxes
