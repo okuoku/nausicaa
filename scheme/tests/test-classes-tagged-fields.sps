@@ -485,6 +485,32 @@
 
     #f)
 
+  (let ()	;with double getter
+
+    (define-class <alpha>
+      (fields (mutable a)))
+
+    (define-class <beta>
+      (fields (mutable (b <alpha> (getter b-getter)))))
+
+    (define-class <gamma>
+      (fields (mutable (g <beta> (getter g-getter)))))
+
+    (define (b-getter (o <beta>))
+      (make <alpha> (+ 1 (<alpha>-a (<beta>-b o)))))
+
+    (define (g-getter (o <gamma>))
+      (make <beta> (make <alpha> 3)))
+
+    (check 'this
+	(let*-make ((A <alpha>	1)
+		    (B <beta>	A)
+		    (G <gamma>	B))
+	  (list A.a B.b.a G.g.b.a))
+      => '(1 2 4))
+
+    #f)
+
 ;;; --------------------------------------------------------------------
 
   (check
