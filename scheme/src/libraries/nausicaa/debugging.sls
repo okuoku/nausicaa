@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2009, 2010, 2011 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -27,10 +27,8 @@
 
 #!r6rs
 (library (nausicaa debugging)
-  (export
-    debug debugging debug-print-condition)
-  (import (nausicaa)
-    (nausicaa formations))
+  (export debug debugging debug-print-condition)
+  (import (nausicaa))
 
 
 (define debugging
@@ -40,7 +38,7 @@
   (when (debugging)
     (let ((port (current-error-port)))
       (if (string? thing)
-	  (apply format port thing args)
+	  (apply printf port thing args)
 	(write thing port))
       (newline port))))
 

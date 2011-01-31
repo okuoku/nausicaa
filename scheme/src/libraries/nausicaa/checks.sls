@@ -1,6 +1,6 @@
 ;;;Lightweight testing (reference implementation)
 ;;;
-;;;Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2009-2011 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;Copyright (c) 2005-2006 Sebastian Egner <Sebastian.Egner@philips.com>
 ;;;Modified by Derick Eddington for R6RS Scheme.
 ;;;
@@ -53,7 +53,6 @@
 		  (write	nausicaa:write)
 		  (newline	nausicaa:newline)
 		  (pretty-print	nausicaa:pretty-print))
-    (nausicaa formations)
     (nausicaa debugging)
     (nausicaa loops))
 
