@@ -83,6 +83,9 @@ exceptions}).
 
 @item nausicaa language matches
 Pattern matching (@pxref{matches, Pattern matching}).
+
+@item nausicaa language printf
+Simple string formatting (@pxref{printf, Simple string formatting}).
 @end table
 
 @c page

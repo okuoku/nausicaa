@@ -632,6 +632,7 @@ Libraries in the @library{nausicaa} language
 * compensations::               Compensation stacks.
 * deferred exceptions::         Deferred exceptions.
 * matches::                     Pattern matching.
+* printf::                      Simple string formatting.
 
 More libraries
 
@@ -718,6 +719,7 @@ Indexes
 @include stdlib.texiinc
 @include nausicaa.texiinc
 @include matches.texiinc
+@include printf.texiinc
 
 @c chapters on core libraries
 

@@ -906,6 +906,9 @@
     condition-match-mismatch/expression
     match-mismatch-error
 
+;;;; bindings from (nausicaa language printf)
+    printf
+
 
 ;;;; auxiliary syntaxes
 
@@ -975,6 +978,7 @@ without
     (for (nausicaa language deferred-exceptions)	expand run)
     (for (nausicaa language makers)			expand run)
     (for (nausicaa language matches)			expand run)
+    (for (nausicaa language printf)			expand run)
     ))
 
 ;;; end of file

@@ -1,0 +1,63 @@
+@node printf
+@chapter Simple string formatting
+
+
+@cindex @library{nausicaa language printf}, library
+@cindex Library @library{nausicaa language printf}
+
+
+The @library{nausica language printf} library exports a simple @api{} to
+format strings.
+
+
+@defun printf @var{template-string} @var{datum} ...
+@defunx printf @var{output-port} @var{template-string} @var{datum} ...
+Format @var{template-string} according to its escape sequences and the
+given @var{datum} arguments; always return the resulting string.  There
+must be the same number of escape sequences in @var{template-string} and
+@var{datum} arguments.
+
+When @var{output-port} is given: if it is a port, the string is
+displayed on it; if it is @true{}, the string is displayed on the
+current output port; if it is @false{}, nothing happens.
+
+If an error occurs formatting the string: nothing is displayed on the
+selected @var{output-port}.
+
+The following escape sequences are supported:
+
+@table @samp
+@item ~a
+@itemx ~A
+Print a datum with @func{display}.
+
+@item ~s
+@itemx ~S
+Print a datum with @func{write}.
+
+@item ~x
+Print an integer number in lowercase hexadecimal format, without prefix.
+
+@itemx ~X
+Print an integer number in uppercase hexadecimal format, without prefix.
+
+@item ~o
+@itemx ~O
+Print an integer number in octal format, without prefix.
+
+@item ~b
+@itemx ~B
+Print an integer number in binary format, without prefix.
+
+@item ~%
+Print a newline character (this is redundant because Scheme strings
+allow the use of @samp{\n} to specify a newline; it is supported because
+some people are used to it from Common Lisp).
+
+@item ~~
+Print a @samp{#\~} character.
+@end table
+@end defun
+
+
+@c end of file
