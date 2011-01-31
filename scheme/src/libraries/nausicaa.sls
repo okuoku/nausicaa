@@ -785,7 +785,7 @@
     parameterize parameterise parametrise make-parameter
 
     ;; simple syntaxes
-    dotimes dolist loop-upon-list ensure
+    dotimes dolist loop-upon-list ensure unwind-protect
     define-values define-constant define-constant-values
     define-syntax*
 

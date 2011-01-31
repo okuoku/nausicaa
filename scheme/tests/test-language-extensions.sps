@@ -7,7 +7,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2008-2010 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2008-2011 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -482,6 +482,33 @@
     => '(999 (1 2)))
 
   #t)
+
+
+(parametrise ((check-test-name	'unwind-protect))
+
+  (check
+      (unwind-protect
+	  2
+	(values))
+    => 2)
+
+  (check
+      (let ((a 1))
+	(unwind-protect
+	    (set! a 2)
+	  (set! a 3))
+	a)
+    => 3)
+
+  (check
+      (let ((a 1))
+	(guard (E (else a))
+	  (unwind-protect
+	      (error #t "ciao")
+	    (set! a 3))))
+    => 3)
+
+  #f)
 
 
 (parametrise ((check-test-name	'bindings))

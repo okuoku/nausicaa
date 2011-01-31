@@ -182,7 +182,7 @@
     and-let* begin0 begin0-let begin0-let* begin0-letrec
     receive recursion cut cute <> <...> xor
     do* while while* do-while do-while*
-    dotimes dolist loop-upon-list ensure
+    dotimes dolist loop-upon-list ensure unwind-protect
     set-cons! incr! decr!
     define-identifier-accessor-mutator identifier-syntax-accessor-mutator
     with-accessor-and-mutator
@@ -472,6 +472,14 @@
 		 retval)
 	   (break-when ?condition)
 	 (set! retval (expr)))))))
+
+(define-syntax unwind-protect
+  (syntax-rules ()
+    ((_ ?body ?cleanup0 ?cleanup ...)
+     (dynamic-wind
+         values
+	 (lambda () ?body)
+	 (lambda () ?cleanup0 ?cleanup ...)))))
 
 
 (define-syntax begin0

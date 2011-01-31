@@ -172,6 +172,18 @@ Examples:
 Exclusive @func{or}.
 @end deffn
 
+
+@deffn Syntax unwind-protect @meta{body} @metao{cleanup} @meta{cleanup} ...
+Utility wrapper for @func{dynamic-wind}, expands to:
+
+@example
+(dynamic-wind
+    values
+    (lambda () @meta{body})
+    (lambda () @metao{cleanup} @meta{cleanup} ...))
+@end example
+@end deffn
+
 @c page
 @node lang let
 @section Binding constructs

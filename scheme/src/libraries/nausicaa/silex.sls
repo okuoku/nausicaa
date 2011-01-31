@@ -68,7 +68,7 @@
     (rnrs mutable-pairs)
     (rnrs mutable-strings)
     (rnrs eval)
-    (only (nausicaa language extensions) begin0 define-constant)
+    (only (nausicaa language extensions) begin0 define-constant unwind-protect)
     (nausicaa language parameters)
     (nausicaa language makers)
     (nausicaa silex lexer)
@@ -1117,14 +1117,11 @@
       ;;
       (parametrise ((include-files (cons pathname (include-files))))
 	(let ((input-port (open-input-file pathname)))
-	  (dynamic-wind
-	      (lambda () #f)
-	      (lambda ()
-		(let ((IS (make-IS (port: input-port) (counters: 'all))))
-		  (parametrise ((input-source pathname))
-		    (with-context-to-lex-file IS (parse-macros macros-already-defined #f)))))
-	      (lambda ()
-		(close-input-port input-port))))))
+	  (unwind-protect
+	      (let ((IS (make-IS (port: input-port) (counters: 'all))))
+		(parametrise ((input-source pathname))
+		  (with-context-to-lex-file IS (parse-macros macros-already-defined #f))))
+	    (close-input-port input-port)))))
 
     (main macros-already-defined parsing-full-table?))))
 
@@ -2160,21 +2157,19 @@
   ;;
 
   (define (main)
-    (let ((opened-file? #f)
-	  (value-getter	#f))
-      (dynamic-wind
-	  (lambda ()
-	    (cond (output-value
-		   (let-values (((sport getter) (open-string-output-port)))
-		     (set! output-port  sport)
-		     (set! value-getter getter)))
-		  ((and output-file (not output-port))
-		   (set! output-port (open-file-output-port output-file
-							    (file-options no-fail)
-							    (buffer-mode block)
-							    (native-transcoder)))
-		   (set! opened-file? #t))))
-	  (lambda ()
+    (let-values (((opened-file? value-getter)
+		  (cond (output-value
+			 (let-values (((sport getter) (open-string-output-port)))
+			   (set! output-port  sport)
+			   (values #f getter)))
+			((and output-file (not output-port))
+			 (set! output-port (open-file-output-port output-file
+								  (file-options no-fail)
+								  (buffer-mode block)
+								  (native-transcoder)))
+			 (values #t #f)))))
+      (unwind-protect
+	  (begin
 	    (when library-spec
 	      (display (string-append "(library "
 				      (library-spec->string-spec library-spec)
@@ -2197,10 +2192,9 @@
 			     output-port)
 	    (when library-spec
 	      (display "\n) ; end of library\n\n" output-port)))
-	  (lambda ()
-	    (flush-output-port output-port)
-	    (when opened-file?
-	      (close-output-port output-port))))
+	(flush-output-port output-port)
+	(when opened-file?
+	  (close-output-port output-port)))
       (or (not value-getter)
 	  ;;Make the output value.
 	  (let ((ell (read (open-string-input-port (value-getter)))))
