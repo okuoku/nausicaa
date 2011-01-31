@@ -47,7 +47,8 @@ Notes for --- tag 0.2a0
   "nausicaa"; this affects the name of the release tarballs.
 
 * Starting with this revision Larceny and Ikarus are no more
-  supported.
+  supported.  Ypsilon  does not work because of  bugs in its
+  macro expander.
 
 * Moved  all  the libraries  under  the hierarchy  (nausicaa
   ---);  the  language library  which  is still  (nausicaa).
@@ -85,7 +86,7 @@ Notes for --- tag 0.2a0
 * Removed the (records) library.  Replaced it with (nausicaa
   language classes) and (nausicaa generics).
 
-* Further cleanup of (nausicaa matches) internals.
+* Further cleanup of (nausicaa language matches) internals.
 
 * Started use of labels  from (nausicaa language classes) as
   wrappers  of  foreign  C  structures, allowing  access  of
