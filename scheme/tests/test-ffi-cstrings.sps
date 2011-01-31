@@ -7,7 +7,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2008-2010 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2008-2011 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -250,6 +250,30 @@
       (with-compensations
 	(argv-length (strings->argv '("alpha" "beta" gamma))))
     => 3)
+
+  #t)
+
+
+(parametrise ((check-test-name	'label))
+
+  (check
+      (with-compensations
+	(let (((S <cstring>) (string->cstring "ciao" malloc/c)))
+	  S.length))
+    => 4)
+
+  (check
+      (with-compensations
+	(let (((S <cstring>) (string->cstring "ciao" malloc/c)))
+	  (integer->char (getf (S 2)))))
+    => #\a)
+
+  (check
+      (with-compensations
+	(let (((S <cstring>) (string->cstring "ciao" malloc/c)))
+	  (setf (S 2) (char->integer #\A))
+	  (integer->char (getf (S 2)))))
+    => #\A)
 
   #t)
 

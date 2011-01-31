@@ -28,6 +28,7 @@
 (library (nausicaa ffi cstrings)
   (export
 
+    <cstring>
     empty-string
 
     ;;inspection
@@ -55,8 +56,7 @@
     (nausicaa ffi sizeof)
     (nausicaa ffi memory)
     (only (nausicaa ffi clang type-translation)
-	  clang-maybe-foreign-type->clang-external-type)
-    (nausicaa language compensations))
+	  clang-maybe-foreign-type->clang-external-type))
 
 
 ;;;; inspection and operations
@@ -195,6 +195,21 @@
 	  ((pointer-null? (array-c-ref pointer argv i))
 	   (reverse args))
 	(set! args (cons (cstring->string (array-c-ref pointer argv i)) args)))))))
+
+
+;;;; label
+
+(define-label <cstring>
+  (predicate pointer?)
+  (virtual-fields (immutable length strlen))
+  (getter <cstring>-Getter)
+  (setter <cstring>-Setter))
+
+(define (<cstring>-Getter variable-name index)
+  (pointer-c-ref char variable-name index))
+
+(define (<cstring>-Setter variable-name index char)
+  (pointer-c-set! char variable-name index char))
 
 
 ;;;; done

@@ -4307,6 +4307,7 @@ exported by the @library{nausicaa ffi cstrings} library.
 * ffi cstrings operations::     Acting upon cstrings.
 * ffi cstrings conversion::     Converting to and from cstrings.
 * ffi cstrings argv::           Converting arrays of cstrings.
+* ffi cstrings label::          Label interface to cstrings.
 @end menu
 
 @c page
@@ -4861,5 +4862,28 @@ is equivalent to:
 Like @func{raise-errno-error}, but raise a continuable exception.  This
 is occasionally useful with particular error codes like @samp{E2BIG}.
 @end defun
+
+@c page
+@node ffi cstrings label
+@subsection Label interface to cstrings
+
+
+@deftp Label @aclass{cstring}
+Label interface to pointers referencing C strings.
+@end deftp
+
+
+@defcv {Immutable Virtual Field} @aclass{cstring} length
+The length of the C string (which must be zero terminated).
+@end defcv
+
+
+@deffn Syntax setf (@var{S} @var{index}) @var{int}
+@deffnx Syntax getf (@var{S} @var{index})
+Setter and getter for characters in the C string @var{S}.  @var{index}
+must be a valid index for the string.  @var{int} must be an exact
+integer in the range @math{[-127, 128]}.
+@end deffn
+
 
 @c end of file
