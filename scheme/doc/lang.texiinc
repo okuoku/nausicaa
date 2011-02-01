@@ -174,13 +174,20 @@ Exclusive @func{or}.
 
 
 @deffn Syntax unwind-protect @meta{body} @metao{cleanup} @meta{cleanup} ...
-Utility wrapper for @func{dynamic-wind}, expands to:
+Utility wrapper for @func{with-exception-handler}, expands to:
 
 @example
-(dynamic-wind
-    values
-    (lambda () @meta{body})
-    (lambda () @metao{cleanup} @meta{cleanup} ...))
+(let ((cleanup (lambda ()
+                 @metao{cleanup}
+                 @meta{cleanup}
+                 ...)))
+  (with-exception-handler
+      (lambda (E)
+        (cleanup)
+        (raise E))
+    (lambda ()
+      (begin0-let ((result ?body))
+        (cleanup)))))
 @end example
 @end deffn
 

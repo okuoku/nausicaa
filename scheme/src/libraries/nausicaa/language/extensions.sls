@@ -476,10 +476,14 @@
 (define-syntax unwind-protect
   (syntax-rules ()
     ((_ ?body ?cleanup0 ?cleanup ...)
-     (dynamic-wind
-         values
-	 (lambda () ?body)
-	 (lambda () ?cleanup0 ?cleanup ...)))))
+     (let ((cleanup (lambda () ?cleanup0 ?cleanup ...)))
+       (with-exception-handler
+	   (lambda (E)
+	     (cleanup)
+	     (raise E))
+	 (lambda ()
+	   (begin0-let ((result ?body))
+	     (cleanup))))))))
 
 
 (define-syntax begin0
