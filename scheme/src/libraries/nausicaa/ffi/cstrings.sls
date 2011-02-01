@@ -28,7 +28,7 @@
 (library (nausicaa ffi cstrings)
   (export
 
-    <cstring>
+    <cstring>			<cstring-array>
     empty-string
 
     ;;inspection
@@ -200,8 +200,10 @@
 ;;;; label
 
 (define-label <cstring>
+  (inherit <pointer>)
   (predicate pointer?)
   (virtual-fields (immutable length strlen))
+  (method string cstring->string)
   (getter <cstring>-Getter)
   (setter <cstring>-Setter))
 
@@ -210,6 +212,12 @@
 
 (define (<cstring>-Setter variable-name index char)
   (pointer-c-set! char variable-name index char))
+
+(define-label <cstring-array>
+  (inherit <pointer>)
+  (predicate pointer?)
+  (method length argv-length)
+  (method strings argv->strings))
 
 
 ;;;; done

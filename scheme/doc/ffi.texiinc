@@ -4525,14 +4525,62 @@ referenced by the @var{argv} pointer.
 
 @defun argv->strings @var{argv}
 @defunx argv->strings @var{argv} @var{argc}
-Without the @var{argc} arguments: Convert the null--terminated array of
-strings referenced by the @var{argv} pointer to a list of Scheme
+Without the @var{argc} arguments: Convert the @cnull{}--terminated array
+of strings referenced by the @var{argv} pointer to a list of Scheme
 strings.
 
 With the @var{argc} arguments: Convert @var{argc} strings in the array
 of strings referenced by the @var{argv} pointer to a list of Scheme
 strings.
 @end defun
+
+@c page
+@node ffi cstrings label
+@subsection Label interface to cstrings
+
+
+@deftp Label @aclass{cstring}
+Label interface to pointers referencing C strings.  It is a subclass of
+@class{pointer} from @library{nausicaa ffi pointers}.
+@end deftp
+
+
+@defcv {Immutable Virtual Field} @aclass{cstring} length
+The length of the C string (which must be zero terminated).
+@end defcv
+
+
+@defmethod @aclass{cstring} string
+@defmethodx @aclass{cstring} string @var{number-of-chars}
+Return a Scheme string representing the C string; the conversion is
+performed with @func{cstring->string}.
+@end defmethod
+
+
+@deffn Syntax setf (@var{S} @var{index}) @var{int}
+@deffnx Syntax getf (@var{S} @var{index})
+Setter and getter for characters in the C string @var{S}.  @var{index}
+must be a valid index for the string.  @var{int} must be an exact
+integer in the range @math{[-127, 128]}.
+@end deffn
+
+
+@deftp Label @aclass{cstring-argv}
+Label interface to pointers referencing C string arrays.  It is a
+subclass of @class{pointer} from @library{nausicaa ffi pointers}.
+@end deftp
+
+
+@defmethod @aclass{cstring-argv} strings
+@defmethodx @aclass{cstring-argv} strings @var{number-of-strings}
+Return a list of Scheme strings representing the C strings in the array;
+the conversion is performed with @func{argv->strings}.
+@end defmethod
+
+
+@defmethod @aclass{cstring-argv} length
+Return a the number of C strings in the @cnull{}--terminated array.
+@end defmethod
 
 @c page
 @node ffi errno
@@ -4862,28 +4910,5 @@ is equivalent to:
 Like @func{raise-errno-error}, but raise a continuable exception.  This
 is occasionally useful with particular error codes like @samp{E2BIG}.
 @end defun
-
-@c page
-@node ffi cstrings label
-@subsection Label interface to cstrings
-
-
-@deftp Label @aclass{cstring}
-Label interface to pointers referencing C strings.
-@end deftp
-
-
-@defcv {Immutable Virtual Field} @aclass{cstring} length
-The length of the C string (which must be zero terminated).
-@end defcv
-
-
-@deffn Syntax setf (@var{S} @var{index}) @var{int}
-@deffnx Syntax getf (@var{S} @var{index})
-Setter and getter for characters in the C string @var{S}.  @var{index}
-must be a valid index for the string.  @var{int} must be an exact
-integer in the range @math{[-127, 128]}.
-@end deffn
-
 
 @c end of file

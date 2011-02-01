@@ -24,6 +24,7 @@
 ;;;
 
 
+#!r6rs
 (import (nausicaa)
   (nausicaa checks)
   (nausicaa ffi memory)
@@ -254,7 +255,7 @@
   #t)
 
 
-(parametrise ((check-test-name	'label))
+(parametrise ((check-test-name	'cstring-label))
 
   (check
       (with-compensations
@@ -274,6 +275,45 @@
 	  (setf (S 2) (char->integer #\A))
 	  (integer->char (getf (S 2)))))
     => #\A)
+
+  (check
+      (with-compensations
+	(let (((S <cstring>) (string->cstring "ciao" malloc/c)))
+	  (S.string)))
+    => "ciao")
+
+;;; --------------------------------------------------------------------
+
+  (check	;pointer inheritance
+      (with-compensations
+	(let (((S <cstring>) (string->cstring "ciao" malloc/c)))
+	  S.null?))
+    => #f)
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (with-compensations
+	(let (((S <cstring>) (string->cstring "ciao" malloc/c)))
+	  (S.string 3)))
+    => "cia")
+
+  #t)
+
+
+(parametrise ((check-test-name	'argv-label))
+
+  (check
+      (with-compensations
+	(let (((S <cstring-array>) (strings->argv '("ciao" "hello" "salut") malloc/c)))
+	  (S.strings)))
+    => '("ciao" "hello" "salut"))
+
+  (check
+      (with-compensations
+	(let (((S <cstring-array>) (strings->argv '("ciao" "hello" "salut") malloc/c)))
+	  (S.length)))
+    => 3)
 
   #t)
 
