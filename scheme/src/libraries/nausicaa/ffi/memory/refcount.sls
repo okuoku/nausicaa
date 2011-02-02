@@ -43,25 +43,25 @@
    ((number-of-bytes)
     (malloc/refcount number-of-bytes malloc))
    ((number-of-bytes malloc-funk)
-    (let ((p (malloc-funk (+ (c-strideof long) number-of-bytes))))
+    (let ((p (malloc-funk (+ (c-strideof unsigned-long) number-of-bytes))))
       (pointer-c-set! unsigned-long p 0 0)
-      (pointer-add p (c-strideof long))))))
+      (pointer-add p (c-strideof unsigned-long))))))
 
 (define-syntax refcount-set!
   (syntax-rules ()
     ((_ ?pointer ?value)
-     (pointer-c-set! unsigned-long ?pointer (- (c-strideof long)) ?value))))
+     (pointer-c-set! unsigned-long ?pointer (- (c-strideof unsigned-long)) ?value))))
 
 (define-syntax refcount-ref
   (syntax-rules ()
     ((_ ?pointer)
-     (pointer-c-ref unsigned-long ?pointer (- (c-strideof long))))))
+     (pointer-c-ref unsigned-long ?pointer (- (c-strideof unsigned-long))))))
 
 (define (pointer-acquire pointer)
   (refcount-set! pointer (+ 1 (refcount-ref pointer))))
 
 (define (pointer-refcount-begin pointer)
-  (pointer-add pointer (- (c-strideof long))))
+  (pointer-add pointer (- (c-strideof unsigned-long))))
 
 (define pointer-release
   (case-lambda

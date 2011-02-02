@@ -26,6 +26,7 @@
 
 (import (nausicaa)
   (nausicaa checks)
+  (nausicaa ffi sizeof)
   (nausicaa ffi memory)
   (nausicaa ffi memory refcount))
 
