@@ -7,7 +7,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2008-2010 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2008-2011 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -57,28 +57,81 @@
     pointer-set-c-signed-long-long!	pointer-set-c-unsigned-long-long!
     pointer-set-c-pointer!)
   (import (rnrs)
-    (only (mosh ffi)
-	  pointer-ref-c-int8		pointer-ref-c-uint8
-	  pointer-ref-c-int16		pointer-ref-c-uint16
-	  pointer-ref-c-int32		pointer-ref-c-uint32
-	  pointer-ref-c-int64		pointer-ref-c-uint64
-	  pointer-ref-c-float		pointer-ref-c-double
-	  pointer-ref-c-pointer
+    (prefix (only (mosh ffi)
+		  pointer-ref-c-int8		pointer-ref-c-uint8
+		  pointer-ref-c-int16		pointer-ref-c-uint16
+		  pointer-ref-c-int32		pointer-ref-c-uint32
+		  pointer-ref-c-int64		pointer-ref-c-uint64
+		  pointer-ref-c-float		pointer-ref-c-double
+		  pointer-ref-c-pointer
 
-	  pointer-set-c-int8!		pointer-set-c-uint8!
-	  pointer-set-c-int16!		pointer-set-c-uint16!
-	  pointer-set-c-int32!		pointer-set-c-uint32!
-	  pointer-set-c-int64!		pointer-set-c-uint64!
-	  pointer-set-c-float!		pointer-set-c-double!
-	  pointer-set-c-pointer!
+		  pointer-set-c-int8!		pointer-set-c-uint8!
+		  pointer-set-c-int16!		pointer-set-c-uint16!
+		  pointer-set-c-int32!		pointer-set-c-uint32!
+		  pointer-set-c-int64!		pointer-set-c-uint64!
+		  pointer-set-c-float!		pointer-set-c-double!
+		  pointer-set-c-pointer!
 
-	  pointer-ref-c-signed-char		pointer-ref-c-unsigned-char
-	  pointer-ref-c-signed-short		pointer-ref-c-unsigned-short
-	  pointer-ref-c-signed-int		pointer-ref-c-unsigned-int
-	  pointer-ref-c-signed-long		pointer-ref-c-unsigned-long
-	  pointer-ref-c-signed-long-long	pointer-ref-c-unsigned-long-long
-	  pointer-ref-c-pointer)
-    (only (nausicaa ffi sizeof) c-sizeof))
+		  pointer-ref-c-signed-char		pointer-ref-c-unsigned-char
+		  pointer-ref-c-signed-short		pointer-ref-c-unsigned-short
+		  pointer-ref-c-signed-int		pointer-ref-c-unsigned-int
+		  pointer-ref-c-signed-long		pointer-ref-c-unsigned-long
+		  pointer-ref-c-signed-long-long	pointer-ref-c-unsigned-long-long
+		  pointer-ref-c-pointer
+
+		  pointer-add)
+	    mosh.)
+    (only (nausicaa ffi sizeof) c-sizeof)
+    (only (nausicaa language extensions) define-inline))
+
+
+;;;; normalisation of Mosh's peekers and pokers
+;;
+;;Currently (Wed  Feb 2,  2011) peekers and  pokers accept  indexes into
+;;arrays, NOT offsets expressed in bytes.
+;;
+
+(define-syntax define-normalised
+  (lambda (stx)
+    (define peekers
+      '( ;;
+	pointer-ref-c-int8		pointer-ref-c-uint8
+	pointer-ref-c-int16		pointer-ref-c-uint16
+	pointer-ref-c-int32		pointer-ref-c-uint32
+	pointer-ref-c-int64		pointer-ref-c-uint64
+	pointer-ref-c-float		pointer-ref-c-double
+	pointer-ref-c-pointer
+
+	pointer-ref-c-signed-char	pointer-ref-c-unsigned-char
+	pointer-ref-c-signed-short	pointer-ref-c-unsigned-short
+	pointer-ref-c-signed-int	pointer-ref-c-unsigned-int
+	pointer-ref-c-signed-long	pointer-ref-c-unsigned-long
+	pointer-ref-c-signed-long-long	pointer-ref-c-unsigned-long-long
+	pointer-ref-c-pointer))
+    (define pokers
+      '( ;;
+	pointer-set-c-int8!		pointer-set-c-uint8!
+	pointer-set-c-int16!		pointer-set-c-uint16!
+	pointer-set-c-int32!		pointer-set-c-uint32!
+	pointer-set-c-int64!		pointer-set-c-uint64!
+	pointer-set-c-float!		pointer-set-c-double!
+	pointer-set-c-pointer!))
+    (define (d->s sym)
+      (datum->syntax #'define-normalised sym))
+    (define (d->sp sym)
+      (d->sp (string->symbol (string-append "mosh." (symbol->string sym)))))
+
+    (with-syntax (((PEEKER ...) (map (lambda (sym)
+				       #`(define-inline (#,(d->s sym) ?pointer ?offset)
+					   (#,(d->sp sym) (mosh.pointer-add ?pointer ?offset) 0)))
+				  peekers))
+		  ((POKER ...)  (map (lambda (sym)
+				       #`(define-inline (#,(d->s sym) ?pointer ?offset ?value)
+					   (#,(d->sp sym) (mosh.pointer-add ?pointer ?offset) 0 ?value)))
+				  pokers)))
+      #'(begin PEEKER ... POKER ...))))
+
+(define-normalised)
 
 
 ;;;; pokers
