@@ -63,7 +63,6 @@
 		  pointer-ref-c-int32		pointer-ref-c-uint32
 		  pointer-ref-c-int64		pointer-ref-c-uint64
 		  pointer-ref-c-float		pointer-ref-c-double
-		  pointer-ref-c-pointer
 
 		  pointer-set-c-int8!		pointer-set-c-uint8!
 		  pointer-set-c-int16!		pointer-set-c-uint16!
@@ -81,6 +80,7 @@
 
 		  pointer-add)
 	    mosh.)
+(nausicaa language pretty-print)
     (only (nausicaa ffi sizeof) c-sizeof)
     (only (nausicaa language extensions) define-inline))
 
@@ -100,7 +100,6 @@
 	pointer-ref-c-int32		pointer-ref-c-uint32
 	pointer-ref-c-int64		pointer-ref-c-uint64
 	pointer-ref-c-float		pointer-ref-c-double
-	pointer-ref-c-pointer
 
 	pointer-ref-c-signed-char	pointer-ref-c-unsigned-char
 	pointer-ref-c-signed-short	pointer-ref-c-unsigned-short
@@ -117,16 +116,16 @@
 	pointer-set-c-float!		pointer-set-c-double!
 	pointer-set-c-pointer!))
     (define (d->s sym)
-      (datum->syntax #'define-normalised sym))
+      (datum->syntax (syntax-case stx () ((?ctx) #'?ctx)) #;#'define-normalised sym))
     (define (d->sp sym)
-      (d->sp (string->symbol (string-append "mosh." (symbol->string sym)))))
+      (d->s (string->symbol (string-append "mosh." (symbol->string sym)))))
 
     (with-syntax (((PEEKER ...) (map (lambda (sym)
-				       #`(define-inline (#,(d->s sym) ?pointer ?offset)
+				       #`(define (#,(d->s sym) ?pointer ?offset)
 					   (#,(d->sp sym) (mosh.pointer-add ?pointer ?offset) 0)))
 				  peekers))
 		  ((POKER ...)  (map (lambda (sym)
-				       #`(define-inline (#,(d->s sym) ?pointer ?offset ?value)
+				       #`(define (#,(d->s sym) ?pointer ?offset ?value)
 					   (#,(d->sp sym) (mosh.pointer-add ?pointer ?offset) 0 ?value)))
 				  pokers)))
       #'(begin PEEKER ... POKER ...))))
