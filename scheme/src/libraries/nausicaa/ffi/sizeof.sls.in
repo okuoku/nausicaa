@@ -32,85 +32,63 @@
     c-alignof			c-valueof
     c-inspect)
   (import (rnrs)
+    (only (nausicaa language extensions) define-syntax*)
     (for (prefix (nausicaa language syntax-utilities) synux.) expand)
     (for (nausicaa ffi clang type-translation) expand run))
 
 
 (define this-context)
 
-(define-syntax c-sizeof
-  (lambda (stx)
-    (syntax-case stx ()
+(define-syntax (c-sizeof stx)
+  (syntax-case stx ()
 
-      ((_ ?type ?number-of-elements)
-       (identifier? #'?type)
-       #`(* #,(synux.syntax-general-append
-	       #'this-context "strideof-" (clang-external-type->clang-type (syntax->datum #'?type)))
-	    ?number-of-elements))
+    ((_ ?type ?number-of-elements)
+     (identifier? #'?type)
+     #`(* #,(synux.syntax-general-append
+	     #'this-context "strideof-" (clang-external-type->clang-type (syntax->datum #'?type)))
+	  ?number-of-elements))
 
-      ((_ ?type)
-       (identifier? #'?type)
-       #`(begin #,(synux.syntax-general-append
-		   #'this-context "sizeof-" (clang-external-type->clang-type (syntax->datum #'?type)))))
+    ((_ ?type)
+     (identifier? #'?type)
+     #`(begin #,(synux.syntax-general-append
+		 #'this-context "sizeof-" (clang-external-type->clang-type (syntax->datum #'?type)))))
 
-      (?input-form
-       (syntax-violation 'c-sizeof
-	 "invalid C language sizeof specification"
-	 (syntax->datum #'?input-form))))))
+    (_
+     (synner "invalid C language sizeof specification"))))
 
-(define-syntax c-strideof
-  (lambda (stx)
-    (syntax-case stx ()
+(define-syntax* (c-strideof stx)
+  (syntax-case stx ()
+    ((_ ?type)
+     (identifier? #'?type)
+     #`(begin #,(synux.syntax-general-append
+		 #'this-context "strideof-" (clang-external-type->clang-type (syntax->datum #'?type)))))
+    (_
+     (synner "invalid C language strideof specification"))))
 
-      ((_ ?type)
-       (identifier? #'?type)
-       #`(begin #,(synux.syntax-general-append
-		   #'this-context "strideof-" (clang-external-type->clang-type (syntax->datum #'?type)))))
+(define-syntax* (c-alignof stx)
+  (syntax-case stx ()
+    ((_ ?type)
+     (identifier? #'?type)
+     #`(begin #,(synux.syntax-general-append
+		 #'this-context "alignof-" (clang-external-type->clang-type (syntax->datum #'?type)))))
+    (_
+     (synner "invalid C language alignof specification"))))
 
-      (?input-form
-       (syntax-violation 'c-strideof
-	 "invalid C language strideof specification"
-	 (syntax->datum #'?input-form))))))
+(define-syntax* (c-valueof stx)
+  (syntax-case stx ()
+    ((_ ?thing)
+     (identifier? #'?thing)
+     #`(begin #,(synux.syntax-general-append #'this-context "valueof-" #'?thing)))
+    (_
+     (synner "invalid C language valueof specification"))))
 
-(define-syntax c-alignof
-  (lambda (stx)
-    (syntax-case stx ()
-
-      ((_ ?type)
-       (identifier? #'?type)
-       #`(begin #,(synux.syntax-general-append
-		   #'this-context "alignof-" (clang-external-type->clang-type (syntax->datum #'?type)))))
-
-      (?input-form
-       (syntax-violation 'c-alignof
-	 "invalid C language alignof specification"
-	 (syntax->datum #'?input-form))))))
-
-(define-syntax c-valueof
-  (lambda (stx)
-    (syntax-case stx ()
-
-      ((_ ?thing)
-       (identifier? #'?thing)
-       #`(begin #,(synux.syntax-general-append #'this-context "valueof-" #'?thing)))
-
-      (?input-form
-       (syntax-violation 'c-valueof
-	 "invalid C language valueof specification"
-	 (syntax->datum #'?input-form))))))
-
-(define-syntax c-inspect
-  (lambda (stx)
-    (syntax-case stx ()
-
-      ((_ ?thing)
-       (identifier? #'?thing)
-       #`(begin #,(synux.syntax-general-append #'this-context "inspect-" #'?thing)))
-
-      (?input-form
-       (syntax-violation 'c-inspect
-	 "invalid C language valueof specification"
-	 (syntax->datum #'?input-form))))))
+(define-syntax* (c-inspect stx)
+  (syntax-case stx ()
+    ((_ ?thing)
+     (identifier? #'?thing)
+     #`(begin #,(synux.syntax-general-append #'this-context "inspect-" #'?thing)))
+    (_
+     (synner "invalid C language valueof specification"))))
 
 
 (define sizeof-int8_t			@SIZEOF_INT8@)
