@@ -188,8 +188,9 @@
     with-accessor-and-mutator
     define-inline define-values define-constant define-constant-values
     define-syntax* define-auxiliary-syntax define-auxiliary-syntaxes
-    define-for-expansion-evaluation)
+    define-for-expansion-evaluation include)
   (import (rnrs)
+    (nausicaa language compensations)
     (only (nausicaa language auxiliary-syntaxes) <> <...>))
 
 
@@ -626,6 +627,27 @@
 	   ?form ...
 	   #'(define dummy)))
        (the-macro)))))
+
+
+(define-syntax include
+  (lambda (x)
+    (define (read-file ctx pathname)
+      (with-compensations
+	(letrec
+	    ((port (compensate
+		       (open-file-input-port pathname
+					     (file-options no-create)
+					     (buffer-mode block)
+					     (make-transcoder (utf-8-codec)))
+		     (with
+		      (close-port port)))))
+	  (let loop ((x (get-datum port)))
+	    (if (eof-object? x)
+		'()
+	      (cons (datum->syntax ctx x) (loop (get-datum port))))))))
+    (syntax-case x ()
+      ((?ctx ?pathname)
+       #`(begin . #,(read-file #'?ctx (syntax->datum #'?pathname)))))))
 
 
 ;;;; done

@@ -7919,6 +7919,7 @@ form, as demonstrated by the following definition of @func{include}.
            #'(begin exp ...)))))))
 @end example
 
+@noindent
 @code{(include "filename")} expands into a @func{begin} expression
 containing the forms found in the file named by @samp{"filename"}.  For
 example, if the file @file{flib.ss} contains:

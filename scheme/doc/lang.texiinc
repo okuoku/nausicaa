@@ -191,6 +191,17 @@ Utility wrapper for @func{with-exception-handler}, expands to:
 @end example
 @end deffn
 
+
+@deffn Syntax include @meta{pathname}
+Read the file with @meta{pathname}, which must be a string, using
+@func{get-datum} until end--of--file; then evaluate the result as if it
+was included in the lexical context of the use of @func{include}.  This
+syntax makes use of no search path.
+
+This syntax is derived from the example in @ref{stdlib syntax-case
+conversion, include}.
+@end deffn
+
 @c page
 @node lang let
 @section Binding constructs

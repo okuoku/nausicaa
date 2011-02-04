@@ -793,8 +793,10 @@
     symbol*->string symbol->string/maybe
 
     ;; other stuff
-    pretty-print define-maker
-    define-auxiliary-syntax define-auxiliary-syntaxes
+    define-auxiliary-syntax define-auxiliary-syntaxes include
+
+;;;; bindings from other libraries
+pretty-print define-maker
 
 
 ;;;; bindings from (nausicaa language conditions)

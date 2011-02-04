@@ -32,10 +32,26 @@
     compensate run-compensations push-compensation
     with)
   (import (rnrs)
-    (only (nausicaa language extensions) begin0)
     (nausicaa language parameters)
     (nausicaa language deferred-exceptions)
     (only (nausicaa language auxiliary-syntaxes) with))
+
+
+;;;; helpers
+
+(define-syntax begin0
+  ;;This  syntax  comes from  the  R6RS  original  document, Appendix  A
+  ;;``Formal semantics''.
+  ;;
+  ;;It is defined  both in the language extensions  library and here, so
+  ;;that the language extensions library can include this library.
+  (syntax-rules ()
+    ((_ ?expr0 ?expr ...)
+     (call-with-values
+	 (lambda () ?expr0)
+       (lambda args
+	 ?expr ...
+	 (apply values args))))))
 
 
 (define compensations
