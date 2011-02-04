@@ -226,9 +226,17 @@ whose name is built by joining the arguments with a dot.
 @end defun
 
 
-@defun identifier-general-append @varo{arg} @var{arg} ...
-Build and return a new @strong{string} by appending the given arguments.
-The arguments can be identifiers, strings and symbols.
+@defun string-general-append @varo{arg} @var{arg} ...
+Build and return a new @strong{string} by appending the given arguments;
+the arguments can be identifiers, strings and symbols.
+@end defun
+
+
+@defun syntax-general-append @var{context} @varo{arg} @var{arg} ...
+Build a new @strong{string} by appending the given @var{arg}, which can
+be identifiers, strings and symbols; convert the string to a symbol and
+then to a syntax object in the context of @var{context}, which must be
+an identifier; return the new syntax object.
 @end defun
 
 @c page

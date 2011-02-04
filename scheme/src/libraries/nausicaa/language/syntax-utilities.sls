@@ -48,7 +48,7 @@
     syntax-accessor-identifier		syntax-mutator-identifier
     syntax-dot-notation-identifier	(rename (syntax-accessor-identifier
 						 syntax-method-identifier))
-    identifier-general-append
+    string-general-append		syntax-general-append
 
     ;; clauses helpers
     validate-list-of-clauses		validate-definition-clauses
@@ -253,18 +253,25 @@
 	     (unwrap-syntax-object dst-ids)))
 
 
-(define (identifier-general-append arg . args)
+(define (string-general-append arg . args)
   (let ((args (cons arg args)))
     (let-values (((port getter) (open-string-output-port)))
       (let loop ((args args))
 	(if (null? args)
 	    (getter)
 	  (let ((thing (car args)))
-	    (display (if (identifier? (car args))
-			 (identifier->string (car args))
-		       (car args))
-		     port)
+	    (cond ((identifier? thing)
+		   (display (identifier->string thing) port))
+		  ((or (symbol? thing) (string? thing))
+		   (display thing port))
+		  (else
+		   (assertion-violation 'string-general-append
+		     "expected identifier, symbol or string" thing)))
 	    (loop (cdr args))))))))
+
+(define (syntax-general-append ctx arg . args)
+  (assert (identifier? ctx))
+  (datum->syntax ctx (string->symbol (apply string-general-append arg args))))
 
 (define-syntax identifier->string
   (syntax-rules ()
@@ -277,10 +284,10 @@
      (datum->syntax ?context-identifier (string->symbol ?string)))))
 
 (define (identifier-prefix prefix identifier)
-  (string->identifier identifier (identifier-general-append prefix identifier)))
+  (string->identifier identifier (string-general-append prefix identifier)))
 
 (define (identifier-suffix identifier suffix)
-  (string->identifier identifier (identifier-general-append identifier suffix)))
+  (string->identifier identifier (string-general-append identifier suffix)))
 
 (define (syntax-maker-identifier type-identifier)
   (identifier-prefix "make-" type-identifier))
@@ -290,15 +297,15 @@
 
 (define (syntax-accessor-identifier type-identifier field-identifier)
   (string->identifier type-identifier
-		      (identifier-general-append type-identifier "-" field-identifier)))
+		      (string-general-append type-identifier "-" field-identifier)))
 
 (define (syntax-mutator-identifier type-identifier field-identifier)
   (string->identifier type-identifier
-		      (identifier-general-append type-identifier "-" field-identifier "-set!")))
+		      (string-general-append type-identifier "-" field-identifier "-set!")))
 
 (define (syntax-dot-notation-identifier variable-identifier field-identifier)
   (string->identifier variable-identifier
-		      (identifier-general-append variable-identifier "." field-identifier)))
+		      (string-general-append variable-identifier "." field-identifier)))
 
 
 (define (validate-list-of-clauses clauses synner)

@@ -32,25 +32,26 @@
     c-alignof			c-valueof
     c-inspect)
   (import (rnrs)
-    (for (nausicaa ffi syntax-helpers) expand)
+    (for (prefix (nausicaa language syntax-utilities) synux.) expand)
     (for (nausicaa ffi clang type-translation) expand run))
 
 
+(define this-context)
+
 (define-syntax c-sizeof
   (lambda (stx)
     (syntax-case stx ()
 
       ((_ ?type ?number-of-elements)
        (identifier? #'?type)
-       #`(* #,(%prepend #'c-sizeof "strideof-"
-			(map-identifier-syntax-object clang-external-type->clang-type #'?type))
+       #`(* #,(synux.syntax-general-append
+	       #'this-context "strideof-" (clang-external-type->clang-type (syntax->datum #'?type)))
 	    ?number-of-elements))
 
       ((_ ?type)
        (identifier? #'?type)
-       #`(begin #,(%prepend #'c-sizeof "sizeof-"
-			    (map-identifier-syntax-object
-			     clang-external-type->clang-type #'?type))))
+       #`(begin #,(synux.syntax-general-append
+		   #'this-context "sizeof-" (clang-external-type->clang-type (syntax->datum #'?type)))))
 
       (?input-form
        (syntax-violation 'c-sizeof
@@ -63,9 +64,8 @@
 
       ((_ ?type)
        (identifier? #'?type)
-       #`(begin #,(%prepend #'c-strideof "strideof-"
-			    (map-identifier-syntax-object
-			     clang-external-type->clang-type #'?type))))
+       #`(begin #,(synux.syntax-general-append
+		   #'this-context "strideof-" (clang-external-type->clang-type (syntax->datum #'?type)))))
 
       (?input-form
        (syntax-violation 'c-strideof
@@ -78,9 +78,8 @@
 
       ((_ ?type)
        (identifier? #'?type)
-       #`(begin #,(%prepend #'c-strideof "alignof-"
-			    (map-identifier-syntax-object
-			     clang-external-type->clang-type #'?type))))
+       #`(begin #,(synux.syntax-general-append
+		   #'this-context "alignof-" (clang-external-type->clang-type (syntax->datum #'?type)))))
 
       (?input-form
        (syntax-violation 'c-alignof
@@ -93,7 +92,7 @@
 
       ((_ ?thing)
        (identifier? #'?thing)
-       #`(begin #,(%prepend #'c-strideof "valueof-" #'?thing)))
+       #`(begin #,(synux.syntax-general-append #'this-context "valueof-" #'?thing)))
 
       (?input-form
        (syntax-violation 'c-valueof
@@ -106,7 +105,7 @@
 
       ((_ ?thing)
        (identifier? #'?thing)
-       #`(begin #,(%prepend #'c-inspect "inspect-" #'?thing)))
+       #`(begin #,(synux.syntax-general-append #'this-context "inspect-" #'?thing)))
 
       (?input-form
        (syntax-violation 'c-inspect

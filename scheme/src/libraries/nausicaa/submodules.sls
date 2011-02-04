@@ -36,7 +36,7 @@
 	       unwrap-syntax-object
 	       identifier-suffix
 	       all-identifiers?
-	       identifier-general-append) expand))
+	       syntax-general-append) expand))
 
 
 (define-auxiliary-syntaxes
@@ -45,7 +45,7 @@
 (define-syntax submodule
   (lambda (stx)
     (define (build-exported-name prefix bind-stx)
-      (datum->syntax bind-stx (string->symbol (identifier-general-append prefix bind-stx))))
+      (syntax-general-append bind-stx prefix bind-stx))
     (syntax-case stx (export prefix)
       ((_ ?name (export ?bind0 ?bind ...) (prefix ?prefix) ?body0 ?body ...)
        (all-identifiers? #'(?name ?bind0 ?bind ...))
