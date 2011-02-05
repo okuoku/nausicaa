@@ -39,7 +39,7 @@
 
 (define this-context)
 
-(define-syntax (c-sizeof stx)
+(define-syntax* (c-sizeof stx)
   (syntax-case stx ()
 
     ((_ ?type ?number-of-elements)
