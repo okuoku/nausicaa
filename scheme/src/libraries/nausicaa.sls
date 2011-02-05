@@ -795,9 +795,6 @@
     ;; other stuff
     define-auxiliary-syntax define-auxiliary-syntaxes include
 
-;;;; bindings from other libraries
-pretty-print define-maker
-
 
 ;;;; bindings from (nausicaa language conditions)
 
@@ -817,7 +814,7 @@ pretty-print define-maker
     &unimplemented make-unimplemented-condition unimplemented-condition?
     raise-unimplemented-error
 
-;;;; other bindings
+;;;; bindings from (nausicaa language infix)
 
     infix
 
@@ -911,6 +908,21 @@ pretty-print define-maker
 ;;;; bindings from (nausicaa language printf)
     printf
 
+;;;; bindings from (nausicaa language pretty-print)
+    pretty-print
+
+;;;; bindings from (nausicaa language makers)
+;;
+;;See below for the auxiliary syntaxes.
+
+    define-maker
+
+;;;; bindings from (nausicaa language sentinel)
+
+    sentinel sentinel? make-sentinel
+    undefined undefined?
+    unspecified unspecified?
+
 
 ;;;; auxiliary syntaxes
 
@@ -981,6 +993,7 @@ without
     (for (nausicaa language makers)			expand run)
     (for (nausicaa language matches)			expand run)
     (for (nausicaa language printf)			expand run)
+    (for (nausicaa language sentinel)			expand run)
     ))
 
 ;;; end of file
