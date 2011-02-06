@@ -329,7 +329,7 @@ dnl 3 AFTER_SHELL_CODE
 AC_DEFUN([NAUSICAA_WITH_OUTPUT_FROM_PETITE_SCRIPT],
   [NAU_DS_WITH_TMPFILE([
     nausicaa_ANSWER=`echo '$1' >"${ds_TMPFILE}"
-    "${PETITE}" "${ds_TMPFILE}" $2`],[$3])])
+    "${PETITE}" --libexts .petite.sls:.sls --program "${ds_TMPFILE}" $2`],[$3])])
 
 dnl 1 OUTPUT_VARIABLE_COMPONENT_NAME
 dnl 2 LIBRARY_IMPORT_SPEC
