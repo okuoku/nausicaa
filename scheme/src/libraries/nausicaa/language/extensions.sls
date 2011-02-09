@@ -589,7 +589,8 @@
     (syntax-case stx ()
       ((_ (?name ?stx) ?body0 ?body ...)
        (and (identifier? #'?name) (identifier? #'?stx))
-       (with-syntax ((SYNNER (datum->syntax #'?name 'synner)))
+       (with-syntax ((SYNNER (datum->syntax #'?name 'synner))
+		     (ALIAS  (datum->syntax #'?name 'ಠ_ಠ)))
 	 #'(define-syntax ?name
 	     (lambda (?stx)
 	       (define SYNNER
@@ -598,6 +599,7 @@
 		   (SYNNER message #f))
 		  ((message subform)
 		   (syntax-violation '?name message (syntax->datum ?stx) (syntax->datum subform)))))
+	       (define ALIAS SYNNER)
 	       ?body0 ?body ...)))))))
 
 (define-syntax define-auxiliary-syntax
