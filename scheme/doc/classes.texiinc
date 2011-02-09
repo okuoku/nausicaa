@@ -3926,6 +3926,11 @@ string.
 @end defcv
 
 
+@defcv {Immutable Virtual Field} @aclass{string} empty?
+True if the string length is zero.
+@end defcv
+
+
 @defcv {Immutable Virtual Field} @aclass{string} upcase
 Accessing this field is like applying @func{string-upcase} to the
 string.

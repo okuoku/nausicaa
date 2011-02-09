@@ -2703,7 +2703,8 @@
 		  (immutable upcase	string-upcase)
 		  (immutable downcase	string-downcase)
 		  (immutable titlecase	string-titlecase)
-		  (immutable foldcase	string-foldcase))
+		  (immutable foldcase	string-foldcase)
+		  (immutable empty?	<string>-empty?))
   (getter string-ref)
   (method-syntax substring
     (syntax-rules ()
@@ -2729,6 +2730,9 @@
       ((_ ?o)
        (string-copy ?o))))
   )
+
+(define-inline (<string>-empty? S)
+  (zero? (string-length S)))
 
 (define-builtin-class <vector>
   (predicate vector?)
