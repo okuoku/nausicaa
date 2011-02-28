@@ -1812,7 +1812,7 @@ Library, a set of inspection procedures.
 
 The inspection procedures allow programs to obtain from a record
 instance a descriptor for the type and from there obtain access to the
-fields of the record instance. This facility allows the creation of
+fields of the record instance.  This facility allows the creation of
 portable printers and inspectors.  A program may prevent access to a
 record's type (and thereby protect the information stored in the record
 from the inspection mechanism) by declaring the type opaque.  Thus,
