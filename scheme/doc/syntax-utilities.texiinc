@@ -108,11 +108,11 @@ identifiers; return false otherwise.
 @end defun
 
 
-@defun duplicate-identifiers? @var{unwrapped-stx}
-@defunx duplicate-identifiers? @var{unwrapped-stx} @var{identifier=}
-Search the list of identifiers @var{unwrapped-stx} for duplicate
-identifiers; at the first duplicate found, return it; return false if no
-duplications are found.
+@defun duplicate-identifiers? @var{stx}
+@defunx duplicate-identifiers? @var{stx} @var{identifier=}
+Search the syntax object @var{stx}, which must hold a list of
+identifiers, for duplicate identifiers; at the first duplicate found,
+return it; return false if no duplications are found.
 
 @var{identifier=} must be the predicate used to compare identifiers; it
 is typically @func{bound-identifier=?} or @func{free-identifier=?}.

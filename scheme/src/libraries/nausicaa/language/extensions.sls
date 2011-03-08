@@ -536,12 +536,11 @@
 
 (define-syntax define-inline
   (syntax-rules ()
-    ((_ (?name ?arg ...) ?form0 ?form ...)
+    ((_ (?name ?arg ... . ?rest) ?form0 ?form ...)
      (define-syntax ?name
        (syntax-rules ()
-	 ((_ ?arg ...)
+	 ((_ ?arg ... . ?rest)
 	  (begin ?form0 ?form ...)))))))
-
 
 (define-syntax define-identifier-accessor-mutator
   (syntax-rules ()

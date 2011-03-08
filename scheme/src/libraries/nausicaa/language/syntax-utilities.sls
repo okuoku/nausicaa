@@ -171,8 +171,8 @@
     (()		#t)
     (_		#f)))
 
-(define duplicate-identifiers?
-  ;;Recursive  function.  Search  the  list of  identifiers ELL/STX  for
+(define duplicate-identifiers? stx
+  ;;Recursive  function.   Search  the   list  of  identifiers  STX  for
   ;;duplicate  identifiers; at  the  first duplicate  found, return  it;
   ;;return false if no duplications are found.
   ;;
@@ -180,15 +180,35 @@
    ((ell/stx)
     (duplicate-identifiers? ell/stx bound-identifier=?))
    ((ell/stx identifier=)
-    (if (null? ell/stx)
-	#f
-      (let loop ((x  (car ell/stx))
-		 (ls (cdr ell/stx)))
-	(if (null? ls)
-	    (duplicate-identifiers? (cdr ell/stx) identifier=)
-	  (if (identifier= x (car ls))
-	      x
-	    (loop x (cdr ls)))))))))
+    (syntax-case stx ()
+      (() #f)
+      ((?car . ?cdr)
+       (let loop ((first #'?car)
+		  (rest  #'?cdr))
+	 (syntax-case rest ()
+	   (()
+	    (duplicate-identifiers? #'?cdr))
+	   ((?car . ?cdr)
+	    (if (identifier= first #'?car)
+		first
+	      (loop first #'?cdr))))))))))
+
+;;Old version.
+;;
+;; (define duplicate-identifiers?
+;;   (case-lambda
+;;    ((ell/stx)
+;;     (duplicate-identifiers? ell/stx bound-identifier=?))
+;;    ((ell/stx identifier=)
+;;     (if (null? ell/stx)
+;; 	#f
+;;       (let loop ((x  (car ell/stx))
+;; 		 (ls (cdr ell/stx)))
+;; 	(if (null? ls)
+;; 	    (duplicate-identifiers? (cdr ell/stx) identifier=)
+;; 	  (if (identifier= x (car ls))
+;; 	      x
+;; 	    (loop x (cdr ls)))))))))
 
 (define (delete-duplicate-identifiers ids)
   ;;Given the  list of identifiers IDS remove  the duplicate identifiers
