@@ -171,15 +171,15 @@
     (()		#t)
     (_		#f)))
 
-(define duplicate-identifiers? stx
+(define duplicate-identifiers?
   ;;Recursive  function.   Search  the   list  of  identifiers  STX  for
   ;;duplicate  identifiers; at  the  first duplicate  found, return  it;
   ;;return false if no duplications are found.
   ;;
   (case-lambda
-   ((ell/stx)
-    (duplicate-identifiers? ell/stx bound-identifier=?))
-   ((ell/stx identifier=)
+   ((stx)
+    (duplicate-identifiers? stx bound-identifier=?))
+   ((stx identifier=)
     (syntax-case stx ()
       (() #f)
       ((?car . ?cdr)
