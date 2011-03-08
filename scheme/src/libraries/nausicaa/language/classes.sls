@@ -2934,15 +2934,27 @@
   (predicate real-valued?)
   (virtual-fields (immutable positive?		positive?)
 		  (immutable negative?		negative?)
-		  (immutable non-positive?	non-positive?)
-		  (immutable non-negative?	non-negative?))
+		  (immutable non-positive?)
+		  (immutable non-negative?)
+		  (immutable sign))
   (nongenerative nausicaa:builtin:<real-valued>))
+
+(define-inline (<real-valued>-non-positive? x)
+  (or (zero? x) (negative? x)))
+
+(define-inline (<real-valued>-non-negative? x)
+  (or (zero? x) (positive? x)))
+
+(define-inline (<real-valued>-sign x)
+  (cond ((positive? x) +1)
+	((negative? x) -1)
+	(else           0)))
 
 (define-foreign-class <real>
   (inherit <real-valued>)
   (predicate real?)
   (nongenerative nausicaa:builtin:<real>)
-  (virtual-fields (immutable abs)))
+  (virtual-fields (immutable abs abs)))
 
 (define-foreign-class <rational-valued>
   (inherit <real>)

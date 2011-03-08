@@ -143,6 +143,55 @@
   #t)
 
 
+(parametrise ((check-test-name	'numbers))
+
+  (check
+      (let (((o <real>) -123))
+	o.abs)
+    => 123)
+
+  (check
+      (let (((o <real>) 123))
+	o.abs)
+    => 123)
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (let (((o <real-valued>) -123))
+	o.positive?)
+    => #f)
+
+  (check
+      (let (((o <real-valued>) -123))
+	o.negative?)
+    => #t)
+
+  (check
+      (let (((o <real-valued>) -123))
+	o.non-positive?)
+    => #t)
+
+  (check
+      (let (((o <real-valued>) -123))
+	o.non-negative?)
+    => #f)
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (let (((o <real-valued>) -123))
+	o.sign)
+    => -1)
+
+  (check
+      (let (((o <real-valued>) 123))
+	o.sign)
+    => 1)
+
+  #t)
+
+
 ;;;; done
 
 (check-report)

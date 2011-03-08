@@ -3762,6 +3762,11 @@ Accessing this field is like applying @func{non-negative?} to the
 number.
 @end defcv
 
+
+@defcv {Immutable Virtual Field} @aclass{real-valued} sign
+It is the sign of the number: @math{+1}, @math{0}, @math{-1}.
+@end defcv
+
 @c ------------------------------------------------------------
 
 @subsubheading Real numbers
