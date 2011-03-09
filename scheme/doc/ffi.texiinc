@@ -1,0 +1,4914 @@
+@node ffi
+@chapter Foreign--functions interface
+
+
+@cindex @library{nausicaa ffi}, library
+@cindex Library @library{nausicaa ffi}
+
+
+Nausicaa implements a foreign--functions interface (@ffi{}) towards C
+language libraries built upon the interfaces provided by the underlying
+Scheme implementations.  The @api{} is exported by the following
+libraries:
+
+@example
+(ffi)
+(ffi sizeof)
+(ffi memory)
+(ffi cstrings)
+(ffi errno)
+@end example
+
+@noindent
+plus a plethora of other sublibraries.
+
+Not all the Scheme implementations provide an @ffi{} usable by Nausicaa;
+only Mosh, Vicare and Ypsilon are supported.  At present, Nausicaa's
+@ffi{} is tested only @gnu{}+Linux systems, which means that it expects
+to access some function in the @gnu{} C Library; on other platforms, we
+can try, at installation time, to select a C library pathname with the
+@option{--with-libc-shared-object} command line option of the
+@command{configure} script.
+
+@menu
+* ffi core::                    Foreign--functions interface.
+* ffi memory::                  Low level memory handling.
+* ffi cstrings::                C language strings handling.
+* ffi errno::                   C language system errors.
+@end menu
+
+@c page
+@node ffi core
+@section Foreign--functions interface
+
+
+@menu
+* ffi core libraries::          Installed libraries.
+* ffi core conditions::         Condition objects.
+* ffi core types::              Interface to C language types.
+* ffi core sizeof::             Sizes and limits.
+* ffi core pointers::           Pointer objects.
+* ffi core access::             Direct access to memory blocks.
+* ffi core call::               Callouts and callbacks.
+* ffi core struct::             Accessing data structures.
+* ffi core headers::            Inspecting foreign header files.
+* ffi core generator::          Generating an interface.
+@end menu
+
+@c page
+@node ffi core libraries
+@subsection Installed libraries
+
+
+Here is a list of the most important libraries:
+
+@table @library
+@item nausicaa ffi clang type-translation
+@itemx nausicaa ffi clang type-translation compat
+Export functions to convert Scheme symbols representing external C
+language data types to Scheme symbols representing C language data types
+recognised by the underlying Scheme implementation; it also provides
+enumerations to inspect the sets of supported types.
+
+The generic library is processed by @gnu{} Autoconf to gather values
+from the package configuration step; the @code{compat} library is
+specific to the underlying implementation.
+
+@item nausicaa ffi sizeof
+Exports macros used to inspect constant values like the size of basic C
+language data types.  The library is processed by @gnu{} Autoconf to
+gather values from the package configuration step.
+
+@item nausicaa ffi peekers-and-pokers
+@itemx nausicaa ffi peekers-and-pokers compat
+Export an @api{} for raw memory access through peeker and poker
+functions and user--friendly macros; the @code{compat} library is
+specific to the underlying implementation.
+
+@item nausicaa ffi conditions
+Definition of condition object related to the foreign--functions
+interface.
+
+@item nausicaa ffi pointers
+Exports an interface to memory pointer values as disjoint Scheme object
+type.
+
+@item nausicaa ffi compat
+Exports an adapter interface to the foreign--functions interfaces of the
+underlying Scheme implementation.  This library is not meant to be used
+directly by client code.
+
+@item nausicaa ffi
+Exports both a low level function--based @api{} and a high level
+user--friendly macro--based @api{}.  It provides loading and inspection
+of shared libraries and constructors of callout and callback functions.
+@end table
+
+@c page
+@node ffi core conditions
+@subsection Condition objects
+
+
+@cindex @library{nausicaa ffi conditions}, library
+@cindex Library @library{nausicaa ffi conditions}
+
+
+The bindings described in this section are exported by the
+@library{nausicaa ffi conditions} library and reexported by the compound
+library @library{nausicaa ffi}.  There are two kinds of condition
+objects: data conditions, which are meant to hold values; error
+conditions, which are meant to tag condition objects describing the
+cause of the exception.
+
+@menu
+* ffi core conditions library-name::    Foreign library names.
+* ffi core conditions shared-object::   Shared objects.
+* ffi core conditions foreign-symbol::  Foreign symbols.
+* ffi core conditions opening::         Shared objects opening error.
+* ffi core conditions lookup::          Shared objects lookup error.
+@end menu
+
+@c page
+@node ffi core conditions library-name
+@subsubsection Foreign library names
+
+
+@deftp {Condition Type} &library-name
+References a foreign library name involved in an exception; it is
+derived from @condition{condition}.  It has the following fields:
+
+@table @code
+@item library-name
+A Scheme string representing a foreign library name.  Examples:
+@samp{zlib.so}, @samp{zlib.dylib}, @samp{zlib.dll}.
+@end table
+@end deftp
+
+
+@defun make-library-name-condition @var{library-name}
+@defunx library-name-condition? @var{obj}
+Constructor and predicate for condition objects of type
+@condition{library-name}.
+@end defun
+
+
+@defun condition-library-name @var{obj}
+Accessor for the field of condition objects of type
+@condition{library-name}.
+@end defun
+
+@c page
+@node ffi core conditions shared-object
+@subsubsection Shared objects
+
+
+@deftp {Condition Type} &shared-object
+References a shared object involved in an exception; it is derived from
+@condition{condition}.  It has the following fields:
+
+@table @code
+@item object
+A foreign library object.
+@end table
+@end deftp
+
+
+@defun make-shared-object-condition @var{shared-object}
+@defunx shared-object-condition? @var{obj}
+Constructor and predicate for condition objects of type
+@condition{shared-object}.
+@end defun
+
+
+@defun condition-shared-object @var{obj}
+Accessor for the field of condition objects of type
+@condition{shared-object}.
+@end defun
+
+@c page
+@node ffi core conditions foreign-symbol
+@subsubsection Foreign symbols
+
+
+@deftp {Condition Type} &foreign-symbol
+References a foreign symbol, exported by a shared library, involved in
+an exception; it is derived from @condition{condition}.  It has the
+following fields:
+
+@table @code
+@item symbol
+A Scheme string representing the foreign symbol.
+@end table
+@end deftp
+
+
+@defun make-foreign-symbol-condition @var{foreign-symbol}
+@defunx foreign-symbol-condition? @var{obj}
+Constructor and predicate for condition objects of type
+@condition{foreign-symbol}.
+@end defun
+
+
+@defun condition-foreign-symbol @var{obj}
+Accessor for the field of condition objects of type
+@condition{foreign-symbol}.
+@end defun
+
+@c page
+@node ffi core conditions opening
+@subsubsection Shared objects opening error
+
+
+@deftp {Condition Type} &shared-object-opening-error
+Tags a compound condition object as describing a failed attempt to open
+a shared library; it is derived from @condition{error}.  It has no
+fields.
+@end deftp
+
+
+@defun make-shared-object-opening-error-condition
+@defunx shared-object-opening-error-condition? @var{obj}
+Constructor and predicate for condition objects of type
+@condition{shared-object-opening-error}.
+@end defun
+
+
+@deffn Syntax raise-shared-object-opening-error @ameta{who} @ameta{message} @ameta{library-name}
+Raise a continuable exception using as exception value a composite
+condition object with components of type: @condition{who},
+@condition{message}, @condition{library-name},
+@condition{shared-object-opening-error}
+
+It is meant to be used when opening a shared object fails; when
+returning to the continuation, the returned value must be a valid,
+initialised, shared object.
+@end deffn
+
+@c page
+@node ffi core conditions lookup
+@subsubsection Shared objects lookup error
+
+
+@deftp {Condition Type} &shared-object-lookup-error
+Tags a compound condition object as describing a failed attempt to
+retrieve the address of an exported entity from a shared library; it is
+derived from @condition{error}.  It has no fields.
+@end deftp
+
+
+@defun make-shared-object-lookup-error-condition
+@defunx shared-object-lookup-error-condition? @var{obj}
+Constructor and predicate for condition objects of type
+@condition{shared-object-lookup-error}.
+@end defun
+
+
+@deffn Syntax raise-shared-object-lookup-error @ameta{who} @ameta{message} @ameta{shared-object} @ameta{foreign-symbol}
+Raise a continuable exception using as exception value a composite
+condition object with components of type: @condition{who},
+@condition{message}, @condition{shared-object},
+@condition{foreign-symbol}.
+
+It is meant to be used when retrieving the pointer of an entity exported
+by a shared object fails; when returning to the continuation, the
+returned value must be the pointer object referencing the entity.
+@end deffn
+
+@c page
+@node ffi core types
+@subsection Interface to C language types
+
+
+Nausicaa's @ffi{} accepts a number of C language type identifiers
+represented by Scheme symbols; these @dfn{external types} have redundant
+names to improve user friendlyness; when processing the definition of a
+binding to foreign functions, they are first normalised to @dfn{internal
+types} as described in the table below.
+
+The @meta{size_t-integer}, @meta{ssize_t-integer},
+@meta{intptr_t-integer} and @meta{uintptr_t-integer} type specifiers
+used in the tables, are the unsigned and signed identifiers used on the
+underlying platform to represent the @code{size_t}, @code{ssize_t},
+@code{intptr_t} and @code{uintptr_t} C language data types; they are
+symbols among:
+
+@example
+signed-int    signed-long    signed-long-long
+unsigned-int  unsigned-long  unsigned-long-long
+@end example
+
+We have to remember that C strings (zero terminated arrays of
+@samp{char}) must be converted from/to Scheme strings with
+@func{string->cstring} and @func{cstring->string} from the
+@library{nausicaa ffi cstrings} library (or equivalent), and exchanged
+with foreign functions as pointer objects.  @ref{ffi cstrings
+conversion, Converting to and from cstrings}.
+
+@float Table
+@multitable {012345678901234567} {0123456789012345678} {01234567890123456789012}
+@headitem External type @tab Internal type @tab Description
+@item @code{int8_t}             @tab @code{int8_t}              @tab signed integer
+@item @code{int16_t}            @tab @code{int16_t}             @tab signed integer
+@item @code{int32_t}            @tab @code{int32_t}             @tab signed integer
+@item @code{int64_t}            @tab @code{int64_t}             @tab signed integer
+@item @code{uint8_t}            @tab @code{uint8_t}             @tab unsigned integer
+@item @code{uint16_t}           @tab @code{uint16_t}            @tab unsigned integer
+@item @code{uint32_t}           @tab @code{uint32_t}            @tab unsigned integer
+@item @code{uint64_t}           @tab @code{uint64_t}            @tab unsigned integer
+@item @code{char}               @tab @code{signed-char}         @tab signed char
+@item @code{schar}              @tab @code{signed-char}         @tab signed char
+@item @code{signed-char}        @tab @code{signed-char}         @tab signed char
+@item @code{uchar}              @tab @code{unsigned-char}       @tab unsigned char
+@item @code{unsigned-char}      @tab @code{unsigned-char}       @tab unsigned char
+@item @code{short}              @tab @code{signed-short}        @tab signed integer
+@item @code{signed-short}       @tab @code{signed-short}        @tab signed integer
+@item @code{ushort}             @tab @code{unsigned-short}      @tab unsigned integer
+@item @code{unsigned-short}     @tab @code{unsigned-short}      @tab unsigned integer
+@item @code{int}                @tab @code{signed-int}          @tab signed integer
+@item @code{signed-int}         @tab @code{signed-int}          @tab signed integer
+@item @code{ssize_t}            @tab @meta{ssize_t-integer}     @tab signed integer
+@item @code{intptr_t}           @tab @meta{intptr_t-integer}    @tab signed integer
+@item @code{uint} @tab          @code{unsigned-int}             @tab unsigned integer
+@item @code{unsigned}           @tab @code{unsigned-int}        @tab unsigned integer
+@item @code{unsigned-int}       @tab @code{unsigned-int}        @tab unsigned integer
+@item @code{size_t}             @tab @meta{size_t-integer}      @tab unsigned integer
+@item @code{uintptr_t}          @tab @meta{uintptr_t-integer}   @tab unsigned integer
+@item @code{long}               @tab @code{signed-long}         @tab signed integer
+@item @code{signed-long}        @tab @code{signed-long}         @tab signed integer
+@item @code{ulong}              @tab @code{unsigned-long}       @tab unsigned integer
+@item @code{unsigned-long}      @tab @code{unsigned-long}       @tab unsigned integer
+@item @code{long-long}          @tab @code{signed-long-long}    @tab signed integer
+@item @code{llong}              @tab @code{signed-long-long}    @tab signed integer
+@item @code{signed-long-long}   @tab @code{signed-long-long}    @tab signed integer
+@item @code{ulong-long}         @tab @code{unsigned-long-long}  @tab unsigned integer
+@item @code{ullong}             @tab @code{unsigned-long-long}  @tab unsigned integer
+@item @code{unsigned-long-long} @tab @code{unsigned-long-long}  @tab unsigned integer
+@item @code{float}              @tab @code{float}               @tab single precision flonum
+@item @code{double}             @tab @code{double}              @tab double precision flonum
+@item @code{pointer}            @tab @code{pointer}             @tab pointer
+@item @code{void*}              @tab @code{pointer}             @tab pointer
+@item @code{char*}              @tab @code{pointer}             @tab pointer
+@item @code{FILE*}              @tab @code{pointer}             @tab pointer
+@item @code{callback}           @tab @code{callback}            @tab callback function
+@item @code{void}               @tab @code{void}                @tab void value
+@end multitable
+@caption{Mapping from Nausicaa's external types to Nausicaa's internal types.}
+@end float
+
+The internal types are further converted to type identifiers recognised
+by the underlying Scheme implementation, according to the following
+tables.
+
+@c @float Table
+@c @multitable {0123456789012345678} {Ikarus and Vicare type}
+@c @headitem Internal type @tab Ikarus and Vicare type
+@c @item @code{int8_t}             @tab @code{signed-char}
+@c @item @code{int16_t}            @tab @code{signed-short}
+@c @item @code{int32_t}            @tab @code{signed-int}
+@c @item @code{int64_t}            @tab @code{signed-long-long}
+@c @item @code{uint8_t}            @tab @code{unsigned-char}
+@c @item @code{uint16_t}           @tab @code{unsigned-short}
+@c @item @code{uint32_t}           @tab @code{unsigned-int}
+@c @item @code{uint64_t}           @tab @code{unsigned-long-long}
+@c @item @code{signed-char}        @tab @code{signed-char}
+@c @item @code{unsigned-char}      @tab @code{unsigned-char}
+@c @item @code{signed-short}       @tab @code{signed-short}
+@c @item @code{unsigned-short}     @tab @code{unsigned-short}
+@c @item @code{signed-int}         @tab @code{signed-int}
+@c @item @code{unsigned-int}       @tab @code{unsigned-int}
+@c @item @code{signed-long}        @tab @code{signed-long}
+@c @item @code{unsigned-long}      @tab @code{unsigned-long}
+@c @item @code{signed-long-long}   @tab @code{signed-long-long}
+@c @item @code{unsigned-long-long} @tab @code{unsigned-long-long}
+@c @item @code{float}              @tab @code{float}
+@c @item @code{double}             @tab @code{double}
+@c @item @code{pointer}            @tab @code{pointer}
+@c @item @code{callback}           @tab @code{pointer}
+@c @item @code{void}               @tab @code{void}
+@c @end multitable
+@c @caption{Mapping from Nausicaa's internal types to Ikarus' and Vicare's
+@c types (Ikarus revision 1870; last updated Tue May 11, 2010).}
+@c @end float
+
+
+@float Table
+@multitable {012345678901234567} {0123456789012345678}
+@headitem Internal type @tab Ypsilon type
+@item @code{int8_t}             @tab @code{int8_t}
+@item @code{int16_t}            @tab @code{int16_t}
+@item @code{int32_t}            @tab @code{int32_t}
+@item @code{int64_t}            @tab @code{int64_t}
+@item @code{uint8_t}            @tab @code{uint8_t}
+@item @code{uint16_t}           @tab @code{uint16_t}
+@item @code{uint32_t}           @tab @code{uint32_t}
+@item @code{uint64_t}           @tab @code{uint64_t}
+@item @code{signed-char}        @tab @code{char}
+@item @code{unsigned-char}      @tab @code{char}
+@item @code{signed-short}       @tab @code{short}
+@item @code{unsigned-short}     @tab @code{unsigned-short}
+@item @code{signed-int}         @tab @code{int}
+@item @code{unsigned-int}       @tab @code{unsigned-int}
+@item @code{signed-long}        @tab @code{long}
+@item @code{unsigned-long}      @tab @code{unsigned-long}
+@item @code{signed-long-long}   @tab @code{long-long}
+@item @code{unsigned-long-long} @tab @code{unsigned-long-long}
+@item @code{float}              @tab @code{float}
+@item @code{double}             @tab @code{double}
+@item @code{pointer}            @tab @code{void*}
+@item @code{callback}           @tab @code{void*}
+@item @code{void}               @tab @code{void}
+@end multitable
+@caption{Mapping from Nausicaa's internal types to Ypsilon's types,
+revision 503 (last updated Fri Oct 30, 2009).}
+@end float
+
+@float Table
+@multitable {012345678901234567} {0123456789012345678}
+@headitem Internal type @tab Mosh type
+@item @code{int8_t}             @tab @code{int8_t}
+@item @code{int16_t}            @tab @code{int16_t}
+@item @code{int32_t}            @tab @code{int32_t}
+@item @code{int64_t}            @tab @code{int64_t}
+@item @code{uint8_t}            @tab @code{uint8_t}
+@item @code{uint16_t}           @tab @code{uint16_t}
+@item @code{uint32_t}           @tab @code{uint32_t}
+@item @code{uint64_t}           @tab @code{uint64_t}
+@item @code{signed-char}        @tab @code{char}
+@item @code{unsigned-char}      @tab @code{char}
+@item @code{signed-short}       @tab @code{short}
+@item @code{unsigned-short}     @tab @code{unsigned-short}
+@item @code{signed-int}         @tab @code{int}
+@item @code{unsigned-int}       @tab @code{unsigned-int}
+@item @code{signed-long}        @tab @code{long}
+@item @code{unsigned-long}      @tab @code{unsigned-long}
+@item @code{signed-long-long}   @tab @code{long-long}
+@item @code{unsigned-long-long} @tab @code{unsigned-long-long}
+@item @code{float}              @tab @code{float}
+@item @code{double}             @tab @code{double}
+@item @code{pointer}            @tab @code{void*}
+@item @code{callback}           @tab @code{void*}
+@item @code{void}               @tab @code{void}
+@end multitable
+@caption{Mapping from Nausicaa's internal types to Mosh's types,
+revision 2185 (last updated Tue Nov 17, 2009).}
+@end float
+
+@ignore
+@float Table
+@multitable {012345678901234567} {0123456789012345678}
+@headitem Internal type @tab Larceny type
+@item @code{int8_t}             @tab @code{int}
+@item @code{int16_t}            @tab @code{int}
+@item @code{int32_t}            @tab @code{int}
+@item @code{int64_t}            @tab @code{long}
+@item @code{uint8_t}            @tab @code{unsigned}
+@item @code{uint16_t}           @tab @code{unsigned}
+@item @code{uint32_t}           @tab @code{unsigned}
+@item @code{uint64_t}           @tab @code{ulong}
+@item @code{signed-char}        @tab @code{int}
+@item @code{unsigned-char}      @tab @code{int}
+@item @code{signed-short}       @tab @code{int}
+@item @code{unsigned-short}     @tab @code{unsigned}
+@item @code{signed-int}         @tab @code{int}
+@item @code{unsigned-int}       @tab @code{unsigned}
+@item @code{signed-long}        @tab @code{long}
+@item @code{unsigned-long}      @tab @code{ulong}
+@item @code{signed-long-long}   @tab @code{long}
+@item @code{unsigned-long-long} @tab @code{ulong}
+@item @code{float}              @tab @code{float}
+@item @code{double}             @tab @code{double}
+@item @code{pointer}            @tab @code{(maybe void*)}
+@item @code{callback}           @tab @code{(maybe void*)}
+@item @code{void}               @tab @code{void}
+@end multitable
+@caption{Mapping from Nausicaa's internal types to Larceny's types,
+revision 6404 (last updated Tue Nov 17, 2009).  Notice that Larceny's
+@ffi{} is no more supported.}
+@end float
+@end ignore
+
+
+@float Table
+@multitable {012345678901234567} {0123456789012345678}
+@headitem Internal type @tab Petite type
+@item @code{int8_t}             @tab @code{integer-8}
+@item @code{int16_t}            @tab @code{integer-16}
+@item @code{int32_t}            @tab @code{integer-32}
+@item @code{int64_t}            @tab @code{integer-64}
+@item @code{uint8_t}            @tab @code{unsigned-8}
+@item @code{uint16_t}           @tab @code{unsigned-16}
+@item @code{uint32_t}           @tab @code{unsigned-32}
+@item @code{uint64_t}           @tab @code{unsigned-64}
+@item @code{signed-char}        @tab @code{integer-8}
+@item @code{unsigned-char}      @tab @code{unsigned-8}
+@item @code{signed-short}       @tab @code{short}
+@item @code{unsigned-short}     @tab @code{unsigned-short}
+@item @code{signed-int}         @tab @code{int}
+@item @code{unsigned-int}       @tab @code{unsigned-int}
+@item @code{signed-long}        @tab @code{long}
+@item @code{unsigned-long}      @tab @code{unsigned-long}
+@item @code{signed-long-long}   @tab @code{long-lonog}
+@item @code{unsigned-long-long} @tab @code{unsigned-long-long}
+@item @code{float}              @tab @code{fixed-float}
+@item @code{double}             @tab @code{fixed-double}
+@item @code{pointer}            @tab @code{void*}
+@item @code{callback}           @tab @code{void*}
+@item @code{void}               @tab @code{void}
+@end multitable
+@caption{Mapping from Nausicaa's internal types to Petite Chez's types.
+Notice that Petite's @ffi{} is only partially supported.}
+@end float
+
+
+The following bindings are exported by the @library{nausicaa ffi clang
+type-translation} library.
+
+
+@deftp {Enumeration Type} enum-clang-external-types
+@deftpx {Enumeration Type} enum-clang-internal-types
+@deftpx {Enumeration Type} enum-clang-types
+Enumeration type for the external, internal or implementation type
+symbols.
+@end deftp
+
+
+@deffn Syntax clang-external-types @ameta{symbol} ...
+@deffnx Syntax clang-internal-types @ameta{symbol} ...
+@deffnx Syntax clang-types @ameta{symbol} ...
+Evaluate to an enumeration set of external, internal or implementation
+type symbols.
+@end deffn
+
+
+@defun clang-external-type->clang-internal-type @var{type-symbol}
+@defunx clang-internal-type->clang-type @var{type-symbol}
+@defunx clang-external-type->clang-type @var{type-symbol}
+Convert between type symbols of different sets; if the symbol is not
+recognised, an assertion violation is raised.
+@end defun
+
+
+@defun clang-foreign-type->clang-external-type @var{type-symbol}
+Return @var{type-symbol} itself if it is a Scheme symbol in the
+enumeration @enum{clang-external-types}, otherwise return @false{}.
+@end defun
+
+
+@defun clang-maybe-foreign-type->clang-external-type @var{type-symbol}
+Return @var{type-symbol} itself; this is a special function which can be
+used by the macros @func{make-c-function*} and similar, see their
+documentation for details.
+@end defun
+
+@c page
+@node ffi core sizeof
+@subsection Sizes and limits
+
+
+@cindex @library{nausicaa ffi sizeof}, library
+@cindex Library @library{nausicaa ffi sizeof}
+
+
+The @library{nausicaa ffi sizeof} library exports a set of bindings to
+allow interface libraries to be aware of C language type sizes and
+limits.  When using this library, it is suggested to import it with
+prefix @samp{ffi.}, because other libraries in the Nausicaa distribution
+export bindings with the same name.
+
+In all the following syntax descriptions: @meta{type name} must be a
+symbol representing a C language type in the enumeration
+@enum{clang-external-types} from the @library{nausicaa ffi clang
+type-translation} library.
+
+
+@deffn Syntax c-sizeof @ameta{type name}
+@deffnx Syntax c-sizeof @ameta{type name} @ameta{number of values}
+In the first form: expand to the number of bytes required to hold a
+single value of @meta{type name}.
+
+In the second form: expand to the number of bytes required to hold an
+array of @meta{number of values} of @meta{type name}; this form makes
+use of the correct type stride.  @meta{number of values} must be an
+expression which evaluates to an exact non--negative integer.
+@end deffn
+
+
+@deffn Syntax c-alignof @ameta{type name}
+Expand to the number of bytes of alignment in data structures for the
+specified type.
+@end deffn
+
+
+@deffn Syntax c-strideof @ameta{type name}
+Expand to the number of bytes of array stride for the specified type.
+@end deffn
+
+
+@deffn Syntax c-valueof @ameta{thing}
+Expand to an exact integer representing the value of @meta{thing}, which
+is usually a constant name; for example: the value of @samp{int-max} is
+the C language constant @code{INT_MAX}.  @meta{thing} can be one among:
+
+@example
+char-max        char-min
+schar-max       schar-min       uchar-max
+short-max       short-min       ushort-max
+int-max         int-min         uint-max
+long-max        long-min
+wchar-max
+ssize_t-max     ssize_t-min
+size_t-max      size_t-min
+intptr_t-max    intptr_t-min
+uintptr_t-max   uintptr_t-min
+@end example
+@end deffn
+
+
+@deffn Syntax c-inspect @ameta{thing}
+Expand to a value representing the @meta{thing} property or constant;
+@meta{thing} can be one of the following:
+
+@table @code
+@item pointer-integer
+A symbol representing one of the unsigned integer types for callout
+arguments and return values; it is meant to be the integer type that is
+equal in size to a pointer, so it can be used in place of the
+@samp{pointer} type for Scheme implementations that do not have it.
+
+@item words-bigendian
+It is @true{} if the platform is big endian, @false{} otherwise; notice
+that this information is also available with the @rnrs{6} function
+@func{native-endianness}.
+
+@item on-32-bits-system
+@itemx on-64-bits-system
+@itemx on-32-bits-systems
+@itemx on-64-bits-systems
+It is @true{} if the size of the platform's @code{int} type is @math{32}
+or @math{64} bits respectively.
+@end table
+@end deffn
+
+@c page
+@node ffi core pointers
+@subsection Pointer objects
+
+
+@cindex @library{nausicaa ffi pointers}, library
+@cindex Library @library{nausicaa ffi pointers}
+
+
+Pointer objects are values that the Scheme implementation uses to
+reference memory blocks; they are a disjoint type defined by the
+predicate @func{pointer?}.  The only pointer constructor is
+@func{integer->pointer}.
+
+@menu
+* ffi core pointers proc::      Procedural interface.
+* ffi core pointers label::     Label interface.
+@end menu
+
+@c page
+@node ffi core pointers proc
+@subsubsection Procedural interface
+
+
+The following bindings are exported by the @library{nausicaa ffi
+pointers} library and reexported by @library{nausicaa ffi} and
+@library{nausicaa ffi memory}.
+
+
+@defun pointer? @var{x}
+Return @true{} if the value of @var{x} is a value that the Scheme
+implementation uses to represent memory blocks, return @false{}
+otherwise.
+@end defun
+
+
+@defun pointer-null? @var{pointer}
+Return @true{} if @var{pointer} represents a null pointer according to
+the underlying Scheme implementation, @false{} otherwise.
+@end defun
+
+
+@deffn Constant pointer-null
+Holds a null pointer: if @func{pointer->integer} is applied to it the
+result is 0.  This binding exists to hold a prebuilt null pointer to be
+used as return value or function argument, whenever it can make
+algorithms simpler.
+@end deffn
+
+
+@defun pointer->integer @var{pointer}
+Convert a pointer value to an exact integer.
+@end defun
+
+
+@defun integer->pointer @var{exact-integer}
+Convert an exact integer to a pointer value.
+@end defun
+
+
+@defun pointer-diff @var{pointer-1} @var{pointer-2}
+Return the difference between the pointers.  It is implemented as:
+
+@example
+(define (pointer-diff pointer-1 pointer-2)
+  (- (pointer->integer pointer-1)
+     (pointer->integer pointer-2)))
+@end example
+@end defun
+
+
+@defun pointer-add @var{pointer} @var{offset}
+Add an offset to a pointer and return the resulting pointer.  It is
+implemented as:
+
+@example
+(define (pointer-add pointer offset)
+  (integer->pointer (+ (pointer->integer pointer)
+                       offset)))
+@end example
+@end defun
+
+
+@deffn Syntax pointer-incr! @ameta{pointer-var} @ameta{expr}
+Expands to:
+
+@example
+(set! @cmeta{pointer-var} (pointer-add @cmeta{pointer-var} @cmeta{expr}))
+@end example
+@end deffn
+
+
+@deffn Syntax pointer-decr! @ameta{pointer-var} @ameta{expr}
+Expands to:
+
+@example
+(set! @cmeta{pointer-var}
+  (pointer-add @cmeta{pointer-var} (- @cmeta{expr})))
+@end example
+@end deffn
+
+
+@defun pointer=? @varo{pointer} @var{pointer} ...
+@defunx pointer<? @varo{pointer} @var{pointer} ...
+@defunx pointer>? @varo{pointer} @var{pointer} ...
+@defunx pointer<=? @varo{pointer} @var{pointer} ...
+@defunx pointer>=? @varo{pointer} @var{pointer} ...
+@defunx pointer<>? @varo{pointer} @var{pointer} ...
+All the arguments must be pointer values and are internally converted to
+integers.  Return @true{} if the integers satisfy the selected predicate
+(@code{=}, @code{<}, @code{>}, @code{<=}, @code{>=}), otherwise return
+@false{}.  @func{pointer<>?} returns @true{} if all the pointers are
+different.
+
+With the single exception of @func{pointer<>?}: All the functions return
+@true{} when applied to a single argument.
+@end defun
+
+@c page
+@node ffi core pointers label
+@subsubsection Label interface
+
+
+The following bindings are exported by the @library{nausicaa ffi
+pointers} library and reexported by @library{nausicaa ffi} and
+@library{nausicaa ffi memory}.
+
+
+@deftp Label @aclass{pointer}
+Label interface to pointer values.
+@end deftp
+
+
+@defcv {Immutable Virtual Field} @aclass{pointer} null?
+@true{} if the pointer represents a null pointer according to the
+underlying Scheme implementation, @false{} otherwise.
+@end defcv
+
+
+@defcv {Immutable Virtual Field} @aclass{pointer} integer
+Return an exact integer representing the pointer value.
+@end defcv
+
+
+@defmethod @aclass{pointer} diff @var{pointer}
+Return the difference between the instance and @var{pointer}.
+@end defmethod
+
+
+@defmethod @aclass{pointer} add @var{offset}
+Add an offset to a pointer and return the resulting pointer.
+@end defmethod
+
+
+@defmethod @aclass{pointer} incr! @var{expr}
+@defmethodx @aclass{pointer} decr! @var{expr}
+Increment or decrement the pointer by the result of @var{expr}.
+@end defmethod
+
+
+@defmethod @aclass{pointer} =? @var{pointer} ...
+@defmethodx @aclass{pointer} <? @var{pointer} ...
+@defmethodx @aclass{pointer} >? @var{pointer} ...
+@defmethodx @aclass{pointer} <=? @var{pointer} ...
+@defmethodx @aclass{pointer} >=? @var{pointer} ...
+@defmethodx @aclass{pointer} <>? @var{pointer} ...
+All the arguments must be pointer values and are internally converted to
+integers.  Return @true{} if the integers satisfy the selected predicate
+(@code{=}, @code{<}, @code{>}, @code{<=}, @code{>=}), otherwise return
+@false{}.  @func{pointer<>?} returns @true{} if all the pointers are
+different.
+
+With the single exception of @func{pointer<>?}: all the methods return
+@true{} when applied to no arguments.
+@end defmethod
+
+@c page
+@node ffi core access
+@subsection Direct access to memory blocks
+
+
+@cindex @library{nausicaa ffi peekers-and-pokers}, library
+@cindex Library @library{nausicaa ffi peekers-and-pokers}
+
+
+A rich set of procedures is implemented to access directly memory blocks
+referenced by pointer objects; they are exported by the
+@library{nausicaa ffi peekers-and-pokers compat} library.  These
+procedures are accessible through a small set of macros, which expand to
+a direct call to the procedure.
+
+The bindings described in this section are exported by the
+@library{nausicaa ffi peekers-and-pokers} library and reexported by
+@library{nausicaa ffi memory}.  When using this library, it is suggested
+to import it with prefix @samp{ffi:}, because other libraries in the
+Nausicaa distribution export bindings with the same name.
+
+@quotation
+@strong{NOTE} When specifying ranges of exact integers: @math{[1, 3]}
+means a range that is left--inclusive and right--inclusive; @math{[1,
+3)} means a range that is left--inclusive and right--exclusive, that is
+@math{[1, 2]}.
+@end quotation
+
+
+@deffn Syntax pointer-c-ref @ameta{type} @ameta{pointer} @ameta{offset}
+Peek the value located at @meta{offset} from @meta{pointer} and return
+it.  @meta{pointer} must be a pointer object; @meta{offset} must be an
+exact integer which is @strong{not} scaled by the type dimension.
+
+@meta{type} must be a symbol representing a C language type in the
+enumeration @enum{clang-external-types} from the @library{nausicaa ffi
+clang type-translation} library; in particular the meaning of the basic
+types is as follows:
+
+@table @code
+@item int8_t
+@itemx signed-char
+Peek a single byte and return an exact integer representing the
+sign--extended integer value of that byte; the returned value is in the
+range @math{[-2^7, 2^7)}, that is @math{[-128, 127]}.
+
+@item uint8_t
+@itemx unsigned-char
+Peek a single byte and return an exact integer representing the unsigned
+integer value of that byte; the returned value is in the range @math{[0,
+2^8)}, that is @math{[0, 255]}.
+
+@item int16_t
+Peek two bytes and return an exact integer representing the
+sign--extended integer value of the sequence; the returned value is in
+the range @math{[-2^15, 2^15)}, that is @math{[-32768, 32767]}.
+
+@item uint16_t
+Peek two bytes and return an exact integer representing the unsigned
+integer value of the sequence; the returned value is in the range
+@math{[0, 2^16)}, that is @math{[0, 65535]}.
+
+@item int32_t
+Peek four bytes and return an exact integer in the range @math{[-2^31,
+2^31)}, that is @math{[-2147483648, 2147483647]}.
+
+@item uint32_t
+Peek four bytes and return an exact integer in the range @math{[0,
+2^32)}, that is @math{[0, 4294967295]}.
+
+@item int64_t
+Peek eight bytes and return an exact integer in the range @math{[-2^63,
+2^63)}, that is @math{[9223372036854775808, 9223372036854775807]}.
+
+@item uint64_t @var{pointer} @var{offset}
+Peek eight bytes and return an exact integer in the range @math{[0,
+2^64)}, that is @math{[0, 18446744073709551615]}.
+
+@item signed-short
+Alias for the fixed--size peeker whose target matches the size and range
+of the @samp{short int} C language type of the underlying platform.
+
+@item unsigned-short
+Aliases for the fixed--size peeker whose target matches the size and
+range of the @samp{unsigned short int} C language type of the underlying
+platform.
+
+@item signed-int
+Alias for the fixed--size peeker whose target matches the size and range
+of the @samp{int} C language type of the underlying platform.
+
+@item unsigned-int
+Alias for the fixed--size peeker whose target matches the size and range
+of the @samp{unsigned int} C language type of the underlying platform.
+
+@item signed-long
+Alias for the fixed--size peeker whose target matches the size and range
+of the @samp{long} C language type of the underlying platform.
+
+@item unsigned-long
+Alias for the fixed--size peeker whose target matches the size and range
+of the @samp{unsigned long} C language type of the underlying platform.
+
+@item signed-long-long
+Aliases for the fixed--size peeker whose target matches the size and
+range of the @samp{long long} C language type of the underlying
+platform.
+
+@item unsigned-long-long
+Alias for the fixed--size peeker whose target matches the size and range
+of the @samp{unsigned long long} C language type of the underlying
+platform.
+
+@item float
+Peek a flonum Scheme object representing the four--byte @samp{float}
+(represented as @ieee{} 754 single precision floating point number).
+
+@item double
+Peek a flonum Scheme object representing the eight--byte @samp{double}
+(represented as @ieee{} 754 double precision floating point number).
+
+@item pointer
+Peek a @samp{pointer} value; the size of the pointer (also the number of
+bytes loaded) depends on the architecture: it is @math{4} bytes on
+@math{32}-bit systems and @math{8} bytes on @math{64}-bit systems.
+@end table
+@end deffn
+
+
+@deffn Syntax pointer-c-set! @ameta{type} @ameta{pointer} @ameta{offset} @ameta{value}
+Poke @ameta{value} in the location at @meta{offset} from @meta{pointer}.
+@meta{pointer} must be a pointer object; @meta{offset} must be an exact
+integer which is @strong{not} scaled by the type dimension.
+@meta{value} can be an expression, which is evaluated only once.
+
+@meta{type} must be a symbol representing a C language type in the
+enumeration @enum{clang-external-types} from the @library{nausicaa ffi
+clang type-translation} library; in particular the meaning of the basic
+types is as follows:
+
+@table @code
+@item int8_t
+@itemx signed-char
+Poke a single byte; @meta{value} must evaluate to an exact integer in
+the range @math{[-2^7, 2^7)}, that is @math{[-128, 127]}.
+
+@item uint8_t
+@itemx unsigned-char
+Poke a single byte; @meta{value} must evaluate to an exact integer in
+the range @math{[0, 2^8)}, that is @math{[0, 255]}.
+
+@item int16_t
+Poke two bytes; @meta{value} must evaluate to an exact integer in the
+range @math{[-2^15, 2^15)}, that is @math{[-32768, 32767]}.
+
+@item uint16_t
+Poke two bytes; @meta{value} must evaluate to an exact integer in the
+range @math{[0, 2^16)}, that is @math{[0, 65535]}.
+
+@item int32_t
+Poke four bytes; @meta{value} must evaluate to an exact integer in the
+range @math{[-2^31, 2^31)}, that is @math{[-2147483648, 2147483647]}.
+
+@item uint32_t
+Poke four bytes; @meta{value} must evaluate to an exact integer in the
+range @math{[0, 2^32)}, that is @math{[0, 4294967295]}.
+
+@item int64_t
+Poke eight bytes; @meta{value} must evaluate to an exact integer in the
+range @math{[-2^63, 2^63)}, that is @math{[9223372036854775808,
+9223372036854775807]}.
+
+@item uint64_t
+Poke eight bytes; @meta{value} must evaluate to an exact integer in the
+range @math{[0, 2^64)}, that is @math{[0, 18446744073709551615]}.
+
+@item signed-short
+Alias for the fixed--size poker whose target matches the size and range
+of the @samp{short int} C language type of the underlying platform.
+
+@item unsigned-short
+Alias for the fixed--size pokers whose target matches the size and range
+of the @samp{unsigned short int} C language type of the underlying
+platform.
+
+@item signed-int
+Alias for the fixed--size pokers whose target matches the size and range
+of the @samp{int} C language type of the underlying platform.
+
+@item unsigned-int
+Alias for the fixed--size pokers whose target matches the size and range
+of the @samp{unsigned int} C language type of the underlying platform.
+
+@item signed-long
+Alias for the fixed--size pokers whose target matches the size and range
+of the @samp{long} C language type of the underlying platform.
+
+@item unsigned-long
+Alias for the fixed--size pokers whose target matches the size and range
+of the @samp{unsigned long} C language type of the underlying platform.
+
+@item signed-long-long
+Alias for the fixed--size pokers whose target matches the size and range
+of the @samp{long long} C language type of the underlying platform.
+
+@item unsigned-long-long
+Alias for the fixed--size pokers whose target matches the size and range
+of the @samp{unsigned long long} C language type of the underlying
+platform.
+
+@item float
+Poke a floating point value; @meta{value} must evaluate to a flonum
+which is convertible C language @samp{float} (an @ieee{} 754 single
+precision floating point number).
+
+@item float
+Poke a floating point value; @meta{value} must evaluate to a flonum
+which is convertible C language @samp{double} (an @ieee{} 754 double
+precision floating point number).
+
+@item pointer
+Poke a pointer; @meta{value} must evaluate to a pointer object; the size
+of the pointer (also the number of bytes stored) depends on the
+architecture: it is @math{4} bytes on @math{32}-bits systems and
+@math{8} bytes on @math{64}-bits systems.
+@end table
+@end deffn
+
+
+@deffn Syntax pointer-c-accessor @ameta{type}
+Expand to an expression evaluating to the pointer accessor function for
+@meta{type}; the returned function accepts two arguments: a pointer
+object, an offset from the pointer object.  @meta{type} must be a symbol
+representing a C language type in the enumeration
+@enum{clang-external-types} from the @library{nausicaa ffi clang
+tyhpe-translation} library.
+@end deffn
+
+
+@deffn Syntax pointer-c-mutator @ameta{type}
+Expand to an expression evaluating to the pointer mutator function for
+@meta{type}; the returned function accepts three arguments: a pointer
+object, an offset from the pointer object, the value to store at the
+selected location.  @meta{type} must be a symbol representing a C
+language type in the enumeration @enum{clang-external-types} from the
+@library{nausicaa ffi clang type-translation} library.
+@end deffn
+
+
+@deffn Syntax array-c-ref @ameta{type} @ameta{pointer} @ameta{index}
+Peek the value located at @meta{index} in the array of @meta{type}
+referenced by @meta{pointer} and return it.  @meta{pointer} must be a
+pointer object; @meta{index} must be an exact integer in the referenced
+array; @meta{type} must be a symbol selecting a C language type.
+
+This is a wrapper for @func{pointer-c-ref}, so all the types supported
+by @func{pointer-c-ref} are supported by @func{array-c-ref}.
+@end deffn
+
+
+@deffn Syntax array-c-set! @ameta{type} @ameta{pointer} @ameta{index} @ameta{value}
+Poke @meta{value} to the location at @meta{index} in the array of
+@meta{type} referenced by @meta{pointer} and return it.  @meta{pointer}
+must be a pointer object; @meta{index} must be an exact integer
+representing an index in the referenced array; @meta{type} must be a
+symbol selecting a C language type.
+
+This is a wrapper for @func{pointer-c-set!}, so all the types supported
+by @func{pointer-c-set!} are supported by @func{array-c-set!}.
+@end deffn
+
+
+@deffn Syntax array-c-pointer-to @ameta{type} @ameta{pointer} @ameta{index}
+Return a new pointer object referencing the location at @meta{index} in
+the array of @meta{type} referenced by @meta{pointer}.  @meta{pointer}
+must be a pointer object; @meta{index} must be an exact integer
+representing an index in the referenced array; @meta{type} must be a
+symbol representing a C language type in the enumeration
+@enum{clang-external-types} from the @library{nausicaa ffi clang
+type-translation} library.
+@end deffn
+
+@c page
+@node ffi core call
+@subsection Callouts and callbacks
+
+
+@menu
+* ffi core call shared::        Dynamic loading of libraries.
+* ffi core call out::           Calling foreign functions.
+* ffi core call back::          Calling Scheme functions.
+* ffi core call macros::        Utility macros.
+* ffi core call platform::      Low level interface.
+@end menu
+
+@c page
+@node ffi core call shared
+@subsubsection Dynamic loading of libraries
+
+
+A foreign shared library loadable with the @cfunc{dlopen} @posix{}
+interface is called @dfn{shared object}.  Under @value{PACKAGE}, a
+shared object can be opened, but not closed.  The @api{} makes use of a
+Scheme object to represent a shared object; it allows access to all the
+functions and variables exported by the library.  The following bindings
+are exported by the @library{nausicaa ffi} library.
+
+
+@defun open-shared-object @var{library-name}
+Open a foreign shared library on the host system and return a shared
+object; shared objects are disjoint from the other Scheme object types.
+
+If opening the shared library fails: throw a continuable exception with
+@func{raise-shared-object-opening-error}.  @ref{ffi core conditions
+opening, Shared objects opening error}.
+
+@var{library-name} must be a Scheme string or symbol representing the
+file name or pathname to be opened; examples: @samp{zlib.so},
+@samp{zlib.dylib}, @samp{zlib.dll}.  In the case of a name (without
+directory part) the search path for shared objects is implemenation
+dependent.
+
+@quotation
+@strong{For Unix} We can find documentation about the search path of
+shared objects in the manual page of @cfunc{dlopen}.
+@end quotation
+@end defun
+
+
+@defun shared-object? @var{obj}
+Return true if @var{obj} is a shared object.
+@end defun
+
+
+@defun lookup-shared-object @var{shared} @var{foreign-symbol}
+Search the shared object referenced by @var{shared} for an exported
+symbol matching @var{foreign-symbol}, which must be a Scheme symbol or
+string, and return its address as a pointer object.  @ref{ffi core
+pointers, Pointer objects}.
+
+If the foreign symbol is not found: raise a continuable exception with
+@func{raise-shared-object-lookup-error}.  @ref{ffi core conditions
+lookup, Shared objects lookup error}.
+@end defun
+
+
+@defvr Constant libc-shared-object
+Bound to the shared object value identifying the C language runtime
+library.  Notice that we can configure this value at installation time,
+with the @option{--with-libc-shared-object} option to the
+@command{configure} script.
+@end defvr
+
+
+@deffn Syntax define-shared-object @ameta{name} @ameta{library-name}
+Expand to:
+
+@example
+(define @meta{name}
+  (open-shared-object @meta{library-name}))
+@end example
+@end deffn
+
+@c page
+@node ffi core call out
+@subsubsection Calling foreign functions
+
+
+The following bindings are exported by the @library{nausicaa ffi}
+library.
+
+
+@defun make-c-callout @var{ret-type} @var{address} @var{arg-types}
+@defunx make-c-callout/with-errno @var{ret-type} @var{address} @var{arg-types}
+Build and return a new Scheme callout closure for a C language foreign
+function whose address is specified by the @var{address} pointer
+object.
+
+@var{ret-type} must be a symbol in the @enum{clang-external-types}
+enumeration; it represents the type of the foreign function's return
+value.  @var{arg-types} must be a list of symbols in the
+@enum{clang-external-types} enumeration; they represent the types of the
+foreign function's arguments.
+
+The @samp{/with-errno} variant returns a callout closure which, when
+evaluated, returns two values: the return value from the foreign
+function and the value of the C standard variable @code{errno} right
+after the foreign function call.
+
+@quotation
+@strong{NOTE} Some @posix{} functions return an integer representing
+success or failure and only when the returned value represents failure
+the @samp{errno} value is meaningful.
+@end quotation
+
+The returned closure:
+
+@enumerate
+@item
+Accepts as many Scheme object arguments as there are symbols in
+@var{arg-types}; to specify an empty list of arguments, we can use
+@code{(void)}.
+
+@item
+Does marshaling from Scheme arguments to C language values as specified
+by the @var{arg-types} symbols.
+
+@item
+Applies the foreign function to the C values.
+
+@item
+Returns the return value of the foreign function, marshaled to a Scheme
+value as specified by the @var{ret-type} symbol.
+@end enumerate
+@end defun
+
+
+@defun make-c-function @var{shared-object} @var{ret-type} @var{funcname} @var{arg-types}
+@defunx make-c-function/with-errno @var{shared-object} @var{ret-type} @var{funcname} @var{arg-types}
+Wrappers for the @func{make-c-callout} functions which determine the
+address of the function by looking for the @var{funcname} symbol in the
+@var{shared-object} using @func{lookup-shared-object*}.
+
+Beware that, sometimes, the exported symbols are different from the ones
+we write in C language code to call a function.  If the foreign symbol
+is not found, a continuable exception is raised with
+@func{raise-shared-object-lookup-error}; returning to the continuation
+must return the address of the function.  @ref{ffi core conditions
+lookup, Shared objects lookup error}.
+
+@quotation
+@strong{For Unix} One way to discover the names of symbols exported by a
+shared object, is to apply the @command{strings} command to the shared
+object itself.  For example, to discover the names of deflate functions
+in Zlib:
+
+@example
+$ strings /usr/lib/libz.so | grep deflate
+deflateInit_
+deflate
+deflateEnd
+...
+@end example
+@end quotation
+@end defun
+
+@c page
+@node ffi core call back
+@subsubsection Calling Scheme functions
+
+
+The following bindings are exported by the @library{nausicaa ffi}
+library.  As example, the following form defines a callback accepting
+three @samp{int} as arguments and returning an @samp{int}:
+
+@example
+(define (fn a b c)
+  (* a b c))
+
+(define cb
+  (make-c-callback 'int fn '(int int int)))
+@end example
+
+
+@defun make-c-callback @var{ret-type} @var{scheme-proc} @var{arg-types}
+Build and return a callback object to be used as argument to a callout
+procedure.  The callback invokes the Scheme function @var{scheme-proc}.
+
+@var{ret-type} must be a symbol in the @enum{clang-external-types}
+enumeration; it represents the type of the callback return value.
+@var{arg-types} must be a list of symbols in the
+@enum{clang-external-types} enumeration; they represent the types of the
+callback arguments.
+
+When a foreign function invokes the C language callback, the callback:
+
+@enumerate
+@item
+Accepts as many C language arguments as there are symbols in
+@var{arg-types}; to specify an empty list of arguments, we can use
+@code{(void)}.
+
+@item
+Does marshaling from C language arguments to Scheme objects as specified
+by the @var{arg-type} symbols.
+
+@item
+Applies the Scheme function to the Scheme values.
+
+@item
+Returns the return value of the Scheme function, marshaled to a C
+language value as specified by the @var{ret-type} symbol.
+@end enumerate
+
+Every time a callback is built, a small amount of memory is allocated;
+such memory cannot be subject to garbage collection, so it is leaked
+unless we apply @func{free-c-callback} to the callback object.
+@end defun
+
+
+@defun free-c-callback @var{callback}
+Release the memory associated to @var{callback}.  On some Scheme
+implementations this call does nothing, because they do not allow
+releasing such a resource.
+@end defun
+
+@c page
+@node ffi core call macros
+@subsubsection Utility macros
+
+
+The following bindings are exported by the @library{nausicaa ffi}
+library.
+
+In the following macro descriptions: the type symbols in
+@ameta{ret-type} and @ameta{arg-type} are normalised by applying to each
+a function named @func{clang-maybe-foreign-type->clang-external-type},
+which must be present in the lexical context of the symbol; such
+function must exist and convert any external type to a type in the
+@enum{clang-external-types} enumeration; when @ameta{ret-type} or
+@ameta{arg-type} is already a symbol in @enum{clang-external-types}, the
+function should just return its argument.
+
+
+@deffn Syntax make-c-callout* @ameta{ret-type} @ameta{address} (@ameta{arg-type0} @ameta{arg-type} ...)
+@deffnx Syntax make-c-callout/with-errno* @ameta{ret-type} @ameta{address} (@ameta{arg-type0} @ameta{arg-type} ...)
+Wrappers for the @func{make-c-callout} functions which allow us not to
+quote the arguments and to perform types normalisation.
+@end deffn
+
+
+@deffn Syntax make-c-function* @ameta{shared-object} @ameta{ret-type} @ameta{funcname} (@ameta{arg-type0} @ameta{arg-type} ...)
+@deffnx Syntax make-c-function/with-errno* @ameta{shared-object} @ameta{ret-type} @ameta{funcname} (@ameta{arg-type0} @ameta{arg-type} ...)
+Wrappers for the @func{make-c-function} functions which determine the
+address of the function by looking for the @ameta{funcname} symbol in
+the @ameta{shared-object}.
+
+As an example, the main deflate functions from Zlib can be defined with:
+
+@example
+(define-shared-object zlib-shared-object 'libz.so)
+
+(define deflateInit
+  (make-c-function* zlib-shared-object
+                    int deflateInit_ (pointer int)))
+
+(define deflate
+  (make-c-function* zlib-shared-object
+                    int deflate (pointer int)))
+
+(define deflateEnd
+  (make-c-function* zlib-shared-object
+                    int deflateEnd (pointer)))
+@end example
+
+@noindent
+but we can also take advantage of these macro features to define them
+like this:
+
+@example
+(define-shared-object zlib-shared-object 'libz.so)
+
+(define (clang-maybe-foreign-type->clang-external-type type)
+  (case type
+    ((z_streamp) 'pointer)
+    (else type)))
+
+(define deflateInit
+  (make-c-function* zlib-shared-object
+                    int deflateInit_ (z_streamp int)))
+
+(define deflate
+  (make-c-function* zlib-shared-object
+                    int deflate (z_streamp int)))
+
+(define deflateEnd
+  (make-c-function* zlib-shared-object
+                    int deflateEnd (z_streamp)))
+@end example
+
+Variadic functions, like @cfunc{fprintf}, are @strong{not} supported,
+but we can interface with them by nailing the arguments; for example:
+
+@example
+(define-shared-object uuid-shared-object 'libuuid.so)
+
+(define uuid_make
+  (let ((arg-2  (make-c-function* uuid-shared-object
+                  int uuid_make (void* unsigned-int)))
+        (arg-4  (make-c-function* uuid-shared-object
+                  int uuid_make
+                  (void* unsigned-int void* char*))))
+    (case-lambda
+     ((*id mode)
+      (arg-2 *id mode))
+     ((*id mode uuid name)
+      (arg-4 *id mode uuid name)))))
+@end example
+@end deffn
+
+
+@deffn Syntax make-c-callback* @ameta{ret-type} @ameta{scheme-proc} (@ameta{arg-type0} @ameta{arg-type} ...)
+Wrapper for the @func{make-c-callback} function which allows us not to
+quote the arguments and to normalise the types.
+@end deffn
+
+
+@deffn Syntax define-c-functions @ameta{lib-spec} (@ameta{pub-name} (@ameta{ret-type} @ameta{funcname} (@ameta{arg-type0} @ameta{arg-type} ...))) ...
+@deffnx Syntax define-c-functions/with-errno @ameta{lib-spec} (@ameta{pub-name} (@ameta{ret-type} @ameta{funcname} (@ameta{arg-type0} @ameta{arg-type} ...))) ...
+Interfaces to the @func{make-c-function*} and
+@func{make-c-function/with-errno*} macros.  Example:
+
+@example
+(define-shared-object zlib-shared-object 'libz.so)
+
+(define (clang-maybe-foreign-type->clang-external-type type)
+  (case type
+    ((z_streamp) 'pointer)
+    (else type)))
+
+(define-c-functions zlib-shared-object
+  (deflateInit  (int deflateInit_ (z_streamp int)))
+  (deflate      (int deflate      (z_streamp int)))
+  (deflateEnd   (int deflateEnd   (z_streamp))))
+@end example
+@end deffn
+
+
+@deffn Syntax define-c-callouts (@ameta{pub-name} (@ameta{ret-type} @ameta{address} (@ameta{arg-type0} @ameta{arg-type} ...))) ...
+@deffnx Syntax define-c-callouts/with-errno (@ameta{pub-name} (@ameta{ret-type} @ameta{address} (@ameta{arg-type0} @ameta{arg-type} ...))) ...
+Interfaces to the @func{make-c-callout*} and
+@func{make-c-callout/with-errno*} macros.  Example:
+
+@example
+(define-shared-object zlib-shared-object 'libz.so)
+
+(define (clang-maybe-foreign-type->clang-external-type type)
+  (case type
+    ((z_streamp) 'pointer)
+    (else type)))
+
+(define-c-callouts
+  (deflateInit
+   (int (lookup-shared-object zlib-shared-object 'deflateInit_)
+        (z_streamp int)))
+
+  (deflate
+   (int (lookup-shared-object zlib-shared-object 'deflate)
+        (z_streamp int)))
+
+  (deflateEnd
+   (int (lookup-shared-object zlib-shared-object 'deflateEnd)
+        (z_streamp))))
+@end example
+@end deffn
+
+@c page
+@node ffi core call platform
+@subsubsection Low level interface
+
+
+@cindex @library{nausicaa ffi compat}, library
+@cindex Library @library{nausicaa ffi compat}
+
+
+The following bindings are exported by the @library{nausicaa ffi compat}
+library.  This interface adapts the Scheme implementation @ffi{} to the
+requirements of the Nausicaa distribution.
+
+
+@defun open-shared-object @var{library-name}
+Open a shared library and return its reference object.
+@var{library-name} must be a Scheme string representing the file name or
+pathname to be opened.  If the foreign symbol is not found: raise a
+continuable exception with @func{raise-shared-object-opening-error}.
+@end defun
+
+
+@defun lookup-shared-object @var{library-reference} @var{foreign-symbol}
+Search the shared object referenced by @var{library-reference} for an
+exported symbol matching @var{foreign-symbol}, which must be a Scheme
+string, and return its address as pointer object.  If the operation
+fails: raise a continuable exception with components @condition{who},
+@condition{message}, @condition{shared-object-lookup-error},
+@condition{foreign-symbol}.
+@end defun
+
+
+@defun make-c-callout @var{ret-type} @var{address} @var{arg-types}
+@defunx make-c-callout/with-errno @var{ret-type} @var{address} @var{arg-types}
+Build and return a new callout closure wrapping a foreign function
+referenced by the pointer object @var{address}.
+
+@var{ret-type} must be a Scheme symbol in the enumeration
+@code{enum-clang-types}, representing the C language data type of the
+foreign function's return value.
+
+@var{arg-types} must be a list of Scheme symbols in the enumeration
+@code{enum-clang-types}, representing the C language data types of the
+foreign function's arguments.  To specify a foreign function accepting
+no arguments, @var{arg-types} must be @code{(void)}.
+
+Variadic functions are not supported.
+@end defun
+
+
+@defun make-c-callback @var{ret-type} @var{scheme-function} @var{arg-types}
+Build and return a new pointer value referencing a callback object; the
+callback, when invoked, applies the scheme function
+
+@var{ret-type} must be a Scheme symbol in the enumeration
+@code{enum-clang-types}, representing the C language data type of the
+foreign function's return value.
+
+@var{arg-types} must be a list of Scheme symbols in the enumeration
+@code{enum-clang-types}, representing the C language data types of the
+foreign function's arguments.  To specify a foreign function accepting
+no arguments, @var{arg-types} must be @code{(void)}.
+
+Variadic functions are not supported.
+@end defun
+
+
+@defun free-c-callback @var{callback-pointer}
+Release all the resources associated to the referenced callback.  This
+operation is supported by some Sceme implementations, and unsupported by
+other ones; in the latter case, calling this function does nothing.
+@end defun
+
+@c page
+@node ffi core struct
+@subsection Accessing data structures
+
+
+We examine a couple of real--world cases of C language data structure
+access, with the strategy proposed by the Nausicaa distribution.  for
+each field we want to access in a foreign data structure, we need to
+know:
+
+@itemize
+@item
+The offset of the first byte of the field in the structure's memory
+block.
+
+@item
+The C language data type of the field.  Knowing the data type is
+equivalent to knowing the required peeker and poker.  @ref{ffi core
+access, Direct access to memory blocks}
+@end itemize
+
+Using the Nausicaa foreign library inspection infrastructure, we can put
+the following in @gnu{} Autoconf's @file{configure.ac} template of a
+Zlib binding:
+
+@example
+m4_define([NAUSICAA_CUSTOM_INCLUDES],[
+#include <zlib.h>
+])
+
+NAUSICAA_INSPECT_STRUCT_TYPE([Z_STREAM],[z_stream],[#f])
+NAUSICAA_INSPECT_FIELD_TYPE([Z_STREAM_NEXT_IN],
+  [z_stream],[next_in],[pointer])
+NAUSICAA_INSPECT_FIELD_TYPE([Z_STREAM_AVAIL_IN],
+  [z_stream],[avail_in],[unsigned-int])
+NAUSICAA_INSPECT_FIELD_TYPE([Z_STREAM_TOTAL_IN],
+  [z_stream],[total_in],[unsigned-int])
+@end example
+
+@noindent
+and the following in a library to be processed by the @file{configure} script:
+
+@example
+(define typeof-z_stream.next_in   '@@TYPEOF_Z_STREAM_NEXT_IN@@)
+(define offsetof-z_stream.next_in  @@OFFSETOF_Z_STREAM_NEXT_IN@@)
+
+(define typeof-z_stream.avail_in   '@@TYPEOF_Z_STREAM_AVAIL_IN@@)
+(define offsetof-z_stream.avail_in @@OFFSETOF_Z_STREAM_AVAIL_IN@@)
+
+(define typeof-z_stream.total_in   '@@TYPEOF_Z_STREAM_TOTAL_IN@@)
+(define offsetof-z_stream.total_in @@OFFSETOF_Z_STREAM_TOTAL_IN@@)
+@end example
+
+@noindent
+which, after processing, becomes:
+
+@example
+(define typeof-z_stream.next_in    'pointer)
+(define offsetof-z_stream.next_in  0)
+
+(define typeof-z_stream.avail_in   'unsigned-int)
+(define offsetof-z_stream.avail_in 4)
+
+(define typeof-z_stream.total_in   'unsigned-int)
+(define offsetof-z_stream.total_in 8)
+@end example
+
+@noindent
+now it is easy to define field accessors and mutators as functions:
+
+@example
+(define (struct-z_stream.next_in-set! pointer value)
+  (pointer-c-set! typeof-z_stream.next_in pointer
+                  offsetof-z_stream.next_in value))
+
+(define (struct-z_stream.next_in-ref pointer)
+  (pointer-c-ref  typeof-z_stream.next_in pointer
+                  offsetof-z_stream.next_in))
+
+...
+@end example
+
+@noindent
+or as macros:
+
+@example
+(define-syntax struct-z_stream.next_in-set!
+  (syntax-rules ()
+    ((_ ?pointer ?value)
+     (pointer-c-set! typeof-z_stream.next_in ?pointer
+                     offsetof-z_stream.next_in ?value))))
+
+(define-syntax struct-z_stream.next_in-ref
+  (syntax-rules ()
+    ((_ ?pointer)
+     (pointer-c-ref  typeof-z_stream.next_in ?pointer
+                     offsetof-z_stream.next_in))))
+
+...
+@end example
+
+@noindent
+a user--friendly way to use these accessors and mutators is to define a
+label with the features of the @library{nausicaa language classes}
+library:
+
+@example
+(define-label <struct-z_stream>
+  (virtual-fields
+    (mutable next_in
+             struct-z_stream.next_in-set!
+             struct-z_stream.next_in-ref)
+    (mutable avail_in
+             struct-z_stream.avail_in-set!
+             struct-z_stream.avail_in-ref)
+    (mutable total_in
+             struct-z_stream.total_in-set!
+             struct-z_stream.total_in-ref)))
+@end example
+
+@noindent
+now we can do:
+
+@example
+(let/with-class
+    (((zstream <struct-z_stream>) (malloc (c-sizeof z_stream))))
+
+  (set! zstream.next_in  ---)
+  (set! zstream.avail_in ---)
+
+  ---)
+@end example
+
+@noindent
+if we use the macro versions of the structure accessors and mutators:
+the @func{set!} forms will be expanded to the direct use of the low
+level accessor and mutator peeker and poker functions.
+
+Occasionally, a C language data structure embeds an array of values;
+this is the case of @samp{struct dirent} defined by @posix{}, which may
+be declared like this (from the @gnu{} C library):
+
+@example
+struct dirent
+@{
+  __ino_t               d_ino;
+  __off_t               d_off;
+  unsigned short int    d_reclen;
+  unsigned char         d_type;
+  char                  d_name[256];
+@};
+@end example
+
+@noindent
+the field @samp{d_name} cannot be accessed like the other fields; what
+we need to do is to take the offset of the first byte of @samp{d_name}
+and add it to the structure's pointer: the result is a pointer to the
+first byte in the embedded array.
+
+Using the Nausicaa foreign library inspection infrastructure, we can put
+the following in @gnu{} Autoconf's @file{configure.ac} template of a
+@posix{} binding:
+
+@example
+m4_define([NAUSICAA_CUSTOM_INCLUDES],[
+#include <dirent.h>
+])
+
+NAUSICAA_INSPECT_STRUCT_TYPE([DIRENT],[struct dirent],[#f])
+NAUSICAA_INSPECT_FIELD_TYPE_POINTER([DIRENT_D_NAME],
+  [struct dirent],[d_name])
+@end example
+
+@noindent
+and the following in a library to be processed by the @file{configure}
+script:
+
+@example
+(define typeof-dirent.d_name   '@@TYPEOF_DIRENT_D_NAME@@)
+(define offsetof-dirent.d_name  @@OFFSETOF_DIRENT_D_NAME@@)
+@end example
+
+@noindent
+which, after processing, becomes:
+
+@example
+(define typeof-dirent.d_name   'pointer)
+(define offsetof-dirent.d_name 11)
+@end example
+
+@noindent
+now it is easy to define the field accessor returning a pointer to the
+first byte of the field, as function:
+
+@example
+(define (struct-dirent.d_name-ref pointer)
+  (pointer-add pointer offsetof-dirent.d_name))
+@end example
+
+@noindent
+or as macro:
+
+@example
+(define-syntax struct-dirent.d_name-ref
+  (syntax-rules ()
+    ((_ ?pointer)
+     (pointer-add ?pointer offsetof-dirent.d_name))))
+@end example
+
+@noindent
+a user--friendly way to use this accessor is to define a label with the
+features of the @library{nausicaa language classes} library:
+
+@example
+(define-label <struct-dirent>
+  (virtual-fields
+    (immutable d_name struct-dirent.d_name-ref)))
+@end example
+
+@noindent
+to be used with a @posix{} binding library as:
+
+@example
+(let*/with-class
+    ((dir (opendir "/home/marco"))
+     ((entry <struct-dirent>) (readdir dir)))
+
+  entry.d_name  ;pointer to a C string
+
+  ---)
+@end example
+
+@c page
+@node ffi core headers
+@subsection Inspecting foreign header files
+
+
+C language header files inspection is performed with @gnu{} Autoconf.
+@value{PACKAGE} is distributed with a library of Autoconf macros in the
+file @file{nausicaa.autoconf}; to use it we must use @gnu{} Autoconf to
+configure a project and include @file{nausicaa.autoconf} in the
+@file{aclocal.m4} file.
+
+The Autoconf macros described here are meant to be used in the
+@file{configure.ac} file; they define Autoconf @dfn{output variables}
+which should be used to process a Scheme library for substitution of
+@samp{@@...@@} symbols.
+
+@menu
+* ffi core headers setup::      Setting up the C language environment.
+* ffi core headers includes::   Including header files.
+* ffi core headers valueof::    Determining the value of expressions.
+* ffi core headers sizeof::     Determining the size of data types.
+* ffi core headers typeof::     Determining the basic type of data
+                                types.
+* ffi core headers alignof::    Determining the alignment of data
+                                types.
+* ffi core headers strideof::   Determining the array stride of data
+                                types.
+* ffi core headers offsetof::   Determining the offset of fields in
+                                data structures.
+* ffi core headers inspect::    Full inspection of data types.
+* ffi core headers string::     Determining string values.
+* ffi core headers common::     Common groups of tests.
+@end menu
+
+@c page
+@node ffi core headers setup
+@subsubsection Setting up the C language environment
+
+
+@deffn {Autoconf Macro} NAUSICAA_SYSTEM_SETUP
+Setup what is needed to inspect the system.  Useful (but probably not
+mandatory) when we need to use the C compiler to inspect system
+facilities; not needed in the other cases.
+@end deffn
+
+
+@deffn {Autoconf Macro} NAUSICAA_C_LANGUAGE
+Setup the C language environment.  Mandatory when we need to use the C
+compiler to inspect system and libraries facilities.
+@end deffn
+
+@c page
+@node ffi core headers includes
+@subsubsection Including header files
+
+
+@deffn {Autoconf Macro} NAUSICAA_INCLUDES_DEFAULT (@var{headers})
+Expand to the specification of C language headers inclusion.  Its value
+is:
+
+@example
+AC_INCLUDES_DEFAULT
+#ifdef HAVE_ERRNO_H
+#  include <errno.h>
+#endif
+#ifdef HAVE_FCNTL_H
+#  include <fcntl.h>
+#endif
+#ifdef HAVE_INTTYPES_H
+#  include <inttypes.h>
+#endif
+#ifdef HAVE_LIMITS_H
+#  include <limits.h>
+#endif
+#ifdef HAVE_STDINT_H
+#  include <stdint.h>
+#endif
+#ifdef HAVE_UNISTD_H
+#  include <unistd.h>
+#endif
+@end example
+
+@noindent
+and additionally: the current value of the
+@samp{NAUSICAA_CUSTOM_INCLUDES} macro is appended along with the
+optional @var{headers}.  @samp{AC_INCLUDES_DEFAULT} is defined by
+Autoconf.  @autoconfref{Default Includes,Default Includes}
+
+For example, it can be used as third argument for @samp{AC_COMPUTE_INT},
+without arguments:
+
+@example
+AC_COMPUTE_INT([THE_IMAX],[INT_MAX],
+  [NAUSICAA_INCLUDES_DEFAULT])
+@end example
+
+@noindent
+or with arguments:
+
+@example
+AC_COMPUTE_INT([SIZEOF_MPFR],[sizeof(mpfr_t)],
+  NAUSICAA_INCLUDES_DEFAULT([#include <gmp.h>
+#include <mpfr.h>])
+@end example
+@end deffn
+
+
+@deffn {Autoconf Macro} NAUSICAA_CUSTOM_INCLUDES
+Appended to the expansion of @code{NAUSICAA_INCLUDES_DEFAULT}; by
+default defined to the empty string, it is meant to be redefined in the
+@file{configure.ac} template file.
+
+For example an extension for the cURL library can do:
+
+@example
+m4_define([NAUSICAA_CUSTOM_INCLUDES],[
+#include <curl/curl.h>
+])
+@end example
+
+@noindent
+while an extension for the Zlib library can do:
+
+@example
+m4_define([NAUSICAA_CUSTOM_INCLUDES],[
+#include <zlib.h>
+])
+@end example
+@end deffn
+
+@c page
+@node ffi core headers valueof
+@subsubsection Determining the value of expressions
+
+
+It is often needed to know the value of a C language expression.  The
+following acquires the value of @samp{INT_MAX} (defined in
+@file{limits.h}) and assigns it to the output variable
+@samp{VALUEOF_INT_MAX}:
+
+@example
+NAUSICAA_VALUEOF_TEST([INT_MAX],[INT_MAX])
+@end example
+
+@noindent
+while the following acquires the offset of the field @samp{l_start} in
+the structure @samp{struct flock} (defined in @file{fcntl.h}):
+
+@example
+NAUSICAA_VALUEOF_TEST([OFFSETOF_STRUCT_FLOCK_L_START],
+   [offsetof(struct flock,l_start)])
+@end example
+
+@noindent
+the @samp{offsetof} operator is a C preprocessor macro, which can be
+defined as:
+
+@example
+#define offsetof(TYPE,FIELD)            \
+                                        \
+  ((void *) &(((TYPE) *) 0)->(FIELD))
+@end example
+
+@noindent
+when missing in the C library's headers.
+
+
+@deffn {Autoconf Macro} NAUSICAA_VALUEOF_TEST (@var{suffix}, @var{expr}, @var{default}, @var{headers})
+A wrapper for the Autoconf macro @samp{AC_COMPUTE_INT} that acquires the
+value of a C language expression, which must be an integer.
+
+The output variable @samp{VALUEOF_<@var{suffix}>} is set to the result.
+If the test fails: The value of the output variable will be
+@var{default}, or @false{} if @var{default} is not given.
+
+The optional @var{headers} must be a chunk of code including header
+files.  By default the expansion of @samp{NAUSICAA_INCLUDES_DEFAULT} is
+included in the test program.
+@end deffn
+
+
+@deffn {Autoconf Macro} NAUSICAA_ENUM_VALUE (@var{symbol}, @var{headers})
+Wrapper for @code{NAUSICAA_VALUEOF_TEST} which expands to:
+
+@example
+NAUSICAA_VALUEOF_TEST([@var{symbol}],[@var{symbol}],,[@var{headers}])
+@end example
+@end deffn
+
+
+@deffn {Autoconf Macro} NAUSICAA_DEFINE_VALUE (@var{symbol}, @var{headers})
+Wrapper for @code{NAUSICAA_VALUEOF_TEST} which expands to:
+
+@example
+NAUSICAA_VALUEOF_TEST([@var{symbol}],[@var{symbol}],,[@var{headers}])
+@end example
+@end deffn
+
+@c page
+@node ffi core headers sizeof
+@subsubsection Determining the size of data types
+
+
+It is often needed to know the size of a C language data type.  The
+following determines the size in bytes of @samp{unsigned int} and
+assigns it to the output variable @samp{SIZEOF_UINT}:
+
+@example
+NAUSICAA_SIZEOF_TEST([UINT],[unsigned int])
+@end example
+
+@noindent
+the following determines the size of the field @samp{l_start} in the
+structure @samp{struct flock} (defined in @file{fcntl.h}) and stores it
+in the output variable @samp{SIZEOF_STRUCT_FLOCK_L_START}:
+
+@example
+NAUSICAA_SIZEOF_FIELD_TEST([OFFSETOF_STRUCT_FLOCK_L_START],
+   [struct flock],
+   [l_start])
+@end example
+
+
+@deffn {Autoconf Macro} NAUSICAA_SIZEOF_TEST (@var{suffix}, @var{typedef}, @var{default}, @var{headers})
+A wrapper for the Autoconf macro @samp{AC_COMPUTE_INT} that acquires the
+size of a C language type.
+
+The output variable @samp{SIZEOF_<@var{suffix}>} will be set to the
+result.  If the test fails the value of the output variable will be
+@var{default}, or @false{} if @var{default} is not given.
+
+The optional @var{headers} must be a chunk of code including header
+files.  By default the expansion of @samp{NAUSICAA_INCLUDES_DEFAULT} is
+included in the test program.
+@end deffn
+
+
+@deffn {Autoconf Macro} NAUSICAA_SIZEOF_FIELD_TEST (@var{suffix}, @var{struct}, @var{field}, @var{default}, @var{headers})
+A wrapper for the Autoconf macro @samp{AC_COMPUTE_INT} that acquires the
+size of the field of a C language structure type.
+
+The output variable @samp{SIZEOF_<@var{suffix}>} will be set to the
+result.  If the test fails the value of the output variable will be
+@var{default}, or @false{} if @var{default} is not given.
+
+@var{struct} must be the type of the structure, usable in a variable
+declaration.  @var{field} must be the name of the field.
+
+The optional @var{headers} must be a chunk of code including header
+files.  By default the expansion of @samp{NAUSICAA_INCLUDES_DEFAULT} is
+included in the test program.
+@end deffn
+
+@c page
+@node ffi core headers typeof
+@subsubsection Determining the basic type of data types
+
+
+It is often needed to know the basic type of a derived or custom C
+language data type.  The following determines the type of @samp{ssize_t}
+(knowing that it is a signed integer) and assigns it to the output
+variable @samp{TYPEOF_SSIZE_T}:
+
+@example
+NAUSICAA_SIZEOF_TEST([SIZE_T],[ssize_t])
+NAUSICAA_INTTYPE_TEST([SIZE_T],[ssize_t])
+@end example
+
+@noindent
+the following determines the type of @samp{size_t} (knowing that it is
+an unsigned integer) and assigns it to the output variable
+@samp{TYPEOF_SIZE_T}:
+
+@example
+NAUSICAA_SIZEOF_TEST([SIZE_T],[size_t])
+NAUSICAA_UINTTYPE_TEST([SIZE_T],[size_t])
+@end example
+
+@noindent
+and the following does the same as the above:
+
+@example
+NAUSICAA_SIZEOF_TEST([SIZE_T],[size_t])
+NAUSICAA_BASE_TYPE_TEST([SIZE_T],[size_t],[unsigned-int])
+@end example
+
+
+@deffn {Autoconf Macro} NAUSICAA_BASE_TYPE_TEST (@var{suffix}, @var{typedef}, @var{type-guess})
+Determine the equivalent basic type of the C language type
+@var{typedef}.  This is a wrapper for the macros described below, to
+which the @var{suffix} and @var{typedef} arguments are handed unchanged.
+
+@var{type-guess} selects which macro to use:
+
+@table @samp
+@item signed-int
+Selects @samp{NAUSICAA_INTTYPE_TEST}.
+
+@item unsigned-int
+Selects @samp{NAUSICAA_UINTTYPE_TEST}.
+
+@item float
+Selects @samp{NAUSICAA_FLOATTYPE_TEST}.
+@end table
+
+@samp{pointer} is a special value of @var{type-guess} that selects no
+macro but sets the output variable @samp{TYPEOF_<@var{suffix}>} to
+@samp{pointer}.
+@end deffn
+
+
+@deffn {Autoconf Macro} NAUSICAA_INTTYPE_TEST (@var{suffix}, @var{typedef})
+Determine the equivalent basic integer type of the C language type
+@var{typedef} among the set:
+
+@example
+char
+short int
+int
+long
+long long
+@end example
+
+The output variable @samp{TYPEOF_<@var{suffix}>} is set to a result
+among:
+
+@example
+signed-char
+signed-int
+signed-short
+signed-long
+signed-long-long
+@end example
+
+If the test fails: the output variable is set to @false{}.
+
+The search is performed by comparing the value of the variable
+@samp{SIZEOF_<@var{suffix}>} with the values of the variables:
+
+@example
+SIZEOF_CHAR
+SIZEOF_INT
+SIZEOF_SHORT_INT
+SIZEOF_LONG
+SIZEOF_LLONG
+@end example
+
+@noindent
+defined by the macro @samp{NAUSICAA_SIZEOF}.
+@samp{SIZEOF_<@var{suffix}>} must have been set in precedence using the
+macro @samp{NAUSICAA_SIZEOF_TEST} or an equivalent macro.
+@end deffn
+
+
+@deffn {Autoconf Macro} NAUSICAA_UINTTYPE_TEST (@var{suffix}, @var{typedef})
+Determine the equivalent basic unsigned integer type of the C language
+type @var{typedef} among the set:
+
+@example
+unsigned char
+unsigned short int
+unsigned int
+unsigned long
+unsigned long long
+@end example
+
+The output variable @samp{TYPEOF_<@var{suffix}>} is set to a result
+among:
+
+@example
+unsigned-char
+unsigned-int
+unsigned-short
+unsigned-long
+unsigned-long-long
+@end example
+
+If the test fails: the output variable is set to @false{}.
+
+The search is performed by comparing the value of the variable
+@samp{SIZEOF_<@var{suffix}>} with the values of the variables:
+
+@example
+SIZEOF_CHAR
+SIZEOF_UINT
+SIZEOF_SHORT_UINT
+SIZEOF_ULONG
+SIZEOF_ULLONG
+@end example
+
+@noindent
+defined by the macro @samp{NAUSICAA_SIZEOF}.
+@samp{SIZEOF_<@var{suffix}>} must have been set in precedence using the
+macro @samp{NAUSICAA_SIZEOF_TEST} or an equivalent macro.
+@end deffn
+
+
+@deffn {Autoconf Macro} NAUSICAA_FLOATTYPE_TEST (@var{suffix}, @var{typedef})
+Determine the equivalent basic floating point type of the C language
+type @var{typedef} among the set:
+
+@example
+float
+double
+long double
+@end example
+
+The output variable @samp{TYPEOF_<@var{suffix}>} is set to a result
+among:
+
+@example
+float
+double
+long-double
+@end example
+
+If the test fails: the output variable is set to @false{}.
+
+The search is performed by comparing the value of the variable
+@samp{SIZEOF_<@var{suffix}>} with the values of the variables:
+
+@example
+SIZEOF_FLOAT
+SIZEOF_DOUBLE
+SIZEOF_LONG_DOUBLE
+@end example
+
+@noindent
+defined by the macro @samp{NAUSICAA_SIZEOF}.
+@samp{SIZEOF_<@var{suffix}>} must have been set in precedence using the
+macro @samp{NAUSICAA_SIZEOF_TEST} or an equivalent macro.
+@end deffn
+
+@c page
+@node ffi core headers alignof
+@subsubsection Determining the alignment of data types
+
+
+It is sometimes needed to know the alignment of a C language data type
+in data structures.  The following determines the alignment in bytes of
+@samp{unsigned int} and assigns it to the output variable
+@samp{ALIGNOF_UINT}:
+
+@example
+NAUSICAA_ALIGNOF_TEST([UINT],[unsigned int])
+@end example
+
+
+@deffn {Autoconf Macro} NAUSICAA_ALIGNOF_TEST (@var{suffix}, @var{typedef}, @var{default}, @var{headers})
+Acquire the alignment of a C language type.
+
+The output variable @samp{ALIGNOF_<@var{suffix}>} will be set to the
+result.  If the test fails the value of the output variable will be
+@var{default}, or @false{} if @var{default} is not given.
+
+The optional @var{headers} must be a chunk of code including header
+files.  By default the expansion of @samp{NAUSICAA_INCLUDES_DEFAULT} is
+included in the test program.
+@end deffn
+
+@c page
+@node ffi core headers strideof
+@subsubsection Determining the array stride of data types
+
+
+When accessing a block of memory as an array of values of a given data
+type, we must know the stride of the elements: the number of bytes
+between the first byte of an element and the first byte of its forward
+adjacent.  The following determines the stride in bytes of
+@samp{unsigned int} and assigns it to the output variable
+@samp{STRIDEOF_UINT}:
+
+@example
+NAUSICAA_STRIDEOF_TEST([UINT],[unsigned int])
+@end example
+
+
+@deffn {Autoconf Macro} NAUSICAA_STRIDEOF_TEST (@var{suffix}, @var{typedef}, @var{default}, @var{headers})
+Acquire the stride of a C language type.
+
+The output variable @samp{STRIDEOF_<@var{suffix}>} will be set to the
+result.  If the test fails the value of the output variable will be
+@var{default}, or @false{} if @var{default} is not given.
+
+The optional @var{headers} must be a chunk of code including header
+files.  By default the expansion of @samp{NAUSICAA_INCLUDES_DEFAULT} is
+included in the test program.
+@end deffn
+
+@c page
+@node ffi core headers offsetof
+@subsubsection Determining the offset of fields in data structures
+
+
+It is often needed to know the offset of a field in a C language data
+structure.  From a pointer to the first byte of a data structure and the
+offset of one of its fields, we can compute the pointer to the first
+byte of the fields by adding the two.
+
+The following determines the offset of the field @samp{l_start} in the
+structure @samp{struct flock} (defined in @file{fcntl.h}) and stores it
+in the output variable @samp{OFFSETOF_STRUCT_FLOCK_L_START}:
+
+@example
+NAUSICAA_OFFSETOF_FIELD_TEST([OFFSETOF_STRUCT_FLOCK_L_START],
+   [struct flock],
+   [l_start])
+@end example
+
+@noindent
+the following does the same for the @samp{l_whence} field and stores it
+in the output variable @samp{OFFSETOF_STRUCT_FLOCK_L_WHENCE}:
+
+@example
+NAUSICAA_OFFSETOF_FIELD_TEST([OFFSETOF_STRUCT_FLOCK_L_WHENCE],
+   [struct flock],
+   [l_whence])
+@end example
+
+
+@deffn {Autoconf Macro} NAUSICAA_OFFSETOF_FIELD_TEST (@var{suffix}, @var{struct}, @var{field}, @var{headers})
+A wrapper for the Autoconf macro @samp{AC_COMPUTE_INT} that acquires the
+offset of a field in a C data structure.
+
+@var{struct} is the type of the structure, @var{field} is the name of
+the field.
+
+The output variable @samp{OFFSETOF_<@var{SUFFIX}>} is set to the result.
+If the test fails the value of the output variable will be @false{}.
+
+The optional @var{headers} must be a chunk of code including header
+files.  By default the expansion of @samp{NAUSICAA_INCLUDES_DEFAULT} is
+included in the test program.
+@end deffn
+
+@c page
+@node ffi core headers inspect
+@subsubsection Full inspection of data types
+
+
+@deffn {Autoconf Macro} NAUSICAA_INSPECT_TYPE (@var{suffix}, @var{typedef}, @var{type-guess}, @var{default}, @var{headers})
+Perform a full inspection for a C language type definition.  This macro
+is a wrapper for other more basic macros, and it expands to:
+
+@example
+NAUSICAA_SIZEOF_TEST(@var{suffix},@var{typedef},@var{default},@var{headers})
+NAUSICAA_ALIGNOF_TEST(@var{suffix},@var{typedef},@var{default},@var{headers})
+NAUSICAA_STRIDEOF_TEST(@var{suffix},@var{typedef},@var{default},@var{headers})
+NAUSICAA_BASE_TYPE_TEST(@var{suffix},@var{typedef},@var{type-guess})
+@end example
+@end deffn
+
+
+@deffn {Autoconf Macro} NAUSICAA_INSPECT_STRUCT_TYPE (@var{suffix}, @var{typedef}, @var{default}, @var{headers})
+Perform a full inspection for a C language structure type definition.
+This macro is a wrapper for other more basic macros, and it expands to:
+
+@example
+NAUSICAA_SIZEOF_TEST(@var{suffix},@var{typedef},@var{default},@var{headers})
+NAUSICAA_ALIGNOF_TEST(@var{suffix},@var{typedef},@var{default},@var{headers})
+NAUSICAA_STRIDEOF_TEST(@var{suffix},@var{typedef},@var{default},@var{headers})
+@end example
+@end deffn
+
+
+@deffn {Autoconf Macro} NAUSICAA_INSPECT_FIELD_TYPE (@var{suffix}, @var{struct-typedef}, @var{field-name}, @var{type-guess}, @var{default}, @var{headers})
+Perform a full inspection for a C language field structure type
+definition.  This macro is a wrapper for other more basic macros, and it
+expands to:
+
+@example
+NAUSICAA_OFFSETOF_FIELD_TEST(@var{suffix},@var{struct-typedef},
+                             @var{field-name},@var{headers})
+NAUSICAA_SIZEOF_FIELD_TEST(@var{suffix},@var{struct-typedef},
+                           @var{field-name},@var{default},@var{headers})
+NAUSICAA_BASE_TYPE_TEST(@var{suffix},
+                        @var{struct-typedef}.@var{field-name},
+                        @var{type-guess})
+@end example
+@end deffn
+
+
+@deffn {Autoconf Macro} NAUSICAA_INSPECT_FIELD_TYPE_POINTER (@var{suffix}, @var{struct-typedef}, @var{field-name}, @var{headers})
+Perform an inspection for a C language field structure type definition,
+but only to acquire the offset.  This macro is required when we need to
+access a structure field through a pointer to it; an example is the
+@samp{d_name} field of @samp{struct dirent} from @file{dirent.h}.
+@ref{ffi core struct, Accessing data structures} for a discussion of
+this case.
+
+Only the offset of the field (output variable
+@samp{OFFSETOF_<@var{SUFFIX}>}) is defined.
+@end deffn
+
+@c page
+@node ffi core headers string
+@subsubsection Determining string values
+
+
+It is often needed to know the string value of a language expression.
+The following determines the string value of the @code{SQLITE_VERSION}
+preprocessor symbol (defined in @file{sqlite3.h}) and stores it in the
+output variable @samp{STRINGOF_SQLITE_version}:
+
+@example
+NAUSICAA_STRING_TEST([SQLITE_VERSION],[SQLITE_VERSION],
+  [#f],[#include <sqlite3.h>])
+@end example
+
+
+@deffn {Autoconf Macro} NAUSICAA_STRING_TEST (@var{suffix}, @var{expression}, @var{default}, @var{headers})
+A wrapper for the Autoconf macro @samp{AC_LANG_PROGRAM} that acquires
+the string value of a C language expression.
+
+The output variable @samp{OFFSETOF_<@var{SUFFIX}>} is set to the result.
+If the test fails the value of the output variable will be
+@var{default}, or @false{} if @var{default} is not given.
+
+The optional @var{headers} must be a chunk of code including header
+files.  By default the expansion of @samp{NAUSICAA_INCLUDES_DEFAULT} is
+included in the test program.
+@end deffn
+
+@c page
+@node ffi core headers common
+@subsubsection Common groups of tests
+
+
+@deffn {Autoconf Macro} NAUSICAA_SIZEOF
+Perform tests to determine the size (the number of bytes) of the common
+C language types.  The following output variables are defined:
+
+@multitable {SIZEOF_SHORT_UINT} {unsigned long long}
+@headitem Variable @tab Size of C type
+@item SIZEOF_INT8
+@tab int8_t
+@item SIZEOF_INT16
+@tab int16_t
+@item SIZEOF_INT32
+@tab int32_t
+@item SIZEOF_INT64
+@tab int64_t
+@item SIZEOF_CHAR
+@tab char
+@item SIZEOF_SHORT_INT
+@tab short int
+@item SIZEOF_SHORT_UINT
+@tab unsigned short int
+@item SIZEOF_INT
+@tab int
+@item SIZEOF_UINT
+@tab unsigned int
+@item SIZEOF_LONG
+@tab long
+@item SIZEOF_ULONG
+@tab unsigned long
+@item SIZEOF_LLONG
+@tab long long
+@item SIZEOF_ULLONG
+@tab unsigned long long
+@item SIZEOF_FLOAT
+@tab float
+@item SIZEOF_DOUBLE
+@tab double
+@item SIZEOF_POINTER
+@tab void *
+@end multitable
+
+@multitable {ALIGNOF_SHORT_UINT} {unsigned long long}
+@headitem Variable @tab Alignment of C type
+@item ALIGNOF_INT8
+@tab int8_t
+@item ALIGNOF_INT16
+@tab int16_t
+@item ALIGNOF_INT32
+@tab int32_t
+@item ALIGNOF_INT64
+@tab int64_t
+@item ALIGNOF_CHAR
+@tab char
+@item ALIGNOF_SHORT_INT
+@tab short int
+@item ALIGNOF_SHORT_UINT
+@tab unsigned short int
+@item ALIGNOF_INT
+@tab int
+@item ALIGNOF_UINT
+@tab unsigned int
+@item ALIGNOF_LONG
+@tab long
+@item ALIGNOF_ULONG
+@tab unsigned long
+@item ALIGNOF_LLONG
+@tab long long
+@item ALIGNOF_ULLONG
+@tab unsigned long long
+@item ALIGNOF_FLOAT
+@tab float
+@item ALIGNOF_DOUBLE
+@tab double
+@item ALIGNOF_POINTER
+@tab void *
+@end multitable
+
+@multitable {STRIDEOF_SHORT_UINT} {unsigned long long 12}
+@headitem Variable @tab Array stride of C type
+@item STRIDEOF_INT8
+@tab int8_t
+@item STRIDEOF_INT16
+@tab int16_t
+@item STRIDEOF_INT32
+@tab int32_t
+@item STRIDEOF_INT64
+@tab int64_t
+@item STRIDEOF_CHAR
+@tab char
+@item STRIDEOF_SHORT_INT
+@tab short int
+@item STRIDEOF_SHORT_UINT
+@tab unsigned short int
+@item STRIDEOF_INT
+@tab int
+@item STRIDEOF_UINT
+@tab unsigned int
+@item STRIDEOF_LONG
+@tab long
+@item STRIDEOF_ULONG
+@tab unsigned long
+@item STRIDEOF_LLONG
+@tab long long
+@item STRIDEOF_ULLONG
+@tab unsigned long long
+@item STRIDEOF_FLOAT
+@tab float
+@item STRIDEOF_DOUBLE
+@tab double
+@item STRIDEOF_POINTER
+@tab void *
+@end multitable
+
+Additionally @samp{TYPEOF_POINTER_INTEGER} is set to the type
+specification of the integer whose size equals the size of a pointer.
+It is one among @samp{unsigned-int} and @samp{unsigned-long}
+@end deffn
+
+
+@deffn {Autoconf Macro} NAUSICAA_C_TYPES_LIMITS
+Perform tests to determine the value of limits for the common C language
+types.  The following output variables are defined:
+
+@multitable {VALUEOF_ULLONG_MAX} {Original C expression}
+@headitem Variable @tab Original C expression
+@item VALUEOF_CHAR_MAX
+@tab CHAR_MAX
+@item VALUEOF_CHAR_MIN
+@tab CHAR_MIN
+@item VALUEOF_SCHAR_MAX
+@tab SCHAR_MAX
+@item VALUEOF_SCHAR_MIN
+@tab SCHAR_MIN
+@item VALUEOF_UCHAR_MAX
+@tab UCHAR_MAX
+@item VALUEOF_SHRT_MAX
+@tab SHRT_MAX
+@item VALUEOF_SHRT_MIN
+@tab SHRT_MIN
+@item VALUEOF_USHRT_MAX
+@tab USHRT_MAX
+@item VALUEOF_INT_MAX
+@tab INT_MAX
+@item VALUEOF_INT_MIN
+@tab INT_MIN
+@item VALUEOF_UINT_MAX
+@tab UINT_MAX
+@item VALUEOF_LONG_MAX
+@tab LONG_MAX
+@item VALUEOF_LONG_MIN
+@tab LONG_MIN
+@item VALUEOF_ULONG_MAX
+@tab ULONG_MAX
+@item VALUEOF_LLONG_MAX
+@tab LLONG_MAX
+@item VALUEOF_LLONG_MIN
+@tab LLONG_MIN
+@item VALUEOF_ULLONG_MAX
+@tab ULLONG_MAX
+@item VALUEOF_WCHAR_MAX
+@tab WCHAR_MAX
+@item VALUEOF_SSIZE_MAX
+@tab SSIZE_MAX
+@end multitable
+
+Additionally the output variable @samp{WORDS_BIGENDIAN} is set to
+@true{} if the underlying platform is big endian, to @false{} otherwise.
+@end deffn
+
+
+@deffn {Autoconf Macro} NAUSICAA_C_ERRNO
+Perform tests to determine the value of all the known @samp{errno}
+predefined values.  The following list of @samp{errno} symbols is used
+to define output variables with prefix @samp{VALUEOF_}.
+
+@example
+EPERM           ENOENT          ESRCH           EINTR
+EIO             ENXIO           E2BIG           ENOEXEC
+EBADF           ECHILD          EAGAIN          ENOMEM
+EACCES          EFAULT          ENOTBLK         EBUSY
+EEXIST          EXDEV           ENODEV          ENOTDIR
+EISDIR          EINVAL          ENFILE          EMFILE
+ENOTTY          ETXTBSY         EFBIG           ENOSPC
+ESPIPE          EROFS           EMLINK          EPIPE
+EDOM            ERANGE          EDEADLK         ENAMETOOLONG
+ENOLCK          ENOSYS          ENOTEMPTY       ELOOP
+EWOULDBLOCK     ENOMSG          EIDRM           ECHRNG
+EL2NSYNC        EL3HLT          EL3RST          ELNRNG
+EUNATCH         ENOCSI          EL2HLT          EBADE
+EBADR           EXFULL          ENOANO          EBADRQC
+EBADSLT         EDEADLOCK       EBFONT          ENOSTR
+ENODATA         ETIME           ENOSR           ENONET
+ENOPKG          EREMOTE         ENOLINK         EADV
+ESRMNT          ECOMM           EPROTO          EMULTIHOP
+EDOTDOT         EBADMSG         EOVERFLOW       ENOTUNIQ
+EBADFD          EREMCHG         ELIBACC         ELIBBAD
+ELIBSCN         ELIBMAX         ELIBEXEC        EILSEQ
+ERESTART        ESTRPIPE        EUSERS          ENOTSOCK
+EDESTADDRREQ    EMSGSIZE        EPROTOTYPE      ENOPROTOOPT
+EPROTONOSUPPORT ESOCKTNOSUPPORT EOPNOTSUPP      EPFNOSUPPORT
+EAFNOSUPPORT    EADDRINUSE      EADDRNOTAVAIL   ENETDOWN
+ENETUNREACH     ENETRESET       ECONNABORTED    ECONNRESET
+ENOBUFS         EISCONN         ENOTCONN        ESHUTDOWN
+ETOOMANYREFS    ETIMEDOUT       ECONNREFUSED    EHOSTDOWN
+EHOSTUNREACH    EALREADY        EINPROGRESS     ESTALE
+EUCLEAN         ENOTNAM         ENAVAIL         EISNAM
+EREMOTEIO       EDQUOT          ENOMEDIUM       EMEDIUMTYPE
+ECANCELED       ENOKEY          EKEYEXPIRED     EKEYREVOKED
+EKEYREJECTED    EOWNERDEAD      ENOTRECOVERABLE
+@end example
+@end deffn
+
+@c page
+@node ffi core generator
+@subsection Generating an interface
+
+
+@cindex @library{nausicaa ffi inspector-maker}, library
+@cindex Library @library{nausicaa ffi inspector-maker}
+
+
+This section documents the @library{nausicaa ffi inspector-maker}
+library, which provides some automation in the generation of the
+infrastructure required by interfaces to foreign, C language, libraries.
+At present this library is for internal use, so Nausicaa's end users can
+just ignore it.
+
+The library is meant to be loaded by a Scheme program, which generates a
+set of files required by the interface; the program's file should be in
+the top directory of the Nausicaa project.  For an interface to Libxml2
+using the @code{xml libxml2} prefix for libraries, in a typical Nausicaa
+project source tree, the files are:
+
+@table @file
+@item configuration/libxml2-inspector.m4
+A @gnu{} Autoconf script defining a single @command{m4} macro to be used
+by the @file{configure.ac} template to inspect the foreign library.  The
+@file{aclocal.m4} file must include the line:
+
+@example
+m4_include(configuration/libxml2-inspector.m4)
+@end example
+
+@noindent
+and the @file{configure.ac} template must include the macro call:
+
+@example
+NAUSICAA_LIBXML
+@end example
+
+@noindent
+where @code{NAUSICAA_LIBXML} is the name of the macro.
+
+@item src/libraries/xml/libxml2/sizeof.sls.in
+A template for the @library{nausicaa xml libxml2 sizeof} library holding
+foreign data types inspection definitions and constants definitions.  It
+is meant to be processed by the @command{configure} script to insert
+values for the @code{@@...@@} symbols.
+
+@item src/libraries/xml/libxml2/clang/type-translation.sls.in
+A template for the @library{nausicaa xml libxml2 clang type-translation}
+library holding functions to convert between Scheme symbols representing
+Libxml2 data types and Scheme symbols in the @enum{clang-external-types}
+enumeration from @library{nausicaa ffi clang type-translation}.  It is
+meant to be processed by the @command{configure} script to insert values
+for the @code{@@...@@} symbols.
+@end table
+
+@c ------------------------------------------------------------
+
+@subsubheading Global definitions
+
+
+@deffn Syntax define-shared-object @var{name} @var{default-library-name}
+Define global identifier for the identifiers associated to the foreign
+library and select the name of the shared object file.  Add to the
+Autoconf macro what is needed to define the
+@option{--with-@var{name}-shared-object} option for the
+@command{configure} script: this option allows the selection of an
+alternative shared object file name.  Example:
+
+@example
+(define-shared-object libxml2 libxml2.so)
+@end example
+@end deffn
+
+@c ------------------------------------------------------------
+
+@subsubheading Writing the files
+
+
+@defun autoconf-lib-write @var{filename} @var{libname} @var{macro-name}
+Write to the specified @var{filename} the contents of the Autoconf
+library; @var{libname} must be the library specification and it is used
+only as a comment; @var{macro-name} must be the name of the generated
+@command{m4} macro as a Scheme string.  Example:
+
+@example
+(define libxml2-sizeof-library
+  '(xml libxml2 sizeof))
+
+(autoconf-lib-write
+   "configuration/libxml2-inspector.m4"
+   libxml2-sizeof-library
+   "NAUSICAA_LIBXML")
+@end example
+@end defun
+
+
+@defun sizeof-lib-write @var{filename} @var{libname} @var{libname-clang-types}
+Write to the specified @var{filename} the contents of the sizeof Scheme
+library; @var{libname} must be the library specification;
+@var{libname-clang-types} must be the specification of the library
+defining the foreign C language types.  Example:
+
+@example
+(define libxml2-sizeof-library
+  '(xml libxml2 sizeof))
+
+(define libxml2-clang-library
+  '(xml libxml2 clang type-translation))
+
+(sizeof-lib-write
+   "src/libraries/xml/libxml2/sizeof.sls.in"
+   libxml2-sizeof-library
+   libxml2-clang-library)
+@end example
+@end defun
+
+
+@defun clang-lib-write @var{filename} @var{libname}
+Write to the specified @var{filename} the contents of the @code{clang
+type-translation} library; @var{libname} must be the library
+specification.  Example:
+
+@example
+(define libxml2-clang-library
+  '(xml libxml2 clang type-translation))
+
+(clang-lib-write
+   "src/libraries/xml/libxml2/clang/type-translation.sls.in"
+   libxml2-clang-library)
+@end example
+@end defun
+
+@c ------------------------------------------------------------
+
+@subsubheading Foreign library inspection
+
+
+@deffn Syntax define-c-defines @ameta{description-string} @ameta{symbol} ...
+Register in the output libraries a set of C preprocessor constants.
+Example:
+
+@example
+(define-c-defines "seek whence values"
+  SEEK_SET SEEK_CUR SEEK_END)
+@end example
+
+@noindent
+appends the following to the Autoconf macro:
+
+@example
+dnl Preprocessor symbols: seek whence values
+NAUSICAA_DEFINE_VALUE([SEEK_SET])
+NAUSICAA_DEFINE_VALUE([SEEK_CUR])
+NAUSICAA_DEFINE_VALUE([SEEK_END])
+@end example
+
+@noindent
+and the following to the @code{sizeof} library:
+
+@example
+(define SEEK_SET @@VALUEOF_SEEK_SET@@)
+(define SEEK_CUR @@VALUEOF_SEEK_CUR@@)
+(define SEEK_END @@VALUEOF_SEEK_END@@)
+@end example
+@end deffn
+
+
+@deffn Syntax define-c-string-defines @ameta{description} @ameta{symbol} ...
+Register in the output libraries a set of C preprocessor string
+literals.  Example:
+
+@example
+(define-c-string-defines "mount options"
+  FSTAB_RW
+  FSTAB_RQ
+  FSTAB_RO)
+@end example
+
+@noindent
+appends the following to the Autoconf macro:
+
+@example
+dnl String preprocessor symbols: mount options
+NAUSICAA_STRING_TEST([FSTAB_RW],[FSTAB_RW])
+NAUSICAA_STRING_TEST([FSTAB_RW],[FSTAB_RQ])
+NAUSICAA_STRING_TEST([FSTAB_RW],[FSTAB_RO])
+@end example
+
+@noindent
+and the following to the @code{sizeof} library:
+
+@example
+(define FSTAB_RW "@@STRINGOF_FSTAB_RW@@")
+(define FSTAB_RQ "@@STRINGOF_FSTAB_RQ@@")
+(define FSTAB_RO "@@STRINGOF_FSTAB_RO@@")
+@end example
+@end deffn
+
+
+@deffn Syntax define-c-enumeration @ameta{enum-name} @ameta{string-typedef} @ametao{symbol-name} @ameta{symbol-name} ...
+Register in the output libraries a set of enumerated C constants.
+Example:
+
+@example
+(define-c-enumeration xmlC14NMode
+  "xmlC14NMode"
+  XML_C14N_1_0
+  XML_C14N_EXCLUSIVE_1_0
+  XML_C14N_1_1)
+@end example
+
+@noindent
+appends the following to the Autoconf macro:
+
+@example
+dnl enum xmlC14NMode
+NAUSICAA_ENUM_VALUE([XML_C14N_1_0])
+NAUSICAA_ENUM_VALUE([XML_C14N_EXCLUSIVE_1_0])
+NAUSICAA_ENUM_VALUE([XML_C14N_1_1])
+@end example
+
+@noindent
+and the following to the @code{sizeof} library:
+
+@example
+(define XML_C14N_1_0            @@VALUEOF_XML_C14N_1_0@@)
+(define XML_C14N_EXCLUSIVE_1_0  @@VALUEOF_XML_C14N_EXCLUSIVE_1_0@@)
+(define XML_C14N_1_1            @@VALUEOF_XML_C14N_1_1@@)
+@end example
+
+@noindent
+it also calls:
+
+@example
+(define-c-type xmlC14NMode signed-int "xmlC14NMode")
+@end example
+@end deffn
+
+
+@deffn Syntax define-c-type-alias @ameta{alias} @ameta{type}
+Define a type symbol to be used in the specification of C function
+callouts.  Example:
+
+@example
+(define-c-type-alias xmlChar* pointer)
+@end example
+
+@noindent
+adds the following to the @code{sizeof} library:
+
+@example
+(define xmlChar* (quote pointer))
+@end example
+@end deffn
+
+
+@deffn Syntax define-c-type @ameta{name} @ameta{type-category}
+@deffnx Syntax define-c-type @ameta{name} @ameta{type-category} @ameta{type-string}
+Define the inspection infrastructure for a C type.  Example:
+
+@example
+(define-c-type pid_t signed-int)
+(define-c-type pid_t signed-int "pid_t") ;equivalent
+@end example
+
+@noindent
+adds the following to the Autoconf macro:
+
+@example
+NAUSICAA_INSPECT_TYPE([PID_T],["pid_t"],[signed-int],[#f])
+@end example
+@end deffn
+
+
+@deffn Syntax define-c-struct @ameta{name} @ameta{type-string} (@ameta{field-type-category} @ameta{field-name}) ...
+Define the inspection infrastructure for a C data structure.  Example:
+
+@example
+(define-c-struct xmlChSRange
+  "xmlChSRange"
+  (unsigned-int         low)
+  (unsigned-int         high))
+@end example
+
+@noindent
+adds the following to the Autoconf macro:
+
+@example
+dnl Struct inspection: xmlChSRange
+NAUSICAA_INSPECT_STRUCT_TYPE([XMLCHSRANGE],[xmlChSRange],[#f])
+NAUSICAA_INSPECT_FIELD_TYPE([XMLCHSRANGE_LOW],[xmlChSRange],[low],[unsigned-int])
+NAUSICAA_INSPECT_FIELD_TYPE([XMLCHSRANGE_HIGH],[xmlChSRange],[high],[unsigned-int])
+@end example
+
+@noindent
+and to the @code{sizeof} library a label definition to access the fields
+of the structure.
+@end deffn
+
+@c ------------------------------------------------------------
+
+@subsubheading Raw body additions
+
+
+@defun Syntax autoconf-lib @var{string}
+Append the given string to the internal body of the generated Autoconf
+macro.  This function is rarely needed.  It can be  used to introduce a
+conditional section in the macro expansion:
+
+@example
+(autoconf-lib "
+if test \"$nau_ENABLE_MPFR\" = no
+then
+")
+
+---     ;; stuff here
+
+(autoconf-lib "
+fi
+")
+@end example
+@end defun
+
+
+@deffn Syntax sizeof-lib @ameta{expr} ...
+Append the given expressions to the internal body of the @code{sizeof}
+library.  This syntax is rarely needed.
+@end deffn
+
+
+@deffn Syntax sizeof-lib-exports @ameta{symbol} ...
+Append the given symbols to the list of bindings exported by the
+@code{sizeof} library.  Usually this is needed to export definitions
+introduced with @func{sizeof-lib}.  Example:
+
+@example
+(sizeof-lib
+  (define alpha 123))
+
+(sizeof-lib-exports alpha)
+@end example
+@end deffn
+
+@c page
+@node ffi memory
+@section Low level memory handling
+
+
+@cindex @library{nausicaa ffi memory}, library
+@cindex Library @library{nausicaa ffi memory}
+
+
+The @library{nausicaa ffi memory} library exports a low level @api{} for
+memory allocation and access; memory allocated with this @api{} is not
+subjected to garbage collection.  It is a compound library re--exporting
+@api{}s from the following component libraries:
+
+@example
+(ffi memory alloc)
+(ffi memory bytevectors)
+(ffi memory caches)
+(ffi memory conditions)
+(ffi memory memblocks)
+(ffi memory operations)
+@end example
+
+More libraries export other memory related @api{}s.
+
+@menu
+* ffi memory conditions::       Out of memory errors.
+* ffi memory alloc::            Allocation functions.
+* ffi memory blocks::           Memory blocks.
+* ffi memory cache::            Caching memory blocks.
+* ffi memory compensate::       Compensations.
+* ffi memory operations::       Operations.
+* ffi memory bytevectors::      Bytevectors conversion.
+
+Independent libraries
+
+* ffi memory mempool::          Allocation from a memory pool.
+* ffi memory refcount::         Reference counting.
+* ffi memory membuffer::        Memory buffers.
+* ffi memory guarded::          Guarded memory allocation.
+@end menu
+
+@c page
+@node ffi memory conditions
+@subsection Out of memory errors
+
+
+The following bindings are exported by @library{nausicaa ffi memory
+conditions} and re--exported by @library{nausicaa ffi memory}.
+
+
+@deftp Condition {&out-of-memory}
+Type of condition objects representing a memory allocation error; it is
+derived from @condition{error}.  It has the following fields:
+
+@table @code
+@item number-of-bytes
+An exact non--negative integer representing the number of bytes
+requested in the failed memory allocation; it can be set to @false{} if
+the number is not known (for example when the error is raised by a
+foreign library).
+@end table
+
+This condition type is for failed memory allocations @strong{not} meant
+to be recoverable by an exception handler.
+@end deftp
+
+
+@deftp Condition {&memory-request}
+Type of condition objects representing a memory allocation error; it is
+derived from @condition{out-of-memory}.  It has the following fields:
+
+@table @code
+@item clean
+A boolean value, @true{} if the requested memory was meant to be reset
+to zero.
+@end table
+
+This condition type is for failed memory allocations meant to be
+recoverable by an exception handler.
+@end deftp
+
+
+@deffn {Condition Constructor} make-out-of-memory-condition @var{number-of-bytes}
+@deffnx {Condition Predicate} out-of-memory-condition? @var{object}
+@deffnx {Field Accessor} condition-out-of-memory/number-of-bytes @var{object}
+Functions to handle non--recoverable out of memory condition objects.
+@var{number-of-bytes} is the size of the requested allocation that could
+not be satisfied.
+@end deffn
+
+
+@deffn {Condition Constructor} make-memory-request-condition @var{number-of-bytes} @var{clean}
+@deffnx {Condition Predicate} memory-request-condition? @var{object}
+@deffnx {Field Accessor} condition-memory-request/number-of-bytes @var{object}
+@deffnx {Field Accessor} condition-memory-request/clean? @var{object}
+Functions to handle recoverable out of memory condition objects.
+@var{number-of-bytes} is the size of the requested allocation that could
+not be satisfied.  @var{clean} must be a boolean value: @true{} if the
+requested memory was meant to be reset to zero.
+@end deffn
+
+
+Examples:
+
+@example
+(define (malloc size)
+  (or (primitive-malloc size)
+      (raise
+         (condition (make-who-condition 'malloc)
+                    (make-message-condition "out of memory")
+                    (make-out-of-memory-condition size)))))
+
+(define (malloc* size)
+  (or (primitive-malloc size)
+      (raise-continuable
+         (condition (make-who-condition 'malloc)
+                    (make-message-condition "out of memory")
+                    (make-memory-request-condition size #f)))))
+
+(define (calloc* size)
+  (or (primitive-calloc size)
+      (raise-continuable
+         (condition (make-who-condition 'malloc)
+                    (make-message-condition "out of memory")
+                    (make-memory-request-condition size #t)))))
+@end example
+
+
+@defun raise-out-of-memory @var{who} @var{number-of-bytes}
+Raise a non--continuable exception representing a non--recoverable
+memory allocation failure.  The raised condition object is a compound of
+@condition{who}, @condition{message} and @condition{out-of-memory}.
+@end defun
+
+
+@defun raise-memory-request @var{who} @var{number-of-bytes} @var{clean}
+Raise a continuable exception representing a recoverable memory
+allocation failure.  The raised condition object is a compound of
+@condition{who}, @condition{message} and @condition{memory-request}.  Functions
+raising this condition should be ready to accept as return value the
+requested block of memory (allocated by the exception handler).
+@end defun
+
+@c page
+@node ffi memory alloc
+@subsection Allocation functions
+
+
+The memory alloction @api{} described in this section is exported by
+@library{nausicaa ffi memory alloc} and re--exported by
+@library{nausicaa ffi memory}.
+
+@menu
+* ffi memory alloc system::     System functions.
+* ffi memory alloc platform::   Platform functions.
+* ffi memory alloc primitive::  Primitive functions.
+* ffi memory alloc high::       Exception raising functions.
+* ffi memory alloc examples::   Memory allocation examples.
+@end menu
+
+@c page
+@node ffi memory alloc system
+@subsubsection System functions
+
+
+The system @api{} deals with pointer values as exact integers; it is a
+very raw @api{} which should be used only when absolutely required.
+Many functions in @library{nausicaa ffi memory} require pointers to be
+of type @samp{pointer}; sometimes, though, foreign libraries require the
+raw pointer value, for example to be stored in structure fields.
+
+For some Scheme implementations the @samp{system-} @api{} is a little
+faster than the @samp{platform-} one, while for others it is a little
+slower.
+
+
+@defun system-malloc @var{number-of-bytes}
+An interface to the system @cfunc{malloc} function.  Allocate a block of
+memory and return a pointer to it as an exact integer.  If an allocation
+error occurs: Return the integer zero.
+@end defun
+
+
+@defun system-realloc @var{pointer-integer} @var{number-of-bytes}
+An interface to the system @cfunc{realloc} function.  Reallocate a block
+of memory with different size and return a pointer to it as an exact
+integer.  @var{pointer-integer} must be a pointer value expressed as
+exact integer.  If an allocation error occurs: Return the integer zero.
+@end defun
+
+
+@defun system-calloc @var{count} @var{element-size}
+An interface to the system @cfunc{calloc} function.  Allocate a block of
+memory and return a pointer to it as an exact integer.  The block is big
+enough to hold @var{count} objects each @var{element-size} wide.  If an
+allocation error occurs: Return the integer zero.
+@end defun
+
+
+@defun system-free @var{pointer-integer}
+An interface to the system @cfunc{free} function.  Release the block of
+memory referenced by @var{pointer-integer}, which must be a pointer
+value expressed as exact integer.
+@end defun
+
+@c page
+@node ffi memory alloc platform
+@subsubsection Platform functions
+
+
+@defun platform-malloc @var{number-of-bytes}
+@defunx platform-malloc* @var{number-of-bytes}
+An interface to the system @cfunc{malloc} function.  Allocate a block of
+memory and return a pointer to it.  If an allocation error occurs:
+@func{platform-malloc} returns a null pointer, @func{platform-malloc*}
+returns @false{}.
+@end defun
+
+
+@defun platform-realloc @var{pointer} @var{new-number-of-bytes}
+@defunx platform-realloc* @var{pointer} @var{new-number-of-bytes}
+An interface to the system @cfunc{realloc} function.  Reallocate a block
+of memory with different size and return a pointer to it.  If an
+allocation error occurs: @func{platform-realloc} returns a null pointer,
+@func{platform-realloc*} returns @false{}.
+@end defun
+
+
+@defun platform-calloc @var{count} @var{element-size}
+@defunx platform-calloc* @var{count} @var{element-size}
+An interface to the system @cfunc{calloc} function.  Allocate a block of
+memory and return a pointer to it.  The block is big enough to hold
+@var{count} objects each @var{element-size} wide.  Bytes in the block
+are reset to zero.  If an allocation error occurs:
+@func{platform-calloc} returns a null pointer, @func{platform-calloc*}
+returns @false{}.
+@end defun
+
+
+@defun platform-free @var{pointer}
+An interface to the system @cfunc{free} function.  Release the block of
+memory referenced by @var{pointer}.  The return value is unspecified.
+@end defun
+
+@c page
+@node ffi memory alloc primitive
+@subsubsection Primitive functions
+
+
+The following functions perform allocation through customisable
+functions, which allow allocation logging and validation of error
+reactions.
+
+
+@deffn Function primitive-malloc @var{number-of-bytes}
+@deffnx Parameter primitive-malloc-function
+@func{primitive-malloc} allocates a block of memory and returns a
+pointer to it, or @false{} if an error occurs; the allocation is
+performed using the current value of @func{primitive-malloc-function},
+which must be a function.
+
+The parameter is preset to @func{platform-malloc*}; if a custom function
+is assigned to the parameter, it must match its behaviour.
+@end deffn
+
+
+@deffn Function primitive-realloc @var{pointer} @var{new-number-of-bytes}
+@deffnx Parameter primitive-realloc-function
+@func{primitive-realloc} reallocates a block of memory with a new size
+and returns a pointer to the new block, or @false{} if an error occurs;
+the allocation is performed using the current value of
+@func{primitive-realloc-function}, which must be a function.
+
+The parameter is preset to @func{platform-realloc*}; if a custom
+function is assigned to the parameter, it must match its behaviour.
+@end deffn
+
+
+@deffn Function primitive-calloc @var{count} @var{element-size}
+@deffnx Parameter primitive-calloc-function
+@func{primitive-calloc} allocates a block of memory (big enough to hold
+@var{count} elements of @var{element-size} each) and returns a pointer
+to it, or @false{} if an error occurs; the allocation is performed using
+the current value of @func{primitive-calloc-function}, which must be a
+function.
+
+The parameter is preset to @func{platform-calloc*}; if a custom function
+is assigned to the parameter, it must match its behaviour.
+@end deffn
+
+
+@deffn Function primitive-free @var{pointer}
+@deffnx Parameter primitive-free-function
+@func{primitive-free} releases a block of memory; the release is
+performed using the current value of @func{primitive-free-function},
+which must be a function.
+
+The parameter is preset to @func{platform-free}.
+@end deffn
+
+@c page
+@node ffi memory alloc high
+@subsubsection Exception raising functions
+
+
+@defun malloc @var{number-of-bytes}
+@defunx realloc @var{pointer} @var{new-number-of-bytes}
+@defunx calloc @var{count} @var{element-size}
+Wrappers for the corresponding @samp{primitive-} functions that raise a
+continuable @condition{memory-request} condition in case of error.
+Blocks of memory allocated with these functions can be freed with
+@func{primitive-free}.
+
+In case of error, it is fine to make the exception handler return to the
+continuation a pointer to an allocated block of memory.
+@end defun
+
+@c page
+@node ffi memory alloc examples
+@subsubsection Memory allocation examples
+
+
+Care must be taken when managing memory with the low level functions:
+Memory blocks will @strong{not} be garbage collected.  A method to
+release memory needed in a form is to use @func{dynamic-wind}:
+
+@example
+(let ((p #f))
+  (dynamic-wind
+    (lambda () (set! p (malloc 123)))
+    (lambda () (do-something-with p))
+    (lambda () (primitive-free p))))
+@end example
+
+@noindent
+another is to use a compensation (@pxref{compensations}):
+
+@example
+(with-compensations
+  (letrec ((p (compensate
+                  (malloc 123)
+                (with
+                  (primitive-free p)))))
+    (do-something-with p)))
+@end example
+
+@noindent
+another method, if supported, is to use @func{malloc/guarded}.  @ref{ffi
+memory guarded, guarded-malloc}
+
+To test memory allocation failure we can do:
+
+@example
+(parametrise ((primitive-malloc-function (lambda args #f)))
+  (let ((p (malloc 4096)))
+    ---))
+@end example
+
+To log memory allocations we can do:
+
+@example
+(let-values (((port get-string) (open-string-output-port)))
+  (define (logging-malloc number-of-bytes)
+    (let ((p (platform-malloc number-of-bytes)))
+      (display (format "malloc:\t~s ~s\n" p number-of-bytes)
+               port)
+      p))
+
+  (define (logging-free pointer)
+    (display (format "free:\t~s\n" pointer) port)
+    (platform-free pointer))
+
+  (parametrise ((primitive-malloc-function logging-malloc)
+                (primitive-free-function   logging-free))
+    (let ((p (malloc 4096)))
+      ---
+      (primitive-free p))))
+@end example
+
+@c page
+@node ffi memory blocks
+@subsection Memory blocks
+
+
+The bindings described in this section are exported by @library{nausicaa
+ffi memory memblocks} and reexported by @library{nausicaa ffi memory}; a
+number of libraries in the @library{nausicaa ffi memory ---} hierarchy
+makes use of this library.  The library is built on top of
+@library{nausicaa language classes}.
+
+@menu
+* ffi memory blocks type::        Record type definition.
+* ffi memory blocks clone::       Duplicating blocks.
+* ffi memory blocks conversion::  Conversion between blocks and other
+                                  objects.
+* ffi memory blocks portions::    Dealing with block portions.
+* ffi memory blocks misc::        Miscellaneous stuff.
+@end menu
+
+@c page
+@node ffi memory blocks type
+@subsubsection Record type definition
+
+
+@deftp Class @aclass{memblock}
+Type of record used to represent memory blocks.
+@end deftp
+
+
+@defcv {Mutable Field} @aclass{memblock} pointer
+A pointer value referencing a memory block.  This field is tagged as
+@class{pointer}.
+@end defcv
+
+
+@defcv {Mutable Field} @aclass{memblock} size
+The ``official'' number of bytes in the referenced memory block.
+@end defcv
+
+
+@defcv {Mutable Field} @aclass{memblock} alloc-size
+The number of bytes really allocated in the referenced memory block;
+this number can be different from the one in the @code{size} field.
+This field is set to @false{} when the record does not own the memory
+block.
+@end defcv
+
+
+@defun make-<memblock> @var{pointer} @var{number-of-bytes}
+@defunx make-<memblock> @var{pointer} @var{number-of-bytes} @var{alloc-size}
+Build and return a new @class{memblock} record.  When @var{alloc-size}
+is not used, it defaults to @false{}.
+@end defun
+
+
+@defun <memblock>? @var{obj}
+Return @true{} if @var{obj} is a record of type @class{memblock}.
+@end defun
+
+
+@defun <memblock>-pointer @var{mb}
+@defunx <memblock>-pointer-set! @var{mb} @var{pointer}
+@defunx <memblock>-size @var{mb}
+@defunx <memblock>-size-set! @var{mb} @var{number-of-bytes}
+@defunx <memblock>-alloc-size @var{mb}
+@defunx <memblock>-alloc-size-set! @var{mb} @var{number-of-bytes/false}
+Field accessors and mutators.
+@end defun
+
+@c page
+@node ffi memory blocks clone
+@subsubsection Duplicating blocks
+
+
+@defun memblock-shallow-clone @var{mb}
+Return a new @class{memblock} record holding the same values of
+@var{mb}.  Set to @false{} the @code{alloc-size} field of the returned
+record.
+@end defun
+
+
+@defun memblock-deep-clone @var{mb} @var{malloc}
+Return a new @class{memblock} record holding a newly allocated memory
+block equal to the one referenced by @var{mb}.  The new block is
+allocated with @var{malloc}, which must be a function like @func{malloc}
+from @library{nausicaa ffi memory alloc}.
+@end defun
+
+@c page
+@node ffi memory blocks conversion
+@subsubsection Conversion between blocks and other objects
+
+
+@defun memblock->string-hex @var{mb}
+@defunx string-hex->memblock @var{str} @var{malloc}
+Convert to and from a @class{memblock} record and a string, encoding
+each byte in the block with two characters in the string in hexadecimal
+format.  These functions are slow, but they are fine for debugging
+purposes.
+
+When converting from a string, the new memory block is allocated with
+@var{malloc}, which must be a function like @func{malloc} from
+@library{nausicaa ffi memory alloc}.
+
+When converting to a string, the returned value is in upper case.
+@end defun
+
+@c page
+@node ffi memory blocks portions
+@subsubsection Dealing with block portions
+
+
+The following functions handle blocks and portions with the meaning
+displayed in this picture:
+
+@example
+                block
+|-----------------------------------|
+|---------------|
+      head       |------------------|
+                         tail
+@end example
+
+
+@defun memblock-head @var{block} @var{head-size}
+Return a new @class{memblock} record referencing a portion of
+@var{head-size} bytes anchored to the beginning of @var{block}.
+
+The returned block has @code{alloc-size} set to @false{}.
+@end defun
+
+
+@defun memblock-tail @var{block} @var{tail-size}
+Return a new @class{memblock} record referencing a portion of
+@var{tail-size} bytes anchored to the end of @var{block}.
+
+The returned block has @code{alloc-size} set to @false{}.
+@end defun
+
+
+@defun memblock-head? @var{block} @var{head}
+Return true if @var{head} references a portion of @var{block} anchored
+to its beginning.
+@end defun
+
+
+@defun memblock-tail? @var{block} @var{tail}
+Return true if @var{tail} references a portion of @var{block} anchored
+to its end.
+@end defun
+
+
+@defun memblock&head-tail @var{block} @var{head}
+Both @var{block} and @var{head} must be @class{memblock} records;
+interpret @var{head} as a reference to a portion of @var{block} anchored
+to its beginning; return a new memory block representing the tail of
+@var{block} non--overlapping with @var{head}.
+
+The returned block has @code{alloc-size} set to @false{}.
+@end defun
+
+
+@defun memblock&tail-head @var{block} @var{tail}
+Both @var{block} and @var{tail} must be @class{memblock} records;
+interpret @var{tail} as a reference to a portion of @var{block} anchored
+to its end; return a new memory block representing the head of
+@var{block} non--overlapping with @var{tail}.
+
+The returned block has @code{alloc-size} set to @false{}.
+@end defun
+
+@c page
+@node ffi memory blocks misc
+@subsubsection Miscellaneous stuff
+
+
+@defun memblock-null
+Return a new record of type @class{memblock} holding a @cnull{} pointer
+and zero size; it is meant to be used as sentinel value.
+@end defun
+
+@c page
+@node ffi memory cache
+@subsection Caching memory blocks
+
+
+The following bindings are exported by @library{nausicaa ffi memory
+caches} and re--exported by @library{nausicaa ffi memory}.  This library
+makes use of @class{memblock} records, whose interface is exported by
+@library{nausicaa ffi memory memblocks}.
+
+
+@defun make-block-cache @var{number-of-bytes} @var{max-depth}
+Build and return a new memory blocks cache, for blocks of
+@var{number-of-bytes}, which, at maximum, will cache @var{max-depth}
+blocks.  The return value is an interface function with the following
+protocol:
+
+@table @emph
+@item When the function is invoked with zero arguments
+It retrieves a block from the set of cached blocks; if the set is empty:
+A new block is allocated with @func{calloc}.  Return a pointer to the
+block.
+
+@item When the function is invoked with 1 argument
+If the argument is the Scheme symbol @samp{purge}: @func{primitive-free}
+is applied to all the blocks in the cache and the cache is reset to
+empty.
+
+If the argument is the Scheme symbol @samp{size}: The return value is
+@var{number-of-bytes}.
+
+Else the argument must be a pointer previously returned by this
+interface function: If the number of blocks in the cache is less than
+@var{max-depth}, the pointer is stored in the cache, else
+@func{primitive-free} is applied to it.
+@end table
+@end defun
+
+
+@defun small-blocks-cache
+@defunx small-blocks-cache @var{pointer}
+@defunx small-blocks-cache purge
+@defunx small-blocks-cache size
+Interface function for a cache of memory blocks of size @math{32},
+@math{10} blocks deep.  This cache is meant to be used for temporary
+storage space of output values from foreign--functions.  The size of
+@math{32} should be enough to hold all the output values of C language
+standard types.
+
+Blocks are allocated with @func{calloc} and reset to zero with
+@func{memset} when released, so they are guaranteed to be set to zero
+when acquired.
+
+For example, the @gnu{} Libgcrypt library has a constructor with this
+prototype:
+
+@example
+gcry_error_t gcry_cipher_open (gcry_cipher_hd_t * hd,
+                               int algo, int mode,
+                               unsigned int flag);
+@end example
+
+@noindent
+where @code{gcry_cipher_hd_t} is a @code{typedef} for an opaque pointer
+(we can think of it as @code{void *}); the @var{hd} argument must
+reference a pointer--sized location in which the function will store a
+pointer to a newly allocated data structure; this location is required
+only for the construction of a new object, so a Scheme interface could
+do (unsafe code, not handling errors):
+
+@example
+(let ((hd* (small-blocks-cache)))
+  (gcry_cipher_open hd* algo mode flag)
+  (begin0
+      (pointer-ref-c-pointer hd* 0)
+    (small-blocks-cache hd*)))
+@end example
+@end defun
+
+
+@defun page-blocks-cache
+@defunx page-blocks-cache @var{pointer}
+@defunx page-blocks-cache purge
+@defunx page-blocks-cache size
+Interface function for a cache of memory blocks of size 4096, 10 blocks
+deep.
+@end defun
+
+
+@defvr Constant small-blocks-size
+@defvrx Constant page-blocks-size
+The size of the small and page blocks.
+@end defvr
+
+
+@defun memblocks-cache @var{memblock/size}
+Interface function to memblocks allocation and release.  When
+@var{memblock/size} is:
+
+@table @emph
+@item A record of type @class{memblock}
+The function releases the allocated memory block.
+
+@item An unsigned exact integer
+The number is meant to represent the number of bytes to be allocated: A
+new @class{memblock} record is allocated and returned.
+@end table
+
+Allocation and release of memory blocks is done, in this order:
+
+@enumerate
+@item
+Relying on @func{small-blocks-cache} if the number of bytes is less than
+or equal to the size of a small block.
+
+@item
+Relying on @func{page-blocks-cache} if the number of bytes is less than
+or equal to the size of a page block.
+
+@item
+Relying on @func{calloc} and @func{primitive-free} in all the other cases.
+@end enumerate
+@end defun
+
+
+@defun make-caching-object-factory @var{init-func} @var{final-func} @var{number-of-bytes} @var{max-depth}
+Build and return a new caching object factory.  It is a wrapper for
+@func{make-block-cache}, to which the @var{number-of-bytes} and
+@var{max-depth} arguments are handed untouched.  The return value is an
+interface function with the following protocol:
+
+@table @emph
+@item When the function is invoked with zero arguments
+It retrieves a block from the cache and applies @var{init-func} to it; a
+pointer to the block is returned.
+
+@item When the function is invoked with 1 argument
+If the argument is the symbol @samp{purge}: The same symbol is handed to
+the block cache, causing the cache to be purged of allocated blocks.
+
+If the argument is the symbol @samp{size}: The same symbol is handed to
+the block cache, the return value is the cache memory block size.
+
+Else the argument must be a pointer previously returned by this
+interface function: @var{final-func} is applied to it, then it is handed
+to the underlying block cache interface function.
+@end table
+
+For example, the @acronym{MPFR} library (Multiple Precision
+Floating--Point Reliable Library) requires us to allocate structures of
+type @code{mpfr_t}, then to use an initialiser and a finaliser with the
+following prototypes:
+
+@example
+void mpfr_init  (mpfr_ptr p);
+void mpfr_clear (mpfr_ptr p);
+@end example
+
+@noindent
+@code{mpfr_t} values are real numbers with special representation, so we
+may need a lot of them to carry on computations; a Scheme interface
+could initialise itself like this:
+
+@example
+(define sizeof-mpfr 64) ;this must be exactly determined
+
+(define mpfr-lib
+  (let ((o (open-shared-object "libmpfr.so")))
+    (shared-object o)
+    o))
+
+(define mpfr_ptr 'pointer)
+(define-c-function mpfr_init  (void mpfr_init  (mpfr_ptr)))
+(define-c-function mpfr_clear (void mpfr_clear (mpfr_ptr)))
+
+(define mpfr
+  (make-caching-object-factory mpfr_init mpfr_clear
+                               sizeof-mpfr 100))
+
+(define (mpfr/c)
+  (letrec ((p (compensate (mpfr)
+                (with (mpfr p)))))
+    p))
+@end example
+
+@noindent
+and then:
+
+@example
+(with-compensations
+  (let ((a (mpfr/c))
+        (b (mpfr/c)))
+    (do-something-with a b)))
+@end example
+
+@noindent
+at the end of the world, if we feel like it, we can do:
+
+@example
+(mpfr 'purge)
+@end example
+@end defun
+
+@c page
+@node ffi memory compensate
+@subsection Compensations
+
+
+The functions described here make use of compensation stacks to handle
+semi--automatice release of allocated memory.  @ref{compensations,
+Compensation stacks}
+
+The following bindings are exported by @library{nausicaa ffi memory
+compensated} and re--exported by @library{nausicaa ffi memory}.  This
+library makes internal use of @library{nausicaa ffi memory caches}; the
+@api{} requires also the @library{nausicaa language compensations} and
+@library{nausicaa ffi memory memblocks} libraries.
+
+
+@defun malloc/compensated @var{number-of-bytes}
+@defunx calloc/compensated @var{count} @var{element-size}
+@defunx malloc/c @var{number-of-bytes}
+@defunx calloc/c @var{count} @var{element-size}
+Wrappers for @func{malloc} and @func{calloc} that allocate a block of
+memory and return a pointer to it.  The appropriate invocation to
+@func{primitive-free}, to free the block, is added to the dynamic
+environment of the current compensations stack.
+@end defun
+
+
+@defun malloc-small/compensated
+@defunx malloc-small/c
+Acquire a small block of memory from @func{small-blocks-cache} and
+return a pointer to it.  The appropriate invocation to
+@func{small-blocks-cache}, to release the block, is added to the dynamic
+environment of the current compensations stack.
+@end defun
+
+
+@defun malloc-page/compensated
+@defunx malloc-page/c
+Acquire a page of memory from @func{page-blocks-cache} and return a
+pointer to it.  The appropriate invocation to @func{page-blocks-cache},
+to release the block, is added to the dynamic environment of the current
+compensations stack.
+@end defun
+
+
+@defun malloc-block/compensated @var{number-of-bytes}
+@defunx malloc-block/c @var{number-of-bytes}
+Allocate a new memory block and return a pointer to it.  The appropriate
+invocation to the release function is added to the dynamic environment
+of the current compensations stack.
+
+Allocation and releasing of memory blocks is done, in this order:
+
+@enumerate
+@item
+Relying on @func{small-blocks-cache} if the number of bytes is less than
+or equal to the size of a small block.
+
+@item
+Relying on @func{page-blocks-cache} if the number of bytes is less than
+or equal to the size of a page block.
+
+@item
+Relying on @func{calloc} and @func{primitive-free} in all the other cases.
+@end enumerate
+@end defun
+
+
+@defun malloc-memblock/compensated @var{number-of-bytes}
+@defunx malloc-memblock/c @var{number-of-bytes}
+Acquire a block of memory from @func{memblocks-cache} and return a
+record of type @class{memblock}.  The appropriate invocation to
+@func{memblocks-cache}, to release the block, is added to the dynamic
+environment of the current compensations stack.
+@end defun
+
+@c page
+@node ffi memory operations
+@subsection Operations
+
+
+The following bindings are exported by @library{nausicaa ffi memory
+operations} and re--exported by @library{nausicaa ffi memory}.
+
+
+@defun memcpy @var{dest-pointer} @var{source-pointer} @var{number-of-bytes}
+An interface to the @cfunc{memcpy} system function.  Copy
+@var{number-of-bytes} bytes from @var{source-pointer} to
+@var{dest-pointer}, which must be pointer values.
+@end defun
+
+
+@defun memmove @var{dest-pointer} @var{source-pointer} @var{number-of-bytes}
+An interface to the @cfunc{memmove} system function.  Like @func{memcpy}
+but allows the blocks to be overlapped.
+@end defun
+
+
+@defun memset @var{pointer} @var{int} @var{number-of-bytes}
+An interface to the @cfunc{memset} system function.  Set to @var{int}
+the first @var{number-of-bytes} bytes starting from @var{pointer};
+@var{int} must be an exact non--negative integer in the range @math{[0,
+256)}.
+@end defun
+
+
+@defun memcmp @vari{pointer} @varii{pointer} @var{number-of-bytes}
+An interface to the @cfunc{memcmp} system function.  Compare
+@var{number-of-bytes} starting at @vari{pointer} and @varii{pointer} and
+return an integer having the same sign as the difference between the
+first different bytes from the blocks.  If the blocks are equal, the
+return value is zero.
+@end defun
+
+@c page
+@node ffi memory bytevectors
+@subsection Bytevectors conversion
+
+
+The following bindings are exported by @library{nausicaa ffi memory
+bytevectors} and re--exported by @library{nausicaa ffi memory}.  The
+@api{} requires the @library{nausicaa ffi memory memblocks} library when
+@class{memblock} records are used.
+
+In the implementation of the following functions:
+
+@itemize
+@item
+When copying from a bytevector to a memory block, bytes are peeked with
+@func{bytevector-u8-ref} and poked with @func{pointer-set-c-uint8!}.
+
+@item
+When copying from a memory block to a bytevector bytes are peeked with
+@func{pointer-ref-c-uint8} and poked with @func{bytevector-u8-set!}.
+@end itemize
+
+Remember that we can compare two bytevectors with @func{bytevector=?},
+but to compare raw blocks of memory we can use the @func{memcpy}
+interface function.
+
+
+@defun bytevector->pointer @var{bvector} @var{malloc}
+@defunx bytevector->pointer @var{bvector} @var{malloc} @var{number-of-bytes}
+@defunx bytevector->pointer @var{bvector} @var{malloc} @var{number-of-bytes} @var{offset}
+Allocate a memory block using @var{malloc} and copy into it the bytes in
+@var{bvector}.  Return the pointer.
+
+If @var{number-of-bytes} is given: That number of bytes is taken as size
+of the memory block, and only that number of bytes is copied.
+
+If both @var{number-of-bytes} and @var{offset} are given: That number of
+bytes is taken as size of the memory block, and only that number of
+bytes is copied starting at @var{offset} from the beginning of the
+bytevector.
+
+@var{malloc} must accept as single argument the number of bytes to
+allocate, and must return a pointer to the allocated memory block.  If
+an error occurs allocating memory: @var{malloc} must raise an exception
+and not return to the caller.
+@end defun
+
+
+@defun bytevector->memblock @var{bvector} @var{malloc}
+@defunx bytevector->memblock @var{bvector} @var{malloc} @var{number-of-bytes}
+@defunx bytevector->memblock @var{bvector} @var{malloc} @var{number-of-bytes} @var{offset}
+Allocate a memory block using @var{malloc} and copy into it the bytes in
+@var{bvector}.  Return a @class{memblock} record.
+
+If @var{number-of-bytes} is given: That number of bytes is taken as size
+of the memory block, and only that number of bytes is copied.
+
+If both @var{number-of-bytes} and @var{offset} are given: That number of
+bytes is taken as size of the memory block, and only that number of
+bytes is copied starting at @var{offset} from the beginning of the
+bytevector.
+
+@var{malloc} must accept as single argument the number of bytes to
+allocate, and must return a pointer to the allocated memory block.  If
+an error occurs allocating memory: @var{malloc} must raise an exception
+and not return to the caller.
+@end defun
+
+
+@defun pointer->bytevector @var{pointer} @var{number-of-bytes}
+@defunx pointer->bytevector @var{pointer} @var{number-of-bytes} @var{offset}
+Build a bytevector of length @var{number-of-bytes} and copy into it the
+bytes from the block of memory referenced by @var{pointer}.  If
+@var{offset} is given: Start to read bytes at @var{offset} from
+@var{pointer}.
+@end defun
+
+
+@defun memblock->bytevector @var{memblock}
+@defunx memblock->bytevector @var{memblock} @var{number-of-bytes}
+@defunx memblock->bytevector @var{memblock} @var{number-of-bytes} @var{offset}
+Duplicate a @class{memblock} record into a bytevector.
+
+If @var{number-of-bytes} is given: That number of bytes is taken as size
+of the bytevector, and only that number of bytes is copied.
+
+If both @var{number-of-bytes} and @var{offset} are given: That number of
+bytes is taken as size of the bytevector, and only that number of bytes
+is copied starting at @var{offset} from the beginning of the block.
+@end defun
+
+@c page
+@node ffi memory mempool
+@subsection Allocation from a memory pool
+
+
+The @api{} described in this section allows us to allocate memory blocks
+contiguously from a preallocated memory block accessed through a
+@class{mempool} record.  Requested memory blocks are just marked as used
+in the status of the pool.  When using this allocator there is no need
+to release individual blocks: Releasing the pool releases all of them.
+
+The following bindings are exported by @library{nausicaa ffi memory
+mempool}.  The library is built on top of @library{nausicaa language
+classes}.
+
+
+@deftp Class @aclass{mempool}
+Record type descriptor of the memory pool object.
+@end deftp
+
+
+@defcv {Immutable Field} @aclass{mempool} pointer
+Pointer to the allocated block.
+@end defcv
+
+
+@defcv {Immutable Field} @aclass{mempool} size
+Number of allocated bytes.
+@end defcv
+
+
+@defcv {Mutable Filed} @aclass{mempool} pointer-free
+Pointer to the first free byte in the allocated block.
+@end defcv
+
+
+@defcv {Immutable Field} @aclass{mempool} free-size
+Number of free bytes in the memory pool.
+@end defcv
+
+
+@defun make-<mempool> @var{pointer} @var{number-of-bytes}
+Build and return a new @class{mempool} record.  Notice that the
+allocated memory must be released explicitly by accessing the
+@samp{pointer} field of the record.
+@end defun
+
+
+@deffn Parameter memory-pool
+Holds @false{} or the @class{mempool} record from which memory blocks
+must be allocated; it is preset to @false{}.
+@end deffn
+
+
+@defun primitive-malloc/mempool @var{number-of-bytes}
+Allocates @var{number-of-bytes} in the current memory pool and return a
+pointer to the first allocated byte, or @false{} if there is not enough
+room in the pool.
+
+Notice that this function has the correct interface to be used as value
+for the @func{primitive-malloc-function} parameter.  @ref{ffi memory
+alloc, Allocation functions}
+@end defun
+
+
+@defun malloc/mempool @var{number-of-bytes}
+A wrapper for @func{primitive-malloc/mempool} that raises an
+@condition{out-of-memory} exception if there is not enough room in the pool.
+@end defun
+
+
+Example:
+
+@example
+(import (nausicaa)
+  (nausicaa ffi memory)
+  (nausicaa ffi memory mempool))
+
+(define pool
+  (make-<mempool> (malloc 4096) 4096))
+
+(parametrise ((memory-pool pool))
+  (let ((p (malloc/mempool 10))
+        (q (malloc/mempool 20)))
+    ---))
+
+(with-class ((pool <mempool>))
+  (primitive-free pool.pointer))
+@end example
+
+@noindent
+or using compensations:
+
+@example
+(import (nausicaa)
+  (nausicaa ffi memory compensate)
+  (nausicaa ffi memory mempool))
+
+(with-compensations
+  (parametrise ((memory-pool
+                   (make-<mempool> (malloc/c 4096) 4096)))
+    (let ((p (malloc/mempool 10))
+          (q (malloc/mempool 20)))
+      ---)))
+@end example
+
+@c page
+@node ffi memory refcount
+@subsection Reference counting
+
+
+Reference counting is implemented by allocating a block of memory with
+the requested size plus @samp{strideof-long}.  The block will look like
+this:
+
+@example
+ strideof-long            data area
+|-------------|--------------------------------------|
+              ^
+              |
+pointer returned by MALLOC/REFCOUNT
+@end example
+
+@noindent
+the reference counter is handled as an @code{unsigned long} and it is
+located at a negative offset from the address we use to access data.
+
+The following bindings are exported by @library{nausicaa ffi memory
+refcount}.
+
+
+@defun malloc/refcount @var{number-of-bytes}
+@defunx malloc/refcount @var{number-of-bytes} @var{malloc-func}
+@defunx malloc/rc @var{number-of-bytes}
+@defunx malloc/rc @var{number-of-bytes} @var{malloc-func}
+Allocate a block of memory wide enough to hold @var{number-of-bytes}
+using reference counting; return a pointer object.  Memory is allocated
+with the procedure @var{malloc-func} which defaults to @func{malloc}.
+Return a pointer to the first byte in the data area of the allocated
+block; the reference counter is initially set to zero.
+@end defun
+
+
+@defun pointer-acquire @var{pointer}
+Increment the reference counter of the memory block referenced by
+@var{pointer}.  The block must have been allocated with
+@func{malloc/rc}.
+@end defun
+
+
+@defun pointer-release @var{pointer}
+@defunx pointer-release @var{pointer} @var{free-func}
+Decrement the reference counter of the memory block referenced by
+@var{pointer}; the block must have been allocated with @func{malloc/rc}.
+If the counter reaches zero: The block is freed using the supplied
+@var{free-func}, which defaults to @var{primitive-free}.
+@end defun
+
+
+Usage example with @func{dynamic-wind}:
+
+@example
+(let ((p (malloc/rc 4096)))
+  (dynamic-wind
+    (lambda () (pointer-acquire p))
+    (lambda () (do-something-with p))
+    (lambda () (pointer-release p))))
+@end example
+
+@noindent
+usage example with compensations (@pxref{compensations}):
+
+@example
+(with-compensations
+  (letrec ((p (compensate
+                  (begin0-let ((p (malloc/rc 4096)))
+                    (pointer-acquire p))
+                (with
+                 (pointer-release p)))))
+    (do-something-with p)))))
+@end example
+
+@c page
+@node ffi memory membuffer
+@subsection Memory buffers
+
+
+The following bindings are exported by @library{nausicaa ffi memory
+membuffers}; the library is built on top of @library{nausicaa language
+classes}.
+
+
+@deftp Class @aclass{membuffer}
+Record type of byte buffers; it is used as a @acronym{FIFO} for bytes or
+multi--byte data types.
+@end deftp
+
+
+@defun make-<membuffer>
+@defunx make-<membuffer> @var{cache}
+Build and return a new @class{membuffer} record.  @var{cache} must be a
+memory block cache interface function returned by
+@func{make-block-cache}; when not given, it defaults to
+@func{page-blocks-cache}.
+
+The cache function must raise an @condition{out-of-memory} condition if
+memory allocation fails.
+@end defun
+
+
+@defun <membuffer>? @var{obj}
+Return @true{} if @var{obj} is a record of type @class{membuffer}.
+@end defun
+
+
+@defun membuffer-push-memblock! @var{mb} @var{blk}
+@defunx membuffer-push-memblock! @var{mb} @var{blk} @var{blk.start}
+@defunx membuffer-push-memblock! @var{mb} @var{blk} @var{blk.start} @var{blk.past}
+Enqueue in the @class{membuffer} record @var{mb} bytes from the
+@class{memblock} record @var{blk}; bytes are read from @var{blk}
+starting at offset @var{blk.start} and stopping before offset
+@var{blk.past}.
+
+If no error occurs allocating memory, all the bytes in the selected
+range of @var{blk} are enqueued in @var{mb}.  If an error occurs
+allocating memory, @var{mb} is left in a consistent state and an
+exception is raised with a condition object of type
+@condition{membuffer-incomplete-push}.
+@end defun
+
+
+@defun membuffer-pop-memblock! @var{mb} @var{blk}
+@defunx membuffer-pop-memblock! @var{mb} @var{blk} @var{blk.start}
+@defunx membuffer-pop-memblock! @var{mb} @var{blk} @var{blk.start} @var{blk.past}
+Fill the @class{memblock} record @var{blk}, starting at offset
+@var{blk.start} and stopping before offset @var{blk.past}, with bytes
+dequeued from the @class{membuffer} record @var{mb}.  Return the offset
+in @var{blk} of the position past the last filled byte.  If @var{blk} is
+filled to @var{blk.past}, the return value is @var{blk.past}.
+
+When @var{blk.past} is not given, it defaults to the size of @var{blk}.
+When @var{blk.start} is not given, it defaults to zero.
+@end defun
+
+
+@defun membuffer-push-bytevector! @var{mb} @var{bv}
+@defunx membuffer-push-bytevector! @var{mb} @var{bv} @var{bv.start}
+@defunx membuffer-push-bytevector! @var{mb} @var{bv} @var{bv.start} @var{bv.past}
+Enqueue in the @class{membuffer} record @var{mb} bytes from the
+bytevector @var{bv}; bytes are read from @var{bv} starting at offset
+@var{bv.start} and stopping before offset @var{bv.past}.
+
+If no error occurs allocating memory, all the bytes in the selected
+range of @var{bv} are enqueued in @var{mb}.  If an error occurs
+allocating memory, @var{mb} is left in a consistent state and an
+exception is raised with a condition object of type
+@condition{membuffer-incomplete-push}.
+@end defun
+
+
+@defun membuffer-pop-bytevector! @var{mb} @var{bv}
+@defunx membuffer-pop-bytevector! @var{mb} @var{bv} @var{bv.start}
+@defunx membuffer-pop-bytevector! @var{mb} @var{bv} @var{bv.start} @var{bv.past}
+Fill the bytevector @var{bv}, starting at offset @var{bv.start} and
+stopping before offset @var{bv.past}, with bytes from the
+@class{membuffer} record @var{mb}.  Return the offset in @var{bv} of
+the position past the last filled byte.  If @var{bv} is filled to
+@var{bv.past}, the return value is @var{bv.past}.
+
+When @var{bv.past} is not given, it defaults to the length of the
+bytevector.  When @var{bv.start} is not given, it defaults to zero.
+@end defun
+
+@c ------------------------------------------------------------
+
+@subsubheading Incomplete push condition object
+
+@deftp {Condition Type} &membuffer-incomplete-push
+Type of condition describing an incomplete push operation on a
+@class{membuffer} record.  It has the following fields:
+
+@table @samp
+@item membuffer
+The @class{membuffer} record for which the push was incomplete.
+
+@item source
+The source object from which data was read.  It is a bytevector or a
+@class{memblock} record.
+
+@item source-start-offset
+The offset in the source object from which data should have been read.
+
+@item source-past-offset
+The exclusive upper limit offset of data in the source object.
+@end table
+@end deftp
+
+
+@defun make-membuffer-incomplete-push-condition @var{mb} @var{source} @var{source-offset}
+Build and return a condition object of type
+@condition{membuffer-incomplete-push}.
+@end defun
+
+
+@defun membuffer-incomplete-push-condition? @var{obj}
+Return true if @var{obj} is a condition object of type
+@condition{membuffer-incomplete-push}.
+@end defun
+
+
+@defun membuffer-incomplete-push/membuffer @var{obj}
+@defunx membuffer-incomplete-push/source @var{obj}
+@defunx membuffer-incomplete-push/source-start-offset @var{obj}
+@defunx membuffer-incomplete-push/source-past-offset @var{obj}
+Field accessors for condition objects of type
+@condition{membuffer-incomplete-push}.
+@end defun
+
+@c page
+@node ffi memory guarded
+@subsection Guarded memory allocation
+
+
+@cindex @library{nausicaa ffi memory guarded-malloc}, library
+@cindex Library @library{nausicaa ffi memory guarded-malloc}
+
+
+The functions described in this section are usable only when the Scheme
+implementation provides guardians.  The following bindings are exported
+by @library{nausicaa ffi memory guarded-malloc}.
+
+
+@defun malloc/guarded @var{number-of-bytes}
+A wrapper for @func{malloc} which (if the allocation is successful)
+registers the pointer into a guardian and return it.
+
+The library registers a cleanup function for the guardian in the state
+of the @library{nausicaa cleanup-handlers} library, so memory allocated
+with this function is released by invoking @func{cleanup}.  @strong{Do
+not} free this memory with @func{primitive-free} or any other free
+function.
+@end defun
+
+
+@defun calloc/guarded @var{count} @var{element-size}
+Like @func{malloc/guarded} but makes use of @func{calloc}.
+@end defun
+
+
+@c page
+@node ffi cstrings
+@section C language strings handling
+
+
+@cindex @library{nausicaa ffi cstrings}, library
+@cindex Library @library{nausicaa ffi cstrings}
+
+
+A @dfn{C string} is a block of memory holding a string of characters
+terminated by a zero byte.  The functions described in this chapter are
+exported by the @library{nausicaa ffi cstrings} library.
+
+@menu
+* ffi cstrings constants::      Constant values.
+* ffi cstrings inspection::     Inspecting cstrings.
+* ffi cstrings operations::     Acting upon cstrings.
+* ffi cstrings conversion::     Converting to and from cstrings.
+* ffi cstrings argv::           Converting arrays of cstrings.
+* ffi cstrings label::          Label interface to cstrings.
+@end menu
+
+@c page
+@node ffi cstrings constants
+@subsection Constant values
+
+
+@defvr Constant empty-string
+Pointer to an empty, zero--terminated, string.
+@end defvr
+
+@c page
+@node ffi cstrings inspection
+@subsection Inspecting strings
+
+
+@defun strlen @var{pointer}
+Return the number of characters in the C string referenced by
+@var{pointer}.
+@end defun
+
+
+@defun strcmp @vari{pointer} @varii{pointer}
+@defunx strncmp @vari{pointer} @varii{pointer} @var{number-of-bytes}
+An interface to the @cfunc{strcmp} and @cfunc{strncmp} system functions.
+Compare @var{number-of-bytes} starting at @vari{pointer} and
+@varii{pointer} and return an integer having the same sign as the
+difference between the first different bytes from the blocks.  If the
+blocks are equal, the return value is zero.
+@end defun
+
+@c page
+@node ffi cstrings operations
+@subsection Acting upon cstrings
+
+
+@defun strdup @var{pointer}
+@defunx strdup @var{pointer} @var{malloc}
+Build a new C string copying the C string referenced by @var{pointer}
+and return a pointer to it.  The new string is allocated using the
+supplied @var{malloc} function, or @func{malloc} if no function is
+given.
+@end defun
+
+
+@defun strndup @var{pointer} @var{size}
+@defunx strndup @var{pointer} @var{size} @var{malloc}
+Build a new C string copying the first @var{size} bytes from the C
+string referenced by @var{pointer} and return a pointer to it.  The new
+string is allocated using the supplied @var{malloc} function, or
+@func{malloc} if no function is given.
+@end defun
+
+@c page
+@node ffi cstrings conversion
+@subsection Converting to and from cstrings
+
+
+@defun string->cstring @var{string/symbol}
+@defunx string->cstring @var{string/symbol} @var{malloc}
+@defunx string->cstring/c @var{string/symbol}
+Build and return new C string representing the Scheme
+@var{string/symbol} and return a pointer value referencing it.  The
+returned string is encoded in @acronym{UTF8} format and terminated by a
+zero byte.
+
+@func{string->cstring} allocates memory using the supplied @var{malloc}
+function, or @func{malloc} if @var{malloc} is not given.  To use a
+compensated allocation: We can use @func{malloc/c} or
+@func{malloc-block/c} as @var{malloc} argument.
+
+The conversion is performed as follows:
+
+@enumerate
+@item
+If @var{string/symbol} is a Scheme symbol, its string name is acquired
+and becomes the input string.
+
+@item
+The function @func{string->utf8} is used to convert the Scheme string
+into a bytevector holding the string representation in @acronym{UTF8}
+format.
+
+@item
+Raw memory is allocated and, byte by byte, the bytevector is duplicated
+into the memory block; a zero terminating byte is appended.
+@end enumerate
+
+@func{string->cstring/c} allocates memory using @func{malloc-block/c}.
+@end defun
+
+
+@defun cstring->string @var{cstr}
+@defunx cstring->string @var{cstr} @var{number-of-bytes}
+Build and return a new Scheme string representing @var{cstr}, which must
+be a pointer to a memory block holding a zero terminated, @acronym{UTF8}
+encoded, C language string.
+
+The conversion is performed as follows:
+
+@enumerate
+@item
+If @var{number-of-bytes} is given, that number of bytes are taken from
+the memory block; else the length of the input string is determined
+using @func{strlen}.
+
+@item
+A bytevector is allocated and, byte by byte, the string is copied into
+it.
+
+@item
+The function @func{utf8->string} is used to convert the bytevector into
+a Scheme string.
+@end enumerate
+@end defun
+
+@c ------------------------------------------------------------
+
+@defun string->memblock @var{string/symbol}
+@defunx string->memblock @var{string/symbol} @var{malloc}
+@defunx string->memblock/c @var{string/symbol}
+Build and return new record of type @class{memblock} representing the
+Scheme @var{string/symbol} and return a pointer value referencing it.
+The returned memblock represents the string encoded in @acronym{UTF8}
+format @strong{without} the trailing zero byte.
+
+@func{string->memblock} allocates memory using the supplied @var{malloc}
+function, or @func{malloc} if @var{malloc} is not given.  To use a
+compensated allocation: We can use @func{malloc/c} or
+@func{malloc-block/c} as @var{malloc} argument.
+
+The conversion is performed as follows:
+
+@enumerate
+@item
+If @var{string/symbol} is a Scheme symbol, its string name is acquired
+and becomes the input string.
+
+@item
+The function @func{string->utf8} is used to convert the Scheme string
+into a bytevector holding the string representation in @acronym{UTF8}
+format.
+
+@item
+Raw memory is allocated and, byte by byte, the bytevector is duplicated
+into the memory block.
+@end enumerate
+
+@func{string->memblock/c} allocates memory using @func{malloc-block/c}.
+@end defun
+
+
+@defun memblock->string @var{mb}
+@defunx memblock->string @var{mb} @var{number-of-bytes}
+Build and return a new Scheme string representing the @class{memblock}
+record @var{mb}, which must hold a @acronym{UTF8} encoded, C language
+string with or without the trailing zero byte.
+
+The conversion is performed as follows:
+
+@enumerate
+@item
+If @var{number-of-bytes} is given, that number of bytes are taken from
+the memory block; else the length of the input string is the size of the
+@class{memblock} itself.
+
+@item
+A bytevector is allocated and, byte by byte, the string is copied into
+it.
+
+@item
+The function @func{utf8->string} is used to convert the bytevector into
+a Scheme string.
+@end enumerate
+@end defun
+
+@c page
+@node ffi cstrings argv
+@subsection Converting arrays of cstrings
+
+
+A null--terminated array of C strings looks like this:
+
+@example
+                  -
+argv pointer ---> | pointer to string -----> C string 0
+                  -
+                  | pointer to string -----> C string 1
+                  -
+                  | pointer to string -----> C string 2
+                  -
+                  | pointer to string -----> C string 3
+                  -
+                  | null pointer
+                  -
+@end example
+
+
+@defun strings->argv @var{args}
+@defunx strings->argv @var{args} @var{malloc-func}
+Convert the list of Scheme strings and symbols in @var{args} into a
+null--terminated array of strings.  Return the pointer to the array.
+
+The array and the strings are allocated with the function
+@var{malloc-func}, or with @func{malloc} if @var{malloc-func} is not
+given.
+@end defun
+
+
+@defun argv-length @var{argv}
+Return the number of strings in the null--terminated array of strings
+referenced by the @var{argv} pointer.
+@end defun
+
+
+@defun argv->strings @var{argv}
+@defunx argv->strings @var{argv} @var{argc}
+Without the @var{argc} arguments: Convert the @cnull{}--terminated array
+of strings referenced by the @var{argv} pointer to a list of Scheme
+strings.
+
+With the @var{argc} arguments: Convert @var{argc} strings in the array
+of strings referenced by the @var{argv} pointer to a list of Scheme
+strings.
+@end defun
+
+@c page
+@node ffi cstrings label
+@subsection Label interface to cstrings
+
+
+@deftp Label @aclass{cstring}
+Label interface to pointers referencing C strings.  It is a subclass of
+@class{pointer} from @library{nausicaa ffi pointers}.
+@end deftp
+
+
+@defcv {Immutable Virtual Field} @aclass{cstring} length
+The length of the C string (which must be zero terminated).
+@end defcv
+
+
+@defmethod @aclass{cstring} string
+@defmethodx @aclass{cstring} string @var{number-of-chars}
+Return a Scheme string representing the C string; the conversion is
+performed with @func{cstring->string}.
+@end defmethod
+
+
+@deffn Syntax setf (@var{S} @var{index}) @var{int}
+@deffnx Syntax getf (@var{S} @var{index})
+Setter and getter for characters in the C string @var{S}.  @var{index}
+must be a valid index for the string.  @var{int} must be an exact
+integer in the range @math{[-127, 128]}.
+@end deffn
+
+
+@deftp Label @aclass{cstring-argv}
+Label interface to pointers referencing C string arrays.  It is a
+subclass of @class{pointer} from @library{nausicaa ffi pointers}.
+@end deftp
+
+
+@defmethod @aclass{cstring-argv} strings
+@defmethodx @aclass{cstring-argv} strings @var{number-of-strings}
+Return a list of Scheme strings representing the C strings in the array;
+the conversion is performed with @func{argv->strings}.
+@end defmethod
+
+
+@defmethod @aclass{cstring-argv} length
+Return a the number of C strings in the @cnull{}--terminated array.
+@end defmethod
+
+@c page
+@node ffi errno
+@section C language system errors
+
+
+@cindex @library{nausicaa ffi errno}, library
+@cindex Library @library{nausicaa ffi errno}
+
+
+The bindings described in this chapter are exported by the
+@library{nausicaa ffi errno} library.
+
+@menu
+* ffi errno values::            Error codes.
+* ffi errno enumerations::      Enumeration type.
+* ffi errno conversion::        Conversion of error codes.
+* ffi errno condition::         Raising exceptions.
+@end menu
+
+@c page
+@node ffi errno values
+@subsection Error codes
+
+
+@cindex @code{E2BIG}
+@cindex @code{EACCES}
+@cindex @code{EADDRINUSE}
+@cindex @code{EADDRNOTAVAIL}
+@cindex @code{EADV}
+@cindex @code{EAFNOSUPPORT}
+@cindex @code{EAGAIN}
+@cindex @code{EALREADY}
+@cindex @code{EBADE}
+@cindex @code{EBADF}
+@cindex @code{EBADFD}
+@cindex @code{EBADMSG}
+@cindex @code{EBADR}
+@cindex @code{EBADRQC}
+@cindex @code{EBADSLT}
+@cindex @code{EBFONT}
+@cindex @code{EBUSY}
+@cindex @code{ECANCELED}
+@cindex @code{ECHILD}
+@cindex @code{ECHRNG}
+@cindex @code{ECOMM}
+@cindex @code{ECONNABORTED}
+@cindex @code{ECONNREFUSED}
+@cindex @code{ECONNRESET}
+@cindex @code{EDEADLK}
+@cindex @code{EDEADLOCK}
+@cindex @code{EDESTADDRREQ}
+@cindex @code{EDOM}
+@cindex @code{EDOTDOT}
+@cindex @code{EDQUOT}
+@cindex @code{EEXIST}
+@cindex @code{EFAULT}
+@cindex @code{EFBIG}
+@cindex @code{EHOSTDOWN}
+@cindex @code{EHOSTUNREACH}
+@cindex @code{EIDRM}
+@cindex @code{EILSEQ}
+@cindex @code{EINPROGRESS}
+@cindex @code{EINTR}
+@cindex @code{EINVAL}
+@cindex @code{EIO}
+@cindex @code{EISCONN}
+@cindex @code{EISDIR}
+@cindex @code{EISNAM}
+@cindex @code{EKEYEXPIRED}
+@cindex @code{EKEYREJECTED}
+@cindex @code{EKEYREVOKED}
+@cindex @code{EL2HLT}
+@cindex @code{EL2NSYNC}
+@cindex @code{EL3HLT}
+@cindex @code{EL3RST}
+@cindex @code{ELIBACC}
+@cindex @code{ELIBBAD}
+@cindex @code{ELIBEXEC}
+@cindex @code{ELIBMAX}
+@cindex @code{ELIBSCN}
+@cindex @code{ELNRNG}
+@cindex @code{ELOOP}
+@cindex @code{EMEDIUMTYPE}
+@cindex @code{EMFILE}
+@cindex @code{EMLINK}
+@cindex @code{EMSGSIZE}
+@cindex @code{EMULTIHOP}
+@cindex @code{ENAMETOOLONG}
+@cindex @code{ENAVAIL}
+@cindex @code{ENETDOWN}
+@cindex @code{ENETRESET}
+@cindex @code{ENETUNREACH}
+@cindex @code{ENFILE}
+@cindex @code{ENOANO}
+@cindex @code{ENOBUFS}
+@cindex @code{ENOCSI}
+@cindex @code{ENODATA}
+@cindex @code{ENODEV}
+@cindex @code{ENOENT}
+@cindex @code{ENOEXEC}
+@cindex @code{ENOKEY}
+@cindex @code{ENOLCK}
+@cindex @code{ENOLINK}
+@cindex @code{ENOMEDIUM}
+@cindex @code{ENOMEM}
+@cindex @code{ENOMSG}
+@cindex @code{ENONET}
+@cindex @code{ENOPKG}
+@cindex @code{ENOPROTOOPT}
+@cindex @code{ENOSPC}
+@cindex @code{ENOSR}
+@cindex @code{ENOSTR}
+@cindex @code{ENOSYS}
+@cindex @code{ENOTBLK}
+@cindex @code{ENOTCONN}
+@cindex @code{ENOTDIR}
+@cindex @code{ENOTEMPTY}
+@cindex @code{ENOTNAM}
+@cindex @code{ENOTRECOVERABLE}
+@cindex @code{ENOTSOCK}
+@cindex @code{ENOTTY}
+@cindex @code{ENOTUNIQ}
+@cindex @code{ENXIO}
+@cindex @code{EOPNOTSUPP}
+@cindex @code{EOVERFLOW}
+@cindex @code{EOWNERDEAD}
+@cindex @code{EPERM}
+@cindex @code{EPFNOSUPPORT}
+@cindex @code{EPIPE}
+@cindex @code{EPROTO}
+@cindex @code{EPROTONOSUPPORT}
+@cindex @code{EPROTOTYPE}
+@cindex @code{ERANGE}
+@cindex @code{EREMCHG}
+@cindex @code{EREMOTE}
+@cindex @code{EREMOTEIO}
+@cindex @code{ERESTART}
+@cindex @code{EROFS}
+@cindex @code{ESHUTDOWN}
+@cindex @code{ESOCKTNOSUPPORT}
+@cindex @code{ESPIPE}
+@cindex @code{ESRCH}
+@cindex @code{ESRMNT}
+@cindex @code{ESTALE}
+@cindex @code{ESTRPIPE}
+@cindex @code{ETIME}
+@cindex @code{ETIMEDOUT}
+@cindex @code{ETOOMANYREFS}
+@cindex @code{ETXTBSY}
+@cindex @code{EUCLEAN}
+@cindex @code{EUNATCH}
+@cindex @code{EUSERS}
+@cindex @code{EWOULDBLOCK}
+@cindex @code{EXDEV}
+@cindex @code{EXFULL}
+
+It may be that not all the constants are defined on our platform, if a
+symbol is not defined the value of the corresponding variable is
+@false{}.  @value{PACKAGE} attempts to define the following symbols (in
+row--then--column alphabetical order):
+
+@example
+E2BIG               EACCES              EADDRINUSE
+EADDRNOTAVAIL       EADV                EAFNOSUPPORT
+EAGAIN              EALREADY            EBADE
+EBADF               EBADFD              EBADMSG
+EBADR               EBADRQC             EBADSLT
+EBFONT              EBUSY               ECANCELED
+ECHILD              ECHRNG              ECOMM
+ECONNABORTED        ECONNREFUSED        ECONNRESET
+EDEADLK             EDEADLOCK           EDESTADDRREQ
+EDOM                EDOTDOT             EDQUOT
+EEXIST              EFAULT              EFBIG
+EHOSTDOWN           EHOSTUNREACH        EIDRM
+EILSEQ              EINPROGRESS         EINTR
+EINVAL              EIO                 EISCONN
+EISDIR              EISNAM              EKEYEXPIRED
+EKEYREJECTED        EKEYREVOKED         EL2HLT
+EL2NSYNC            EL3HLT              EL3RST
+ELIBACC             ELIBBAD             ELIBEXEC
+ELIBMAX             ELIBSCN             ELNRNG
+ELOOP               EMEDIUMTYPE         EMFILE
+EMLINK              EMSGSIZE            EMULTIHOP
+ENAMETOOLONG        ENAVAIL             ENETDOWN
+ENETRESET           ENETUNREACH         ENFILE
+ENOANO              ENOBUFS             ENOCSI
+ENODATA             ENODEV              ENOENT
+ENOEXEC             ENOKEY              ENOLCK
+ENOLINK             ENOMEDIUM           ENOMEM
+ENOMSG              ENONET              ENOPKG
+ENOPROTOOPT         ENOSPC              ENOSR
+ENOSTR              ENOSYS              ENOTBLK
+ENOTCONN            ENOTDIR             ENOTEMPTY
+ENOTNAM             ENOTRECOVERABLE     ENOTSOCK
+ENOTTY              ENOTUNIQ            ENXIO
+EOPNOTSUPP          EOVERFLOW           EOWNERDEAD
+EPERM               EPFNOSUPPORT        EPIPE
+EPROTO              EPROTONOSUPPORT     EPROTOTYPE
+ERANGE              EREMCHG             EREMOTE
+EREMOTEIO           ERESTART            EROFS
+ESHUTDOWN           ESOCKTNOSUPPORT     ESPIPE
+ESRCH               ESRMNT              ESTALE
+ESTRPIPE            ETIME               ETIMEDOUT
+ETOOMANYREFS        ETXTBSY             EUCLEAN
+EUNATCH             EUSERS              EWOULDBLOCK
+EXDEV               EXFULL
+@end example
+
+@c page
+@node ffi errno enumerations
+@subsection Enumeration type
+
+
+@deftp {Enumeration Type} enum-errno
+Enumeration type for the @code{errno} symbols.
+@end deftp
+
+
+@deffn Syntax errno-symbols @ameta{symbol} ...
+Evaluate to an enumeration set holding the @ameta{symbol} symbols.
+@end deffn
+
+
+@deffn Syntax errno @ameta{symbol}
+Like @func{errno-symbols} but accept only one symbol as argument.
+@end deffn
+
+@c page
+@node ffi errno conversion
+@subsection Conversion of error codes
+
+
+@defun strerror @var{errno-numeric-value}
+An interface to the system @cfunc{strerror} function.  Return the string
+message coresponding to @var{errno-numeric-value}.
+@end defun
+
+
+@defun symbol->errno @var{symbol}
+@defunx symbol->errno/or-error @var{symbol}
+Attempt the conversion from an @samp{errno} symbolic value to the
+corresponding numeric value.  @func{symbol->errno} returns an integer or
+@false{} if the symbol is not defined on the underlying platform.  The
+@samp{or-error} variant raises an assertion violation if @var{symbol} is
+not an @samp{errno} symbolic value.
+@end defun
+
+
+@defun errno->symbol @var{number}
+@defunx errno->symbol/or-error @var{number}
+Attempt the conversion from an @samp{errno} numeric value to the
+corresponding symbolic value.  @func{errno->symbol} returns a symbol or
+@false{} if @var{number} is not an @samp{errno} numeric value.  The
+@samp{or-error} variant raises an assertion violation if @var{number} is
+not an @samp{errno} numeric value.
+@end defun
+
+@c page
+@node ffi errno condition
+@subsection Raising exceptions
+
+
+@deftp Condition {&errno}
+Type of condition objects that represent an error in a foreign function
+signaled with the @samp{errno} variable.  It is derived from
+@condition{error}.
+@end deftp
+
+
+@deffn {Condition Constructor} make-errno-condition @var{errno-numeric-value} @var{errno-symbolic-value}
+@deffnx {Condition Predicate} errno-condition? @var{object}
+@deffnx {Field Accessor} errno-numeric-value @var{object}
+@deffnx {Field Accessor} errno-symbolic-value @var{object}
+Functions to handle foreign system error condition objects.
+
+Fake example:
+
+@example
+(let ((errno ---))
+  (raise
+    (condition
+      (make-who-condition 'read)
+      (make-message-condition (strerror errno))
+      (make-errno-condition errno
+        (errno->symbol/or-error errno)))))
+@end example
+@end deffn
+
+
+@defun make-errno-condition* @var{errno-numeric-value}
+Wrapper for @func{make-errno-condition} that builds an @condition{errno}
+condition from the numeric value only.
+@end defun
+
+
+@defun raise-errno-error @var{who} @var{errno-numeric-value}
+@defunx raise-errno-error @var{who} @var{errno-numeric-value} @var{irritants}
+Raise a non--continuable exception representing a foreign function
+system error signaled through the @samp{errno} variable.  If
+@var{irritants} is not given, the condition object has no
+@condition{irritants} component.
+
+The following form:
+
+@example
+(let ((errno ---)
+      (pathname ---))
+  (raise-errno-error 'write errno pathname))
+@end example
+
+@noindent
+is equivalent to:
+
+@example
+(raise
+  (condition (make-who-condition 'write)
+             (make-message-condition (strerror errno))
+             (make-errno-condition* errno)
+             (make-irritants-condition pathname)))
+@end example
+@end defun
+
+
+@defun raise-errno-error/continuable @var{who} @var{errno-numeric-value}
+@defunx raise-errno-error/continuable @var{who} @var{errno-numeric-value} @var{irritants}
+Like @func{raise-errno-error}, but raise a continuable exception.  This
+is occasionally useful with particular error codes like @samp{E2BIG}.
+@end defun
+
+@c end of file

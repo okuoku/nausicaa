@@ -1,4 +1,4 @@
-;;; -*- coding: utf-8-unix -*-
+;;; -*- coding: utf-8 -*-
 ;;;
 ;;;Part of: Nausicaa/Scheme
 ;;;Contents: proofs for the classes library
@@ -25,8 +25,9 @@
 ;;;
 
 
+#!r6rs
 (import (rnrs)
-  (classes))
+  (nausicaa language classes))
 
 (define check-count		0)
 (define check-success-count	0)
@@ -116,6 +117,46 @@
     => '(1 2))
 
   #f)
+
+
+;;;; with-class
+
+(let ()		;type violation
+
+  (define-class <alpha>
+    (fields a))
+
+  (check
+      (guard (E ((assertion-violation? E)
+		 (write (list (condition-message E) (condition-irritants E)))(newline)
+		 #t)
+		(else E))
+
+	(let ((o 1))
+	  (with-class ((o <alpha>))
+	    o.a)))
+    => #t)
+
+  #f)
+
+
+;;;; lambda with classes
+
+(let ((f (lambda/with-class (a)
+	   a)))
+  (check (f 123) => 123)
+  #f)
+
+(let ((f (lambda/with-class ((a <integer>))
+	   a.positive?)))
+  (check (f 123) => #t)
+  #f)
+
+(let ((f (lambda/with-class ((a <integer>) b)
+	   (list a.positive? b))))
+  (check (f 1 2) => '(#t 2))
+  #f)
+
 
 
 ;;;; done

@@ -1,0 +1,34 @@
+@node debugging
+@chapter Debugging utilities
+
+
+@cindex @library{nausicaa debugging}, library
+@cindex Library @library{nausicaa debugging}
+
+
+The @library{nausicaa debugging} library provide simple utilities to
+help debugging.  All the following bindings are re--exported by the
+@library{nausicaa checks} library.
+
+
+@deffn Parameter debugging
+When set to true @func{debug} will print its message.  It is initialised
+to @false{}.
+@end deffn
+
+
+@defun debug @var{string}
+@defunx debug @var{format-string} @var{arg} ...
+If the @code{debugging} parameter is set to true, print @var{string} to
+the current error port, or hand @var{format-string} and the optional
+@var{arg} values to @func{format} and print the result to the current
+error port.
+@end defun
+
+
+@defun debug-print-condition @var{message} @var{exc}
+A wrapper for @func{debug} that prints @var{message} and does its best
+to print @var{exc}, which must be a Scheme condition value.
+@end defun
+
+@c end of file

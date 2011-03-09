@@ -1,0 +1,82 @@
+@node variables
+@chapter Defining storage locations
+
+
+@cindex @library{nausicaa variables}, library
+@cindex Library @library{nausicaa variables}
+
+
+The @library{nausicaa variables} library provides a way to define simple
+storage locations similar to the variables used in many languages.  The
+@dfn{variable} type of value is disjoint from the other types.
+
+
+@defun make-variable
+@defunx make-variable @var{obj}
+Build and return a new variable value.  The variable is initialised to
+@var{obj}, which defaults to the sentinel.  @nauref{sentinel, The
+sentinel value}
+@end defun
+
+
+@defun variable? @var{obj}
+Return @true{} if @var{obj} is a variable value.
+@end defun
+
+
+@defun variable-set! @var{variable} @var{obj}
+@defunx variable-ref @var{variable}
+Setter and getter for variables.
+@end defun
+
+
+It is possible to access variables' slots using identifier syntaxes:
+
+@example
+(define-syntax define-variable
+  (syntax-rules ()
+    ((_ ?name)
+     (define-variable/test ?name sentinel))
+    ((_ ?name ?value)
+     (define ?name (make-variable ?value)))))
+
+(define-syntax v
+  (identifier-syntax
+     (_
+      (variable-ref  the-var))
+     ((set! _ ?e)
+      (variable-set! the-var ?e))))
+
+(define-variable the-var 123)
+
+v @result{} 123
+(set! v 456)
+v @result{} 456
+@end example
+
+@noindent
+a more sophisticated of this is the @func{define-variable} syntax
+exported by @library{nausicaa variables}.
+
+
+@deffn Syntax define-variable @var{name}
+@deffnx Syntax define-variable @var{name} @var{obj}
+@deffnx Syntax define-variable (@var{name} . @meta{formals}) @meta{body}
+Like @func{define}, but stores the value in a newly built variable which
+is then bound to @var{name}.  Example:
+
+@example
+(define-variable the-var 123)
+
+v @result{} 123
+(set! v 456)
+v @result{} 456
+@end example
+
+The difference between @func{define-syntax} and @func{define}, is that
+@func{define} only defines a binding which cannot be modified, while
+@func{define-syntax} allocates a storage location, so the value bound to
+@var{name} can be modified at will.
+@end deffn
+
+@c end of file

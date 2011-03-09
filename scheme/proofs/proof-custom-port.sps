@@ -23,6 +23,7 @@
 ;;;
 
 
+#!r6rs
 (import (rnrs)
   (rnrs mutable-strings))
 

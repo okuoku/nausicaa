@@ -1,0 +1,450 @@
+@node nausicaa
+@chapter The @library{nausicaa} language
+
+
+This chapter describes the @library{nausicaa} language and its
+differences from the @library{rnrs} language.  To use the nausicaa
+language, we put @library{nausicaa} in place of @library{rnrs} as first
+import specification:
+
+@example
+(import (nausicaa))
+@end example
+
+@menu
+* nausicaa libs::               Component libraries.
+* nausicaa functions::          Normalised functions.
+* nausicaa syntax::             Extended syntaxes.
+* nausicaa environment::        Accessing environment variables.
+* nausicaa infix::              Infix to prefix notation conversion.
+* nausicaa mutable-pairs::      Mutable pairs.
+* nausicaa mutable-strings::    Mutable strings.
+@end menu
+
+@c page
+@node nausicaa libs
+@section Component libraries
+
+
+Unless otherwise specified, the @library{nausicaa} library reexports all
+the bindings from the following libraries:
+
+@table @library
+@item nausicaa language cond-expand
+Feature--based conditional expansion; provides the @func{cond-expand}
+syntax (@pxref{cond-expand, Feature--based conditional expansion}).
+
+@item nausicaa language unimplemented
+Definition of the condition object type @condition{unimplemented}
+(@pxref{unimplemented, Unimplemented error condition}).
+
+@item nausicaa language conditions
+Provides basic condition types and utilities for condition types
+definition (@pxref{conditions, More condition types}).
+
+@item nausicaa language extension
+Simple language extensions, mostly syntaxes (@pxref{lang, Simple
+language extensions}).  Notice that @func{receive} and @func{do*} are
+@strong{not} reexported, rather the corresponding bindings from
+@library{classes} are used and renamed to @func{receive} and @func{do*}.
+
+@item nausicaa language pretty-print
+Provides the @func{pretty-print} function (@pxref{pretty-print, Pretty
+printing}).
+
+@item nausicaa language parameters
+Parameter objects (@pxref{parameters, Parameter objects}).
+
+@item nausicaa language shared-structures
+Reading and writing shared structures (@pxref{shared-structures,
+External representation for data with shared structure}).
+
+@item nausicaa language sentinel
+Sentinel values (@pxref{sentinel, The sentinel value}).
+
+@item nausicaa language makers
+Defining functions and macros with optional arguments (@pxref{makers,
+Maker syntaxes}).
+
+@item nausicaa language classes
+Provides record type extensions (@pxref{classes, Record utilities}).
+Notice that @func{receive/with-class} and @func{do*/with-class} are
+reexported with their name and also as @func{receive} and @func{do*}.
+
+@item nausicaa language generics
+Provides generic functions (@pxref{generics, Multimethod dispatching}).
+
+@item nausicaa language compensations
+Compensation stacks (@pxref{compensations, Compensation stacks}).
+
+@item nausicaa language deferred-exceptions
+Handling deferred exceptions (@pxref{deferred exceptions, Deferred
+exceptions}).
+
+@item nausicaa language matches
+Pattern matching (@pxref{matches, Pattern matching}).
+
+@item nausicaa language printf
+Simple string formatting (@pxref{printf, Simple string formatting}).
+@end table
+
+@c page
+@node nausicaa functions
+@section Normalised functions
+
+
+@defun = @var{x} ...
+An extension of the @rnrs{6} @func{=} function that also accepts zero
+and one arguments.  When called with no arguments, return @true{}.  When
+called with one argument, return the result of comparing it with itself.
+@end defun
+
+
+@defun non-negative? @var{x}
+@defunx non-positive? @var{x}
+Return @true{} if @var{x} is strictly positive or strictly negative.
+@end defun
+
+
+@defun finite? @var{z}
+@defunx infinite? @var{z}
+@defunx nan? @var{z}
+Wrappers for the functions defined by @rnrs{6} that apply the predicate
+to both the real and imaginary parts of @var{z}.
+
+The specifications of the @rnrs{6} functions mandates that the argument
+can only be a real number.
+@end defun
+
+
+@defun max @var{arg} ...
+Like @func{max} defined by @rnrs{6}, but if an argument is
+not--a--number: The result is not--a--number.  This changes the
+behaviour of some Scheme implementations under which:
+
+@example
+(max 1 +nan.0) @result{} 1.0
+@end example
+@end defun
+
+
+@defun * @var{arg} ...
+Like @func{*} defined by @rnrs{6}, but if an argument is not--a--number:
+The result is not--a--number.  This changes the behaviour of some Scheme
+implementations under which:
+
+@example
+(* 0 +nan.0) @result{} 0
+@end example
+
+@noindent
+because, for those implementations, whatever number object multiplied by
+exact zero is exact zero.
+@end defun
+
+
+@defun {symbol*->string} @var{obj}
+Convert the symbol or string @var{obj} to a string.  If @var{obj} is a
+string return it, else apply @func{symbol->string} to it and return the
+result.
+@end defun
+
+
+@defun {symbol->string/maybe} @var{obj}
+If @var{obj} is a symbol: Convert it to string and return the result;
+else if it is a string, return it.  If it is neither a string nor a
+symbol: Raise an assertion violation.
+@end defun
+
+@c page
+@node nausicaa syntax
+@section Extended syntaxes
+
+
+The following syntaxes:
+
+@example
+define
+lambda                  case-lambda
+let                     let*
+letrec                  letrec*
+do
+@end example
+
+@noindent
+from @library{rnrs} are replaced by the following syntaxes from
+@library{nausicaa language classes}:
+
+@example
+define/with-class
+lambda/with-class        case-lambda/with-class
+let/with-class           let*/with-class
+letrec/with-class        letrec*/with-class
+do/with-class
+@end example
+
+@noindent
+the original bindings from @library{nausicaa language classes} are still
+exported by @library{nausicaa}.
+
+The @func{assert} syntax is redefined to be the one exported by the
+@library{nausicaa language assertions} library.
+
+@c page
+@node nausicaa environment
+@section Accessing environment variables
+
+
+Most operating systems provide a mechanism for passing auxiliary
+parameters implicitly to child processes.  Usually, this mechanism is
+called ``the environment'', and is conceptually a map from string names
+to string values.  The string names are called environment variables.
+
+Some applications rely on environment variables to modify their behavior
+according to local settings.  Also, various established protocols rely
+on environment variables as a form of interprocess communication.
+
+
+@deffn Procedure get-environment-variable @var{name}
+Return the value of the named environment variable as a string, or
+@false{} if the named environment variable is not found.  The name
+argument is expected to be a string.  @func{get-environment-variable}
+may use locale--setting information to encode the name and decode the
+value of the environment variable.  If the value cannot be decoded, an
+exception may be raised.
+
+@example
+(get-environment-variable "PATH")
+@result{} "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin"
+@end example
+@end deffn
+
+
+@deffn Procedure get-environment-variables
+Return names and values of all the environment variables as an alist.
+The same decoding considerations as for @func{get-environment-variable}
+apply.
+
+@example
+(get-environment-variables)
+@result{} (("PATH" .
+     "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin")
+    ("USERNAME" . "taro"))
+@end example
+@end deffn
+
+@c page
+@node nausicaa infix
+@section Infix to prefix notation conversion
+
+
+The following bindings are exported by the @library{nausicaa language
+infix} library and reexported by the @library{nausicaa} library.
+
+
+@deffn Syntax infix @ameta{atom} ...
+Expand to a prefix expression to be evaluated at runtime, in the lexical
+context of the macro use; as a special case @code{(infix)} is equivalent
+to @code{(values)}.  The syntax allows us to evaluate forms like:
+
+@example
+(let ((a 1) (b 2) (c 3))
+
+  (infix cos (a) * tan (b) / c)
+  @expansion{} (/ (* (cos a) (tan b)) c)
+
+  (infix (cos (a) * tan (b) / c))
+  @expansion{} (/ (* (cos a) (tan b)) c)
+
+  (infix a ? b : c)
+  @expansion{} (if a b c)
+
+  #f)
+@end example
+
+Some interpretation rules:
+
+@itemize
+@item
+The following infix operators are supported, in order of increasing
+precedence from left to right:
+
+@example
++ - * / div // div0 mod mod0 % expt ^ < > <= >= =
+@end example
+
+@noindent
+remember that the Scheme comparison operators are meant to return a
+boolean value, rather than a number object.  @samp{//} is an alias for
+@func{div}, @samp{%} is an alias for @func{mod}, @samp{^} is an alias
+for @func{expt}.  The recognised operators are bindings from both the
+@library{rnrs} and @library{nausicaa} libraries; @samp{//}, @samp{%} and
+@samp{^} should be free identifiers.
+
+@item
+The if--then--else statement involves the special symbols @code{?} and
+@code{:} which should be free identifiers.  This statement has the least
+precedence of all.
+
+@item
+Any Scheme value part of the input form.
+
+@item
+Identifiers which are not operators are interpreted as variable
+references; if an identifier is followed by a list, it is a function
+call.
+
+@item
+Function calls with one or more arguments require the arguments to be
+grouped in a list; there is no special separator in the list of
+arguments.
+
+@example
+(define (fun a b c)
+  (+ a b c))
+
+(infix fun (1 2 3)) @expansion{} (fun 1 2 3)
+
+(infix fun(1 2 3))  @expansion{} (fun 1 2 3)
+@end example
+
+Notice that grouping the function arguments in a list is a requirement
+of the infix expressions grammar.
+
+@item
+Numbers and all ``the other'' values are just put there as operands.
+
+@item
+As a special exception: the binding @func{begin} from @library{rnrs} is
+recognised in the input form and allows us to nest prefix--notation
+expressions.
+
+@example
+(infix (begin (+ 1 2)))
+@result{} 3
+
+(infix (begin
+         (let ((a 3))
+           (/ a 4))))
+@result{} 3/4
+
+(let ((a 3))
+  (infix (begin (/ a 4))))
+@result{} 3/4
+
+(let ((a 1) (b 2) (c 3))
+  (infix (1 + a ? (begin
+                    (+ 2 b))
+                : 3 + c - 4))
+  @expansion{} (if (+ 1 a)
+          (begin (+ 2 b))
+        (- (+ 3 c) 4))
+  #f)
+@end example
+@end itemize
+@end deffn
+
+@c page
+@node nausicaa mutable-pairs
+@section Mutable pairs
+
+
+The library @library{nausicaa mutable-pairs} defines a label interface
+for mutable pairs and also reexports all the bindings from
+@rsixlibrary{mutable-pairs}.
+
+
+@deftp Label @aclass{mutable-pair}
+Label for handling mutable pairs through the facilities of the
+@library{nausicaa language classes} library.
+@end deftp
+
+
+@defcv {Mutable Virtual Field} @aclass{mutable-pair} car
+Access and mutate the car of a pair.
+@end defcv
+
+
+@defcv {Mutable Virtual Field} @aclass{mutable-pair} cdr
+Access and mutate the cdr of a pair.
+@end defcv
+
+
+@deffn Syntax {make @aclass{mutable-pair}} @var{car} @var{cdr}
+Build and return a new pair using @func{cons}.
+@end deffn
+
+
+@deffn Syntax {is-a? @var{obj} @aclass{mutable-pair}}
+Evaluate to true if @var{obj} is a pair.
+@end deffn
+
+
+Examples:
+
+@example
+(import (nausicaa) (nausicaa mutable-pairs))
+
+(let-make ((p <mutable-pair> 1 2))
+  (is-a? p <mutable-pair>))
+@result{} #t
+
+(let-make ((p <mutable-pair> 1 2))
+  p.car @result{} 1
+  p.cdr @result{} 2
+  )
+
+(let-make ((p <mutable-pair> 1 2))
+  (set! p.car 3)
+  p)
+@result{} (3 . 2)
+
+(let-make ((p <mutable-pair> 1 2))
+  (set! p.cdr 3)
+  p)
+@result{} (1 . 3)
+@end example
+
+@c page
+@node nausicaa mutable-strings
+@section Mutable strings
+
+
+The library @library{nausicaa mutable-strings} defines a label interface
+for mutable strings and also reexports all the bindings from
+@rsixlibrary{mutable-strings}.
+
+
+@deftp Label @aclass{mutable-string}
+Label for handling mutable strings through the facilities of the
+@library{nausicaa language classes} library.  Derived from
+@class{string}, inherits all its methods and fields.
+@end deftp
+
+
+@deffn Syntax {make @aclass{mutable-string}} @var{char} ...
+Build and return a new string using @func{string}.
+@end deffn
+
+
+@deffn Syntax {is-a? @var{obj} @aclass{mutable-string}}
+Evaluate to true if @var{obj} is a string.
+@end deffn
+
+
+@defmethod @aclass{mutable-string} set! @var{position} @var{char}
+Store @var{char} at @var{position} in the string.
+@end defmethod
+
+
+@defmethod @aclass{mutable-string} fill! @var{char}
+Store @var{char} in every element of the string.
+@end defmethod
+
+
+@deffn Syntax setf (@var{o} @var{index}) @var{char}
+Store @var{char} at @var{index} of the string @var{o}.  @var{index} is
+an expression.
+@end deffn
+
+@c end of file

@@ -17,15 +17,16 @@ set -x
     --config-cache                              \
     --with-abi=local-slackware                  \
     --enable-use-sudo                           \
-    --enable-ikarus                             \
-    --disable-larceny                           \
     --enable-mosh                               \
     --enable-petite                             \
     --enable-vicare                             \
-    --disable-ypsilon                            \
+    --disable-ypsilon                           \
     --enable-binfmt                             \
     --enable-doc-ps                             \
     --enable-time-tests                         \
     "$@"
+
+#    --enable-ikarus
+#    --disable-larceny
 
 ### end of file

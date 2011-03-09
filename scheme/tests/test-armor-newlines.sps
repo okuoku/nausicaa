@@ -26,8 +26,8 @@
 
 
 (import (nausicaa)
-  (armor newlines)
-  (checks))
+  (nausicaa armor newlines)
+  (nausicaa checks))
 
 (check-set-mode! 'report-failed)
 (display "*** testing armor newlines\n")

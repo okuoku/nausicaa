@@ -1,0 +1,166 @@
+@node overview
+@chapter Overview of the distribution
+
+
+@value{PACKAGE} is a set of Scheme libraries defining a slightly
+modified @rnrs{6} Scheme language and augmenting the features of the
+base and standard @rnrs{6} libraries.  To use it when writing a library
+or program, we import @library{nausicaa} in place of @library{rnrs}:
+
+@example
+(import (nausicaa)
+  ---)
+@end example
+
+@noindent
+the only way to use the @library{nausicaa} library is as language
+definition, if we try to import both @library{nausicaa} and @library{rnrs}
+conflicts may arise.
+
+@menu
+* overview implementation::     Supported implementations.
+* overview porting::            On writing portable code.
+* overview libraries::          Other libraries.
+* overview binfmt::             Launching Scheme programs directly.
+@end menu
+
+@c page
+@node overview implementation
+@section Supported implementations
+
+
+@value{PACKAGE} supports the following Scheme implementations:
+
+@table @strong
+@c @item Ikarus
+@c It is an almost @rnrs{6} compliant implementation of the Scheme
+@c programming language.  It is the creation of Abdulaziz Ghuloum.
+
+@c @center @url{http://launchpad.net/ikarus}
+
+@c @item Larceny
+@c It is an also @rnrs{6} compliant implementation of the Scheme
+@c programming language.  It is the creation of William D.  Clinger, Lars T
+@c Hansen and Lightship Software, Incorporated, with contributions by other
+@c people.
+
+@c @center @url{http://www.ccs.neu.edu/home/will/Larceny/}
+
+@c Larceny's support does @strong{not} include the foreign--functions
+@c interface.
+
+@item Mosh
+It is an @rnrs{6} compliant implementation of the Scheme programming
+language.  It is the creation of Taro Minowa (higepon).
+
+@center @url{http://code.google.com/p/mosh-scheme/}
+
+@item Ypsilon
+It is an @rnrs{6} compliant implementation of the Scheme programming
+language.  It is the creation of Yoshikatsu Fujita at LittleWing
+Company.
+
+@center @url{http://code.google.com/p/ypsilon/}
+
+@item Petite Chez
+It is an @rnrs{6} compliant implementation of the Scheme programming
+language.  It is produced by Cadence Research Systems.
+
+@center @url{http://www.scheme.com/}
+
+Petite's support does @strong{not} include the foreign--functions
+interface.
+
+@item Vicare Scheme
+It is an almost @rnrs{6} compliant implementation of the Scheme
+programming language, forked from Ikarus Scheme.  Originally, Ikarus is
+the creation of Abdulaziz Ghuloum.
+
+@center @url{http://github.com/marcomaggi/vicare/}
+@end table
+
+@c page
+@node overview porting
+@section On writing portable code
+
+
+Some Scheme implementation defines itself as @rnrs{6} compliant, but
+then does not provide a compliant implementation of some of the
+features.  Also, the @rnrs{6} language has some limitations and
+underspecifications.
+
+@value{PACKAGE} tries, through the @library{nausicaa} language, to fill
+some (not all) of the gaps and to provide a base language to write
+portable programs among the supported Scheme implementations.
+
+@library{nausicaa} has the following purposes:
+
+@itemize
+@item
+To make available all the bindings from @library{rnrs}.
+
+@item
+To make self--defining @rnrs{6} Scheme implementations more @rnrs{6}
+compliant, in the sense of ``programs that work''.  This means, for
+example: If an underlying implementation does not provide a requested
+function, @library{nausicaa} tries to provide a working replacement.
+
+@item
+To offer by default some features from the @srfi{} libraries which where
+voted to @emph{final} status.  It may be that those features are
+redefined or extended.
+
+@item
+To change the specification of some function to make it more usable.
+@end itemize
+
+This document describes the features of the @rnrs{6} language by
+embedding the original @rnrs{6} documents; these specifications are
+available in the chapters:
+
+@itemize -
+@item
+@ref{scheme,The Scheme language}.
+
+@item
+@ref{baselib,Base library}.
+
+@item
+@ref{stdlib,Standard libraries}.
+@end itemize
+
+@noindent
+the features of @library{nausicaa} that extend the @library{rnrs} language
+are described in the chapter @ref{nausicaa,The augmented language}.
+
+
+@c page
+@node overview libraries
+@section Other libraries
+
+
+In addition to the focus on code portability among @rnrs{6} Scheme
+implementations, the Nausicaa distribution is concerned to provide a
+good base of features and interfaces to foreign libraries (mostly coded
+in the C language).
+
+With these purposes, @value{PACKAGE} installs libraries implementing,
+reimplementing or extending some of the @srfi{}s that were voted to
+@emph{final} status, and providing a unified @api{} to the foreign
+functions interfaces of the underlying implementations.
+
+@c page
+@node overview binfmt
+@section Launching Scheme programs directly
+
+
+The appendix @ref{binfmt,Launching programs directly} describes an
+optional feature of @value{PACKAGE} that activates Scheme programs
+execution through the mechanism of the @code{binfmt_misc} Linux kernel
+module.  It is available only on Unix--like platforms running the Linux
+kernel.
+
+@c end of file
+@c Local Variables:
+@c mode: texinfo
+@c End:

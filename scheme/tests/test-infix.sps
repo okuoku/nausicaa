@@ -25,10 +25,11 @@
 ;;;
 
 
+#!r6rs
 (import (nausicaa)
   (prefix (only (rnrs) + - * / < > <= >= =) rnrs:)
-  (infix)
-  (checks))
+  (nausicaa infix)
+  (nausicaa checks))
 
 (check-set-mode! 'report-failed)
 (display "*** testing infix\n")

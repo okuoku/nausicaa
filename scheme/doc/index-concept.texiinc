@@ -1,0 +1,6 @@
+@node concept index
+@appendix An entry for each concept
+
+@printindex cp
+
+@c end of file

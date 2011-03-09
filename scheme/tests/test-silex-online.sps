@@ -24,10 +24,11 @@
 ;;;
 
 
+#!r6rs
 (import (nausicaa)
-  (checks)
-  (silex)
-  (silex lexer)
+  (nausicaa checks)
+  (nausicaa silex)
+  (nausicaa silex lexer)
   (silex-test))
 
 (check-set-mode! 'report-failed)
@@ -97,14 +98,14 @@ cparen		\\)
 
 
 
-(test-calc (lex (:input-string l) (:output-value #t)
-		(:lexer-format 'decision-tree)))
+(test-calc (lex (input-string: l) (output-value: #t)
+		(lexer-format: 'decision-tree)))
 
-(test-calc (lex (:input-string l) (:output-value #t)
-		(:lexer-format 'code)))
+(test-calc (lex (input-string: l) (output-value: #t)
+		(lexer-format: 'code)))
 
-(test-calc (lex (:input-string l) (:output-value #t)
-		(:lexer-format 'portable)))
+(test-calc (lex (input-string: l) (output-value: #t)
+		(lexer-format: 'portable)))
 
 
 ;;;; done

@@ -27,8 +27,9 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
+#!r6rs
 (import (rnrs)
-  (silex))
+  (nausicaa silex))
 
 
 (define l "
@@ -100,19 +101,19 @@ cparen		\\)
 
 (define lp (open-string-input-port l))
 
-(lex (:input-file lexer-file) (:output-file tree-file)
-     (:library-spec "(calc-tree-lexer)")
-     (:table-name 'calc-lexer-table/tree))
+(lex (input-file: lexer-file) (output-file: tree-file)
+     (library-spec: "(calc-tree-lexer)")
+     (table-name: 'calc-lexer-table/tree))
 
 
-(lex (:input-string l) (:output-file code-file)
-     (:lexer-format 'code)
-     (:library-spec "(calc-code-lexer)")
-     (:table-name 'calc-lexer-table/code))
+(lex (input-string: l) (output-file: code-file)
+     (lexer-format: 'code)
+     (library-spec: "(calc-code-lexer)")
+     (table-name: 'calc-lexer-table/code))
 
-(lex (:input-port lp) (:output-file portable-file)
-     (:lexer-format 'portable)
-     (:library-spec "(calc-portable-lexer)")
-     (:table-name 'calc-lexer-table/portable))
+(lex (input-port: lp) (output-file: portable-file)
+     (lexer-format: 'portable)
+     (library-spec: "(calc-portable-lexer)")
+     (table-name: 'calc-lexer-table/portable))
 
 ;;; end of file

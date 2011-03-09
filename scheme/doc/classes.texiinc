@@ -1,0 +1,4226 @@
+@node classes
+@chapter Record utilities
+
+
+@cindex @library{nausicaa language classes}, library
+@cindex Library @library{nausicaa language classes}
+
+
+The @library{nausicaa language classes} library is an alternative to the
+@rsixlibrary{records syntactic} library; it is built upon
+@rsixlibrary{records procedural} but adds some features like dot
+notation to access fields.
+
+The library is designed to work with class type definitions imported for
+the @code{run} phase.  The facilities of the library work only on
+records of type defined with @func{define-class}.
+
+@library{nausicaa language classes} makes use of bindings from the
+@library{nausicaa language auxiliary-syntaxes} library and reexports the
+ones it uses as auxiliary syntaxes in the class definition clauses.
+
+@menu
+* classes define::              Defining new class types.
+* classes make::                Record makers.
+* classes pred::                Record type predicates.
+* classes inspect::             Class and instance inspection.
+* classes slots::               Accessors and mutators.
+* classes mixins::              Defining and composing mixins.
+* classes dot::                 Using dot notation.
+* classes builtin::             Conventional type descriptors.
+* classes properties::          Class, label, mixin properties.
+@end menu
+
+@c page
+@node classes define
+@section Defining new class types
+
+
+@cindex Class type
+@cindex Label type
+@cindex Type, class
+@cindex Type, label
+
+
+A @dfn{class type}, as defined by the @library{nausicaa language
+classes} library, is a regular record type as defined by
+@rsixlibrary{records procedural}, with the constraint of being
+nongenerative; new class types are defined by
+@c @func{define-class} and @func{define-foreign-class}, which generate
+@func{define-class} which generates auxiliary syntaxes to allow for
+virtual fields, methods, dot notation and multiple construction
+protocols.
+
+A @dfn{label type}, as defined by the @library{nausicaa language
+classes} library, is a special interface to the syntaxes which define
+dot notation for virtual fields and methods: it is applicable to any
+value, not just records and it is @strong{not} associated to a record
+type as defined by @rsixlibrary{records procedural}.  Labels are defined
+by @func{define-label}.
+
+@menu
+* classes define class::        Defining class types.
+* classes define inherit::      Defining hierarchies of classes.
+* classes define protocol::     Defining constructor protocols.
+* classes define maker::        Defining class makers.
+* classes define custom-maker:: Defining custom class makers.
+* classes define predicate::    Defining class predicates.
+* classes define virtual::      Defining classes having virtual
+                                fields.
+* classes define tagged::       Fields tagged for dot notation.
+* classes define method::       Defining classes having methods.
+* classes define setter::       Defining classes having custom
+                                setters and getters.
+* classes define bindings::     Defining classes having custom
+                                bindings.
+* classes define labels::       Defining labels.
+* classes define mixins::       Composing with mixins.
+* classes define satisfy::      Verifying definition constraints.
+@end menu
+
+@c page
+@node classes define class
+@subsection Defining class types
+
+
+@cindex Class types definition
+@cindex Definition, class types
+@c @cindex Foreign class types definition
+@c @cindex Definition, Foreign class types
+
+
+@defmac define-class @var{name-spec} @var{class-clause} ...
+Define a new record type satisfying the constraints of a class
+definition; expand to a regular record type definition using
+@rsixlibrary{records procedural} and some additional syntax definitions
+used by the @library{nausicaa language classes} library.
+
+The arguments are compatible with the ones of @func{define-record-type}:
+every regular record type definition can be turned into a class
+definition simply by changing @func{define-record-type} into
+@func{define-class}.  In addition to all the clauses of
+@func{define-record-type}, the @var{class-clause} arguments can be the
+auxiliary syntaxes described in this section.
+
+If none of the @var{class-clause} arguments is a @func{inherit} or
+@func{parent} or @func{parent-rtd} syntax, the clause @code{(inherit
+<top>)} is added to the record definition.  @ref{classes builtin base,
+Basic conventional @rtd{}s}.
+
+If none of the @var{class-clause} arguments is a @func{nongenerative}
+syntax, the clause @code{(nongenerative)} is added to the record
+definition; however, notice that it is unsafe to use automatically
+generated @acronym{UID}s, it is better and useful to explicitly select a
+unique identifier.
+@end defmac
+
+
+@c @defmac define-foreign-class @var{name-spec} @var{class-clause} ...
+@c Like @func{define-class}, but inserts a @func{public-protocol} clause
+@c and a @func{maker-protocol} clause whose constructors raise an assertion
+@c violation if called.  Foreign classes are not meant to be instantiated,
+@c their purpose is only to provide virtual fields and methods to instances
+@c of other types; for example: all the classes for builtin types are
+@c foreign.
+
+@c Foreign classes can be used in the hierarchy of concrete classes:
+@c foreign classes can have a proper superclass constructor protocol.
+@c foreign classes can be used to dispatch generic functions defined by
+@c the @library{nausicaa language generics} library.
+
+@c It is meaningful, but not mandatory, to define a foreign class only if
+@c we use the @func{predicate} clause described below; else there is no way
+@c to establish if an object matches the type of a foreign class.
+
+@c Foreign classes can have virtual fields and methods; it is a syntax
+@c violation to declare concrete fields in the body of a foreign class
+@c definition.
+@c @end defmac
+
+@c page
+@node classes define inherit
+@subsection Defining hierarchies of classes
+
+
+@cindex Defining inheritance for class types
+@cindex Class types, defining inheritance
+@cindex Inheritance, class types
+
+
+Inheritance (or subclassing) is driven by the following clauses:
+
+@table @func
+@item inherit
+Makes a class a subtype of another class.
+
+@item parent
+Makes a class a subtype of a record type.
+
+@item parent-rtd
+Makes a class a subtype of a record type.
+@end table
+
+@noindent
+only one among @func{inherit}, @func{parent} and @func{parent-rtd} can
+be used at once.
+
+
+@deffn {Auxiliary Syntax} inherit @var{class-name}
+@deffnx {Auxiliary Syntax} inherit @var{class-name} (@var{option} ...)
+Make the class type of the enclosing definition a subtype of
+@var{class-name}; it is @strong{not} possible to mimic what
+@func{inherit} does using @func{parent} or @func{parent-rtd}.
+
+The concrete fields of the superclass are always included in the class
+type, making the underlying superclass record type a parent of the new
+class record type.  The optional list of options allows us to select
+which members of the superclass are accessible through the dot notation
+implemented by the @func{with-class} syntax.
+
+A missing or empty list of options means expose everything: concrete
+fields, virtual fields, methods, setter and getter; each @var{option}
+argument can be one among:
+
+@table @code
+@item all
+@itemx everything
+Expose everything: concrete fields, virtual fields, methods, setter and
+getter.
+
+@item dry
+@itemx nothing
+Expose nothing: only the members of the new class type are accessible
+through dot notation.
+
+@item concrete-fields
+@itemx no-concrete-fields
+Include or exclude the concrete fields.
+
+@item virtual-fields
+@itemx no-virtual-fields
+Include or exclude the virtual fields.
+
+@item fields
+@itemx no-fields
+Include or exclude both the concrete and virtual fields.
+
+@item methods
+@itemx no-methods
+Include or exclude the methods.
+
+@item setter-and-getter
+@itemx no-setter-and-getter
+Include or exclude the setter and getter.
+@end table
+
+Options state is accumulated from the options list in left to right
+order, starting from the ``all exposed'' state; so the following lists
+of options are equivalent:
+
+@example
+(nothing virtual-fields methods)
+(nothing fields methods no-concrete-fields)
+(all no-concrete-fields no-setter-and-getter)
+@end example
+@end deffn
+
+@c page
+@node classes define protocol
+@subsection Defining constructor protocols
+
+
+The following constructor descriptors are be built by
+@func{define-class}: the @dfn{public constructor} is used when
+instantiating a class through the @func{make*} macro; the
+@dfn{superclass constructor} is used when instantiating a subclass, it
+is the function handed as argument to the subclass' protocol function;
+the @dfn{from--fields constructor} is automatically generated to be used
+by the @func{make-from-fields} macro and it builds instances from raw
+field values.
+
+Additionally another constructor can be optionally defined: the
+@dfn{maker constructor} to be used by the maker specified with the
+@code{maker} clause and the high--level macro @func{make}; @ref{classes
+define maker} for details on the maker constructor.
+
+@c The @func{define-foreign-class} macro defines only the superclass and
+@c the from--fields constructors.
+
+The superclass and public constructors are built using the parent's
+superclass constructor descriptor:
+
+@itemize
+@item
+When inheritance is specified through the @func{inherit} clause: the
+superclass constructor is acquired with
+@func{class-superclass-constructor-descriptor} applied to the superclass
+name (or an equivalent operation).
+
+@item
+When inheritance is specified through the @func{parent} clause: the
+superclass constructor is acquired with
+@func{record-constructor-descriptor} applied to the record type name.
+
+@item
+When inheritance is specified through the @func{parent-rtd} clause: the
+superclass constructor is the one directly specified in the clause.
+@end itemize
+
+
+@deffn {Auxiliary Syntax} protocol @var{expression}
+Select the default constructor protocol function for all the other
+constructors; when not used: the default protocol is the one
+automatically provided by @func{make-record-constructor-descriptor} when
+invoked with the @var{protocol} argument set to @false{}.
+@end deffn
+
+
+@deffn {Auxiliary Syntax} public-protocol @var{expression}
+Select the public constructor's protocol function, overriding the
+default one.
+@end deffn
+
+
+@deffn {Auxiliary Syntax} superclass-protocol @var{expression}
+Select the superclass constructor's protocol function, overriding the
+default one.
+@end deffn
+
+@c page
+@node classes define maker
+@subsection Defining class makers
+
+
+@deffn {Auxiliary Syntax} maker (@var{positional-arg} ...) (@var{optional-keyword} @var{optional-default}) ...
+Define the specification of the maker to be used by @func{make};
+defining a maker for a class means defining a specialised macro with
+@func{define-maker}.  The @func{maker} clause in the following
+definition:
+
+@example
+(define-class <alpha>
+  (fields a b c d e)
+  (maker (a b c)
+         (d 1)
+         (e 2)))
+@end example
+
+@noindent
+can be thought as equivalent to:
+
+@example
+(define-maker (the-maker a b c)
+  (make* <alpha>)
+  ((d 1)
+   (e 2)))
+@end example
+
+@noindent
+and can be used as:
+
+@example
+(make <alpha> #\a #\b #\c
+  (d 4))
+@end example
+
+@noindent
+where the @func{make} macro will expand to an use of the
+@func{the-maker} macro.  See the documentation of @func{define-maker}
+for details on the arguments of @func{maker}; @ref{makers api, Defining
+makers}.
+
+The maker will use the maker--specific constructor if one was specified
+with the @code{maker-protocol} clause, else it will default to the
+public constructor.
+
+If a @code{maker-transformer} clause is present: the use of @func{make}
+will expand into a use of the specified maker transformer; the first
+argument to the maker transformer will be the maker constructor.  If no
+@code{maker-transformer} clause is present: the use of @func{make} will
+expand into a call to the constructor.
+
+When no maker is defined: the @func{make} macro can still be used to
+instantiate the class: it defaults to use the public protocol, so it
+becomes equivalent to a @func{make*} use.
+@end deffn
+
+
+@deffn {Auxiliary Syntax} maker-transformer @var{transformer}
+Select a maker macro transformer to be used as expansion of @func{make}.
+@var{transformer} can be an identifier or an expression evaluating to a
+macro transformer.  The transformer will receive the maker protocol
+constructor as first argument, and it is meant to use it in its output
+form.
+
+This is an example of identifier transformer:
+
+@example
+(define-class <alpha>
+  (fields a b)
+  (maker (a)
+         (b 2))
+  (maker-transformer transformer))
+
+(define-syntax transformer
+  (syntax-rules ()
+    ((_ ?constructor ?a ?b)
+     (?constructor (+ 1 ?a) (+ 2 ?b)))))
+
+(let (((o <alpha>) (make <alpha> 1)))
+  (list o.a o.b)) @result{} (2 4)
+
+(let (((o <alpha>) (make <alpha> 1 (b 20))))
+  (list o.a o.b)) @result{} (2 22)
+@end example
+
+@noindent
+and this is an example of expression transformer:
+
+@example
+(define-class <alpha>
+  (fields a b)
+  (maker (a)
+         (b 2))
+  (maker-transformer
+   (lambda (stx)
+     (syntax-case stx ()
+       ((_ ?constructor ?a ?b)
+        #'(?constructor (+ 1 ?a) (+ 2 ?b)))))))
+
+(let (((o <alpha>) (make <alpha> 1)))
+  (list o.a o.b)) @result{} (2 4)
+
+(let (((o <alpha>) (make <alpha> 1 (b 20))))
+  (list o.a o.b)) @result{} (2 22)
+@end example
+@end deffn
+
+
+@deffn {Auxiliary Syntax} maker-protocol @var{expression}
+Select the maker constructor's protocol function.  When this clause is
+not used: the maker syntax expands to an application of the public
+constructor function.
+
+Here is a meaningless usage example:
+
+@example
+(define-class <alpha>
+  (fields a b c)
+  (maker (a) (b 2))
+  (maker-protocol (lambda (make-top)
+                    (lambda (a b)
+                      ((make-top) a b 456)))))
+
+(let (((o <alpha>) (make <alpha> 1)))
+  (list o.a o.b o.c))
+@result{} (1 2 456)
+
+(let (((o <alpha>) (make <alpha> 1 (b 20))))
+  (list o.a o.b o.c))
+@result{} (1 20 456)
+
+(let (((o <alpha>) (make* <alpha> 1 2 3)))
+  (list o.a o.b o.c))
+@result{} (1 2 3)
+@end example
+@end deffn
+
+@c page
+@node classes define custom-maker
+@subsection Defining custom class makers
+
+
+@deffn {Auxiliary Syntax} custom-maker @var{identifier}
+Select a maker to be used by @func{make}; this clause is alternative to
+@func{maker}, it is an error to include both @func{maker} and
+@func{custom-maker} in a class definition.
+
+When @func{custom-maker} is used: @func{make} expands to a macro use of
+@var{identifier} which must use any available method to build a new
+class instance:
+
+@example
+(make @var{class} @var{arg} ...)
+@expansion{} (@var{identifier} @var{arg} ...)
+@end example
+
+Custom makers @strong{do not} make use of the transformer defined by
+@func{maker-transformer} and @strong{do not} make use of the protocol
+function defined by @func{maker-protocol}.
+
+The following example shows a usage of @func{custom-maker}:
+
+@example
+(define-auxiliary-syntaxes
+  a: b:)
+
+(define-maker make-alpha
+  (make-from-fields <alpha>)
+  ((a: 1)
+   (b: 2)))
+
+(define-class <alpha>
+  (fields a b)
+  (custom-maker make-alpha))
+@end example
+@end deffn
+
+@c page
+@node classes define predicate
+@subsection Defining class predicates
+
+
+@deffn {Auxiliary Syntax} predicate @var{predicate-name}
+Select a custom predicate function or syntax to be used to identify
+instances of classes with the @func{is-a?} macro.  When not given, the
+predicate of the underlying record type is used.  This clause is useful
+especially to select custom predicates for the builtin class types;
+example:
+
+@example
+(define-label <pair>
+  (predicate pair?)
+  (virtual-fields (immutable car car)
+                  (immutable cdr cdr)))
+@end example
+@end deffn
+
+@c page
+@node classes define virtual
+@subsection Defining class having virtual fields
+
+
+@deffn {Auxiliary Syntax} virtual-fields @var{field-spec} ...
+Add virtual fields to the enclosing class definition; the
+@var{field-spec} arguments have the same syntax as the @func{fields}
+ones, but with different semantics.  This clause can be used multiple
+times.
+
+An immutable virtual field is defined by a field name and a field
+accessor which can be applied to a class instance to compute a value.  A
+mutable virtual field is defined by a field name, a field accessor which
+can be applied to a class instance to compute a value, a field mutator
+which can be applied to a class instance to mutate its fields.
+
+For more details on virtual fields, especially fields with the same name
+in different record types of the same hierarchy, @ref{classes dot with,
+@func{with-class}}.
+
+The following is an example of virtual fields usage:
+
+@example
+(define-class <fraction>
+  (fields (mutable number))
+  (virtual-fields (mutable numerator)
+                  (mutable denominator)))
+
+;; virtual fields accessors and mutators
+
+(define (<fraction>-numerator o)
+  (numerator (<fraction>-number o)))
+
+(define (<fraction>-numerator-set! o v)
+  (let ((n (<fraction>-number o)))
+    (<fraction>-number-set! o (/ v (denominator n)))))
+
+
+(define (<fraction>-denominator o)
+  (denominator (<fraction>-number o)))
+
+(define (<fraction>-denominator-set! o v)
+  (let ((n (<fraction>-number o)))
+    (<fraction>-number-set! o (/ (numerator n) v))))
+
+;; tests
+
+(let ((o (make-<fraction> 2/3)))
+  (with-class ((o <fraction>))
+    o.numerator))
+@result{} 2
+
+(let ((o (make-<fraction> 2/3)))
+  (with-class ((o <fraction>))
+    o.denominator))
+@result{} 3
+
+(let ((o (make-<fraction> 2/3)))
+  (with-class ((o <fraction>))
+    (set! o.numerator 5)
+    o.number))
+@result{} 5/3
+
+(let ((o (make-<fraction> 2/3)))
+  (with-class ((o <fraction>))
+    (set! o.denominator 5)
+    o.number))
+@result{} 2/5
+@end example
+
+Notice the semantic difference between @func{fields} clauses and
+@func{virtual-fields} clauses.  With @func{fields} we add a concrete
+field to the record type, thereby creating the accessor and possibly the
+mutator; then select the public names of accessors and mutators.  With
+@func{virtual-fields} we select the name of a virtual field whose
+accessor and mutator functions or syntaxes must be explicitly defined in
+some other way.
+@end deffn
+
+@c page
+@node classes define tagged
+@subsection Fields tagged for dot notation
+
+
+There is a special syntax to specify a class or label as tag for fields
+and virtual fields of a class or label; this syntax is used to enable
+dot notation to access fields and methods of those fields.  At present
+validation of tagged field values is performed neither by field
+accessors and mutators nor by constructor functions of classes and
+labels.
+
+The plain forms to specify a field in a @code{field} or
+@code{virtual-field} auxiliary syntax are the same supported by
+@func{define-record-type} from @rsixlibrary{records syntactic}:
+
+@example
+@var{field}
+(mutable @var{field})
+(mutable @var{field} @var{accessor} @var{mutator})
+(immutable @var{field})
+(immutable @var{field} @var{accessor})
+@end example
+
+@noindent
+where @var{field}, @var{accessor} and @var{mutator} are identifiers,
+@code{mutable} and @code{immutable} are the auxiliary syntaxes exported
+by @rsixlibrary{records syntactic}.  @func{define-class} and
+@func{define-label} additionally support the following forms:
+
+@example
+(@var{field} @var{class} ...)
+(mutable (@var{field} @var{class} ...))
+(mutable (@var{field} @var{class} ...) @var{accessor} @var{mutator})
+(immutable (@var{field} @var{class} ...))
+(immutable (@var{field} @var{class} ...) @var{accessor})
+@end example
+
+@noindent
+where each @var{class} is a class or label identifier; see below for a
+further extension.
+
+To use dot notation with non--tagged fields we do:
+
+@example
+(define-class <alpha>
+  (fields a b))
+
+(let ((o (make <alpha> 1 2)))
+  (with-class ((o <alpha>))
+    (list o.a o.b)))
+@result{} (1 2)
+@end example
+
+@noindent
+with tagged fields we can do:
+
+@example
+#|
+   <beta> -----------> <alpha>
+           field tag
+|#
+(define-class <alpha>
+  (fields a b))
+
+(define-class <beta>
+  (fields (c <alpha>)))
+
+(let ((o (make <beta>
+           (make <alpha>
+             1 2))))
+  (with-class ((o <beta>))
+    (list o.c o.c.a o.c.b)))
+@end example
+
+@noindent
+in which the use of @func{with-class} is equivalent to:
+
+@example
+(with-class ((o <beta>))
+  (with-class ((o.c <alpha>))
+    (list o.c o.c.a o.c.b)))
+@end example
+
+@noindent
+and to:
+
+@example
+(with-class ((o    <beta>)
+             (o.c  <alpha>))
+  (list o.c o.c.a o.c.b))
+@end example
+
+@c ------------------------------------------------------------
+
+@subsubheading Field getters
+
+Let's consider this simple case of tagged field:
+
+@example
+(define-class <alpha>
+  (fields (mutable a)))
+
+(define-class <beta>
+  (fields (mutable (b <alpha>))))
+
+(let* (((A <alpha>) (make <alpha> 1))
+       ((B <beta>)  (make <beta> A)))
+  (list A.a B.b.a))
+@result{} (1 1)
+@end example
+
+@noindent
+the identifier syntax @code{B.b.a} expands to:
+
+@example
+(<alpha>-a B.b)
+@end example
+
+@noindent
+which in turn expands to:
+
+@example
+(<alpha>-a (<beta>-b B))
+@end example
+
+In some rare case we would like the outer accessor (@func{<alpha>-a} in
+the example) to be applied to a value different from the return value of
+the inner accessor (@func{<beta>-b} in the example).  This is possible
+by specifying a custom field getter to be used only when building nested
+dot notation expansion forms:
+
+@example
+(define-class <alpha>
+  (fields (mutable a)))
+
+(define-class <beta>
+  (fields (mutable (b <alpha> (getter b-getter)))))
+
+(define (b-getter (o <beta>))
+  (make <alpha> 2))
+
+(let* (((A <alpha>) (make <alpha> 1))
+       ((B <beta>)  (make <beta>  A)))
+  (list A.a B.b.a))
+@result{} (1 2)
+@end example
+
+@noindent
+here the identifier syntax @code{B.b.a} expands to:
+
+@example
+(<alpha>-a B.b)
+@end example
+
+@noindent
+which in turn expands to:
+
+@example
+(<alpha>-a (b-getter B))
+@end example
+
+@noindent
+but the identifier syntax @code{B.b} would still expand to:
+
+@example
+(<beta>-b B)
+@end example
+
+So the @code{field} and @code{virtual-field} auxiliary syntax of
+@func{define-class} and @func{define-label} support the following forms:
+
+@example
+(@var{field} @var{class/getter} ...)
+(mutable (@var{field} @var{class/getter} ...))
+(mutable (@var{field} @var{class/getter} ...) @var{accessor} @var{mutator})
+(immutable (@var{field} @var{class/getter} ...))
+(immutable (@var{field} @var{class/getter} ...) @var{accessor})
+@end example
+
+@noindent
+where: @var{field}, @var{accessor} and @var{mutator} are identifiers;
+@code{mutable} and @code{immutable} are the auxiliary syntaxes exported
+by @rsixlibrary{records syntactic}; @var{class/getter} are class or
+label identifiers or @code{(getter @var{getter})} forms.  The can be at
+most one @func{getter} form for each field clause.
+
+@c ------------------------------------------------------------
+
+@subsubheading Circular tagging
+
+In the context of the @library{nausicaa language classes} library, a
+@dfn{circular tagging} happens when:
+
+@enumerate
+@item
+A class or label @class{x} has a field with tag @class{x}:
+
+@example
+  -----
+ |     | field tag
+ v     |
+<x> ---
+@end example
+
+@noindent
+or, more generally, when class or label @class{x} has tagged fields
+being classes or labels having tagged fields and so on, and somewhere
+down the graph structure of tags there is again the @class{x} class or
+label:
+
+@example
+  ---------------------
+ |                     | tag
+ v                     |
+<x> -----> <y> -----> <z>
+     tag        tag
+@end example
+
+@item
+A class or label @class{x} has @class{y} as ancestor in the inheritance
+hierarchy, and @class{y} has tagged fields which, down the graph
+structure of tags, use the @class{x} class or label:
+
+@example
+<y> --------
+ ^          |
+ |inherit   | field tag
+ |          v
+<a>        <b>
+ ^          |
+ |inherit   | field tag
+ |          |
+<x> <-------
+@end example
+@end enumerate
+
+@noindent
+circular tagging is not supported by @library{nausicaa language classes}
+because it results in infinite recursion in the expansion of the
+@func{with-class} macro; unfortunately, it is impossible to avoid this
+infinite recursion with the technology of @library{nausicaa language
+classes} (a custom macro expander would be needed).
+
+An attempt to detect circular tagging at expand time is performed by
+@func{define-class} and @func{define-label} and a syntax violation is
+raised when it succeeds.
+
+A class definition with the simplest circular tagging is like this:
+
+@example
+#|
+    ------
+   |      |field tag
+   v      |
+<alpha>---
+|#
+
+(define-class <alpha>
+  (fields (a <alpha>)))
+@end example
+
+@noindent
+we can understand that it would generate an infinite number of nested
+@func{with-class} uses:
+
+@example
+(with-class ((o <alpha>))
+  (with-class ((o.a <alpha>))
+    (with-class ((o.a.a <alpha>))
+      (with-class ((o.a.a.a <alpha>))
+        ...))))
+@end example
+
+@noindent
+or equivalently a @func{with-class} use with an infinite number of
+clauses:
+
+@example
+(with-class ((o <alpha>)
+             (o.a <alpha>)
+             (o.a.a <alpha>)
+             (o.a.a.a <alpha>)
+             ...)
+  ---)
+@end example
+
+The following example is also a definition with circular tagging:
+
+@example
+#|
+   <alpha> ------
+     ^           |
+     | inherit   | field tag
+     |           |
+   <beta> <------
+|#
+
+(define-class <alpha>
+  (fields (a <beta>)))
+
+(define-class <beta>
+  (inherit <alpha>))
+
+(define o
+  (make <beta>
+    (make <beta> 1))) ;wrong initialisation
+
+(with-class ((o <beta>))
+  #f)
+@end example
+
+@noindent
+because the use of @func{with-class} expands to the following infinite
+clauses:
+
+@example
+(with-class ((o <beta>)
+             (o.a <beta>)
+             (o.a.a <beta>)
+             (o.a.a.a <beta>)
+             ...)
+  #f)
+@end example
+
+@c ------------------------------------------------------------
+
+@subsubheading Non--circular tagging
+
+The following is a collection of definition examples with
+@strong{non}--circular tagging, they are perfectly fine:
+
+@example
+#|
+<alpha> <-----
+  ^           |
+  |inherit    |field tag
+  |           |
+<beta> -------
+|#
+
+(define-class <alpha>
+  (fields (mutable a)))
+
+(define-class <beta>
+  (inherit <alpha>)
+  (fields (b <alpha>)))
+
+(define o
+  (make <beta>
+    1 (make <alpha> 2)))
+
+(with-class ((o <beta>))
+  (list o.a o.b.a))
+@result{} (1 2)
+@end example
+
+@example
+#|
+<alpha> <-------------
+  ^                   |
+  |inherit            | inherit
+  |                   |
+<beta> ----------> <gamma>
+       field tag
+|#
+
+(define-class <alpha>
+  (fields (mutable a)))
+
+(define-class <beta>
+  (inherit <alpha>)
+  (fields (b <gamma>)))
+
+(define-class <gamma>
+  (inherit <alpha>))
+
+(let (((o <beta>)
+       (make <beta>
+         'beta-alpha-a
+         (make <gamma>
+           'gamma-alpha-a))))
+  (list o.a o.b.a))
+@result{} (beta-alpha-a gamma-alpha-a)
+@end example
+
+@c page
+@node classes define method
+@subsection Defining classes having methods
+
+
+@deffn {Auxiliary Syntax} methods @var{method-spec} ...
+Add methods to the enclosing class definition; the @var{method-spec}
+arguments can be of the form:
+
+@example
+@var{method}
+(@var{method})
+(@var{method} @var{method-name})
+@end example
+
+@noindent
+where @var{method} and @var{method-name} must be identifiers; in the
+first two forms the function name is built in the same way the field
+accessor names are built: appending a dash and @var{method} to the
+class type name.  This clause can be used multiple times.
+
+The @var{method-name} must be an identifier bound to a Scheme function
+or syntax which will be invoked as method; it must accept as first
+argument the record which is the subject of the application.
+
+For more details on methods, especially methods with the same name in
+different class types of the same hierarchy, @ref{classes dot with,
+@func{with-class}}.
+
+@example
+(define-class <fraction>
+  (fields (mutable number))
+  (virtual-fields (mutable numerator))
+  (methods (denominator)
+           product
+           (the-list the-list-function)))
+
+;; virtual field accessor and mutator
+
+(define (<fraction>-numerator o)
+  (numerator (<fraction>-number o)))
+
+(define (<fraction>-numerator-set! o v)
+  (let ((n (<fraction>-number o)))
+    (<fraction>-number-set! o (/ v (denominator n)))))
+
+;; method functions
+
+(define (<fraction>-denominator o)
+  (denominator (<fraction>-number o)))
+
+(define/with-class (<fraction>-product (o <fraction>) lambda)
+  (set! o.numerator (* o.numerator lambda)))
+
+(define/with-class (the-list-function (o <fraction>) . ell)
+  (cons o.numerator ell))
+
+;; tests
+
+(let ((o (make-<fraction> 2/3)))
+  (with-class ((o <fraction>))
+    (o.denominator)))
+@result{} 3
+
+(let ((o (make-<fraction> 2/3)))
+  (with-class ((o <fraction>))
+    (o.product 10)
+    o.numerator))
+@result{} 20
+
+(let ((o (make-<fraction> 2/3)))
+  (with-class ((o <fraction>))
+    (o.the-list 10 11 12 13)))
+@result{} (2 10 11 12 13)
+@end example
+@end deffn
+
+
+@deffn {Auxiliary Syntax} method (@var{name} . @var{formals}) . @var{body}
+@deffnx {Auxiliary Syntax} method @var{name} @var{expression}
+Add a method to the enclosing class definition; the method is applicable
+only through an automatically generated macro, which is bound by
+@func{with-class} to an identifier in dot notation.  This clause can be
+used any number of times in a class definition.
+
+When the first form is used, the method definition is added to the
+methods list as if the following clause had been used:
+
+@example
+(methods @var{other-methods} ...
+         (@var{name} function-name))
+@end example
+
+@noindent
+the function definition is expanded to:
+
+@example
+(define/with-class (function-name . @var{formals}) . @var{body})
+@end example
+
+@noindent
+where @code{function-name} is an automatically generated identifier
+built by appending a dash and @var{name} to the class type name.  The
+first argument in @var{formals} will be the class instance.
+
+When the second form is used, the method definition is added to the
+methods list as if the following clause had been used:
+
+@example
+(methods @var{other-methods} ...
+         (@var{name} function-name))
+@end example
+
+@noindent
+the function definition is expanded to:
+
+@example
+(define function-name @var{expression})
+@end example
+
+@noindent
+where @code{function-name} is an automatically generated identifier
+built by appending a dash and @var{name} to the class type name; the
+@var{expression} must evaluate to a function accepting at least one
+argument: the class instance.
+
+@example
+(define-class <fraction>
+  (fields (mutable number))
+  (virtual-fields (mutable numerator))
+
+  (method (denominator (o <fraction>))
+    (denominator o.number))
+
+  (method (product (o <fraction>) lambda)
+    (set! o.numerator (* o.numerator lambda)))
+
+  (method the-list
+    (lambda/with-class ((o <fraction>) . ell)
+      (cons o.numerator ell))))
+
+;; virtual field accessor and mutator
+
+(define (<fraction>-numerator o)
+  (numerator (<fraction>-number o)))
+
+(define (<fraction>-numerator-set! o v)
+  (let ((n (<fraction>-number o)))
+    (<fraction>-number-set! o (/ v (denominator n)))))
+
+;; tests
+
+(let ((o (make-<fraction> 2/3)))
+  (with-class ((o <fraction>))
+    o.numerator))
+@result{} 2
+
+(let ((o (make-<fraction> 2/3)))
+  (with-class ((o <fraction>))
+    (o.denominator)))
+@result{} 3
+
+(let ((o (make-<fraction> 2/3)))
+  (with-class ((o <fraction>))
+    (o.product 10)
+    o.numerator))
+@result{} 20
+
+(let ((o (make-<fraction> 2/3)))
+  (with-class ((o <fraction>))
+    (o.the-list 10 11 12 13)))
+@result{} (2 10 11 12 13)
+@end example
+@end deffn
+
+
+@deffn {Auxiliary Syntax} method-syntax @var{name} @var{transformer}
+Add a method to the enclosing class definition; the method is applicable
+only through an automatically generated macro, which is bound by
+@func{with-class} to an identifier in dot notation.  This clause can be
+used any number of times in a class definition.
+
+The method definition is added to the methods list as if the following
+clause had been used:
+
+@example
+(methods @var{other-methods} ...
+         (@var{name} transformer-name))
+@end example
+
+@noindent
+the macro definition is expanded to:
+
+@example
+(define-syntax transformer-name @var{transformer})
+@end example
+
+@noindent
+where @code{transformer-name} is an automatically generated identifier
+built by appending a dash and @var{name} to the class type name.
+@var{transformer} must expand to a macro transformer.  The first
+argument to the macro will be the class instance.
+@end deffn
+
+
+@defmac define-virtual-method @var{class-name} @var{method-name}
+@defmacx define-virtual-method @var{class-name} @var{method-name} @var{expr}
+@defmacx define-virtual-method @var{class-name} (@var{method-name} . @var{args}) . @var{body}
+Define a virtual method for @var{class-name}; the virtual methods of a
+class can be overridden by implementations in subclasses.  For example:
+
+@example
+(import (nausicaa))
+
+(define-class <alpha>
+  (fields a)
+  (methods the-method))
+
+(define-class <beta>
+  (inherit <alpha>)
+  (methods the-method))
+
+(define-virtual-method <alpha> the-method
+  (lambda (o) 'alpha))
+
+(define-virtual-method <beta> (the-method o)
+  'beta)
+
+(let (((o <alpha>) (make <beta> 2)))
+  (o.the-method))
+@result{} beta
+@end example
+
+A virtual method call is much slower than a concrete method call, but
+mostly it is still faster than a call to a generic function as
+implemented by the @library{nausicaa language classes} library
+(@pxref{generics, Multimethod dispatching}).
+
+A virtual method must be declared in the definition of @var{class-name}
+as an ordinary method with the @code{methods} clause; @var{method-name}
+must be an identifier specifying the name of the method and @var{expr}
+must be an expression evaluating to the method implementation.
+
+When the first syntax is used: the virtual method exists, but it has no
+implementation for @var{class-name}.  A virtual method without
+implementation does not forbid the instantiation of a class, but trying
+to call that method will result in a syntax violation.
+
+When the last syntax is used, it expands in the usage of
+@func{lambda/with-class}; for example:
+
+@example
+(define-virtual-method <beta> (the-method o)
+  'beta)
+@end example
+
+@noindent
+is equivalent to:
+
+@example
+(define-virtual-method <beta> the-method
+  (lambda/with-class (o)
+    'beta))
+@end example
+
+Only classes can have virtual methods, labels cannot.
+@end defmac
+
+
+@defmac defmethod @var{class} (@var{method-name} . @var{args}) @varo{body} @var{body} ...
+Define a method function for @var{class} called @var{method-name}; the
+identifier @var{method-name} must be listed in the @func{methods} clause
+of @var{class}.  This macro behaves like @func{define/with-class}, but
+does not use dot notation to access the fields and methods of the
+instance of @var{class}; rather it defines implicitly the first function
+argument called @code{this} bound to the class instance, and defines an
+identifier macro for each field and method, without prefixing the names,
+in such a way that the following code works:
+
+@example
+(define-class <alpha>
+  (fields (mutable a)
+          (mutable b))
+  (methods red blue green the-this))
+
+(define-class <beta>
+  (fields (mutable c)
+          (mutable d)))
+
+(defmethod <alpha> (the-this)
+  this)
+
+(defmethod <alpha> (red)
+  (list a b))
+
+(defmethod <alpha> (blue (o <beta>))
+  (list a b o.c o.d))
+
+(defmethod <alpha> (green (o <beta>))
+  (cons #\a (blue o)))
+
+(let/with-class (((p <alpha>) (make <alpha> 1 2)))
+  (check
+      (p.the-this)
+    @result{} p))
+
+(check
+    (let/with-class (((p <alpha>) (make <alpha> 1 2)))
+      (p.red))
+  @result{} '(1 2))
+
+(check
+    (let/with-class (((p <alpha>) (make <alpha> 1 2))
+                     ((q <beta>)  (make <beta>  3 4)))
+      (p.blue q))
+  @result{} '(1 2 3 4))
+
+(check
+    (let/with-class (((p <alpha>) (make <alpha> 1 2))
+                     ((q <beta>)  (make <beta>  3 4)))
+      (p.green q))
+  @result{} '(#\a 1 2 3 4))
+@end example
+
+The binding of @code{this} is simple: there are @strong{no} identifier
+macros with @code{this.} prefix to access fields and methods.  Usually
+we do not need to use @code{this} at all.
+@end defmac
+
+
+@defmac defmethod-virtual @var{class} (@var{method-name} . @var{args}) @varo{body} @var{body} ...
+Like @func{defmethod} but defines a virtual method as if
+@func{define-virtual-method} was used.
+@end defmac
+
+@c ------------------------------------------------------------
+
+@subsubheading Method overloading
+
+There is no support for methods overloading in the @library{nausicaa
+language classes} library, but we can do it using the facilities of the
+@library{nausicaa language generics} library.  Example:
+
+@example
+(import (nausicaa))
+
+(define-class <alpha>
+  (fields a)
+  (methods doit))
+
+(define-generic <alpha>-doit)
+
+(define-method (<alpha>-doit (o <alpha>) (v <char>))
+  (cons 'char v))
+
+(define-method (<alpha>-doit (o <alpha>) (v <integer>))
+  (cons 'int  v))
+
+(let (((o <alpha>) (make <alpha> 1)))
+
+  (o.doit #\a) @result{} (char . #\a)
+
+  (o.doit 2)   @result{} (int . 2)
+
+  )
+@end example
+
+@c page
+@node classes define setter
+@subsection Defining classes having custom setters and getters
+
+
+@deffn {Auxiliary Syntax} setter @var{setter-name}
+@deffnx {Auxiliary Syntax} getter @var{getter-name}
+Define a setter or getter binding to be used by @func{setf} or
+@func{getf}.  @var{setter-name} and @var{getter-name} must be
+identifiers bound to a function or macro which is invoked by @func{setf}
+and @func{getf} as:
+
+@example
+(@var{setter-name} @var{variable} @varo{key} @var{key} ... @var{value})
+(@var{getter-name} @var{variable} @varo{key} @var{key} ...)
+@end example
+
+@noindent
+where: @var{variable} is the identifier to which the class instance is
+bound, @var{key} are the setter and getter keys, @var{value} is the new
+value.  Example:
+
+@example
+(define-class <alpha>
+  (fields (mutable a))
+  (setter <alpha>-setf))
+
+(define/with-class (<alpha>-setf (o <alpha>) key0 key1 value)
+  (set! o.a (list key0 key1 value)))
+
+(let/with-class (((o <alpha>) (make <alpha> 1)))
+  (setf (o 2 3) 4)
+  o.a)
+@result{} (2 3 4)
+@end example
+
+@noindent
+another example:
+
+@example
+(define-label <vector>
+  (predicate vector?)
+  (virtual-fields (immutable length vector-length))
+  (setter vector-set!)
+  (getter vector-ref))
+
+(let/with-class (((o <vector>) (vector 0 1 2 3 4)))
+  (setf (o 2) #\c)
+  (getf (o 2)))
+@result{} #\c
+@end example
+
+The number of keys to be used by the setter and getter is unspecified:
+it is enforced by the function or macro bound to @var{setter-name} and
+@var{getter-name}.
+@end deffn
+
+@c page
+@node classes define bindings
+@subsection Defining classes having custom bindings
+
+
+@deffn {Auxiliary Syntax} bindings @var{macro-name}
+Select the name of a macro to be used by @func{with-class} to define
+class--specific bindings.  Meaningless example:
+
+@example
+(define-class <alpha>
+  (fields a b c)
+  (bindings <alpha>-bindings))
+
+(define-syntax <alpha>-bindings
+  (lambda (stx)
+    (syntax-case stx ()
+      ((_ ?class-name ?identifier . ?body)
+       (with-syntax ((A (datum->syntax #'?identifier 'a)))
+         #`(let ((A 123)) . ?body))))))
+
+(define o
+  (make <alpha>
+    1 2 3))
+
+(with-class ((o <alpha>))
+  a)
+@result{} 123
+@end example
+
+@noindent
+the syntax @func{with-class} makes use of @code{<alpha>-bindings} as if
+the code is:
+
+@example
+(with-class ((o <alpha>))
+  (<alpha>-bindings <alpha> o
+    a))
+@end example
+
+The selected macro is expanded with the class name as first argument,
+the identifier bound to the instance as second argument, the body as
+rest.  Bindings introduced by the selected macro may shadow the bindings
+introduced by @func{with-class}.
+@end deffn
+
+@c page
+@node classes define labels
+@subsection Defining labels
+
+
+A label allows us to take an identifier (bound to whatever value) and
+define new identifiers representing virtual fields, methods, a setter
+and a getter, a parent label or class.  Labels can inherit from a class,
+but not vice versa.  Labels can be used by @func{with-class} and all its
+derived syntaxes; labels @strong{cannot} be used to dispatch generic
+functions defined by the @library{nausicaa language generics} library.
+
+
+@defmac define-label @var{name} @var{clause} ...
+@defmacx define-label (@var{name} @var{predicate}) @var{clause} ...
+Define a new label type.  Labels are somewhat like classes, but with no
+concrete fields, no underlying record type and no constructor protocols,
+no virtual methods; labels cannot be instantiated.
+
+The following clauses are available in the body of a label definition:
+
+@table @func
+@item inherit
+Select a parent label or class; it has the same syntax and semantics of
+the corresponding clause for classes.  The default is to inherit
+everything from the parent but concrete fields; this is fine when the
+parent is another label, but when the parent is a class we should use
+the @code{concrete-fields} option to enable bindings for the parent's
+concrete fields.
+
+If no @code{inherit} clause is present: by default the label inherits
+from @class{top}, which is a class.
+
+@item predicate
+Select a predicate function to be used to identify values with the
+@func{is-a?} macro; it has the same syntax and semantics of the
+corresponding clause for classes.  If a predicate is not selected: it
+defaults to a function which always returns @true{}.
+
+@item virtual-fields
+@itemx method
+@itemx method-syntax
+@itemx methods
+@itemx setter
+@itemx getter
+@itemx bindings
+They have the same syntax and semantics of the corresponding clauses for
+classes.
+
+@item custom-maker
+Define a maker which can be used to build whatever value the label
+provides an @api{} to.  The maker definition must be external to the
+@func{define-label} body.
+@end table
+@end defmac
+
+
+The following is an example of library in which a label is used to
+handle lists as tuples of values:
+
+@example
+#!r6rs
+(library (the-tuple)
+  (export <tuple> a: b: c:)
+  (import (nausicaa))
+
+  (define-auxiliary-syntaxes
+    a: b: c:)
+
+  (define (tuple-predicate obj)
+    (and (not (null? obj))
+         (list? obj)
+         (= 3 (length obj))))
+
+  (define-maker make-tuple
+    list
+    ((a: #f)
+     (b: #f)
+     (c: #f)))
+
+  (define-label (<tuple> tuple?)
+    (predicate tuple-predicate)
+    (virtual-fields (immutable a car)
+                    (immutable b cadr)
+                    (immutable c caddr))
+    (custom-maker make-tuple))
+  )
+@end example
+
+@noindent
+it can be used as follows:
+
+@example
+#!r6rs
+(import (nausicaa) (the-tuple))
+
+(let (((o <tuple>) (make <tuple>
+                     (a: 1)
+                     (b: 2)
+                     (c: 3))))
+
+  (is-a? o <tuple>)     @result{} #t
+  (tuple? o)            @result{} #t
+  (list o.a o.b o.c)    @result{} (1 2 3)
+  )
+@end example
+
+The following meaningless example shows how labels and generic functions
+from @library{nausicaa language generics} can be used to define
+``interfaces'' and classes implementing them:
+
+@example
+;; the interface <iface> has two methods
+
+(define-generic iface-one)
+(define-generic iface-two)
+
+(define-label <iface>
+  (methods (one iface-one)
+           (two iface-two)))
+
+;; the classes <alpha> and <beta> implement <iface>
+
+(define-class <alpha>
+  (fields a))
+
+(define-class <beta>
+  (fields b))
+
+(define-method (iface-one (o <alpha>)) '(one . alpha))
+(define-method (iface-two (o <alpha>)) '(two . alpha))
+(define-method (iface-one (o <beta>))  '(one . beta))
+(define-method (iface-two (o <beta>))  '(two . beta))
+
+;; tests
+
+(let (((p <iface>) (make <alpha> 1))
+      ((q <iface>) (make <beta>  2)))
+  (check (p.one) @result{} '(one . alpha))
+  (check (p.two) @result{} '(two . alpha))
+  (check (q.one) @result{} '(one . beta))
+  (check (q.two) @result{} '(two . beta))
+  )
+@end example
+
+@c page
+@node classes define mixins
+@subsection Composing with mixins
+
+
+@dfn{Mixins} are a way to add definition clauses to classes and labels.
+Let's consider this situation:
+
+@example
+(define-class <alpha>
+  (field a))
+
+(define-class <beta>
+  (field b))
+
+(define-class <delta>
+  (inherit <alpha>)
+  (field v)
+  (method (doit (o <delta>))
+    (+ 1 o.v)))
+
+(define-class <gamma>
+  (inherit <beta>)
+  (field v)
+  (method (doit (o <gamma>))
+    (+ 1 o.v)))
+@end example
+
+@noindent
+the definitions of @class{delta} and @class{gamma} share some clauses;
+both of them already have a parent class and multiple inheritance is not
+supported.  Is it possible to write the shared clauses only once and
+attach them to the class definitions?  Yes, with mixins.
+
+The example above is equivalent to the following:
+
+@example
+(define-class <alpha>
+  (field a))
+
+(define-class <beta>
+  (field b))
+
+(define-mixin <stuff>
+  (field v)
+  (method (doit (o <stuff>))
+    (+ 1 o.v)))
+
+(define-class <delta>
+  (inherit <alpha>)
+  (mixins <stuff>))
+
+(define-class <gamma>
+  (inherit <beta>)
+  (mixins <stuff>))
+@end example
+
+@noindent
+@func{define-mixin} associates a set of clauses to the identifier
+@class{stuff}; when the @code{mixins} clause is used in the body of a
+class definition:
+
+@enumerate
+@item
+The clauses associated to the selected identifier are retrieved as
+syntax object.
+
+@item
+All the instances of the identifier @class{stuff} are substituted with
+the identifier of the enclosing class or label.
+
+@item
+The resulting clauses are added to the enclosing definition.
+@end enumerate
+
+@ref{classes mixins} for further examples.  When we compose a class with
+a mixin, we can rightly think that the receiving class or label knows of
+it; there is no need to keep the receiving definition separate from the
+mixin definition.  In particular the constructor functions must prepare
+appropriate values for the fields of the mixins; the order of the fields
+in the receiving class is the same of the order of the @code{fields}
+clauses.
+
+
+@deffn {Auxiliary Syntax} mixins @var{name} ...
+Compose the enclosing class or label definition with the given list of
+mixins.  The @func{mixins} clause can be used any number of times; each
+of them can list any number of mixin identifiers.
+
+It is a syntax violation if a mixin identifier is not already associated
+to a set of clauses.  It is a syntax violation if the same mixin
+identifier is used multiple times in the @code{mixins} clauses of the
+same definition.
+@end deffn
+
+@c page
+@node classes define satisfy
+@subsection Verifying definition constraints
+
+
+@cindex Satisfaction functions for classes and labels
+@cindex Satisfying constraints in classes and labels
+@cindex Classes, satisfaction functions
+@cindex Labels, satisfaction functions
+
+
+It is useful to validate the definition of classes and labels against a
+set of requirements; this allows, for example, to verify if a class
+implements an @api{}.
+
+
+@deffn {Auxiliary Syntax} satisfies @var{satisfaction} ...
+This clause can be used any number of times in the definition of both
+classes and labels.  Select a number of functions to invoke, at expand
+time, to validate the properties of a class or label.
+
+All the @var{satisfaction} arguments must be expressions evaluating to
+functions; these expressions are evaluated at expand time.  The
+functions are applied, at expand time, to the class or label name
+identifier: they can just return nothing if the constraints are
+satisfied or raise an exception if they are not.
+
+To validate a class or label definition the satisfaction functions can
+query the identifier properties associated to the class or label name
+identifier.  @ref{classes properties} for details on the available
+properties.
+@end deffn
+
+
+For example, the following library exports a binding to a satisfaction
+function checking that the class definition of
+@var{the-class-identifier} includes concrete fields with names @samp{a},
+@samp{b} and @samp{c}:
+
+@example
+#!r6rs
+(library (class-satisfactions)
+  (export
+    has-fields-a/b/c)
+  (import (nausicaa)
+    (prefix (nausicaa language classes properties) prop.))
+
+  (define (has-fields-a/b/c the-class-identifier)
+    (define specs
+      (prop.class-field-specs
+       (prop.struct-properties-ref the-identifier)))
+    (define (%synner message subform)
+      (syntax-violation 'has-fields-a/b/c
+        (string-append "checking class identifier "
+          (symbol->string
+           (syntax->datum the-class-identifier))
+          ": " message)
+        (syntax->datum specs) (syntax->datum subform)))
+    (let loop ((specs specs)
+               (a #f) (b #f) (c #f))
+      (syntax-case specs ()
+        (()
+         (unless (and a b c)
+           (%synner "missing required field"
+                    (cond ((not a) 'a)
+                          ((not b) 'b)
+                          ((not c) 'c)))))
+        (((mutability ?name . ?rest) . ?specs)
+         (case (syntax->datum #'?name)
+           ((a)
+            (loop #'?specs #t b c))
+           ((b)
+            (loop #'?specs a #t c))
+           ((c)
+            (loop #'?specs a b #t))
+           (else
+            (loop #'?specs a b c))))
+        (?thing
+         (%synner "invalid fields specification" #'?thing))
+        ))))
+@end example
+
+@noindent
+and it can be used as follows:
+
+@example
+#!r6rs
+(import (nausicaa)
+  (for (class-satisfactions) expand))
+
+(define-class <alpha>
+  (fields a b c)
+  (satisfies has-fields-a/b/c))
+@end example
+
+@c page
+@node classes make
+@section Record makers
+
+
+@defmac make* @var{class-name} @var{expression} ...
+Expand to the application of the public constructor of @var{class-name}
+to the results of evaluating the @var{expression} arguments, which can
+be any expression and are evaluated only once.  For example, given:
+
+@example
+(define-class <alpha>
+  (fields x s c)
+  (protocol (lambda (make-top)
+              (lambda (x)
+                ((make-top) x (sin x) (cos x))))))
+@end example
+
+@noindent
+the statement:
+
+@example
+(define a
+  (make* <alpha> 1.2))
+@end example
+
+@noindent
+is equivalent to:
+
+@example
+(define a
+  (make-<alpha> 1.2))
+@end example
+
+Notice that, using this macro, there is no need to export the class
+constructor out of a library: it is enough to export the class name.
+Example:
+
+@example
+(library (alpha)
+  (export <alpha>)
+  (import (nausicaa))
+
+  (define-class <alpha>
+    (fields x s c)
+    (protocol (lambda (make-top)
+                (lambda (x)
+                  ((make-top) x (sin x) (cos x)))))))
+
+(library (usage)
+  (export)
+  (import (nausicaa)
+    (alpha))
+
+  (define a
+    (make* <alpha> 1.2)))
+@end example
+@end defmac
+
+
+@defmac make @var{class-name} @var{maker-clause} ...
+Expand to the application of the maker constructor of @var{class-name}
+to the results of parsing the @var{maker-clause} arguments.
+
+This macro allows both mandatory, positional arguments and optional
+arguments as specified with the @code{maker} clause of
+@func{define-class}.  The maker will use the maker--specific constructor
+if one was specified, else it will default to the public constructor.
+
+If no maker is defined for the class: @func{make} is equivalent to
+@func{make*}.
+@end defmac
+
+
+@defmac make-from-fields @var{class-name} @var{expression} ...
+Like @func{make*} but the expression arguments must evaluate to the raw
+field values; it uses the default constructor function.  This macro is
+useful especially for debugging purposes and for use with the custom
+maker; @ref{classes define custom-maker} for details.
+@end defmac
+
+@c page
+@node classes pred
+@section Record type predicates
+
+
+@deffn Syntax is-a? @var{expression} @var{class-name}
+@deffnx Syntax is-a? <> @var{class-name}
+@deffnx {Auxiliary Syntax} <>
+Expand to the application of the class predicate of @var{class-name} to
+the result of evaluating @var{expression}, which can be any expression
+and is evaluated only once.
+
+This macro uses the predicate selected with the @code{predicate} clause
+of @func{define-class} or the default predicate when no explicit
+selection was made.
+
+For example, given:
+
+@example
+(define-class <alpha>
+  (fields a b c))
+@end example
+
+@noindent
+the following statement:
+
+@example
+(is-a? x <alpha>)
+@end example
+
+@noindent
+is equivalent to:
+
+@example
+(<alpha>? x)
+@end example
+
+@noindent
+while given:
+
+@example
+(define-class <alpha>
+  (predicate alpha?)
+  (fields a b c))
+
+(define (alpha? obj)
+  (and (<alpha>? obj)
+       (< 0 (<alpha>-a obj))))
+@end example
+
+@noindent
+the following statements are equivalent:
+
+@example
+(is-a? x <alpha>)
+(alpha? x)
+@end example
+
+Notice that, using this macro, there is no need to export the class
+predicate out of a library: it is enough to export the class name.
+Example:
+
+@example
+(library (defs)
+  (export <alpha>)
+  (import (rnrs) (nausicaa language classes))
+  (define-class <alpha>
+    (fields a b c)))
+
+(library (tests)
+  (export)
+  (import (rnrs) (nausicaa language classes) (alpha))
+  (let ((x (make <alpha>
+             1 2 3)))
+    (is-a? x <alpha>)))
+@end example
+
+When the @code{<>} auxiliary syntax is used in place of
+@var{expression}: the form expands to the class predicate function,
+which can be used as argument; the following forms are equivalent:
+
+@example
+(is-a? x <list>)
+((is-a? <> <list>) x)
+@end example
+
+@noindent
+this is especially useful when using @func{map} or @func{for-all}:
+
+@example
+(for-all (is-a? <> <list>) obj)
+@end example
+
+The @code{<>} auxiliary syntax is exported by the library
+@library{nausicaa language auxiliary-syntaxes} and reexported by
+@library{nausicaa language classes}.
+@end deffn
+
+@c page
+@node classes inspect
+@section Class and instance inspection
+
+
+@subsubheading Type descriptors
+
+
+@defmac class-type-descriptor @var{class-name}
+Expand to the class descriptor associated to @var{class-name}.
+@end defmac
+
+
+@defmac class-record-type-descriptor @var{class-name}
+Expand to the record type descriptor associated to @var{class-name}.  It
+is a replacement of @func{record-type-descriptor} for record types
+defined by @func{define-class}.
+@end defmac
+
+@c ------------------------------------------------------------
+
+@subsubheading Constructor descriptors
+
+
+@defmac class-public-constructor-descriptor @var{class-name}
+Expand to the public constructor descriptor associated to
+@var{class-name}.
+@end defmac
+
+
+@defmac class-superclass-constructor-descriptor @var{class-name}
+Expand to the superclass constructor descriptor associated to
+@var{class-name}.
+@end defmac
+
+
+@defmac class-from-fields-constructor-descriptor @var{class-name}
+Expand to the from--fields constructor descriptor associated to
+@var{class-name}.
+@end defmac
+
+@c ------------------------------------------------------------
+
+@subsubheading Unique class identifiers
+
+@defmac class-type-uid @var{class-name}
+Expand to the quoted symbol representing the class' @acronym{UID}.
+@end defmac
+
+
+@defmac class-uid-list @var{class-name}
+Expand into the list of type @acronym{UID}s of the parents of
+@var{class-name}.  The first element is the @acronym{UID} of the class
+itself, then comes the @acronym{UID} of the parent, then the
+@acronym{UID} of the parent's parent, etc.  When inspecting a type whose
+parents are all classes (rather than records), the last element is
+always the @acronym{UID} of @class{top}.
+@end defmac
+
+
+@defun class-uid-list-of @var{obj}
+Return a list of record type @acronym{UID}s representing the inheritance
+hierarchy of the record type associated to @var{obj}.  This function
+supports both records and conventional builtin types.
+@end defun
+
+
+@defun class-uid-equal-or-parent? @var{maybe-parent-uid-list} @var{maybe-child-uid-list}
+Accept as arguments lists of record type @acronym{UID} like those
+returned by @func{class-uid-list} and @func{class-uid-list-of}; return
+true if @var{maybe-parent-uid-list} represents a record type who is
+equivalent or parent of the record type represented by
+@var{maybe-child-uid-list}.
+@end defun
+
+@c ------------------------------------------------------------
+
+@subsubheading Instance identification
+
+@defun record-type-of @var{obj}
+Return the record type descriptor associated to @var{obj}.  This
+function supports both regular and conventional record type descriptors.
+@end defun
+
+@c ------------------------------------------------------------
+
+@subsubheading Class hierarchy
+
+
+@defmac class-parent-rtd-list @var{class-name}
+Expand into the list of record type descriptors which are parents of
+@var{class-name}.  The first element of the list is the @acronym{RTD} of
+@var{class-name} itself, then comes the @acronym{RTD} of the parent,
+then the @acronym{RTD} of the parent's parent, etc.  When inspecting a
+type whose parents are all classes (rather than records), the last
+element is always the @acronym{RTD} of @class{top}.
+@end defmac
+
+
+@defun record-type-parent? @var{maybe-parent-rtd} @var{maybe-child-rtd}
+Return true if @var{maybe-parent-rtd} and @var{maybe-child-rtd} describe
+the same type, or @var{maybe-parent-rtd} is an ancestor of
+@var{maybe-child-rtd}.
+@end defun
+
+
+@defun Function record-parent-list @var{rtd}
+Return the list of record type descriptors which are ancestors of
+@var{rtd}; the first element of the list is @var{rtd} itself, followed
+by its parent, then the parent of the parent and so on.  This function
+supports both regular and conventional record type descriptors.
+@end defun
+
+@c page
+@node classes slots
+@section Accessors and mutators
+
+
+The following syntaxes provide a way to access concrete and virtual
+fields of class instances; they also allow the extraction of accessor
+and mutator functions.  We want to remember that the @func{cut} and
+@func{cute} macros from @library{nausicaa language extensions} provide
+us with alternative ways to create closures for field access and
+mutation through @func{slot-ref} and @func{slot-set!}; @ref{lang lang}
+for details.
+
+
+@deffn Syntax slot-ref @var{expr} @var{field-name} @var{class}
+@deffnx {Auxiliary Syntax} <>
+Expand to the slot accessor of @var{field-name} applied to @var{expr},
+which can be any expression evaluating to an instance of @var{class}.
+@var{field-name} can be either the name of a concrete field or the name
+of a virtual field.
+
+This syntax works with both classes and labels.
+
+When the auxiliary syntax @code{<>} is used in place of @var{expr}: the
+macro expands to the accessor function itself; the following forms are
+equivalent:
+
+@example
+(slot-ref o car <pair>)
+((slot-ref <> car <pair>) o)
+@end example
+
+@noindent
+this is useful whenever the accessor has to be used as function
+argument, for example for @func{map} or @func{for-all}.  The @code{<>}
+auxiliary syntax is exported by the library @library{nausicaa language
+auxiliary-syntaxes} and reexported by @library{nausicaa language
+classes}.
+@end deffn
+
+
+@deffn Syntax slot-ref @var{obj-expr} @var{field-name} @var{class} @var{val-expr}
+@deffnx {Auxiliary Syntax} <>
+Expand to the slot mutator of @var{field-name} applied to @var{obj-expr}
+and @var{val-expr}.  @var{obj-expr} can be any expression evaluating to
+an instance of @var{class}; @var{val-expr} can be any expression
+evaluating to the new field value.  @var{field-name} can be either the
+name of a concrete field or the name of a virtual field.
+
+This syntax works with both classes and labels.
+
+When the auxiliary syntax @code{<>} is used in place of @strong{both}
+@var{obj-expr} and @var{val-expr}: the macro expands to the mutator
+function itself; the following forms are equivalent:
+
+@example
+(slot-set! o car <pair> 1)
+((slot-set! <> car <pair> <>) o 1)
+@end example
+
+@noindent
+this is useful whenever the mutator has to be used as function argument,
+for example for @func{map} or @func{for-all}.  The @code{<>} auxiliary
+syntax is exported by the library @library{nausicaa language
+auxiliary-syntaxes} and reexported by @library{nausicaa language
+classes}.
+@end deffn
+
+@c page
+@node classes mixins
+@section Defining and composing mixins
+
+
+@deffn Syntax define-mixin @var{name} @varo{clause} @var{clause} ...
+Associate a set of mixin clauses to the identifier @var{name}, which can
+be later referenced by a @code{mixins} clause in the body of a class or
+label definition.
+
+Right or wrong @func{define-mixin} imposes no constraints on the given
+clauses; it is our responsibility to select the ones which are
+convenient for the application model.
+
+The @code{mixins} clause can be used in the body of a mixin definition;
+the result is that the clauses of the selected mixins are added to the
+definition of the current mixin.
+@end deffn
+
+
+The following is an example of mixin usage in which the maker of the
+receiving class accepts a value for a field in the mixin:
+
+@example
+#!r6rs
+(import (nausicaa))
+
+(define-mixin <stuff>
+  (fields c)
+  (method (doit (o <stuff>))
+    (+ 1 o.c)))
+
+(define-class <base>
+  (fields a))
+
+(define-class <one>
+  (inherit <base>)
+  (maker ()
+         (a:  #f)
+         (p:  #f)
+         (c:  #f))
+  (fields p)
+  (mixins <stuff>))
+
+(define-class <two>
+  (inherit <base>)
+  (maker ()
+         (a:  #f)
+         (q:  #f)
+         (c:  #f))
+  (fields q)
+  (mixins <stuff>))
+
+(let-make ((o <one>
+                (a: 10)
+                (p: 20)
+                (c: 30)))
+  (o.doit))
+@result{} 31
+@end example
+
+@noindent
+the following is an example of multiple mixins attached to the same
+class definition:
+
+@example
+#!r6rs
+(import (nausicaa))
+
+(define-mixin <stuff>
+  (fields c)
+  (method (doit (o <stuff>))
+    (+ 1 o.c)))
+
+(define-mixin <other-stuff>
+  (fields p))
+
+(define-class <base>
+  (fields a))
+
+(define-class <one>
+  (inherit <base>)
+  (maker ()
+         (a:  #f)
+         (p:  #f)
+         (c:  #f))
+  (mixins <stuff> <other-stuff>))
+
+(let-make ((o <one>
+                (a: 10)
+                (p: 20)
+                (c: 30)))
+  (o.doit))
+@result{} 31
+@end example
+
+@noindent
+the following is an example of composite mixins:
+
+@example
+#!r6rs
+(import (nausicaa))
+
+(define-mixin <stuff>
+  (fields c)
+  (method (doit (o <stuff>))
+    (+ 1 o.c)))
+
+(define-mixin <other-stuff>
+  (fields p)
+  (mixins <stuff>))
+
+(define-class <base>
+  (fields a))
+
+(define-class <one>
+  (inherit <base>)
+  (maker ()
+         (a:  #f)
+         (p:  #f)
+         (c:  #f))
+  (mixins <other-stuff>))
+
+(let-make ((o <one>
+                (a: 10)
+                (p: 20)
+                (c: 30)))
+  (o.doit))
+@result{} 31
+@end example
+
+@noindent
+the following is an example of mixin accessing the fields of the
+receiving class:
+
+@example
+#!r6rs
+(import (nausicaa))
+
+(define-mixin <stuff>
+  (fields c)
+  (method (doit (o <stuff>))
+    (+ o.a o.c)))
+
+(define-class <alpha>
+  (fields a)
+  (mixins <stuff>))
+
+(let-make ((o <alpha> 1 2))
+  (o.doit))
+@result{} 3
+@end example
+
+@c page
+@node classes dot
+@section Using dot notation
+
+
+The syntaxes described in this section allow the use of dot notation to
+access class fields and to apply class methods; the core syntaxes are
+@func{with-class}, @func{setf} and @func{getf}.
+
+Dot notation is available only for the members of types defined by
+@func{define-class}, it cannot be used with types defined by
+@func{define-record-type} and it is not available for fields of parent
+records:
+
+@example
+(import (rnrs) (nausicaa language classes))
+
+(define-record-type <alpha>
+  (fields a b))
+
+(define-class <beta>
+  (parent <alpha>)
+  (fields c d))
+
+(let/with-class (((o <beta>) (make <beta>
+                               1 2 3 4)))
+
+  o.c o.d ; good
+
+  o.a o.b ; error !!!
+  )
+@end example
+
+We have to be careful when using this notation and stick to the
+following design style rules:
+
+@enumerate
+@item
+Virtual fields access must be free of side effects; many macros are
+written assuming that it is safe to reference identifiers multiple
+times, under the assumption that identifier's reference has no side
+effects.
+
+@item
+Functions and syntaxes invoked by identifier references should never
+intentionally raise exceptions; usual identifier references never fail
+at runtime.
+@end enumerate
+
+@menu
+* classes dot with::            Basic dot notation usage.
+* classes dot let::             Local bindings.
+* classes dot lambda::          Function bindings.
+* classes dot setter::          Setters and getters.
+* classes dot misc::            Miscellaneous syntaxes.
+@end menu
+
+@c page
+@node classes dot with
+@subsection Basic dot notation usage
+
+
+The @func{with-class} syntax is the basic tool providing dot notation
+in fields and methods usage.
+
+
+@defmac with-class (@var{clause} ...) @var{body}
+Expand into a nested @func{let-syntax} forms which define: identifier
+syntaxes to access and mutate fields and virtual fields of objects and
+records; macros to invoke methods of objects and records; macros to use
+the getter and setter associated to a class.
+
+Each @var{clause} must have the form:
+
+@example
+(@var{identifier} @var{class} ...)
+@end example
+
+@noindent
+where @var{class} must be an identifier representing a class name;
+@var{identifier} must be an identifier bound to the object or record to
+be used as ``subject''.  When multiple class names are present in a
+single clause:
+
+@example
+(@var{identifier} @varo{class} @var{class} ...)
+@end example
+
+@noindent
+the clause is equivalent to the sequence of clauses:
+
+@example
+(@var{identifier} @varo{class})
+(@var{identifier} @var{class})
+...
+@end example
+
+@noindent
+when multiple clauses are present, the @func{with-class} form is
+equivalent to nested @func{with-class} forms as follows:
+
+@example
+(with-class ((@vari{var} @vari{class}) (@varii{var} @varii{class})) . @var{body})
+@equiv{} (with-class ((@vari{var} @vari{class}))
+     (with-class ((@varii{var} @varii{class}))
+       . @var{body}))
+@end example
+
+The identifier syntax for a field named @samp{alpha} is built as:
+
+@example
+@var{identifier}.alpha
+@end example
+
+@noindent
+that is: variable name, dot, field name; the same goes for method's
+macros.
+
+When a @var{identifier} as no type: we can use @class{top} as its
+conventional class type name; this can be useful when expanding macros
+making use of @func{with-class}.
+
+One identifier syntax for each field and virtual field of @var{class} is
+defined; one macro for each method of @var{class} is defined.  Mutable
+fields generate a full identifier syntax with accessor and mutator;
+immutable fields generate only the accessor identifier syntax.
+
+The fields and methods of the ancestors of @var{class} are handled as in
+the following example:
+
+@example
+(define-class <alpha>
+  ---)
+
+(define-class <beta>
+  (inherit <alpha>)
+  ---)
+
+(define-class <gamma>
+  (inherit <beta>)
+  ---)
+
+(define o (make <gamma> ---))
+
+(with-class ((o <gamma>))
+  ---)
+@equiv{} (with-class ((o <alpha>))
+     (with-class ((o <beta>))
+       (with-class ((o <gamma>))
+         ---)))
+@end example
+
+@noindent
+so that the syntaxes of a superclass are shadowed by the syntaxes of its
+subclass.
+@end defmac
+
+
+Usage example:
+
+@example
+(define-class <alpha>
+  (fields (mutable a)))
+
+(define r (make <alpha> 123))
+(define s (make <alpha> #\a))
+(define t (make <alpha> 1.0))
+
+(with-class ((r <alpha>)
+             (s <alpha>)
+             (t <alpha>))
+
+  (list r.a s.a t.a) @result{} (123 #\a 1.0)
+
+  (set! r.a 456)
+  (set! s.a #\b)
+  (set! t.a 2.0)
+
+  (list r.a s.a t.a)) @result{} (456 #\b 2.0)
+@end example
+
+@noindent
+an example with virtual fields:
+
+@example
+(define-class <fraction>
+  (fields (mutable number))
+  (virtual-fields (immutable numerator)
+                  (immutable denominator)))
+
+(define (<fraction>-numerator o)
+  (numerator (<fraction>-number o)))
+
+(define (<fraction>-denominator o)
+  (denominator (<fraction>-number o)))
+
+(define o (make <fraction> 2/3))
+
+(with-class ((o <fraction>))
+  (list o.numerator o.denominator))
+@result{} (2 3)
+@end example
+
+@noindent
+an example with multiple class names in which the superclass' members
+shadow the subclass' members:
+
+@example
+(define-class <alpha>
+  (fields (immutable a)))
+
+(define-class <beta>
+  (inherit <alpha>)
+  (fields (immutable b)))
+
+(define o (make <beta> 1 2))
+
+(with-class ((o <beta> <alpha>))
+  (list o.a o.b))
+@result{} (1 2)
+@end example
+
+@noindent
+an example with methods, external definitions:
+
+@example
+(define-class <fraction>
+  (fields (mutable number))
+  (virtual-fields (mutable numerator))
+  (methods (denominator)
+           product
+           (the-list the-list-function)))
+
+;; virtual field accessor and mutator
+
+(define (<fraction>-numerator o)
+  (numerator (<fraction>-number o)))
+
+(define (<fraction>-numerator-set! o v)
+  (let ((n (<fraction>-number o)))
+    (<fraction>-number-set! o (/ v (denominator n)))))
+
+;; method functions
+
+(define (<fraction>-denominator o)
+  (denominator (<fraction>-number o)))
+
+(define/with-class (<fraction>-product (o <fraction>) lambda)
+  (set! o.numerator (* o.numerator lambda)))
+
+(define/with-class (the-list-function (o <fraction>) . ell)
+  (cons o.numerator ell))
+
+;; tests
+
+(let ((o (make <fraction> 2/3)))
+  (with-class ((o <fraction>))
+    (o.denominator)))
+@result{} 3
+
+(let ((o (make <fraction> 2/3)))
+  (with-class ((o <fraction>))
+    (o.product 10)
+    o.numerator))
+@result{} 20
+
+(let ((o (make <fraction> 2/3)))
+  (with-class ((o <fraction>))
+    (o.the-list 10 11 12 13)))
+@result{} (2 10 11 12 13)
+@end example
+
+@noindent
+another example with methods, internal definitions:
+
+@example
+(define-class <fraction>
+  (fields (mutable number))
+  (virtual-fields (mutable numerator))
+
+  (method (denominator o)
+    (denominator (<fraction>-number o)))
+
+  (method (product (o <fraction>) lambda)
+    (set! o.numerator (* o.numerator lambda)))
+
+  (method (the-list (o <fraction>) . ell)
+    (cons o.numerator ell)))
+
+;; virtual field accessor and mutator
+
+(define (<fraction>-numerator o)
+  (numerator (<fraction>-number o)))
+
+(define (<fraction>-numerator-set! o v)
+  (let ((n (<fraction>-number o)))
+    (<fraction>-number-set! o (/ v (denominator n)))))
+
+;; tests
+
+(let ((o (make <fraction> 2/3)))
+  (with-class ((o <fraction>))
+    o.numerator))
+@result{} 2
+
+(let ((o (make <fraction> 2/3)))
+  (with-class ((o <fraction>))
+    (o.denominator)))
+@result{} 3
+
+(let ((o (make <fraction> 2/3)))
+  (with-class ((o <fraction>))
+    (o.product 10)
+    o.numerator))
+@result{} 20
+
+(let ((o (make <fraction> 2/3)))
+  (with-class ((o <fraction>))
+    (o.the-list 10 11 12 13)))
+@result{} (2 10 11 12 13)
+@end example
+
+Notice that we can use virtual fields to access the concrete fields of
+parent classes:
+
+@example
+(define-class <alpha>
+  (fields a))
+
+(define-class <beta>
+  (inherit <alpha>
+    (dry))
+  (fields b)
+  (virtual-fields (immutable a <alpha>-a)))
+
+(let ((o (make <beta> 1 2)))
+  (with-class ((o <beta>))
+    (list o.a o.b)))
+@result{} (1 2)
+@end example
+
+@c ------------------------------------------------------------
+
+@subsubheading Duplicated field names
+
+We have to be careful when selecting names for methods and virtual
+fields; in any case, it is forbidden to use the same symbol twice for
+fields, virtual fields or methods of the same class definition.
+Duplication of names in concrete fields, of record types in the same
+hierarchy, is allowed by @rnrs{6}:
+
+@example
+(define-record-type <alpha>
+  (fields a))
+
+(define-record-type <beta>
+  (parent <alpha>)
+  (fields a))
+
+(let ((o (make <beta> 1 2)))
+  (<alpha>-a o)  @result{} 1
+  (<beta>-a  o)) @result{} 2
+@end example
+
+@noindent
+in the same way duplication of names of virtual fields is allowed:
+
+@example
+(define-class <alpha>
+  (virtual-fields a))
+
+(define-class <beta>
+  (inherit <alpha>)
+  (virtual-fields a))
+
+(define (<alpha>-a o)
+  1)
+
+(define (<beta>-a o)
+  2)
+
+(let ((o (make <beta>)))
+
+  (with-class ((o <alpha>))
+    o.a) @result{} 1
+
+  (with-class ((o <beta>))
+    o.a) @result{} 2
+
+  (with-class ((o <alpha>)
+               (o <beta>))  ;the last takes precedence
+    o.a) @result{} 2
+
+  (with-class ((o <beta>)
+               (o <alpha>)) ;the last takes precedence
+    o.a) @result{} 1
+
+  (with-class ((o <alpha> <beta>)) ;the last takes precedence
+    o.a) @result{} 2
+
+  (with-class ((o <beta> <alpha>)) ;the last takes precedence
+    o.a)) @result{} 1
+@end example
+
+@noindent
+and duplication of names of methods is allowed, too:
+
+@example
+(define-class <alpha>
+  (methods a))
+
+(define-class <beta>
+  (inherit <alpha>)
+  (methods a))
+
+(define (<alpha>-a o)
+  1)
+
+(define (<beta>-a o)
+  2)
+
+(let ((o (make <beta>)))
+
+  (with-class ((o <alpha>))
+    (o.a)) @result{} 1
+
+  (with-class ((o <beta>))
+    (o.a)) @result{} 2
+
+  (with-class ((o <alpha>)
+               (o <beta>))  ;the last takes precedence
+    (o.a)) @result{} 2
+
+  (with-class ((o <beta>)
+               (o <alpha>)) ;the last takes precedence
+    (o.a)) @result{} 1
+
+  (with-class ((o <alpha> <beta>)) ;the last takes precedence
+    (o.a)) @result{} 2
+
+  (with-class ((o <beta> <alpha>)) ;the last takes precedence
+    (o.a))) @result{} 1
+@end example
+
+@c page
+@node classes dot let
+@subsection Local bindings
+
+
+The following macros integrate the facilities of the @func{with-class}
+macro with the binding facilities of the @func{let}, @func{let*},
+@func{letrec} and @func{letrec*} syntaxes from @rsixlibrary{base} and
+the @func{do} syntax from @rsixlibrary{control}.
+
+@quotation
+@strong{NOTE} It is possible to use the facilities of the
+@library{nausicaa contracts} library to assert that the type of values
+involved in the bindings is the one selected by the class identifiers.
+Merging the features of contracts along with the bindings--with--classes
+macros may result in inflexible code or bloated code after the
+expansion; so, for the time being, this merging is not implemented.
+@end quotation
+
+
+@defmac let/with-class ((@var{var} @var{init}) ...) . @var{body}
+Like @func{let} but automatically enclose the body in a
+@func{with-class} syntax using the specified class types.  Each
+@var{var} element can be one among:
+
+@example
+@var{id}
+(@var{id} @var{class} ...)
+@end example
+
+@noindent
+in which: @var{id} must be an identifier representing the variable name,
+@var{class} must be identifiers representing class names.
+
+If all the @var{var} arguments are in the first form (untyped variable):
+@func{let/with-class} defaults to @func{let} as defined by @rnrs{6}.  If
+at least one @var{var} has type: the untyped ones default to bindings
+with @class{top} as conventional class name.
+
+@example
+(define-class <fraction>
+  (fields (mutable number))
+  (virtual-fields (immutable numerator)
+                  (immutable denominator)))
+
+(define (<fraction>-numerator o)
+  (numerator (<fraction>-number o)))
+
+(define (<fraction>-denominator o)
+  (denominator (<fraction>-number o)))
+
+(let/with-class (((a <fraction>) (make <fraction> 2/3))
+                 ((b <fraction>) (make <fraction> 4/5)))
+  (list a.numerator b.denominator))
+@result{} (2 5)
+@end example
+@end defmac
+
+
+@defmac let*/with-class ((@var{var} @var{init}) ...) . @var{body}
+Like @func{let*} but automatically enclose the body in a
+@func{with-class} syntax using the specified class types.  Each
+@var{var} element can be one among:
+
+@example
+@var{id}
+(@var{id} @var{class} ...)
+@end example
+
+@noindent
+in which: @var{id} must be an identifier representing the variable name,
+@var{class} must be identifiers representing class names.
+
+If all the @var{var} arguments are in the first form (untyped variable):
+@func{let*/with-class} defaults to @func{let*} as defined by @rnrs{6}.
+If at least one @var{var} has type: the untyped ones default to bindings
+with @class{top} as conventional class name.
+
+Given two bindings @vari{var}, @vari{init} and @varii{var}, @varii{init}
+defined in sequence: @varii{init} is evaluated in the region of the
+identifier syntaxes used to access the fields of @vari{var}.
+
+@smallexample
+(define-class <fraction>
+  (fields (mutable number))
+  (virtual-fields (immutable numerator)
+                  (immutable denominator)))
+
+(define (<fraction>-numerator o)
+  (numerator (<fraction>-number o)))
+
+(define (<fraction>-denominator o)
+  (denominator (<fraction>-number o)))
+
+(let*/with-class (((a <fraction>) (make <fraction> 2/3))
+                  ((b <fraction>) (make <fraction>
+                                    (/ a.numerator 5))))
+  b.number)
+@result{} 2/5
+@end smallexample
+@end defmac
+
+
+@defmac letrec/with-class ((@var{var} @var{init}) ...) . @var{body}
+Like @func{letrec} but automatically enclose the body in a
+@func{with-class} syntax using the specified class types.  Each
+@var{var} element can be one among:
+
+@example
+@var{id}
+(@var{id} @var{class} ...)
+@end example
+
+@noindent
+in which: @var{id} must be an identifier representing the variable name,
+@var{class} must be identifiers representing class names.
+
+If all the @var{var} arguments are in the first form (untyped variable):
+@func{letrec/with-class} defaults to @func{letrec} as defined by
+@rnrs{6}.  If at least one @var{var} has type: the untyped ones default
+to bindings with @class{top} as conventional class name.
+
+The @var{init} expressions can contain references to the identifier
+syntaxes, as long as they are not resolved.
+
+@smallexample
+(define-class <alpha>
+  (fields (immutable value)
+          (immutable proc)))
+
+(define-class <beta>
+  (fields (immutable value)
+          (immutable proc)))
+
+(letrec/with-class
+     (((a <alpha>) (make <alpha>
+                     1 (lambda ()
+                         (cons a.value b.value))))
+      ((b <beta>)  (make <beta>
+                     2 (lambda ()
+                         (cons a.value b.value)))))
+  (list (a.proc) (b.proc)))
+@result{} ((1 . 2) (1 . 2))
+@end smallexample
+@end defmac
+
+
+@defmac letrec*/with-class ((@var{var} @var{init}) ...) . @var{body}
+Like @func{letrec*} but automatically enclose the body in a
+@func{with-class} syntax using the specified class types.  Each
+@var{var} element can be one among:
+
+@example
+@var{id}
+(@var{id} @var{class} ...)
+@end example
+
+@noindent
+in which: @var{id} must be an identifier representing the variable name,
+@var{class} must be identifiers representing class names.
+
+If all the @var{var} arguments are in the first form (untyped variable):
+@func{letrec*/with-class} defaults to @func{letrec*} as defined by
+@rnrs{6}.  If at least one @var{var} has type: the untyped ones default
+to bindings with @class{top} as conventional class name.
+
+The @var{init} expressions can contain references to the identifier
+syntaxes, as long as they are not resolved.
+
+The only difference between @func{letrec/with-class} and
+@func{letrec*/with-class} is that the latter enforces the order of
+evaluation of the @var{init} expressions.
+
+@smallexample
+(define-class <alpha>
+  (fields (immutable value)
+          (immutable proc)))
+
+(define-class <beta>
+  (fields (immutable value)
+          (immutable proc)))
+
+(letrec*/with-class
+    (((a <alpha>) (make <alpha>
+                    1 (lambda ()
+                        (cons a.value b.value))))
+     ((b <beta>)  (make <beta>
+                    2 (lambda ()
+                        (cons a.value b.value))))
+     ((c <top>)   (list (a.proc) (b.proc))))
+  c)
+@result{} ((1 . 2) (1 . 2))
+@end smallexample
+@end defmac
+
+
+@defmac do/with-class ((@var{var} @var{init} @var{step}) ...) (@var{test} @var{expression} ...) @var{command} ...
+Like @func{do} from @rsixlibrary{control}, but each @var{var} element
+can be one among:
+
+@example
+@var{id}
+(@var{id} @var{class} ...)
+@end example
+
+@noindent
+in which: @var{id} must be an identifier representing the variable name,
+@var{class} must be identifiers representing class names.  The
+@var{step}, @var{expression} and @var{command} expressions can use dot
+notation with @var{id}.
+@end defmac
+
+
+@defmac do*/with-class ((@var{var} @var{init} @var{step}) ...) (@var{test} @var{expression} ...) @var{command} ...
+Like @func{do*} from @library{nausicaa language extensions}, but each
+@var{var} element can be one among:
+
+@example
+@var{id}
+(@var{id} @var{class} ...)
+@end example
+
+@noindent
+in which: @var{id} must be an identifier representing the variable name,
+@var{class} must be identifiers representing class names.  The
+@var{step}, @var{expression} and @var{command} expressions can use dot
+notation with @var{id}.  When multiple variables are defined, each
+@var{init} expression can use dot notation with the previous bindings.
+@end defmac
+
+
+@deffn Syntax let-make ((@var{var} @var{class} @var{arg} ...) ...) @varo{body} @var{body} ...
+@deffnx Syntax let-make* ((@var{var} @var{class} @var{arg} ...) ...) @varo{body} @var{body} ...
+@deffnx Syntax let*-make ((@var{var} @var{class} @var{arg} ...) ...) @varo{body} @var{body} ...
+@deffnx Syntax let*-make* ((@var{var} @var{class} @var{arg} ...) ...) @varo{body} @var{body} ...
+@deffnx Syntax letrec-make ((@var{var} @var{class} @var{arg} ...) ...) @varo{body} @var{body} ...
+@deffnx Syntax letrec-make* ((@var{var} @var{class} @var{arg} ...) ...) @varo{body} @var{body} ...
+@deffnx Syntax letrec*-make ((@var{var} @var{class} @var{arg} ...) ...) @varo{body} @var{body} ...
+@deffnx Syntax letrec*-make* ((@var{var} @var{class} @var{arg} ...) ...) @varo{body} @var{body} ...
+@func{let} like syntaxes to make it short to build a new class instance
+and bind it with a class tag; for example, in the following:
+
+@example
+(define-class <alpha>
+  (fields a b))
+
+(let-make ((o <alpha> 1 2))
+  (list o.a o.b))
+@end example
+
+@noindent
+the use of @func{let-make} expands to:
+
+@example
+(let/with-class (((o <alpha>) (make <alpha> 1 2)))
+  (list o.a o.b))
+@end example
+
+All the syntaxes with @code{-make} as suffix expand to uses of
+@func{make}; all the syntaxes with @code{-make*} as suffix expand to
+uses of @func{make*}.
+@end deffn
+
+@c page
+@node classes dot lambda
+@subsection Function bindings
+
+
+The following macros integrate the facilities of the @func{with-class}
+macro with the function creation facilities of the @func{lambda} and
+@func{case-lambda} syntaxes from @rsixlibrary{base}.
+
+@quotation
+@strong{NOTE} It is possible to use the facilities of the
+@library{nausicaa contracts} library to assert that the type of
+arguments to the functions is the one selected by the class identifiers.
+Merging the features of contracts along with the function construction
+macros may result in inflexible code or bloated code after the
+expansion; so, for the time being, this merging is not implemented.
+@end quotation
+
+
+@defmac lambda/with-class @var{formals} @var{body}
+Like @func{lambda} but encloses the body into a @func{with-class} syntax
+defining identifier syntaxes to access the fields and virtual fields of
+the arguments.  @var{formals} must have the same form of the formals for
+@func{lambda}, but each @var{variable} argument can be an identifier, as
+in @func{lambda}, or a list of the form:
+
+@example
+(@var{variable} @var{class} ...)
+@end example
+
+@noindent
+in which case the @var{variable} argument is meant to be of type
+@var{class} and the corresponding identifier syntaxes are defined.  When
+an argument as no class specifiers: we can use @class{top} as its
+conventional class name, or let @func{lambda/with-class} select
+@class{top} automatically.
+
+@example
+(define-class <fraction>
+  (fields (mutable number))
+  (virtual-fields (mutable numerator)
+                  (mutable denominator)))
+
+(define <fraction>-numerator
+  (lambda/with-class ((o <fraction>))
+    (numerator o.number)))
+
+(define <fraction>-numerator-set!
+  (lambda/with-class ((o <fraction>) v)
+    (set! o.number (/ v (denominator o.number)))))
+
+(define <fraction>-denominator
+  (lambda/with-class ((o <fraction>))
+    (denominator o.number)))
+
+(define <fraction>-denominator-set!
+  (lambda/with-class ((o <fraction>) v)
+    (set! o.number (/ (numerator o.number) v))))
+
+(let/with-class (((o <fraction>) (make <fraction> 2/3)))
+  o.numerator)
+@result{} 2
+@end example
+@end defmac
+
+
+@defmac define/with-class (@var{variable} @var{formals}) @var{body}
+@defmacx define/with-class (@var{variable} . @var{formal}) @var{body}
+@defmacx define/with-class @var{variable} @var{expression}
+@defmacx define/with-class @var{variable}
+Like @func{define} but when used in the first and second forms it
+expands to the use of @func{lambda/with-class}.
+
+@example
+(define-class <fraction>
+  (fields (mutable number))
+  (virtual-fields (mutable numerator)
+                  (mutable denominator)))
+
+(define/with-class (<fraction>-numerator (o <fraction>))
+  (numerator o.number))
+
+(define/with-class (<fraction>-numerator-set! (o <fraction>) v)
+  (set! o.number (/ v (denominator o.number))))
+
+(define/with-class (<fraction>-denominator (o <fraction>))
+  (denominator o.number))
+
+(define/with-class (<fraction>-denominator-set! (o <fraction>) v)
+  (set! o.number (/ (numerator o.number) v)))
+
+(let/with-class (((o <fraction>) (make <fraction> 2/3)))
+  o.numerator)
+@result{} 2
+@end example
+@end defmac
+
+
+@defmac Syntax case-lambda/with-class @var{case-lambda-clause} ...
+The natural extension of @func{lambda/with-class}.
+@end defmac
+
+
+@defmac receive/with-class @var{formals} @var{expression} . @var{body}
+Like @func{receive} but expands to @func{lambda/with-class} rather than
+@func{lambda}:
+
+@example
+(define-syntax receive/with-class
+  (syntax-rules ()
+    ((_ ?formals ?expression ?form0 ?form ...)
+     (call-with-values
+         (lambda () ?expression)
+       (lambda/with-class ?formals ?form0 ?form ...)))))
+@end example
+@end defmac
+
+@c page
+@node classes dot setter
+@subsection Setters and getters
+
+
+Setters and getters have the purpose of providing a shorter syntax to
+access storage locations; they are especially useful with vector objects
+and similar:
+
+@example
+(let/with-class (((o <vector>) '#(0 1 2 3 4)))
+  (setf (o 2) #\c)
+  (getf (o 2)))
+@result{} #\c
+
+(let/with-class (((o <hashtable>) (make-eq-hashtable)))
+  (setf (o 'ciao) 10)
+  (list (getf (o 'ciao))
+        (getf (o 'hello))
+        (getf (o 'hello 'salut))))
+@result{} (10 #f salut)
+@end example
+
+In this document: class specific setters and getters are described as
+@func{setf} and @func{getf} ``methods''.
+
+
+@defmac setf @var{place} @var{value}
+@defmacx setf @var{identifier} @var{value}
+Apply a class setter to the specified @var{place} with the purpose of
+storing there @var{value}.  The @var{place} argument must have the form:
+
+@example
+(@var{variable-name} @varo{key} @var{key} ...)
+@end example
+
+@noindent
+where @var{variable-name} must be an identifier bound to the class
+instance, the @var{key} values should select a storage location.  The
+following meaningless example shows the mechanism:
+
+@example
+(define-class <alpha>
+  (fields (mutable a))
+  (setter <alpha>-setf))
+
+(define/with-class (<alpha>-setf (o <alpha>) key0 key1 value)
+  (set! o.a (list key0 key1 value)))
+
+(let/with-class (((o <alpha>) (make <alpha> 1)))
+  (setf (o 2 3) 4)
+  o.a)
+@result{} (2 3 4)
+@end example
+
+The number of keys to be used by the setter is unspecified: it is
+enforced by the function or macro selected in the @func{setter} clause
+of @func{define-class}.
+
+When used with the @var{identifier} argument: @func{setf} behaves as an
+alias of @func{set!} (notice, though, that renaming @func{setf} to
+@func{set!} when importing the library, causes problems when using the
+@func{identifier-syntax} macro).
+@end defmac
+
+
+@defmac getf @var{place}
+Apply a class getter to the specified @var{place} with the purpose of
+accessing the value stored there.  The @var{place} argument must have
+the form:
+
+@example
+(@var{variable-name} @varo{key} @var{key} ...)
+@end example
+
+@noindent
+where @var{variable-name} must be an identifier bound to the class
+instance, the @var{key} values should select a storage location.  The
+following meaningless example shows the mechanism:
+
+@example
+(define-class <alpha>
+  (fields (mutable a))
+  (setter <alpha>-setf)
+  (getter <alpha>-getf))
+
+(define/with-class (<alpha>-setf (o <alpha>) key0 key1 value)
+  (set! o.a (list key0 key1 value)))
+
+(define/with-class (<alpha>-getf (o <alpha>) key0 key1)
+  (list o.a key0 key1))
+
+(let/with-class (((o <alpha>) (make <alpha> 1)))
+  (setf (o 2 3) 4)
+  (getf (o 5 6)))
+@result{} ((2 3 4) 5 6)
+@end example
+
+The number of keys to be used by the getter is unspecified: it is
+enforced by the function or macro selected in the @func{getter} clause
+of @func{define-class}.
+@end defmac
+
+@c page
+@node classes dot misc
+@subsection Miscellaneous syntaxes.
+
+
+@deffn Syntax class-case @var{id} @var{case-clause} ...
+Similar to @func{case} from @rsixlibrary{base}, allows the selection of
+a clause based on the class of @var{id}, which must be an identifier.
+@var{case-clause} must be one among:
+
+@example
+((@var{class}) @vari{expression} @var{expression} ...)
+(else @vari{expression} @var{expression} ...)
+@end example
+
+@noindent
+and the @func{else} clause can appear only as last clause.
+
+Example:
+
+@example
+(case thing
+  ((<alpha>)    (alpha-body))
+  ((<beta>)     (beta-body))
+  (else         (else-body)))
+@end example
+
+@noindent
+expands to:
+
+@example
+(cond ((is-a? thing <alpha>)
+       (with-class ((thing <alpha>))
+         (alpha-body)))
+      ((is-a? thing <beta>)
+       (with-class ((thing <beta>))
+         (alpha-body)))
+      (else
+       (else-body)))
+@end example
+
+@noindent
+notice that only a single class identifier can be present in the ``datum
+list'' of the @var{case-clause}.
+@end deffn
+
+@c page
+@node classes builtin
+@section Conventional type descriptors
+
+
+@cindex Conventional record type descriptors
+@cindex Conventional type descriptors
+@cindex Record types, conventional descriptors
+
+
+Builtin Scheme object types can be treated as instances of class types
+by accepting some limitations; this allows us to use the facilities of
+the @library{nausicaa language classes} library with builtin objects.
+
+Builtin Scheme values have no @rtd{}, so @library{nausicaa language
+classes} assigns a conventional one to them.  Conventional @rtd{}s have
+two purposes: to provide an interface for identifier macros defined by
+@func{with-class}; to be used in multimethod dispatching by the
+@library{nausicaa language generics} library.  The conventional @rtd{}s
+can be used neither to instantiate builtin objects nor as parents for
+other class types; for example: @func{make-<string>} does @strong{not}
+return a builtin Scheme string object.
+
+A record is described by its record type descriptor (@rtd{});
+unfortunately we cannot rely on @rtd{}s describing the same record type
+to be @func{eq?} to each other, so we have to rely on the @acronym{UID}s
+of non--generative record types.  When dispatching multimethods, it is
+convenient to use those @acronym{UID}s to represent the ``class'' of a
+record.
+
+@menu
+* classes builtin chart::       A chart for predefined builtin types.
+* classes builtin base::        Basic conventional types.
+* classes builtin list::        Pairs and lists types.
+* classes builtin compound::    Non--list compound types.
+* classes builtin number::      Numeric objects types.
+* classes builtin port::        Input/output port objects types.
+* classes builtin string::      Character and string types.
+* classes builtin misc::        Miscellaneous conventional types.
+@end menu
+
+@c page
+@node classes builtin chart
+@subsection A chart for predefined builtin types
+
+
+@example
+                                 -> <input-port>
+                                |
+                                +-> <output-port>
+                                |
+                                +-> <binary-port>
+                                |
+                   --> <port> --+-> <textual-port>
+                  |
+                  +--> <record> --> <condition>
+                  |
+                  +--> <string>
+ <top>            |
+   |              +--> <char>
+   v              |
+<builtin> --------+-------+---------+-----------+
+   |              |       |         |           |
+   v              v       v         v           v
+<number>        <pair> <vector> <bytevector> <hashtable>
+   |              |
+   v              v
+<complex>       <list>
+   |
+   v
+<real-valued>
+   |
+   v
+<real> ------> <flonum>
+   |
+   v
+<rational-valued>
+   |         |
+   v         v
+<rational> <integer-valued>
+   |
+   v
+<integer>
+   |
+   v
+<fixnum>
+@end example
+
+@c page
+@node classes builtin base
+@subsection Basic conventional types
+
+
+@deftp Class @aclass{top}
+Conventional parent of all the record types; class types defined with
+@func{define-class}, have @class{top} as parent type if we do not select
+explicitly a parent with the @func{inherit} clause.
+@end deftp
+
+
+@deftp {Foreign Class} @aclass{builtin}
+The parent of all the conventional @rtd{}s, with the exception of
+@class{top}.
+@end deftp
+
+@c page
+@node classes builtin list
+@subsection Pairs and lists types
+
+
+@deftp {Foreign Class} @aclass{pair}
+Conventional type of objects satisfying @func{pair?}.
+@end deftp
+
+
+@defcv {Immutable Virtual Field} @aclass{pair} car
+Access the car of the pair.
+@end defcv
+
+
+@defcv {Immutable Virtual Field} @aclass{pair} cdr
+Access the cdr of the pair.
+@end defcv
+
+
+@deftp {Foreign Class} @aclass{list}
+Conventional type of objects satisfying @func{list?}.
+@end deftp
+
+@defcv {Immutable Virtual Field} @aclass{list} length
+Access the length of the list.
+@end defcv
+
+
+@defcv {Immutable Virtual Field} @aclass{list} null?
+Return true if the list is empty.
+@end defcv
+
+
+@defcv {Immutable Virtual Field} @aclass{list} caar
+@defcvx {Immutable Virtual Field} @aclass{list} cadr
+@defcvx {Immutable Virtual Field} @aclass{list} cdar
+@defcvx {Immutable Virtual Field} @aclass{list} cddr
+@defcvx {Immutable Virtual Field} @aclass{list} caaar
+@defcvx {Immutable Virtual Field} @aclass{list} caadr
+@defcvx {Immutable Virtual Field} @aclass{list} cadar
+@defcvx {Immutable Virtual Field} @aclass{list} caddr
+@defcvx {Immutable Virtual Field} @aclass{list} cdaar
+@defcvx {Immutable Virtual Field} @aclass{list} cdadr
+@defcvx {Immutable Virtual Field} @aclass{list} cddar
+@defcvx {Immutable Virtual Field} @aclass{list} cdddr
+Apply the corresponding function to the list.  Notice that (as a special
+exception to goot style) referencing these virtual fields may raise an
+error if the list structure is not suitable.
+@end defcv
+
+
+@defmethod @aclass{list} find @var{proc}
+Apply @func{find} to the list.
+@end defmethod
+
+
+@defmethod @aclass{list} reverse @var{proc}
+Apply @func{reverse} to the list.
+@end defmethod
+
+
+@defmethod @aclass{list} for-all @var{proc}
+@defmethodx @aclass{lits} exists @var{proc}
+Apply @func{for-all} and @func{exists} to the list.
+@end defmethod
+
+
+@defmethod @aclass{list} filter @var{proc}
+@defmethodx @aclass{list} partition @var{proc}
+Apply @func{filter} and @func{partition} to the list.
+@end defmethod
+
+
+@defmethod @aclass{list} fold-left @var{nil} @var{combine}
+Apply @func{fold-left} to the list.
+@end defmethod
+
+
+@defmethod @aclass{list} fold-right @var{nil} @var{combine}
+Apply @func{fold-right} to the list.
+@end defmethod
+
+
+@defmethod @aclass{list} remp @var{proc}
+@defmethodx @aclass{list} remove @var{obj}
+@defmethodx @aclass{list} remv @var{obj}
+@defmethodx @aclass{list} remq @var{obj}
+Apply @func{remp}, @func{remove}, @func{remv}, @func{remq} to the list.
+@end defmethod
+
+
+@defmethod @aclass{list} memp @var{proc} @var{list}
+@defmethodx @aclass{list} member @var{obj} @var{list}
+@defmethodx @aclass{list} memv @var{obj} @var{list}
+@defmethodx @aclass{list} memq @var{obj} @var{list}
+Apply @func{memp}, @func{member}, @func{memv}, @func{memq} to the list.
+@end defmethod
+
+
+@defmethod @aclass{list} assp @var{proc}
+@defmethodx @aclass{list} assoc @var{obj}
+@defmethodx @aclass{list} assv @var{obj}
+@defmethodx @aclass{list} assq @var{obj}
+Apply @func{assp}, @func{assoc}, @func{assv}, @func{assq} to the list.
+@end defmethod
+
+@c page
+@node classes builtin compound
+@subsection Non--list compound types
+
+
+@subsubheading Vectors
+
+
+@deftp {Foreign Class} @aclass{vector}
+Conventional type for objects satisfying @func{vector?}.
+@end deftp
+
+
+@defcv {Immutable Virtual Field} @aclass{vector} length
+Access the length of the vector.
+@end defcv
+
+
+@deffn Syntax setf (@var{o} @var{index}) @var{value}
+Store @var{value} at @var{index} of the vector @var{o}.  @var{index} is
+an expression.
+@end deffn
+
+
+@deffn Syntax getf (@var{o} @var{index})
+Return the value at @var{index} of the vector @var{o}.  @var{index} is
+an expression.
+@end deffn
+
+@c ------------------------------------------------------------
+
+@subsubheading Bytevectors
+
+@deftp {Foreign Class} @aclass{bytevector}
+Conventional type for objects satisfying @func{bytevector?}.
+@end deftp
+
+
+@defcv {Immutable Virtual Field} @aclass{bytevector} length
+Access the length of the bytevector.
+@end defcv
+
+
+@deffn Syntax setf (@var{o} @var{index}) @var{value}
+@deffnx Syntax setf (@var{o} @var{index} @var{type}) @var{value}
+@deffnx Syntax setf (@var{o} @var{index} @var{type} @var{endian}) @var{value}
+Implemented as a macro: store @var{value} at index @var{index} of the
+bytevector @var{o}.  The mutator is selected according to the following
+rules:
+
+@itemize
+@item
+When no @var{type} nor @var{endian} is used: the mutator is
+@func{bytevector-u8-set!}.
+
+@item
+When both @var{type} and @var{endian} are used: the mutator is selected
+accordingly; @var{type} can be one among:
+
+@example
+u8  s8    u16 s16
+u32 s32   u64 s64
+uint   sint
+single double
+@end example
+
+@noindent
+while @var{endian} can be one among @samp{big} and @samp{little}.
+
+@item
+When only @var{type} is used: the mutator is selected accordingly among
+the native ones; @var{type} can be one among:
+
+@example
+u16n s16n
+u32n s32n   u64n s64n
+singlen doublen
+@end example
+@end itemize
+@end deffn
+
+
+@deffn Syntax getf (@var{o} @var{index})
+@deffnx Syntax getf (@var{o} @var{index} @var{type})
+@deffnx Syntax getf (@var{o} @var{index} @var{type} @var{endian})
+Implemented as a macro: return the value at index @var{index} of the
+bytevector @var{o}.  The accessor is selected according to the following
+rules:
+
+@itemize
+@item
+When no @var{type} nor @var{endian} is used: the mutator is
+@func{bytevector-u8-ref}.
+
+@item
+When both @var{type} and @var{endian} are used: the accessor is selected
+accordingly; @var{type} can be one among:
+
+@example
+u8  s8    u16 s16
+u32 s32   u64 s64
+uint   sint
+single double
+@end example
+
+@noindent
+while @var{endian} can be one among @samp{big} and @samp{little}.
+
+@item
+When only @var{type} is used: the accessor is selected accordingly among
+the native ones; @var{type} can be one among:
+
+@example
+u16n s16n
+u32n s32n   u64n s64n
+singlen doublen
+@end example
+@end itemize
+@end deffn
+
+@c ------------------------------------------------------------
+
+@subsubheading Hashtables
+
+@deftp {Foreign Class} @aclass{hashtable}
+Conventional type for objects satisfying @func{hashtable?}.
+@end deftp
+
+
+@defcv {Immutable Virtual Field} @aclass{hashtable} size
+Access the size of the table.
+@end defcv
+
+
+@defcv {Immutable Virtual Field} @aclass{hashtable} keys
+Access the keys.  Retrieving this field is like applying
+@func{hashtable-keys} to the hashtable.
+@end defcv
+
+
+@defcv {Immutable Virtual Field} @aclass{hashtable} entries
+Access the keys and values.  Retrieving this field is like applying
+@func{hashtable-entries} to the hashtable.
+@end defcv
+
+
+@deffn Syntax setf (@var{o} @var{key}) @var{value}
+Associate @var{value} to @var{key} in the hashtable @var{o}.  The
+@var{key} is an expression.
+@end deffn
+
+
+@deffn Syntax getf (@var{o} @var{key})
+@deffnx Syntax getf (@var{o} @var{key} @var{default})
+Return the value associated to @var{key} in the hashtable @var{o}.  When
+not found: return @var{default} or @false{} if @var{default} was not
+given.  @var{key} and @var{default} are expressions.
+@end deffn
+
+@c page
+@node classes builtin number
+@subsection Numeric objects types
+
+
+@subsubheading Number objects
+
+@deftp {Foreign Class} @aclass{number}
+Conventional type for objects satisfying @func{number?}.
+@end deftp
+
+
+@defcv {Immutable Virtual Field} @aclass{number} exact
+Accessing this field is like applying @func{exact} to the number.
+@end defcv
+
+
+@defcv {Immutable Virtual Field} @aclass{number} inexact
+Accessing this field is like applying @func{inexact} to the number.
+@end defcv
+
+
+@defcv {Immutable Virtual Field} @aclass{number} exact?
+Accessing this field is like applying @func{exact?} to the number.
+@end defcv
+
+
+@defcv {Immutable Virtual Field} @aclass{number} inexact?
+Accessing this field is like applying @func{inexact?} to the number.
+@end defcv
+
+
+@defcv {Immutable Virtual Field} @aclass{number} zero?
+Accessing this field is like applying @func{zero?} to the number.
+@end defcv
+
+
+@defcv {Immutable Virtual Field} @aclass{number} odd?
+Accessing this field is like applying @func{odd?} to the number.
+@end defcv
+
+
+@defcv {Immutable Virtual Field} @aclass{number} even?
+Accessing this field is like applying @func{even?} to the number.
+@end defcv
+
+
+@defcv {Immutable Virtual Field} @aclass{number} finite?
+Accessing this field is like applying @func{finite?} to the number.
+@end defcv
+
+
+@defcv {Immutable Virtual Field} @aclass{number} infinite?
+Accessing this field is like applying @func{infinite?} to the number.
+@end defcv
+
+
+@defcv {Immutable Virtual Field} @aclass{number} nan?
+Accessing this field is like applying @func{nan?} to the number.
+@end defcv
+
+
+@defcv {Immutable Virtual Field} @aclass{number} numerator
+Accessing this field is like applying @func{numerator} to the number.
+@end defcv
+
+
+@defcv {Immutable Virtual Field} @aclass{number} denominator
+Accessing this field is like applying @func{denominator} to the number.
+@end defcv
+
+
+@defcv {Immutable Virtual Field} @aclass{number} floor
+Accessing this field is like applying @func{floor} to the number.
+@end defcv
+
+
+@defcv {Immutable Virtual Field} @aclass{number} ceiling
+Accessing this field is like applying @func{ceiling} to the number.
+@end defcv
+
+
+@defcv {Immutable Virtual Field} @aclass{number} truncate
+Accessing this field is like applying @func{truncate} to the number.
+@end defcv
+
+
+@defcv {Immutable Virtual Field} @aclass{number} round
+Accessing this field is like applying @func{round} to the number.
+@end defcv
+
+@c ------------------------------------------------------------
+
+@subsubheading Complex numbers
+
+@deftp {Foreign Class} @aclass{complex}
+Convenctional type for objects satisfying @func{complex?}.
+@end deftp
+
+
+@defcv {Immutable Virtual Field} @aclass{number} real-part
+Accessing this field is like applying @func{real-part} to the number.
+@end defcv
+
+
+@defcv {Immutable Virtual Field} @aclass{complex} imag-part
+Accessing this field is like applying @func{imag-part} to the number.
+@end defcv
+
+
+@defcv {Immutable Virtual Field} @aclass{complex} magnitude
+Accessing this field is like applying @func{magnitude} to the number.
+@end defcv
+
+
+@defcv {Immutable Virtual Field} @aclass{complex} angle
+Accessing this field is like applying @func{angle} to the number.
+@end defcv
+
+@c ------------------------------------------------------------
+
+@subsubheading Real valued numbers
+
+@deftp {Foreign Class} @aclass{real-valued}
+Conventioanl type for objects satisfying @func{real-valued?}.
+@end deftp
+
+
+@defcv {Immutable Virtual Field} @aclass{real-valued} positive?
+Accessing this field is like applying @func{positive?} to the number.
+@end defcv
+
+
+@defcv {Immutable Virtual Field} @aclass{real-valued} negative?
+Accessing this field is like applying @func{negative?} to the number.
+@end defcv
+
+
+@defcv {Immutable Virtual Field} @aclass{real-valued} non-positive?
+Accessing this field is like applying @func{non-positive?} to the
+number.
+@end defcv
+
+
+@defcv {Immutable Virtual Field} @aclass{real-valued} non-negative?
+Accessing this field is like applying @func{non-negative?} to the
+number.
+@end defcv
+
+
+@defcv {Immutable Virtual Field} @aclass{real-valued} sign
+It is the sign of the number: @math{+1}, @math{0}, @math{-1}.
+@end defcv
+
+@c ------------------------------------------------------------
+
+@subsubheading Real numbers
+
+@deftp {Foreign Class} @aclass{real}
+Conventional for objects satisfying @func{real?}.
+@end deftp
+
+
+@defcv {Immutable Virtual Field} @aclass{real} abs
+Accessing this field is like applying @func{abs} to the number.
+@end defcv
+
+@c ------------------------------------------------------------
+
+@subsubheading Rational numbers
+
+@deftp {Foreign Class} @aclass{rational}
+Conventional type for objects satisfying @func{rational?}.
+@end deftp
+
+@c ------------------------------------------------------------
+
+@subsubheading Rational valued numbers
+
+@deftp {Foreign Class} @aclass{rational-valued}
+Conventional type for objects satisfying @func{rational-valued?}.
+@end deftp
+
+@c ------------------------------------------------------------
+
+@subsubheading Integer valued numbers
+
+@deftp {Foreign Class} @aclass{integer-valued}
+Conventional type for objects satisfying @func{integer-valued?}.
+@end deftp
+
+@c ------------------------------------------------------------
+
+@subsubheading Integer numbers
+
+@deftp {Foreign Class} @aclass{integer}
+Conventional type for objects satisfying @func{integer?}.
+@end deftp
+
+@c ------------------------------------------------------------
+
+@subsubheading Fixnum numbers
+
+
+@deftp {Foreign Class} @aclass{fixnum}
+Conventional type for objects satisfying @func{fixnum?}.
+@end deftp
+
+@c ------------------------------------------------------------
+
+@subsubheading Flonum numbers
+
+@deftp {Foreign Class} @aclass{flonum}
+Conventional type for objects satisfying @func{flonum?}.
+@end deftp
+
+@c page
+@node classes builtin port
+@subsection Input/output port objects types
+
+
+The binary/textual attributes are not mututally exclusive with the
+input/output attributes.
+
+
+@deftp {Foreign Class} @aclass{port}
+Conventional type for objects satisfying @func{port?}.
+@end deftp
+
+
+@defcv {Immutable Virtual Field} @aclass{port} transcoder
+Accessing this field is like applying @func{port-transcoder} to the
+port.
+@end defcv
+
+
+@defcv {Immutable Virtual Field} @aclass{port} textual?
+Accessing this field is like applying @func{textual-port?}  to the port.
+@end defcv
+
+
+@defcv {Immutable Virtual Field} @aclass{port} binary?
+Accessing this field is like applying @func{binary-port?} to the port.
+@end defcv
+
+
+@defcv {Immutable Virtual Field} @aclass{port} has-port-position?
+Accessing this field is like applying @func{port-has-port-position?} to
+the port.
+@end defcv
+
+
+@defcv {Immutable Virtual Field} @aclass{port} has-set-port-position?
+Accessing this field is like applying @func{port-has-set-port-position?}
+to the port.
+@end defcv
+
+
+@defcv {Immutable Virtual Field} @aclass{port} port-position
+Accessing this field is like applying @func{port-position} to the port;
+mutating this field is like applying @func{set-port-position!} to the
+port.
+@end defcv
+
+
+@defcv {Immutable Virtual Field} @aclass{port} eof?
+Accessing this field is like applying @func{port-eof?} to the port.
+@end defcv
+
+
+@defcv {Immutable Virtual Field} @aclass{port} input?
+Accessing this field is like applying @func{input-port?} to the port.
+@end defcv
+
+
+@defcv {Immutable Virtual Field} @aclass{port} output?
+Accessing this field is like applying @func{output-port?} to the port.
+@end defcv
+
+
+@deftp {Foreign Class} @aclass{input-port}
+Conventional type for objects satisfying @func{input-port?}.
+@end deftp
+
+
+@deftp {Foreign Class} @aclass{output-port}
+Conventional type for objects satisfying @func{output-port?}.
+@end deftp
+
+
+@deftp {Foreign Class} @aclass{textual-port}
+Conventional type for objects satisfying @func{textual-port?}.
+@end deftp
+
+
+@deftp {Foreign Class} @aclass{binary-port}
+Conventional type for objects satisfying @func{binary-port?}.
+@end deftp
+
+@c page
+@node classes builtin string
+@subsection Character and string types
+
+
+@subsubheading String type
+
+
+@deftp {Foreign Class} @aclass{string}
+Conventional type for immutable objects satisfying @func{string?}.
+@end deftp
+
+
+@defcv {Immutable Virtual Field} @aclass{string} length
+Accessing this field is like applying @func{string-length} to the
+string.
+@end defcv
+
+
+@defcv {Immutable Virtual Field} @aclass{string} empty?
+True if the string length is zero.
+@end defcv
+
+
+@defcv {Immutable Virtual Field} @aclass{string} upcase
+Accessing this field is like applying @func{string-upcase} to the
+string.
+@end defcv
+
+
+@defcv {Immutable Virtual Field} @aclass{string} downcase
+Accessing this field is like applying @func{string-downcase} to the
+string.
+@end defcv
+
+
+@defcv {Immutable Virtual Field} @aclass{string} titlecase
+Accessing this field is like applying @func{string-titlecase} to the
+string.
+@end defcv
+
+
+@defcv {Immutable Virtual Field} @aclass{string} foldcase
+Accessing this field is like applying @func{string-foldcase} to the
+string.
+@end defcv
+
+
+@defmethod @aclass{string} substring @var{begin}
+@defmethodx @aclass{string} substring @var{begin} @var{end}
+Build and return a new string holding the selected substring of the
+subject.  When @var{end} is not used: it defaults to the length of the
+string.
+@end defmethod
+
+
+@defmethod @aclass{string} append @var{string} ...
+Build and return a new string whose characters form the concatenation of
+the subject and given strings.
+@end defmethod
+
+
+@defmethod @aclass{string} list
+Return a list holding all the characters in the string.
+@end defmethod
+
+
+@defmethod @aclass{string} for-each @var{proc}
+Apply @var{proc} to the characters of the string.
+@end defmethod
+
+
+@defmethod @aclass{string} copy
+Build and return a new string holding the same characters.
+@end defmethod
+
+
+@deffn Syntax getf (@var{o} @var{index})
+Return the char at @var{index} of the string @var{o}.  @var{index} is an
+expression.
+@end deffn
+
+@c ------------------------------------------------------------
+
+@subsubheading Character type
+
+
+@deftp {Foreign Class} @aclass{char}
+Conventional type for objects satisfying @func{char?}.
+@end deftp
+
+
+@defcv {Immutable Virtual Field} @aclass{char} upcase
+Accessing this field is like applying @func{char-upcase} to the char.
+@end defcv
+
+
+@defcv {Immutable Virtual Field} @aclass{char} downcase
+Accessing this field is like applying @func{char-downcase} to the char.
+@end defcv
+
+
+@defcv {Immutable Virtual Field} @aclass{char} titlecase
+Accessing this field is like applying @func{char-titlecase} to the char.
+@end defcv
+
+
+@defcv {Immutable Virtual Field} @aclass{char} foldcase
+Accessing this field is like applying @func{char-foldcase} to the char.
+@end defcv
+
+@c page
+@node classes builtin misc
+@subsection Miscellaneous conventional types
+
+
+@deftp {Foreign Class} @aclass{condition}
+Conventional type for objects satisfying @func{condition?}.
+@end deftp
+
+
+@defcv {Immutable Virtual Field} @aclass{condition} message
+Accessing this field is like applying @func{condition-message} to the
+condition object.
+@end defcv
+
+
+@defcv {Immutable Virtual Field} @aclass{condition} who
+Accessing this field is like applying @func{condition-who} to the
+condition object.
+@end defcv
+
+
+@defcv {Immutable Virtual Field} @aclass{condition} irritants
+Accessing this field is like applying @func{condition-irritants} to the
+condition object.
+@end defcv
+
+@c page
+@node classes properties
+@section Class, label, mixin properties
+
+
+@cindex @library{nausicaa language classes properties}, library
+@cindex Library @library{nausicaa language classes properties}
+
+
+The library @library{nausicaa language classes properties} exports an
+@api{} to query at expand time the definition attributes of classes,
+labels and mixins.  The attributes of a mixin are the same as the
+attributes of a class.
+
+@menu
+* classes properties def::      Defining and retrieving properties.
+* classes properties query::    Querying the properties values.
+@end menu
+
+@c page
+@node classes properties def
+@subsection Defining and retrieving properties
+
+
+The following bindings are exported by the @library{nausicaa language
+classes properties} library.
+
+
+@defun struct-properties-define @var{identifier} @var{value}
+Associate a properties @var{value} to @var{identifier}.
+@var{identifier} must be an already bound identifier representing the
+name of a class, label or mixin.  @var{value} must be the return value
+of @func{make-class}, @func{make-label} or @func{make-mixin}.
+
+It is an error if a properties value has already been associated to
+@var{identifier}.
+@end defun
+
+
+@defun struct-properties-ref @var{identifier}
+Return the properties value associated to @var{identifier} by a previous
+call to @func{struct-properties-define}.
+@end defun
+
+@c page
+@node classes properties query
+@subsection Querying the properties values
+
+
+The following bindings are exported by the @library{nausicaa language
+classes properties} library.  The functions with prefix @code{struct-}
+can be applied to all the properties values; the functions with prefix
+@code{class-}, @code{label-}, @code{mixin-} can be applied only to
+properties values for classes, labels and mixins respectively.
+
+
+@defun make-class . @var{args}
+@defunx make-label . @var{args}
+@defunx make-mixin . @var{args}
+Build and return a new properties value.  These function are meant to be
+for internal use only, so their arguments are undocumented.
+@end defun
+
+
+@defun struct? @var{obj}
+@defunx class? @var{obj}
+@defunx label? @var{obj}
+@defunx mixin? @var{obj}
+Return true if @var{obj} is a properties value, a class properties
+value, a label properties value, a mixin properties value respectively.
+@end defun
+
+
+@defun struct-list-of-supers @var{prop}
+@defunx class-list-of-supers @var{prop}
+@defunx label-list-of-supers @var{prop}
+@defunx mixin-list-of-supers @var{prop}
+Query a properties value.  Return an unwrapped syntax object being null
+or a list of identifiers representing the superclasses or superlabels of
+the class, label or mixin associated to @var{prop}.
+
+The returned value is null when @var{prop} is associated to: the
+@class{top} class; a class having a record as parent (rather than a
+class).
+@end defun
+
+
+@defun struct-field-specs @var{prop}
+@defunx class-field-specs @var{prop}
+@defunx mixin-field-specs @var{prop}
+Query a properties value.  Return an unwrapped syntax object being null
+or a list of lists of concrete field specifications; the format of the
+list is:
+
+@example
+((mutable   @var{name} @var{accessor} @var{mutator} @var{tag} ...)
+ ...
+ (immutable @var{name} @var{accessor} @var{tag} ...)
+ ...)
+@end example
+
+@noindent
+where: @code{mutable} and @code{immutable} are the auxiliary syntaxes
+exported by @rsixlibrary{records syntactic}; @var{name} is an identifier
+representing the name of the field; @var{accessor} and @var{mutator} are
+identifiers bound to the accessor and mutator functions for the record;
+the optional @var{tag} values are identifiers representing the field
+type tags.
+@end defun
+
+
+@defun struct-virtual-field-specs @var{prop}
+@defunx class-virtual-field-specs @var{prop}
+@defunx label-virtual-field-specs @var{prop}
+@defunx mixin-virtual-field-specs @var{prop}
+Query a properties value.  Return an unwrapped syntax object being null
+or a list of lists of virtual field specifications; the format of the
+list is:
+
+@example
+((mutable   @var{name} @var{accessor} @var{mutator} @var{tag} ...)
+ ...
+ (immutable @var{name} @var{accessor} @var{tag} ...)
+ ...)
+@end example
+
+@noindent
+where: @code{mutable} and @code{immutable} are the auxiliary syntaxes
+exported by @rsixlibrary{records syntactic}; @var{name} is an identifier
+representing the name of the field; @var{accessor} and @var{mutator} are
+identifiers bound to the accessor and mutator functions for the field;
+the optional @var{tag} values are identifiers representing the field
+type tags.
+@end defun
+
+
+@defun struct-method-specs @var{prop}
+@defunx class-method-specs @var{prop}
+@defunx label-method-specs @var{prop}
+@defunx mixin-method-specs @var{prop}
+Query a properties value.  Return an unwrapped syntax object being null
+or list of method specifications; the format of the list is:
+
+@example
+((@var{method-name} @var{function-or-macro-identifier})
+ ...)
+@end example
+
+@noindent
+where: @code{method-name} is an identifier representing the name of the
+method; @var{function-or-macro-identifier} is an identifier bound to the
+function or macro implementing the method.
+@end defun
+
+
+@defun struct-mixin-identifiers @var{prop}
+@defunx class-mixin-identifiers @var{prop}
+@defunx label-mixin-identifiers @var{prop}
+@defunx mixin-mixin-identifiers @var{prop}
+Query a properties value.  Return an unwrapped syntax object being null
+or a list of identifiers representing the requested mixins.
+@end defun
+
+
+@defun struct-list-of-field-tags @var{prop}
+@defunx class-list-of-field-tags @var{prop}
+@defunx label-list-of-field-tags @var{prop}
+@defunx mixin-list-of-field-tags @var{prop}
+Query a properties value.  Return an unwrapped syntax object being null
+or a list of identifiers representing the full list of field tags; this
+value is used internally to detect circular tagging.
+@end defun
+
+@c end of file

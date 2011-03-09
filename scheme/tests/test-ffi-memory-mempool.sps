@@ -25,11 +25,10 @@
 
 
 (import (nausicaa)
-  (checks)
-  (ffi memory)
-  (ffi memory mempool)
-  (ffi memory compensated)
-  (compensations))
+  (nausicaa checks)
+  (nausicaa ffi memory)
+  (nausicaa ffi memory mempool)
+  (nausicaa ffi memory compensated))
 
 (check-set-mode! 'report-failed)
 (display "*** testing memory mempool\n")

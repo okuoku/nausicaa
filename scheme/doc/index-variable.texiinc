@@ -1,0 +1,6 @@
+@node variable index
+@appendix An entry for each variable
+
+@printindex vr
+
+@c end of file

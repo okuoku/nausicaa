@@ -1,4 +1,4 @@
-;;; -*- coding: utf-8-unix -*-
+;;; -*- coding: utf-8 -*-
 ;;;
 ;;;Part of: Nausicaa/Scheme
 ;;;Contents: tests for IPv6 address object
@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2010, 2011 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -25,14 +25,14 @@
 ;;;
 
 
+#!r6rs
 (import (nausicaa)
-  (net ipv6-addresses)
-  (silex lexer)
-  (parser-tools lexical-token)
-  (parser-tools source-location)
-  (net helpers ipv6-address-lexer)
-  (prefix (net helpers ipv6-address-parser) parser:)
-  (checks))
+  (nausicaa net ipv6-addresses)
+  (prefix (nausicaa silex lexer) lex.)
+  (nausicaa parser-tools)
+  (nausicaa net helpers ipv6-address-lexer)
+  (prefix (nausicaa net helpers ipv6-address-parser) parser.)
+  (nausicaa checks))
 
 (check-set-mode! 'report-failed)
 (display "*** testing net IPv6 address\n")
@@ -41,13 +41,13 @@
 (parametrise ((check-test-name	'lexing))
 
   (define (tokenise-address string)
-    (let* ((IS		(lexer-make-IS (:string string) (:counters 'all)))
-	   (lexer	(lexer-make-lexer ipv6-address-lexer-table IS))
+    (let* ((IS		(lex.make-IS (lex.string: string) (lex.counters: 'all)))
+	   (lexer	(lex.make-lexer ipv6-address-lexer-table IS))
 	   (out		'()))
       (define (push-token! (T <lexical-token>))
 	(set-cons! out (cons T.category T.value)))
-      (do ((token (lexer) (lexer)))
-	  ((<lexical-token>?/special token)
+      (do (((token <lexical-token>) (lexer) (lexer)))
+	  (token.special?
 	   (push-token! token)
 	   (reverse out))
 ;;;(write token)(newline)
@@ -184,9 +184,9 @@
 	(make-irritants-condition (list string token.value))))))
 
   (define (parse-address string)
-    (let* ((IS		(lexer-make-IS (:string string) (:counters 'all)))
-	   (lexer	(lexer-make-lexer ipv6-address-lexer-table IS))
-	   (parser	(parser:make-ipv6-address-parser)))
+    (let* ((IS		(lex.make-IS (lex.string: string) (lex.counters: 'all)))
+	   (lexer	(lex.make-lexer ipv6-address-lexer-table IS))
+	   (parser	(parser.make-ipv6-address-parser)))
       (parser lexer (make-ipv6-address-parser-error-handler 'parse-address string))))
 
 ;;; --------------------------------------------------------------------
@@ -532,24 +532,24 @@
 (parametrise ((check-test-name	'class))
 
   (check
-      (let (((o <ipv6-address>) (make <ipv6-address> (ipv6-address-parse "1:2:3:4:5:6:7:8"))))
+      (let (((o <ipv6-address>) (make* <ipv6-address> (ipv6-address-parse "1:2:3:4:5:6:7:8"))))
 	(list o.seventh o.sixth o.fifth o.fourth
 	      o.third o.second o.first o.zeroth))
     => '(1 2 3 4 5 6 7 8))
 
   (check
-      (let (((o <ipv6-address>) (make <ipv6-address> (ipv6-address-parse "1:2:3::7:8"))))
+      (let (((o <ipv6-address>) (make* <ipv6-address> (ipv6-address-parse "1:2:3::7:8"))))
 	(list o.seventh o.sixth o.fifth o.fourth
 	      o.third o.second o.first o.zeroth))
     => '(1 2 3 0 0 0 7 8))
 
   (check
-      (let (((o <ipv6-address>) (make <ipv6-address> (ipv6-address-parse "1:2:3:4:5:6:7:8"))))
+      (let (((o <ipv6-address>) (make* <ipv6-address> (ipv6-address-parse "1:2:3:4:5:6:7:8"))))
 	o.bignum)
     => #x00010002000300040005000600070008)
 
   (check
-      (let (((o <ipv6-address>) (make <ipv6-address> (ipv6-address-parse "1:2:3:4:5:6:7:8"))))
+      (let (((o <ipv6-address>) (make* <ipv6-address> (ipv6-address-parse "1:2:3:4:5:6:7:8"))))
 	o.string)
     => "1:2:3:4:5:6:7:8")
 
@@ -557,61 +557,61 @@
 
   (check
       (let (((o <ipv6-address>)
-	     (make <ipv6-address> (ipv6-address-parse "::0"))))
+	     (make* <ipv6-address> (ipv6-address-parse "::0"))))
 	o.unspecified?)
     => #t)
 
   (check
       (let (((o <ipv6-address>)
-	     (make <ipv6-address> (ipv6-address-parse "::1"))))
+	     (make* <ipv6-address> (ipv6-address-parse "::1"))))
 	o.unspecified?)
     => #f)
 
   (check
       (let (((o <ipv6-address>)
-	     (make <ipv6-address> (ipv6-address-parse "::0"))))
+	     (make* <ipv6-address> (ipv6-address-parse "::0"))))
 	o.loopback?)
     => #f)
 
   (check
       (let (((o <ipv6-address>)
-	     (make <ipv6-address> (ipv6-address-parse "::1"))))
+	     (make* <ipv6-address> (ipv6-address-parse "::1"))))
 	o.loopback?)
     => #t)
 
   (check
       (let (((o <ipv6-address>)
-	     (make <ipv6-address> (ipv6-address-parse "FF00::"))))
+	     (make* <ipv6-address> (ipv6-address-parse "FF00::"))))
 	o.multicast?)
     => #t)
 
   (check
       (let (((o <ipv6-address>)
-	     (make <ipv6-address> (ipv6-address-parse "::1"))))
+	     (make* <ipv6-address> (ipv6-address-parse "::1"))))
 	o.multicast?)
     => #f)
 
   (check
       (let (((o <ipv6-address>)
-	     (make <ipv6-address> (ipv6-address-parse "FE80::"))))
+	     (make* <ipv6-address> (ipv6-address-parse "FE80::"))))
 	o.link-local-unicast?)
     => #t)
 
   (check
       (let (((o <ipv6-address>)
-	     (make <ipv6-address> (ipv6-address-parse "::1"))))
+	     (make* <ipv6-address> (ipv6-address-parse "::1"))))
 	o.link-local-unicast?)
     => #f)
 
   (check
       (let (((o <ipv6-address>)
-	     (make <ipv6-address> (ipv6-address-parse "FF80::"))))
+	     (make* <ipv6-address> (ipv6-address-parse "FF80::"))))
 	o.global-unicast?)
     => #f)
 
   (check
       (let (((o <ipv6-address>)
-	     (make <ipv6-address> (ipv6-address-parse "1:2::"))))
+	     (make* <ipv6-address> (ipv6-address-parse "1:2::"))))
 	o.global-unicast?)
     => #t)
 
@@ -621,7 +621,7 @@
       (let (((o <ipv6-address-prefix>)
 	     (receive (addr len)
 		 (ipv6-address-prefix-parse "1:2:3:4::/55")
-	       (make <ipv6-address-prefix> addr len))))
+	       (make* <ipv6-address-prefix> addr len))))
 	(list o.seventh o.sixth o.fifth o.fourth
 	      o.third o.second o.first o.zeroth
 	      o.prefix-length))
@@ -631,7 +631,7 @@
       (let (((o <ipv6-address-prefix>)
 	     (receive (addr len)
 		 (ipv6-address-prefix-parse "1:2:3:4::/50")
-	       (make <ipv6-address-prefix> addr len))))
+	       (make* <ipv6-address-prefix> addr len))))
 	o.string)
     => "1:2:3:4:0:0:0:0/50")
 

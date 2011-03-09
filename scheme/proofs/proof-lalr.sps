@@ -25,11 +25,11 @@
 ;;;
 
 
+#!r6rs
 (import (nausicaa)
-  (keywords)
-  (lalr)
-  (parser-tools lexical-token)
-  (checks))
+  (nausicaa lalr)
+  (nausicaa parser-tools lexical-token)
+  (nausicaa checks))
 
 (define (display-result v)
   (if v
@@ -42,13 +42,6 @@
   (make-<lexical-token> '*eoi* #f #f 0))
 
 (check-set-mode! 'report-failed)
-
-(define-keywords
-  :output-value
-  :output-port
-  :expect
-  :terminals
-  :rules)
 
 
 ;;;; LR driver, associativity
@@ -133,7 +126,7 @@
 		    eoi-token))
       => '((1 + 2) + 3))
 
-    (check 'this 	;right associative
+    (check 	;right associative
 	(doit (list (make-<lexical-token> 'N #f 1 0)
 		    (make-<lexical-token> 'M #f '* 0)
 		    (make-<lexical-token> 'N #f 2 0)
@@ -143,7 +136,6 @@
       => '(1 * (2 * 3)))
 
     ))
-
 
 
 ;;;; done

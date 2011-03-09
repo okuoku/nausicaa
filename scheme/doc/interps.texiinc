@@ -1,0 +1,300 @@
+@node interps
+@chapter Evaluating code as in an interpreter
+
+
+@cindex @library{nausicaa interps}, library
+@cindex Library @library{nausicaa interps}
+
+
+The @library{nausicaa interps} library exports an interface to
+@rsixlibrary{eval} which allows evaluation of code in chunks with
+retention of global variables; @library{nausicaa interps} uses the
+facilities of @library{nausicaa language classes}.  Evaluation of code
+is handled by ``interpreter'' objects; examples:
+
+@example
+(import (nausicaa) (nausicaa interps))
+
+(let (((o <interp>) (make <interp>
+                      (imports: '((rnrs))))))
+  (o.eval '(begin
+             (define a 1)
+             (define b 2)
+             (+ a b))))
+@result{} 3
+
+(let (((o <interp>) (make <interp>
+                      (imports: '((rnrs))))))
+  (o.eval '(begin
+             (define-global a 1)
+             (values)))
+  (o.eval '(+ a 2)))
+@result{} 3
+@end example
+
+@menu
+* interps conditions::          Errors in limited evaluation.
+* interps class::               Interpreter objects.
+* interps eval::                Semantics of code evaluation.
+* interps examples::            Interpreter user examples.
+@end menu
+
+@c page
+@node interps conditions
+@section Errors in limited evaluation
+
+
+Whenever evaluation of code in an interpreter fails: an exception is
+raised with compound condition object of type @condition{interp-error}.
+The following bindings are exported by the @library{nausicaa interps}
+library.
+
+
+@deftp {Condition Type} &interp-error
+Tag a compound condition object as being an error in interpreted code;
+it is derived from @condition{error}.
+@end deftp
+
+
+@defun make-interp-error-condition @var{interp}
+Build and return a new condition object of type @condition{interp-error}
+representing an error in code evaluation for @var{interp}, which must be
+an @class{interp} object.
+@end defun
+
+
+@defun interp-error-condition? @var{obj}
+Return true if @var{obj} is a condition object of type
+@condition{interp-error}.
+@end defun
+
+
+@defun condition-interp-error/interp @var{interp-error}
+Given an argument of type @condition{interp-error} return the
+interpreter object in which the error occurred.
+@end defun
+
+@c page
+@node interps class
+@section Interpreter objects
+
+
+The following bindings are exported by the @library{nausicaa interps}
+library.
+
+
+@deftp Class @aclass{interp}
+Hold the state of subsequent code evaluations.
+@end deftp
+
+
+@defcv {Immutable Field} @aclass{interp} table-of-variables
+A hash table mapping Scheme symbols to values; one for each persistent
+variable currently in the interpreter.
+@end defcv
+
+
+@defcv {Immutable Field} @aclass{interp} eval-environment
+The environment object to be used when evaluating code in the
+interpreter.
+@end defcv
+
+
+@deffn Syntax {make @aclass{interp}} @var{clause} ...
+@deffnx {Auxiliary Syntax} imports: @var{import-specs}
+This syntax is a maker, @nauref{makers, Makers}.  Expand to an
+expression which evaluates to a new @class{interp} object.  The
+following clauses are recognised:
+
+@table @code
+@item imports: @var{import-specs}
+@var{import-specs} must be an expression evaluating to a list of library
+import specifications; the list is used to build the environment in
+which code will be evaluated.  The environment cannot be modified.  The
+default value causes the @library{rnrs} library to be imported.
+@end table
+@end deffn
+
+
+@deffn Syntax {make* @aclass{interp}} @var{import-specs}
+Expand to an expression which evaluates to a new @class{interp} object.
+
+@var{import-specs} must be an expression evaluating to a list of library
+import specifications; the list is used to build the environment in
+which code will be evaluated.  The environment cannot be modified.
+@end deffn
+
+
+@defmethod @aclass{interp} eval @var{sexp}
+Evaluate @var{sexp} in the environment of the interpreter.  Return the
+return value of the expression; @var{sexp} can return any number of
+values.  @var{sexp} is evaluated as if it is the first form in the body
+of a @func{let} form, so it can contain definitions.
+@end defmethod
+
+
+@defmethod @aclass{interp} variable-ref @var{varname} @var{default}
+Retrieve the value of variable name @var{varname}, a Scheme symbol;
+return @var{default} if the variable is not defined.
+@end defmethod
+
+
+@defmethod @aclass{interp} variable-set! @var{varname} @var{obj}
+Set @var{obj} as new value for variable @var{varname}, a Scheme symbol.
+If such a variable does not exist: it is created.
+@end defmethod
+
+
+@defmethod @aclass{interp} clone
+@defmethodx @aclass{interp} clone @var{filter}
+Build and return a clone of the interp; the clone's table of variables
+is populated with elements from the interp's table of variables
+according to @var{filter}.
+
+If @var{filter} is not used: all the variables are duplicated into the
+new interp; keys and values from the source table are stored in the new
+table as is (there is no deep copy of the values).
+
+When it is used, @var{filter} must accept @math{3} arguments: a symbol
+representing a variable name; a value representing the current
+variable's value; an object, unique according to @func{eq?}.
+
+@itemize
+@item
+If the variable must be stored in the new table: @var{filter} must
+return the variable's value, which can be the argument's value itself.
+@item
+If the variable must be discarded: @var{filter} must return the unique
+object.
+@end itemize
+
+The following example of @var{filter} causes the table to be
+transparently duplicated:
+
+@example
+(lambda (key val avoid)
+  val)
+@end example
+
+@noindent
+the following example of @var{filter} discards all the variables having
+a list as value and accepts all the others:
+
+@example
+(lambda (key val avoid)
+  (if (list? val)
+      avoid
+    val))
+@end example
+
+@noindent
+the following example of @var{filter} duplicates the spine of all the
+list values:
+
+@example
+(lambda (key val avoid)
+  (if (list? val)
+      (list-copy val)
+    val))
+@end example
+@end defmethod
+
+@c page
+@node interps eval
+@section Semantics of code evaluation
+
+
+The following bindings are available to the code evaluated in an
+interpreter, in additions to the ones selected by the import
+specifications.
+
+
+@deffn Syntax define-global @var{varname}
+@deffnx Syntax define-global @var{varname} @var{expression}
+@deffnx Syntax define-global (@var{varname} . @var{formals}) @var{expression}
+Define a global variable which will persist between successive code
+evaluations.  The first form binds @var{varname} to the sentinel value,
+@nauref{sentinel, The sentinel value} for details.
+
+What @func{define-global} does is to create an identifier macro which
+accesses and mutates an entry in the interp's table of variables; by
+default: when code is evaluated in an interp, all the global variables
+are bound at the top level, but @func{define-global} can be used
+anywhere definitions are allowed to define, access and mutate global
+variables.
+@end deffn
+
+@c page
+@node interps examples
+@section Interpreter user examples
+
+
+Plain expression evaluation:
+
+@example
+(import (nausicaa) (nausicaa interps))
+
+(let (((o <interp>) (make* <interp> '((rnrs)))))
+  (o.eval '(+ 1 2)))
+@result{} 3
+@end example
+
+@noindent
+variables definitions:
+
+@example
+(import (nausicaa) (nausicaa interps))
+
+(let* (((o <interp>) (make* <interp> '((rnrs))))
+       (return-value (o.eval '(let ()
+                                (define-global woppa)
+                                (define-global wippa 456)
+                                (set! woppa 123)
+                                (list woppa wippa)))))
+  (list (o.variable-ref 'woppa #f)
+        (o.variable-ref 'wippa #f)
+        return-value))
+@result{} (123 456 (123 456))
+@end example
+
+@noindent
+set a variable in one @func{eval}, retrieve its value in a subsequent
+@func{eval}:
+
+@example
+(import (nausicaa) (nausicaa interps))
+
+(let (((o <interp>) (make* <interp> '((rnrs)))))
+  (o.eval '(let ()
+             (define-global woppa 123)
+             (values)))
+  (o.eval 'woppa))
+@result{} 123
+@end example
+
+@noindent
+predefine a variable and retrieve its value in a subsequent @func{eval}:
+
+@example
+(import (nausicaa) (nausicaa interps))
+
+(let (((o <interp>) (make* <interp> '((rnrs)))))
+  (o.variable-set! 'woppa 123)
+  (o.eval '(begin woppa)))
+@result{} 123
+@end example
+
+@noindent
+function evaluation:
+
+@example
+(let (((o <interp>) (make* <interp> '((rnrs)))))
+  (o.eval '(let ()
+             (define-global (woppa a)
+               (cons 123 a))
+             #f))
+  (o.eval '(woppa #\b)))
+@result{} (123 . #\b)
+@end example
+
+@c end of file

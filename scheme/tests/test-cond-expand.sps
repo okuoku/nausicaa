@@ -26,7 +26,7 @@
 
 (import (nausicaa)
   (rnrs eval (6))
-  (checks))
+  (nausicaa checks))
 
 (check-set-mode! 'report-failed)
 (display "*** testing cond-expand\n")
@@ -49,6 +49,7 @@
      (mosh	#t)
      (vicare	#t)
      (ypsilon	#t)
+     (petite	#t)
      (else	#f))
   => #t)
 

@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2009, 2010, 2011 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -25,16 +25,16 @@
 ;;;
 
 
+#!r6rs
 (import (nausicaa)
-  (generics)
-  (checks)
-  (email addresses)
-  (email addresses quoted-text-lexer)
-  (email addresses comments-lexer)
-  (email addresses domain-literals-lexer)
-  (email addresses lexer)
-  (parser-tools lexical-token)
-  (silex lexer))
+  (nausicaa checks)
+  (nausicaa email addresses)
+  (nausicaa email addresses quoted-text-lexer)
+  (nausicaa email addresses comments-lexer)
+  (nausicaa email addresses domain-literals-lexer)
+  (nausicaa email addresses lexer)
+  (nausicaa parser-tools lexical-token)
+  (prefix (nausicaa silex lexer) lex.))
 
 (check-set-mode! 'report-failed)
 (display "*** testing email addresses\n")
@@ -45,13 +45,18 @@
   (define (tokenise-string string)
     ;;This  is just  a  lexer, it  does  not check  for the  terminating
     ;;double-quote.
-    (let* ((IS		(lexer-make-IS (:string string) (:counters 'all)))
-	   (lexer	(lexer-make-lexer quoted-text-table IS))
-	   (out		'()))
-      (do ((token (lexer) (lexer)))
-	  ((<lexical-token>?/end-of-input token)
-	   (reverse out))
-	(set! out (cons token out)))))
+    (let* ((IS		(lex.make-IS (lex.string: string) (lex.counters: 'all)))
+	   (lexer	(lex.make-lexer quoted-text-table IS)))
+      ;; (do ((token (lexer) (lexer)))
+      ;; 	  ((<lexical-token>?/end-of-input token)
+      ;; 	   (reverse out))
+      ;; 	(set! out (cons token out)))
+      (let loop (((token <lexical-token>) (lexer))
+		 (out '()))
+	(if token.end-of-input?
+	    (reverse out)
+	  (loop (lexer) (cons token out))))
+      ))
 
 ;;; --------------------------------------------------------------------
 
@@ -93,7 +98,7 @@
 
   (define (tokenise-comment string)
     ((recursion (lex IS)
-       (let ((lexer (lexer-make-lexer comments-table IS))
+       (let ((lexer (lex.make-lexer comments-table IS))
 	     (text  ""))
 	 (do ((token  (lexer) (lexer)))
 	     ((eq? token 'COMMENT-CLOSE)
@@ -103,7 +108,7 @@
 		       (if (eq? token 'COMMENT-OPEN)
 			   (string-append "(" (lex IS) ")")
 			 token))))))
-     (lexer-make-IS (:string string) (:counters 'all))))
+     (lex.make-IS (lex.string: string) (lex.counters: 'all))))
 
 ;;; --------------------------------------------------------------------
 
@@ -129,11 +134,11 @@
 (parameterise ((check-test-name 'domain-literal-lexer))
 
   (define (tokenise-domain-literal string)
-    (let* ((IS    (lexer-make-IS (:string string) (:counters 'all)))
-	   (lexer (lexer-make-lexer domain-literals-table IS)))
-      (let loop ((token (lexer))
+    (let* ((IS    (lex.make-IS (lex.string: string) (lex.counters: 'all)))
+	   (lexer (lex.make-lexer domain-literals-table IS)))
+      (let loop (((token <lexical-token>) (lexer))
 		 (toks  '()))
-	(if (<lexical-token>?/end-of-input token)
+	(if token.end-of-input?
 	    (reverse toks)
 	  (loop (lexer) (cons token toks))))))
 
@@ -168,7 +173,7 @@
     (map (lambda (token)
 	   (cons (<lexical-token>-category token)
 		 (<lexical-token>-value    token)))
-      (address->tokens (lexer-make-IS (:string string) (:counters 'all)))))
+      (address->tokens (lex.make-IS (lex.string: string) (lex.counters: 'all)))))
 
   (check	;a folding white space
       (doit "\r\n ")

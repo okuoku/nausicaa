@@ -24,24 +24,15 @@
 ;;;
 
 
+#!r6rs
 (import (nausicaa)
-  (keywords)
-  (lalr)
-  (sentinel)
-  (parser-tools lexical-token)
-  (checks))
+  (nausicaa lalr)
+  (nausicaa language sentinel)
+  (nausicaa parser-tools lexical-token)
+  (nausicaa checks))
 
 (check-set-mode! 'report-failed)
 (display "*** testing lalr GLR driver \n")
-
-(define-keywords
-  :output-value
-  :output-port
-  :expect
-  :parser-type
-  :terminals
-  :rules
-  )
 
 
 ;;;; helpers
@@ -75,11 +66,11 @@
 (define (debug:print-tables doit? terminals non-terminals)
   (when doit?
     (let ((port (current-output-port)))
-      (lalr-parser (:output-port port)
-		   (:expect #f)
-		   (:parser-type 'glr)
-		   (:terminals terminals)
-		   (:rules non-terminals))
+      (lalr-parser (output-port: port)
+		   (expect: #f)
+		   (parser-type: 'glr)
+		   (terminals: terminals)
+		   (rules: non-terminals))
       (newline port)
       (newline port))))
 
@@ -94,22 +85,22 @@
   (define (doit-1 . tokens)
     ;;A grammar that only accept a single terminal as input.
     (let* ((lexer		(make-lexer tokens))
-	   (make-parser		(lalr-parser (:output-value #t)
-					     (:parser-type 'glr)
-					     (:expect #f)
-					     (:terminals '(A))
-					     (:rules '((e (A) : $1)))))
+	   (make-parser		(lalr-parser (output-value: #t)
+					     (parser-type: 'glr)
+					     (expect: #f)
+					     (terminals: '(A))
+					     (rules: '((e (A) : $1)))))
            (parser		(make-parser)))
       (parser lexer error-handler)))
 
   (define (doit-2 . tokens)
     ;;A grammar that only accept a single terminal or the EOI.
     (let* ((lexer		(make-lexer tokens))
-	   (make-parser		(lalr-parser (:output-value #t)
-					     (:parser-type 'glr)
-					     (:expect 0)
-					     (:terminals '(A))
-					     (:rules '((e (A) : $1
+	   (make-parser		(lalr-parser (output-value: #t)
+					     (parser-type: 'glr)
+					     (expect: 0)
+					     (terminals: '(A))
+					     (rules: '((e (A) : $1
 							  ()  : 0)))))
            (parser		(make-parser)))
       (parser lexer error-handler)))
@@ -118,11 +109,11 @@
     ;;A grammar that accepts fixed sequences of a single terminal or the
     ;;EOI.
     (let* ((lexer		(make-lexer tokens))
-	   (make-parser		(lalr-parser (:output-value #t)
-					     (:parser-type 'glr)
-					     (:expect #f)
-					     (:terminals '(A))
-					     (:rules '((e (A)     : (list $1)
+	   (make-parser		(lalr-parser (output-value: #t)
+					     (parser-type: 'glr)
+					     (expect: #f)
+					     (terminals: '(A))
+					     (rules: '((e (A)     : (list $1)
 							  (A A)   : (list $1 $2)
 							  (A A A) : (list $1 $2 $3)
 							  ()      : 0)))))
@@ -133,11 +124,11 @@
     ;;A grammar accepting a sequence  of equal tokens.  The return value
     ;;is the value of the last parsed token.
     (let* ((lexer		(make-lexer tokens))
-	   (make-parser		(lalr-parser (:output-value #t)
-					     (:parser-type 'glr)
-					     (:expect #f)
-					     (:terminals '(A))
-					     (:rules '((e (e A) : $2
+	   (make-parser		(lalr-parser (output-value: #t)
+					     (parser-type: 'glr)
+					     (expect: #f)
+					     (terminals: '(A))
+					     (rules: '((e (e A) : $2
 							  (A)   : $1
 							  ()    : 0)))))
            (parser		(make-parser)))
@@ -147,11 +138,11 @@
     ;;A grammar accepting a sequence  of equal tokens.  The return value
     ;;is the list of values.
     (let* ((lexer		(make-lexer tokens))
-	   (make-parser		(lalr-parser (:output-value #t)
-					     (:parser-type 'glr)
-					     (:expect #f)
-					     (:terminals '(A))
-					     (:rules '((e (e A) : (cons $2 $1)
+	   (make-parser		(lalr-parser (output-value: #t)
+					     (parser-type: 'glr)
+					     (expect: #f)
+					     (terminals: '(A))
+					     (rules: '((e (e A) : (cons $2 $1)
 							  (A)   : (list $1)
 							  ()    : (list 0))))))
            (parser		(make-parser)))
@@ -308,10 +299,10 @@
 
   (define (doit . tokens)
     (let* ((lexer	(make-lexer tokens))
-	   (make-parser (lalr-parser (:output-value #t) (:expect #f)
-				     (:parser-type 'glr)
-				     (:terminals terminals)
-				     (:rules non-terminals)))
+	   (make-parser (lalr-parser (output-value: #t) (expect: #f)
+				     (parser-type: 'glr)
+				     (terminals: terminals)
+				     (rules: non-terminals)))
            (parser	(make-parser)))
       (parser lexer (make-error-handler (lambda x x)))))
 

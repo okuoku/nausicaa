@@ -1,0 +1,209 @@
+@node stacks
+@chapter Simple stacks
+
+
+@cindex @library{nausicaa stacks}, library
+@cindex Library @library{nausicaa stacks}
+
+
+The functions in this section are exported by the @library{nausicaa
+stacks} library; the library implements stacks holding arbitrary scheme
+objects and designed for efficient last--in/first--out operations.  The
+@library{nausicaa queues} library is built on top of the
+@library{nausicaa language classes} library.
+
+@menu
+* stacks types::                Type definitions and constructors.
+* stacks pred::                 Predicates and inspection.
+* stacks ops::                  Basic operations.
+* stacks list::                 List operations.
+* stacks conv::                 Conversion.
+@end menu
+
+@c page
+@node stacks types
+@section Type definitions and constructors
+
+
+@deftp Class @aclass{stack}
+Class name of stack objects.
+@end deftp
+
+
+@defcv {Mutable Field} @aclass{stack} first-pair
+The first pair of the internal list of elements.
+@end defcv
+
+
+@defcv {Immutable Field} @aclass{stack} empty?
+True if the stack is empty.
+@end defcv
+
+
+@defcv {Immutable Field} @aclass{stack} length
+The number of elements on the stack.
+@end defcv
+
+
+@defun make-<stack> @var{arg} ...
+Build and return a new @class{stack} record.  When called with no
+arguments, return an empty stack; when applied to arguments, return a
+stack holding those arguments in the given order.
+@end defun
+
+
+@defun <stack>? @var{obj}
+Return @true{} if @var{obj} is a record of type @class{stack}.
+@end defun
+
+
+@defun <stack>-first-pair @var{stack}
+@defunx <stack>-first-pair-set! @var{stack} @var{obj}
+Accessor and mutator for the concrete field of @class{stack} records.
+@end defun
+
+@c page
+@node stacks pred
+@section Predicates and inspection
+
+
+@defun stack-empty? @var{stk}
+Return @true{} if the stack is empty.
+@end defun
+
+
+@defun stack-length @var{stk}
+Return the number of elements in the stack.
+@end defun
+
+
+@defun stack-top @var{stk}
+Return the first element in the stack: the value returned by a pop
+operation.  The stack is left unchanged.  Raise an exception if the
+stack is empty.
+@end defun
+
+
+@defmethod @aclass{stack} top
+The first element in the stack: the next element returned by a pop
+operation.  The stack is left unchanged.  Raise an exception if the
+stack is empty.
+@end defmethod
+
+@c page
+@node stacks ops
+@section Basic operations
+
+
+@defun stack-push! @var{obj} @var{stk}
+Push @var{obj} in the top of the stack.
+@end defun
+
+
+@defmethod @aclass{stack} push! @var{obj}
+Push @var{obj} in the top of the stack.
+@end defmethod
+
+
+@defun stack-pop! @var{stk}
+Pop and return a value from the top of the stack.
+@end defun
+
+
+@defmethod @aclass{stack} pop!
+Pop and return a value from the top of the stack.
+@end defmethod
+
+
+@defun stack-purge! @var{stk}
+Remove all the elements from the stack.
+@end defun
+
+
+@defmethod @aclass{stack} purge!
+Remove all the elements from the stack.
+@end defmethod
+
+@c page
+@node stacks list
+@section List operations
+
+
+@defun stack-find @var{proc} @var{stk}
+@defunx stack-for-all @var{proc} @var{stk}
+@defunx stack-exists @var{proc} @var{stk}
+Apply @func{find} or @func{for-all} or @func{exists} to the internal
+list of elements, return the result.
+@end defun
+
+
+@defmethod @aclass{stack} find @var{proc}
+@defmethodx @aclass{stack} for-all @var{proc}
+@defmethodx @aclass{stack} exists @var{proc}
+Apply @func{find} or @func{for-all} or @func{exists} to the internal
+list of elements, return the result.
+@end defmethod
+
+
+@defun stack-remp! @var{proc} @var{stk}
+@defunx stack-remove! @var{obj} @var{stk}
+@defunx stack-remv! @var{obj} @var{stk}
+@defunx stack-remq! @var{obj} @var{stk}
+Apply @func{remp} or @func{remove} or @func{remv} or @func{remq} to the
+internal list of elements, removing objects from the stack.
+@end defun
+
+
+@defmethod @aclass{stack} remp! @var{proc}
+@defmethodx @aclass{stack} remove! @var{obj}
+@defmethodx @aclass{stack} remv! @var{obj}
+@defmethodx @aclass{stack} remq! @var{obj}
+Apply @func{remp} or @func{remove} or @func{remv} or @func{remq} to the
+internal list of elements, removing objects from the stack.
+@end defmethod
+
+
+@defun stack-memp @var{proc} @var{stk}
+@defunx stack-member @var{obj} @var{stk}
+@defunx stack-memv @var{obj} @var{stk}
+@defunx stack-memq @var{obj} @var{stk}
+Apply @func{memp} or @func{member} or @func{memv} or @func{memq} to the
+internal list of elements, return the result.
+@end defun
+
+
+@defmethod @aclass{stack} memp @var{proc}
+@defmethodx @aclass{stack} member @var{obj}
+@defmethodx @aclass{stack} memv @var{obj}
+@defmethodx @aclass{stack} memq @var{obj}
+Apply @func{memp} or @func{member} or @func{memv} or @func{memq} to the
+internal list of elements, return the result.
+@end defmethod
+
+@c page
+@node stacks conv
+@section Conversion
+
+
+@defun stack->list @var{stk}
+@defunx stack->vector @var{stk}
+Return a list or vector holding the elements in the stack.  In the list
+case, return a copy of the spine of the list in the stack.
+@end defun
+
+
+@defmethod @aclass{stack} list
+@defmethodx @aclass{stack} vector
+Return a list or vector holding the elements in the stack.  In the list
+case, return a copy of the spine of the list in the stack.
+@end defmethod
+
+
+@defun list->stack @var{ell}
+@defunx vector->stack @var{vec}
+Build and return a new stack holding the elements from the list or
+vector.  In the list case, the stack holds a copy of the spine of the
+list argument.
+@end defun
+
+@c end of file

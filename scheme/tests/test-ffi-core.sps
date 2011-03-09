@@ -7,7 +7,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2008-2010 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2008-2011 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -25,13 +25,12 @@
 
 
 (import (nausicaa)
-  (ffi)
-  (ffi memory)
-  (ffi cstrings)
-  (ffi errno)
-  (ffi clang-data-types)
-  (checks)
-  (compensations))
+  (nausicaa ffi)
+  (nausicaa ffi memory)
+  (nausicaa ffi cstrings)
+  (nausicaa ffi errno)
+  (nausicaa ffi clang type-translation)
+  (nausicaa checks))
 
 (cond-expand ((or larceny petite) (exit)) (else #f))
 

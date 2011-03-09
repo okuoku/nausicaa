@@ -25,9 +25,10 @@
 ;;;
 
 
+#!r6rs
 (import (nausicaa)
-  (gensym)
-  (checks))
+  (nausicaa language gensym)
+  (nausicaa checks))
 
 (check-set-mode! 'report-failed)
 (display "*** testing gensym\n")

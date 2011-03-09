@@ -29,23 +29,23 @@
 BINFMT_DIR=/proc/sys/fs/binfmt_misc
 BINFMT_REGISTER=${BINFMT_DIR}/register
 
-BINFMT_IKARUS=${BINFMT_DIR}/IKARUS
-BINFMT_LARCENY=${BINFMT_DIR}/LARCENY
-BINFMT_LARCENY_SRC=${BINFMT_DIR}/LARCENY_SRC
+#BINFMT_IKARUS=${BINFMT_DIR}/IKARUS
+#BINFMT_LARCENY=${BINFMT_DIR}/LARCENY
+#BINFMT_LARCENY_SRC=${BINFMT_DIR}/LARCENY_SRC
 BINFMT_MOSH=${BINFMT_DIR}/MOSH
 BINFMT_PETITE=${BINFMT_DIR}/PETITE
 BINFMT_VICARE=${BINFMT_DIR}/VICARE
 BINFMT_YPSILON=${BINFMT_DIR}/YPSILON
 
-BINFMT_PROG_IKARUS='BINDIR/ikarus-scheme-script'
-BINFMT_PROG_LARCENY='BINDIR/larceny-scheme-script'
+#BINFMT_PROG_IKARUS='BINDIR/ikarus-scheme-script'
+#BINFMT_PROG_LARCENY='BINDIR/larceny-scheme-script'
 BINFMT_PROG_MOSH='BINDIR/mosh-scheme-script'
 BINFMT_PROG_PETITE='BINDIR/petite-scheme-script'
 BINFMT_PROG_VICARE='BINDIR/vicare-scheme-script'
 BINFMT_PROG_YPSILON='BINDIR/ypsilon-scheme-script'
 
-BINFMT_ENABLE_IKARUS=OPT_ENABLE_IKARUS
-BINFMT_ENABLE_LARCENY=OPT_ENABLE_LARCENY
+#BINFMT_ENABLE_IKARUS=OPT_ENABLE_IKARUS
+#BINFMT_ENABLE_LARCENY=OPT_ENABLE_LARCENY
 BINFMT_ENABLE_MOSH=OPT_ENABLE_MOSH
 BINFMT_ENABLE_PETITE=OPT_ENABLE_PETITE
 BINFMT_ENABLE_VICARE=OPT_ENABLE_VICARE
@@ -53,31 +53,31 @@ BINFMT_ENABLE_YPSILON=OPT_ENABLE_YPSILON
 
 if test -f ${BINFMT_REGISTER} ; then
 
-    if test "${BINFMT_ENABLE_IKARUS}" = yes ; then
-        echo -n enabling binfmt Ikarus Scheme scripts execution...
-        test -f ${BINFMT_IKARUS} && echo -1 >${BINFMT_IKARUS}
-        echo ":IKARUS:M:3:!ikarus::${BINFMT_PROG_IKARUS}:" \
-            >${BINFMT_REGISTER}
-        echo done
-    else
-        echo skipping binfmt Ikarus Scheme programs execution
-    fi
+    # if test "${BINFMT_ENABLE_IKARUS}" = yes ; then
+    #     echo -n enabling binfmt Ikarus Scheme scripts execution...
+    #     test -f ${BINFMT_IKARUS} && echo -1 >${BINFMT_IKARUS}
+    #     echo ":IKARUS:M:3:!ikarus::${BINFMT_PROG_IKARUS}:" \
+    #         >${BINFMT_REGISTER}
+    #     echo done
+    # else
+    #     echo skipping binfmt Ikarus Scheme programs execution
+    # fi
 
-    if test "${BINFMT_ENABLE_LARCENY}" = yes ; then
-        echo -n enabling binfmt Larceny Scheme compiled programs execution...
-        test -f ${BINFMT_LARCENY} && echo -1 >${BINFMT_LARCENY}
-        echo ":LARCENY:M:2:fasl::${BINFMT_PROG_LARCENY}:" \
-            >${BINFMT_REGISTER}
-        echo done
+    # if test "${BINFMT_ENABLE_LARCENY}" = yes ; then
+    #     echo -n enabling binfmt Larceny Scheme compiled programs execution...
+    #     test -f ${BINFMT_LARCENY} && echo -1 >${BINFMT_LARCENY}
+    #     echo ":LARCENY:M:2:fasl::${BINFMT_PROG_LARCENY}:" \
+    #         >${BINFMT_REGISTER}
+    #     echo done
 
-        echo -n enabling binfmt Larceny Scheme source scripts execution...
-        test -f ${BINFMT_LARCENY_SRC} && echo -1 >${BINFMT_LARCENY_SRC}
-        echo ":LARCENY_SRC:M:3:!larceny::${BINFMT_PROG_LARCENY}:" \
-            >${BINFMT_REGISTER}
-        echo done
-    else
-        echo skipping binfmt Larceny Scheme programs execution
-    fi
+    #     echo -n enabling binfmt Larceny Scheme source scripts execution...
+    #     test -f ${BINFMT_LARCENY_SRC} && echo -1 >${BINFMT_LARCENY_SRC}
+    #     echo ":LARCENY_SRC:M:3:!larceny::${BINFMT_PROG_LARCENY}:" \
+    #         >${BINFMT_REGISTER}
+    #     echo done
+    # else
+    #     echo skipping binfmt Larceny Scheme programs execution
+    # fi
 
     if test "${BINFMT_ENABLE_MOSH}" = yes ; then
         echo -n enabling binfmt Mosh Scheme scripts execution...

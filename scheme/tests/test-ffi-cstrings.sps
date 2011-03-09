@@ -7,7 +7,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2008-2010 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2008-2011 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -24,11 +24,11 @@
 ;;;
 
 
+#!r6rs
 (import (nausicaa)
-  (checks)
-  (ffi memory)
-  (ffi cstrings)
-  (compensations))
+  (nausicaa checks)
+  (nausicaa ffi memory)
+  (nausicaa ffi cstrings))
 
 (check-set-mode! 'report-failed)
 (display "*** testing cstrings\n")
@@ -250,6 +250,69 @@
   (check
       (with-compensations
 	(argv-length (strings->argv '("alpha" "beta" gamma))))
+    => 3)
+
+  #t)
+
+
+(parametrise ((check-test-name	'cstring-label))
+
+  (check
+      (with-compensations
+	(let (((S <cstring>) (string->cstring "ciao" malloc/c)))
+	  S.length))
+    => 4)
+
+  (check
+      (with-compensations
+	(let (((S <cstring>) (string->cstring "ciao" malloc/c)))
+	  (integer->char (getf (S 2)))))
+    => #\a)
+
+  (check
+      (with-compensations
+	(let (((S <cstring>) (string->cstring "ciao" malloc/c)))
+	  (setf (S 2) (char->integer #\A))
+	  (integer->char (getf (S 2)))))
+    => #\A)
+
+  (check
+      (with-compensations
+	(let (((S <cstring>) (string->cstring "ciao" malloc/c)))
+	  (S.string)))
+    => "ciao")
+
+;;; --------------------------------------------------------------------
+
+  (check	;pointer inheritance
+      (with-compensations
+	(let (((S <cstring>) (string->cstring "ciao" malloc/c)))
+	  S.null?))
+    => #f)
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (with-compensations
+	(let (((S <cstring>) (string->cstring "ciao" malloc/c)))
+	  (S.string 3)))
+    => "cia")
+
+  #t)
+
+
+(parametrise ((check-test-name	'argv-label))
+
+  (check
+      (with-compensations
+	(let (((S <cstring-array>) (strings->argv '("ciao" "hello" "salut") malloc/c)))
+	  (S.strings)))
+    => '("ciao" "hello" "salut"))
+
+  (check
+      (with-compensations
+	(let (((S <cstring-array>) (strings->argv '("ciao" "hello" "salut") malloc/c)))
+	  (S.length)))
     => 3)
 
   #t)

@@ -24,8 +24,9 @@
 ;;;
 
 
+#!r6rs
 (import (nausicaa)
-  (checks))
+  (nausicaa checks))
 
 (check-set-mode! 'report-failed)
 (display "*** testing deferred exceptions\n")

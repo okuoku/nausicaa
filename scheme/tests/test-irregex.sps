@@ -7,7 +7,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2008, 2009, 2010 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2008, 2009 Marco Maggi <marco.maggi-ipsu@poste.itn>
 ;;;Copyright (c) 2005-2009 Alex Shinn.  All rights reserved.
 ;;;Sometests adapted from SCSH SRE tests by Christoph Hetz.
 ;;;
@@ -40,10 +40,11 @@
 ;;;IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
+#!r6rs
 (import (nausicaa)
-  (irregex)
-  (checks)
-  (only (lists) iota))
+  (nausicaa irregex)
+  (nausicaa checks)
+  (only (nausicaa lists) iota))
 
 (check-set-mode! 'report-failed)
 (display "*** testing irregex\n")

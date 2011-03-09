@@ -7,7 +7,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2008-2010 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2008-2011 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -51,12 +51,10 @@
 ;;;SOFTWARE.
 
 
+#!r6rs
 (import (nausicaa)
   (rnrs eval (6))
-  (only (language-extensions)
-	syntax-rules* syntax-case*
-	partial-macro-expand partial-macro-expand-and-print)
-  (checks))
+  (nausicaa checks))
 
 (check-set-mode! 'report-failed)
 (display "*** testing simple language extensions\n")
@@ -486,6 +484,33 @@
   #t)
 
 
+(parametrise ((check-test-name	'unwind-protect))
+
+  (check
+      (unwind-protect
+	  2
+	(values))
+    => 2)
+
+  (check
+      (let ((a 1))
+	(unwind-protect
+	    (set! a 2)
+	  (set! a 3))
+	a)
+    => 3)
+
+  (check
+      (let ((a 1))
+	(guard (E (else a))
+	  (unwind-protect
+	      (error #t "ciao")
+	    (set! a 3))))
+    => 3)
+
+  #f)
+
+
 (parametrise ((check-test-name	'bindings))
 
   (check
@@ -530,6 +555,32 @@
 		 a)
 	      (environment '(nausicaa))))
     => #t)
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (let ()
+	(define-constant-values (a b c)
+	  #t
+	  (values 1 2 3))
+	(list a b c))
+    => '(1 2 3))
+
+  (check
+      (let ()
+	(define-constant-values (a)
+	  #t
+	  (values 1))
+	a)
+    => 1)
+
+  (check
+      (let ()
+	(define-constant-values (a)
+	  #t
+	  1)
+	a)
+    => 1)
 
   #t)
 
@@ -847,61 +898,58 @@
   #t)
 
 
-(parametrise ((check-test-name	'macro-expansion))
+(parametrise ((check-test-name	'conditionals))
 
-  (let ()
-
-    (define-syntax doit
-      (syntax-rules* ()
-	((_ a b c)
-	 (list a b c))))
-
-    (define-syntax do-on-it
-      (syntax-rules* ()
-	((_ a b c)
-	 (doit a b c))))
-
-    (check
-	(doit 1 2 3)
-      => '(1 2 3))
-
-    (check
-	(do-on-it 1 2 3)
-      => '(1 2 3))
-
-    (check
-    	(partial-macro-expand (doit 1 2 3))
-      => '(list 1 2 3))
-
-    (check
-    	(partial-macro-expand (do-on-it 1 2 3))
-      => '(doit 1 2 3))
-
-;;;    (partial-macro-expand-and-print (doit 1 2 3))
-
-    #f)
-
-;;; --------------------------------------------------------------------
-
-  (let ()
-
-    (define-syntax doit
-      (lambda (stx)
-	(syntax-case* stx ()
-	  ((_ a b c)
-	   #'(list a b c)))))
-
-    (check
-	(doit 1 2 3)
-      => '(1 2 3))
-
-    (check
-	(partial-macro-expand (doit 1 2 3))
-      => '(syntax (list 1 2 3)))
-
-;;;    (partial-macro-expand-and-print (doit 1 2 3))
-
-    #f)
+  (check (xor) => #f)
+  (check (xor (number? 1)) => #T)
+  (check (xor (null? 1)) => #f)
+  (check (xor (string->symbol "foo")) => 'foo)
+  (check (xor (string? "a") (symbol? 1)) => #T)
+  (check (xor (string? 1) (symbol? 'a)) => #T)
+  (check (xor (string? 1) (symbol? 2)) => #f)
+  (check (xor (pair? '(a)) (list? '(b))) => #f)
+  (check (xor (- 42) (not 42)) => -42)
+  (check (xor (null? 1) (/ 42)) => 1/42)
+  (check (xor (integer? 1.2) (positive? -2) (exact? 3)) => #T)
+  (check (xor (integer? 1.2) (positive? 2) (exact? 3.4)) => #T)
+  (check (xor (integer? 1) (positive? -2) (exact? 3.4)) => #T)
+  (check (xor (integer? 1.2) (positive? -2) (exact? 3.4)) => #f)
+  (check (xor (integer? 1.2) (positive? 2) (exact? 3)) => #f)
+  (check (xor (integer? 1) (positive? -2) (exact? 3)) => #f)
+  (check (xor (integer? 1) (positive? 2) (exact? 3.4)) => #f)
+  (check (xor (integer? 1) (positive? 2) (exact? 3)) => #f)
+  (check (xor "foo" (not 'foo) (eq? 'a 'b)) => "foo")
+  (check (xor (not 'foo) (+ 1 2) (eq? 'a 'b)) => 3)
+  (check (xor (not 'foo) (eq? 'a 'b) (- 1 2)) => -1)
+  (let ((x '()))
+    (check (xor (begin (set! x (cons 'a x)) #f)
+		(begin (set! x (cons 'b x)) #f)
+		(begin (set! x (cons 'c x)) #f)
+		(begin (set! x (cons 'd x)) #f))
+      => #f)
+    (check x => '(d c b a)))
+  (let ((x '()))
+    (check (xor (begin (set! x (cons 'a x)) 'R)
+		(begin (set! x (cons 'b x)) #f)
+		(begin (set! x (cons 'c x)) #f)
+		(begin (set! x (cons 'd x)) #f))
+      => 'R)
+    (check x => '(d c b a)))
+  (let ((x '()))
+    (check (xor (begin (set! x (cons 'a x)) #T)
+		(begin (set! x (cons 'b x)) #f)
+		(begin (set! x (cons 'c x)) #T)
+		(begin (set! x (cons 'd x)) #f))
+      => #f)
+    (check x => '(c b a)))
+  (let-syntax ((macro
+		   (let ((count 0))
+		     (lambda (stx)
+		       (syntax-case stx ()
+			 ((_) (begin (set! count (+ 1 count)) #''foo))
+			 ((_ _) count))))))
+    (check (xor #f (macro) #f) => 'foo)
+    (check (macro 'count) => 1))
 
   #t)
 

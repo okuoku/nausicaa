@@ -7,7 +7,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -24,25 +24,25 @@
 ;;;
 
 
+#!r6rs
 (import (nausicaa)
-  (checks)
-  (randomisations)
-  (lists)
-  (strings)
-  (char-sets)
-  (vectors)
+  (nausicaa checks)
+  (nausicaa randomisations)
+  (nausicaa lists)
+  (nausicaa strings)
+  (nausicaa char-sets)
+  (nausicaa vectors)
 
-  (randomisations distributions)
-  (randomisations lists)
-  (randomisations vectors)
-  (randomisations strings)
+  (nausicaa randomisations distributions)
+  (nausicaa randomisations lists)
+  (nausicaa randomisations vectors)
+  (nausicaa randomisations strings)
 
-  (randomisations marsaglia)
-  (randomisations mersenne)
-  (randomisations blum-blum-shub)
-  (randomisations borosh)
-  (randomisations cmrg)
-  )
+  (nausicaa randomisations marsaglia)
+  (nausicaa randomisations mersenne)
+  (nausicaa randomisations blum-blum-shub)
+  (nausicaa randomisations borosh)
+  (nausicaa randomisations cmrg))
 
 (check-set-mode! 'report-failed)
 (display "*** testing random\n")
@@ -66,7 +66,7 @@
     (define (integer) (make-integer 100))
 
     (check-for-true (integer? (integer)))
-    (check-for-true (positive? (integer)))
+    (check-for-true (non-negative? (integer)))
     (check-for-true (let ((n (integer)))
 		      (and (<= 0 n) (< n 100)))))
 
@@ -133,7 +133,7 @@
     (define (integer) (make-integer 100))
 
     (check-for-true (integer? (integer)))
-    (check-for-true (positive? (integer)))
+    (check-for-true (non-negative? (integer)))
     (check-for-true (let ((n (integer)))
 		      (and (<= 0 n) (< n 100)))))
 
@@ -205,7 +205,7 @@
     (define (integer) (make-integer 100))
 
     (check-for-true (integer? (integer)))
-    (check-for-true (positive? (integer)))
+    (check-for-true (non-negative? (integer)))
     (check-for-true (let ((n (integer)))
 		      (and (<= 0 n) (< n 100)))))
 
@@ -276,7 +276,7 @@
     (define (integer) (make-integer 100))
 
     (check-for-true (integer? (integer)))
-    (check-for-true (positive? (integer)))
+    (check-for-true (non-negative? (integer)))
     (check-for-true (let ((n (integer)))
 		      (and (<= 0 n) (< n 100)))))
 
@@ -1347,7 +1347,7 @@
 ;;       (newline))
 
     (check-for-true (integer? (integer)))
-    (check-for-true (positive? (integer)))
+    (check-for-true (non-negative? (integer)))
     (check-for-true (let ((n (integer)))
 		      (and (<= 0 n) (< n 100)))))
 
@@ -1423,7 +1423,7 @@
 ;;       (newline))
 
     (check-for-true (integer? (integer)))
-    (check-for-true (positive? (integer)))
+    (check-for-true (non-negative? (integer)))
     (check-for-true (let ((n (integer)))
 		      (and (<= 0 n) (< n 100)))))
 
@@ -1509,7 +1509,7 @@
 ;;       (newline))
 
     (check-for-true (integer? (integer)))
-    (check-for-true (positive? (integer)))
+    (check-for-true (non-negative? (integer)))
     (check-for-true (let ((n (integer)))
 		      (and (<= 0 n) (< n 100))))
     )

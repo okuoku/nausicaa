@@ -1,0 +1,52 @@
+@node identifier alists
+@chapter Alist of identifiers
+
+
+@cindex @library{nausicaa language identifier-alists}, library
+@cindex Library @library{nausicaa language identifier-alists}
+
+
+The library @library{nausicaa language identifier-alists} exports an
+interface to association lists having identifiers as keys; the
+identifiers are compared using @func{free-identifier=?}.
+
+
+@defun identifier-alist-cons @var{key} @var{value} @var{table}
+Given the alist @var{table}: store @var{key} and @var{value} in the
+alist and return the new alist.  Does no check for duplicate @var{key}
+in @var{table}.
+@end defun
+
+
+@defun identifier-alist-replace @var{key} @var{value} @var{table}
+Given the alist @var{table}: store @var{key} and @var{value} in the
+alist and return the new alist.  Any occurrences of @var{key} in
+@var{table} are removed.
+@end defun
+
+
+@defun identifier-alist-new @var{key} @var{value} @var{table}
+Given the alist @var{table}: store @var{key} and @var{value} in the
+alist and return the new alist.  Check if @var{key} is already in
+@var{table}: if it is raise an assertion violation.
+@end defun
+
+
+@defun identifier-alist-ref @var{table} @var{key} @var{default}
+Given the alist @var{table}: look for the identifier @var{key} and
+return its value.  If @var{key} is not present: return @var{default}.
+@end defun
+
+
+@defun identifier-alist-remove @var{table} @var{key}
+Given the alist @var{table}: remove the occurrences of @var{key} and
+return the new alist.
+@end defun
+
+
+@defun identifier-alist-exists @var{table} @var{key}
+Given the alist @var{table}: return the first pair in the list having
+@var{key} as car.  If @var{key} is not present: return @false{}.
+@end defun
+
+@c end of file

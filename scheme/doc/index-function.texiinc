@@ -1,0 +1,6 @@
+@node function index
+@appendix An entry for each function
+
+@printindex fn
+
+@c end of file

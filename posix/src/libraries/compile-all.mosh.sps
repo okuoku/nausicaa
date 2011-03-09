@@ -7,7 +7,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2009-2011 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -24,22 +24,26 @@
 ;;;
 
 (import
-  (only (posix fd))
-  (only (posix file))
-  (only (posix process))
-  (only (posix signals))
-  (only (posix sockets))
-  (only (posix system))
-  (only (posix time))
+    (only (nausicaa posix clang type-translation))
+  (only (nausicaa posix sizeof))
+  (only (nausicaa posix typedefs))
 
-  (only (glibc file))
-  (only (glibc signals))
-  (only (glibc sockets))
-  (only (glibc streams))
-  (only (glibc system))
-  (only (glibc time))
+  ;; (only (nausicaa posix fd))
+  ;; (only (nausicaa posix file))
+  ;; (only (nausicaa posix process))
+  ;; (only (nausicaa posix signals))
+  ;; (only (nausicaa posix sockets))
+  ;; (only (nausicaa posix system))
+  (only (nausicaa posix time))
 
-  (only (linux fd))
+  ;; (only (nausicaa glibc file))
+  ;; (only (nausicaa glibc signals))
+  ;; (only (nausicaa glibc sockets))
+  ;; (only (nausicaa glibc streams))
+  ;; (only (nausicaa glibc system))
+  (only (nausicaa glibc time))
+
+  ;; (only (nausicaa linux fd))
   )
 
 ;;; end of file

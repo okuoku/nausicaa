@@ -1,0 +1,185 @@
+@node msgcat
+@chapter Messages catalog for internationalisation
+
+
+@cindex @library{nausicaa msgcat}, library
+@cindex Library @library{nausicaa msgcat}
+
+
+The @library{nausicaa msgcat} allows to translate Scheme strings from
+the @code{en_GB} locale to other locales.
+
+@menu
+* msgcat intro::                Introduction to messages catalogs.
+* msgcat api::                  Messages catalogs @api{}.
+@end menu
+
+@c page
+@node msgcat intro
+@section Introduction to messages catalogs
+
+
+Messages translation is simply handled by a procedure applied to a
+string: the return value is meant to be the translated string.
+@library{nausicaa msgcat} defines a ``standard'' translator procedure
+accepting one or two arguments:
+
+@itemize
+@item
+When applied to one argument: the argument must be the string to
+translate; the return value must be the translated string or the input
+string itself if no translation was found.
+
+@item
+When applied to two arguments: the first argument must be the string to
+translate, the second argument must be a default value; the return value
+must be the translated string or the default value if no translation was
+found.
+@end itemize
+
+A translator procedure can do anything, for example it can query a set
+of other translation procedures in search of a translation.  The
+template for a translation procedure is the following:
+
+@example
+(define catalog
+  (make-hashtable string-hash string=?))
+
+(define translator
+  (case-lambda
+    ((message)
+     (translator message message))
+    ((message default)
+     (hashtable-ref catalog message default))))
+@end example
+
+@noindent
+an implementation querying a set of translator procedures is as follows:
+
+@example
+(define translator-1 ---)
+(define translator-2 ---)
+(define translator-3 ---)
+
+(define translator
+  (case-lambda
+    ((message)
+     (translator message message))
+    ((message default)
+     (or (find (lambda (T)
+                 (T message #f))
+               (list translator-1 translator-2 translator-3))
+         default))))
+@end example
+
+A catalog file is a textual file holding a single S--expression which
+can be read with the @func{read} function from @rsixlibrary{io simple};
+the S--expression must match the following template:
+
+@example
+(msgcat (<version0> <version>...)
+  <catalog name>
+  <data> ...)
+@end example
+
+@noindent
+where: the @meta{version} datums are exact integers representing the
+format version of the catalog; the @meta{catalog name} datum must be a
+symbol representing the catalog name; the @meta{data} datums depend on
+the catalog format version.
+
+@c ------------------------------------------------------------
+
+@subsubheading Message catalog version @math{1}
+
+The S--expression of version @math{1} must match the following template:
+
+@example
+(msgcat (<version0> <version>...)
+  <catalog name>
+  (<message> <translated message>)
+  ...)
+@end example
+
+@noindent
+where the @meta{message} datums are the message strings in the
+@code{en_GB} locale and the @meta{translated message} datums are the
+translated message strings.
+
+@c page
+@node msgcat api
+@section Messages catalogs @api{}
+
+
+Here are some examples:
+
+@example
+(import (nausicaa)
+  (prefix (nausicaa msgcat) msgcat:))
+
+(define it_IT (msgcat:load-catalog 'it_IT))
+(define en_US (msgcat:load-catalog 'en_US))
+
+;; the default is en_GB
+(msgcat:mc "January")   @result{} "January"
+
+(parametrise ((msgcat:current-catalog it_IT))
+  (msgcat:mc "January") @result{} "Gennaio"
+  #f)
+
+(parametrise ((current-catalog en_US))
+  (msgcat:mc "Yes")     @result{} "Yes"
+  #f)
+@end example
+
+
+@defun load-catalog @var{name}
+Load a catalog file and return a standard translator procedure;
+@var{name} must be a Scheme string or symbol representing the catalog
+name.  @value{PACKAGE} comes at least with the following catalogs
+installed as files: @samp{en_US}, @samp{it_IT}.  The @samp{en_GB}
+catalog is built into the @library{nausicaa msgcat} library.
+
+The search path for the catalog file is selected by the environment
+variable @env{NAUSICAA_MSGCAT}, whose value must be a colon--separated
+list of directories.  The file pathname is built as follows:
+
+@example
+@cmeta{directory}/@cmeta{name}.cat
+@end example
+
+@noindent
+where @samp{.cat} is the file extension.
+@end defun
+
+
+@defun load-catalog-from-file @var{pathname}
+Like @func{load-catalog} but accept a file pathname as argument.
+@end defun
+
+
+@deffn Parameter current-catalog
+Parameter holding the current translator procedure.  It is initialised
+with @func{en_GB}.
+@end deffn
+
+
+@deffn Syntax mc @ameta{string}
+Expand to the application of the procedure currently stored in the
+@func{current-catalog} parameter to @meta{string}.
+@end deffn
+
+
+@deffn mcmax @var{string} ...
+Return the maximum number of characters in the translated strings.
+@end deffn
+
+
+@deffn {Catalog Function} en_GB @var{string}
+@deffnx {Catalog Function} en_GB @var{string} @var{default}
+An identity function just returning @var{string}.  It is the default
+value for the @func{current-catalog} parameter: strings are meant to be
+written in the @code{en_GB} locale in Nausicaa's source files.
+@end deffn
+
+@c end of file

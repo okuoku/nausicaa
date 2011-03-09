@@ -1,13 +1,13 @@
 ;;;
 ;;;Part of: Nausicaa/Scheme
-;;;Contents: usage tests for (records)
-;;;Date: Wed Aug 26, 2009
+;;;Contents: usage tests for (generics)
+;;;Date: Mon Jul  5, 2010
 ;;;
 ;;;Abstract
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2008, 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2008-2011 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -24,15 +24,32 @@
 ;;;
 
 
+#!r6rs
 (import (nausicaa)
-  (lists)
-  (checks)
-  (generics)
-  (keywords)
-  (records-lib))
+  (nausicaa checks)
+  (nausicaa generics object-to-string)
+  (rnrs eval))
 
 (check-set-mode! 'report-failed)
 (display "*** testing generic functions\n")
+
+
+(parameterise ((check-test-name 'errors))
+
+  (check
+      (guard (E ((syntax-violation? E)
+;;;(write (condition-message E))(newline)
+		 (syntax-violation-form E))
+		(else E))
+	(eval '(let ()
+		 (define-generic a)
+		 (define-method (a b) #f)
+		 (define-method (a b c) #f)
+                 #f)
+	      (environment '(nausicaa))))
+    => '((nausicaa:builtin:<top>) (nausicaa:builtin:<top>)))
+
+  #t)
 
 
 (parameterise ((check-test-name 'generic-simple-inheritance))
@@ -243,68 +260,6 @@
     (define-method (alpha (p <1>)) 123)
     (define-method (alpha (p <1>)) 456)
     (check (alpha n1) => 456))
-  (let ()
-    (define-generic alpha)
-    (define-method (alpha (p <1>) . rest) 123)
-    (define-method (alpha (p <1>) . rest) 456)
-    (check (alpha n1) => 456))
-  (let ()
-    (define-generic alpha)
-    (define-method (alpha (p <1>)) 123)
-    (define-method (alpha (p <1>) . rest) 456)
-    (check (alpha n1) => 123)
-    (check (alpha n1 10) => 456))
-  (let ()
-    (define-generic alpha)
-    (define-method (alpha (p <1>) . rest) 456)
-    (define-method (alpha (p <1>)) 123)
-    (check (alpha n1) => 123)
-    (check (alpha n1 10) => 456))
-
-;;; --------------------------------------------------------------------
-;;; Rest arguments.
-  (let ()
-    (define-generic alpha)
-    (define-method alpha ((p <1>))		   1)
-    (define-method alpha ((p <a>) . rest)	   2)
-    (define-method alpha ((p <1>) . rest)	   3)
-    (define-method alpha ((p <1>) (q <2>) . rest)  4)
-    (define-method alpha ((p <a>) (q <b>) (r <c>)) 5)
-    (check (alpha n1 n2 n3) => 5)
-    (check (alpha  a n2 n3) => 5)
-    (check (alpha n1  b n3) => 5)
-    (check (alpha n1 n2  c) => 5)
-    (check (alpha  a  b  c) => 5)
-    (check (alpha n1 n2)    => 4)
-    (check (alpha n1 n2  9) => 4)
-    (check (alpha  a)       => 2)
-    (check (alpha  a 123)   => 2)
-    (check (alpha  a 123 4) => 2)
-    (check (alpha n1)       => 1)
-    (check (alpha n1 123)   => 3)
-    (check (alpha n1 123 4) => 3)
-    #f)
-  (let ()
-    (define-generic alpha)
-    (define-method (alpha (p <1>))		   1)
-    (define-method (alpha (p <a>) . rest)	   2)
-    (define-method (alpha (p <1>) . rest)	   3)
-    (define-method (alpha (p <1>) (q <2>) . rest)  4)
-    (define-method (alpha (p <a>) (q <b>) (r <c>)) 5)
-    (check (alpha n1 n2 n3) => 5)
-    (check (alpha  a n2 n3) => 5)
-    (check (alpha n1  b n3) => 5)
-    (check (alpha n1 n2  c) => 5)
-    (check (alpha  a  b  c) => 5)
-    (check (alpha n1 n2)    => 4)
-    (check (alpha n1 n2  9) => 4)
-    (check (alpha  a)       => 2)
-    (check (alpha  a 123)   => 2)
-    (check (alpha  a 123 4) => 2)
-    (check (alpha n1)       => 1)
-    (check (alpha n1 123)   => 3)
-    (check (alpha n1 123 4) => 3)
-    #f)
 
   #t)
 
@@ -340,7 +295,7 @@
       'beta-three)
 
     (let ()
-      (define-generic/merge gamma alpha beta)
+      (define-generic/merge gamma (alpha beta))
 
       (let ((a (make-<one> 1 10 100))
 	    (b (make-<two> 0 0 0 2 20 200))
@@ -353,7 +308,7 @@
   #t)
 
 
-#;(parametrise ((check-test-name 'predefined))
+(parametrise ((check-test-name 'predefined))
 
   (define-class <alpha>
     (fields (immutable the-string)))
@@ -371,7 +326,7 @@
     (define-method (object->string (o <alpha>))
       (<alpha>-the-string o))
 
-    (define-method (object->string (o <beta>))
+    (define-method object->string ((o <beta>))
       (<beta>-the-string o))
 
     (check

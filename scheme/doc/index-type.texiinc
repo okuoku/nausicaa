@@ -1,0 +1,6 @@
+@node type index, , variable index, Top
+@appendix An entry for each type
+
+@printindex tp
+
+@c end of file

@@ -25,8 +25,8 @@
 
 
 (import (nausicaa)
-  (checks)
-  (keywords))
+  (nausicaa checks)
+  (nausicaa keywords))
 
 (check-set-mode! 'report-failed)
 (display "*** testing keywords\n")

@@ -28,20 +28,16 @@ The compile  rules will compile all the  libraries under the
 "<srcdir>/src/libraries" directory.  The following rules can
 be invoked before installing the package.
 
-ifasl - Compile the package libraries for Ikarus Scheme; the
-	compiled  files will end  in the  currently selected
-	Ikarus cache ("~/.ikarus" by default).
-
-lfasl - Compile  the  package  libraries for Larceny Scheme;
-	the compiled  files will end in  the build directory
-	of the package.
-
 mfasl - Compile the  package libraries for  Mosh Scheme; the
         compiled  files will end  in the  currently selected
         Mosh cache ("~/.mosh" by default).
 
 pfasl - Does nothing  because Petite  Chez Scheme  does  not
         compile the libraries.
+
+vfasl - Compile the package libraries for Vicare Scheme; the
+	compiled  files will end  in the  currently selected
+	Vicare cache ("~/.vicare" by default).
 
 yfasl - Compile  the package  libraries for  Ypsilon Scheme;
         the  compiled  files   will  end  in  the  currently
@@ -54,17 +50,17 @@ fasl -	Compile the package's  libraries for all the enabled
   The following  rules must be invoked  after installing the
 package.
 
-ifasl-installed -
-	Compile the package's libraries for Ikarus Scheme in
-	their installation location; the compiled files will
-	end   in  the   currently   selected  Ikarus   cache
-	("~/.ikarus" by default).
-
 mfasl-installed -
 	Compile the  package's libraries for  Mosh Scheme in
         their installation location; the compiled files will
         end in the  currently selected Mosh cache ("~/.mosh"
         by  default).
+
+vfasl-installed -
+	Compile the package's libraries for Vicare Scheme in
+	their installation location; the compiled files will
+	end   in  the   currently   selected  Vicare   cache
+	("~/.vicare" by default).
 
 yfasl-installed -
 	Compile the package  libraries for Ypsilon Scheme in
@@ -86,13 +82,11 @@ The  test rules  will run  all the  test programs  under the
 "<srcdir>/tests"  directory.   The  following rules  can  be
 invoked before installing the package.
 
-itest - Test the package libraries for Ikarus Scheme.
-
-ltest - Test the package libraries for Larceny Scheme.
-
 mtest - Test the package libraries for Mosh Scheme.
 
 ptest - Test the package libraries for Petite Chez Scheme.
+
+vtest - Test the package libraries for Vicare Scheme.
 
 ytest - Test the package libraries for Ypsilon Scheme.
 
@@ -102,10 +96,6 @@ test  - Test  the package's  libraries for  all  the enabled
   The following  rules must be invoked  after installing the
 package.
 
-itest-installed -
-	Test  the package's libraries  for Ikarus  Scheme in
-	their  installation location.
-
 mtest-installed -
 	Test  the  package's libraries  for  Mosh Scheme  in
 	their installation location.
@@ -113,6 +103,10 @@ mtest-installed -
 ptest-installed -
 	Test the package's  libraries for Petite Chez Scheme
 	in their installation location.
+
+vtest-installed -
+	Test  the package's libraries  for Vicare  Scheme in
+	their  installation location.
 
 ytest-installed -
 	Test  the package  libraries for  Ypsilon  Scheme in

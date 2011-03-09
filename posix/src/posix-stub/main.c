@@ -1,46 +1,46 @@
 /*
-   Part of: Nausicaa/Stubs
-   Contents: POSIX stub
-   Date: Fri Dec 19, 2008
+  Part of: Nausicaa/Stubs
+  Contents: POSIX stub
+  Date: Fri Dec 19, 2008
 
-   Abstract
+  Abstract
 
-	Stub  functions for the  POSIX API.   This file  is meant  to be
-	compiled in  a C shared  library and used by  the Nausicaa/POSIX
-	Scheme library.
+        Stub  functions for the  POSIX API.   This file  is meant  to be
+        compiled in  a C shared  library and used by  the Nausicaa/POSIX
+        Scheme library.
 
-	  The existence of this  libraries is justified by the following
-	facts:
+        The existence  of this libraries  is justified by  the following
+        facts:
 
-	(1) Some functions  are different on 32 bit  platforms and on 64
-	    bits platforms.   For example, under the GNU  C Library they
-	    come in  two flavors "func()"  and "func64()"; this  goes as
-	    far  as  defining  different  data structures  for  the  two
-	    platforms.
+        (1) Some functions  are different on 32 bit  platforms and on 64
+            bits platforms.   For example, under the GNU  C Library they
+            come in  two flavors "func()"  and "func64()"; this  goes as
+            far  as  defining  different  data structures  for  the  two
+            platforms.
 
-	      There is  no (easy) way  to acquire through  "dlsym()" the
-	    correct version and to  determine the correct data structure
-	    accessors and mutators, while it  is very easy to export the
-	    correct ones through this library.
+            There  is no  (easy) way  to acquire  through  "dlsym()" the
+            correct version and to  determine the correct data structure
+            accessors and mutators, while it  is very easy to export the
+            correct ones through this library.
 
-	(2) Some  interesting  feature  is  implemented  through  the  C
-	    preprocessor macros  only.  In this case it  is mandatory to
-	    export a wrapper function from this library.
+        (2)  Some  interesting  feature  is implemented  through  the  C
+            preprocessor macros  only.  In this case it  is mandatory to
+            export a wrapper function from this library.
 
-   Copyright (c) 2008, 2009 Marco Maggi <marcomaggi@gna.org>
+  Copyright (c) 2008-2009, 2011 Marco Maggi <marco.maggi-ipsu@poste.it>
 
-   This program is free software:  you can redistribute it and/or modify
-   it under the terms of the  GNU General Public License as published by
-   the Free Software Foundation, either version 3 of the License, or (at
-   your option) any later version.
+  This program is  free software: you can redistribute  it and/or modify
+  it under the  terms of the GNU General Public  License as published by
+  the Free Software Foundation, either  version 3 of the License, or (at
+  your option) any later version.
 
-   This program is  distributed in the hope that it  will be useful, but
-   WITHOUT  ANY   WARRANTY;  without   even  the  implied   warranty  of
-   MERCHANTABILITY  or FITNESS FOR  A PARTICULAR  PURPOSE.  See  the GNU
-   General Public License for more details.
+  This program  is distributed in the  hope that it will  be useful, but
+  WITHOUT   ANY  WARRANTY;   without  even   the  implied   warranty  of
+  MERCHANTABILITY  or FITNESS  FOR A  PARTICULAR PURPOSE.   See  the GNU
+  General Public License for more details.
 
-   You should  have received  a copy of  the GNU General  Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  You  should have received  a copy  of the  GNU General  Public License
+  along with this  program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
@@ -214,11 +214,13 @@ extern struct tm * nausicaa_posix_gmtime_r    (double tim, struct tm * result);
 extern double nausicaa_posix_timelocal  (struct tm * buffer);
 extern double nausicaa_posix_timegm     (struct tm * buffer);
 
+/* "struct tms" accessors */
 extern double nausicaa_posix_tms_utime_ref (struct tms * T);
 extern double nausicaa_posix_tms_stime_ref (struct tms * T);
 extern double nausicaa_posix_tms_cutime_ref (struct tms * T);
 extern double nausicaa_posix_tms_cstime_ref (struct tms * T);
 
+/* "struct tms" mutators */
 extern void nausicaa_posix_tms_utime_set (struct tms * T, double time);
 extern void nausicaa_posix_tms_stime_set (struct tms * T, double time);
 extern void nausicaa_posix_tms_cutime_set (struct tms * T, double time);

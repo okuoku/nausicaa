@@ -1,0 +1,75 @@
+@node identifier properties
+@chapter Expand--time identifier properties
+
+
+@cindex @library{nausicaa language identifier-properties}, library
+@cindex Library @library{nausicaa language identifier-properties}
+
+
+The library @library{nausicaa language identifier-properties} allows the
+association of objects to identifiers at expand time, using other
+identifiers as keywords.  To avoid name collisions, it is suggested to
+import the library with a prefix; for example:
+
+@example
+(prefix (nausicaa language identifier-properties) ip.)
+@end example
+
+Meaningless usage examples:
+
+@example
+(import (rnrs)
+  (prefix (nausicaa language identifier-properties) ip.)
+  (nausicaa language syntax-utilities))
+
+(define-auxiliary-syntax type)
+
+(define a "ciao")
+(ip.define-identifier-property a type 'string)
+
+(define b 123)
+(ip.define-identifier-property b type 'number)
+
+(define-syntax get-type
+  (lambda (stx)
+    (syntax-case stx ()
+      ((_ ?id)
+       (ip.ref #'?id #'type)))))
+
+(get-type a) @result{} string
+(get-type b) @result{} int
+@end example
+
+
+@deffn Syntax define-identifier-property @var{subject} @var{key} @var{value}
+Expand to a dummy definition; associate @var{value} (the syntax object)
+to the identifier @var{subject} using the identifier @var{key} as key.
+@end deffn
+
+
+The functions below are exported for expand by @library{nausicaa
+language identifier-properties}.
+
+
+@defun define @var{subject} @var{key} @var{value}
+Function to be invoked at expand--time (typically in the body of a macro
+transformer); associate @var{key} to @var{value} in @var{subject}'s
+table; raise an assertion violation if the @var{key} is already defined.
+@end defun
+
+
+@defun set! @var{subject} @var{key} @var{value}
+Associate @var{key} to @var{value} in @var{subject}'s table; overwrite
+the old value, if any.
+@end defun
+
+
+@defun ref @var{subject} @var{key}
+@defunx ref @var{subject} @var{key} @var{default}
+Function to be invoked at expand--time (typically in the body of a macro
+transformer); retrieve the value associated to the identifier
+@var{subject} using the identifier @var{key} as key.  If no property is
+found, return @var{default} which defaults to false.
+@end defun
+
+@c end of file

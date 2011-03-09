@@ -1,0 +1,250 @@
+@node contracts
+@chapter Function call contracts
+
+
+@cindex @library{nausicaa contracts}, library
+@cindex Library @library{nausicaa contracts}
+
+
+The library @library{nausicaa contracts} provides ways to use macro
+identifiers to validate the arguments and return values of functions;
+the concept is to include the validation code at the call site (rather
+than in the body of the function) to allow the construction of better
+error messages and debugging informations.
+
+Extensive use of contracts significantly increases the size of the
+expanded code; for this reason the @library{nausicaa contracts} library
+excludes its features at expansion time when the
+@func{enable-contracts?}  parameter from the @library{nausicaa
+configuration} library is set to false.
+
+
+@deffn Syntax define-contract @var{keyword} @var{subject} @var{contract}
+@deffnx {Auxiliary Syntax} ->
+Define an identifier syntax @var{keyword} which can be used in place of the
+identifier @var{subject} to reference a variable, function or macro.
+@var{contract} can be one among:
+
+@example
+(@var{arg-predicate} ... -> @var{ret-predicate} ...)
+(@var{arg-predicate} ... ->)
+(@var{arg-predicate} ...)
+(-> @var{ret-predicate} ...)
+@var{predicate}
+@end example
+
+@noindent
+where @var{predicate}, @var{arg-predicate} and @var{ret-predicate} are
+identifiers; in the last case the contract is for a variable, in the
+other cases it is for a function or macro.
+
+The contract for a variable validates the value using the selected
+@var{predicate} whenever the variable is accessed or mutated.  When a
+variable is accessed: @var{subject} is referenced only once.  When a
+variable is mutated: its new value's expression is evaluated only once.
+Notice that the contract is @strong{not} enforced for the initialisation
+value bound to @var{subject}.
+
+The contract for a function or macro validates the arguments with the
+functions bound to @var{arg-predicate} and validates the return values
+with the functions bound to @var{ret-predicate}; the function or macro
+bound to @var{subject} must accept a number of arguments equal to the
+number of @var{arg-predicate} identifiers and return a number of values
+equal to the number of @var{ret-predicate} identifiers; a function can
+have no arguments and no return values; notice that a function
+referenced through an identifier syntax cannot take a ``rest'' argument.
+When applying the function or macro, @var{subject} is referenced only
+once.
+
+If a predicate returns false: a non--continuable exception is raised
+with types @condition{contract-violation}, @condition{message} and
+@condition{irritants}.  The @condition{irritants} condition object holds
+a list with a single item: the offending value.
+
+Example of variable with contract:
+
+@example
+(import (rnrs) (nausicaa contracts))
+
+(define-contract alpha %alpha integer?)
+(define %alpha 123)
+
+alpha @result{} 123
+
+(begin
+  (set! alpha 456)
+  alpha) @result{} 456
+
+(set! alpha #\a) @error{} assertion violation
+@end example
+
+
+Example of function with contract:
+
+@example
+(import (rnrs) (nausicaa contracts))
+
+(define (%doit a b c)
+  (list a b c))
+
+(define-contract doit
+    %doit
+  (integer? string? symbol? -> list?))
+
+(doit 1 "two" 'three) @result{} (1 "two" 'three)
+@end example
+
+Notice that it is possible to define a contract for a function, then use
+it or not in its own body, recursively:
+
+@example
+(define-contract alpha
+    %alpha
+  (integer? -> integer?))
+
+(define (%alpha n)
+  ;; recursive use without contract
+  (if (zero? n)
+      1
+    (%alpha (- n 1))))
+
+(define-contract beta
+    %beta
+  (integer? -> integer?))
+
+(define (%beta n)
+  ;; recursive use with contract
+  (if (zero? n)
+      1
+    (beta (- n 1))))
+@end example
+
+The fact that a function with a contract does not support the ``rest''
+argument is a bit annoying; we can overcome this limitation as follows:
+
+@example
+(import (rnrs) (nausicaa contracts))
+
+(define-contract doit
+    %doit
+  (integer? integers? -> vector?))
+
+(define (integers? ell)
+  (for-all integer? ell))
+
+(define (%doit n ell)
+  (vector n ell))
+
+(doit 1 (list 2 3 4))
+@result{} #(1 (2 3 4))
+
+(apply (lambda (n . args)
+         (doit n args))
+       '(1 2 3 4))
+@result{} #(1 (2 3 4))
+@end example
+
+@noindent
+it involves an ugly notation, but it works.
+@end deffn
+
+
+@deffn Syntax let-contract ((@var{keyword} @var{subject} @var{contract}) ...) @varo{body} @var{body} ...
+@deffnx {Auxiliary Syntax} ->
+Does the same job of @func{define-contract} but with a syntax similar to
+@func{let-syntax}; the relation between @func{let-contract} and
+@func{define-contract} is the same as the relation between
+@func{let-syntax} and @func{define-syntax}.
+
+Notice the @func{let-contract} expands into a single @func{let-syntax}
+form.
+@end deffn
+
+
+@deffn Syntax define/contract (@var{keyword} . @var{args}) @var{contract} @varo{body} @var{body} ...
+@deffnx Syntax define/contract @var{keyword} @var{contract} @var{expression}
+@deffnx Syntax define/contract @var{keyword} @var{contract}
+@deffnx {Auxiliary Syntax} ->
+Define a new variable and a contract for its value, or a function and a
+contract for its arguments and return values.  The first form is
+equivalent to:
+
+@example
+(define-contract @var{keyword}
+    keyword
+  @var{contract})
+
+(define (keyword . @var{args})
+  @varo{body} @var{body} ...)
+@end example
+
+@noindent
+and notice that the defined function can reference itself recursively
+with the @var{keyword} identifier, so, internally, it has to satisfy its
+contract.  The second form is equivalent to:
+
+@example
+(define-contract @var{keyword}
+    keyword
+  @var{contract})
+
+(define keyword @var{expression})
+@end example
+
+@noindent
+and the third to:
+
+@example
+(define-contract @var{keyword}
+    keyword
+  @var{contract})
+
+(define keyword)
+@end example
+@end deffn
+
+
+@deffn Syntax with-outer-contracts ((@var{keyword} @var{contract}) ...) @varo{body} @var{body} ...
+@deffnx {Auxiliary Syntax} ->
+Expand to a sequence of contract definitions of the form:
+
+@example
+(define-contract @var{keyword} subject @var{contract})
+...
+@end example
+
+@noindent
+followed by the @var{body} forms in which the occurrences of the
+identifiers @var{keyword} have been substituted with the automatically
+generated identifiers @code{subject}.
+
+This allows functions defined in the @var{body} form to call each other
+without enforcing the contracts, while other functions referencing
+@var{keyword} will be subjected to the contracts.
+@end deffn
+
+
+@deftp {Condition Type} &contract-violation
+Condition object type used to signal a contract violation.
+@end deftp
+
+
+@defun make-contract-violation-condition @var{subject}
+Build and return a new condition object of type
+@condition{contract-violation}.  @var{subject} must be a symbol
+representing the subject of the contract.
+@end defun
+
+
+@defun contract-violation? @var{obj}
+Return true if @var{obj} is a condition object of type
+@condition{contract-violation}.
+@end defun
+
+
+@defun condition-contract-violation/subject @var{condition}
+Given an argument of type @condition{contract-violation} return the
+value of the @code{subject} field.
+@end defun
+
+@c end of file

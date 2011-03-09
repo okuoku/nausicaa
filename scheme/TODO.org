@@ -1,27 +1,17 @@
 * documentation
 
-  Differentiate between @meta inside normal text and @meta inside
-  examples, @samp, etc.
-
   Document  somewhere that  ypsilon requires  the --compatible  flag, or
   remove the need for --compatible.
 
 * nausicaa
-
-  Why I cannot install only the FASL files under ikarus?
-
+* DONE makers
+* classes
 * generics
 
   Profile and improve method dispatching.
 
-* lists
-
-  Finished(?)
-
-* char-set
-
-  Done.
-
+* DONE lists
+* DONE char-set
 * email
 
 ** addresses
@@ -72,7 +62,7 @@
   http://en.wikipedia.org/wiki/Levenshtein_distance
   http://en.wikipedia.org/wiki/Damerau%E2%80%93Levenshtein_distance
 
-* vectors
+* DONE vectors
 
   Finished.
 
@@ -86,19 +76,18 @@
 
   Port the number distributions from the GSL?
 
-* arrays
+* DONE arrays
 
-  Finished?
+  Done.
 
 * sequence
 
   Implement a library offering a common interface for all the sequences:
   vector, list, string, bytevectors.
 
-* interp
+* DONE interp
 
-  Fix usage of DEFINE-GLOBAL: it must  be possible only at the top level
-  of an evaluated sexp.
+  Done.
 
 * irregex
 
@@ -112,21 +101,19 @@
   Port  the library from  the built-in  char-sets implementation  to the
   (char-sets) library.
 
-* pregexp
+* DONE pregexp
 
-  Replace calls to PREGEXP-ERROR with the appropriates error forms.
+  Done.
 
-  Replace PREGEXP-REVERSE! with REVERSE! from (lists)
+* DONE scmobj
 
-* scmobj
+  Done.
 
-  Finished?
+* DONE silex
 
-* silex
+  Done.
 
-  Done?
-
-* lalr
+* DONE lalr
 
   Finished.
 
@@ -143,21 +130,23 @@
 
   Use the FFI to load the shared library and run the function.
 
-* matches
+* TODO matches
 
-  Rewrite the OR pattern.
+  Transform the auxiliary macros to functions for expand time; the whole
+  MATCH  implementation  can  be  a  single  DEFINE-SYNTAX  form.   This
+  transformation would make the code more understandable.
 
-  Focus on destructuring bind.
-
-* packrat
+* TODO packrat
 
   Implement the :one and :any combinators, like the ones in (sexps).
 
-* armor
-
-  Add quoted-printable. http://tools.ietf.org/html/rfc2045
-
-* libraries
+* DONE armor
+* TODO libraries
 
   Finish the libraries inspector.
+
+* DONE contracts
+* TODO uri
+
+  Finish the parser.
 
