@@ -676,7 +676,6 @@ More libraries
 * json::                        Parsing and generating @json{} text.
 * net::                         Network--related libraries.
 * uri::                         Uniform resource identifiers.
-* libraries::                   Libraries inspection.
 * submodules::                  Nested modules.
 * interps::                     Evaluating code as in an interpreter.
 * evaluations::                 Evaluating code in a limited environment.
@@ -786,7 +785,6 @@ Indexes
 @include json.texiinc
 @include net.texiinc
 @include uri.texiinc
-@include libraries.texiinc
 @include submodules.texiinc
 @include interps.texiinc
 @include evaluations.texiinc
