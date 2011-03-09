@@ -7,7 +7,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2008-2010 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2008-2011 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -293,89 +293,6 @@
   (check (expt +inf.0+2.i 2)	(=> eq=?) +inf.0+nan.0i)
 
   #t)
-
-
-;;;; parameters
-
-(define alpha
-  (make-parameter 123))
-
-(define beta
-  (make-parameter 0
-    (lambda (num)
-      (unless (number? num)
-	(raise 'woppa))
-      num)))
-
-;;; --------------------------------------------------------------------
-
-(check
-    (alpha)
-  => 123)
-
-(check
-    (parameterize ((alpha 456))
-      (list (alpha)))
-  => '(456))
-
-(check
-    (parameterize ((alpha 456))
-      (list (alpha)
-	    (parameterize ((alpha 789))
-	      (alpha))))
-  => '(456 789))
-
-;;; --------------------------------------------------------------------
-
-(check
-    (beta)
-  => 0)
-
-(check
-    (parameterise ((beta 456))
-      (list (beta)))
-  => '(456))
-
-(check
-    (parameterise ((beta 456))
-      (list (beta)
-	    (parameterise ((beta 789))
-	      (beta))))
-  => '(456 789))
-
-(check
-    (guard (exc (else exc))
-      (parameterise ((beta 'b))
-	(list (beta))))
-  => 'woppa)
-
-;;; --------------------------------------------------------------------
-
-(define gamma
-  (make-parameter 0
-    (lambda (num)
-      (unless (number? num)
-	(raise 'woppa))
-      (case num
-	((0) 'zero)
-	((1) 'one)
-	((2) 'two)))))
-
-(check
-    (gamma)
-  => 'zero)
-
-(check
-    (begin
-      (gamma 1)
-      (gamma))
-  => 'one)
-
-(check
-    (begin
-      (gamma 2)
-      (gamma))
-  => 'two)
 
 
 ;;;; done
