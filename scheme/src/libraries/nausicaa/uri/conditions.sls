@@ -1,4 +1,4 @@
-;;; -*- coding: utf-8 -*-
+;;; -*- coding: utf-8-unix -*-
 ;;;
 ;;;Part of: Nausicaa/Scheme
 ;;;Contents: condition objects for URI parsing and handling
@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2010, 2011 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -25,7 +25,7 @@
 ;;;
 
 
-(library (uri conditions)
+(library (nausicaa uri conditions)
   (export
 
     &parser-error
@@ -34,7 +34,7 @@
     condition-parser-error/offset
     )
   (import (rnrs)
-    (conditions))
+    (nausicaa language conditions))
 
   (define-condition &parser-error
     (parent &error)

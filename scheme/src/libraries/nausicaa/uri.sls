@@ -1,4 +1,4 @@
-;;; -*- coding: utf-8 -*-
+;;; -*- coding: utf-8-unix -*-
 ;;;
 ;;;Part of: Nausicaa/Scheme
 ;;;Contents: URI handling
@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2010, 2011 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -31,7 +31,7 @@
     <uri>
     )
   (import (nausicaa)
-    (prefix (nausicaa uri low) uri:))
+    (prefix (nausicaa uri low) low.))
 
 
 ;;;; helpers
@@ -103,7 +103,7 @@
 				      (define (?name (?var <uri>))
 					(or ?decoded
 					    (and ?encoded
-						 (begin0-let ((bv (uri:percent-decode ?encoded)))
+						 (begin0-let ((bv (low.percent-decode ?encoded)))
 						   (set! ?decoded bv)))))))))
 
   (define-decoded-field o <uri>-decoded-scheme    o.cached-encoded-scheme    o.cached-decoded-scheme)
@@ -115,7 +115,7 @@
     (or o.cached-decoded-path
 	(and o.cached-encoded-path
 	     (begin0-let ((ell (map (lambda (bv)
-				      (uri:percent-decode bv))
+				      (low.percent-decode bv))
 				 o.cached-encoded-path)))
 	       (set! o.cached-decoded-path ell)))))
   )
@@ -127,7 +127,7 @@
 				      (define (?name (?var <uri>))
 					(or ?encoded
 					    (and ?decoded
-						 (begin0-let ((bv (uri:percent-encode ?decoded)))
+						 (begin0-let ((bv (low.percent-encode ?decoded)))
 						   (set! ?encoded bv)))))))))
 
   (define-encoded-field o <uri>-encoded-scheme    o.cached-encoded-scheme    o.cached-decoded-scheme)
@@ -139,7 +139,7 @@
     (or o.cached-encoded-path
 	(and o.cached-decoded-path
 	     (begin0-let ((ell (map (lambda (bv)
-				      (uri:percent-encode bv))
+				      (low.percent-encode bv))
 				 o.cached-decoded-path)))
 	       (set! o.cached-encoded-path ell)))))
   )
