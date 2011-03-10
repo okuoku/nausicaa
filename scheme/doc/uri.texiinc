@@ -29,7 +29,7 @@ verified Thu Jun 17, 2010:
 
 @rfc{} 3986 defines the following @uri{} grammar (from ``Appendix A''):
 
-@example
+@smallexample
 URI           = scheme ":" hier-part [ "?" query ] [ "#" fragment ]
 
 hier-part     = "//" authority path-abempty
@@ -111,7 +111,7 @@ reserved      = gen-delims | sub-delims
 gen-delims    = ":" | "/" | "?" | "#" | "[" | "]" | "@@"
 sub-delims    = "!" | "$" | "&" | "'" | "(" | ")"
               | "*" | "+" | "," | ";" | "="
-@end example
+@end smallexample
 
 @c page
 @node uri conditions
