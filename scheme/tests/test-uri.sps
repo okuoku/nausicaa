@@ -53,6 +53,14 @@
   (check (low.to-string (low.to-bytevector "ciao"))		=> "ciao")
   (check (low.to-string (low.to-bytevector "ci%3fa%3do"))	=> "ci%3fa%3do")
 
+  (check
+      (guard (E ((low.parser-error-condition? E)
+;;;		 (write (condition-message E))(newline)
+		 #t)
+		(else E))
+	(low.to-bytevector "ciaoλ"))
+    => #t)
+
   #t)
 
 

@@ -167,6 +167,15 @@
       (= chi $int-at-sign)))
 
 
+;;;; helpers
+
+(define (parser-error who message offset . irritants)
+  (raise (condition (make-parser-error-condition offset)
+		    (make-who-condition who)
+		    (make-message-condition message)
+		    (make-irritants-condition irritants))))
+
+
 ;;;; plain string <-> bytevector conversion
 
 (define (to-bytevector obj)
@@ -180,7 +189,12 @@
     (let* ((len (string-length obj))
 	   (bv  (make-bytevector len)))
       (dotimes (i len bv)
-	(bytevector-u8-set! bv i (char->integer (string-ref obj i)))))))
+	(let ((chi (char->integer (string-ref obj i))))
+	  (if (<= 0 chi 255)
+	      (bytevector-u8-set! bv i chi)
+	    (parser-error 'to-bytevector
+	      "character from string out of range for one-to-one conversion to bytevector"
+	      i obj)))))))
 
 (define (to-string bv)
   ;;Convert  the bytevector OBJ  to a  string representation;  bytes are

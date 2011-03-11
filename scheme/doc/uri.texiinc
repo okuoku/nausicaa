@@ -30,18 +30,18 @@ verified Thu Jun 17, 2010:
 @rfc{} 3986 defines the following @uri{} grammar (from ``Appendix A''):
 
 @smallexample
+URI-reference = URI | relative-ref
+
 URI           = scheme ":" hier-part [ "?" query ] [ "#" fragment ]
+
+relative-ref  = relative-part [ "?" query ] [ "#" fragment ]
+
+absolute-URI  = scheme ":" hier-part [ "?" query ]
 
 hier-part     = "//" authority path-abempty
               | path-absolute
               | path-rootless
               | path-empty
-
-URI-reference = URI | relative-ref
-
-absolute-URI  = scheme ":" hier-part [ "?" query ]
-
-relative-ref  = relative-part [ "?" query ] [ "#" fragment ]
 
 relative-part = "//" authority path-abempty
               | path-absolute
@@ -177,6 +177,11 @@ If @var{obj} is a bytevector: @var{obj} itself is returned.  If
 @var{obj} is a string: convert it to a bytevector representation;
 characters are taken from @var{obj} and inserted into the resulting
 bytevector after decoding them, char to byte, as @ascii{}.
+
+If the string has a character whose integer representation is not in the
+range @math{[0, 255]}: raise a condition object with components
+@condition{parser-error}, @condition{who}, @condition{message},
+@condition{irritants}; the irritants value is a list holding @var{obj}.
 @end defun
 
 
@@ -192,8 +197,10 @@ them, byte to char, as @ascii{}.
 @section Percent encoding of characters
 
 
-A string is valid as @uri{} component only if its characters match the
-following @library{silex} specification:
+A bytevector, whose bytes are interpreted as @ascii{} characters, is
+valid as @uri{} component only if its characters match the following
+@library{nausicaa silex} specification (@pxref{silex syntax} for the
+syntax of the specification):
 
 @example
 ALPHA           [a-zA-Z]
@@ -210,9 +217,9 @@ unreserved      @{ALPHA@}|@{DIGIT@}|[\-\._~]
 @end example
 
 @noindent
-@ref{silex syntax} for the syntax of the specification.  All the
-characters which are not unreserved are meant to be percent--encoded in
-a @uri{} string; in particular the following must be encoded:
+all the characters which are not unreserved are meant to be
+percent--encoded in a @uri{} string; in particular the following must be
+encoded:
 
 @example
 : / ? # [ ] @ \ ! $ & ' ( ) * + , ; =
@@ -299,7 +306,7 @@ which are already not so.
 
 
 All the parser functions attempt to read an @uri{} component from a
-binry input port; all of them follow this protocol:
+binary input port; all of them follow this protocol:
 
 @itemize
 @item
@@ -480,9 +487,9 @@ Return two values: an exact integer representing the hexadecimal digit
 in @ascii{} encoding, a bytevector holding the accumulated bytes; else
 return false and false.
 
-If successful: leave the port position to the byte after last one read
-from the port; if an error occurs: rewind the port position to the one
-before this function call.
+If successful: leave the port position to the byte after the last one
+read from the port; if an error occurs: rewind the port position to the
+one before this function call.
 
 No validation is performed on the returned bytevector contents; the
 returned bytevector can be empty even though an @code{IPvFuture}
