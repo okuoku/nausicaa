@@ -1,12 +1,11 @@
 * documentation
-
-  Document  somewhere that  ypsilon requires  the --compatible  flag, or
-  remove the need for --compatible.
-
 * nausicaa
 * DONE makers
 * classes
 * generics
+
+  Resurrect the expanded generics  implementation with before, after and
+  around methods.  Make an alternative to simple generics.
 
   Profile and improve method dispatching.
 
@@ -141,10 +140,6 @@
   Implement the :one and :any combinators, like the ones in (sexps).
 
 * DONE armor
-* TODO libraries
-
-  Finish the libraries inspector.
-
 * DONE contracts
 * TODO uri
 
