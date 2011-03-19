@@ -50,7 +50,7 @@
 		  identifier-subst
 		  identifier-suffix
 		  syntax->list
-		  unwrap-syntax-object
+		  unwrap
 		  validate-definition-clauses)
 	    synux.)
     (prefix (only (nausicaa language classes clause-parsers)
@@ -172,7 +172,7 @@
   ;;
   (let ((mixin-clauses (prop.mixin-clauses-ref mixin-identifier)))
     (if mixin-clauses
-	(synux.unwrap-syntax-object ;the receiving end expects an unwrapped object
+	(synux.unwrap ;the receiving end expects an unwrapped object
 	 (synux.identifier-subst (list mixin-identifier)
 				 (list destination-identifier)
 				 mixin-clauses))

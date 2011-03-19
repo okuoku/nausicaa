@@ -28,8 +28,8 @@ it, as in:
 @section Unwrapping syntax objects
 
 
-@defun unwrap-syntax-object @var{stx}
-@defunx unwrap-syntax-object @var{stx} @var{options}
+@defun unwrap @var{stx}
+@defunx unwrap @var{stx} @var{options}
 Given a syntax object @var{stx} decompose it and return the
 corresponding symbolic expression holding datums and identifiers.  Take
 care of returning a proper list when the input is a syntax object
@@ -46,16 +46,14 @@ Such pairs are left untouched as wrapped syntax objects.
 @end table
 
 @quotation
-This functions also provides a workaround for bugs in Ikarus (Vicare)
-and Mosh, which expand syntax objects holding a list into IMproper
-lists.
+This functions also provides a workaround for Scheme implementation
+which expand syntax objects holding a proper list into IMproper lists.
 @end quotation
 @end defun
 
 
 @deftp {Enumeration Type} enum-unwrap-options
-Enumeration for the options of @func{unwrap-syntax-object}; the included
-symbols are:
+Enumeration for the options of @func{unwrap}; the included symbols are:
 
 @example
 keep-general-quoted

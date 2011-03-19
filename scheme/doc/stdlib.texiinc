@@ -6589,23 +6589,23 @@ consumed resources.
 
 Let's focus on unwrapped syntax objects, which are easier to deal with;
 it is always possible to convert a wrapped syntax object into an
-unwrapped one by applying the @func{unwrap-syntax-object} function
+unwrapped one by applying the @func{unwrap} function
 defined in the following library (it is @strong{not} important to
 understand it at first reading):
 
 @example
 (library (syntax-utilities)
-  (export unwrap-syntax-object)
+  (export unwrap)
   (import (rnrs))
-  (define (unwrap-syntax-object stx)
+  (define (unwrap stx)
     (syntax-case stx ()
       (()
        '())
       ((?car . ?cdr)
-       (cons (unwrap-syntax-object (syntax ?car))
-             (unwrap-syntax-object (syntax ?cdr))))
+       (cons (unwrap (syntax ?car))
+             (unwrap (syntax ?cdr))))
       (#(?item ...)
-       (list->vector (unwrap-syntax-object (syntax (?item ...)))))
+       (list->vector (unwrap (syntax (?item ...)))))
       (?atom
        (identifier? (syntax ?atom))
        (syntax ?atom))
@@ -6626,7 +6626,7 @@ Now let's define the following library:
     (for (syntax-utilities) expand))
   (define-syntax the-macro
     (lambda (stx)
-      (let ((sexp (unwrap-syntax-object stx)))
+      (let ((sexp (unwrap stx)))
         (write sexp)(newline)
         #f))))
 @end example
@@ -6668,7 +6668,7 @@ condensed interface to @func{call-with-values}:
 
 (define-syntax receive
   (lambda (use)
-    (let ((sexp (unwrap-syntax-object use)))
+    (let ((sexp (unwrap use)))
       (let ((formals          (cadr  sexp))
             (expression       (caddr sexp))
             (body             (cdddr sexp)))
@@ -6734,7 +6734,7 @@ can be unwrapped to:
 which still contains the wrapped syntax object @samp{#<syntax #(ciao
 2)>}.
 
-The function @func{unwrap-syntax-object} defined above fully unwraps its
+The function @func{unwrap} defined above fully unwraps its
 argument; notice that it will unwrap also quoted S--expressions, for
 example:
 
@@ -6950,8 +6950,8 @@ the restrictions on @var{proc} only to the extent performed by applying
 it as described.  An implementation may check whether @var{proc} is an
 appropriate argument before applying it.
 
-Meaningless example using the @func{unwrap-syntax-object} function
-defined in @ref{stdlib syntax-case intro}:
+Meaningless example using the @func{unwrap} function defined in
+@ref{stdlib syntax-case intro}:
 
 @example
 (import (rnrs) (for (syntax-utilities) expand))
@@ -6959,7 +6959,7 @@ defined in @ref{stdlib syntax-case intro}:
 (define-syntax alpha
   (make-variable-transformer
    (lambda (use)
-     (write (unwrap-syntax-object use))
+     (write (unwrap use))
      (newline)
      #f)))
 

@@ -30,7 +30,7 @@
   (export parse-maker-input-form)
   (import (rnrs)
     (for (prefix (only (rnrs) list) rnrs.) (meta -1))
-    (only (nausicaa language syntax-utilities) unwrap-syntax-object identifier->string))
+    (only (nausicaa language syntax-utilities) unwrap identifier->string))
 
 
 (define (parse-maker-input-form who input-form-stx arguments-stx keywords-defaults-options)
@@ -197,8 +197,8 @@
   (define (%synner message subform)
     (syntax-violation who message (syntax->datum input-form-stx) (and subform (syntax->datum subform))))
 
-  (main (unwrap-syntax-object arguments-stx)
-	(unwrap-syntax-object keywords-defaults-options)))
+  (main (unwrap arguments-stx)
+	(unwrap keywords-defaults-options)))
 
 
 ;;;; done

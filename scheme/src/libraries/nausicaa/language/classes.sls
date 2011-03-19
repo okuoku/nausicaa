@@ -114,7 +114,7 @@
 		       syntax-method-identifier
 		       syntax-predicate-identifier
 		       syntax->list
-		       unwrap-syntax-object)
+		       unwrap)
 		 synux.)
 	 expand)
     (for (prefix (nausicaa language classes helpers) help.)	expand)
@@ -497,14 +497,14 @@
       (syntax-case stx ()
 	((_ (?name ?constructor ?predicate) ?clause ...)
 	 (synux.all-identifiers? #'(?name ?constructor ?predicate))
-	 (values #'?name #'?constructor #'?predicate (synux.unwrap-syntax-object #'(?clause ...))))
+	 (values #'?name #'?constructor #'?predicate (synux.unwrap #'(?clause ...))))
 
 	((_ ?name ?clause ...)
 	 (identifier? #'?name)
 	 (values #'?name
 		 (synux.syntax-maker-identifier #'?name)
 		 (synux.syntax-predicate-identifier #'?name)
-		 (synux.unwrap-syntax-object #'(?clause ...))))
+		 (synux.unwrap #'(?clause ...))))
 
 	((_ ?name-spec . ?clauses)
 	 (%synner "invalid name specification in class definition" #'?name-spec))))
@@ -998,9 +998,9 @@
 		  (prop.struct-properties-define
 		   #'THE-CLASS (prop.make-class
 				(synux.syntax->list #'LIST-OF-SUPERCLASSES)
-				(synux.unwrap-syntax-object #'FIELD-SPECS)
-				(synux.unwrap-syntax-object #'VIRTUAL-FIELD-SPECS)
-				(synux.unwrap-syntax-object #'METHOD-SPECS)
+				(synux.unwrap #'FIELD-SPECS)
+				(synux.unwrap #'VIRTUAL-FIELD-SPECS)
+				(synux.unwrap #'METHOD-SPECS)
 				(synux.syntax->list #'MIXIN-IDENTIFIERS)
 				(synux.syntax->list #'LIST-OF-FIELD-TAGS)))
 		  (help.detect-circular-tagging #'THE-CLASS #'INPUT-FORM)
@@ -1239,12 +1239,12 @@
     (syntax-case stx ()
       ((_ (?name ?predicate) ?clause ...)
        (synux.all-identifiers? #'(?name ?predicate))
-       (values #'?name #'?predicate (synux.unwrap-syntax-object #'(?clause ...))))
+       (values #'?name #'?predicate (synux.unwrap #'(?clause ...))))
 
       ((_ ?name ?clause ...)
        (identifier? #'?name)
        (values #'?name (synux.syntax-predicate-identifier #'?name)
-	       (synux.unwrap-syntax-object #'(?clause ...))))
+	       (synux.unwrap #'(?clause ...))))
 
       ((_ ?name-spec . ?clauses)
        (%synner "invalid name specification in label definition" #'?name-spec))))
@@ -1498,8 +1498,8 @@
 	      (prop.struct-properties-define
 	       #'THE-LABEL (prop.make-label
 			    (synux.syntax->list #'LIST-OF-SUPERLABELS)
-			    (synux.unwrap-syntax-object #'VIRTUAL-FIELD-SPECS)
-			    (synux.unwrap-syntax-object #'METHOD-SPECS)
+			    (synux.unwrap #'VIRTUAL-FIELD-SPECS)
+			    (synux.unwrap #'METHOD-SPECS)
 			    (synux.syntax->list #'MIXIN-IDENTIFIERS)
 			    (synux.syntax->list #'LIST-OF-FIELD-TAGS)))
 	      (help.detect-circular-tagging #'THE-LABEL #'INPUT-FORM)
@@ -1561,7 +1561,7 @@
      (synner "at least one clause needed in mixin definition"))
     ((_ ?the-mixin . ?clauses)
      (let ((mixin-identifier	#'?the-mixin)
-	   (original-clauses	(synux.unwrap-syntax-object #'?clauses)))
+	   (original-clauses	(synux.unwrap #'?clauses)))
        (help.validate-mixin-clauses original-clauses synner)
 
        ;;We parse  the original clauses  in the same  way we do  for the
@@ -1795,9 +1795,9 @@
 		 (prop.struct-properties-define
 		  #'THE-MIXIN (prop.make-class
 			       (synux.syntax->list #'LIST-OF-SUPERCLASSES)
-			       (synux.unwrap-syntax-object #'FIELD-SPECS)
-			       (synux.unwrap-syntax-object #'VIRTUAL-FIELD-SPECS)
-			       (synux.unwrap-syntax-object #'METHOD-SPECS)
+			       (synux.unwrap #'FIELD-SPECS)
+			       (synux.unwrap #'VIRTUAL-FIELD-SPECS)
+			       (synux.unwrap #'METHOD-SPECS)
 			       (synux.syntax->list #'MIXIN-IDENTIFIERS)
 			       '() ;list-of-field-tags
 			       )))
@@ -2004,7 +2004,7 @@
 	  (map synux.all-identifiers? (synux.syntax->list #'((?class ...) ...))))
      (with-syntax (((VAR ...) (map (lambda (field)
 				     (synux.syntax-dot-notation-identifier #'?var field))
-				(synux.unwrap-syntax-object #'(?field ...)))))
+				(synux.unwrap #'(?field ...)))))
        #'(with-class (((VAR (?getter ?instance)) ?class ...) ...) . ?body)))
 
     ((_ ?var ?instance (?field-clause . ?field-clauses) . ?body)
@@ -2072,7 +2072,7 @@
       ((_ ?let ?let/with-class ?loop   ((?var ?init) ...) ?body0 ?body ...)
        (with-syntax (((VAR ...) (map (lambda (var)
 				       (if (pair? var) var (list var #'<top>)))
-				  (synux.unwrap-syntax-object #'(?var ...)))))
+				  (synux.unwrap #'(?var ...)))))
 	 #'(?let/with-class ?loop ((VAR ?init) ...) ?body0 ?body ...)))
 
       (_
@@ -2249,7 +2249,7 @@
     ((_ ((?var ?init ?step ...) ...)
 	(?test ?expr ...)
 	?form ...)
-     (with-syntax (((ID ...) (map %parse-var (synux.unwrap-syntax-object #'(?var ...)))))
+     (with-syntax (((ID ...) (map %parse-var (synux.unwrap #'(?var ...)))))
        #'(let-syntax ((the-expr (syntax-rules ()
 				  ((_)
 				   (values))
@@ -2453,7 +2453,7 @@
   (define (main stx)
     (syntax-case stx ()
       ((_ (?formals . ?body) ...)
-       #`(case-lambda #,@(map %process-clause (synux.unwrap-syntax-object #'((?formals . ?body) ...)))))
+       #`(case-lambda #,@(map %process-clause (synux.unwrap #'((?formals . ?body) ...)))))
       (_
        (synner "invalid syntax in case-lambda definition"))))
 

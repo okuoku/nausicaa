@@ -67,7 +67,7 @@
     (assert (identifier? variable-id))
     (map (lambda (clause-stx)
     	   (make-single-field-binding clause-stx synner))
-      (synux.unwrap-syntax-object clauses-stx)))
+      (synux.unwrap clauses-stx)))
 
   (define (make-single-field-binding clause-stx synner)
     (define (make-keyword field-stx)
@@ -126,7 +126,7 @@
 	      (make-single-method-binding use-dot-notation #'?method #'?function-name))
 	     (_
 	      (synner "invalid method specification clause" clause-stx))))
-      (synux.unwrap-syntax-object clauses-stx)))
+      (synux.unwrap clauses-stx)))
 
   (define (make-single-method-binding use-dot-notation? method-stx function-name-stx)
     #`(#,(if use-dot-notation?

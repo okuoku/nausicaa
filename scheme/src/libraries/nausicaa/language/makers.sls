@@ -58,7 +58,7 @@
 	((_ ?name ?maker-sexp ?keywords-defaults-options)
 	 (not (or (identifier? #'?name)
 		  ;;A list with an identifier in the first position.
-		  (let ((L (unwrap-syntax-object #'?name)))
+		  (let ((L (unwrap #'?name)))
 		    (and (pair? L)
 			 (identifier? (car L))))))
 	 (%synner "expected identifier as maker name in maker definition" #'?name))
@@ -97,11 +97,11 @@
       (syntax-case stx ()
 	((_ (?name ?use-argument ...) (?maker ?fixed-argument ...) ((?keyword ?default ?option ...) ...))
 	 (with-syntax ((((OPTION ...) ...)
-			(let ((list-of-keywords (unwrap-syntax-object #'(?keyword ...))))
+			(let ((list-of-keywords (unwrap #'(?keyword ...))))
 			  (map (lambda (keyword options-list)
 				 (%parse-keyword-options keyword options-list list-of-keywords))
 			    list-of-keywords
-			    (unwrap-syntax-object #'((?option ...) ...))))))
+			    (unwrap #'((?option ...) ...))))))
 	   #'(define-syntax ?name
 	       (lambda (use)
 		 (syntax-case use ()
@@ -162,12 +162,12 @@
 	    ((with ?keyword ...)
 	     (all-identifiers? #'(?keyword ...))
 	     (loop (cdr options-list) mandatory?
-		   (unwrap-syntax-object #'(?keyword ...))
+		   (unwrap #'(?keyword ...))
 		   without-list))
 	    ((without ?keyword ...)
 	     (all-identifiers? #'(?keyword ...))
 	     (loop (cdr options-list) mandatory? with-list
-		   (unwrap-syntax-object #'(?keyword ...))))
+		   (unwrap #'(?keyword ...))))
 	    (_
 	     (%synner (string-append "invalid options list for keyword \""
 				     (identifier->string keyword) "\"")
@@ -185,7 +185,7 @@
 	(if (null? result) #f result)))
 
     (define (invalid-keywords-defaults-options? keywords-defaults-options)
-      (let ((keywords-defaults-options (unwrap-syntax-object keywords-defaults-options)))
+      (let ((keywords-defaults-options (unwrap keywords-defaults-options)))
 	(not (and (list? keywords-defaults-options)
 		  (for-all (lambda (key-default-options)
 			     (and (identifier? (car key-default-options))

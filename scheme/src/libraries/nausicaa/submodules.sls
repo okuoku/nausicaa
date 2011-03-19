@@ -33,7 +33,7 @@
 	  define-values
 	  define-auxiliary-syntaxes)
     (for (only (nausicaa language syntax-utilities)
-	       unwrap-syntax-object
+	       unwrap
 	       identifier-suffix
 	       all-identifiers?
 	       syntax-general-append) expand))
@@ -50,8 +50,8 @@
       ((_ ?name (export ?bind0 ?bind ...) (prefix ?prefix) ?body0 ?body ...)
        (all-identifiers? #'(?name ?bind0 ?bind ...))
        (with-syntax (((BIND ...) (map (lambda (bind-stx)
-					(build-exported-name (unwrap-syntax-object #'?prefix) bind-stx))
-				   (unwrap-syntax-object #'(?bind0 ?bind ...)))))
+					(build-exported-name (unwrap #'?prefix) bind-stx))
+				   (unwrap #'(?bind0 ?bind ...)))))
 	 #'(define-values (BIND ...)
 	     (let ()
 	       ?body0 ?body ...

@@ -74,7 +74,7 @@
     (nausicaa language gensym)
     (prefix (only (nausicaa language syntax-utilities)
 		  all-identifiers?
-		  unwrap-syntax-object
+		  unwrap
 		  syntax-accessor-identifier
 		  syntax-mutator-identifier
 		  syntax-method-identifier
@@ -730,7 +730,7 @@
 	((methods ?method-clause ...)
 	 (next-clause (cdr clauses)
 		      (%parse-clause/methods thing-identifier
-					     (synux.unwrap-syntax-object #'(?method-clause ...))
+					     (synux.unwrap #'(?method-clause ...))
 					     synner collected)))
 	(_
 	 (synner "invalid methods clause" (car clauses)))

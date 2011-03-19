@@ -30,7 +30,7 @@
   (export
 
     ;; wrapping
-    unwrap-syntax-object		unwrap-options
+    unwrap				unwrap-options
     syntax->vector			syntax->list
 
     ;; inspection
@@ -60,10 +60,10 @@
   (keep-general-quoted)
   unwrap-options)
 
-(define unwrap-syntax-object
+(define unwrap
   (case-lambda
    ((stx)
-    (unwrap-syntax-object stx (unwrap-options)))
+    (unwrap stx (unwrap-options)))
    ((stx options)
     ;;Given   a  syntax  object   STX  decompose   it  and   return  the
     ;;corresponding S-expression  holding datums and  identifiers.  Take
@@ -89,10 +89,10 @@
 		(free-identifier=? #'?car #'quasisyntax)))
        (syntax (?car . ?cdr)))
       ((?car . ?cdr)
-       (cons (unwrap-syntax-object (syntax ?car))
-	     (unwrap-syntax-object (syntax ?cdr))))
+       (cons (unwrap (syntax ?car))
+	     (unwrap (syntax ?cdr))))
       (#(?item ...)
-       (list->vector (unwrap-syntax-object (syntax (?item ...)))))
+       (list->vector (unwrap (syntax (?item ...)))))
       (?atom
        (identifier? (syntax ?atom))
        (syntax ?atom))
@@ -156,8 +156,8 @@
 	       #f)))
 	  (else
 	   (equal? stx1 stx2))))
-  (%syntax=? (unwrap-syntax-object stx1 (enum-unwrap-options keep-general-quoted))
-	     (unwrap-syntax-object stx2 (enum-unwrap-options keep-general-quoted))))
+  (%syntax=? (unwrap stx1 (enum-unwrap-options keep-general-quoted))
+	     (unwrap stx2 (enum-unwrap-options keep-general-quoted))))
 
 
 (define (all-identifiers? stx)
@@ -269,8 +269,8 @@
   ;;We assume that it is more likely that the ALIST holds a single pair.
   (fold-left %subst
 	     stx
-	     (unwrap-syntax-object src-ids)
-	     (unwrap-syntax-object dst-ids)))
+	     (unwrap src-ids)
+	     (unwrap dst-ids)))
 
 
 (define (string-general-append arg . args)

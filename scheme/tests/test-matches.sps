@@ -1137,7 +1137,7 @@
 
     (define-syntax doit
       (lambda (stx)
-	(match (unwrap-syntax-object stx)
+	(match (unwrap stx)
 	  ((_ ?clause)
 	   (match ?clause
 	     (((:free-identifier #'alpha) ?a)
