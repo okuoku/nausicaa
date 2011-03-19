@@ -35,7 +35,7 @@
     make-method-bindings
     make-setter-getter-bindings)
   (import (rnrs)
-    (prefix (nausicaa language syntax-utilities) synux.)
+    (prefix (nausicaa language syntax-utilities) sx.)
     (prefix (nausicaa language classes helpers) help.))
 
 
@@ -67,12 +67,12 @@
     (assert (identifier? variable-id))
     (map (lambda (clause-stx)
     	   (make-single-field-binding clause-stx synner))
-      (synux.unwrap clauses-stx)))
+      (sx.unwrap clauses-stx)))
 
   (define (make-single-field-binding clause-stx synner)
     (define (make-keyword field-stx)
       (if use-dot-notation?
-	  (synux.syntax-dot-notation-identifier variable-id field-stx)
+	  (sx.syntax-dot-notation-identifier variable-id field-stx)
 	;;If dot notation is off,  VARIABLE-ID is the identifier of the
 	;;"this" method argument.
 	;;
@@ -126,11 +126,11 @@
 	      (make-single-method-binding use-dot-notation #'?method #'?function-name))
 	     (_
 	      (synner "invalid method specification clause" clause-stx))))
-      (synux.unwrap clauses-stx)))
+      (sx.unwrap clauses-stx)))
 
   (define (make-single-method-binding use-dot-notation? method-stx function-name-stx)
     #`(#,(if use-dot-notation?
-	     (synux.syntax-dot-notation-identifier variable-id method-stx)
+	     (sx.syntax-dot-notation-identifier variable-id method-stx)
 	   ;;If dot  notation is off, VARIABLE-ID is  the identifier of
 	   ;;the "this" method argument.
 	   ;;

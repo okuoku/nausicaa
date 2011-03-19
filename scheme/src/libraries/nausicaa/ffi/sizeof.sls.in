@@ -1,3 +1,4 @@
+;;; -*- coding: utf-8-unix -*-
 ;;;
 ;;;Part of: Nausicaa/Scheme
 ;;;Contents: size of platform C language types
@@ -33,7 +34,7 @@
     c-inspect)
   (import (rnrs)
     (only (nausicaa language extensions) define-syntax*)
-    (for (prefix (nausicaa language syntax-utilities) synux.) expand)
+    (for (prefix (nausicaa language syntax-utilities) sx.) expand)
     (for (nausicaa ffi clang type-translation) expand run))
 
 
@@ -44,13 +45,13 @@
 
     ((_ ?type ?number-of-elements)
      (identifier? #'?type)
-     #`(* #,(synux.syntax-general-append
+     #`(* #,(sx.syntax-general-append
 	     #'this-context "strideof-" (clang-external-type->clang-type (syntax->datum #'?type)))
 	  ?number-of-elements))
 
     ((_ ?type)
      (identifier? #'?type)
-     #`(begin #,(synux.syntax-general-append
+     #`(begin #,(sx.syntax-general-append
 		 #'this-context "sizeof-" (clang-external-type->clang-type (syntax->datum #'?type)))))
 
     (_
@@ -60,7 +61,7 @@
   (syntax-case stx ()
     ((_ ?type)
      (identifier? #'?type)
-     #`(begin #,(synux.syntax-general-append
+     #`(begin #,(sx.syntax-general-append
 		 #'this-context "strideof-" (clang-external-type->clang-type (syntax->datum #'?type)))))
     (_
      (synner "invalid C language strideof specification"))))
@@ -69,7 +70,7 @@
   (syntax-case stx ()
     ((_ ?type)
      (identifier? #'?type)
-     #`(begin #,(synux.syntax-general-append
+     #`(begin #,(sx.syntax-general-append
 		 #'this-context "alignof-" (clang-external-type->clang-type (syntax->datum #'?type)))))
     (_
      (synner "invalid C language alignof specification"))))
@@ -78,7 +79,7 @@
   (syntax-case stx ()
     ((_ ?thing)
      (identifier? #'?thing)
-     #`(begin #,(synux.syntax-general-append #'this-context "valueof-" #'?thing)))
+     #`(begin #,(sx.syntax-general-append #'this-context "valueof-" #'?thing)))
     (_
      (synner "invalid C language valueof specification"))))
 
@@ -86,7 +87,7 @@
   (syntax-case stx ()
     ((_ ?thing)
      (identifier? #'?thing)
-     #`(begin #,(synux.syntax-general-append #'this-context "inspect-" #'?thing)))
+     #`(begin #,(sx.syntax-general-append #'this-context "inspect-" #'?thing)))
     (_
      (synner "invalid C language valueof specification"))))
 

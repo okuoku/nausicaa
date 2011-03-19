@@ -30,7 +30,9 @@
   (export parse-maker-input-form)
   (import (rnrs)
     (for (prefix (only (rnrs) list) rnrs.) (meta -1))
-    (only (nausicaa language syntax-utilities) unwrap identifier->string))
+    (prefix (only (nausicaa language syntax-utilities)
+		  unwrap identifier->string)
+	    sx.))
 
 
 (define (parse-maker-input-form who input-form-stx arguments-stx keywords-defaults-options)
@@ -99,7 +101,7 @@
 						(keyword=? with-keyword (car key-and-values)))
 					arguments-stx)
 				(%synner (string-append "maker clause \""
-							(identifier->string keyword)
+							(sx.identifier->string keyword)
 							"\" used without companion clause")
 					 with-keyword)))
 		    (list-ref key-default-options 3))
@@ -111,7 +113,7 @@
 					      (keyword=? without-keyword (car key-and-values)))
 				      arguments-stx)
 				(%synner (string-append "maker clause \""
-							(identifier->string keyword)
+							(sx.identifier->string keyword)
 							"\" used with mutually exclusive clause")
 					 without-keyword)))
 		    (list-ref key-default-options 4))))
@@ -197,8 +199,8 @@
   (define (%synner message subform)
     (syntax-violation who message (syntax->datum input-form-stx) (and subform (syntax->datum subform))))
 
-  (main (unwrap arguments-stx)
-	(unwrap keywords-defaults-options)))
+  (main (sx.unwrap arguments-stx)
+	(sx.unwrap keywords-defaults-options)))
 
 
 ;;;; done

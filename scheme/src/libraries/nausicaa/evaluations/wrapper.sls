@@ -51,32 +51,34 @@
 (library (nausicaa evaluations wrapper)
   (export elet)
   (import (rnrs)
-    (only (nausicaa language syntax-utilities) all-identifiers?))
+    (prefix (only (nausicaa language syntax-utilities)
+		  all-identifiers?)
+	    sx.))
   (define-syntax elet
     (lambda (stx)
       (syntax-case stx ()
 
 	;; no body, no result identifiers
 	((_ () ((?var . ?datum) ...))
-	 (all-identifiers? #'(?var ...))
+	 (sx.all-identifiers? #'(?var ...))
 	 #'(let ((?var (quote ?datum)) ...)
 	     (values)))
 
 	;; with body, no result identifiers
 	((_ () ((?var . ?datum) ...) . ?body)
-	 (all-identifiers? #'(?var ...))
+	 (sx.all-identifiers? #'(?var ...))
 	 #'(let ((?var (quote ?datum)) ...)
 	     . ?body))
 
 	;; no body, with result identifiers
 	((_ (?id0 ?id ...) ((?var . ?datum) ...))
-	 (all-identifiers? #'(?var ... ?id0 ?id ...))
+	 (sx.all-identifiers? #'(?var ... ?id0 ?id ...))
 	 #'(let ((?var (quote ?datum)) ...)
 	     (list ?id0 ?id ...)))
 
 	;; with body, with result identifiers
 	((_ (?id0 ?id ...) ((?var . ?datum) ...) ?form0 ?form ...)
-	 (all-identifiers? #'(?var ... ?id0 ?id ...))
+	 (sx.all-identifiers? #'(?var ... ?id0 ?id ...))
 	 #'(let ((?var (quote ?datum)) ...)
 	     ?form0 ?form ...
 	     (list ?id0 ?id ...)))

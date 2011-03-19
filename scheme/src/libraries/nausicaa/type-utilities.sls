@@ -1,4 +1,4 @@
-;;; -*- coding: utf-8 -*-
+;;; -*- coding: utf-8-unix -*-
 ;;;
 ;;;Part of: Nausicaa/Scheme
 ;;;Contents: utilities for value types validation
@@ -38,7 +38,7 @@
     )
   (import (rnrs)
     (nausicaa language makers)
-    (for (prefix (nausicaa language syntax-utilities) synux.) expand run)
+    (for (prefix (nausicaa language syntax-utilities) sx.) expand run)
     (only (nausicaa language extensions)
 	  define-inline))
 
@@ -73,7 +73,7 @@
 	 (unless (identifier? #'?name)
 	   (%synner "expected identifier as assertion object name" #'?name))
 
-	 (with-syntax ((FUNCNAME (synux.identifier-prefix 'assert- #'?name)))
+	 (with-syntax ((FUNCNAME (sx.identifier-prefix 'assert- #'?name)))
 	   #`(begin
 	       (define the-message
 		 (string-append "expected " ?type-description " as " ?value-description))

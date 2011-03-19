@@ -30,7 +30,7 @@
 ;;;	result  of previous evaluations;  so ELET  quotes them  to avoid
 ;;;	errors when evaluating.
 ;;;
-;;;Copyright (c) 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2010, 2011 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -52,12 +52,14 @@
   (export elet)
   (import (rnrs)
     (only (nausicaa interps variables) define-variable)
-    (only (nausicaa language syntax-utilities) all-identifiers?))
+    (prefix (only (nausicaa language syntax-utilities)
+		  all-identifiers?)
+	    sx.))
   (define-syntax elet
     (lambda (stx)
       (syntax-case stx ()
 	((?k ?end-of-eval #(?var ...) #(?datum ...) ?expr)
-	 (all-identifiers? #'(?var ...))
+	 (sx.all-identifiers? #'(?var ...))
 	 (with-syntax ((DEFINE-GLOBAL (datum->syntax #'?k 'define-global)))
 	   #'(call/cc (lambda (eval-kont)
 			(define-syntax DEFINE-GLOBAL

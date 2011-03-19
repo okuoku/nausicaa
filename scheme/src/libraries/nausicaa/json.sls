@@ -1,4 +1,4 @@
-;;; -*- coding: utf-8 -*-
+;;; -*- coding: utf-8-unix -*-
 ;;;
 ;;;Part of: Nausicaa/Scheme
 ;;;Contents: lexer and parser for JSON
@@ -49,7 +49,9 @@
   (import (nausicaa)
     (nausicaa language makers)
     (nausicaa language conditions)
-    (for (nausicaa language syntax-utilities) run expand)
+    (for (prefix (only (nausicaa language syntax-utilities)
+		       identifier-prefix)
+		 sx.) run expand)
     (nausicaa json string-lexer)
     (nausicaa json rfc-lexer)
     (nausicaa json extended-lexer)
@@ -164,7 +166,7 @@
   (let-syntax ((define-handler (lambda (stx)
 				 (syntax-case stx ()
 				   ((_ ?name)
-				    (with-syntax ((NAME (identifier-prefix "%" #'?name)))
+				    (with-syntax ((NAME (sx.identifier-prefix "%" #'?name)))
 				      #'(define-syntax ?name
 					  (syntax-rules ()
 					    ((_ . ?args)

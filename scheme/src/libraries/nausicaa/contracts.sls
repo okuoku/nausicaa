@@ -1,4 +1,4 @@
-;;; -*- coding: utf-8 -*-
+;;; -*- coding: utf-8-unix -*-
 ;;;
 ;;;Part of: Nausicaa/Scheme
 ;;;Contents: contracts for functions
@@ -37,7 +37,7 @@
 	  condition-contract-violation/subject)
   (import (rnrs)
     (prefix (nausicaa configuration) config.)
-    (nausicaa language syntax-utilities)
+    (prefix (nausicaa language syntax-utilities) sx.)
     (only (nausicaa language extensions) define-syntax*)
     (for (nausicaa contracts helpers) run expand))
 
@@ -71,9 +71,9 @@
      #'(begin ?body0 ?body ...))
 
     ((_ ((?keyword ?subject ?contract) ...) ?body0 ?body ...)
-     (let ((keywords	(unwrap #'(?keyword ...)))
-	   (subjects	(unwrap #'(?subject ...)))
-	   (contracts	(unwrap #'(?contract ...))))
+     (let ((keywords	(sx.unwrap #'(?keyword ...)))
+	   (subjects	(sx.unwrap #'(?subject ...)))
+	   (contracts	(sx.unwrap #'(?contract ...))))
        (for-all (lambda (keyword subject)
 		  (assert-keyword-subject keyword subject synner))
 	 keywords subjects)
@@ -129,7 +129,7 @@
 	   #`(begin ;notice that this is NOT like LET-CONTRACT
 	       (define-contract ?name KEYWORD ?contract)
 	       ...
-	       #,@(identifier-subst #'(?name ...) #'(KEYWORD ...) #'(?body0 ?body ...))))
+	       #,@(sx.identifier-subst #'(?name ...) #'(KEYWORD ...) #'(?body0 ?body ...))))
        #'(begin ?body0 ?body ...)))
     (_
      (synner "invalid syntax in region under contracts"))))

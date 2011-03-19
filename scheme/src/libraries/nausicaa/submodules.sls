@@ -32,11 +32,13 @@
     (only (nausicaa language extensions)
 	  define-values
 	  define-auxiliary-syntaxes)
-    (for (only (nausicaa language syntax-utilities)
-	       unwrap
-	       identifier-suffix
-	       all-identifiers?
-	       syntax-general-append) expand))
+    (for (prefix (only (nausicaa language syntax-utilities)
+		       unwrap
+		       identifier-suffix
+		       all-identifiers?
+		       syntax-general-append)
+		 sx.)
+	 expand))
 
 
 (define-auxiliary-syntaxes
@@ -45,13 +47,14 @@
 (define-syntax submodule
   (lambda (stx)
     (define (build-exported-name prefix bind-stx)
-      (syntax-general-append bind-stx prefix bind-stx))
+      (sx.syntax-general-append bind-stx prefix bind-stx))
     (syntax-case stx (export prefix)
       ((_ ?name (export ?bind0 ?bind ...) (prefix ?prefix) ?body0 ?body ...)
-       (all-identifiers? #'(?name ?bind0 ?bind ...))
-       (with-syntax (((BIND ...) (map (lambda (bind-stx)
-					(build-exported-name (unwrap #'?prefix) bind-stx))
-				   (unwrap #'(?bind0 ?bind ...)))))
+       (sx.all-identifiers? #'(?name ?bind0 ?bind ...))
+       (with-syntax
+	   (((BIND ...) (map (lambda (bind-stx)
+			       (build-exported-name (sx.unwrap #'?prefix) bind-stx))
+			  (sx.unwrap #'(?bind0 ?bind ...)))))
 	 #'(define-values (BIND ...)
 	     (let ()
 	       ?body0 ?body ...
@@ -63,7 +66,7 @@
       ((?submodule ?name (export ?bind0 ?bind ...) ?body0 ?body ...)
        #`(?submodule ?name
 		     (export ?bind0 ?bind ...)
-		     (prefix #,(identifier-suffix #'?name "."))
+		     (prefix #,(sx.identifier-suffix #'?name "."))
 		     ?body0 ?body ...))
       )))
 

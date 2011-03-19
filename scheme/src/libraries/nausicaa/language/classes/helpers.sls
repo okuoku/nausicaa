@@ -52,7 +52,7 @@
 		  syntax->list
 		  unwrap
 		  validate-definition-clauses)
-	    synux.)
+	    sx.)
     (prefix (only (nausicaa language classes clause-parsers)
 		  %collect-clause/mixins)
 	    parser.)
@@ -113,7 +113,7 @@
   ;;parse  error  occurs; it  must  accept  two  arguments: the  message
   ;;string, the subform.
   ;;
-  (synux.validate-definition-clauses
+  (sx.validate-definition-clauses
    ;; mandatory keywords
    '()
    ;; optional keywords
@@ -142,7 +142,7 @@
   ;;parse  error  occurs; it  must  accept  two  arguments: the  message
   ;;string, the subform.
   ;;
-  (synux.validate-definition-clauses
+  (sx.validate-definition-clauses
    ;; mandatory keywords
    '()
    ;; optional keywords
@@ -172,8 +172,8 @@
   ;;
   (let ((mixin-clauses (prop.mixin-clauses-ref mixin-identifier)))
     (if mixin-clauses
-	(synux.unwrap ;the receiving end expects an unwrapped object
-	 (synux.identifier-subst (list mixin-identifier)
+	(sx.unwrap ;the receiving end expects an unwrapped object
+	 (sx.identifier-subst (list mixin-identifier)
 				 (list destination-identifier)
 				 mixin-clauses))
       (synner "undefined mixin identifier" mixin-identifier))))
@@ -264,10 +264,10 @@
 
 
 (define (variable-name->Setter-name variable-name-stx)
-  (synux.identifier-suffix variable-name-stx ".__nausicaa_private_Setter_identifier_syntax"))
+  (sx.identifier-suffix variable-name-stx ".__nausicaa_private_Setter_identifier_syntax"))
 
 (define (variable-name->Getter-name variable-name-stx)
-  (synux.identifier-suffix variable-name-stx ".__nausicaa_private_Getter_identifier_syntax"))
+  (sx.identifier-suffix variable-name-stx ".__nausicaa_private_Getter_identifier_syntax"))
 
 
 ;;;; accessor-of and mutator-of macro transformers generation
@@ -453,16 +453,16 @@
   ;;string, the subform.
   ;;
   (let loop ((fields	#`(#,@fields #,@virtual-fields))
-	     (types	(synux.syntax->list tail)))
+	     (types	(sx.syntax->list tail)))
     (syntax-case fields (mutable immutable)
       (()
-       (synux.delete-duplicate-identifiers types))
+       (sx.delete-duplicate-identifiers types))
 
       (((mutable ?field ?accessor ?mutator ?field-getter . ?field-classes) . ?fields)
-       (loop #'?fields (synux.syntax->list #'?field-classes types)))
+       (loop #'?fields (sx.syntax->list #'?field-classes types)))
 
       (((immutable ?field ?accessor ?field-getter . ?field-classes) . ?fields)
-       (loop #'?fields (synux.syntax->list #'?field-classes types)))
+       (loop #'?fields (sx.syntax->list #'?field-classes types)))
 
       ((?spec . ?fields)
        (synner "invalid field specification while verifying recursive types" #'?spec))
@@ -490,7 +490,7 @@
 	(if p
 	    (prop.struct-list-of-field-tags p)
 	  '())))
-    (when (synux.identifier-memq thing field-tags)
+    (when (sx.identifier-memq thing field-tags)
       (synner))
     (for-each (lambda (tag)
 		(search tag thing))

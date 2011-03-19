@@ -81,7 +81,7 @@
 		  duplicate-identifiers?
 		  syntax->list
 		  filter-clauses)
-	    synux.)
+	    sx.)
     (for (nausicaa language classes top) (meta -1))
     (for (nausicaa language auxiliary-syntaxes) (meta -1)))
 
@@ -106,7 +106,7 @@
   ;;parse  error  occurs; it  must  accept  two  arguments: the  message
   ;;string, the subform.
   ;;
-  (let ((clauses (synux.filter-clauses #'inherit clauses)))
+  (let ((clauses (sx.filter-clauses #'inherit clauses)))
     (if (null? clauses)
 	(values #f #t #t #t #t)
       (syntax-case (car clauses) (inherit)
@@ -116,7 +116,7 @@
 	 (values #'?superclass-name #t #t #t #t))
 
 	((inherit ?superclass-name (?inherit-option ...))
-	 (synux.all-identifiers? #'(?superclass-name ?inherit-option ...))
+	 (sx.all-identifiers? #'(?superclass-name ?inherit-option ...))
 	 (let-values (((inherit-concrete-fields? inherit-virtual-fields? inherit-methods?
 						 inherit-setter-and-getter?)
 		       (%parse-class-inherit-options #'(?inherit-option ...) synner)))
@@ -140,7 +140,7 @@
   ;;parse  error  occurs; it  must  accept  two  arguments: the  message
   ;;string, the subform.
   ;;
-  (let ((clauses (synux.filter-clauses #'parent clauses)))
+  (let ((clauses (sx.filter-clauses #'parent clauses)))
     (if (null? clauses)
 	#f
       (syntax-case (car clauses) (parent)
@@ -164,7 +164,7 @@
   ;;parse  error  occurs; it  must  accept  two  arguments: the  message
   ;;string, the subform.
   ;;
-  (let ((clauses (synux.filter-clauses #'parent-rtd clauses)))
+  (let ((clauses (sx.filter-clauses #'parent-rtd clauses)))
     (if (null? clauses)
 	(values #f #f)
       (syntax-case (car clauses) (parent-rtd)
@@ -185,7 +185,7 @@
   ;;parse  error  occurs; it  must  accept  two  arguments: the  message
   ;;string, the subform.
   ;;
-  (let ((clauses (synux.filter-clauses #'nongenerative clauses)))
+  (let ((clauses (sx.filter-clauses #'nongenerative clauses)))
     (if (null? clauses)
 	(datum->syntax thing-identifier (gensym))
       (syntax-case (car clauses) (nongenerative)
@@ -213,7 +213,7 @@
   ;;parse  error  occurs; it  must  accept  two  arguments: the  message
   ;;string, the subform.
   ;;
-  (let ((clauses (synux.filter-clauses #'sealed clauses)))
+  (let ((clauses (sx.filter-clauses #'sealed clauses)))
     (if (null? clauses)
 	#f
       (syntax-case (car clauses) (sealed)
@@ -238,7 +238,7 @@
   ;;parse  error  occurs; it  must  accept  two  arguments: the  message
   ;;string, the subform.
   ;;
-  (let ((clauses (synux.filter-clauses #'opaque clauses)))
+  (let ((clauses (sx.filter-clauses #'opaque clauses)))
     (if (null? clauses)
 	#f
       (syntax-case (car clauses) (opaque)
@@ -263,7 +263,7 @@
   ;;parse  error  occurs; it  must  accept  two  arguments: the  message
   ;;string, the subform.
   ;;
-  (let ((clauses (synux.filter-clauses #'protocol clauses)))
+  (let ((clauses (sx.filter-clauses #'protocol clauses)))
     (if (null? clauses)
 	#f
       (syntax-case (car clauses) (protocol)
@@ -287,7 +287,7 @@
   ;;parse  error  occurs; it  must  accept  two  arguments: the  message
   ;;string, the subform.
   ;;
-  (let ((clauses (synux.filter-clauses #'public-protocol clauses)))
+  (let ((clauses (sx.filter-clauses #'public-protocol clauses)))
     (if (null? clauses)
 	#f
       (syntax-case (car clauses) (public-protocol)
@@ -311,7 +311,7 @@
   ;;parse  error  occurs; it  must  accept  two  arguments: the  message
   ;;string, the subform.
   ;;
-  (let ((clauses (synux.filter-clauses #'maker-protocol clauses)))
+  (let ((clauses (sx.filter-clauses #'maker-protocol clauses)))
     (if (null? clauses)
 	#f
       (syntax-case (car clauses) (maker-protocol)
@@ -335,7 +335,7 @@
   ;;parse  error  occurs; it  must  accept  two  arguments: the  message
   ;;string, the subform.
   ;;
-  (let ((clauses (synux.filter-clauses #'superclass-protocol clauses)))
+  (let ((clauses (sx.filter-clauses #'superclass-protocol clauses)))
     (if (null? clauses)
 	#f
       (syntax-case (car clauses) (superclass-protocol)
@@ -359,7 +359,7 @@
   ;;parse  error  occurs; it  must  accept  two  arguments: the  message
   ;;string, the subform.
   ;;
-  (let ((clauses (synux.filter-clauses #'predicate clauses)))
+  (let ((clauses (sx.filter-clauses #'predicate clauses)))
     (if (null? clauses)
 	predicate-identifier
       (syntax-case (car clauses) (predicate)
@@ -384,13 +384,13 @@
   ;;parse  error  occurs; it  must  accept  two  arguments: the  message
   ;;string, the subform.
   ;;
-  (let ((clauses (synux.filter-clauses #'maker clauses)))
+  (let ((clauses (sx.filter-clauses #'maker clauses)))
     (if (null? clauses)
 	(values #f #f)
       (syntax-case (car clauses) (maker)
 
 	((maker (?positional-arg ...) (?optional-keyword ?optional-default ?option ...) ...)
-	 (synux.all-identifiers? #'(?optional-keyword ...))
+	 (sx.all-identifiers? #'(?optional-keyword ...))
 	 (values #'(?positional-arg ...) #'((?optional-keyword ?optional-default ?option ...) ...)))
 
 	(_
@@ -410,7 +410,7 @@
   ;;parse  error  occurs; it  must  accept  two  arguments: the  message
   ;;string, the subform.
   ;;
-  (let ((clauses (synux.filter-clauses #'maker-transformer clauses)))
+  (let ((clauses (sx.filter-clauses #'maker-transformer clauses)))
     (if (null? clauses)
 	#f
       (syntax-case (car clauses) (maker-transformer)
@@ -459,14 +459,14 @@
     (syntax-case (car field-specs) (mutable immutable)
 
       ((mutable ?field ?accessor ?mutator)
-       (synux.all-identifiers? #'(?field ?accessor ?mutator))
+       (sx.all-identifiers? #'(?field ?accessor ?mutator))
        (recurse (cons #`(begin
 			  (define ?accessor  (record-accessor #,rtd-identifier #,index))
 			  (define ?mutator   (record-mutator  #,rtd-identifier #,index)))
 		      field-definitions)))
 
       ((immutable ?field ?accessor)
-       (synux.all-identifiers? #'(?field ?accessor))
+       (sx.all-identifiers? #'(?field ?accessor))
        (recurse (cons #`(define ?accessor  (record-accessor #,rtd-identifier #,index))
 		      field-definitions)))
 
@@ -538,7 +538,7 @@
   ;;parse  error  occurs; it  must  accept  two  arguments: the  message
   ;;string, the subform.
   ;;
-  (let ((clauses (synux.filter-clauses #'inherit clauses)))
+  (let ((clauses (sx.filter-clauses #'inherit clauses)))
     (if (null? clauses)
 	(values #'<top> #f #t #t #t)
       (syntax-case (car clauses) (inherit)
@@ -548,7 +548,7 @@
 	 (values #'?superlabel-name #f #t #t #t))
 
 	((inherit ?superlabel-name (?inherit-option ...))
-	 (synux.all-identifiers? #'(?superlabel-name ?inherit-option ...))
+	 (sx.all-identifiers? #'(?superlabel-name ?inherit-option ...))
 	 (let-values (((inherit-concrete-fields?
 			inherit-virtual-fields?
 			inherit-methods?
@@ -574,7 +574,7 @@
   ;;parse  error  occurs; it  must  accept  two  arguments: the  message
   ;;string, the subform.
   ;;
-  (let ((clauses (synux.filter-clauses #'predicate clauses)))
+  (let ((clauses (sx.filter-clauses #'predicate clauses)))
     (if (null? clauses)
 	#f
       (syntax-case (car clauses) (predicate)
@@ -656,7 +656,7 @@
   ;;parse  error  occurs; it  must  accept  two  arguments: the  message
   ;;string, the subform.
   ;;
-  (let next-clause ((clauses   (synux.filter-clauses #'fields clauses))
+  (let next-clause ((clauses   (sx.filter-clauses #'fields clauses))
 		    (collected '()))
     (if (null? clauses)
 	(reverse collected)
@@ -691,7 +691,7 @@
   ;;parse  error  occurs; it  must  accept  two  arguments: the  message
   ;;string, the subform.
   ;;
-  (let next-clause ((clauses   (synux.filter-clauses #'virtual-fields clauses))
+  (let next-clause ((clauses   (sx.filter-clauses #'virtual-fields clauses))
 		    (collected '()))
     (if (null? clauses)
 	(reverse collected)
@@ -722,7 +722,7 @@
   ;;parse  error  occurs; it  must  accept  two  arguments: the  message
   ;;string, the subform.
   ;;
-  (let next-clause ((clauses   (synux.filter-clauses #'methods clauses))
+  (let next-clause ((clauses   (sx.filter-clauses #'methods clauses))
 		    (collected '()))
     (if (null? clauses)
 	(reverse collected)
@@ -730,7 +730,7 @@
 	((methods ?method-clause ...)
 	 (next-clause (cdr clauses)
 		      (%parse-clause/methods thing-identifier
-					     (synux.unwrap #'(?method-clause ...))
+					     (sx.unwrap #'(?method-clause ...))
 					     synner collected)))
 	(_
 	 (synner "invalid methods clause" (car clauses)))
@@ -759,7 +759,7 @@
   ;;parse  error  occurs; it  must  accept  two  arguments: the  message
   ;;string, the subform.
   ;;
-  (let next-clause ((clauses		(synux.filter-clauses #'method clauses))
+  (let next-clause ((clauses		(sx.filter-clauses #'method clauses))
 		    (methods		'())
 		    (definitions	'()))
     (if (null? clauses)
@@ -794,7 +794,7 @@
   ;;parse  error  occurs; it  must  accept  two  arguments: the  message
   ;;string, the subform.
   ;;
-  (let next-clause ((clauses		(synux.filter-clauses #'method-syntax clauses))
+  (let next-clause ((clauses		(sx.filter-clauses #'method-syntax clauses))
 		    (methods		'())
 		    (definitions	'()))
     (if (null? clauses)
@@ -819,7 +819,7 @@
   ;;parse  error  occurs; it  must  accept  two  arguments: the  message
   ;;string, the subform.
   ;;
-  (let ((clauses (synux.filter-clauses #'setter clauses)))
+  (let ((clauses (sx.filter-clauses #'setter clauses)))
     (if (null? clauses)
 	#f
       (syntax-case (car clauses) (setter)
@@ -841,7 +841,7 @@
   ;;parse  error  occurs; it  must  accept  two  arguments: the  message
   ;;string, the subform.
   ;;
-  (let ((clauses (synux.filter-clauses #'getter clauses)))
+  (let ((clauses (sx.filter-clauses #'getter clauses)))
     (if (null? clauses)
 	#f
       (syntax-case (car clauses) (getter)
@@ -863,7 +863,7 @@
   ;;parse  error  occurs; it  must  accept  two  arguments: the  message
   ;;string, the subform.
   ;;
-  (let ((clauses (synux.filter-clauses #'bindings clauses)))
+  (let ((clauses (sx.filter-clauses #'bindings clauses)))
     (if (null? clauses)
 	#'<top>-bindings
       (syntax-case (car clauses) (bindings)
@@ -886,7 +886,7 @@
   ;;parse  error  occurs; it  must  accept  two  arguments: the  message
   ;;string, the subform.
   ;;
-  (let ((clauses (synux.filter-clauses #'custom-maker clauses)))
+  (let ((clauses (sx.filter-clauses #'custom-maker clauses)))
     (if (null? clauses)
 	#f
       (syntax-case (car clauses) (custom-maker)
@@ -942,7 +942,7 @@
 	 (let-values (((field-name field-classes) (%parse-field-name #'?field-spec)))
 	   (syntax-case #'?accessor-and-mutator ()
 	     ((?accessor ?mutator)
-	      (synux.all-identifiers? #'(?accessor ?mutator))
+	      (sx.all-identifiers? #'(?accessor ?mutator))
 	      (recurse field-name #`(mutable #,field-name ?accessor ?mutator) #'?accessor field-classes))
 	     (()
 	      (with-syntax ((ACCESSOR (%accessor-name field-name))
@@ -1013,10 +1013,10 @@
 		 (cons field-name field-tags))))))
 
   (define (%accessor-name field-name)
-    (synux.syntax-accessor-identifier thing-name field-name))
+    (sx.syntax-accessor-identifier thing-name field-name))
 
   (define (%mutator-name  field-name)
-    (synux.syntax-mutator-identifier  thing-name field-name))
+    (sx.syntax-mutator-identifier  thing-name field-name))
 
   (define (%parse-field-name field-spec)
     ;;Parse a field name specification which must be of the format:
@@ -1076,11 +1076,11 @@
 
       ((?field-name)
        (identifier? #'?field-name)
-       (recurse (list #'?field-name (synux.syntax-method-identifier thing-name #'?field-name))))
+       (recurse (list #'?field-name (sx.syntax-method-identifier thing-name #'?field-name))))
 
       (?field-name
        (identifier? #'?field-name)
-       (recurse (list #'?field-name (synux.syntax-method-identifier thing-name #'?field-name))))
+       (recurse (list #'?field-name (sx.syntax-method-identifier thing-name #'?field-name))))
 
       (_
        (synner "invalid methods clause" (car methods-clauses)))
@@ -1105,13 +1105,13 @@
 
     ((method (?method . ?args) . ?body)
      (identifier? #'?method)
-     (with-syntax ((FUNCTION-NAME (synux.syntax-method-identifier thing-name #'?method)))
+     (with-syntax ((FUNCTION-NAME (sx.syntax-method-identifier thing-name #'?method)))
        (values #'(?method FUNCTION-NAME)
 	       #`(#,define/with-class (FUNCTION-NAME . ?args) . ?body))))
 
     ((method ?method ?expression)
      (identifier? #'?method)
-     (with-syntax ((FUNCTION-NAME (synux.syntax-method-identifier thing-name #'?method)))
+     (with-syntax ((FUNCTION-NAME (sx.syntax-method-identifier thing-name #'?method)))
        (values #'(?method FUNCTION-NAME)
 	       #'(define FUNCTION-NAME ?expression))))
 
@@ -1137,7 +1137,7 @@
 
     ((method-syntax ?method ?transformer)
      (identifier? #'?method)
-     (with-syntax ((MACRO-NAME (synux.syntax-method-identifier thing-name #'?method)))
+     (with-syntax ((MACRO-NAME (sx.syntax-method-identifier thing-name #'?method)))
        (values #'(?method MACRO-NAME)
 	       #'(define-syntax MACRO-NAME ?transformer))))
 
@@ -1160,18 +1160,18 @@
   ;;parse  error  occurs; it  must  accept  two  arguments: the  message
   ;;string, the subform.
   ;;
-  (let next-clause ((clauses   (synux.filter-clauses #'mixins clauses))
+  (let next-clause ((clauses   (sx.filter-clauses #'mixins clauses))
 		    (collected '()))
     (if (null? clauses)
 	(begin
-	  (let ((dup (synux.duplicate-identifiers? collected free-identifier=?)))
+	  (let ((dup (sx.duplicate-identifiers? collected free-identifier=?)))
 	    (when dup
 	      (synner "mixin included multiple times" dup)))
 	  (reverse collected))
       (syntax-case (car clauses) (mixins)
 	((mixins ?mixin-name ...)
-	 (synux.all-identifiers? #'(?mixin-name ...))
-	 (next-clause (cdr clauses) (append (synux.syntax->list #'(?mixin-name ...))
+	 (sx.all-identifiers? #'(?mixin-name ...))
+	 (next-clause (cdr clauses) (append (sx.syntax->list #'(?mixin-name ...))
 					    collected)))
 	(_
 	 (synner "invalid mixins clause" (car clauses)))))))
@@ -1190,17 +1190,17 @@
   ;;parse  error  occurs; it  must  accept  two  arguments: the  message
   ;;string, the subform.
   ;;
-  (let next-clause ((clauses   (synux.filter-clauses #'satisfies clauses))
+  (let next-clause ((clauses   (sx.filter-clauses #'satisfies clauses))
 		    (collected '()))
     (if (null? clauses)
 	(begin
-	  (let ((dup (synux.duplicate-identifiers? collected free-identifier=?)))
+	  (let ((dup (sx.duplicate-identifiers? collected free-identifier=?)))
 	    (when dup
 	      (synner "satisfaction included multiple times" dup)))
 	  (reverse collected))
       (syntax-case (car clauses) (satisfies)
 	((satisfies ?satisfaction-expr ...)
-	 (next-clause (cdr clauses) (append (synux.syntax->list #'(?satisfaction-expr ...))
+	 (next-clause (cdr clauses) (append (sx.syntax->list #'(?satisfaction-expr ...))
 					    collected)))
 	(_
 	 (synner "invalid satisfactions clause" (car clauses)))))))

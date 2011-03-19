@@ -1,4 +1,4 @@
-;;; -*- coding: utf-8 -*-
+;;; -*- coding: utf-8-unix -*-
 ;;;
 ;;;Part of: Nausicaa/Scheme
 ;;;Contents: helper macros for constructors
@@ -43,7 +43,11 @@
     (only (nausicaa language extensions)
 	  define-auxiliary-syntax
 	  define-auxiliary-syntaxes)
-    (for (nausicaa language syntax-utilities) expand run))
+    (for (prefix (only (nausicaa language syntax-utilities)
+		       unwrap
+		       identifier->string
+		       all-identifiers?)
+		 sx.) expand run))
 
 
 (define-syntax define-maker
@@ -58,7 +62,7 @@
 	((_ ?name ?maker-sexp ?keywords-defaults-options)
 	 (not (or (identifier? #'?name)
 		  ;;A list with an identifier in the first position.
-		  (let ((L (unwrap #'?name)))
+		  (let ((L (sx.unwrap #'?name)))
 		    (and (pair? L)
 			 (identifier? (car L))))))
 	 (%synner "expected identifier as maker name in maker definition" #'?name))
@@ -97,11 +101,11 @@
       (syntax-case stx ()
 	((_ (?name ?use-argument ...) (?maker ?fixed-argument ...) ((?keyword ?default ?option ...) ...))
 	 (with-syntax ((((OPTION ...) ...)
-			(let ((list-of-keywords (unwrap #'(?keyword ...))))
+			(let ((list-of-keywords (sx.unwrap #'(?keyword ...))))
 			  (map (lambda (keyword options-list)
 				 (%parse-keyword-options keyword options-list list-of-keywords))
 			    list-of-keywords
-			    (unwrap #'((?option ...) ...))))))
+			    (sx.unwrap #'((?option ...) ...))))))
 	   #'(define-syntax ?name
 	       (lambda (use)
 		 (syntax-case use ()
@@ -160,17 +164,17 @@
 	    ((optional)
 	     (loop (cdr options-list) #f with-list without-list))
 	    ((with ?keyword ...)
-	     (all-identifiers? #'(?keyword ...))
+	     (sx.all-identifiers? #'(?keyword ...))
 	     (loop (cdr options-list) mandatory?
-		   (unwrap #'(?keyword ...))
+		   (sx.unwrap #'(?keyword ...))
 		   without-list))
 	    ((without ?keyword ...)
-	     (all-identifiers? #'(?keyword ...))
+	     (sx.all-identifiers? #'(?keyword ...))
 	     (loop (cdr options-list) mandatory? with-list
-		   (unwrap #'(?keyword ...))))
+		   (sx.unwrap #'(?keyword ...))))
 	    (_
 	     (%synner (string-append "invalid options list for keyword \""
-				     (identifier->string keyword) "\"")
+				     (sx.identifier->string keyword) "\"")
 		      options-list))))))
 
     (define (intersection ell1 ell2)
@@ -185,7 +189,7 @@
 	(if (null? result) #f result)))
 
     (define (invalid-keywords-defaults-options? keywords-defaults-options)
-      (let ((keywords-defaults-options (unwrap keywords-defaults-options)))
+      (let ((keywords-defaults-options (sx.unwrap keywords-defaults-options)))
 	(not (and (list? keywords-defaults-options)
 		  (for-all (lambda (key-default-options)
 			     (and (identifier? (car key-default-options))
