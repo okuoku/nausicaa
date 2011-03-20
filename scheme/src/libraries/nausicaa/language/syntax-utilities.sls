@@ -49,6 +49,7 @@
     syntax-dot-notation-identifier	(rename (syntax-accessor-identifier
 						 syntax-method-identifier))
     string-general-append		syntax-general-append
+    with-implicits
 
     ;; clauses helpers
     validate-list-of-clauses		validate-definition-clauses
@@ -326,6 +327,18 @@
 (define (syntax-dot-notation-identifier variable-identifier field-identifier)
   (string->identifier variable-identifier
 		      (string-general-append variable-identifier "." field-identifier)))
+
+(define-syntax with-implicits
+  (syntax-rules ()
+    ((_ ((?context-identifier ?symbol ...)) . ?body)
+     (with-syntax ((?symbol (datum->syntax ?context-identifier (quote ?symbol)))
+		   ...)
+       . ?body))
+    ((_ ((?context-identifier ?symbol ...) . ?rest) . ?body)
+     (with-syntax ((?symbol (datum->syntax ?context-identifier (quote ?symbol)))
+		   ...)
+       (with-implicits ?rest . ?body)))
+    ))
 
 
 (define (validate-list-of-clauses clauses synner)

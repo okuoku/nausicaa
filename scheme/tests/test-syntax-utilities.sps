@@ -64,6 +64,26 @@
   #t)
 
 
+(parametrise ((check-test-name	'identifiers))
+
+  (define-syntax doit
+    (lambda (stx)
+      (syntax-case stx ()
+	((?id)
+	 (identifier? #'?id)
+	 (with-implicits ((#'?id x y z)
+			  (#'?id p q r))
+	   #'(list x y z p q r))))))
+
+  (check
+      (let ((x 1) (y 2) (z 3)
+	    (p 10) (q 20) (r 30))
+	(doit))
+    => '(1 2 3 10 20 30))
+
+  #t)
+
+
 ;;;; done
 
 (check-report)

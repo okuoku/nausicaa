@@ -237,6 +237,40 @@ then to a syntax object in the context of @var{context}, which must be
 an identifier; return the new syntax object.
 @end defun
 
+
+@deffn Syntax with-implicits ((@meta{context-id} @meta{symbol} ...) ...) . @meta{body}
+Wrapper for @func{with-syntax} which defines the identifiers
+@meta{symbol} with the same context of @meta{context-id}.
+@meta{context-id} must be an expression evaluating to an identifier; it
+is evaluated only once.  @meta{symbol} must be Scheme symbols.  For
+example:
+
+@example
+(syntax-case stx ()
+  ((id)
+   (identifier? #'id)
+   (with-implicits ((#'id x y))
+     #'(list x y))))
+@end example
+
+@noindent
+is equivalent to:
+
+@example
+(syntax-case stx ()
+  ((id)
+   (identifier? #'id)
+   (with-syntax ((x (datum->syntax #'id 'x))
+                 (y (datum->syntax #'id 'y)))
+     #'(list x y))))
+@end example
+
+@quotation
+@strong{NOTE} This macro is derived from the one documented in the Chez
+Scheme User's Guide.
+@end quotation
+@end deffn
+
 @c page
 @node syntax utils clauses
 @section Clauses handling
