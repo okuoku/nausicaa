@@ -6525,6 +6525,20 @@ subexpression is extracted from the program's S--expression and can be
 processed by an appropriate function, called @dfn{transformer}, before
 being put back.
 
+@menu
+* stdlib syntax-case intro use::    An example of macro use.
+* stdlib syntax-case intro unwrap:: Unwrapping syntax objects.
+* stdlib syntax-case intro ex::     A transformer example.
+* stdlib syntax-case intro more::   More on wrapped and unwrapped
+                                    syntax objects.
+* stdlib syntax-case intro expand:: A quick look at the expander.
+@end menu
+
+@c page
+@node stdlib syntax-case intro use
+@subsubsection An example of macro use
+
+
 For example, let's say that @func{infix} is a syntactic keyword; we may
 have a library like this:
 
@@ -6586,6 +6600,11 @@ The single argument transformer functions are applied to is a
 wrapped and unwrapped objects can be used to represent the same
 informations, but wrapped objects can be more efficient in terms of
 consumed resources.
+
+@c page
+@node stdlib syntax-case intro unwrap
+@subsubsection Unwrapping syntax objects
+
 
 Let's focus on unwrapped syntax objects, which are easier to deal with;
 it is always possible to convert a wrapped syntax object into an
@@ -6654,11 +6673,16 @@ the S-expression is displayed as something like:
 @end example
 
 @noindent
-we see that where symbols appear in the input form, in the output form
-we get @dfn{identifiers}: syntax objects holding only a symbol marked
-with its originating lexical context.  We can process @code{sexp} with
-the ordinary Scheme functions, then return as result an S--expression
-holding datums and identifiers that do what we want.
+we see that where symbols appear in the input form, in the unwrapped
+syntax object we have @dfn{identifiers}: syntax objects holding only a
+symbol marked with its originating lexical context.  We can process
+@code{sexp} with the ordinary Scheme functions, then return an
+S--expression holding datums and identifiers that do what we want.
+
+@c page
+@node stdlib syntax-case intro ex
+@subsubsection A transformer example
+
 
 Here is an example implementation of the @func{receive} syntax, giving a
 condensed interface to @func{call-with-values}:
@@ -6687,6 +6711,25 @@ condensed interface to @func{call-with-values}:
         (write 'ciao)
         (list a b)))
 @end example
+
+The transformer of the @func{receive} macro extracts datums and
+identifiers from the input form using the common list functions
+@func{car}, @func{cdr}, @dots{} and, for simplicity, it performs no
+checks to verify that the input form has the required structure (for
+example: it does not check that the first element after the syntactic
+keyword @func{receive} is a list of identifiers).
+
+The @func{syntax-case} macro, exported by the library
+@rsixlibrary{syntax-case}, provides a way to both extract elements from
+a syntax object and to perform basic checks on its structure; it is
+usually more convenient and efficient to use @func{syntax-case} for
+macro--specific processing, rather than to unwrap the input form and
+process the result.
+
+@c page
+@node stdlib syntax-case intro more
+@subsubsection More on wrapped and unwrapped syntax objects
+
 
 A wrapped syntax object can be implemented as a record instance
 containing an S--expression and lexical context informations; wrapped
@@ -6755,15 +6798,115 @@ is unwrapped to:
 @noindent
 this is not always what we want.
 
-The @func{receive} implementation above extracts datums and identifiers
-from the input form using the common list functions @func{car},
-@func{cdr}, @dots{} and, for simplicity, it performs no checks to verify
-that the input for has the required structure (for example: it does not
-check that the first element after the syntactic keyword @func{receive}
-is a list of identifiers).  The @func{syntax-case} macro provides a way
-to both extract elements from a syntax object and to perform basic
-checks on its structure, it is often more convenient and efficient to
-use @func{syntax-case} rather than to unwrap the input form.
+@c page
+@node stdlib syntax-case intro expand
+@subsubsection A quick look at the expander
+
+
+Macro transformers are ordinary Scheme functions, which are written in
+an @rnrs{6}--compatible Scheme language; the only difference from
+ordinary functions, is that: transformer definitions are evaluated at
+@dfn{expand time}, while ordinary function definitions are evaluated at
+@dfn{run time}.  We take a look at how the expander works, avoiding
+almost all the details and focusing on the languages.
+
+Let's define a simple library to be used as language for run time:
+
+@example
+#!r6rs
+(library (language-for-run)
+  (export write newline quote define)
+  (import (rnrs)))
+@end example
+
+@noindent
+and a simple library to be used as language for expand time:
+
+@example
+#!r6rs
+(library (language-for-expand)
+  (export lambda syntax)
+  (import (rnrs)))
+@end example
+
+@noindent
+we use them in the following library, where we also import
+@func{define-syntax} for run time:
+
+@example
+#!r6rs
+(library (the-library)
+  (export doit)
+  (import (for (language-for-run) run)
+    (for (language-for-expand) expand)
+    (for (only (rnrs) define-syntax) run))
+
+  (define (doit)
+    (write (the-macro))
+    (newline))
+
+  (define-syntax the-macro
+    (lambda (stx)
+      (syntax (quote (1 2 3)))))
+  )
+@end example
+
+@noindent
+we can run the code with the following program:
+
+@example
+#!r6rs
+(import (the-library))
+(doit)
+@end example
+
+Let's point our attention to @library{the-library}.  After parsing the
+@code{import} and @code{export} clauses, the expander scans the library
+body; the @func{define-syntax} identifier is recognised as the one from
+@rsixlibrary{rnrs}, so the transformer expression on its right--hand
+side:
+
+@example
+(lambda (stx)
+  (syntax (quote (1 2 3))))
+@end example
+
+@noindent
+is extracted and we can imagine it being evaluated with (notice the
+import levels):
+
+@example
+(define the-transformer
+  (eval '(lambda (stx)
+           (syntax (quote (1 2 3))))
+        (environment
+          '(for (language-for-run)    (meta -1))
+          '(for (language-for-expand) run))))
+@end example
+
+@noindent
+what's left of the library's body is:
+
+@example
+(define (doit)
+  (write (the-macro))
+  (newline))
+@end example
+
+@noindent
+which is scanned for uses of @func{the-macro}; the use is found and the
+transformer function applied to a syntax object holding
+@code{(the-macro)}; the return value is a syntax object holdingthe
+quoted list @code{(1 2 3)}, which is inserted in the body:
+
+@example
+(define (doit)
+  (write (quote (1 2 3)))
+  (newline))
+@end example
+
+The body can now be evaluate using bindings from
+@library{language-for-run}.
 
 @c page
 @node stdlib syntax-case hygiene
@@ -6914,9 +7057,9 @@ not identifiers may or may not be distinct from other types of values.
 
 In @func{define-syntax}, @func{let-syntax}, and @func{letrec-syntax}
 forms, a binding for a syntactic keyword is an expression that evaluates
-to a @emph{transformer}.
+to a @dfn{transformer}.
 
-A transformer is a @emph{transformation procedure} or a @emph{variable
+A transformer is a @dfn{transformation procedure} or a @dfn{variable
 transformer}.  A transformation procedure is a procedure that must
 accept one argument, a wrapped syntax object representing the input, and
 return a syntax object representing the output.  The transformer is
@@ -6929,8 +7072,39 @@ Except with variable transformers (see below), if the keyword is found
 in any other definition or expression context, the transformer receives
 a wrapped syntax object representing just the keyword reference, and its
 output replaces just the reference.  Except with variable transformers,
-an exception with condition type @condition{syntax} is raised if the keyword
-appears on the left--hand side of a @func{set!} expression.
+an exception with condition type @condition{syntax} is raised if the
+keyword appears on the left--hand side of a @func{set!} expression.
+
+Let's set what this means with an example:
+
+@example
+(import (rnrs))
+
+(define a 1)
+(define (b arg) (list 2 arg))
+
+(define-syntax doit
+  (lambda (stx)
+    (syntax-case stx ()
+      (?x
+       (identifier? #'?x)
+       #'a)
+      ((?x ?arg)
+       #'(b ?arg)))))
+
+doit            @result{} 1
+(doit 3)        @result{} (2 3)
+(set! doit 5)   @error{} &syntax
+@end example
+
+@noindent
+when the macro use @code{(doit 3)} is expanded: the transformer receives
+the whole form @code{(doit 3)} in the syntax object argument; when the
+macro use @code{doit} is expanded: the transformer receives only the
+identifier @code{doit} in the syntax object argument; when the keyword
+@code{doit} is used in @code{set! doit 1}: the expander recognises this
+situation as invalid, rather than a reference to @code{doit}, and it
+raises an exception.
 
 
 @deffn Procedure make-variable-transformer @var{proc}
@@ -6949,9 +7123,39 @@ return value replaces the entire @func{set!}  expression.
 the restrictions on @var{proc} only to the extent performed by applying
 it as described.  An implementation may check whether @var{proc} is an
 appropriate argument before applying it.
+@end deffn
 
-Meaningless example using the @func{unwrap} function defined in
-@ref{stdlib syntax-case intro}:
+
+The following example shows the difference between a common transformer
+and a transformer wrapped by @func{make-variable-transformer}:
+
+@example
+(import (rnrs))
+
+(define a 1)
+(define (b arg) (list 2 arg))
+(define (c arg) (list 4 arg))
+
+(define-syntax doit
+  (make-variable-transformer
+    (lambda (stx)
+      (syntax-case stx (set!)
+        (?x
+         (identifier? #'?x)
+         #'a)
+        ((?x ?arg)
+         #'(b ?arg))
+        ((set! ?x ?expr)
+         #'(c ?expr))
+        ))))
+
+doit            @result{} 1
+(doit 3)        @result{} (2 3)
+(set! doit 5)   @result{} (4 5)
+@end example
+
+The following is another meaningless example using the @func{unwrap}
+function defined in @ref{stdlib syntax-case intro}:
 
 @example
 (import (rnrs) (for (syntax-utilities) expand))
@@ -6969,7 +7173,14 @@ Meaningless example using the @func{unwrap} function defined in
 alpha
 @print{} #<syntax alpha>
 @end example
-@end deffn
+
+Notice that @func{syntax-rules} accepts only patterns being lists or
+vectors; the following definition will raise a syntax violation:
+
+@example
+(define-syntax doit
+  (syntax-rules () (x a))) @error{} &syntax
+@end example
 
 @c page
 @node stdlib syntax-case parsing
