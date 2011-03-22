@@ -4,9 +4,6 @@
 * classes
 * generics
 
-  Resurrect the expanded generics  implementation with before, after and
-  around methods.  Make an alternative to simple generics.
-
   Profile and improve method dispatching.
 
 * DONE lists

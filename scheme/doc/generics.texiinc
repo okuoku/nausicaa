@@ -29,9 +29,12 @@ is (statically) customisable: look at the source code.
 * generics application::        How generic functions and methods
                                 are invoked.
 * generics dispatching::        How methods are dispatched.
-* generics define::             Defining generic functions and methods.
+* generics define::             Defining generic functions and
+                                methods.
 * generics next::               Invoking the next method.
 * generics predefined::         Predefined generic functions.
+* generics methods::            Notes on using generics as class
+                                methods.
 @end menu
 
 @c page
@@ -594,5 +597,132 @@ is predefined to use the following implementation:
      (display obj port)))
 @end example
 @end deffn
+
+@c page
+@node generics methods
+@section Notes on using generics as class methods
+
+
+It is possible to use generic functions as implementation of methods for
+classes of @library{nausicaa language classes}; doing it results in
+method behaviour which is traditional in object--oriented systems.  For
+example, given the definitions:
+
+@example
+(import (nausicaa))
+
+(define-class <alpha>
+  (fields a)
+  (methods (doit doit)))
+
+(define-class <beta>
+  (inherit <alpha>)
+  (fields b)
+  (methods (doit doit)))
+
+(define-generic doit)
+
+(define-method (doit (o <alpha>) arg)
+  (list 'doit-alpha arg))
+
+(define-method (doit (o <beta>) arg)
+  (list 'doit-beta arg))
+@end example
+
+@noindent
+we have:
+
+@example
+(let (((o <alpha>) (make <alpha> 1)))
+  (o.doit 10))
+@result{} (doit-alpha 10)
+
+(let (((o <beta>) (make <beta> 1 2)))
+  (o.doit 20))
+@result{} (doit-beta 20)
+@end example
+
+@noindent
+but also:
+
+@example
+(let (((o <alpha>) (make <beta> 1 2)))
+  (o.doit 30))
+@result{} (doit-beta 30)
+@end example
+
+@noindent
+in which @code{o.doit} is meant to call the @func{doit} method of
+@class{alpha}, because @code{o} is tagged as @class{alpha}, but
+@class{beta} has redefined the method, so @func{doit} of @class{beta} is
+called.  This behaviour can be obtained only with generics and virtual
+methods, not when defining methods as plain functions or macros.
+
+Another interesting use of generics as class methods is the
+implementation of pre and post conditions; there is a problem though.
+The substitution principle states that: if @class{beta} inherits from
+@class{alpha}, every chunk of code expecting an @class{alpha} instance
+as argument must work when a @class{beta} instance is used as argument.
+We can write pre and post conditions in a method implementation for
+@class{alpha} and pre and post conditions in the method reimplementation
+for @class{beta}; when the reimplemented method is called, it is correct
+to enforce both the pre and post conditions for @class{beta} and for
+@class{alpha}.
+
+This is exactly what happens with @code{:before} and @code{:after}
+methods:
+
+@example
+(import (nausicaa)
+  (only (nausicaa checks)
+        with-result add-result))
+
+(define-class <alpha>
+  (fields a)
+  (methods (doit doit)))
+
+(define-class <beta>
+  (inherit <alpha>)
+  (fields b)
+  (methods (doit doit)))
+
+(define-generic* doit)
+
+(define-method (doit (o <alpha>) arg)
+  (list 'doit-alpha arg))
+
+(define-method (doit (o <beta>) arg)
+  (list 'doit-beta arg))
+
+(define-method doit :before ((o <alpha>) arg)
+  (add-result 'before-alpha))
+
+(define-method doit :after ((o <alpha>) arg)
+  (add-result 'after-alpha))
+
+(define-method doit :before ((o <beta>) arg)
+  (add-result 'before-beta))
+
+(define-method doit :after ((o <beta>) arg)
+  (add-result 'after-beta))
+
+(with-result
+ (let (((o <alpha>) (make <beta> 1 2)))
+   (o.doit 30)))
+@result{} ((doit-beta 30)
+    (before-beta    ;this is the order of invocation
+     before-alpha   ;for :BEFORE and :AFTER methods
+     after-alpha
+     after-beta))
+@end example
+
+Here is the problem: the conditions for the @class{alpha} method must
+imply the conditions for the @class{beta} method; for example, a
+precondition for @class{alpha} can be that an argument is a positive
+integer, while a precondition for @class{beta} can be that the integer
+is greater than @math{3}.  It follows that the preconditions for
+@class{alpha} should be tested before the preconditions of @class{beta},
+and this does @strong{not} happen with the @code{:before} methods.
+
 
 @c end of file
