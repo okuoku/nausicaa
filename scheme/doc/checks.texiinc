@@ -248,7 +248,7 @@ Return a list whose first value is the return value of the last
 
 @defun add-result @var{obj}
 Append @var{obj} to the list in the implicit variable defined by
-@func{with-result}.
+@func{with-result}, return @var{obj} itself.
 @end defun
 
 

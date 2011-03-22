@@ -57,6 +57,9 @@
     :free-identifier
     :bound-identifier
 
+    ;; for generic functions
+    :uid-list-of :primary :before :after :around
+
     ;; miscellaneous
     <> <...>)
   (import (rnrs records syntactic)
@@ -108,6 +111,13 @@
        :getter
        :free-identifier
        :bound-identifier
+
+       ;; for generic functions
+       :uid-list-of
+       :primary
+       :before
+       :after
+       :around
        ))
 
 ;;; end of file

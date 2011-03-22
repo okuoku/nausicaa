@@ -331,7 +331,8 @@
 	 (list last-result (get-result)))))))
 
 (define (add-result value)
-  (result (cons value (result))))
+  (result (cons value (result)))
+  value)
 
 (define (get-result)
   (reverse (result)))

@@ -5,8 +5,36 @@
 ;;;Date: Mon Jul  5, 2010
 ;;;
 ;;;Abstract
+;;;--------
 ;;;
 ;;;	The ancestor of this library is ScmObj by Dorai Sitaram.
+;;;
+;;;What is a method's signature
+;;;----------------------------
+;;;
+;;;	The "signature"  of a  method is a  list of lists,  each sublist
+;;;	being  a list of  record type  UIDs.  The  first sublist  is the
+;;;	hierarchy  of UIDs of  the first  method's argument,  the second
+;;;	sublist  is the  hierarchy  of the  second  argument, etc.   For
+;;;	example, a method defined as:
+;;;
+;;;	   (define-method (doit (a <complex>) (b <string>) (c <char>))
+;;;          ---)
+;;;
+;;;	has the following signature:
+;;;
+;;;	   ((nausicaa:builtin:<complex> nausicaa:builtin:<number>
+;;;          nausicaa:builtin:<builtin> nausicaa:builtin:<top>)
+;;;		;first argument
+;;;
+;;;         (nausicaa:builtin:<string>  nausicaa:builtin:<builtin>
+;;;          nausicaa:builtin:<top>)
+;;;		;second argument
+;;;
+;;;         (nausicaa:builtin:<char>    nausicaa:builtin:<builtin>
+;;;          nausicaa:builtin:<top>))
+;;;		;third argument
+;;;
 ;;;
 ;;;Copyright (c) 2010, 2011 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;Copyright (c) 1996 Dorai Sitaram
@@ -29,20 +57,31 @@
 #!r6rs
 (library (nausicaa language generics)
   (export
-    define-generic define-method add-method define-generic/merge
-    call-next-method next-method?
-    (rename (:uid-list-of uid-list-of:)))
+    define-generic		define-generic*
+    define-generic/merge	define-generic*/merge
+    define-method		add-method
+    call-next-method		next-method?
+    (rename (:uid-list-of uid-list-of:))
+    :primary :before :after :around)
   (import (rnrs)
     ;;See the source file for the customisable interface to types.
     (prefix (nausicaa language generics types) type.)
     (nausicaa language parameters)
     (only (nausicaa language extensions)
 	  define-auxiliary-syntaxes
-	  define-syntax*)
+	  define-syntax*
+	  define-inline
+	  begin0)
     (only (nausicaa language makers)
 	  define-maker)
     (only (nausicaa symbols-tree)
 	  tree-cons treeq)
+    (for (prefix (only (nausicaa language syntax-utilities)
+		       identifier-suffix)
+		 sx.)
+	 expand)
+    (only (nausicaa language auxiliary-syntaxes)
+	  :uid-list-of :primary :before :after :around)
     (rnrs mutable-pairs (6)))
 
 
@@ -57,41 +96,53 @@
 	 ell)))))
 
 (define-auxiliary-syntaxes
-  :method-add
-  :methods-alist
   :number-of-arguments
-  :uid-list-of)
 
-
-#|  The  following bindings  are  needed  by  the cache  implemented  as
-hashtable; currently  it is implemented  as a symbols-tree, so  they are
-commented out and kept here as reference.
+  :primary-methods-alist
+  :before-methods-alist
+  :after-methods-alist
+  :around-methods-alist
 
- (define-constant $gf
-   (greatest-fixnum))
+  :primary-method-add
+  :before-method-add
+  :after-method-add
+  :around-method-add)
 
- (define (signature-hash signature)
-   (let loop ((hash      0)
- 	     (signature signature))
-     (if (null? signature)
- 	hash
-       (loop (mod (+ hash (symbol-hash (caar signature))) $gf)
- 	    (cdr signature)))))
+(define-syntax* (%define-methods-table stx)
+  (syntax-case stx ()
+    ((_ ?generic-function ?id ?init)
+     (with-syntax ((ALIST	(sx.identifier-suffix #'?id "-methods-alist"))
+		   (STORE	(sx.identifier-suffix #'?id "-cache-store"))
+		   (REF		(sx.identifier-suffix #'?id "-cache-ref"))
+		   (ADD		(sx.identifier-suffix #'?id "-method-add"))
+		   (NUMARGS	(datum->syntax #'?id 'number-of-arguments)))
+       #'(begin
+	   (define ALIST ?init)
+	   (define cache '()) ;symbols tree
+	   (define (STORE signature methods)
+	     (set! cache (tree-cons signature methods cache)))
+	   (define (REF signature)
+	     (treeq cache signature #f))
+	   (define (ADD signature closure)
+	     (let ((len (length signature)))
+	       (if NUMARGS
+		   (%wrong-num-args-in-method-definition '?generic-function signature len NUMARGS)
+		 (set! NUMARGS len)))
+	     (set! cache '())
+	     (set! ALIST (%add-method-to-methods-alist ALIST signature closure)))
+	   )))))
 
-these should go in the expansion of DEFINE-GENERIC:
-
-  (define cache
-    (make-hashtable signature-hash eq?))
-
-  (define (cache-clear)
-    (hashtable-clear! cache))
-
-  (define (cache-store signature methods)
-    (hashtable-set! cache signature methods))
-
-  (define (cache-ref signature)
-    (hashtable-ref cache signature #f))
-|#
+(define (%wrong-num-args-in-method-definition who signature mt-number-of-arguments gf-number-of-arguments)
+  ;;Called when  adding a method to  a generic function  to validate the
+  ;;number of  method arguments against  the number of  generic function
+  ;;arguments.
+  ;;
+  (unless (= gf-number-of-arguments mt-number-of-arguments)
+    (syntax-violation who
+      (string-append "attempt to define method with wrong number of arguments, expected "
+		     (number->string gf-number-of-arguments) " got "
+		     (number->string mt-number-of-arguments))
+      signature)))
 
 
 ;;;; next method implementation
@@ -116,95 +167,64 @@ these should go in the expansion of DEFINE-GENERIC:
 	   "invoked next-method? outside of a generic function"))))))
 
 
-;;;; generic functions
-;;
-;;The "signature" of  a method is a list of lists,  each sublist being a
-;;list of record type UIDs.  The  first sublist is the hierarchy of UIDs
-;;of the first method's argument, the second sublist is the hierarchy of
-;;the second argument, etc.  For example, a method defined as:
-;;
-;;   (define-method (doit (a <complex>) (b <string>) (c <char>))
-;;     ---)
-;;
-;;has the following signature:
-;;
-;;   ((nausicaa:builtin:<complex> nausicaa:builtin:<number>
-;;     nausicaa:builtin:<builtin> nausicaa:builtin:<top>)
-;;		;first argument
-;;
-;;    (nausicaa:builtin:<string>  nausicaa:builtin:<builtin>
-;;     nausicaa:builtin:<top>)
-;;		;second argument
-;;
-;;    (nausicaa:builtin:<char>    nausicaa:builtin:<builtin>
-;;     nausicaa:builtin:<top>))
-;;		;third argument
-;;
+;;;; ordinary generic functions definition
 
 (define-maker (define-generic name)
-  %define-generic ((:uid-list-of	type.uid-list-of)
-		   (:methods-alist	'())))
+  %define-generic ((:uid-list-of		type.uid-list-of)
+		   (:primary-methods-alist	'())))
 
-(define-syntax %define-generic
-  (lambda (stx)
-    (syntax-case stx ()
+(define-syntax* (%define-generic stx)
+  (syntax-case stx ()
+    ((_ ?name . ?rest)
+     (not (identifier? #'?name))
+     (synner "expected identifier as generic function name" #'?name))
 
-      ((_ ?name . ?rest)
-       (not (identifier? #'?name))
-       (syntax-violation 'define-generic
-	 "expected identifier as generic function name"
-	 (syntax->datum stx) (syntax->datum #'?name)))
-
-      ((_ ?name ?uid-list-of ?methods-alist)
-       #'(begin
-	   (define methods-alist ?methods-alist)
-	   (define number-of-arguments
-	     (if (null? methods-alist)
-		 #f
-	       (length (caar methods-alist))))
-	   (define cache '()) ;symbols tree
-	   (define (cache-clear)
-	     (set! cache '()))
-	   (define (cache-store signature methods)
-	     (set! cache (tree-cons signature methods cache)))
-	   (define (cache-ref signature)
-	     (treeq cache signature #f))
-	   (define (method-add signature closure)
-	     (let ((len (length signature)))
-	       (if number-of-arguments
-		   (unless (= number-of-arguments len)
-		     (syntax-violation '?name
-		       (string-append
-			"attempt to define method with wrong number of arguments, expected "
-			(number->string number-of-arguments) " got "
-			(number->string len))
-		       signature))
-		 (set! number-of-arguments len)))
-	     (cache-clear)
-	     (set! methods-alist (%add-method-to-methods-alist methods-alist signature closure)))
-	   (define (implementation . arguments)
-	     (generic-function-implementation '?name methods-alist cache-ref cache-store
-					      ?uid-list-of number-of-arguments arguments))
-	   (define-syntax ?name
-	     (lambda (stx)
-	       (syntax-case stx (:method-add :methods-alist :number-of-arguments)
-		 ((_ :method-add signature closure)
-		  #'(method-add signature closure))
-		 ((_ :methods-alist)
-		  #'methods-alist)
-		 ((_ :number-of-arguments)
-		  #'number-of-arguments)
-		 ((_ ?arg (... ...))
-		  #'(implementation ?arg (... ...)))
-		 (_
-		  (syntax-violation '?name
-		    "invalid arguments to generic function" (syntax->datum stx))))))
-	   ))
-      (_
-       (syntax-violation 'define-generic
-	 "invalid arguments to generic function" (syntax->datum stx)))
-
-      )))
+    ((_ ?name ?uid-list-of ?methods-alist)
+     #'(begin
+	 (%define-methods-table ?name the ?methods-alist)
+	 (define number-of-arguments
+	   (if (null? the-methods-alist)
+	       #f
+	     (length (caar the-methods-alist))))
+	 (define (implementation . arguments)
+	   (generic-function-implementation '?name the-methods-alist the-cache-ref the-cache-store
+					    ?uid-list-of number-of-arguments arguments))
+	 (define-syntax ?name
+	   (lambda (stx)
+	     (define-syntax synner
+	       (syntax-rules ()
+		 ((_ message)
+		  (synner message #f))
+		 ((_ message subform)
+		  (syntax-violation '?name message (syntax->datum stx) (syntax->datum subform)))))
+	     (syntax-case stx (:primary-method-add :primary-methods-alist :number-of-arguments)
+	       ((_ :primary-method-add signature closure)
+		#'(the-method-add signature closure))
+	       ((_ :primary-methods-alist)
+		#'the-methods-alist)
+	       ((_ :number-of-arguments)
+		#'number-of-arguments)
+	       ((_ key signature closure)
+		(and (identifier? #'key)
+		     (or (free-identifier=? #'key #':before-method-add)
+			 (free-identifier=? #'key #':after-method-add)
+			 (free-identifier=? #'key #':around-method-add)))
+		(synner "attempt to add method of invalid category \
+                         to ordinary generic function" #'key))
+	       ((_ key)
+		(and (identifier? #'key)
+		     (or (free-identifier=? #'key #':before-methods-alist)
+			 (free-identifier=? #'key #':after-methods-alist)
+			 (free-identifier=? #'key #':around-methods-alist)))
+		(synner "attempt to extract method table of invalid category \
+                         from ordinary generic function" #'key))
+	       ((_ ?arg (... ...))
+		#'(implementation ?arg (... ...)))
+	       (_
+		(synner "invalid arguments to generic function")))))
+	 ))
+    (_
+     (synner "invalid arguments to generic function"))))
 
 
 (define (generic-function-implementation who methods-alist cache-ref cache-store
@@ -250,43 +270,269 @@ these should go in the expansion of DEFINE-GENERIC:
     (call-methods)))
 
 
-;;;; syntaxes to define and add methods
+;;;; starred generic functions definition
+
+(define-maker (define-generic* name)
+  %define-generic*
+  ((:uid-list-of		type.uid-list-of)
+   (:primary-methods-alist	'())
+   (:before-methods-alist	'())
+   (:after-methods-alist	'())
+   (:around-methods-alist	'())))
+
+(define-syntax* (%define-generic* stx)
+  (syntax-case stx ()
+
+    ((_ ?name . ?rest)
+     (not (identifier? #'?name))
+     (synner "expected identifier as generic function name" #'?name))
+
+    ((_ ?name ?uid-list-of
+	?primary-methods-alist ?before-methods-alist ?after-methods-alist ?around-methods-alist)
+     #'(begin
+	 (%define-methods-table ?name primary ?primary-methods-alist)
+	 (%define-methods-table ?name before  ?before-methods-alist)
+	 (%define-methods-table ?name after   ?after-methods-alist)
+	 (%define-methods-table ?name around  ?around-methods-alist)
+	 (define number-of-arguments
+	   (if (null? primary-methods-alist)
+	       #f
+	     (length (caar primary-methods-alist))))
+	 (define (implementation . arguments)
+	   (generic*-function-implementation
+	    '?name
+	    primary-methods-alist primary-cache-ref primary-cache-store
+	    before-methods-alist  before-cache-ref  before-cache-store
+	    after-methods-alist   after-cache-ref   after-cache-store
+	    around-methods-alist  around-cache-ref  around-cache-store
+	    ?uid-list-of number-of-arguments arguments))
+	 (define-syntax ?name
+	   (lambda (stx)
+	     (syntax-case stx (:primary-method-add :primary-methods-alist
+						   :after-method-add :after-methods-alist
+						   :before-method-add :before-methods-alist
+						   :around-method-add :around-methods-alist
+						   :number-of-arguments)
+	       ((_ :primary-method-add signature closure)
+		#'(primary-method-add signature closure))
+	       ((_ :after-method-add signature closure)
+		#'(after-method-add signature closure))
+	       ((_ :before-method-add signature closure)
+		#'(before-method-add signature closure))
+	       ((_ :around-method-add signature closure)
+		#'(around-method-add signature closure))
+
+	       ((_ :primary-methods-alist)	#'primary-methods-alist)
+	       ((_ :before-methods-alist)	#'before-methods-alist)
+	       ((_ :after-methods-alist)	#'after-methods-alist)
+	       ((_ :around-methods-alist)	#'around-methods-alist)
+
+	       ((_ :number-of-arguments)
+		#'number-of-arguments)
+	       ((_ ?arg (... ...))
+		#'(implementation ?arg (... ...)))
+	       (_
+		(syntax-violation '?name "invalid arguments to generic function" (syntax->datum stx))))))
+	 ))
+    (_
+     (synner "invalid arguments to generic function"))))
+
+
+(define (generic*-function-implementation who
+					  primary-methods-alist primary-cache-ref primary-cache-store
+					  before-methods-alist  before-cache-ref  before-cache-store
+					  after-methods-alist   after-cache-ref   after-cache-store
+					  around-methods-alist  around-cache-ref  around-cache-store
+					  uid-list-of number-of-arguments arguments)
+  (define signature
+    (let ((len (length arguments)))
+      (unless (= number-of-arguments len)
+	(assertion-violation who
+	  (string-append "wrong number of arguments, expected " (number->string number-of-arguments)
+			 " given " (number->string len))
+	  arguments))
+      (map uid-list-of arguments)))
+  (define-inline (apply-function ?method)
+    (apply ?method arguments))
+  (define-inline (consume-method ?method-alist)
+    (begin0
+	(cdar ?method-alist)
+      (set! ?method-alist (cdr ?method-alist))))
+  (define-inline (define-applicable-methods NAME ALIST STORE REF)
+    (define NAME
+      (or (REF signature)
+	  (let ((methods (%compute-applicable-methods signature ALIST)))
+	    (STORE signature methods)
+	    methods))))
+  (define-applicable-methods applicable-around-methods
+    around-methods-alist around-cache-store around-cache-ref)
+  (define-applicable-methods applicable-primary-methods
+    primary-methods-alist primary-cache-store primary-cache-ref)
+  (define-applicable-methods applicable-before-methods
+    before-methods-alist before-cache-store before-cache-ref)
+  (define applicable-after-methods
+    (or (after-cache-ref signature)
+	(let ((methods (reverse	;!!! yes!
+			(%compute-applicable-methods signature after-methods-alist))))
+	  (after-cache-store signature methods)
+	  methods)))
+
+  (define primary-method-called? #f)
+  (define reject-recursive-calls? #f)
+  (define (is-a-next-method-available?)
+    (not (if primary-method-called?
+	     (null? applicable-primary-methods)
+	   (and (null? applicable-around-methods)
+		(null? applicable-primary-methods)))))
+  (define (call-methods)
+    (cond (reject-recursive-calls?
+	   ;;Raise an  error if a  ":before" or ":after"  method invokes
+	   ;;the next method.
+	   (assertion-violation who ":before and :after methods are forbidden to call the next method"))
+
+	  (primary-method-called?
+	   ;;We enter here only if a primary method has been called and,
+	   ;;in its body, a call to CALL-NEXT-METHOD is evaluated.
+	   (when (null? applicable-primary-methods)
+	     (assertion-violation who "called next method but no more :primary methods available"))
+	   (apply-function (consume-method applicable-primary-methods)))
+
+	  ((null? applicable-primary-methods)
+	   ;;Raise an error if no applicable methods.
+	   (assertion-violation who "no method defined for argument classes" signature))
+
+	  ((not (null? applicable-around-methods))
+	   ;;If  around  methods exist:  we  apply  them  first.  It  is
+	   ;;expected that an  around method invokes CALL-NEXT-METHOD to
+	   ;;evaluate the  next around  methods and finally  the primary
+	   ;;methods.
+	   (apply-function (consume-method applicable-around-methods)))
+
+	  (else
+	   ;;Apply  the  methods: before,  primary,  after.  Return  the
+	   ;;return value of the primary.
+	   (begin ;run before methods
+	     (set! reject-recursive-calls? #t)
+	     (let loop ((applicable-before-methods applicable-before-methods))
+	       (unless (null? applicable-before-methods)
+		 (apply-function (cdar applicable-before-methods))
+		 (loop (cdr applicable-before-methods))))
+	     (set! reject-recursive-calls? #f))
+	   (set! primary-method-called? #t)
+	   (begin0
+	       (apply-function (consume-method applicable-primary-methods))
+	     (begin ;run after methods
+	       (set! reject-recursive-calls? #t)
+	       (let loop ((applicable-after-methods applicable-after-methods))
+		 (unless (null? applicable-after-methods)
+		   (apply-function (cdar applicable-after-methods))
+		   (loop (cdr applicable-after-methods)))))
+	     ))))
+
+  (parametrise ((next-method-func-parm call-methods)
+		(next-method-pred-parm is-a-next-method-available?))
+    (call-methods)))
+
+
+;;;; syntaxes to define and add methods to generics
 
 (define-syntax* (define-method stx)
-  ;;Define a new method and store it in the given generic function.
+  ;;Define  a new  starred  method and  store  it in  the given  starred
+  ;;generic function.
   ;;
-  (define (main generic-function-id formals-stx body-stx)
+  (define (main generic-function-id table-key formals-stx body-stx)
     (let loop ((formals		formals-stx)
 	       (arg-ids		'())
 	       (type-ids	'()))
       (syntax-case formals ()
 	(()
 	 (with-syntax ((GF		generic-function-id)
+		       (TABLE-KEY	table-key)
 		       ((ARG ...)	(reverse arg-ids))
 		       ((TYPE ...)	(reverse type-ids))
 		       (BODY		body-stx))
 	   #'(define dummy ;to make it a definition
-	       (add-method GF (TYPE ...) (type.method-lambda ((ARG TYPE) ...) . BODY)))))
+	       (add-method GF TABLE-KEY (TYPE ...) (type.method-lambda ((ARG TYPE) ...) . BODY)))))
 	(((?arg ?type) . ?formals)
 	 (loop #'?formals (cons #'?arg arg-ids) (cons #'?type    type-ids)))
 	((?arg . ?formals)
 	 (loop #'?formals (cons #'?arg arg-ids) (cons #'type.top type-ids)))
 	(?stuff
 	 (synner "invalid formal arguments in method definition" #'?stuff)))))
-  (syntax-case stx ()
+  (syntax-case stx (:primary :before :after :around)
+    ((_ :primary (?generic-function . ?formals) . ?body)
+     (identifier? #'?generic-function)
+     (main #'?generic-function #':primary #'?formals #'?body))
+    ((_ :primary ?generic-function ?formals . ?body)
+     (identifier? #'?generic-function)
+     (main #'?generic-function #':primary #'?formals #'?body))
+    ((_ ?generic-function :primary ?formals . ?body)
+     (identifier? #'?generic-function)
+     (main #'?generic-function #':primary #'?formals #'?body))
+
+    ((_ :before (?generic-function . ?formals) . ?body)
+     (identifier? #'?generic-function)
+     (main #'?generic-function #':before #'?formals #'?body))
+    ((_ :before ?generic-function ?formals . ?body)
+     (identifier? #'?generic-function)
+     (main #'?generic-function #':before #'?formals #'?body))
+    ((_ ?generic-function :before ?formals . ?body)
+     (identifier? #'?generic-function)
+     (main #'?generic-function #':before #'?formals #'?body))
+
+    ((_ :after (?generic-function . ?formals) . ?body)
+     (identifier? #'?generic-function)
+     (main #'?generic-function #':after #'?formals #'?body))
+    ((_ :after ?generic-function ?formals . ?body)
+     (identifier? #'?generic-function)
+     (main #'?generic-function #':after #'?formals #'?body))
+    ((_ ?generic-function :after ?formals . ?body)
+     (identifier? #'?generic-function)
+     (main #'?generic-function #':after #'?formals #'?body))
+
+    ((_ :around (?generic-function . ?formals) . ?body)
+     (identifier? #'?generic-function)
+     (main #'?generic-function #':around #'?formals #'?body))
+    ((_ :around ?generic-function ?formals . ?body)
+     (identifier? #'?generic-function)
+     (main #'?generic-function #':around #'?formals #'?body))
+    ((_ ?generic-function :around ?formals . ?body)
+     (identifier? #'?generic-function)
+     (main #'?generic-function #':around #'?formals #'?body))
+
     ((_ (?generic-function . ?formals) . ?body)
-     (main #'?generic-function #'?formals #'?body))
+     (identifier? #'?generic-function)
+     (main #'?generic-function #':primary #'?formals #'?body))
     ((_ ?generic-function ?formals . ?body)
-     (main #'?generic-function #'?formals #'?body))
+     (identifier? #'?generic-function)
+     (main #'?generic-function #':primary #'?formals #'?body))
+
     (_
      (synner "invalid syntax in method definition"))))
 
 (define-syntax add-method
-  (syntax-rules ()
-    ((_ ?generic-function (?type-id ...) ?closure)
-     (?generic-function :method-add
+  (syntax-rules (:primary :before :after :around)
+    ((_ ?generic-function :primary (?type-id ...) ?closure)
+     (?generic-function :primary-method-add
 			(list (type.uid-list ?type-id) ...) ;this is the signature
-			?closure))))
+			?closure))
+    ((_ ?generic-function :before (?type-id ...) ?closure)
+     (?generic-function :before-method-add
+			(list (type.uid-list ?type-id) ...) ;this is the signature
+			?closure))
+    ((_ ?generic-function :after (?type-id ...) ?closure)
+     (?generic-function :after-method-add
+			(list (type.uid-list ?type-id) ...) ;this is the signature
+			?closure))
+    ((_ ?generic-function :around (?type-id ...) ?closure)
+     (?generic-function :around-method-add
+			(list (type.uid-list ?type-id) ...) ;this is the signature
+			?closure))
+    ((_ ?generic-function (?type-id ...) ?closure)
+     (?generic-function :primary-method-add
+			(list (type.uid-list ?type-id) ...) ;this is the signature
+			?closure))
+    ))
 
 
 ;;;; method alists
@@ -370,55 +616,92 @@ these should go in the expansion of DEFINE-GENERIC:
 ;;;; generic functions merging
 
 (define-maker (define-generic/merge name list-of-generic-functions)
-  %define-generic/merge ((:uid-list-of		type.uid-list-of)
-			 (:methods-alist	'())))
+  %define-generic/merge
+  ((:uid-list-of		type.uid-list-of)
+   (:primary-methods-alist	'())))
 
 (define-syntax %define-generic/merge
   (syntax-rules ()
     ((_ ?name (?gf0 ?gf ...) ?uid-list-of ?methods-alist)
      (define-generic ?name
+       (:uid-list-of		?uid-list-of)
+       (:primary-methods-alist	(%merge-methods-alists (?gf0 :primary-methods-alist)
+						       (?gf  :primary-methods-alist)
+						       ...
+						       ?methods-alist))))))
+
+(define-maker (define-generic*/merge name list-of-generic-functions)
+  %define-generic*/merge
+  ((:uid-list-of		type.uid-list-of)
+   (:primary-methods-alist	'())
+   (:before-methods-alist	'())
+   (:after-methods-alist	'())
+   (:around-methods-alist	'())))
+
+(define-syntax %define-generic*/merge
+  (syntax-rules ()
+    ((_ ?name (?gf0 ?gf ...) ?uid-list-of
+	?primary-methods-alist ?before-methods-alist ?after-methods-alist ?around-methods-alist)
+     (define-generic* ?name
        (:uid-list-of	?uid-list-of)
-       (:methods-alist	(merge-methods-alists (?gf0 :methods-alist)
-					      (?gf  :methods-alist)
-					      ...))))))
+       (:primary-methods-alist	(%merge-methods-alists (?gf0 :primary-methods-alist)
+						       (?gf  :primary-methods-alist)
+						       ...
+						       ?primary-methods-alist))
+       (:before-methods-alist	(%merge-methods-alists (?gf0 :before-methods-alist)
+						       (?gf  :before-methods-alist)
+						       ...
+						       ?before-methods-alist))
+       (:after-methods-alist	(%merge-methods-alists (?gf0 :after-methods-alist)
+						       (?gf  :after-methods-alist)
+						       ...
+						       ?after-methods-alist))
+       (:around-methods-alist	(%merge-methods-alists (?gf0 :around-methods-alist)
+						       (?gf  :around-methods-alist)
+						       ...
+						       ?around-methods-alist))
+       ))))
 
-(define (merge-methods-alists methods-alist . list-of-methods-alists)
-  (let loop ((methods-alist		(list-copy methods-alist))
-	     (list-of-methods-alists	list-of-methods-alists))
-    (if (null? list-of-methods-alists)
-	methods-alist
-      (loop (merge-two-methods-alists methods-alist (car list-of-methods-alists))
-	    (cdr list-of-methods-alists)))))
+(define (%merge-methods-alists methods-alist . list-of-methods-alists)
+  (define-inline (main)
+    (let loop ((methods-alist		(list-copy methods-alist))
+	       (list-of-methods-alists	list-of-methods-alists))
+      (if (null? list-of-methods-alists)
+	  methods-alist
+	(loop (merge-two-methods-alists methods-alist (car list-of-methods-alists))
+	      (cdr list-of-methods-alists)))))
 
-(define-syntax merge-two-methods-alists
-  ;;Merge ?METHODS-ALIST-1 into ?METHODS-ALIST-2 and return a new alist.
-  ;;
-  (syntax-rules ()
-    ((_ ?methods-alist-1 ?methods-alist-2)
-     (let loop ((methods-alist-1 ?methods-alist-1)
-		(methods-alist-2 ?methods-alist-2))
-       (if (null? methods-alist-2)
-	   methods-alist-1
-	 (loop (maybe-merge-method (car methods-alist-2) methods-alist-1) (cdr methods-alist-2)))))))
+  (define-syntax merge-two-methods-alists
+    ;;Merge ?METHODS-ALIST-1 into ?METHODS-ALIST-2 and return a new alist.
+    ;;
+    (syntax-rules ()
+      ((_ ?methods-alist-1 ?methods-alist-2)
+       (let loop ((methods-alist-1 ?methods-alist-1)
+		  (methods-alist-2 ?methods-alist-2))
+	 (if (null? methods-alist-2)
+	     methods-alist-1
+	   (loop (maybe-merge-method (car methods-alist-2) methods-alist-1) (cdr methods-alist-2)))))))
 
-(define-syntax maybe-merge-method
-  ;;If  a method  with  the same  signature  does not  already exist  in
-  ;;?METHODS-ALIST:  prepend   a  copy  of   ?CANDIDATE-METHOD-ENTRY  to
-  ;;?METHODS-ALIST and return the new alist.
-  ;;
-  ;;?CANDIDATE-METHOD-ENTRY  is  copied  because  the  original  can  be
-  ;;modified by ADD-METHOD.
-  ;;
-  (syntax-rules ()
-    ((_ ?candidate-method-entry ?methods-alist)
-     (let* ((candidate-method-entry	?candidate-method-entry)
-	    (methods-alist		?methods-alist)
-	    (signature			(car candidate-method-entry)))
-       (unless (find (lambda (method-entry)
-		       (for-all eq? signature (car method-entry)))
-		     methods-alist)
-	 `((,(car candidate-method-entry) . ,(cdr candidate-method-entry))
-	   . ,methods-alist))))))
+  (define-syntax maybe-merge-method
+    ;;If  a method with  the same  signature does  not already  exist in
+    ;;?METHODS-ALIST:  prepend  a  copy  of  ?CANDIDATE-METHOD-ENTRY  to
+    ;;?METHODS-ALIST and return the new alist.
+    ;;
+    ;;?CANDIDATE-METHOD-ENTRY  is  copied because  the  original can  be
+    ;;modified by ADD-METHOD.
+    ;;
+    (syntax-rules ()
+      ((_ ?candidate-method-entry ?methods-alist)
+       (let* ((candidate-method-entry	?candidate-method-entry)
+	      (methods-alist		?methods-alist)
+	      (signature			(car candidate-method-entry)))
+	 (unless (find (lambda (method-entry)
+			 (for-all eq? signature (car method-entry)))
+		   methods-alist)
+	   `((,(car candidate-method-entry) . ,(cdr candidate-method-entry))
+	     . ,methods-alist))))))
+
+  (main))
 
 
 ;;;; done

@@ -13,6 +13,13 @@ arguments; each specialisation of a generic function is called
 @dfn{method}.  When applying a generic function to a set of arguments,
 the most specific method with respect to the arguments' types is chosen.
 
+The library defines two kinds of generic functions: ordinary and
+starred.  @dfn{Ordinary generic functions} only have one (primary)
+method for each possible tuple of arguments.  @dfn{Starred generic
+functions} may have primary, before, after and around methods for each
+possible tuple of arguments; the methods are applied according to a
+defined protocol.
+
 The @library{nausicaa language generics} library is built on top of the
 @library{nausicaa language classes} library, but its interface to types
 is (statically) customisable: look at the source code.
@@ -144,18 +151,21 @@ function we gain a bit of speed in function calls.
 @section How generic functions and methods are invoked
 
 
-@library{nausicaa language generics} is designed to work with class
-definitions from the @library{nausicaa language classes} library; when a
-generic function is applied to a tuple of arguments, the following
-happens:
+The library @library{nausicaa language generics} is designed to work
+with class definitions from the @library{nausicaa language classes}
+library; these classes are identified by a unique symbol (@uid{}).
+
+Ordinary generic functions allow the association of a single method to a
+tuple of arguments' classes; when an ordinary generic function is
+applied to a tuple of arguments, the following happens:
 
 @enumerate
 @item
-For each argument in the tuple a class type is determined, then the list
-of unique @uid{}s representing the class hierarchy is acquired; the
-tuple of @uid{} lists is called @dfn{signature}.  Each generic function
-maintains an internal collection in which every method's closure is
-associated to a signature.
+For each argument in the tuple a class is determined, then the list of
+@uid{}s representing the class hierarchy is acquired; the tuple of
+@uid{} lists is called @dfn{signature}.  Each generic function maintains
+an internal collection in which every method's closure is associated to
+a signature.
 
 @item
 The internal collection of methods is queried for all the methods
@@ -170,8 +180,166 @@ applicable methods is handled as a stack.
 The next method is popped from the stack and its closure applied to the
 tuple of arguments; the return value of this application becomes the
 return value of the generic function application.  If the function calls
-the next method, recurse to step 4.
+its ``next method'': recurse to step 4 (@pxref{generics next, Invoking
+the next method}).
 @end enumerate
+
+Starred generic functions allow the definition of four kinds of methods:
+@code{:primary}, @code{:around}, @code{:before} and @code{:after}; we
+can think of ordinary generics as starred generics supporing only
+@code{:primary} methods.  The short description is that @code{:around}
+methods are applied first, then @code{:before}, @code{:primary} and
+@code{:after} methods are applied in this order.  When a
+@strong{starred} generic function is applied to a tuple of arguments,
+the following happens:
+
+@enumerate
+@item
+For each argument in the tuple a class is determined, then the list of
+@uid{}s representing the class hierarchy is acquired; the tuple of
+@uid{} lists is called @dfn{signature}.  For each kind of method: each
+starred generic function maintains an internal collection in which every
+method's closure is associated to a signature.
+
+@item
+For each kind of method: the internal collection is queried for all the
+methods applicable to the tuple of arguments, using the signature as
+search key.
+
+@item
+For each kind of method: the list of applicable methods is sorted from
+the more specific to the least specific for the signature.  The list of
+@code{:after} methods is reversed.
+@end enumerate
+
+From now on the lists of sorted applicable methods are handled as
+stacks; the stacks of @code{:primary}, @code{:around} and @code{:before}
+methods have the most specific method on the top; the stack of
+@code{:after} methods has the least specific method on the top.
+
+From now on the application of the generic function enters an implicit
+loop in which more methods' closures can be applied to the same tuple of
+arguments.  The loop can terminate if a method's closure throws an
+exception or, for @code{:around} and @code{:primary} methods, if it does
+not take the special action of calling @func{call-next-method}.
+
+The loop is a bit articulated, so we may have to read the following
+descriptions multiple times.  We split the description in two branches:
+First a simplified invocation for generic functions having at least one
+applicable @code{:primary} method, no @code{:around} methods, and
+performing no calls to @func{call-next-method}; then the full
+application algorithm.
+
+Here is the simplified branch with no @code{:around} methods and no
+calls to @func{call-next-method}:
+
+@enumerate 4
+@item
+Pop all the @code{:before} methods from the stack and apply their
+closures to the tuple of arguments.  The return values of these
+applications are discarded.
+
+@item
+Pop the next @code{:primary} method from the stack and apply its closure
+to the tuple of arguments.  The return value of this application is
+saved in a temporary location.
+
+@item
+Pop all the @code{:after} methods from the stack and apply their
+closures to the tuple of arguments.  The return values of these
+applications are discarded.
+
+@item
+Return the saved return value of the @code{:primary} method.
+@end enumerate
+
+@noindent
+here is the full application algorithm:
+
+@enumerate 4
+@item
+Test if this function application originated from a call to
+@func{call-next-method} from a @code{:before} or @code{:after} method;
+if it has: raise an assertion violation.
+
+@item
+Test if this function application originated from a call to
+@func{call-next-method} from a @code{:primary} method; if it has:
+
+@enumerate a
+@item
+If the stack of @code{:primary} methods is empty raise an assertion
+violation.
+
+@item
+Pop the next @code{:primary} method from the stack and apply its closure
+to the tuple of arguments.
+
+@item
+Break out returning the return value of this application: it becomes the
+return value of @func{call-next-method}.
+@end enumerate
+
+@item
+If the stack of @code{:primary} methods is empty: raise an assertion
+violation.  This condition means that the generic function has no
+applicable methods for the tuple of arguments.
+
+@item
+If the stack of @code{:around} methods is not empty: pop the next
+@code{:around} method and apply its closure to the tuple of arguments.
+Break out returning the return value of this application.
+
+@item
+Pop all the @code{:before} methods from the stack and apply their
+closures to the tuple of arguments.  The return values of these
+applications are discarded.
+
+@item
+Pop the next @code{:primary} method from the stack and apply its closure
+to the tuple of arguments.  The return value of this application is
+saved in a temporary location.
+
+@item
+Pop all the @code{:after} methods from the stack and apply their
+closures to the tuple of arguments.  The return values of these
+applications are discarded.
+
+@item
+Return the saved return value of the @code{:primary} method.
+@end enumerate
+
+The @code{:primary} methods are meant to do the real work of the
+function.  Only the most specific is applied to the arguments, however
+it can use @func{call-next-method} to invoke a least specialised version
+and use its return value, and so on recursively until there are no more
+next methods.
+
+@code{:before} and @code{:after} methods are meant to execute additional
+work before and after the primary methods; for example test pre and post
+conditions on the arguments.  While @code{:before} methods are applied
+from the most specific to the least specific, @code{:after} methods are
+applied from the least specific to the most specific.  Notice that the
+@code{:after} methods have no access to the return value of the
+@code{:primary} methods.
+
+@code{:around} methods are yet another level for performing tasks before
+and after the primary methods; only the most specific is applied to the
+arguments.  It is expected, but not mandatory, that an @code{:around}
+method invokes @func{call-next-method}; when such invocations are
+performed recursively: they will consume all the applicable
+@code{:around} methods, from the most specific to the least specific,
+and then will start the application of @code{:before}, @code{:primary}
+and @code{:after} methods.
+
+The protocol of application for methods in a starred generic function is
+meant to be the same as the standard method combination for
+@acronym{CLOS} methods as defined by the Common Lisp
+standard@footnote{See for example (@aurl{} last verified Tue Mar 22,
+2011):
+
+@center @url{http:@///www.cs.cmu.edu@//Groups@//AI@//html@//cltl@//clm@//node285.html}
+}.
 
 @c page
 @node generics dispatching
@@ -234,24 +402,49 @@ is more specific than @var{B}.
 
 @deffn Syntax define-generic @ameta{name} @meta{clause} ...
 @deffnx {Auxiliary Syntax} uid-list-of: @meta{func}
-Define a new generic function (a macro) and bind it to @meta{name}.  The
-number of arguments is unspecified: it will be established by the first
-@func{define-method} or @func{add-method} applied to @meta{name}.
+Define a new ordinary generic function (a macro) and bind it to
+@meta{name}.  The number of arguments is unspecified: it will be
+established by the first @func{define-method} or @func{add-method}
+applied to @meta{name}.
 @end deffn
+
+
+@deffn Syntax define-generic* @ameta{name} @meta{clause} ...
+@deffnx {Auxiliary Syntax} uid-list-of: @meta{func}
+Define a new starred generic function (a macro) and bind it to
+@meta{name}.  The number of arguments is unspecified: it will be
+established by the first @func{define-method} or @func{add-method}
+applied to @meta{name}.
+@end deffn
+
+
+Merging methods is useful when two different libraries export generic
+functions bound to the same identifier.
 
 
 @deffn Syntax define-generic/merge @ameta{name} (@ametao{generic} @ameta{generic} ...) @var{clause} ...
 @deffnx {Auxiliary Syntax} uid-list-of: @meta{func}
-Define a new generic function and bind it to @meta{name}.  The internal
-collection of methods holds the union of the method collections from the
-@meta{generic} arguments, which must be generic function identifiers.
+Define a new ordinary generic function and bind it to @meta{name}.  The
+internal collection of methods holds the union of the method collections
+from the @meta{generic} arguments, which must be ordinary generic
+function identifiers.
 
 The union is performed visiting arguments from left to right; when two
 methods have the same signature, the one from the leftmost generic
 function has precedence.
+@end deffn
 
-Merging methods is useful when two different libraries export generic
-functions bound to the same identifier.
+
+@deffn Syntax define-generic*/merge @ameta{name} (@ametao{generic} @ameta{generic} ...) @var{clause} ...
+@deffnx {Auxiliary Syntax} uid-list-of: @meta{func}
+Define a new starred generic function and bind it to @meta{name}.  The
+internal collection of methods holds the union of the method collections
+from the @meta{generic} arguments, which must be starred generic
+function identifiers.
+
+The union is performed visiting arguments from left to right; when two
+methods have the same signature, the one from the leftmost generic
+function has precedence.
 @end deffn
 
 
@@ -277,10 +470,24 @@ Usually the @code{uid-list-of:} clause selects a wrapper for
 @end deffn
 
 
-@deffn Syntax define-method @ameta{generic} (@ameta{arg-spec} ...) @ameta{body}
-@deffnx Syntax define-method (@ameta{generic} @ameta{arg-spec} ...) @ameta{body}
-Add a new method to an already existent generic function,
-@ameta{generic}.
+@deffn Syntax define-method (@ameta{generic} @ameta{arg-spec} ...) @ameta{body}
+@deffnx Syntax define-method @ameta{generic} (@ameta{arg-spec} ...) @ameta{body}
+@deffnx Syntax define-method @ameta{kind} @ameta{generic} (@ameta{arg-spec} ...) @ameta{body}
+@deffnx Syntax define-method @ameta{generic} @ameta{kind} (@ameta{arg-spec} ...) @ameta{body}
+@deffnx {Auxiliary Syntax} :primary
+@deffnx {Auxiliary Syntax} :around
+@deffnx {Auxiliary Syntax} :before
+@deffnx {Auxiliary Syntax} :after
+Add a new method to an already existent generic function @ameta{generic}
+either ordinary or starred.
+
+When the @meta{kind} argument is not present or it is the
+@code{:primary} syntax: @meta{generic} can be either an ordinary or
+starred generic function.
+
+When the @meta{kind} argument is the @code{:before}, @code{:after} or
+@code{:around} syntax: @meta{generic} must be a starred generic
+function.
 
 The list of @meta{arg-spec} specifies the class of the arguments for
 which this method specialises the generic function; an @meta{arg-spec}
@@ -303,10 +510,25 @@ method: the old method is overwritten by the new one.
 
 
 @deffn Syntax add-method @ameta{generic} @ameta{types} @ameta{closure}
-Add a new method to an already existent generic function,
-@meta{generic}.  @meta{types} must be a list of type identifiers for
-which this method specialises the generic function.  @meta{closure} must
-be the method's closure.
+@deffnx Syntax add-method @ameta{generic} @ameta{kind} @ameta{types} @ameta{closure}
+@deffnx {Auxiliary Syntax} :primary
+@deffnx {Auxiliary Syntax} :around
+@deffnx {Auxiliary Syntax} :before
+@deffnx {Auxiliary Syntax} :after
+Add a new method to an already existent generic function @meta{generic}
+either ordinary or starred.
+
+When the @meta{kind} argument is not present or it is the
+@code{:primary} syntax: @meta{generic} can be either an ordinary or
+starred generic function.
+
+When the @meta{kind} argument is the @code{:before}, @code{:after} or
+@code{:around} syntax: @meta{generic} must be a starred generic
+function.
+
+@meta{types} must be a list of type identifiers for which this method
+specialises the generic function.  @meta{closure} must be the method's
+closure.
 @end deffn
 
 @c page

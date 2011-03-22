@@ -890,8 +890,11 @@
 
 ;;;; bindings from (nausicaa language generics)
 
-    define-generic define-method add-method define-generic/merge
-    call-next-method next-method? uid-list-of:
+    define-generic		define-generic*
+    define-generic/merge	define-generic*/merge
+    define-method		add-method
+    call-next-method		next-method?
+    uid-list-of: :primary :before :after :around
 
 ;;;; bindings from (nausicaa language matches)
 
