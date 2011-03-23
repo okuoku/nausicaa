@@ -134,7 +134,6 @@
   (only (nausicaa json))
   (only (nausicaa uri))
   (only (nausicaa net ipv6-addresses))
-  (only (nausicaa libraries))
   (only (nausicaa submodules))
   (only (nausicaa interps))
   (only (nausicaa evaluations))
