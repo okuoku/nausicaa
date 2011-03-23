@@ -420,9 +420,10 @@ argument for the maker expression; for example:
 (define-auxiliary-syntax alpha:)
 
 (define-maker doit
-  vector ((alpha: 1 2 3)))
+  vector ((alpha: (list 1 2 3))))
 
-(doit (alpha: 10 20 30)) @expansion{} (vector (list 1 2 3))
+(doit)                   @expansion{} (vector (list 1 2 3))
+(doit (alpha: 10 20 30)) @expansion{} (vector (list 10 20 30))
 @end example
 @end deffn
 
