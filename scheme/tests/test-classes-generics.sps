@@ -80,7 +80,8 @@
     (fields b)
     (methods (doit doit)))
 
-  (define-generic* doit)
+  (define-generic* doit
+    (reverse-before-methods #t))
 
   (define-method (doit (o <alpha>) arg)
     (list 'doit-alpha arg))
@@ -105,7 +106,7 @@
        (let (((o <alpha>) (make <beta> 1 2)))
 	 (o.doit 30)))
     => '((doit-beta 30)
-	 (before-beta before-alpha after-alpha after-beta)))
+	 (before-alpha before-beta after-alpha after-beta)))
 
   #t)
 

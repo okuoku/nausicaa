@@ -58,66 +58,77 @@
     :bound-identifier
 
     ;; for generic functions
-    :uid-list-of :primary :before :after :around
+    uid-list-of reverse-before-methods merge
+    :primary :before :after :around
 
     ;; miscellaneous
     <> <...>)
   (import (rnrs records syntactic)
     (only (rnrs base) begin define-syntax syntax-rules ...))
-  ;;This library  is imported by  (nausicaa language extensions),  so we
-  ;;cannot import the binding for DEFINE-AUXILIARY-SYNTAXES.
-  (define-syntax def
-    (syntax-rules ()
-      ((_ ?id ...)
-       (begin
-	 (define-syntax ?id (syntax-rules ()))
-	 ...))))
-  (def inherit
-       predicate
-       maker
-       maker-transformer
-       custom-maker
-       setter
-       getter
-       bindings
-       public-protocol
-       maker-protocol
-       superclass-protocol
-       virtual-fields
-       methods
-       method
-       method-syntax
-       mixins
-       satisfies
 
-       <>
-       <...>
+
+;;This  library is  imported by  (nausicaa language  extensions),  so we
+;;cannot import from there the binding for DEFINE-AUXILIARY-SYNTAXES.
+(define-syntax def
+  (syntax-rules ()
+    ((_ ?id ...)
+     (begin
+       (define-syntax ?id (syntax-rules ()))
+       ...))))
 
-       ;; makers
-       mandatory optional with without
+(def inherit
+     predicate
+     maker
+     maker-transformer
+     custom-maker
+     setter
+     getter
+     bindings
+     public-protocol
+     maker-protocol
+     superclass-protocol
+     virtual-fields
+     methods
+     method
+     method-syntax
+     mixins
+     satisfies
 
-       ;; string and vector views
-       view
-       start
-       past
+     <>
+     <...>
 
-       ;; for MATCH
-       :predicate
-       :accessor
-       :and
-       :or
-       :not
-       :setter
-       :getter
-       :free-identifier
-       :bound-identifier
+     ;; makers
+     mandatory optional with without
 
-       ;; for generic functions
-       :uid-list-of
-       :primary
-       :before
-       :after
-       :around
-       ))
+     ;; string and vector views
+     view
+     start
+     past
+
+     ;; for MATCH
+     :predicate
+     :accessor
+     :and
+     :or
+     :not
+     :setter
+     :getter
+     :free-identifier
+     :bound-identifier
+
+     ;; for generic functions
+     uid-list-of
+     reverse-before-methods
+     merge
+     :primary
+     :before
+     :after
+     :around
+     )
+
+
+;;;; done
+
+)
 
 ;;; end of file

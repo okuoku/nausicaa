@@ -403,65 +403,78 @@ is more specific than @var{B}.
 @section Defining generic functions and methods
 
 
+The following syntaxes allow the definition and merging of generic
+functions; merging generics is useful when two different libraries
+export generic functions bound to the same identifier.
+
+
 @deffn Syntax define-generic @ameta{name} @meta{clause} ...
-@deffnx {Auxiliary Syntax} uid-list-of: @meta{func}
+@deffnx {Auxiliary Syntax} uid-list-of @meta{func}
+@deffnx {Auxiliary Syntax} merge @meta{generic} ...
 Define a new ordinary generic function (a macro) and bind it to
 @meta{name}.  The number of arguments is unspecified: it will be
 established by the first @func{define-method} or @func{add-method}
 applied to @meta{name}.
+
+When the @code{merge} clause is used: the internal method table is
+initialised to the union of the method tables from the @meta{generic}
+arguments, which must be ordinary generic function identifiers.  The
+union is performed by visiting arguments from left to right; when two
+methods have the same signature, the one from the leftmost generic
+function takes precedence.
+
+See below for the documentation of the @code{uid-list-of} clause.
 @end deffn
 
 
 @deffn Syntax define-generic* @ameta{name} @meta{clause} ...
-@deffnx {Auxiliary Syntax} uid-list-of: @meta{func}
+@deffnx {Auxiliary Syntax} uid-list-of @meta{func}
+@deffnx {Auxiliary Syntax} merge @meta{generic} ...
+@deffnx {Auxiliary Syntax} reverse-before-methods @meta{boolean}
 Define a new starred generic function (a macro) and bind it to
 @meta{name}.  The number of arguments is unspecified: it will be
 established by the first @func{define-method} or @func{add-method}
 applied to @meta{name}.
-@end deffn
 
-
-Merging methods is useful when two different libraries export generic
-functions bound to the same identifier.
-
-
-@deffn Syntax define-generic/merge @ameta{name} (@ametao{generic} @ameta{generic} ...) @var{clause} ...
-@deffnx {Auxiliary Syntax} uid-list-of: @meta{func}
-Define a new ordinary generic function and bind it to @meta{name}.  The
-internal collection of methods holds the union of the method collections
-from the @meta{generic} arguments, which must be ordinary generic
-function identifiers.
-
-The union is performed visiting arguments from left to right; when two
+When the @code{merge} clause is used: the internal method tables are
+initialised to the unions of the method tables from the @meta{generic}
+arguments, which must be starred generic function identifiers.  The
+union is performed by visiting arguments from left to right; when two
 methods have the same signature, the one from the leftmost generic
-function has precedence.
+function takes precedence.
+
+The default methods composition protocol states that @code{:before} and
+@code{:around} methods are evaluated from the most specific to the least
+specific, while @code{:after} methods are evaluated from the least
+specific to the most specific; the protocol can be customised in the
+following ways:
+
+@itemize
+@item
+When the @code{reverse-before-methods} clause is used and @meta{boolean}
+is @true{}: the order of @code{:before} methods is reversed to ``from
+the least specific to the most specific'' prior to evaluating them.
+@end itemize
+
+@noindent
+@ref{generics methods} for an example of why these customisations are
+useful.
+
+See below for the documentation of the @code{uid-list-of} clause.
 @end deffn
 
 
-@deffn Syntax define-generic*/merge @ameta{name} (@ametao{generic} @ameta{generic} ...) @var{clause} ...
-@deffnx {Auxiliary Syntax} uid-list-of: @meta{func}
-Define a new starred generic function and bind it to @meta{name}.  The
-internal collection of methods holds the union of the method collections
-from the @meta{generic} arguments, which must be starred generic
-function identifiers.
-
-The union is performed visiting arguments from left to right; when two
-methods have the same signature, the one from the leftmost generic
-function has precedence.
-@end deffn
-
-
-@deffn {Auxiliary Syntax} uid-list-of: @meta{func}
-The optional clause @code{uid-list-of:} allows us to specify a custom
-function to extract a unique symbol representing the type of the
-arguments in calls to the generic function; the default value is
+@deffn {Auxiliary Syntax} uid-list-of @meta{func}
+The optional clause @code{uid-list-of} allows the specification of a
+custom function to extract a unique symbol representing the type of the
+arguments in calls to the generic functions; the default value is
 @func{class-uid-list-of} exported by @func{nausicaa language classes}.
 @meta{func} can be any expression evaluating to a function.
 
 When merging generic functions: the type inspector function is
 @func{class-uid-list-of} if we do not use this clause.
 
-Usually the @code{uid-list-of:} clause selects a wrapper for
+Usually the @code{uid-list-of} clause selects a wrapper for
 @func{class-uid-list-of}; for example:
 
 @example
@@ -497,9 +510,10 @@ which this method specialises the generic function; an @meta{arg-spec}
 can be:
 
 @table @code
-@item (@cmeta{arg} @cmeta{class name})
-Where @meta{arg} is the formal name of the argument and @meta{class
-name} the (possibly conventional) class name of expected values.
+@item (@cmeta{arg} @cmeta{class-name})
+Where @meta{arg} is the formal name of the argument and
+@meta{class-name} the (possibly conventional) class name of expected
+values.
 
 @item @cmeta{arg}
 Where @meta{arg} is the formal name of the argument.  In this case the
@@ -529,7 +543,7 @@ When the @meta{kind} argument is the @code{:before}, @code{:after} or
 @code{:around} syntax: @meta{generic} must be a starred generic
 function.
 
-@meta{types} must be a list of type identifiers for which this method
+@meta{types} must be a list of class names for which this method
 specialises the generic function.  @meta{closure} must be the method's
 closure.
 @end deffn
@@ -659,7 +673,8 @@ called.  This behaviour can be obtained only with generics and virtual
 methods, not when defining methods as plain functions or macros.
 
 Another interesting use of generics as class methods is the
-implementation of pre and post conditions; there is a problem though.
+implementation of pre and post conditions.
+
 The substitution principle states that: if @class{beta} inherits from
 @class{alpha}, every chunk of code expecting an @class{alpha} instance
 as argument must work when a @class{beta} instance is used as argument.
@@ -669,8 +684,16 @@ for @class{beta}; when the reimplemented method is called, it is correct
 to enforce both the pre and post conditions for @class{beta} and for
 @class{alpha}.
 
+The conditions for the @class{alpha} method must imply the conditions
+for the @class{beta} method; for example, a precondition for
+@class{alpha} can be that an argument is a positive integer, while a
+precondition for @class{beta} can be that the integer is greater than
+@math{3}.  It follows that the preconditions for @class{alpha} should be
+tested before the preconditions of @class{beta}.
+
 This is exactly what happens with @code{:before} and @code{:after}
-methods:
+methods when we use the @code{reverse-before-methods} clause in
+@func{define-generic*}:
 
 @example
 (import (nausicaa)
@@ -686,7 +709,8 @@ methods:
   (fields b)
   (methods (doit doit)))
 
-(define-generic* doit)
+(define-generic* doit
+  (reverse-before-methods #t))
 
 (define-method (doit (o <alpha>) arg)
   (list 'doit-alpha arg))
@@ -710,19 +734,10 @@ methods:
  (let (((o <alpha>) (make <beta> 1 2)))
    (o.doit 30)))
 @result{} ((doit-beta 30)
-    (before-beta    ;this is the order of invocation
-     before-alpha   ;for :BEFORE and :AFTER methods
+    (before-alpha   ;this is the order of invocation
+     before-beta    ;for :BEFORE and :AFTER methods
      after-alpha
      after-beta))
 @end example
-
-Here is the problem: the conditions for the @class{alpha} method must
-imply the conditions for the @class{beta} method; for example, a
-precondition for @class{alpha} can be that an argument is a positive
-integer, while a precondition for @class{beta} can be that the integer
-is greater than @math{3}.  It follows that the preconditions for
-@class{alpha} should be tested before the preconditions of @class{beta},
-and this does @strong{not} happen with the @code{:before} methods.
-
 
 @c end of file

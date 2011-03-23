@@ -32,7 +32,7 @@
   (rnrs eval))
 
 (check-set-mode! 'report-failed)
-(display "*** testing generic functions\n")
+(display "*** testing ordinary generic functions\n")
 
 
 (parameterise ((check-test-name 'errors))
@@ -53,7 +53,7 @@
   #t)
 
 
-(parameterise ((check-test-name 'generic-simple-inheritance))
+(parameterise ((check-test-name 'simple-inheritance))
 
   (let ()
     (define-class <one>
@@ -143,7 +143,7 @@
   #t)
 
 
-(parameterise ((check-test-name 'generic-next-method))
+(parameterise ((check-test-name 'next-method))
 
   (define-class <one>
     (fields (mutable a)
@@ -186,7 +186,7 @@
   #t)
 
 
-(parameterise ((check-test-name 'generic-specificity))
+(parameterise ((check-test-name 'specificity))
 
   (define-class <a>
     (fields (mutable a)))
@@ -265,9 +265,9 @@
   #t)
 
 
-(parameterise ((check-test-name 'generic-merge))
+(parameterise ((check-test-name 'merge))
 
-  (let ()
+  (let ()	;merge without signature conflict
     (define-class <one>
       (fields (mutable a)
 	      (mutable b)
@@ -295,17 +295,65 @@
     (define-method (beta (o <three>))
       'beta-three)
 
-    (let ()
-      (define-generic/merge gamma (alpha beta))
+    (define-generic gamma
+      (merge alpha beta))
 
-      (let ((a (make-<one> 1 10 100))
-	    (b (make-<two> 0 0 0 2 20 200))
-	    (c (make-<three> 0 0 0 0 0 0 3 30 300)))
-	(check (gamma a) => 'alpha-one)
-	(check (gamma b) => 'alpha-two)
-	(check (gamma c) => 'beta-three)
-	#t))
+    (define a (make-<one> 1 10 100))
+    (define b (make-<two> 0 0 0 2 20 200))
+    (define c (make-<three> 0 0 0 0 0 0 3 30 300))
+
+    (check (gamma a) => 'alpha-one)
+    (check (gamma b) => 'alpha-two)
+    (check (gamma c) => 'beta-three)
+
     #t)
+
+;;; --------------------------------------------------------------------
+
+  (let ()	;merge with signature conflict
+    (define-class <one>
+      (fields (mutable a)
+	      (mutable b)
+	      (mutable c)))
+    (define-class <two>
+      (inherit <one>)
+      (fields (mutable d)
+	      (mutable e)
+	      (mutable f)))
+    (define-class <three>
+      (inherit <two>)
+      (fields (mutable g)
+	      (mutable h)
+	      (mutable i)))
+
+    (define-generic alpha)
+    (define-generic beta)
+
+    (define-method (alpha (o <one>))
+      'alpha-one)
+
+    (define-method (alpha (o <two>))
+      'alpha-two)
+
+    (define-method (beta (o <three>))
+      'beta-three)
+
+    (define-method (beta (o <two>))	;this is discarded when merging
+      'beta-two)
+
+    (define-generic gamma
+      (merge alpha beta))
+
+    (define a (make-<one> 1 10 100))
+    (define b (make-<two> 0 0 0 2 20 200))
+    (define c (make-<three> 0 0 0 0 0 0 3 30 300))
+
+    (check (gamma a) => 'alpha-one)
+    (check (gamma b) => 'alpha-two)
+    (check (gamma c) => 'beta-three)
+
+    #t)
+
   #t)
 
 
