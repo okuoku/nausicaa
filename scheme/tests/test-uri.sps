@@ -52,10 +52,11 @@
   (check (low.to-string (low.to-bytevector ""))			=> "")
   (check (low.to-string (low.to-bytevector "ciao"))		=> "ciao")
   (check (low.to-string (low.to-bytevector "ci%3fa%3do"))	=> "ci%3fa%3do")
+  (check (low.to-string (low.to-bytevector "ci%3Fa%3Do"))	=> "ci%3Fa%3Do")
 
   (check
       (guard (E ((low.parser-error-condition? E)
-;;;		 (write (condition-message E))(newline)
+;;;(write (condition-message E))(newline)
 		 #t)
 		(else E))
 	(low.to-bytevector "ciaoλ"))
@@ -77,8 +78,8 @@
     (doit #\_ "_")
     (doit #\~ "~")
     (doit #\% "%25")
-    (doit #\? "%3f")
-    (doit #\= "%3d")
+    (doit #\? "%3F")
+    (doit #\= "%3D")
     (doit #\# "%23")
 
     #f)
@@ -103,13 +104,13 @@
 	=> str)
       (check (low.percent-decode str (:string-result? #t)) => (string ch)))
 
-    (doit #\. "%2e")
-    (doit #\- "%2d")
-    (doit #\_ "%5f")
-    (doit #\~ "%7e")
+    (doit #\. "%2E")
+    (doit #\- "%2D")
+    (doit #\_ "%5F")
+    (doit #\~ "%7E")
     (doit #\% "%25")
-    (doit #\? "%3f")
-    (doit #\= "%3d")
+    (doit #\? "%3F")
+    (doit #\= "%3D")
     (doit #\# "%23")
 
     #f)
@@ -124,8 +125,8 @@
 
     (doit "" "")
     (doit "ciao" "ciao")
-    (doit "cia=o" "cia%3do")
-    (doit "ci?a=o" "ci%3fa%3do")
+    (doit "cia=o" "cia%3Do")
+    (doit "ci?a=o" "ci%3Fa%3Do")
 
     #f)
 
@@ -153,18 +154,26 @@
 
   (check
       (low.normalise-percent-encoded-string "cia%3do")
-    => "cia%3do")
+    => "cia%3Do")
+
+  (check
+      (low.normalise-percent-encoded-string "cia%3Do")
+    => "cia%3Do")
 
   (check
       (low.normalise-percent-encoded-string "ci%3fa%3do")
-    => "ci%3fa%3do")
+    => "ci%3Fa%3Do")
 
   (check
-      (low.normalise-percent-encoded-string "%7eciao")
+      (low.normalise-percent-encoded-string "ci%3Fa%3Do")
+    => "ci%3Fa%3Do")
+
+  (check
+      (low.normalise-percent-encoded-string "%7Eciao")
     => "~ciao")
 
   (check
-      (low.normalise-percent-encoded-string "ci%5fao")
+      (low.normalise-percent-encoded-string "ci%5Fao")
     => "ci_ao")
 
 ;;; --------------------------------------------------------------------
@@ -179,11 +188,19 @@
 
   (check
       (low.normalise-percent-encoded-bytevector (low.to-bytevector "cia%3do"))
-    => (low.to-bytevector "cia%3do"))
+    => (low.to-bytevector "cia%3Do"))
+
+  (check
+      (low.normalise-percent-encoded-bytevector (low.to-bytevector "cia%3Do"))
+    => (low.to-bytevector "cia%3Do"))
 
   (check
       (low.normalise-percent-encoded-bytevector (low.to-bytevector "ci%3fa%3do"))
-    => (low.to-bytevector "ci%3fa%3do"))
+    => (low.to-bytevector "ci%3Fa%3Do"))
+
+  (check
+      (low.normalise-percent-encoded-bytevector (low.to-bytevector "ci%3Fa%3Do"))
+    => (low.to-bytevector "ci%3Fa%3Do"))
 
   (check
       (low.normalise-percent-encoded-bytevector (low.to-bytevector "%7eciao"))
@@ -957,7 +974,7 @@
   (define query		(string->utf8 "question=answer"))
   (define fragment	(string->utf8 "anchor-point"))
 
-  (define uri-string	"http://www.spiffy.org/the/path/name?question%3danswer#anchor-point")
+  (define uri-string	"http://www.spiffy.org/the/path/name?question%3Danswer#anchor-point")
   (define uri-bv	(string->utf8 uri-string))
 
   (define-syntax doit

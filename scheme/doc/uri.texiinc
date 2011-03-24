@@ -7,11 +7,21 @@
 
 
 The @library{nausicaa uri} library implements a parser and class type to
-handle @uri{}s compliant with @rfc{} 3986.@footnote{@aurl{} last
-verified Thu Jun 17, 2010:
+handle @uri{}s compliant with @rfc{} 3986 (@aurl{} last verified Thu Jun
+17, 2010):
 
 @center @url{http://datatracker.ietf.org/doc/rfc3986/}
-}
+
+@noindent
+for an introduction to @uri{}s see (@aurl{} last verified Thu Mar 24,
+2011):
+
+@center @url{http://en.wikipedia.org/wiki/Uniform_Resource_Identifier}
+
+The purpose of @library{nausicaa uri} is to convert a @uri{}
+representation as bytevector into an instance of @class{uri} class (as
+defined by the library @library{nausicaa language classes}), in which
+the @uri{} components are available as Scheme strings.
 
 @menu
 * uri intro::                   Introduction to @uri{} elements.
@@ -283,8 +293,9 @@ default is to return a bytevector.
 
 @defun normalise-percent-encoded-bytevector @var{bv}
 Normalise the given percent--encoded bytevector; bytes that are encoded
-but should not are decoded; return the normalised bytevector.  Assume
-that @var{bv} is composed by bytes in the valid range for @uri{}s.
+but should not are decoded; return the normalised bytevector, in which
+percent--encoded characters are displayed in upper case.  Assume that
+@var{bv} is composed by bytes in the valid range for @uri{}s.
 
 Notice that this function does @strong{not} percent--encode bytes which
 are already not so.
@@ -293,7 +304,8 @@ are already not so.
 
 @defun normalise-percent-encoded-string @var{str}
 Normalise the given percent--encoded string; characters that are encoded
-but should not are decoded; return the normalised string.  Assume that
+but should not are decoded; return the normalised string, in which
+percent--encoded characters are displayed in upper case.  Assume that
 @var{str} is composed by characters in the valid range for @uri{}s.
 
 Notice that this function does @strong{not} percent--encode characters
