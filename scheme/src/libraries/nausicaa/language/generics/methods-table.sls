@@ -71,18 +71,6 @@
 	 ((_ ?arg ... . ?rest)
 	  (begin ?form0 ?form ...)))))))
 
-(define (%wrong-num-args-in-method-definition who signature mt-number-of-arguments gf-number-of-arguments)
-  ;;Called when  adding a method to  a generic function  to validate the
-  ;;number of  method arguments against  the number of  generic function
-  ;;arguments.
-  ;;
-  (unless (= gf-number-of-arguments mt-number-of-arguments)
-    (syntax-violation who
-      (string-append "attempt to define method with wrong number of arguments, expected "
-		     (number->string gf-number-of-arguments) " got "
-		     (number->string mt-number-of-arguments))
-      signature)))
-
 
 (define-syntax define-methods-table
   ;;Used in  the body of DEFINE-GENERIC  to define a  methods table with
@@ -92,7 +80,7 @@
     ;;We could automatically generate  most of the identifier arguments,
     ;;we do not do it for hygiene sake.
     ;;
-    ((_ ?generic-function ?table-name ?cache-store ?cache-ref ?table-add ?init ?number-of-arguments)
+    ((_ ?generic-function ?table-name ?table-add ?cache-store ?cache-ref ?init)
      (begin
        (define ?table-name ?init)
        (define cache '()) ;symbols tree
@@ -101,11 +89,6 @@
        (define (?cache-ref signature)
 	 (treeq cache signature #f))
        (define (?table-add signature closure)
-	 (let ((len (length signature)))
-	   (if ?number-of-arguments
-	       (%wrong-num-args-in-method-definition '?generic-function signature
-						     len ?number-of-arguments)
-	     (set! ?number-of-arguments len)))
 	 (set! cache '())
 	 (set! ?table-name (add-method-to-methods-alist ?table-name signature closure)))
        ))))
@@ -218,8 +201,6 @@
 	       other-alist))
 
   (main))
-
-
 
 
 ;;;; done

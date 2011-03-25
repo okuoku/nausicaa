@@ -582,7 +582,7 @@
 	      B.seconds B.nanoseconds)
     (make* <time> secs nanosecs)))
 
-(define-generic <time>--)
+(define-generic <time>-- (a b))
 
 (define-method (<time>-- (A <time>) (B <duration>))
   (receive (secs nanosecs)

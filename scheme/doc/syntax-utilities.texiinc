@@ -271,6 +271,41 @@ Scheme User's Guide.
 @end quotation
 @end deffn
 
+
+@deffn Syntax case-identifier @ameta{keyword} ((@ameta{id} ...) @ametao{body} @ameta{body} ...) ...
+@deffnx Syntax case-identifier @ameta{keyword} ((@ameta{id} ...) @ametao{body} @ameta{body} ...) ... (else  @ametao{else} @ameta{else} ...)
+@deffnx {Auxiliary Syntax} else
+Like @func{case} but match identifiers with @func{free-identifiers=?}.
+For example the following:
+
+@example
+(case-identifier ciao
+  ((hello)
+   (display "hello"))
+  ((ciao)
+   (display "ciao"))
+  ((salut)
+   (display "salut"))
+  (else
+   (display "unknown")))
+@end example
+
+@noindent
+expands to:
+
+@example
+(let ((keyword #'ciao))
+  (cond ((identifier-memq keyword (list #'hello))
+         (display "hello"))
+        ((identifier-memq keyword (list #'ciao))
+         (display "ciao"))
+        ((identifier-memq keyword (list #'salut))
+         (display "salut"))
+        (else
+         (display "unknown"))))
+@end example
+@end deffn
+
 @c page
 @node syntax utils clauses
 @section Clauses handling

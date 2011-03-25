@@ -35,6 +35,7 @@ is (statically) customisable: look at the source code.
 * generics predefined::         Predefined generic functions.
 * generics methods::            Notes on using generics as class
                                 methods.
+* generics properties::         Expand time properties.
 @end menu
 
 @c page
@@ -75,7 +76,7 @@ the list of @uid{}s for @class{c} is:
 so for the generic function:
 
 @example
-(define-generic doit)
+(define-generic doit (o))
 (define-method (doit (o <one>)) 'one)
 (define-method (doit (o <two>)) 'two)
 @end example
@@ -97,7 +98,7 @@ of the method with @class{two} in the signature, we can call it using
 The following example shows a call to the next method:
 
 @example
-(define-generic fluff)
+(define-generic fluff (o))
 
 (define-method (fluff (o <one>))
   'one)
@@ -130,9 +131,9 @@ arguments as follows:
    ((a b . rest)
     (fluff-3 a b rest))))
 
-(define-generic fluff-1)
-(define-generic fluff-2)
-(define-generic fluff-3)
+(define-generic fluff-1 (o))
+(define-generic fluff-2 (o p))
+(define-generic fluff-3 (o p rest))
 
 (define-method (fluff-1 (o <one>))
   ---)
@@ -408,13 +409,14 @@ functions; merging generics is useful when two different libraries
 export generic functions bound to the same identifier.
 
 
-@deffn Syntax define-generic @ameta{name} @meta{clause} ...
+@deffn Syntax define-generic @ameta{name} @ameta{formals} @meta{clause} ...
 @deffnx {Auxiliary Syntax} uid-list-of @meta{func}
 @deffnx {Auxiliary Syntax} merge @meta{generic} ...
 Define a new ordinary generic function (a macro) and bind it to
-@meta{name}.  The number of arguments is unspecified: it will be
-established by the first @func{define-method} or @func{add-method}
-applied to @meta{name}.
+@meta{name}.  The number of arguments is specified by @ameta{formals}: a
+list of identifiers, one for each argument; the list is used only to
+determine the number of arguments (it can be used to document the
+intended meaning of arguments).
 
 When the @code{merge} clause is used: the internal method table is
 initialised to the union of the method tables from the @meta{generic}
@@ -427,14 +429,15 @@ See below for the documentation of the @code{uid-list-of} clause.
 @end deffn
 
 
-@deffn Syntax define-generic* @ameta{name} @meta{clause} ...
+@deffn Syntax define-generic* @ameta{name} @ameta{formals} @meta{clause} ...
 @deffnx {Auxiliary Syntax} uid-list-of @meta{func}
 @deffnx {Auxiliary Syntax} merge @meta{generic} ...
 @deffnx {Auxiliary Syntax} reverse-before-methods @meta{boolean}
 Define a new starred generic function (a macro) and bind it to
-@meta{name}.  The number of arguments is unspecified: it will be
-established by the first @func{define-method} or @func{add-method}
-applied to @meta{name}.
+@meta{name}.  The number of arguments is specified by @ameta{formals}: a
+list of identifiers, one for each argument; the list is used only to
+determine the number of arguments (it can be used to document the
+intended meaning of arguments).
 
 When the @code{merge} clause is used: the internal method tables are
 initialised to the unions of the method tables from the @meta{generic}
@@ -634,7 +637,7 @@ example, given the definitions:
   (fields b)
   (methods (doit doit)))
 
-(define-generic doit)
+(define-generic doit (o arg))
 
 (define-method (doit (o <alpha>) arg)
   (list 'doit-alpha arg))
@@ -709,7 +712,7 @@ methods when we use the @code{reverse-before-methods} clause in
   (fields b)
   (methods (doit doit)))
 
-(define-generic* doit
+(define-generic* doit (o arg)
   (reverse-before-methods #t))
 
 (define-method (doit (o <alpha>) arg)
@@ -739,5 +742,81 @@ methods when we use the @code{reverse-before-methods} clause in
      after-alpha
      after-beta))
 @end example
+
+@c page
+@node generics properties
+@section Expand time properties
+
+
+The library @library{nausicaa language generics properties} exports an
+@api{} for expand time which allows inspection of properties of generic
+functions; it is meant to be used with @library{nausicaa language
+identifier-properties} and @library{nausicaa language
+property-keywords}; it is suggested to import these libraries with a
+prefix, as in:
+
+@example
+(import (nausicaa)
+  (prefix (nausicaa language property-keywords) pk.)
+  (for (prefix (nausicaa language identifier-properties)
+               ip.)   expand)
+  (for (prefix (nausicaa language generics properties)
+               prop.) expand))
+@end example
+
+
+@defun make-generic @var{number-of-arguments} @var{methods-arguments}
+Build and return a new value representing the properties of a generic
+function; the type of the returned value is disjoint from all the other
+Scheme types.
+
+@var{number-of-arguments} must be an exact integer representing the
+number of arguments supported by the generic function.
+
+@var{methods-arguments} must be a list having as one element for each
+registered method; the elements must be lists of class identifiers
+representing the types of arguments.
+@end defun
+
+
+Property values are associated to generic function identifiers by
+@func{define-generic} and @func{define-generic*} with code like:
+
+@example
+(ip.define @cmeta{name} #'pk.generic-function
+           (prop.make-generic @cmeta{number-of-arguments}
+                              @cmeta{methods-arguments}))
+@end example
+
+@noindent
+where @meta{name} is the generic function identifier and
+@code{generic-function} is an auxiliary keyword exported by the library
+@library{nausicaa language property-keywords}; property values can be
+retrieved at expand time with code like:
+
+@example
+(define gf
+  (ip.ref @cmeta{name} #'pk.generic-function #f))
+@end example
+
+
+@defun generic? @var{obj}
+Returne true if @var{obj} is a value representing the properties of a
+generic function.
+@end defun
+
+
+@defun generic-number-of-arguments @var{gf}
+If @var{gf} is a value representing the properties of a generic
+function: return an exact integer representing the number of arguments.
+@end defun
+
+
+@defun generic-methods-arguments @var{gf}
+If @var{gf} is a value representing the properties of a generic
+function: return a list having as one element for each registered
+method; the elements are be lists of class identifiers representing the
+types of arguments.
+@end defun
 
 @c end of file

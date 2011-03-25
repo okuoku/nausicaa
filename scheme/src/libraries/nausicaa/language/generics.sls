@@ -73,18 +73,24 @@
 	  define-auxiliary-syntaxes
 	  define-syntax*
 	  define-inline
-	  begin0)
+	  begin0
+	  define-for-expansion-evaluation)
     (only (nausicaa language makers)
 	  define-maker)
     (for (prefix (only (nausicaa language syntax-utilities)
 		       identifier-suffix
-		       identifier-memq)
+		       identifier-memq
+		       all-identifiers?
+		       unwrap
+		       case-identifier)
 		 sx.)
 	 expand)
     (only (nausicaa language auxiliary-syntaxes)
 	  uid-list-of reverse-before-methods merge
 	  :primary :before :after :around)
-    )
+    (prefix (nausicaa language property-keywords) pk.)
+    (for (prefix (nausicaa language identifier-properties) ip.) expand)
+    (for (prefix (nausicaa language generics properties) prop.) expand))
 
 
 ;;;; helpers
@@ -127,70 +133,84 @@
 
 ;;;; ordinary generic functions definition
 
-(define-maker (define-generic name)
+(define-maker (define-generic name formals)
   %define-generic
   ((uid-list-of			type.uid-list-of)
    (merge			(list))))
 
-(define-syntax %define-generic
-  (syntax-rules (list)
-    ((_ ?name ?uid-list-of (list ?generic ...))
-     (%%define-generic ?name ?uid-list-of
-		       (mt.merge-methods-alists (?generic :primary-methods-alist) ...)))))
-
-(define-syntax* (%%define-generic stx)
-  (syntax-case stx ()
+(define-syntax* (%define-generic stx)
+  (syntax-case stx (list)
     ((_ ?name . ?rest)
      (not (identifier? #'?name))
      (synner "expected identifier as generic function name" #'?name))
 
-    ((_ ?name ?uid-list-of ?methods-alist)
-     #'(begin
-	 (mt.define-methods-table ?name the-methods-alist the-cache-store the-cache-ref
-				  the-method-add ?methods-alist number-of-arguments)
-	 (define number-of-arguments
-	   (if (null? the-methods-alist)
-	       #f
-	     (length (caar the-methods-alist))))
-	 (define (implementation . arguments)
-	   (generic-function-implementation '?name the-methods-alist the-cache-store the-cache-ref
-					    ?uid-list-of number-of-arguments arguments))
-	 (define-syntax ?name
-	   (lambda (stx)
-	     (define-syntax synner
-	       (syntax-rules ()
-		 ((_ message)
-		  (synner message #f))
-		 ((_ message subform)
-		  (syntax-violation '?name message (syntax->datum stx) (syntax->datum subform)))))
-	     (syntax-case stx (:primary-method-add :primary-methods-alist :number-of-arguments)
-	       ((_ :primary-method-add signature closure)
-		#'(the-method-add signature closure))
-	       ((_ :primary-methods-alist)
-		#'the-methods-alist)
-	       ((_ :number-of-arguments)
-		#'number-of-arguments)
-	       ((_ key signature closure)
-		(and (identifier? #'key)
-		     (sx.identifier-memq #'key (list #':before-method-add
-						     #':after-method-add
-						     #':around-method-add)))
-		(synner "attempt to add method of invalid category \
-                         to ordinary generic function" #'key))
-	       ((_ key)
-		(and (identifier? #'key)
-		     (sx.identifier-memq #'key (list #':before-methods-alist
-						     #':after-methods-alist
-						     #':around-methods-alist)))
-		(synner "attempt to extract method table of invalid category \
-                         from ordinary generic function" #'key))
-	       ((_ ?arg (... ...))
-		#'(implementation ?arg (... ...)))
-	       (_
-		(synner "invalid arguments to generic function")))))
-	 ))
-    (_
-     (synner "invalid arguments for generic function definition"))))
+    ((_ ?name (?formal ...) ?uid-list-of (list ?generic ...))
+     (sx.all-identifiers? #'(?formal ... ?generic ...))
+     (let* ((number-of-arguments	(length (sx.unwrap #'(?formal ...))))
+	    (generic-identifiers	(sx.unwrap #'(?generic ...)))
+	    (methods-arguments
+	     (fold-left
+	      (lambda (knil id)
+		(let ((prop (ip.ref id #'pk.generic-function)))
+		  (unless (= number-of-arguments (prop.generic-number-of-arguments prop))
+		    (synner "attempt to merge generic function with wrong number of arguments" id))
+		  (append knil (prop.generic-methods-arguments prop))))
+	      '()
+	      generic-identifiers)))
+       (with-syntax ((NUMBER-OF-ARGUMENTS	number-of-arguments)
+		     (METHODS-ARGUMENTS		methods-arguments))
+	 #'(begin
+	     (define number-of-arguments NUMBER-OF-ARGUMENTS)
+	     (mt.define-methods-table ?name
+				      the-methods-alist the-method-add
+				      the-cache-store the-cache-ref
+				      (mt.merge-methods-alists (?generic :primary-methods-alist) ...))
+	     (define (implementation . arguments)
+	       (generic-function-implementation '?name the-methods-alist the-cache-store the-cache-ref
+						?uid-list-of number-of-arguments arguments))
+	     (define-syntax ?name
+	       (lambda (stx)
+		 (define-syntax synner
+		   (syntax-rules ()
+		     ((_ message)
+		      (synner message #f))
+		     ((_ message subform)
+		      (syntax-violation '?name message (syntax->datum stx) (syntax->datum subform)))))
+		 (syntax-case stx (:primary-method-add :primary-methods-alist :number-of-arguments)
+		   ((_ :primary-method-add signature closure)
+		    #'(the-method-add signature closure))
+		   ((_ :primary-methods-alist)
+		    #'the-methods-alist)
+		   ((_ :number-of-arguments)
+		    #'number-of-arguments)
+		   ((_ key signature closure)
+		    (and (identifier? #'key)
+			 (sx.identifier-memq #'key (list #':before-method-add
+							 #':after-method-add
+							 #':around-method-add)))
+		    (synner "attempt to add method of invalid category \
+                             to ordinary generic function" #'key))
+		   ((_ key)
+		    (and (identifier? #'key)
+			 (sx.identifier-memq #'key (list #':before-methods-alist
+							 #':after-methods-alist
+							 #':around-methods-alist)))
+		    (synner "attempt to extract method table of invalid category \
+                             from ordinary generic function" #'key))
+   		   ((_ ?arg (... ...))
+		    #'(implementation ?arg (... ...)))
+		   (_
+		    (synner "invalid arguments to generic function")))))
+	     ;;Remember that  first we bind ?NAME and  then we associate
+	     ;;properties to it.
+	     (define-for-expansion-evaluation
+	       (ip.define #'?name #'pk.generic-function
+			  (prop.make-generic (sx.unwrap #'NUMBER-OF-ARGUMENTS)
+					     (sx.unwrap #'METHODS-ARGUMENTS))))
+	     ))))
+
+  (_
+   (synner "invalid arguments for generic function definition"))))
 
 
 (define (generic-function-implementation who methods-alist cache-store cache-ref
@@ -235,84 +255,96 @@
 
 ;;;; starred generic functions definition
 
-(define-maker (define-generic* name)
+(define-maker (define-generic* name formals)
   %define-generic*
   ((uid-list-of			type.uid-list-of)
    (reverse-before-methods	#f)
    (merge			(list))))
 
-(define-syntax %define-generic*
-  (syntax-rules (list)
-    ((_ ?name ?uid-list-of ?reverse-before-methods (list ?generic ...))
-     (%%define-generic* ?name ?uid-list-of ?reverse-before-methods
-			(mt.merge-methods-alists (?generic :primary-methods-alist) ...)
-			(mt.merge-methods-alists (?generic :before-methods-alist)  ...)
-			(mt.merge-methods-alists (?generic :after-methods-alist)   ...)
-			(mt.merge-methods-alists (?generic :around-methods-alist)  ...)))))
-
-(define-syntax* (%%define-generic* stx)
-  (syntax-case stx ()
-
+(define-syntax* (%define-generic* stx)
+  (syntax-case stx (list)
     ((_ ?name . ?rest)
      (not (identifier? #'?name))
      (synner "expected identifier as generic function name" #'?name))
 
-    ((_ ?name ?uid-list-of ?reverse-before-methods
-	?primary-methods-alist ?before-methods-alist ?after-methods-alist ?around-methods-alist)
-     #'(begin
-	 (mt.define-methods-table ?name primary-methods-alist
-				  primary-cache-store primary-cache-ref
-				  primary-method-add ?primary-methods-alist number-of-arguments)
-	 (mt.define-methods-table ?name before-methods-alist
-				  before-cache-store before-cache-ref
-				  before-method-add ?before-methods-alist number-of-arguments)
-	 (mt.define-methods-table ?name after-methods-alist
-				  after-cache-store after-cache-ref
-				  after-method-add ?after-methods-alist number-of-arguments)
-	 (mt.define-methods-table ?name around-methods-alist
-				  around-cache-store around-cache-ref
-				  around-method-add ?around-methods-alist number-of-arguments)
-	 (define number-of-arguments
-	   (if (null? primary-methods-alist)
-	       #f
-	     (length (caar primary-methods-alist))))
-	 (define reverse-before-methods ?reverse-before-methods)
-	 (define (implementation . arguments)
-	   (generic*-function-implementation
-	    '?name
-	    primary-methods-alist primary-cache-ref primary-cache-store
-	    before-methods-alist  before-cache-ref  before-cache-store
-	    after-methods-alist   after-cache-ref   after-cache-store
-	    around-methods-alist  around-cache-ref  around-cache-store
-	    ?uid-list-of number-of-arguments reverse-before-methods arguments))
-	 (define-syntax ?name
-	   (lambda (stx)
-	     (syntax-case stx (:primary-method-add :primary-methods-alist
-						   :after-method-add :after-methods-alist
-						   :before-method-add :before-methods-alist
-						   :around-method-add :around-methods-alist
-						   :number-of-arguments)
-	       ((_ :primary-method-add	signature closure)
-		#'(primary-method-add	signature closure))
-	       ((_ :after-method-add	signature closure)
-		#'(after-method-add	signature closure))
-	       ((_ :before-method-add	signature closure)
-		#'(before-method-add	signature closure))
-	       ((_ :around-method-add	signature closure)
-		#'(around-method-add	signature closure))
+    ((_ ?name (?formal ...) ?uid-list-of ?reverse-before-methods (list ?generic ...))
+     (sx.all-identifiers? #'(?formal ... ?generic ...))
+     (let* ((number-of-arguments	(length (sx.unwrap #'(?formal ...))))
+	    (generic-identifiers	(sx.unwrap #'(?generic ...)))
+	    (methods-arguments
+	     (fold-left
+	      (lambda (knil id)
+		(let ((prop (ip.ref id #'pk.generic-function)))
+		  (unless (= number-of-arguments (prop.generic-number-of-arguments prop))
+		    (synner "attempt to merge generic function with wrong number of arguments" id))
+		  (append knil (prop.generic-methods-arguments prop))))
+	      '()
+	      generic-identifiers)))
+       (with-syntax ((NUMBER-OF-ARGUMENTS	number-of-arguments)
+		     (METHODS-ARGUMENTS		methods-arguments))
+	 #'(begin
+	     (define number-of-arguments NUMBER-OF-ARGUMENTS)
+	     (mt.define-methods-table ?name
+				      primary-methods-alist primary-method-add
+				      primary-cache-store primary-cache-ref
+				      (mt.merge-methods-alists (?generic :primary-methods-alist) ...))
+	     (mt.define-methods-table ?name
+				      before-methods-alist before-method-add
+				      before-cache-store before-cache-ref
+				      (mt.merge-methods-alists (?generic :before-methods-alist)  ...))
+	     (mt.define-methods-table ?name
+				      after-methods-alist after-method-add
+				      after-cache-store after-cache-ref
+				      (mt.merge-methods-alists (?generic :after-methods-alist)   ...))
+	     (mt.define-methods-table ?name
+				      around-methods-alist around-method-add
+				      around-cache-store around-cache-ref
+				      (mt.merge-methods-alists (?generic :around-methods-alist)  ...))
+	     (define reverse-before-methods ?reverse-before-methods)
+	     (define (implementation . arguments)
+	       (generic*-function-implementation
+		'?name
+		primary-methods-alist primary-cache-ref primary-cache-store
+		before-methods-alist  before-cache-ref  before-cache-store
+		after-methods-alist   after-cache-ref   after-cache-store
+		around-methods-alist  around-cache-ref  around-cache-store
+		?uid-list-of number-of-arguments reverse-before-methods arguments))
+	     (define-syntax ?name
+	       (lambda (stx)
+		 (syntax-case stx (:primary-method-add :primary-methods-alist
+						       :after-method-add :after-methods-alist
+						       :before-method-add :before-methods-alist
+						       :around-method-add :around-methods-alist
+						       :number-of-arguments)
+		   ((_ :primary-method-add	signature closure)
+		    #'(primary-method-add	signature closure))
+		   ((_ :after-method-add	signature closure)
+		    #'(after-method-add	signature closure))
+		   ((_ :before-method-add	signature closure)
+		    #'(before-method-add	signature closure))
+		   ((_ :around-method-add	signature closure)
+		    #'(around-method-add	signature closure))
 
-	       ((_ :primary-methods-alist)	#'primary-methods-alist)
-	       ((_ :before-methods-alist)	#'before-methods-alist)
-	       ((_ :after-methods-alist)	#'after-methods-alist)
-	       ((_ :around-methods-alist)	#'around-methods-alist)
+		   ((_ :primary-methods-alist)	#'primary-methods-alist)
+		   ((_ :before-methods-alist)	#'before-methods-alist)
+		   ((_ :after-methods-alist)	#'after-methods-alist)
+		   ((_ :around-methods-alist)	#'around-methods-alist)
 
-	       ((_ :number-of-arguments)
-		#'number-of-arguments)
-	       ((_ ?arg (... ...))
-		#'(implementation ?arg (... ...)))
-	       (_
-		(syntax-violation '?name "invalid arguments to generic function" (syntax->datum stx))))))
-	 ))
+		   ((_ :number-of-arguments)
+		    #'number-of-arguments)
+		   ((_ ?arg (... ...))
+		    #'(implementation ?arg (... ...)))
+		   (_
+		    (syntax-violation '?name
+		      "invalid arguments to generic function"
+		      (syntax->datum stx))))))
+	     ;;Remember that  first we bind ?NAME and  then we associate
+	     ;;properties to it.
+	     (define-for-expansion-evaluation
+	       (ip.define #'?name #'pk.generic-function
+			  (prop.make-generic (sx.unwrap #'NUMBER-OF-ARGUMENTS)
+					     (sx.unwrap #'METHODS-ARGUMENTS))))
+	     ))))
     (_
      (synner "invalid arguments for generic function definition"))))
 
@@ -497,28 +529,70 @@
     (_
      (synner "invalid syntax in method definition"))))
 
-(define-syntax add-method
-  (syntax-rules (:primary :before :after :around)
-    ((_ ?generic-function :primary (?type-id ...) ?closure)
-     (?generic-function :primary-method-add
-			(list (type.uid-list ?type-id) ...) ;this is the signature
-			?closure))
-    ((_ ?generic-function :before (?type-id ...) ?closure)
-     (?generic-function :before-method-add
-			(list (type.uid-list ?type-id) ...) ;this is the signature
-			?closure))
-    ((_ ?generic-function :after (?type-id ...) ?closure)
-     (?generic-function :after-method-add
-			(list (type.uid-list ?type-id) ...) ;this is the signature
-			?closure))
-    ((_ ?generic-function :around (?type-id ...) ?closure)
-     (?generic-function :around-method-add
-			(list (type.uid-list ?type-id) ...) ;this is the signature
-			?closure))
+(define-syntax* (add-method stx)
+  (define (%register-method generic-id arg-type-ids)
+    (let* ((prop		(ip.ref generic-id #'pk.generic-function #f))
+	   (arg-type-ids	(sx.unwrap arg-type-ids))
+	   (gf-num-of-args	(prop.generic-number-of-arguments prop))
+	   (mt-num-of-args	(length arg-type-ids)))
+      (unless prop
+	(synner "invalid identifier as generic function name" (syntax->datum generic-id)))
+      (unless (= mt-num-of-args gf-num-of-args)
+	(synner (string-append "attempt to define method with wrong number of arguments, expected "
+			       (number->string gf-num-of-args) " got " (number->string mt-num-of-args))
+		generic-id))
+      (prop.generic-methods-arguments-set! prop (cons arg-type-ids
+						      (prop.generic-methods-arguments prop)))))
+  (syntax-case stx ()
+    ((_ ?generic-function ?keyword (?type-id ...) ?closure)
+     (sx.all-identifiers? #'(?generic-function ?keyword ?type-id ...))
+     (with-syntax ((KEYWORD (sx.case-identifier #'?keyword
+						((:primary)	#':primary-method-add)
+						((:before)	#':before-method-add)
+						((:after)	#':after-method-add)
+						((:around)	#':around-method-add)
+						(else
+						 (synner "invalid generic function kind" #'?keyword)))))
+       (%register-method #'?generic-function #'(?type-id ...))
+       #'(?generic-function KEYWORD
+			    (list (type.uid-list ?type-id) ...) ;this is the signature
+			    ?closure)))
     ((_ ?generic-function (?type-id ...) ?closure)
-     (?generic-function :primary-method-add
-			(list (type.uid-list ?type-id) ...) ;this is the signature
-			?closure))
+     (sx.all-identifiers? #'(?generic-function ?type-id ...))
+     (begin
+       (%register-method #'?generic-function #'(?type-id ...))
+       #'(?generic-function :primary-method-add
+			    (list (type.uid-list ?type-id) ...) ;this is the signature
+			    ?closure)))
+
+    ;; ((_ ?generic-function :primary (?type-id ...) ?closure)
+    ;;  (begin
+    ;;    (%register-method #'generic-function #'(?type-id ...))
+    ;;    #'(?generic-function :primary-method-add
+    ;; 			    (list (type.uid-list ?type-id) ...) ;this is the signature
+    ;; 			    ?closure)))
+    ;; ((_ ?generic-function :before (?type-id ...) ?closure)
+    ;;  (begin
+    ;;    (%register-method #'generic-function #'(?type-id ...))
+    ;;    #'(?generic-function :before-method-add
+    ;; 			    (list (type.uid-list ?type-id) ...) ;this is the signature
+    ;; 			    ?closure)))
+    ;; ((_ ?generic-function :after (?type-id ...) ?closure)
+    ;;  #'(?generic-function :after-method-add
+    ;; 			  (list (type.uid-list ?type-id) ...) ;this is the signature
+    ;; 			  ?closure))
+    ;; ((_ ?generic-function :around (?type-id ...) ?closure)
+    ;;  (begin
+    ;;    (%register-method #'generic-function #'(?type-id ...))
+    ;;    #'(?generic-function :around-method-add
+    ;; 			    (list (type.uid-list ?type-id) ...) ;this is the signature
+    ;; 			    ?closure)))
+    ;; ((_ ?generic-function (?type-id ...) ?closure)
+    ;;  (begin
+    ;;    (%register-method #'generic-function #'(?type-id ...))
+    ;;    #'(?generic-function :primary-method-add
+    ;; 			    (list (type.uid-list ?type-id) ...) ;this is the signature
+    ;; 			    ?closure)))
     ))
 
 

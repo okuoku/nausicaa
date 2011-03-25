@@ -43,7 +43,7 @@
     (fields b)
     (methods (doit doit)))
 
-  (define-generic doit)
+  (define-generic doit (o arg))
 
   (define-method (doit (o <alpha>) arg)
     (list 'doit-alpha arg))
@@ -80,7 +80,7 @@
     (fields b)
     (methods (doit doit)))
 
-  (define-generic* doit
+  (define-generic* doit (o arg)
     (reverse-before-methods #t))
 
   (define-method (doit (o <alpha>) arg)

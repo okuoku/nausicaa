@@ -40,6 +40,7 @@
     all-identifiers?			duplicate-identifiers?
     delete-duplicate-identifiers	identifier-memq
     symbol-identifier=?			identifier-subst
+    case-identifier
 
     ;; common identifier names constructor
     identifier->string			string->identifier
@@ -272,6 +273,22 @@
 	     stx
 	     (unwrap src-ids)
 	     (unwrap dst-ids)))
+
+(define-syntax case-identifier
+  (syntax-rules (else)
+    ((_ ?keyword ((?id ...) ?body0 ?body ...) ... (else ?else0 ?else ...))
+     (let ((keyword ?keyword))
+       (cond ((identifier-memq keyword (list #'?id ...))
+	      ?body0 ?body ...)
+	     ...
+	     (else
+	      ?else0 ?else ...))))
+    ((_ ?keyword ((?id ...) ?body0 ?body ...) ...)
+     (let ((keyword ?keyword))
+       (cond ((identifier-memq keyword (list #'?id ...))
+	      ?body0 ?body ...)
+	     ...)))
+    ))
 
 
 (define (string-general-append arg . args)

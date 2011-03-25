@@ -1,14 +1,14 @@
 ;;; -*- coding: utf-8-unix -*-
 ;;;
 ;;;Part of: Nausicaa/Scheme
-;;;Contents: test for method overloading with classes library
-;;;Date: Sun Jun 27, 2010
+;;;Contents: expand time property values for generic functions
+;;;Date: Fri Mar 25, 2011
 ;;;
 ;;;Abstract
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2010, 2011 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (C) 2011 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -25,42 +25,29 @@
 ;;;
 
 
-(import (nausicaa)
-  (nausicaa checks))
-
-(check-set-mode! 'report-failed)
-(display "*** testing classes method overloading\n")
+#!r6rs
+(library (nausicaa language generics properties)
+  (export
+    make-generic		generic?
+    generic-number-of-arguments
+    generic-methods-arguments	generic-methods-arguments-set!)
+  (import (rnrs records syntactic))
 
 
-(parametrise ((check-test-name	'basic))
-
-  (define-class <alpha>
-    (fields a)
-    (methods doit))
-
-  (define-generic <alpha>-doit (o v))
-
-  (define-method (<alpha>-doit (o <alpha>) (v <char>))
-    (cons 'char v))
-
-  (define-method (<alpha>-doit (o <alpha>) (v <integer>))
-    (cons 'int  v))
-
-  (check
-      (let (((o <alpha>) (make <alpha> 1)))
-	(o.doit #\a))
-    => '(char . #\a))
-
-  (check
-      (let (((o <alpha>) (make <alpha> 1)))
-	(o.doit 2))
-    => '(int . 2))
-
-  #t)
+(define-record-type generic
+  ;;Records of this type are  meant to be associated to generic function
+  ;;identifiers using the :GENERIC-FUNCTION auxiliary keyword defined in
+  ;;(nausicaa language property-identifiers).
+  ;;
+  (nongenerative nausicaa:language:generics:properties:generic)
+  (opaque #t)
+  (sealed #t)
+  (fields (immutable number-of-arguments)
+	  (mutable   methods-arguments)))
 
 
 ;;;; done
 
-(check-report)
+)
 
 ;;; end of file

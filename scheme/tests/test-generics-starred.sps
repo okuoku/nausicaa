@@ -39,15 +39,29 @@
   (check	;wrong num args in method definition
       (guard (E ((syntax-violation? E)
 ;;;(write (condition-message E))(newline)
-		 (syntax-violation-form E))
+		 (syntax-violation-subform E))
 		(else E))
 	(eval '(let ()
-		 (define-generic* a)
+		 (define-generic* a (b))
 		 (define-method (a b) #f)
 		 (define-method (a b c) #f)
                  #f)
 	      (environment '(nausicaa))))
-    => '((nausicaa:builtin:<top>) (nausicaa:builtin:<top>)))
+    => 'a)
+
+  (check
+      (guard (E ((syntax-violation? E)
+;;;(write (condition-message E))(newline)
+		 (syntax-violation-subform E))
+		(else E))
+	(eval '(let ()
+		 (define-generic* a (p))
+		 (define-generic* b (p q))
+		 (define-generic* c (p)
+		   (merge a b))
+                 #f)
+	      (environment '(nausicaa))))
+    => 'b)
 
   #t)
 
@@ -70,7 +84,7 @@
 	      (mutable h)
 	      (mutable i)))
 
-    (define-generic* alpha)
+    (define-generic* alpha (o))
 
     (define-method alpha :primary ((o <one>))
       (<one>-a o))
@@ -105,7 +119,7 @@
 	      (mutable e)
 	      (mutable f)))
 
-    (define-generic* alpha)
+    (define-generic* alpha (o))
 
     (define-method :primary alpha ((o <one>))
       (<one>-a o))
@@ -123,7 +137,7 @@
   (let ()
     ;;Built in types.
 
-    (define-generic* alpha)
+    (define-generic* alpha (o))
 
     (define-method :primary alpha ((o <fixnum>))	'<fixnum>)
     (define-method :primary alpha ((o <flonum>))	'<flonum>)
@@ -159,7 +173,7 @@
 	    (mutable h)
 	    (mutable i)))
 
-  (define-generic* alpha)
+  (define-generic* alpha (o))
 
   (define-method :primary (alpha (o <one>))
     (<one>-a o))
@@ -218,7 +232,7 @@
 ;;; --------------------------------------------------------------------
 ;;; Two levels specificity.
   (let ()
-    (define-generic* alpha)
+    (define-generic* alpha (p q r))
     (define-method :primary (alpha (p <1>) (q <2>) (r <3>)) 1)
     (define-method :primary (alpha (p <a>) (q <b>) (r <c>)) 2)
     (check (alpha n1 n2 n3) => 1)
@@ -231,7 +245,7 @@
 ;;; --------------------------------------------------------------------
 ;;; Mixed levels specificity.
   (let ()
-    (define-generic* alpha)
+    (define-generic* alpha (p q r))
     (define-method :primary (alpha (p <1>) (q <2>) (r <3>)) 1)
     (define-method :primary (alpha (p <1>) (q <b>) (r <3>)) 2)
     (define-method :primary (alpha (p <a>) (q <b>) (r <c>)) 3)
@@ -242,7 +256,7 @@
     (check (alpha  a  b  c) => 3)
     )
   (let ()
-    (define-generic* alpha)
+    (define-generic* alpha (p q r))
     (define-method :primary (alpha (p <1>) (q <2>) (r <3>)) 1)
     (define-method :primary (alpha (p <1>) (q <b>) (r <c>)) 2)
     (define-method :primary (alpha (p <a>) (q <b>) (r <c>)) 3)
@@ -256,7 +270,7 @@
 ;;; --------------------------------------------------------------------
 ;;; Overwriting existing method.
   (let ()
-    (define-generic* alpha)
+    (define-generic* alpha (p))
     (define-method :primary (alpha (p <1>)) 123)
     (define-method :primary (alpha (p <1>)) 456)
     (check (alpha n1) => 456))
@@ -282,8 +296,8 @@
 	      (mutable h)
 	      (mutable i)))
 
-    (define-generic* alpha)
-    (define-generic* beta)
+    (define-generic* alpha (o))
+    (define-generic* beta  (o))
 
     (define-method :primary (alpha (o <one>))
       'alpha-one)
@@ -295,7 +309,7 @@
       'beta-three)
 
     (let ()
-      (define-generic* gamma
+      (define-generic* gamma (o)
 	(merge alpha beta))
 
       (let ((a (make-<one> 1 10 100))
@@ -318,7 +332,7 @@
 
   (check	;:BEFORE method calls next method
       (let ()
-	(define-generic* alpha)
+	(define-generic* alpha (o))
 	(define-method :primary alpha ((o <a>)) 1)
 	(define-method :before  alpha ((o <a>)) (call-next-method))
 	(guard (E ((assertion-violation? E)
@@ -330,7 +344,7 @@
 
   (check	;:AFTER method calls next method
       (let ()
-	(define-generic* alpha)
+	(define-generic* alpha (o))
 	(define-method :primary alpha ((o <a>)) 1)
 	(define-method :after   alpha ((o <a>)) (call-next-method))
 	(guard (E ((assertion-violation? E)
@@ -342,7 +356,7 @@
 
   (check	;invoke next-method from :primary when none is available
       (let ()
-	(define-generic* alpha)
+	(define-generic* alpha (o))
 	(define-method alpha ((o <a>)) (call-next-method))
 	(guard (E ((assertion-violation? E)
 ;;;(write (condition-message E))(newline)
@@ -353,7 +367,7 @@
 
   (check	;invoke next-method from :around when none is available
       (let ()
-	(define-generic* alpha)
+	(define-generic* alpha (o))
 	(define-method :around alpha ((o <a>)) (call-next-method))
 	(guard (E ((assertion-violation? E)
 ;;;(write (condition-message E))(newline)
@@ -364,7 +378,7 @@
 
   (check	;invoke next-method from :primary when none is available
       (let ()
-	(define-generic* alpha)
+	(define-generic* alpha (o))
 	(define-method :around  alpha ((o <a>)) (call-next-method))
 	(define-method :primary alpha ((o <a>)) (call-next-method))
 	(guard (E ((assertion-violation? E)
@@ -391,7 +405,7 @@
 
   (check	;call :AROUND method instead of :PRIMARY
       (with-result
-       (define-generic* alpha)
+       (define-generic* alpha (o))
        (define-method :around  alpha ((o <A>))
 	 (add-result 'around-A))
        (define-method :primary alpha ((o <A>))
@@ -401,7 +415,7 @@
 
   (check	;consume all the :AROUND methods, avoid :PRIMARY
       (with-result
-       (define-generic* alpha)
+       (define-generic* alpha (o))
        (define-method alpha :around  ((o <B>))
 	 (add-result 'around-B)
 	 (call-next-method))
@@ -414,7 +428,7 @@
 
   (check	;call :PRIMARY method after the :AROUND methods have been consumed
       (with-result
-       (define-generic* alpha)
+       (define-generic* alpha (o))
        (define-method alpha :around  ((o <B>))
 	 (add-result 'around-B)
 	 (call-next-method))
@@ -428,7 +442,7 @@
 
   (check	;consume all the :PRIMARY methods after the :AROUND methods have been consumed
       (with-result
-       (define-generic* alpha)
+       (define-generic* alpha (o))
        (define-method alpha :around  ((o <B>))
 	 (add-result 'around-B)
 	 (call-next-method))
@@ -460,7 +474,7 @@
 
   (check	;call :BEFORE and :PRIMARY
       (with-result
-       (define-generic* alpha)
+       (define-generic* alpha (o))
        (define-method :before  alpha ((o <A>))
 	 (add-result 'before-A))
        (define-method :primary alpha ((o <A>))
@@ -470,7 +484,7 @@
 
   (check	;call the :BEFORE methods, then :PRIMARY
       (with-result
-       (define-generic* alpha)
+       (define-generic* alpha (o))
        (define-method alpha :before  ((o <B>))
 	 (add-result 'before-B))
        (define-method alpha :before  ((o <A>))
@@ -482,7 +496,7 @@
 
   (check	;consume all the :PRIMARY methods after the :BEFORE methods have been called
       (with-result
-       (define-generic* alpha)
+       (define-generic* alpha (o))
        (define-method alpha :before  ((o <B>))
 	 (add-result 'before-B))
        (define-method alpha :before  ((o <A>))
@@ -512,7 +526,7 @@
 
   (check	;call :AFTER and :PRIMARY
       (with-result
-       (define-generic* alpha)
+       (define-generic* alpha (o))
        (define-method :after  alpha ((o <A>))
 	 (add-result 'after-A))
        (define-method :primary alpha ((o <A>))
@@ -522,7 +536,7 @@
 
   (check	;call the :PRIMARY method, then the :AFTER ones
       (with-result
-       (define-generic* alpha)
+       (define-generic* alpha (o))
        (define-method alpha :after  ((o <B>))
 	 (add-result 'after-B))
        (define-method alpha :after  ((o <A>))
@@ -534,7 +548,7 @@
 
   (check	;consume all the :PRIMARY methods the call the :AFTER methods
       (with-result
-       (define-generic* alpha)
+       (define-generic* alpha (o))
        (define-method alpha :after  ((o <B>))
 	 (add-result 'after-B))
        (define-method alpha :after  ((o <A>))
@@ -564,7 +578,7 @@
 
   (check
       (with-result
-       (define-generic* alpha)
+       (define-generic* alpha (o))
        (define-method :before  alpha ((o <A>))
 	 (add-result 'before-A))
        (define-method :after  alpha ((o <A>))
@@ -579,7 +593,7 @@
 
   (check
       (with-result
-       (define-generic* alpha)
+       (define-generic* alpha (o))
        (define-method :before  alpha ((o <A>))
 	 (add-result 'before-A))
        (define-method :after  alpha ((o <A>))

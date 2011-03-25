@@ -1301,7 +1301,7 @@ language classes} library, but we can do it using the facilities of the
   (fields a)
   (methods doit))
 
-(define-generic <alpha>-doit)
+(define-generic <alpha>-doit (o v))
 
 (define-method (<alpha>-doit (o <alpha>) (v <char>))
   (cons 'char v))
@@ -1535,8 +1535,8 @@ from @library{nausicaa language generics} can be used to define
 @example
 ;; the interface <iface> has two methods
 
-(define-generic iface-one)
-(define-generic iface-two)
+(define-generic iface-one (o))
+(define-generic iface-two (o))
 
 (define-label <iface>
   (methods (one iface-one)

@@ -40,6 +40,9 @@ Meaningless usage examples:
 (get-type b) @result{} int
 @end example
 
+Property keywords used in @value{PACKAGE} should be exported by the
+library @library{nausicaa language property-keywords}.
+
 
 @deffn Syntax define-identifier-property @var{subject} @var{key} @var{value}
 Expand to a dummy definition; associate @var{value} (the syntax object)

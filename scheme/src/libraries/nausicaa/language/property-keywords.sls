@@ -1,14 +1,16 @@
-;;; -*- coding: utf-8 -*-
+;;; -*- coding: utf-8-unix -*-
 ;;;
 ;;;Part of: Nausicaa/Scheme
-;;;Contents: object->string implementation
-;;;Date: Mon Jul  5, 2010
+;;;Contents: definitions of identifiers to be used as property keywords
+;;;Date: Fri Mar 25, 2011
 ;;;
 ;;;Abstract
 ;;;
+;;;	This library exports auxiliary  syntax identifiers to be used as
+;;;	property   keywords   by    the   library   (nausicaa   language
+;;;	identifier-properties).
 ;;;
-;;;
-;;;Copyright (c) 2010, 2011 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (C) 2011 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -26,17 +28,10 @@
 
 
 #!r6rs
-(library (nausicaa generics object-to-string)
-  (export object->string)
-  (import (rnrs)
-    (nausicaa language generics))
-
-  (define-generic object->string (o))
-
-  (define-method (object->string o)
-    (call-with-string-output-port
-	(lambda (port)
-	  (display o port))))
+(library (nausicaa language property-keywords)
+  (export generic-function)
+  (import (rnrs base))
+  (define-syntax generic-function (syntax-rules ()))
   )
 
 ;;; end of file

@@ -1,7 +1,7 @@
 ;;; -*- coding: utf-8-unix -*-
 ;;;
 ;;;Part of: Nausicaa/Scheme
-;;;Contents: usage tests for (generics)
+;;;Contents: usage tests for ordinary generic functions
 ;;;Date: Mon Jul  5, 2010
 ;;;
 ;;;Abstract
@@ -40,15 +40,29 @@
   (check
       (guard (E ((syntax-violation? E)
 ;;;(write (condition-message E))(newline)
-		 (syntax-violation-form E))
+		 (syntax-violation-subform E))
 		(else E))
 	(eval '(let ()
-		 (define-generic a)
+		 (define-generic a (b))
 		 (define-method (a b) #f)
 		 (define-method (a b c) #f)
                  #f)
 	      (environment '(nausicaa))))
-    => '((nausicaa:builtin:<top>) (nausicaa:builtin:<top>)))
+    => 'a)
+
+  (check
+      (guard (E ((syntax-violation? E)
+;;;(write (condition-message E))(newline)
+		 (syntax-violation-subform E))
+		(else E))
+	(eval '(let ()
+		 (define-generic a (p))
+		 (define-generic b (p q))
+		 (define-generic c (p)
+		   (merge a b))
+                 #f)
+	      (environment '(nausicaa))))
+    => 'b)
 
   #t)
 
@@ -71,7 +85,7 @@
 	      (mutable h)
 	      (mutable i)))
 
-    (define-generic alpha)
+    (define-generic alpha (o))
 
     (define-method alpha ((o <one>))
       (<one>-a o))
@@ -106,7 +120,7 @@
 	      (mutable e)
 	      (mutable f)))
 
-    (define-generic alpha)
+    (define-generic alpha (o))
 
     (define-method alpha ((o <one>))
       (<one>-a o))
@@ -124,7 +138,7 @@
   (let ()
     ;;Built in types.
 
-    (define-generic alpha)
+    (define-generic alpha (o))
 
     (define-method alpha ((o <fixnum>))		'<fixnum>)
     (define-method alpha ((o <flonum>))		'<flonum>)
@@ -160,7 +174,7 @@
 	    (mutable h)
 	    (mutable i)))
 
-  (define-generic alpha)
+  (define-generic alpha (o))
 
   (define-method (alpha (o <one>))
     (<one>-a o))
@@ -219,7 +233,7 @@
 ;;; --------------------------------------------------------------------
 ;;; Two levels specificity.
   (let ()
-    (define-generic alpha)
+    (define-generic alpha (p q r))
     (define-method (alpha (p <1>) (q <2>) (r <3>)) 1)
     (define-method (alpha (p <a>) (q <b>) (r <c>)) 2)
     (check (alpha n1 n2 n3) => 1)
@@ -232,7 +246,7 @@
 ;;; --------------------------------------------------------------------
 ;;; Mixed levels specificity.
   (let ()
-    (define-generic alpha)
+    (define-generic alpha (p q r))
     (define-method (alpha (p <1>) (q <2>) (r <3>)) 1)
     (define-method (alpha (p <1>) (q <b>) (r <3>)) 2)
     (define-method (alpha (p <a>) (q <b>) (r <c>)) 3)
@@ -243,7 +257,7 @@
     (check (alpha  a  b  c) => 3)
     )
   (let ()
-    (define-generic alpha)
+    (define-generic alpha (p q r))
     (define-method (alpha (p <1>) (q <2>) (r <3>)) 1)
     (define-method (alpha (p <1>) (q <b>) (r <c>)) 2)
     (define-method (alpha (p <a>) (q <b>) (r <c>)) 3)
@@ -257,7 +271,7 @@
 ;;; --------------------------------------------------------------------
 ;;; Overwriting existing method.
   (let ()
-    (define-generic alpha)
+    (define-generic alpha (p))
     (define-method (alpha (p <1>)) 123)
     (define-method (alpha (p <1>)) 456)
     (check (alpha n1) => 456))
@@ -265,7 +279,7 @@
   #t)
 
 
-(parameterise ((check-test-name 'merge))
+#;(parameterise ((check-test-name 'merge))
 
   (let ()	;merge without signature conflict
     (define-class <one>
@@ -283,8 +297,8 @@
 	      (mutable h)
 	      (mutable i)))
 
-    (define-generic alpha)
-    (define-generic beta)
+    (define-generic alpha (o))
+    (define-generic beta  (o))
 
     (define-method (alpha (o <one>))
       'alpha-one)
@@ -295,7 +309,7 @@
     (define-method (beta (o <three>))
       'beta-three)
 
-    (define-generic gamma
+    (define-generic gamma (o)
       (merge alpha beta))
 
     (define a (make-<one> 1 10 100))
@@ -326,8 +340,8 @@
 	      (mutable h)
 	      (mutable i)))
 
-    (define-generic alpha)
-    (define-generic beta)
+    (define-generic alpha (o))
+    (define-generic beta  (o))
 
     (define-method (alpha (o <one>))
       'alpha-one)
@@ -341,7 +355,7 @@
     (define-method (beta (o <two>))	;this is discarded when merging
       'beta-two)
 
-    (define-generic gamma
+    (define-generic gamma (o)
       (merge alpha beta))
 
     (define a (make-<one> 1 10 100))
