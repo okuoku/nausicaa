@@ -29,7 +29,7 @@
   (nausicaa checks))
 
 (check-set-mode! 'report-failed)
-(display "*** testing generic functions as classe methods\n")
+(display "*** testing generic functions as class methods\n")
 
 
 (parametrise ((check-test-name	'method-redefinition))

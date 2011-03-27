@@ -33,7 +33,8 @@
     define-identifier-property
     (rename (ip.define	define)
 	    (ip.set!	set!)
-	    (ip.ref	ref)))
+	    (ip.ref	ref)
+	    (ip.table	table)))
   (import (rnrs)
     (for (prefix (nausicaa language identifier-properties helpers) ip.) expand))
 

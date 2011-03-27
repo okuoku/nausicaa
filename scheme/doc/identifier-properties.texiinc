@@ -75,4 +75,11 @@ transformer); retrieve the value associated to the identifier
 found, return @var{default} which defaults to false.
 @end defun
 
+
+@defun table @var{subject} @var{key}
+Return the property table associated to the arguments.  This is meant to
+be used only for debugging purposes.
+@end defun
+
+
 @c end of file

@@ -67,26 +67,21 @@
 	    (struct-list-of-field-tags		label-list-of-field-tags)))
   (import (rnrs)
     (prefix (nausicaa language identifier-properties) ip.)
-    (for (nausicaa language classes top) (meta -1))
-    (only (nausicaa language extensions)
-	  define-auxiliary-syntaxes))
+    (for (prefix (nausicaa language property-keywords) pk.) (meta -1))
+    (for (nausicaa language classes top) (meta -1)))
 
 
-(define-auxiliary-syntaxes
-  :struct-properties
-  :mixin-clauses)
-
 (define (struct-properties-ref identifier)
-  (ip.ref identifier #':struct-properties #f))
+  (ip.ref identifier #'pk.struct-properties #f))
 
 (define (struct-properties-define identifier value)
-  (ip.define identifier #':struct-properties value))
+  (ip.define identifier #'pk.struct-properties value))
 
 (define (mixin-clauses-ref identifier)
-  (ip.ref identifier #':mixin-clauses #f))
+  (ip.ref identifier #'pk.mixin-clauses #f))
 
 (define (mixin-clauses-define identifier value)
-  (ip.define identifier #':mixin-clauses value))
+  (ip.define identifier #'pk.mixin-clauses value))
 
 
 (define-record-type struct

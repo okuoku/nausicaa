@@ -30,7 +30,8 @@
   (export
     (rename (identifier-property-define	define)
 	    (identifier-property-set!	set!)
-	    (lookup-identifier-property	ref)))
+	    (lookup-identifier-property	ref)
+	    (property-table		table)))
   (import (rnrs)
     (nausicaa language identifier-alists))
 
@@ -81,6 +82,8 @@
 	    (identifier-alist-ref property-table subject default)
 	  default)))))
 
+  (define (property-table subject key)
+    (identifier-alist-ref $table-of-property-tables key #f))
   )
 
 ;;; end of file

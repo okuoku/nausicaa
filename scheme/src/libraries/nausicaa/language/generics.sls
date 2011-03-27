@@ -88,8 +88,6 @@
     (only (nausicaa language auxiliary-syntaxes)
 	  uid-list-of reverse-before-methods merge
 	  :primary :before :after :around)
-    (prefix (nausicaa language property-keywords) pk.)
-    (for (prefix (nausicaa language identifier-properties) ip.) expand)
     (for (prefix (nausicaa language generics properties) prop.) expand))
 
 
@@ -151,12 +149,13 @@
 	    (methods-arguments
 	     (fold-left
 	      (lambda (knil id)
-		(let ((prop (ip.ref id #'pk.generic-function)))
+		(let ((prop (prop.generic-properties-ref id)))
 		  (unless (= number-of-arguments (prop.generic-number-of-arguments prop))
 		    (synner "attempt to merge generic function with wrong number of arguments" id))
 		  (append knil (prop.generic-methods-arguments prop))))
 	      '()
-	      generic-identifiers)))
+	      generic-identifiers))
+	    )
        (with-syntax ((NUMBER-OF-ARGUMENTS	number-of-arguments)
 		     (METHODS-ARGUMENTS		methods-arguments))
 	 #'(begin
@@ -204,9 +203,9 @@
 	     ;;Remember that  first we bind ?NAME and  then we associate
 	     ;;properties to it.
 	     (define-for-expansion-evaluation
-	       (ip.define #'?name #'pk.generic-function
-			  (prop.make-generic (sx.unwrap #'NUMBER-OF-ARGUMENTS)
-					     (sx.unwrap #'METHODS-ARGUMENTS))))
+	       (prop.generic-properties-define #'?name
+					       (prop.make-generic (sx.unwrap #'NUMBER-OF-ARGUMENTS)
+								  (sx.unwrap #'METHODS-ARGUMENTS))))
 	     ))))
 
   (_
@@ -274,12 +273,13 @@
 	    (methods-arguments
 	     (fold-left
 	      (lambda (knil id)
-		(let ((prop (ip.ref id #'pk.generic-function)))
+		(let ((prop (prop.generic-properties-ref id)))
 		  (unless (= number-of-arguments (prop.generic-number-of-arguments prop))
 		    (synner "attempt to merge generic function with wrong number of arguments" id))
 		  (append knil (prop.generic-methods-arguments prop))))
 	      '()
-	      generic-identifiers)))
+	      generic-identifiers))
+	    )
        (with-syntax ((NUMBER-OF-ARGUMENTS	number-of-arguments)
 		     (METHODS-ARGUMENTS		methods-arguments))
 	 #'(begin
@@ -341,9 +341,9 @@
 	     ;;Remember that  first we bind ?NAME and  then we associate
 	     ;;properties to it.
 	     (define-for-expansion-evaluation
-	       (ip.define #'?name #'pk.generic-function
-			  (prop.make-generic (sx.unwrap #'NUMBER-OF-ARGUMENTS)
-					     (sx.unwrap #'METHODS-ARGUMENTS))))
+	       (prop.generic-properties-define #'?name
+					       (prop.make-generic (sx.unwrap #'NUMBER-OF-ARGUMENTS)
+								  (sx.unwrap #'METHODS-ARGUMENTS))))
 	     ))))
     (_
      (synner "invalid arguments for generic function definition"))))
@@ -453,8 +453,6 @@
     (call-methods)))
 
 
-;;;; syntaxes to define and add methods to generics
-
 (define-syntax* (define-method stx)
   ;;Define  a new  starred  method and  store  it in  the given  starred
   ;;generic function.
@@ -529,14 +527,14 @@
     (_
      (synner "invalid syntax in method definition"))))
 
+
 (define-syntax* (add-method stx)
   (define (%register-method generic-id arg-type-ids)
-    (let* ((prop		(ip.ref generic-id #'pk.generic-function #f))
+    (let* ((prop (or (prop.generic-properties-ref generic-id)
+		     (synner "invalid identifier as generic function name" (syntax->datum generic-id))))
 	   (arg-type-ids	(sx.unwrap arg-type-ids))
 	   (gf-num-of-args	(prop.generic-number-of-arguments prop))
 	   (mt-num-of-args	(length arg-type-ids)))
-      (unless prop
-	(synner "invalid identifier as generic function name" (syntax->datum generic-id)))
       (unless (= mt-num-of-args gf-num-of-args)
 	(synner (string-append "attempt to define method with wrong number of arguments, expected "
 			       (number->string gf-num-of-args) " got " (number->string mt-num-of-args))
@@ -546,17 +544,18 @@
   (syntax-case stx ()
     ((_ ?generic-function ?keyword (?type-id ...) ?closure)
      (sx.all-identifiers? #'(?generic-function ?keyword ?type-id ...))
-     (with-syntax ((KEYWORD (sx.case-identifier #'?keyword
-						((:primary)	#':primary-method-add)
-						((:before)	#':before-method-add)
-						((:after)	#':after-method-add)
-						((:around)	#':around-method-add)
-						(else
-						 (synner "invalid generic function kind" #'?keyword)))))
+     (begin
        (%register-method #'?generic-function #'(?type-id ...))
-       #'(?generic-function KEYWORD
+       #`(?generic-function #,(sx.case-identifier #'?keyword
+				((:primary)	#':primary-method-add)
+				((:before)	#':before-method-add)
+				((:after)	#':after-method-add)
+				((:around)	#':around-method-add)
+				(else
+				 (synner "invalid generic function kind" #'?keyword)))
 			    (list (type.uid-list ?type-id) ...) ;this is the signature
 			    ?closure)))
+
     ((_ ?generic-function (?type-id ...) ?closure)
      (sx.all-identifiers? #'(?generic-function ?type-id ...))
      (begin
@@ -564,35 +563,6 @@
        #'(?generic-function :primary-method-add
 			    (list (type.uid-list ?type-id) ...) ;this is the signature
 			    ?closure)))
-
-    ;; ((_ ?generic-function :primary (?type-id ...) ?closure)
-    ;;  (begin
-    ;;    (%register-method #'generic-function #'(?type-id ...))
-    ;;    #'(?generic-function :primary-method-add
-    ;; 			    (list (type.uid-list ?type-id) ...) ;this is the signature
-    ;; 			    ?closure)))
-    ;; ((_ ?generic-function :before (?type-id ...) ?closure)
-    ;;  (begin
-    ;;    (%register-method #'generic-function #'(?type-id ...))
-    ;;    #'(?generic-function :before-method-add
-    ;; 			    (list (type.uid-list ?type-id) ...) ;this is the signature
-    ;; 			    ?closure)))
-    ;; ((_ ?generic-function :after (?type-id ...) ?closure)
-    ;;  #'(?generic-function :after-method-add
-    ;; 			  (list (type.uid-list ?type-id) ...) ;this is the signature
-    ;; 			  ?closure))
-    ;; ((_ ?generic-function :around (?type-id ...) ?closure)
-    ;;  (begin
-    ;;    (%register-method #'generic-function #'(?type-id ...))
-    ;;    #'(?generic-function :around-method-add
-    ;; 			    (list (type.uid-list ?type-id) ...) ;this is the signature
-    ;; 			    ?closure)))
-    ;; ((_ ?generic-function (?type-id ...) ?closure)
-    ;;  (begin
-    ;;    (%register-method #'generic-function #'(?type-id ...))
-    ;;    #'(?generic-function :primary-method-add
-    ;; 			    (list (type.uid-list ?type-id) ...) ;this is the signature
-    ;; 			    ?closure)))
     ))
 
 
@@ -601,3 +571,6 @@
 )
 
 ;;; end of file
+;;Local Variables:
+;;eval: (put 'sx.case-identifier 'scheme-indent-function 1)
+;;End:

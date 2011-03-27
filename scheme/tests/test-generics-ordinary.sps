@@ -35,7 +35,7 @@
 (display "*** testing ordinary generic functions\n")
 
 
-(parameterise ((check-test-name 'errors))
+(parametrise ((check-test-name 'errors))
 
   (check
       (guard (E ((syntax-violation? E)
@@ -67,7 +67,7 @@
   #t)
 
 
-(parameterise ((check-test-name 'simple-inheritance))
+(parametrise ((check-test-name 'simple-inheritance))
 
   (let ()
     (define-class <one>
@@ -157,7 +157,7 @@
   #t)
 
 
-(parameterise ((check-test-name 'next-method))
+(parametrise ((check-test-name 'next-method))
 
   (define-class <one>
     (fields (mutable a)
@@ -200,7 +200,7 @@
   #t)
 
 
-(parameterise ((check-test-name 'specificity))
+(parametrise ((check-test-name 'specificity))
 
   (define-class <a>
     (fields (mutable a)))
@@ -279,7 +279,7 @@
   #t)
 
 
-#;(parameterise ((check-test-name 'merge))
+(parametrise ((check-test-name 'merge))
 
   (let ()	;merge without signature conflict
     (define-class <one>

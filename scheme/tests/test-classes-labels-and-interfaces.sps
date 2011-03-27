@@ -35,8 +35,8 @@
 
 (parametrise ((check-test-name	'example-1))
 
-  (define-generic iface-one)
-  (define-generic iface-two)
+  (define-generic iface-one (o))
+  (define-generic iface-two (o))
 
   (define-label <iface>
     (methods (one iface-one)

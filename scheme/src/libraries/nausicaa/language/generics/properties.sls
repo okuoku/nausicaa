@@ -28,12 +28,26 @@
 #!r6rs
 (library (nausicaa language generics properties)
   (export
+    generic-properties-ref	generic-properties-define
+
     make-generic		generic?
     generic-number-of-arguments
     generic-methods-arguments	generic-methods-arguments-set!)
-  (import (rnrs records syntactic))
+  (import (rnrs)
+    (prefix (nausicaa language identifier-properties) ip.)
+    (for (prefix (nausicaa language property-keywords) pk.) (meta -1)))
 
 
+(define generic-properties-ref
+  (case-lambda
+   ((identifier)
+    (generic-properties-ref identifier #f))
+   ((identifier default)
+    (ip.ref identifier #'pk.generic-function default))))
+
+(define (generic-properties-define identifier value)
+  (ip.define identifier #'pk.generic-function value))
+
 (define-record-type generic
   ;;Records of this type are  meant to be associated to generic function
   ;;identifiers using the :GENERIC-FUNCTION auxiliary keyword defined in

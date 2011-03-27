@@ -750,19 +750,41 @@ methods when we use the @code{reverse-before-methods} clause in
 
 The library @library{nausicaa language generics properties} exports an
 @api{} for expand time which allows inspection of properties of generic
-functions; it is meant to be used with @library{nausicaa language
-identifier-properties} and @library{nausicaa language
-property-keywords}; it is suggested to import these libraries with a
-prefix, as in:
+functions; it is suggested to import this library with a prefix, as in:
 
 @example
 (import (nausicaa)
-  (prefix (nausicaa language property-keywords) pk.)
-  (for (prefix (nausicaa language identifier-properties)
-               ip.)   expand)
   (for (prefix (nausicaa language generics properties)
                prop.) expand))
 @end example
+
+
+@defun generic-properties-define @var{identifier} @var{properties}
+Associate @var{properties-value} to @var{identifier}.  @var{identifier}
+must be an identifier representing the name of a generic function;
+@var{properties} must be the return vlaue of a call to
+@func{make-generic}.
+
+Property values are associated to generic function identifiers by
+@func{define-generic} and @func{define-generic*} with code like:
+
+@example
+(generic-properties-define @var{name}
+  (make-generic @var{number-of-arguments}
+                @var{methods-arguments}))
+@end example
+
+@noindent
+usually, user code has no need to define property values.
+@end defun
+
+
+@defun generic-properties-ref @var{identifier}
+@defunx generic-properties-ref @var{identifier} @var{default}
+If @var{identifier} is an identifier representing the name of a generic
+function: return a properties value; else return @var{default} which
+defaults to false.
+@end defun
 
 
 @defun make-generic @var{number-of-arguments} @var{methods-arguments}
@@ -773,35 +795,14 @@ Scheme types.
 @var{number-of-arguments} must be an exact integer representing the
 number of arguments supported by the generic function.
 
-@var{methods-arguments} must be a list having as one element for each
+@var{methods-arguments} must be a list having one element for each
 registered method; the elements must be lists of class identifiers
 representing the types of arguments.
 @end defun
 
 
-Property values are associated to generic function identifiers by
-@func{define-generic} and @func{define-generic*} with code like:
-
-@example
-(ip.define @cmeta{name} #'pk.generic-function
-           (prop.make-generic @cmeta{number-of-arguments}
-                              @cmeta{methods-arguments}))
-@end example
-
-@noindent
-where @meta{name} is the generic function identifier and
-@code{generic-function} is an auxiliary keyword exported by the library
-@library{nausicaa language property-keywords}; property values can be
-retrieved at expand time with code like:
-
-@example
-(define gf
-  (ip.ref @cmeta{name} #'pk.generic-function #f))
-@end example
-
-
 @defun generic? @var{obj}
-Returne true if @var{obj} is a value representing the properties of a
+Return true if @var{obj} is a value representing the properties of a
 generic function.
 @end defun
 
@@ -814,9 +815,9 @@ function: return an exact integer representing the number of arguments.
 
 @defun generic-methods-arguments @var{gf}
 If @var{gf} is a value representing the properties of a generic
-function: return a list having as one element for each registered
-method; the elements are be lists of class identifiers representing the
-types of arguments.
+function: return a list having one element for each registered method;
+the elements are lists of class identifiers representing the types of
+arguments.
 @end defun
 
 @c end of file

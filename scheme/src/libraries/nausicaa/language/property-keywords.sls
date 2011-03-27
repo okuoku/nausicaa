@@ -30,8 +30,16 @@
 #!r6rs
 (library (nausicaa language property-keywords)
   (export generic-function)
-  (import (rnrs base))
-  (define-syntax generic-function (syntax-rules ()))
-  )
+  (import (only (rnrs base) begin define-syntax syntax-rules ...))
+  (define-syntax def
+    (syntax-rules ()
+      ((_ ?id ...)
+       (begin
+	 (define-syntax ?id (syntax-rules ()))
+	 ...))))
+
+  (def generic-function
+       struct-properties
+       mixin-clauses))
 
 ;;; end of file
