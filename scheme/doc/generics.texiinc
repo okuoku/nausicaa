@@ -15,10 +15,10 @@ the most specific method with respect to the arguments' types is chosen.
 
 The library defines two kinds of generic functions: ordinary and
 starred.  @dfn{Ordinary generic functions} only have one (primary)
-method for each possible tuple of arguments.  @dfn{Starred generic
+method for each possible tuple of argument types.  @dfn{Starred generic
 functions} may have primary, before, after and around methods for each
-possible tuple of arguments; the methods are applied according to a
-defined protocol.
+possible tuple of argument types; the methods are applied (composed)
+according to a defined protocol.
 
 The @library{nausicaa language generics} library is built on top of the
 @library{nausicaa language classes} library, but its interface to types
@@ -58,7 +58,7 @@ classes} library:
 @end example
 
 @noindent
-the record hierarchy is:
+the class hierarchy is:
 
 @example
 <top> -> <one> -> <two> -> <c>
@@ -93,9 +93,8 @@ the signature:
 @noindent
 also the method with @class{one} in the signature is the ``next method''
 of the method with @class{two} in the signature, we can call it using
-@func{call-next-method}.
-
-The following example shows a call to the next method:
+@func{call-next-method}.  The following example shows a call to the next
+method:
 
 @example
 (define-generic fluff (o))
@@ -113,9 +112,9 @@ The following example shows a call to the next method:
 @end example
 
 The syntax @func{define-generic} defines a macro and the syntax
-@func{define-method} add a new method to the generic function; the first
-method definition establishes the number of arguments for the generic
-function: all the methods added afterwards must have the same number of
+@func{define-method} adds a new method to the generic function;
+@func{define-generic} establishes the number of arguments for the
+generic function: all the methods must have the same number of
 arguments.
 
 It is possible to define a function accepting different numbers of

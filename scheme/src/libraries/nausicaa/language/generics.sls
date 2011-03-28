@@ -78,13 +78,12 @@
     (only (nausicaa language makers)
 	  define-maker)
     (for (prefix (only (nausicaa language syntax-utilities)
+		       unwrap
 		       identifier-suffix
 		       identifier-memq
 		       all-identifiers?
-		       unwrap
 		       case-identifier)
-		 sx.)
-	 expand)
+		 sx.) expand)
     (only (nausicaa language auxiliary-syntaxes)
 	  uid-list-of reverse-before-methods merge
 	  :primary :before :after :around)
@@ -154,8 +153,7 @@
 		    (synner "attempt to merge generic function with wrong number of arguments" id))
 		  (append knil (prop.generic-methods-arguments prop))))
 	      '()
-	      generic-identifiers))
-	    )
+	      generic-identifiers)))
        (with-syntax ((NUMBER-OF-ARGUMENTS	number-of-arguments)
 		     (METHODS-ARGUMENTS		methods-arguments))
 	 #'(begin
@@ -213,16 +211,17 @@
 
 
 (define (generic-function-implementation who methods-alist cache-store cache-ref
-					 uid-list-of number-of-arguments arguments)
+					 uid-list-of expected-number-of-arguments arguments)
 
   (define signature
-    (let ((len (length arguments)))
-      (unless number-of-arguments
+    (let ((given-number-of-arguments (length arguments)))
+      (unless expected-number-of-arguments
 	(assertion-violation who "called generic function with no methods"))
-      (unless (= number-of-arguments len)
+      (unless (= expected-number-of-arguments given-number-of-arguments)
 	(assertion-violation who
-	  (string-append "wrong number of arguments, expected " (number->string number-of-arguments)
-			 " given " (number->string len))
+	  (string-append "wrong number of arguments, expected "
+			 (number->string expected-number-of-arguments)
+			 " given " (number->string given-number-of-arguments))
 	  arguments))
       (map uid-list-of arguments)))
   (define applicable-methods
@@ -278,8 +277,7 @@
 		    (synner "attempt to merge generic function with wrong number of arguments" id))
 		  (append knil (prop.generic-methods-arguments prop))))
 	      '()
-	      generic-identifiers))
-	    )
+	      generic-identifiers)))
        (with-syntax ((NUMBER-OF-ARGUMENTS	number-of-arguments)
 		     (METHODS-ARGUMENTS		methods-arguments))
 	 #'(begin
@@ -354,16 +352,17 @@
 					  before-methods-alist  before-cache-ref  before-cache-store
 					  after-methods-alist   after-cache-ref   after-cache-store
 					  around-methods-alist  around-cache-ref  around-cache-store
-					  uid-list-of number-of-arguments reverse-before-methods
+					  uid-list-of expected-number-of-arguments reverse-before-methods
 					  arguments)
   (define signature
-    (let ((len (length arguments)))
-      (unless number-of-arguments
+    (let ((given-number-of-arguments (length arguments)))
+      (unless expected-number-of-arguments
 	(assertion-violation who "called generic function with no methods"))
-      (unless (= number-of-arguments len)
+      (unless (= expected-number-of-arguments given-number-of-arguments)
 	(assertion-violation who
-	  (string-append "wrong number of arguments, expected " (number->string number-of-arguments)
-			 " given " (number->string len))
+	  (string-append "wrong number of arguments, expected "
+			 (number->string expected-number-of-arguments) " given "
+			 (number->string given-number-of-arguments))
 	  arguments))
       (map uid-list-of arguments)))
   (define-inline (apply-function ?method)
