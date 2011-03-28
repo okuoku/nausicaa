@@ -250,6 +250,8 @@ representing a character according to @func{char->integer}.
 
 
 @deffn Syntax percent-encode @ameta{obj} @ameta{clause} ...
+@deffnx {Auxiliary Syntax} char-selector @var{pred}
+@deffnx {Auxiliary Syntax} string-result? @var{bool}
 This syntax is a maker, @nauref{makers, Maker syntaxes}.
 Percent--encode the given object, return the result; characters outside
 a selected range are percent--encoded.
@@ -261,13 +263,13 @@ converted to a bytevector with @func{string->utf8}.
 The following clauses are supported:
 
 @table @code
-@item :char-selector @var{pred}
+@item char-selector @var{pred}
 @var{pred} must be a predicate function which, applied to an integer
 representing a character according to @func{char->integer}, returns true
 if the character must be percent encoded.  The default is to encode all
 the character not unreserved.
 
-@item :string-result? @var{bool}
+@item string-result? @var{bool}
 If @var{bool} is true: return a string, else return a bytevector; the
 default is to return a bytevector.
 @end table
@@ -275,6 +277,7 @@ default is to return a bytevector.
 
 
 @deffn Syntax percent-decode @ameta{obj} @ameta{clause} ...
+@deffnx {Auxiliary Syntax} string-result? @var{bool}
 This syntax is a maker, @nauref{makers, Maker syntaxes}.
 Percent--decode the given @var{obj}, return the result.
 
@@ -284,7 +287,7 @@ the string is converted to a bytevector with @func{string->utf8}.
 The following clauses are supported:
 
 @table @code
-@item :string-result? @var{bool}
+@item string-result? @var{bool}
 If @var{bool} is true: return a string, else return a bytevector; the
 default is to return a bytevector.
 @end table
@@ -322,14 +325,9 @@ binary input port; all of them follow this protocol:
 
 @itemize
 @item
-If the result of the first read operation is @eof{}: the return value is
-@eof{}, which means that the component is not there and it is useless to
-try alternatives.
-
-@item
 If the result of the read operations matches the desired component or
-components: a bytevector or a possibly empty list of bytevectors is
-returned; the operation is successful.
+components: a possibly empty bytevector or a possibly empty list of
+bytevectors is returned; the operation is successful.
 
 @item
 If the result of the read operations does not match the desired
@@ -378,7 +376,7 @@ the one before this function call.
 
 
 @defun parse-hier-part @var{port}
-Accumulate bytes from @var{port} while they are valid for a
+Accumulate bytes from @var{port} while they are acceptable for a
 @code{hier-part} @uri{} component.  If an @eof{} or a question mark or a
 number sign is found: return a bytevector holding the accumulated bytes,
 question mark or number sign excluded; else return false.
@@ -437,11 +435,12 @@ is suggested to prefix them when importing this library.
 
 @defun parse-authority @var{port}
 Accumulate bytes from @var{port} while they are valid for an
-@code{authority} component in the @code{hier-part} of an @uri{}.  The
-first two bytes read must represent, in @ascii{} encoding, two slash
-characters; after the two slashes, if @eof{} or a byte representing a
-slash is read: return a bytevector holding the accumulated bytes, ending
-slash excluded; else return false.
+@code{authority} component in the @code{hier-part} of an @uri{} or the
+@code{relative-part} of a @code{relative-ref}.  The first two bytes read
+must represent, in @ascii{} encoding, two slash characters; after the
+two slashes, if @eof{} or a byte representing a slash is read: return a
+bytevector holding the accumulated bytes, ending slash excluded; else
+return false.
 
 If successful: leave the port position to the byte after the last
 accumulated byte; if an error occurs: rewind the port position to the
@@ -455,8 +454,8 @@ component, equal to a @code{reg-name} component which can be empty.
 
 @defun parse-userinfo @var{port}
 Accumulate bytes from @var{port} while they are valid for an
-@code{userinfo} component in the @code{hier-part} of an @uri{}.  If a
-byte representing an at sign (@samp{@@}), in @ascii{} encoding, is read:
+@code{userinfo} component in the @code{authority} component.  If a byte
+representing an at sign (@samp{@@}), in @ascii{} encoding, is read:
 return a bytevector holding the accumulated bytes, ending at sign
 excluded; else return false.
 
@@ -471,11 +470,11 @@ preceded by nothing).
 
 @defun parse-ip-literal @var{port}
 Accumulate bytes from @var{port} while they are valid for an
-@code{IP-literal} component in the @code{hier-part} of an @uri{}.  The
-first byte must represent an open bracket (@samp{[}) character in
-@ascii{} encoding; if a byte representing a closed bracket (@samp{]}) is
-read: return a bytevector holding the accumulated bytes, brackets
-excluded; else return false.
+@code{IP-literal} component in a @code{host} component.  The first byte
+must represent an open bracket (@samp{[}) character in @ascii{}
+encoding; if a byte representing a closed bracket (@samp{]}) is read:
+return a bytevector holding the accumulated bytes, brackets excluded;
+else return false.
 
 If successful: leave the port position to the byte after the closing
 bracket; if an error occurs: rewind the port position to the one before
@@ -483,17 +482,19 @@ this function call.
 
 No validation is performed on the returned bytevector contents; the
 returned bytevector can be empty even though an @code{IP-literal}
-component cannot be of zero length inside the brackets.
+component cannot be of zero length inside the brackets: it is
+responsibility of the caller to check the length of the returned
+bytevector.
 @end defun
 
 
 @defun parse-ipvfuture @var{port}
 Accumulate bytes from @var{port} while they are valid for an
-@code{IPvFuture} component in the @code{authority} component of an
-@uri{}.  The first byte must represent the character @code{v} in
-@ascii{} encoding and the second byte must represent a single
-hexadecimal digit in @ascii{} encoding; after the prolog is read, bytes
-are accumulated until @eof{} is found.
+@code{IPvFuture} component in the @code{IP-literal} component.  The
+first byte must represent the character @code{v} in @ascii{} encoding
+and the second byte must represent a single hexadecimal digit in
+@ascii{} encoding; after the prolog is read, bytes are accumulated until
+@eof{} is found.
 
 Return two values: an exact integer representing the hexadecimal digit
 in @ascii{} encoding, a bytevector holding the accumulated bytes; else
@@ -511,17 +512,33 @@ component cannot be of zero length inside the brackets.
 
 @defun parse-reg-name @var{port}
 Accumulate bytes from @var{port} while they are valid for a
-@code{reg-name} component in the @code{authority} of an @uri{}; a
-@code{reg-name} is one of the alternatives for a @code{host} component.
-If @eof{} or a byte representing a colon or a slash, in @ascii{}
-encoding, is read: return a bytevector holding the accumulated bytes,
-ending colon or slash excluded; else return false.
+@code{reg-name} component in a @code{host} component.  If @eof{} or a
+byte representing a colon or a slash, in @ascii{} encoding, is read:
+return a bytevector holding the accumulated bytes, ending colon or slash
+excluded; else return false.
 
 If successful: leave the port position to the byte after last one read
 from the port, ending colon or slash excluded; if an error occurs:
 rewind the port position to the one before this function call.
 
 Notice that an empty @code{reg-name} component is valid.
+@end defun
+
+
+@defun parse-port @var{in-port}
+Accumulate bytes from @var{in-port} while they are valid for a
+@code{port} component in the @code{authority} component.  The first byte
+must represent a colon in @ascii{} encoding; after that: if @eof{} or a
+byte nor representing a decimal digit, in @ascii{} encoding, is read:
+return a bytevector holding the accumulated bytes, starting colon
+excluded; else return false.
+
+If successful: leave the port position to the byte after last one read
+from the port; if an error occurs: rewind the port position to the one
+before this function call.
+
+Notice that an empty @code{port} component after the mandatory colon is
+valid: in this case an empty bytevector is returned.
 @end defun
 
 @c page

@@ -70,8 +70,8 @@
   (let ()
 
     (define-inline (doit ch str)
-      (check (low.percent-encode ch  (:string-result? #t)) => str)
-      (check (low.percent-decode str (:string-result? #t)) => (string ch)))
+      (check (low.percent-encode ch  (low.string-result? #t)) => str)
+      (check (low.percent-decode str (low.string-result? #t)) => (string ch)))
 
     (doit #\. ".")
     (doit #\- "-")
@@ -89,8 +89,8 @@
     (define-inline (doit ch str)
       (check
 	  (low.percent-encode ch
-			      (:string-result? #t)
-			      (:char-selector (lambda (chi)
+			      (low.string-result? #t)
+			      (low.char-selector (lambda (chi)
 						   (memv (integer->char chi)
 							 '(#\. #\- #\_ #\~ #\%
 							   #\: #\/ #\?
@@ -102,7 +102,7 @@
 							   #\=))
 						   )))
 	=> str)
-      (check (low.percent-decode str (:string-result? #t)) => (string ch)))
+      (check (low.percent-decode str (low.string-result? #t)) => (string ch)))
 
     (doit #\. "%2E")
     (doit #\- "%2D")
@@ -120,8 +120,8 @@
   (let ()
 
     (define-inline (doit dec enc)
-      (check (low.percent-encode dec (:string-result? #t)) => enc)
-      (check (low.percent-decode enc (:string-result? #t)) => dec))
+      (check (low.percent-encode dec (low.string-result? #t)) => enc)
+      (check (low.percent-decode enc (low.string-result? #t)) => dec))
 
     (doit "" "")
     (doit "ciao" "ciao")
@@ -139,7 +139,7 @@
     => '#vu8(99 105 97 111))
 
   (check
-      (low.percent-decode '#vu8(99 105 97 111) (:string-result? #t))
+      (low.percent-decode '#vu8(99 105 97 111) (low.string-result? #t))
     => "ciao")
 
 ;;; --------------------------------------------------------------------
@@ -468,6 +468,18 @@
 ;;; reg-name
 
   (check
+      (low.to-string (low.parse-reg-name (make-lexer-port "")))
+    => "")
+
+  (check
+      (low.to-string (low.parse-reg-name (make-lexer-port ":80")))
+    => "")
+
+  (check
+      (low.to-string (low.parse-reg-name (make-lexer-port "/ciao")))
+    => "")
+
+  (check
       (low.to-string (low.parse-reg-name (make-lexer-port "the-reg-name")))
     => "the-reg-name")
 
@@ -484,18 +496,6 @@
     => "the-reg-name")
 
   (check
-      (low.to-string (low.parse-reg-name (make-lexer-port ":80")))
-    => "")
-
-  (check
-      (low.to-string (low.parse-reg-name (make-lexer-port "/ciao")))
-    => "")
-
-  (check
-      (low.to-string (low.parse-reg-name (make-lexer-port "")))
-    => "")
-
-  (check
       (low.parse-reg-name (make-lexer-port "#hello#"))
     => #f)
 
@@ -506,6 +506,29 @@
   (check
       (low.parse-reg-name (make-lexer-port "?hello"))
     => #f)
+
+;;; --------------------------------------------------------------------
+;;; port
+
+  (check
+      (let ((result (low.parse-port (make-lexer-port ""))))
+	(and result (low.to-string result)))
+    => #f)
+
+  (check
+      (let ((result (low.parse-port (make-lexer-port ":"))))
+	(and result (low.to-string result)))
+    => "")
+
+  (check
+      (let ((result (low.parse-port (make-lexer-port ":2"))))
+	(and result (low.to-string result)))
+    => "2")
+
+  (check
+      (let ((result (low.parse-port (make-lexer-port ":8080"))))
+	(and result (low.to-string result)))
+    => "8080")
 
   #t)
 
@@ -951,17 +974,70 @@
 			   (check
 			       (receive (authority path-kind segments)
 				   (low.parse-relative-part (make-lexer-port ?input))
-				 (vector authority path-kind (map low.to-string segments)))
+				 (vector (and authority (low.to-string authority))
+					 path-kind (map low.to-string segments)))
 			     => '?expected-vector)))))
+
+;;; with authority
+
+    (doit "//"
+	  #("" path-abempty ()))
+
+    (doit "//ciao.com"
+	  #("ciao.com" path-abempty ()))
+
+    (doit "//ciao.com:8080"
+	  #("ciao.com:8080" path-abempty ()))
+
+    (doit "//marco@ciao.com:8080"
+	  #("marco@ciao.com:8080" path-abempty ()))
+
+    (doit "//ciao.com:8080/"
+	  #("ciao.com:8080" path-abempty ("")))
+
+    (doit "//ciao.com:8080/a"
+	  #("ciao.com:8080" path-abempty ("a")))
+
+    (doit "//ciao.com/a/b/c"
+	  #("ciao.com" path-abempty ("a" "b" "c")))
+
+    (doit "//ciao.com:8080/a/b/c"
+	  #("ciao.com:8080" path-abempty ("a" "b" "c")))
+
+;;; no authority, emtpy path
 
     (doit ""
 	  #(#f path-empty ()))
 
-    (doit "//"
-	  #(#f path-abempty ()))
+;;; no authority, absolute path
+
+    (doit "/"
+	  #(#f path-absolute ()))
+
+    (doit "/a///"
+	  #(#f path-absolute ("a" "" "" "")))
+
+    (doit "/ciao"
+	  #(#f path-absolute ("ciao")))
+
+    (doit "/ciao/hello/salut"
+	  #(#f path-absolute ("ciao" "hello" "salut")))
+
+;;; no authority relative path
+
+    (doit "./"
+	  #(#f path-noscheme ("." "")))
+
+    (doit "./a///"
+	  #(#f path-noscheme ("." "a" "" "" "")))
+
+    (doit "./ciao"
+	  #(#f path-noscheme ("." "ciao")))
+
+    (doit "./ciao/hello/salut"
+	  #(#f path-noscheme ("." "ciao" "hello" "salut")))
 
     #f)
-
 
   #t)
 
