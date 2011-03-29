@@ -571,8 +571,7 @@ drawing characters from an @uri{} bytevector.
 
 @defun parse-segment @var{port}
 Accumulate bytes from @var{port} while they are valid for a
-@code{segment} @uri{} component; notice that an empty @code{segment} is
-valid.
+@code{segment} component; notice that an empty @code{segment} is valid.
 
 If @eof{} or a byte not valid for a @code{segment} is read: return a
 bytevector holding the bytes accumulated so far, invalid byte excluded;
@@ -587,8 +586,8 @@ one before this function call.
 
 @defun parse-segment-nz @var{port}
 Accumulate bytes from @var{port} while they are valid for a
-@code{segment-nz} @uri{} component; notice that an empty
-@code{segment-nz} is @strong{not} valid.
+@code{segment-nz} component; notice that an empty @code{segment-nz} is
+@strong{not} valid: @code{nz} stands for ``non--zero''.
 
 If the first read operation returns @eof{} or an invalid byte: the port
 position is restored to the one before this function call and the return
@@ -608,32 +607,26 @@ one before this function call.
 @defun parse-segment-nz-nc @var{port}
 Like @func{parse-segment-nz}, but parses the @code{segment-nz-nc}
 component which cannot be empty and cannot hold bytes representing colon
-characters in @ascii{} encoding.
+characters in @ascii{} encoding: @code{nz-nc} stands for ``non--zero
+no--colon''.
 @end defun
 
 
 @defun parse-slash-and-segment @var{port}
-Attempt to read from @var{port} the sequence: byte representing a slash
-character in @ascii{} encoding, @code{segment} component; notice that an
-empty @code{segment} is valid.
+Attempt to read from @var{port} the sequence slash character plus
+@code{segment} component; notice that an empty @code{segment} is valid.
 
 If these components are successfully read: return a bytevector (possibly
 empty) holding the accumulated @code{segment} bytes; the port position
 is left pointing to the byte after the last accumulated byte from the
-@code{segment}.  Otherwise:
+@code{segment}.
 
-@itemize
-@item
-If @eof{} is read as first byte: return @eof{}.
+If @eof{} or a byte different from slash is read as first byte: return
+false; the port position is rewind to the one before this function call.
 
-@item
-If a byte different from slash is read as first byte: return false.
-
-@item
-If an invalid percent--encoded sequence is read, an exception is raised
+If an invalid percent.-encoded sequence is read, an exception is raised
 with type @condition{parser-error}; the port position is rewind to the
 one before this function call.
-@end itemize
 @end defun
 
 @c page
@@ -641,10 +634,9 @@ one before this function call.
 @subsection Path @uri{} component parser functions
 
 
-The functions can be used to parse the @code{path-abempty},
+The following functions can be used to parse the @code{path-abempty},
 @code{path-absolute}, @code{path-noscheme}, @code{path-rootless} and
-@code{path-empty} components of an @uri{}; the relevant portion of the
-grammar is:
+@code{path-empty} components; the relevant portion of the grammar is:
 
 @example
 path-abempty  = *( "/" segment )
@@ -657,8 +649,8 @@ path-empty    = 0<pchar>
 @noindent
 notice that all the @code{path-*} components appear in the grammar as
 last components of a @code{hier-part} or @code{relative-part} component,
-which in turn can be followed only by a query (starting with a @samp{?}
-byte) or a fragment (starting with a @samp{#} byte).
+which in turn can be followed only by @eof{}, a query (starting with a
+@samp{?} byte) or a fragment (starting with a @samp{#} byte).
 
 The following bindings are exported by the @library{uri low} library; it
 is suggested to prefix them when importing this library.  All the
@@ -667,10 +659,9 @@ drawing characters from an @uri{} bytevector.
 
 
 @defun parse-path-empty @var{port}
-Parse a @code{path-empty} @uri{} component.  Read one byte from
-@var{port}: if it is @eof{} return @eof{}; if it represents a question
-mark (@samp{?}) or number sign (@samp{#}) in @ascii{} encoding: return
-null; else return false.
+Parse a @code{path-empty} component.  Lookahead one byte from
+@var{port}: if it is @eof{} or a question mark or number sign in
+@ascii{} encoding: return null; else return false.
 
 In any case leave the port position where it was before the function
 call.
@@ -680,7 +671,7 @@ call.
 @defun parse-path-abempty @var{port}
 Parse from @var{port} a, possibly empty, sequence of sequences: byte
 representing the slash character in @ascii{} encoding, @code{segment}
-component.  Return a, possibly empty, list holding bytevectors
+component.  Return a possibly empty list holding bytevectors
 representing the segments.
 
 If successful: leave the port position to the byte after the last read
@@ -694,8 +685,10 @@ one before this function call.
 
 
 @defun parse-path-absolute @var{port}
-Parse from @var{port} a @code{path-absolute} @uri{} component.  Return a
-list holding bytevectors representing the segments, or false.
+Parse from @var{port} a @code{path-absolute} component; it is like
+@func{parse-path-abempty}, but expects a slash character as first byte
+and a non--slash as second byte.  Return a possibly empty list holding
+bytevectors representing the segments, or false.
 
 If successful: leave the port position to the byte after the last read
 byte; if an error occurs: rewind the port position to the one before
@@ -707,8 +700,8 @@ no segments attached.
 
 
 @defun parse-path-noscheme @var{port}
-Parse from @var{port} a @code{path-noscheme} @uri{} component.  Return a
-list holding bytevectors representing the segments, or false.
+Parse from @var{port} a @code{path-noscheme} component.  Return a
+non--empty list holding bytevectors representing the segments, or false.
 
 If successful: leave the port position to the byte after the last read
 byte; if an error occurs: rewind the port position to the one before
@@ -716,13 +709,15 @@ this function call.
 
 Notice that a @code{path-noscheme} must not start with a slash
 character, and then it must have at least one non--empty @code{segment}
-component.
+component; the first @code{segment} must not hold a colon caracter.
 @end defun
 
 
 @defun parse-path-rootless @var{port}
-Parse from @var{port} a @code{path-rootless} @uri{} component.  Return a
-list holding bytevectors representing the segments, or false.
+Parse from @var{port} a @code{path-rootless} component; it is like
+@func{parse-path-abempty}, but expects a non--slash character as first
+byte.  Return a non--empty list holding bytevectors representing the
+segments, or false.
 
 If successful: leave the port position to the byte after the last read
 byte; if an error occurs: rewind the port position to the one before
@@ -735,14 +730,17 @@ component.
 
 
 @defun parse-path @var{port}
-Parse from @var{port} a @code{path} @uri{} component.  Return two
-values: false or one of the symbols @code{path-absolute},
-@code{path-rootless}; the list of bytevectors representing the segments,
-possibly null.
+Parse from @var{port} a @code{path} component.  Return two values: false
+or one of the symbols: @code{path-empty}, @code{path-absolute},
+@code{path-abempty}, @code{path-noscheme}, @code{path-rootless}; the
+list of bytevectors representing the segments, possibly null.
 
 If successful: leave the port position to the byte after the last read
 byte; if an error occurs: rewind the port position to the one before
 this function call.
+
+Notice that the "path" component can be followed only by EOF, a query or
+a fragment.
 @end defun
 
 @c page
