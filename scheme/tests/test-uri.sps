@@ -44,7 +44,7 @@
 	((bytevector? obj)
 	 (open-bytevector-input-port obj))
 	(else
-	 #f)))
+	 (assertion-violation 'make-lexer-port "expecting string or bytevector" obj))))
 
 
 (parametrise ((check-test-name	'string/bytevector))
@@ -243,10 +243,6 @@
 ;;; scheme
 
   (check
-      (low.to-string (low.parse-scheme (make-lexer-port "http://ciao")))
-    => "http")
-
-  (check
       (low.parse-scheme (make-lexer-port ""))
     => #f)
 
@@ -258,43 +254,190 @@
       (low.parse-scheme (make-lexer-port "hel/lo:"))
     => #f)
 
+  (check
+      (let* ((in-port	(make-lexer-port "http://ciao"))
+	     (scheme	(low.to-string (low.parse-scheme in-port)))
+	     (rest	(low.to-string (get-bytevector-some in-port))))
+	(list scheme rest))
+    => '("http" "//ciao"))
+
+  (check
+      (let* ((in-port	(make-lexer-port "A123+-.://ciao"))
+	     (scheme	(low.to-string (low.parse-scheme in-port)))
+	     (rest	(low.to-string (get-bytevector-some in-port))))
+	(list scheme rest))
+    => '("A123+-." "//ciao"))
+
 ;;; --------------------------------------------------------------------
 ;;; hier-part
 
   (check
-      (low.parse-hier-part (make-lexer-port ""))
+      (low.collect-hier-part (make-lexer-port ""))
     => #f)
 
   (check
-      (low.to-string (low.parse-hier-part (make-lexer-port "//ciao")))
+      (let* ((in-port	(make-lexer-port "//"))
+  	     (part	(low.to-string (low.collect-hier-part in-port))))
+  	(list part (eof-object? (lookahead-u8 in-port))))
+    => '("//" #t))
+
+  (check
+      (let* ((in-port	(make-lexer-port "//ciao"))
+  	     (part	(low.to-string (low.collect-hier-part in-port))))
+  	(list part (eof-object? (lookahead-u8 in-port))))
+    => '("//ciao" #t))
+
+  (check
+      (let* ((in-port	(make-lexer-port "//ciao/salut"))
+  	     (part	(low.to-string (low.collect-hier-part in-port))))
+  	(list part (eof-object? (lookahead-u8 in-port))))
+    => '("//ciao/salut" #t))
+
+  (check
+      (let* ((in-port	(make-lexer-port "//ciao?query"))
+  	     (part	(low.to-string (low.collect-hier-part in-port)))
+	     (rest	(low.to-string (get-bytevector-some in-port))))
+  	(list part rest))
+    => '("//ciao" "?query"))
+
+  (check
+      (let* ((in-port	(make-lexer-port "//ciao/salut?query"))
+  	     (part	(low.to-string (low.collect-hier-part in-port)))
+	     (rest	(low.to-string (get-bytevector-some in-port))))
+  	(list part rest))
+    => '("//ciao/salut" "?query"))
+
+  (check
+      (let* ((in-port	(make-lexer-port "//ciao#fragment"))
+  	     (part	(low.to-string (low.collect-hier-part in-port)))
+	     (rest	(low.to-string (get-bytevector-some in-port))))
+  	(list part rest))
+    => '("//ciao" "#fragment"))
+
+  (check
+      (let* ((in-port	(make-lexer-port "//ciao/salut#fragment"))
+  	     (part	(low.to-string (low.collect-hier-part in-port)))
+	     (rest	(low.to-string (get-bytevector-some in-port))))
+  	(list part rest))
+    => '("//ciao/salut" "#fragment"))
+
+  (check
+      (let* ((in-port	(make-lexer-port "/"))
+  	     (part	(low.to-string (low.collect-hier-part in-port))))
+  	(list part (eof-object? (lookahead-u8 in-port))))
+    => '("/" #t))
+
+  (check
+      (let* ((in-port	(make-lexer-port "/ciao"))
+  	     (part	(low.to-string (low.collect-hier-part in-port))))
+  	(list part (eof-object? (lookahead-u8 in-port))))
+    => '("/ciao" #t))
+
+  (check
+      (let* ((in-port	(make-lexer-port "/ciao/salut"))
+  	     (part	(low.to-string (low.collect-hier-part in-port))))
+  	(list part (eof-object? (lookahead-u8 in-port))))
+    => '("/ciao/salut" #t))
+
+  (check
+      (let* ((in-port	(make-lexer-port "/ciao?query"))
+  	     (part	(low.to-string (low.collect-hier-part in-port)))
+	     (rest	(low.to-string (get-bytevector-some in-port))))
+  	(list part rest))
+    => '("/ciao" "?query"))
+
+  (check
+      (let* ((in-port	(make-lexer-port "/ciao/salut?query"))
+  	     (part	(low.to-string (low.collect-hier-part in-port)))
+	     (rest	(low.to-string (get-bytevector-some in-port))))
+  	(list part rest))
+    => '("/ciao/salut" "?query"))
+
+  (check
+      (let* ((in-port	(make-lexer-port "/ciao#fragment"))
+  	     (part	(low.to-string (low.collect-hier-part in-port)))
+	     (rest	(low.to-string (get-bytevector-some in-port))))
+  	(list part rest))
+    => '("/ciao" "#fragment"))
+
+  (check
+      (let* ((in-port	(make-lexer-port "/ciao/salut#fragment"))
+  	     (part	(low.to-string (low.collect-hier-part in-port)))
+	     (rest	(low.to-string (get-bytevector-some in-port))))
+  	(list part rest))
+    => '("/ciao/salut" "#fragment"))
+
+  (check
+      (let* ((in-port	(make-lexer-port "."))
+  	     (part	(low.to-string (low.collect-hier-part in-port))))
+  	(list part (eof-object? (lookahead-u8 in-port))))
+    => '("." #t))
+
+  (check
+      (let* ((in-port	(make-lexer-port "ciao"))
+  	     (part	(low.to-string (low.collect-hier-part in-port))))
+  	(list part (eof-object? (lookahead-u8 in-port))))
+    => '("ciao" #t))
+
+  (check
+      (let* ((in-port	(make-lexer-port "ciao/salut"))
+  	     (part	(low.to-string (low.collect-hier-part in-port))))
+  	(list part (eof-object? (lookahead-u8 in-port))))
+    => '("ciao/salut" #t))
+
+  (check
+      (let* ((in-port	(make-lexer-port "ciao?query"))
+  	     (part	(low.to-string (low.collect-hier-part in-port)))
+	     (rest	(low.to-string (get-bytevector-some in-port))))
+  	(list part rest))
+    => '("ciao" "?query"))
+
+  (check
+      (let* ((in-port	(make-lexer-port "ciao/salut?query"))
+  	     (part	(low.to-string (low.collect-hier-part in-port)))
+	     (rest	(low.to-string (get-bytevector-some in-port))))
+  	(list part rest))
+    => '("ciao/salut" "?query"))
+
+  (check
+      (let* ((in-port	(make-lexer-port "ciao#fragment"))
+  	     (part	(low.to-string (low.collect-hier-part in-port)))
+	     (rest	(low.to-string (get-bytevector-some in-port))))
+  	(list part rest))
+    => '("ciao" "#fragment"))
+
+  (check
+      (let* ((in-port	(make-lexer-port "ciao/salut#fragment"))
+  	     (part	(low.to-string (low.collect-hier-part in-port)))
+	     (rest	(low.to-string (get-bytevector-some in-port))))
+  	(list part rest))
+    => '("ciao/salut" "#fragment"))
+
+;;; --------------------------------------------------------------------
+;;; relative-part
+
+  (check
+      (low.collect-relative-part (make-lexer-port ""))
+    => #f)
+
+  (check
+      (low.to-string (low.collect-relative-part (make-lexer-port "//ciao")))
     => "//ciao")
 
   (check
       (let* ((p (make-lexer-port "//ciao?query"))
-  	     (r (low.to-string (low.parse-hier-part p))))
+  	     (r (low.to-string (low.collect-relative-part p))))
   	(list r (get-u8 p)))
     => `("//ciao" ,(char->integer #\?)))
 
   (check
       (let* ((p (make-lexer-port "//ciao#fragment"))
-  	     (r (low.to-string (low.parse-hier-part p))))
+  	     (r (low.to-string (low.collect-relative-part p))))
   	(list r (get-u8 p)))
     => `("//ciao" ,(char->integer #\#)))
 
 ;;; --------------------------------------------------------------------
 ;;; query
-
-  (check
-      (low.to-string (low.parse-query (make-lexer-port "?the-query???")))
-    => "the-query???")
-
-  (check
-      (low.to-string (low.parse-query (make-lexer-port "?ciao%3dciao#fragment")))
-    => "ciao%3dciao")
-
-  (check
-      (low.to-string (low.parse-query (make-lexer-port "?")))
-    => "")
 
   (check
       (low.parse-query (make-lexer-port ""))
@@ -308,20 +451,23 @@
       (low.parse-query (make-lexer-port "#hello"))
     => #f)
 
+  (check
+      (low.to-string (low.parse-query (make-lexer-port "?")))
+    => "")
+
+  (check
+      (low.to-string (low.parse-query (make-lexer-port "?the-query???")))
+    => "the-query???")
+
+  (check
+      (let* ((in-port	(make-lexer-port "?ciao%3dciao#fragment"))
+	     (query	(low.to-string (low.parse-query in-port)))
+	     (rest	(low.to-string (get-bytevector-some in-port))))
+	(list query rest))
+    => '("ciao%3dciao" "#fragment"))
+
 ;;; --------------------------------------------------------------------
 ;;; fragment
-
-  (check
-      (low.to-string (low.parse-fragment (make-lexer-port "#the-fragment???")))
-    => "the-fragment???")
-
-  (check
-      (low.to-string (low.parse-fragment (make-lexer-port "#ciao%3dciao")))
-    => "ciao%3dciao")
-
-  (check
-      (low.to-string (low.parse-fragment (make-lexer-port "#")))
-    => "")
 
   (check
       (low.parse-fragment (make-lexer-port ""))
@@ -338,6 +484,18 @@
   (check
       (low.parse-fragment (make-lexer-port "?hello"))
     => #f)
+
+  (check
+      (low.to-string (low.parse-fragment (make-lexer-port "#the-fragment???")))
+    => "the-fragment???")
+
+  (check
+      (low.to-string (low.parse-fragment (make-lexer-port "#ciao%3dciao")))
+    => "ciao%3dciao")
+
+  (check
+      (low.to-string (low.parse-fragment (make-lexer-port "#")))
+    => "")
 
   #t)
 
@@ -359,59 +517,137 @@
     => #f)
 
   (check
-      (low.to-string (low.parse-authority (make-lexer-port "//")))
-    => "")
+      (low.parse-authority (make-lexer-port "?ciao"))
+    => #f)
 
   (check
-      (low.to-string (low.parse-authority (make-lexer-port "///")))
-    => "")
+      (low.parse-authority (make-lexer-port "#ciao"))
+    => #f)
 
   (check
-      (low.to-string (low.parse-authority (make-lexer-port "//ciao/")))
-    => "ciao")
+      (let* ((in-port	(make-lexer-port "//"))
+	     (authority	(low.to-string (low.parse-authority in-port))))
+	(list authority (eof-object? (lookahead-u8 in-port))))
+    => '("" #t))
 
   (check
-      (low.to-string (low.parse-authority (make-lexer-port "//ciao:8080/")))
-    => "ciao:8080")
+      (let* ((in-port	(make-lexer-port "//?query"))
+	     (authority	(low.to-string (low.parse-authority in-port)))
+	     (rest	(low.to-string (get-bytevector-some in-port))))
+	(list authority rest))
+    => '("" "?query"))
 
   (check
-      (low.to-string (low.parse-authority (make-lexer-port "//ciao.it:8080/")))
-    => "ciao.it:8080")
+      (let* ((in-port	(make-lexer-port "//#fragment"))
+	     (authority	(low.to-string (low.parse-authority in-port)))
+	     (rest	(low.to-string (get-bytevector-some in-port))))
+	(list authority rest))
+    => '("" "#fragment"))
 
   (check
-      (low.to-string (low.parse-authority (make-lexer-port "//marco@ciao.it:8080/")))
-    => "marco@ciao.it:8080")
+      (let* ((in-port	(make-lexer-port "///"))
+	     (authority	(low.to-string (low.parse-authority in-port)))
+	     (rest	(low.to-string (get-bytevector-some in-port))))
+	(list authority rest))
+    => '("" "/"))
+
+  (check
+      (let* ((in-port	(make-lexer-port "//ciao/salut"))
+	     (authority	(low.to-string (low.parse-authority in-port)))
+	     (rest	(low.to-string (get-bytevector-some in-port))))
+	(list authority rest))
+    => '("ciao" "/salut"))
+
+  (check
+      (let* ((in-port	(make-lexer-port "//ciao:8080/salut"))
+	     (authority	(low.to-string (low.parse-authority in-port)))
+	     (rest	(low.to-string (get-bytevector-some in-port))))
+	(list authority rest))
+    => '("ciao:8080" "/salut"))
+
+  (check
+      (let* ((in-port	(make-lexer-port "//ciao.it:8080/salut"))
+	     (authority	(low.to-string (low.parse-authority in-port)))
+	     (rest	(low.to-string (get-bytevector-some in-port))))
+	(list authority rest))
+    => '("ciao.it:8080" "/salut"))
+
+  (check
+      (let* ((in-port	(make-lexer-port "//marco@ciao.it:8080/salut"))
+	     (authority	(low.to-string (low.parse-authority in-port)))
+	     (rest	(low.to-string (get-bytevector-some in-port))))
+	(list authority rest))
+    => '("marco@ciao.it:8080" "/salut"))
 
 ;;; --------------------------------------------------------------------
 ;;; userinfo
-
-  (check
-      (low.to-string (low.parse-userinfo (make-lexer-port "the-userinfo@")))
-    => "the-userinfo")
-
-  (check
-      (low.to-string (low.parse-userinfo (make-lexer-port "ciao%3dciao@")))
-    => "ciao%3dciao")
-
-  (check
-      (low.to-string (low.parse-userinfo (make-lexer-port "@")))
-    => "")
 
   (check
       (low.parse-userinfo (make-lexer-port ""))
     => #f)
 
   (check
-      (low.parse-userinfo (make-lexer-port "#hello#"))
-    => #f)
+      (let* ((in-port	(make-lexer-port "ciao.it"))
+	     (info	(low.parse-userinfo in-port))
+	     (rest	(low.to-string (get-bytevector-some in-port))))
+	(list info rest))
+    => '(#f "ciao.it"))
 
   (check
-      (low.parse-userinfo (make-lexer-port "hello"))
-    => #f)
+      (let* ((in-port	(make-lexer-port ":8080"))
+	     (info	(low.parse-userinfo in-port))
+	     (rest	(low.to-string (get-bytevector-some in-port))))
+	(list info rest))
+    => '(#f ":8080"))
 
   (check
-      (low.parse-userinfo (make-lexer-port "?hello"))
-    => #f)
+      (let* ((in-port	(make-lexer-port "/hello"))
+	     (info	(low.parse-userinfo in-port))
+	     (rest	(low.to-string (get-bytevector-some in-port))))
+	(list info rest))
+    => '(#f "/hello"))
+
+  (check
+      (let* ((in-port	(make-lexer-port "?hello"))
+	     (info	(low.parse-userinfo in-port))
+	     (rest	(low.to-string (get-bytevector-some in-port))))
+	(list info rest))
+    => '(#f "?hello"))
+
+  (check
+      (let* ((in-port	(make-lexer-port "#hello"))
+	     (info	(low.parse-userinfo in-port))
+	     (rest	(low.to-string (get-bytevector-some in-port))))
+	(list info rest))
+    => '(#f "#hello"))
+
+  (check
+      (let* ((in-port	(make-lexer-port "@"))
+	     (userinfo	(low.to-string (low.parse-userinfo in-port)))
+	     (eof?	(eof-object? (lookahead-u8 in-port))))
+	(list userinfo eof?))
+    => '("" #t))
+
+  (check
+      (let* ((in-port	(make-lexer-port "@host"))
+	     (userinfo	(low.to-string (low.parse-userinfo in-port)))
+	     (rest	(low.to-string (get-bytevector-some in-port))))
+	(list userinfo rest))
+    => '("" "host"))
+
+  (check
+      (let* ((in-port	(make-lexer-port "userinfo@host"))
+	     (userinfo	(low.to-string (low.parse-userinfo in-port)))
+	     (rest	(low.to-string (get-bytevector-some in-port))))
+	(list userinfo rest))
+    => '("userinfo" "host"))
+
+  (check
+      (let* ((in-port	(make-lexer-port "ciao%3dciao@host"))
+	     (userinfo	(low.to-string (low.parse-userinfo in-port)))
+	     (rest	(low.to-string (get-bytevector-some in-port))))
+	(list userinfo rest))
+    => '("ciao%3dciao" "host"))
 
 ;;; --------------------------------------------------------------------
 ;;; IP-literal
@@ -421,8 +657,11 @@
     => #f)
 
   (check
-      (low.parse-ip-literal (make-lexer-port "ciao"))
-    => #f)
+      (let* ((in-port	(make-lexer-port "ciao"))
+	     (ip	(low.parse-ip-literal in-port))
+	     (rest	(low.to-string (get-bytevector-some in-port))))
+	(list ip rest))
+    => '(#f "ciao"))
 
   (check
       (low.to-string (low.parse-ip-literal (make-lexer-port "[]")))
@@ -431,6 +670,13 @@
   (check
       (low.to-string (low.parse-ip-literal (make-lexer-port "[::0:1:2]")))
     => "::0:1:2")
+
+  (check
+      (let* ((in-port	(make-lexer-port "[::0:1:2]:8080"))
+	     (ip	(low.to-string (low.parse-ip-literal in-port)))
+	     (rest	(low.to-string (get-bytevector-some in-port))))
+	(list ip rest))
+    => '("::0:1:2" ":8080"))
 
 ;;; --------------------------------------------------------------------
 ;;; IPvFuture
@@ -472,63 +718,84 @@
     => "")
 
   (check
-      (low.to-string (low.parse-reg-name (make-lexer-port ":80")))
-    => "")
+      (let* ((in-port	(make-lexer-port ":80"))
+	     (reg	(low.to-string (low.parse-reg-name in-port)))
+	     (rest	(low.to-string (get-bytevector-some in-port))))
+	(list reg rest))
+    => '("" ":80"))
 
   (check
-      (low.to-string (low.parse-reg-name (make-lexer-port "/ciao")))
-    => "")
+      (let* ((in-port	(make-lexer-port "/ciao"))
+	     (reg	(low.to-string (low.parse-reg-name in-port)))
+	     (rest	(low.to-string (get-bytevector-some in-port))))
+	(list reg rest))
+    => '("" "/ciao"))
+
+  (check
+      (let* ((in-port	(make-lexer-port "?query"))
+	     (reg	(low.to-string (low.parse-reg-name in-port)))
+	     (rest	(low.to-string (get-bytevector-some in-port))))
+	(list reg rest))
+    => '("" "?query"))
+
+  (check
+      (let* ((in-port	(make-lexer-port "#fragment"))
+	     (reg	(low.to-string (low.parse-reg-name in-port)))
+	     (rest	(low.to-string (get-bytevector-some in-port))))
+	(list reg rest))
+    => '("" "#fragment"))
 
   (check
       (low.to-string (low.parse-reg-name (make-lexer-port "the-reg-name")))
     => "the-reg-name")
 
   (check
+      (low.to-string (low.parse-reg-name (make-lexer-port "the.reg.name")))
+    => "the.reg.name")
+
+  (check
       (low.to-string (low.parse-reg-name (make-lexer-port "ciao%3dciao")))
     => "ciao%3dciao")
 
   (check
-      (low.to-string (low.parse-reg-name (make-lexer-port "the-reg-name:80")))
-    => "the-reg-name")
+      (let* ((in-port	(make-lexer-port "the-reg-name:80"))
+	     (reg	(low.to-string (low.parse-reg-name in-port)))
+	     (rest	(low.to-string (get-bytevector-some in-port))))
+	(list reg rest))
+    => '("the-reg-name" ":80"))
 
   (check
-      (low.to-string (low.parse-reg-name (make-lexer-port "the-reg-name/ciao")))
-    => "the-reg-name")
-
-  (check
-      (low.parse-reg-name (make-lexer-port "#hello#"))
-    => #f)
-
-  (check
-      (low.to-string (low.parse-reg-name (make-lexer-port "hello")))
-    => "hello")
-
-  (check
-      (low.parse-reg-name (make-lexer-port "?hello"))
-    => #f)
+      (let* ((in-port	(make-lexer-port "the-reg-name/ciao"))
+	     (reg	(low.to-string (low.parse-reg-name in-port)))
+	     (rest	(low.to-string (get-bytevector-some in-port))))
+	(list reg rest))
+    => '("the-reg-name" "/ciao"))
 
 ;;; --------------------------------------------------------------------
 ;;; port
 
   (check
-      (let ((result (low.parse-port (make-lexer-port ""))))
-	(and result (low.to-string result)))
+      (low.parse-port (make-lexer-port ""))
     => #f)
 
   (check
-      (let ((result (low.parse-port (make-lexer-port ":"))))
-	(and result (low.to-string result)))
+      (low.to-string (low.parse-port (make-lexer-port ":")))
     => "")
 
   (check
-      (let ((result (low.parse-port (make-lexer-port ":2"))))
-	(and result (low.to-string result)))
+      (low.to-string (low.parse-port (make-lexer-port ":2")))
     => "2")
 
   (check
-      (let ((result (low.parse-port (make-lexer-port ":8080"))))
-	(and result (low.to-string result)))
+      (low.to-string (low.parse-port (make-lexer-port ":8080")))
     => "8080")
+
+  (check
+      (let* ((in-port	(make-lexer-port ":8080ciao"))
+	     (port	(low.to-string (low.parse-port in-port)))
+	     (rest	(low.to-string (get-bytevector-some in-port))))
+	(list port rest))
+    => '("8080" "ciao"))
 
   #t)
 
@@ -1441,84 +1708,101 @@
 
 (parametrise ((check-test-name	'parse-uri-reference))
 
-  (define (make-lexer-port obj)
-    (cond ((string? obj)
-	   (open-bytevector-input-port (low.to-bytevector obj)))
-	  ((bytevector? obj)
-	   (open-bytevector-input-port obj))
-	  (else
-	   #f)))
-
-;;; --------------------------------------------------------------------
 ;;; relative-part
 
-  (let-syntax ((doit	(syntax-rules ()
-			  ((_ ?input ?expected-vector)
-			   (check
-			       (receive (authority path-kind segments)
-				   (low.parse-relative-part (make-lexer-port ?input))
-				 (vector (and authority (low.to-string authority))
-					 path-kind (map low.to-string segments)))
-			     => '?expected-vector)))))
+  (let-syntax
+      ((doit (syntax-rules ()
+	       ((_ ?input ?expected-vector)
+		(check
+		    (let*-values (((in-port)
+				   (make-lexer-port ?input))
+				  ((authority path-kind segments)
+				   (low.parse-relative-part in-port))
+				  ((rest)
+				   (get-bytevector-some in-port)))
+		      (vector (and authority (low.to-string authority))
+			      path-kind
+			      (map low.to-string segments)
+			      (if (eof-object? rest)
+				  ""
+				(low.to-string rest))))
+		  => '?expected-vector)))))
 
 ;;; with authority
 
     (doit "//"
-	  #("" path-abempty ()))
+	  #("" path-abempty () ""))
+
+    (doit "//?query" ;empty authority
+	  #("" path-abempty () "?query"))
+
+    (doit "//#fragment"	;empty authority
+	  #("" path-abempty () "#fragment"))
+
+    (doit "///"	;empty authority
+	  #("" path-abempty ("") ""))
+
+    (doit "///?query" ;empty authority
+	  #("" path-abempty ("") "?query"))
+
+    (doit "///#fragment" ;empty authority
+	  #("" path-abempty ("") "#fragment"))
+    (doit "///ciao" ;empty authority
+	  #("" path-abempty ("ciao") ""))
 
     (doit "//ciao.com"
-	  #("ciao.com" path-abempty ()))
+	  #("ciao.com" path-abempty () ""))
 
     (doit "//ciao.com:8080"
-	  #("ciao.com:8080" path-abempty ()))
+	  #("ciao.com:8080" path-abempty () ""))
 
     (doit "//marco@ciao.com:8080"
-	  #("marco@ciao.com:8080" path-abempty ()))
+	  #("marco@ciao.com:8080" path-abempty () ""))
 
     (doit "//ciao.com:8080/"
-	  #("ciao.com:8080" path-abempty ("")))
+	  #("ciao.com:8080" path-abempty ("") ""))
 
     (doit "//ciao.com:8080/a"
-	  #("ciao.com:8080" path-abempty ("a")))
+	  #("ciao.com:8080" path-abempty ("a") ""))
 
     (doit "//ciao.com/a/b/c"
-	  #("ciao.com" path-abempty ("a" "b" "c")))
+	  #("ciao.com" path-abempty ("a" "b" "c") ""))
 
     (doit "//ciao.com:8080/a/b/c"
-	  #("ciao.com:8080" path-abempty ("a" "b" "c")))
+	  #("ciao.com:8080" path-abempty ("a" "b" "c") ""))
 
 ;;; no authority, emtpy path
 
     (doit ""
-	  #(#f path-empty ()))
+	  #(#f path-empty () ""))
 
 ;;; no authority, absolute path
 
     (doit "/"
-	  #(#f path-absolute ("")))
+	  #(#f path-absolute ("") ""))
 
     (doit "/a///"
-	  #(#f path-absolute ("a" "" "" "")))
+	  #(#f path-absolute ("a" "" "" "") ""))
 
     (doit "/ciao"
-	  #(#f path-absolute ("ciao")))
+	  #(#f path-absolute ("ciao") ""))
 
     (doit "/ciao/hello/salut"
-	  #(#f path-absolute ("ciao" "hello" "salut")))
+	  #(#f path-absolute ("ciao" "hello" "salut") ""))
 
 ;;; no authority relative path
 
     (doit "./"
-	  #(#f path-noscheme ("." "")))
+	  #(#f path-noscheme ("." "") ""))
 
     (doit "./a///"
-	  #(#f path-noscheme ("." "a" "" "" "")))
+	  #(#f path-noscheme ("." "a" "" "" "") ""))
 
     (doit "./ciao"
-	  #(#f path-noscheme ("." "ciao")))
+	  #(#f path-noscheme ("." "ciao") ""))
 
     (doit "./ciao/hello/salut"
-	  #(#f path-noscheme ("." "ciao" "hello" "salut")))
+	  #(#f path-noscheme ("." "ciao" "hello" "salut") ""))
 
     #f)
 

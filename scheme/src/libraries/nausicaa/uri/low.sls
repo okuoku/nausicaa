@@ -38,11 +38,12 @@
     normalise-percent-encoded-string	normalise-percent-encoded-bytevector
 
     ;; parser functions
-    parse-scheme		parse-hier-part
+    parse-scheme		collect-hier-part
     parse-query			parse-fragment
     parse-userinfo		parse-reg-name
     parse-authority		parse-ip-literal
     parse-ipvfuture		parse-port
+    (rename (collect-hier-part	collect-relative-part))
 
     parse-relative-part
 
@@ -476,9 +477,9 @@
 	    (else
 	     (return-failure))))))
 
-(define (parse-hier-part in-port)
+(define (collect-hier-part in-port)
   ;;Accumulate  bytes  from IN-PORT  while  they  are  acceptable for  a
-  ;;"hier-part" URI component.  If a EOF  or a question mark or a number
+  ;;"hier-part" URI  component.  If EOF or  a question mark  or a number
   ;;sign is  found: return a  bytevector holding the  accumulated bytes,
   ;;question mark or number sign excluded; else return false.  Leave the
   ;;port position to the byte after the last byte of the "hier-part".
@@ -510,7 +511,7 @@
 (define (parse-query in-port)
   ;;Accumulate bytes from IN-PORT while they are valid for a "query" URI
   ;;component; the first byte read from IN-PORT must be a question mark.
-  ;;If an EOF or a number  sign is read: return a bytevector holding the
+  ;;If EOF  or a number  sign is read:  return a bytevector  holding the
   ;;accumulated bytes, starting question mark excluded and ending number
   ;;sign excluded; else return false.
   ;;
@@ -578,8 +579,8 @@
 (define (parse-fragment in-port)
   ;;Accumulate bytes from IN-PORT while  they are valid for a "fragment"
   ;;URI component;  the first  byte read from  IN-PORT must be  a number
-  ;;sign.   If  an  EOF  is   read:  return  a  bytevector  holding  the
-  ;;accumulated bytes, starting number sign excluded; else return false.
+  ;;sign.  If EOF  is read: return a bytevector  holding the accumulated
+  ;;bytes, starting number sign excluded; else return false.
   ;;
   ;;If successful:  leave the port position  to the byte  after the last
   ;;byte of  the "fragment"  component; if an  error occurs:  rewind the
@@ -644,17 +645,18 @@
   ;;"authority"  component   in  the  "hier-part"  of  an   URI  or  the
   ;;"relative-part" of a "relative-ref".   The first two bytes read must
   ;;represent, in  ASCII encoding, two  slash characters; after  the two
-  ;;slashes, if  EOF or a  byte representing a  slash is read:  return a
-  ;;bytevector  holding the  accumulated bytes,  ending  slash excluded;
-  ;;else return false.
+  ;;slashes, if EOF or a byte representing a slash, a question mark or a
+  ;;number  sign is read:  return a  bytevector holding  the accumulated
+  ;;bytes,  ending slash, question  mark or  number sign  excluded; else
+  ;;return false.
   ;;
   ;;If successful:  leave the port position  to the byte  after the last
   ;;accumulated byte;  if an error  occurs: rewind the port  position to
   ;;the one before this function call.
   ;;
-  ;;Notice that  an empty  authority (after the  two slashes)  is valid,
-  ;;corresponding  to  the  case   of  "authority"  equal  to  a  "host"
-  ;;component, equal to a "reg-name" component which can be empty.
+  ;;Notice that  an empty authority  (after the two leading  slashes) is
+  ;;valid: it  is the case of  "authority" equal to  a "host" component,
+  ;;equal to a "reg-name" component which can be empty.
   ;;
   (define-parser-macros in-port)
   (let ((chi (get-u8 in-port)))
@@ -672,7 +674,9 @@
 		      (let process-next-byte ((chi (get-u8 in-port)))
 			(cond ((eof-object? chi)
 			       (getter))
-			      ((= chi $int-slash)
+			      ((or (= chi $int-slash)
+				   (= chi $int-question-mark)
+				   (= chi $int-number-sign))
 			       (set-position-back-one! chi)
 			       (getter))
 			      (else
@@ -778,9 +782,8 @@
   ;;digit in ASCII encoding; a bytevector holding the accumulated bytes;
   ;;else return false and false.
   ;;
-  ;;If successful:  leave the port position  to the byte  after last one
-  ;;read from the port; if an  error occurs: rewind the port position to
-  ;;the one before this function call.
+  ;;If an error occurs: rewind the  port position to the one before this
+  ;;function call.
   ;;
   ;;No  specific  validation is  performed  on  the returned  bytevector
   ;;contents, bytes are  only tested to be valid  for the component; the
@@ -812,9 +815,9 @@
 (define (parse-reg-name in-port)
   ;;Accumulate bytes from IN-PORT while  they are valid for a "reg-name"
   ;;component in the "host" component.   If EOF or a byte representing a
-  ;;colon or  a slash, in ASCII  encoding, is read:  return a bytevector
-  ;;holding the accumulated bytes,  ending colon or slash excluded; else
-  ;;return false.
+  ;;colon, slash,  question mark  or number sign  in ASCII  encoding, is
+  ;;read: return a bytevector holding the accumulated bytes, ending byte
+  ;;excluded; else return false.
   ;;
   ;;If successful:  leave the port position  to the byte  after last one
   ;;read from the port; if an  error occurs: rewind the port position to
@@ -830,7 +833,9 @@
 	     (getter))
 
 	    ((or (= chi $int-colon)
-		 (= chi $int-slash))
+		 (= chi $int-slash)
+		 (= chi $int-question-mark)
+		 (= chi $int-number-sign))
 	     (set-position-back-one! chi)
 	     (getter))
 
@@ -868,7 +873,7 @@
   ;;Accumulate  bytes from  IN-PORT while  they are  valid for  a "port"
   ;;component  in  the  "authority"  component.   The  first  byte  must
   ;;represent a  colon in ASCII encoding;  after that: if EOF  or a byte
-  ;;nor representing a decimal digit, in ASCII encoding, is read: return
+  ;;not representing a decimal digit, in ASCII encoding, is read: return
   ;;a bytevector holding the accumulated bytes, starting colon excluded;
   ;;else return false.
   ;;
@@ -1154,7 +1159,7 @@
   ;;
   ;;Notice that a "path-noscheme" must not start with a slash character,
   ;;and then  it must have  at least one non-empty  "segment" component;
-  ;;the first @code{segment} must not hold a colon caracter.
+  ;;the first "segment" must not contain a colon caracter.
   ;;
   (define-parser-macros in-port)
   (let ((bv (parse-segment-nz-nc in-port)))
@@ -1259,13 +1264,17 @@
 	    (else
 	     (values #f 'path-empty '()))))))
 
-
 
 ;;;; validation
 
 (define (valid-component? port)
-  ;;Scan bytes  from PORT until  EOF is found;  return true if  the read
-  ;;bytes are valid for a component, false otherwise.  Ensure that:
+  ;;Scan bytes  from PORT  until EOF is  found; return two  values, when
+  ;;success:  true and the  port position  of the  last byte  read; when
+  ;;failure: false  and the port position  of the invalid  byte.  In any
+  ;;case: the port  position is reverted to the state  it had before the
+  ;;call to this function.
+  ;;
+  ;;Ensure that:
   ;;
   ;;*  A percent  character is  followed by  two bytes  representing hex
   ;;digits.
@@ -1274,9 +1283,8 @@
   ;;defined by RFC 3986.
   ;;
   (let ((start-position (port-position port)))
-    (dynamic-wind
-	(lambda () #f)
-	(lambda ()
+    (unwind-protect
+	(let ()
 	  (define-inline (return bool)
 	    (values bool (port-position port)))
 	  (let process-next-byte ((chi (get-u8 port)))
@@ -1300,8 +1308,7 @@
 		   (process-next-byte (get-u8 port)))
 		  (else
 		   (return #f)))))
-	(lambda ()
-	  (set-port-position! port start-position)))))
+      (set-port-position! port start-position))))
 
 
 ;;;; done
