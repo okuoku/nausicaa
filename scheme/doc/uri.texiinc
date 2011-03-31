@@ -37,7 +37,23 @@ the @uri{} components are available as Scheme strings.
 @section Introduction to @uri{} elements
 
 
-@rfc{} 3986 defines the following @uri{} grammar (from ``Appendix A''):
+@rfc{} 3986 defines the following @uri{} grammar (from ``Appendix A'');
+there are 4 main elements @code{URI}, @code{absolute-URI},
+@code{relative-ref}, @code{path}.
+
+An @code{URI} begins with a mandatory @code{scheme} component and has
+one of the following path types: @code{path-abempty},
+@code{path-absolute}, @code{path-rootless}, @code{path-empty}, with
+@code{path-abempty} present only when the @code{authority} is also
+present.  An @code{absolute-URI} is just an @code{URI} without
+@code{fragment} component.
+
+A @code{relative-ref} begins with no @code{scheme} component and has one
+of the following path types: @code{path-abempty}, @code{path-absolute},
+@code{path-noscheme}, @code{path-empty}, with @code{path-abempty}
+present only when the @code{authority} is also present.  Notice how a
+@code{relative-ref} has the @code{path-noscheme} component rather than
+the @code{path-rootless} component of the @code{URI}.
 
 @smallexample
 URI-reference = URI | relative-ref
@@ -128,7 +144,8 @@ sub-delims    = "!" | "$" | "&" | "'" | "(" | ")"
 @section Condition object types
 
 
-The following bindings are exported by the @library{uri conditions}
+The following bindings are exported by the @library{nausicaa uri
+conditions} library and reexported by the @library{nausicaa uri}
 library; it is suggested to prefix the bindings when importing the
 library.
 
@@ -169,8 +186,8 @@ Getter for the field of condition objects of type
 @section Plain conversion between strings and bytevectors
 
 
-The following bindings are exported by the @library{uri low} library; it
-is suggested to prefix them when importing this library.
+The following bindings are exported by the @library{nausicaa uri low}
+library; it is suggested to prefix them when importing this library.
 
 
 @defun to-bytevector @var{obj}
@@ -229,8 +246,8 @@ encoded:
 @noindent
 the characters in the unreserved set can, but should not, be encoded.
 
-The following bindings are exported by the @library{uri low} library; it
-is suggested to prefix them when importing this library.
+The following bindings are exported by the @library{nausicaa uri low}
+library; it is suggested to prefix them when importing this library.
 
 
 @defun unreserved-char? @var{obj}
@@ -338,6 +355,7 @@ sequence, an exception is raised with compound condition object of type
 * uri parser segment::          Path segment component parser
                                 functions.
 * uri parser path::             Path component parser functions.
+* uri parser main::             Main components parser functions.
 * uri parser misc::             Miscellaneous parser functions.
 @end menu
 
@@ -350,8 +368,8 @@ The following functions can be used to parse the elements of an @uri{};
 all the functions accept a @var{port} argument: it must be a binary
 input port drawing characters from an @uri{} bytevector.
 
-The following bindings are exported by the @library{uri low} library; it
-is suggested to prefix them when importing this library.
+The following bindings are exported by the @library{nausicaa uri low}
+library; it is suggested to prefix them when importing this library.
 
 
 @defun parse-scheme @var{port}
@@ -584,8 +602,8 @@ input port drawing characters from a bytevector.  When parsing an
 @code{authority} component: we are meant to extract the full
 @code{authority} component and then parse it separately.
 
-The following bindings are exported by the @library{uri low} library; it
-is suggested to prefix them when importing this library.
+The following bindings are exported by the @library{nausicaa uri low}
+library; it is suggested to prefix them when importing this library.
 
 
 @defun parse-authority @var{port}
@@ -937,10 +955,10 @@ sub-delims    = "!" | "$" | "&" | "'" | "(" | ")"
               | "*" | "+" | "," | ";" | "="
 @end example
 
-The following bindings are exported by the @library{uri low} library; it
-is suggested to prefix them when importing this library.  All the
-functions accept a @var{port} argument: it must be a binary input port
-drawing characters from a bytevector.
+The following bindings are exported by the @library{nausicaa uri low}
+library; it is suggested to prefix them when importing this library.
+All the functions accept a @var{port} argument: it must be a binary
+input port drawing characters from a bytevector.
 
 
 @defun parse-segment @var{port}
@@ -1026,10 +1044,10 @@ last components of a @code{hier-part} or @code{relative-part} component,
 which in turn can be followed only by @eof{}, a query (starting with a
 @samp{?} byte) or a fragment (starting with a @samp{#} byte).
 
-The following bindings are exported by the @library{uri low} library; it
-is suggested to prefix them when importing this library.  All the
-functions accept a @var{port} argument: it must be a binary input port
-drawing characters from a bytevector.
+The following bindings are exported by the @library{nausicaa uri low}
+library; it is suggested to prefix them when importing this library.
+All the functions accept a @var{port} argument: it must be a binary
+input port drawing characters from a bytevector.
 
 
 @defun parse-path-empty @var{port}
@@ -1364,6 +1382,164 @@ component.
 @end example
 @end defun
 
+@c page
+@node uri parser main
+@subsection Main components parser functions
+
+
+The following functions can be used to parse the @code{URI},
+@code{absolute-URI}, @code{relative-ref} and @code{path} components; the
+relevant portion of the grammar is:
+
+@example
+URI           = scheme ":" hier-part [ "?" query ] [ "#" fragment ]
+
+relative-ref  = relative-part [ "?" query ] [ "#" fragment ]
+
+absolute-URI  = scheme ":" hier-part [ "?" query ]
+
+path          = path-abempty    ; begins with "/" or is empty
+              | path-absolute   ; begins with "/" but not "//"
+              | path-noscheme   ; begins with a non-colon segment
+              | path-rootless   ; begins with a segment
+              | path-empty      ; zero characters
+
+hier-part     = "//" authority path-abempty
+              | path-absolute
+              | path-rootless
+              | path-empty
+
+relative-part = "//" authority path-abempty
+              | path-absolute
+              | path-noscheme
+              | path-empty
+@end example
+
+The following bindings are exported by the @library{nausicaa uri low}
+library; it is suggested to prefix them when importing this library.
+All the functions accept a @var{port} argument: it must be a binary
+input port drawing characters from a bytevector.
+
+
+@defun parse-uri @var{port}
+Read bytes from @var{PORT} expecting to get, from the first byte to the
+@eof{}, a @code{URI} component; parse the input decomposing it into its
+subcomponents.  This function does not decode the percent--encoded
+bytes.
+
+Return multiple value being:
+
+@table @code
+@item scheme
+A bytevector representing the @code{scheme} component; false if the
+@code{scheme} is not present.  According to the @rfc{}: the
+@code{scheme} component is mandatory, but this function accepts its
+absence.
+
+@item authority
+A bytevector representing the @code{authority} component, not including
+the leading slashes; false if the @code{authority} is not present.
+
+@item userinfo
+A bytevector representing the @code{userinfo} component, not including
+the ending at sign; false if the @code{userinfo} is not present.
+
+@item host-type
+One of the symbols: @code{reg-name}, @code{ip-literal},
+@code{ipvfuture}; when the host is empty: this value is @code{reg-name}.
+
+@item host
+A bytevector representing the @code{host} component; it can be empty.
+
+@item port
+A bytevector representing the @code{port} component; false if the
+@code{port} is not present.
+
+@item path-type
+One of the symbols: @code{path-abempty}, @code{path-empty},
+@code{path-absolute}, @code{path-rootless}.  When the @code{authority}
+is present: this value is always @code{path-abempty}.
+
+@item path
+A possibly empty list representing the path segments.
+
+@item query
+A bytevector representing the @code{query} component; false when the
+@code{query} is not present.
+
+@item fragment
+A bytevector representing the @code{fragment} component; false when the
+@code{fragment} is not present.
+@end table
+
+If the host cannot be classified in @code{reg-name}, @code{ip-literal}
+or @code{ipvfuture}: an exception is raised with condition components
+@condition{parser-error}, @condition{who}, @condition{message},
+@condition{irritants}, the irritants being the input port.
+
+If the path cannot be classified: an exception is raised with condition
+components @condition{parser-error}, @condition{who},
+@condition{message}, @condition{irritants}, the irritants being the
+input port.
+@end defun
+
+
+@defun parse-relative-ref @var{port}
+Read bytes from @var{port} expecting to get, from the first byte to the
+@eof{}, a @code{relative-ref} component; parse the input decomposing it
+into its subcomponents.  This function does not decode the
+percent--encoded bytes.
+
+Return multiple value being:
+
+@table @code
+@item authority
+A bytevector representing the @code{authority} component, not including
+the leading slashes; false if the @code{authority} is not present.
+
+@item userinfo
+A bytevector representing the @code{userinfo} component, not including
+the ending at sign; false if the @code{userinfo} is not present.
+
+@item host-type
+One of the symbols: @code{reg-name}, @code{ip-literal},
+@code{ipvfuture}; when the host is empty: this value is @code{reg-name}.
+
+@item host
+A bytevector representing the @code{host} component; it can be empty.
+
+@item port
+A bytevector representing the @code{port} component; false if the
+@code{port} is not present.
+
+@item path-type
+One of the symbols: @code{path-abempty}, @code{path-empty},
+@code{path-absolute}, @code{path-noscheme}.  When the @code{authority}
+is present: this value is always @code{path-abempty}.
+
+@item path
+A possibly empty list representing the path segments.
+
+@item query
+A bytevector representing the @code{query} component; false when the
+@code{query} is not present.
+
+@item fragment
+A bytevector representing the @code{fragment} component; false when the
+@code{fragment} is not present.
+@end table
+
+If the host cannot be classified in @code{reg-name}, @code{ip-literal}
+or @code{ipvfuture}: an exception is raised with condition components
+@condition{parser-error}, @condition{who}, @condition{message},
+@condition{irritants}, the irritants being the input port.
+
+If the path cannot be classified: an exception is raised with condition
+components @condition{parser-error}, @condition{who},
+@condition{message}, @condition{irritants}, the irritants being the
+input port.
+@end defun
+
 
 @defun parse-path @var{port}
 Parse from @var{port} a @code{path} component.  Return two values: false
@@ -1375,8 +1551,11 @@ If successful: leave the port position to the byte after the last read
 byte; if an error occurs: rewind the port position to the one before
 this function call.
 
-Notice that the @code{path} component can be followed only by @eof{}, a
-query or a fragment.
+Notice that the @code{path} component can be followed only by @eof{}; if
+the path cannot be classified: an exception is raised with condition
+components @condition{parser-error}, @condition{who},
+@condition{message}, @condition{irritants}, the irritants being the
+input port.
 
 @example
 (import (rnrs)
@@ -1387,15 +1566,8 @@ query or a fragment.
 
 (low.parse-path (make-lexer-port ""))  @result{} path-empty ()
 
-(let ((P (make-lexer-port "?query")))
-  (low.parse-path P)           @result{} path-empty ()
-  (low.to-string
-    (get-bytevector-some P)))  @result{} "?query"
-
-(let ((P (make-lexer-port "#fragment")))
-  (low.parse-path P)           @result{} path-empty ()
-  (low.to-string
-    (get-bytevector-some P)))  @result{} "#fragment"
+(low.parse-path (make-lexer-port "?query"))  @error{} &parser-error
+(low.parse-path (make-lexer-port "#fragment"))  @error{} &parser-error
 
 (low.parse-path (make-lexer-port "/"))
 @result{} path-absolute (#vu8())
@@ -1447,8 +1619,8 @@ The functions can be used to parse the elements of an @uri{}; all the
 functions accept a @var{port} argument: it must be a binary input port
 drawing characters from a bytevector.
 
-The following bindings are exported by the @library{uri low} library; it
-is suggested to prefix them when importing this library.
+The following bindings are exported by the @library{nausicaa uri low}
+library; it is suggested to prefix them when importing this library.
 
 
 @defun valid-component? @var{port}

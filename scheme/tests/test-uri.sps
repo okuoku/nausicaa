@@ -27,9 +27,8 @@
 
 #!r6rs
 (import (nausicaa)
-  (nausicaa uri)
+  (prefix (nausicaa uri) uri.)
   (prefix (nausicaa uri low) low.)
-  (prefix (nausicaa uri conditions) low.)
   (nausicaa checks))
 
 (check-set-mode! 'report-failed)
@@ -55,7 +54,7 @@
   (check (low.to-string (low.to-bytevector "ci%3Fa%3Do"))	=> "ci%3Fa%3Do")
 
   (check
-      (guard (E ((low.parser-error-condition? E)
+      (guard (E ((uri.parser-error-condition? E)
 ;;;(write (condition-message E))(newline)
 		 #t)
 		(else E))
@@ -872,14 +871,14 @@
     => `("hello" "ciao" ,(eof-object)))
 
   (check	;invalid percent-encoded sequence
-      (guard (E ((low.parser-error-condition? E)
+      (guard (E ((uri.parser-error-condition? E)
 		 #t)
 		(else E))
 	(low.to-string (low.parse-segment (make-lexer-port "ciao%3d%3,ciao"))))
     => #t)
 
   (check	;invalid percent-encoded sequence
-      (guard (E ((low.parser-error-condition? E)
+      (guard (E ((uri.parser-error-condition? E)
 		 #t)
 		(else E))
 	(low.to-string (low.parse-segment (make-lexer-port "ciao%,3%3dciao"))))
@@ -968,14 +967,14 @@
     => `("hello" "ciao" ,(eof-object)))
 
   (check	;invalid percent-encoded sequence
-      (guard (E ((low.parser-error-condition? E)
+      (guard (E ((uri.parser-error-condition? E)
 		 #t)
 		(else #f))
 	(low.to-string (low.parse-segment-nz (make-lexer-port "ciao%3d%3,ciao"))))
     => #t)
 
   (check	;invalid percent-encoded sequence
-      (guard (E ((low.parser-error-condition? E)
+      (guard (E ((uri.parser-error-condition? E)
 		 #t)
 		(else #f))
 	(low.to-string (low.parse-segment-nz (make-lexer-port "ciao%,3%3dciao"))))
@@ -1074,14 +1073,14 @@
     => '(#f ":ciao"))
 
   (check	;invalid percent-encoded sequence
-      (guard (E ((low.parser-error-condition? E)
+      (guard (E ((uri.parser-error-condition? E)
 		 #t)
 		(else #f))
 	(low.to-string (low.parse-segment-nz-nc (make-lexer-port "ciao%3d%3,ciao"))))
     => #t)
 
   (check	;invalid percent-encoded sequence
-      (guard (E ((low.parser-error-condition? E)
+      (guard (E ((uri.parser-error-condition? E)
 		 #t)
 		(else #f))
 	(low.to-string (low.parse-segment-nz-nc (make-lexer-port "ciao%,3%3dciao"))))
@@ -1163,14 +1162,14 @@
     => '("" "ciao"))
 
   (check	;invalid percent-encoded sequence
-      (guard (E ((low.parser-error-condition? E)
+      (guard (E ((uri.parser-error-condition? E)
 		 #t)
 		(else #f))
 	(low.to-string (low.parse-slash-and-segment (make-lexer-port "/ciao%3d%3,ciao"))))
     => #t)
 
   (check	;invalid percent-encoded sequence
-      (guard (E ((low.parser-error-condition? E)
+      (guard (E ((uri.parser-error-condition? E)
 		 #t)
 		(else #f))
 	(low.to-string (low.parse-slash-and-segment (make-lexer-port "/ciao%,3%3dciao"))))
@@ -1179,7 +1178,7 @@
   #t)
 
 
-(parametrise ((check-test-name	'parsing-path))
+(parametrise ((check-test-name	'parsing-path-types))
 
 ;;; path-empty
 
@@ -1638,8 +1637,10 @@
 	(list path fragment))
     => '(("hello" "salut" "") "ciao"))
 
-;;; --------------------------------------------------------------------
-;;; path
+  #t)
+
+
+(parametrise ((check-test-name	'parsing-path))
 
   (check
       (receive (type segments)
@@ -1648,18 +1649,18 @@
     => '#(path-empty ()))
 
   (check
-      (let*-values (((in-port)		(make-lexer-port "?query"))
-		    ((type segments)	(low.parse-path in-port))
-		    ((query)		(low.to-string (low.parse-query in-port))))
-	(vector type segments query))
-    => '#(path-empty () "query"))
+      (guard (E ((uri.parser-error-condition? E)
+		 #t)
+		(else E))
+	(low.parse-path (make-lexer-port "?query")))
+    => #t)
 
   (check
-      (let*-values (((in-port)		(make-lexer-port "#fragment"))
-		    ((type segments)	(low.parse-path in-port))
-		    ((fragment)		(low.to-string (low.parse-fragment in-port))))
-	(vector type segments fragment))
-    => '#(path-empty () "fragment"))
+      (guard (E ((uri.parser-error-condition? E)
+		 #t)
+		(else E))
+	(low.parse-path (make-lexer-port "#fragment")))
+    => #t)
 
   (check
       (receive (type segments)
@@ -1706,131 +1707,301 @@
   #t)
 
 
-(parametrise ((check-test-name	'parse-uri-reference))
+(parametrise ((check-test-name	'parse-uri))
 
-;;; relative-part
+  (define-inline (doit in-string expected-value)
+    (check
+	(let-values (((scheme authority userinfo host-type host port path-type path query fragment)
+		      (low.parse-uri (make-lexer-port in-string))))
+	  (list (and scheme		(low.to-string scheme))
+		(and authority		(low.to-string authority))
+		(and userinfo		(low.to-string userinfo))
+		host-type
+		(and host		(low.to-string host))
+		(and port		(low.to-string port))
+		path-type
+		(map low.to-string path)
+		(and query		(low.to-string query))
+		(and fragment		(low.to-string fragment))))
+      => (quote expected-value)))
 
-  (let-syntax
-      ((doit (syntax-rules ()
-	       ((_ ?input ?expected-vector)
-		(check
-		    (let*-values (((in-port)
-				   (make-lexer-port ?input))
-				  ((authority path-kind segments)
-				   (low.parse-relative-part in-port))
-				  ((rest)
-				   (get-bytevector-some in-port)))
-		      (vector (and authority (low.to-string authority))
-			      path-kind
-			      (map low.to-string segments)
-			      (if (eof-object? rest)
-				  ""
-				(low.to-string rest))))
-		  => '?expected-vector)))))
+;;; whith scheme
 
-;;; with authority
+    (doit "ci:ao/"
+    	  ("ci" #f #f reg-name "" #f path-rootless ("ao" "") #f #f))
+
+    (doit "ci:ao/a///"
+    	  ("ci" #f #f reg-name "" #f path-rootless ("ao" "a" "" "" "") #f #f))
+
+    (doit "ci:ao/ciao"
+    	  ("ci" #f #f reg-name "" #f path-rootless ("ao" "ciao") #f #f))
+
+    (doit "ci:ao/ciao/hello/salut"
+    	  ("ci" #f #f reg-name "" #f path-rootless ("ao" "ciao" "hello" "salut") #f #f))
+
+    (doit "http://"
+	  ("http" "" #f reg-name "" #f path-abempty () #f #f))
+
+    (doit "http://?query" ;empty authority
+    	  ("http" "" #f reg-name "" #f path-abempty () "query" #f))
+
+    (doit "http://#fragment"	;empty authority
+    	  ("http" "" #f reg-name "" #f path-abempty () #f "fragment"))
+
+    (doit "http:///"	;empty authority
+    	  ("http" "" #f reg-name "" #f path-abempty ("") #f #f))
+
+    (doit "http:///?query" ;empty authority
+    	  ("http" "" #f reg-name "" #f path-abempty ("") "query" #f))
+
+    (doit "http:///#fragment" ;empty authority
+    	  ("http" "" #f reg-name "" #f path-abempty ("") #f "fragment"))
+
+    (doit "http:///ciao" ;empty authority
+    	  ("http" "" #f reg-name "" #f path-abempty ("ciao") #f #f))
+
+    (doit "http://ciao.com"
+    	  ("http" "ciao.com" #f reg-name "ciao.com" #f path-abempty () #f #f))
+
+    (doit "http://ciao.com:8080"
+    	  ("http" "ciao.com:8080" #f reg-name "ciao.com" "8080" path-abempty () #f #f))
+
+    (doit "http://marco@ciao.com:8080"
+    	  ("http" "marco@ciao.com:8080" "marco" reg-name "ciao.com" "8080" path-abempty () #f #f))
+
+    (doit "http://ciao.com:8080/"
+    	  ("http" "ciao.com:8080" #f reg-name "ciao.com" "8080" path-abempty ("") #f #f))
+
+    (doit "http://ciao.com:8080/a"
+    	  ("http" "ciao.com:8080" #f reg-name "ciao.com" "8080" path-abempty ("a") #f #f))
+
+    (doit "http://ciao.com/a/b/c"
+    	  ("http" "ciao.com" #f reg-name "ciao.com" #f path-abempty ("a" "b" "c") #f #f))
+
+    (doit "http://ciao.com:8080/a/b/c"
+    	  ("http" "ciao.com:8080" #f reg-name "ciao.com" "8080" path-abempty ("a" "b" "c") #f #f))
+
+;;; with authority, no scheme
 
     (doit "//"
-	  #("" path-abempty () ""))
+	  (#f "" #f reg-name "" #f path-abempty () #f #f))
 
     (doit "//?query" ;empty authority
-	  #("" path-abempty () "?query"))
+    	  (#f "" #f reg-name "" #f path-abempty () "query" #f))
 
     (doit "//#fragment"	;empty authority
-	  #("" path-abempty () "#fragment"))
+    	  (#f "" #f reg-name "" #f path-abempty () #f "fragment"))
 
     (doit "///"	;empty authority
-	  #("" path-abempty ("") ""))
+    	  (#f "" #f reg-name "" #f path-abempty ("") #f #f))
 
     (doit "///?query" ;empty authority
-	  #("" path-abempty ("") "?query"))
+    	  (#f "" #f reg-name "" #f path-abempty ("") "query" #f))
 
     (doit "///#fragment" ;empty authority
-	  #("" path-abempty ("") "#fragment"))
+    	  (#f "" #f reg-name "" #f path-abempty ("") #f "fragment"))
+
     (doit "///ciao" ;empty authority
-	  #("" path-abempty ("ciao") ""))
+    	  (#f "" #f reg-name "" #f path-abempty ("ciao") #f #f))
 
     (doit "//ciao.com"
-	  #("ciao.com" path-abempty () ""))
+    	  (#f "ciao.com" #f reg-name "ciao.com" #f path-abempty () #f #f))
 
     (doit "//ciao.com:8080"
-	  #("ciao.com:8080" path-abempty () ""))
+    	  (#f "ciao.com:8080" #f reg-name "ciao.com" "8080" path-abempty () #f #f))
 
     (doit "//marco@ciao.com:8080"
-	  #("marco@ciao.com:8080" path-abempty () ""))
+    	  (#f "marco@ciao.com:8080" "marco" reg-name "ciao.com" "8080" path-abempty () #f #f))
 
     (doit "//ciao.com:8080/"
-	  #("ciao.com:8080" path-abempty ("") ""))
+    	  (#f "ciao.com:8080" #f reg-name "ciao.com" "8080" path-abempty ("") #f #f))
 
     (doit "//ciao.com:8080/a"
-	  #("ciao.com:8080" path-abempty ("a") ""))
+    	  (#f "ciao.com:8080" #f reg-name "ciao.com" "8080" path-abempty ("a") #f #f))
 
     (doit "//ciao.com/a/b/c"
-	  #("ciao.com" path-abempty ("a" "b" "c") ""))
+    	  (#f "ciao.com" #f reg-name "ciao.com" #f path-abempty ("a" "b" "c") #f #f))
 
     (doit "//ciao.com:8080/a/b/c"
-	  #("ciao.com:8080" path-abempty ("a" "b" "c") ""))
+    	  (#f "ciao.com:8080" #f reg-name "ciao.com" "8080" path-abempty ("a" "b" "c") #f #f))
 
 ;;; no authority, emtpy path
 
     (doit ""
-	  #(#f path-empty () ""))
+    	  (#f #f #f reg-name "" #f path-empty () #f #f))
+
+    (doit "?query"
+    	  (#f #f #f reg-name "" #f path-empty () "query" #f))
+
+    (doit "#fragment"
+    	  (#f #f #f reg-name "" #f path-empty () #f "fragment"))
 
 ;;; no authority, absolute path
 
     (doit "/"
-	  #(#f path-absolute ("") ""))
+    	  (#f #f #f reg-name "" #f path-absolute ("") #f #f))
 
     (doit "/a///"
-	  #(#f path-absolute ("a" "" "" "") ""))
+    	  (#f #f #f reg-name "" #f path-absolute ("a" "" "" "") #f #f))
 
     (doit "/ciao"
-	  #(#f path-absolute ("ciao") ""))
+    	  (#f #f #f reg-name "" #f path-absolute ("ciao") #f #f))
 
     (doit "/ciao/hello/salut"
-	  #(#f path-absolute ("ciao" "hello" "salut") ""))
+    	  (#f #f #f reg-name "" #f path-absolute ("ciao" "hello" "salut") #f #f))
 
-;;; no authority relative path
+;;; no authority, relative path rootless
 
     (doit "./"
-	  #(#f path-noscheme ("." "") ""))
+    	  (#f #f #f reg-name "" #f path-rootless ("." "") #f #f))
 
     (doit "./a///"
-	  #(#f path-noscheme ("." "a" "" "" "") ""))
+    	  (#f #f #f reg-name "" #f path-rootless ("." "a" "" "" "") #f #f))
 
     (doit "./ciao"
-	  #(#f path-noscheme ("." "ciao") ""))
+    	  (#f #f #f reg-name "" #f path-rootless ("." "ciao") #f #f))
 
     (doit "./ciao/hello/salut"
-	  #(#f path-noscheme ("." "ciao" "hello" "salut") ""))
+    	  (#f #f #f reg-name "" #f path-rootless ("." "ciao" "hello" "salut") #f #f))
 
-    #f)
+  #t)
+
+
+(parametrise ((check-test-name	'parse-relative-ref))
+
+  (define-inline (doit in-string expected-value)
+    (check
+	(let-values (((authority userinfo host-type host port path-type path query fragment)
+		      (low.parse-relative-ref (make-lexer-port in-string))))
+	  (list (and authority		(low.to-string authority))
+		(and userinfo		(low.to-string userinfo))
+		host-type
+		(and host		(low.to-string host))
+		(and port		(low.to-string port))
+		path-type
+		(map low.to-string path)
+		(and query		(low.to-string query))
+		(and fragment		(low.to-string fragment))))
+      => (quote expected-value)))
+
+;;; with authority, no scheme
+
+    (doit "//"
+	  ("" #f reg-name "" #f path-abempty () #f #f))
+
+    (doit "//?query" ;empty authority
+    	  ("" #f reg-name "" #f path-abempty () "query" #f))
+
+    (doit "//#fragment"	;empty authority
+    	  ("" #f reg-name "" #f path-abempty () #f "fragment"))
+
+    (doit "///"	;empty authority
+    	  ("" #f reg-name "" #f path-abempty ("") #f #f))
+
+    (doit "///?query" ;empty authority
+    	  ("" #f reg-name "" #f path-abempty ("") "query" #f))
+
+    (doit "///#fragment" ;empty authority
+    	  ("" #f reg-name "" #f path-abempty ("") #f "fragment"))
+
+    (doit "///ciao" ;empty authority
+    	  ("" #f reg-name "" #f path-abempty ("ciao") #f #f))
+
+    (doit "//ciao.com"
+    	  ("ciao.com" #f reg-name "ciao.com" #f path-abempty () #f #f))
+
+    (doit "//ciao.com:8080"
+    	  ("ciao.com:8080" #f reg-name "ciao.com" "8080" path-abempty () #f #f))
+
+    (doit "//marco@ciao.com:8080"
+    	  ("marco@ciao.com:8080" "marco" reg-name "ciao.com" "8080" path-abempty () #f #f))
+
+    (doit "//ciao.com:8080/"
+    	  ("ciao.com:8080" #f reg-name "ciao.com" "8080" path-abempty ("") #f #f))
+
+    (doit "//ciao.com:8080/a"
+    	  ("ciao.com:8080" #f reg-name "ciao.com" "8080" path-abempty ("a") #f #f))
+
+    (doit "//ciao.com/a/b/c"
+    	  ("ciao.com" #f reg-name "ciao.com" #f path-abempty ("a" "b" "c") #f #f))
+
+    (doit "//ciao.com:8080/a/b/c"
+    	  ("ciao.com:8080" #f reg-name "ciao.com" "8080" path-abempty ("a" "b" "c") #f #f))
+
+;;; no authority, emtpy path
+
+    (doit ""
+    	  (#f #f reg-name "" #f path-empty () #f #f))
+
+    (doit "?query"
+    	  (#f #f reg-name "" #f path-empty () "query" #f))
+
+    (doit "#fragment"
+    	  (#f #f reg-name "" #f path-empty () #f "fragment"))
+
+;;; no authority, absolute path
+
+    (doit "/"
+    	  (#f #f reg-name "" #f path-absolute ("") #f #f))
+
+    (doit "/a///"
+    	  (#f #f reg-name "" #f path-absolute ("a" "" "" "") #f #f))
+
+    (doit "/ciao"
+    	  (#f #f reg-name "" #f path-absolute ("ciao") #f #f))
+
+    (doit "/ciao/hello/salut"
+    	  (#f #f reg-name "" #f path-absolute ("ciao" "hello" "salut") #f #f))
+
+;;; no authority, relative path rootless
+
+    (doit "./"
+    	  (#f #f reg-name "" #f path-noscheme ("." "") #f #f))
+
+    (doit "./a///"
+    	  (#f #f reg-name "" #f path-noscheme ("." "a" "" "" "") #f #f))
+
+    (doit "./ciao"
+    	  (#f #f reg-name "" #f path-noscheme ("." "ciao") #f #f))
+
+    (doit "./ciao/hello/salut"
+    	  (#f #f reg-name "" #f path-noscheme ("." "ciao" "hello" "salut") #f #f))
+
+;;; --------------------------------------------------------------------
+
+    (check	;whith scheme-like first segment
+	(guard (E ((uri.parser-error-condition? E)
+;;;(write (condition-message E))(newline)
+		   #t)
+		  (else E))
+	  (low.parse-relative-ref (make-lexer-port "ci:ao/")))
+      => #t)
 
   #t)
 
 
 (parametrise ((check-test-name	'class-output))
 
-  (define scheme	(string->utf8 "http"))
-  (define authority	(string->utf8 "www.spiffy.org"))
-  (define path		(map string->utf8 '("the" "path" "name")))
-  (define query		(string->utf8 "question=answer"))
-  (define fragment	(string->utf8 "anchor-point"))
+  (define scheme	(low.to-bytevector "http"))
+  (define authority	(low.to-bytevector "www.spiffy.org"))
+  (define path		(map low.to-bytevector '("the" "path" "name")))
+  (define query		(low.to-bytevector "question=answer"))
+  (define fragment	(low.to-bytevector "anchor-point"))
 
   (define uri-string	"http://www.spiffy.org/the/path/name?question%3Danswer#anchor-point")
-  (define uri-bv	(string->utf8 uri-string))
+  (define uri-bv	(low.to-bytevector uri-string))
 
   (define-syntax doit
     (syntax-rules ()
       ((_ ?var ?expected . ?body)
        (check
-	   (let (((?var <uri>)
-		  (make <uri>
-		    (:decoded-scheme	scheme)
-		    (:decoded-authority	authority)
-		    (:decoded-path	path)
-		    (:decoded-query	query)
-		    (:decoded-fragment	fragment))))
+	   (let (((?var uri.<uri>)
+		  (make uri.<uri>
+		    (uri.decoded-scheme		scheme)
+		    (uri.decoded-authority	authority)
+		    (uri.decoded-path		path)
+		    (uri.decoded-query		query)
+		    (uri.decoded-fragment	fragment))))
 	     . ?body)
 	 => ?expected))))
 

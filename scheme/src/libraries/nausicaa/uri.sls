@@ -29,42 +29,83 @@
 (library (nausicaa uri)
   (export
     <uri>
-    )
+
+    ;; auxiliary syntaxes
+    decoded-scheme
+    decoded-authority
+    decoded-path
+    decoded-query
+    decoded-fragment
+
+    encoded-scheme
+    encoded-authority
+    encoded-path
+    encoded-query
+    encoded-fragment
+
+    source-bytevector
+
+    ;; conditions
+    &parser-error
+    make-parser-error-condition			parser-error-condition?
+    condition-parser-error/offset)
   (import (nausicaa)
+    (nausicaa uri conditions)
     (prefix (nausicaa uri low) low.))
 
 
 ;;;; helpers
 
+(define-auxiliary-syntaxes
+  decoded-scheme
+  decoded-authority
+  decoded-path
+  decoded-query
+  decoded-fragment
+
+  encoded-scheme
+  encoded-authority
+  encoded-path
+  encoded-query
+  encoded-fragment
+
+  source-bytevector)
 
 
 (define-class <uri>
   (nongenerative nausicaa:uri:<uri>)
 
   (maker ()
-	 (:decoded-scheme	#f)
-	 (:decoded-authority	#f)
-	 (:decoded-path		#f)
-	 (:decoded-query	#f)
-	 (:decoded-fragment	#f)
+	 (decoded-scheme	#f	(without source-bytevector encoded-scheme))
+	 (decoded-authority	#f	(without source-bytevector encoded-authority))
+	 (decoded-path		#f	(without source-bytevector encoded-path))
+	 (decoded-query		#f	(without source-bytevector encoded-query))
+	 (decoded-fragment	#f	(without source-bytevector encoded-fragment))
 
-	 (:encoded-scheme	#f)
-	 (:encoded-authority	#f)
-	 (:encoded-path		#f)
-	 (:encoded-query	#f)
-	 (:encoded-fragment	#f)
-	 )
+	 (encoded-scheme	#f	(without source-bytevector decoded-scheme))
+	 (encoded-authority	#f	(without source-bytevector decoded-authority))
+	 (encoded-path		#f	(without source-bytevector decoded-path))
+	 (encoded-query		#f	(without source-bytevector decoded-query))
+	 (encoded-fragment	#f	(without source-bytevector decoded-fragment))
 
-  (protocol (lambda (make-top)
-	      (lambda (	;
-		       decoded-scheme decoded-authority decoded-path decoded-query decoded-fragment
-		       encoded-scheme encoded-authority encoded-path encoded-query encoded-fragment)
-		((make-top)
-		 #f ;cached-string
-		 #f ;cached-bytevector
-		 decoded-scheme decoded-authority decoded-path decoded-query decoded-fragment
-		 encoded-scheme encoded-authority encoded-path encoded-query encoded-fragment
-		 ))))
+	 (source-bytevector	#f	(without decoded-scheme		encoded-scheme
+						 decoded-authority	encoded-authority
+						 decoded-path		encoded-path
+						 decoded-query		encoded-query
+						 decoded-fragment	encoded-fragment)))
+
+  (protocol
+   (lambda (make-top)
+     (lambda (	;
+	 decoded-scheme decoded-authority decoded-path decoded-query decoded-fragment
+	 encoded-scheme encoded-authority encoded-path encoded-query encoded-fragment
+	 source-bytevector)
+       ((make-top)
+	#f	;cached-string
+	#f	;cached-bytevector
+	decoded-scheme decoded-authority decoded-path decoded-query decoded-fragment
+	encoded-scheme encoded-authority encoded-path encoded-query encoded-fragment
+	))))
 
   (fields (mutable cached-string)
 	  (mutable cached-bytevector))

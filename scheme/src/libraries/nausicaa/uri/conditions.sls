@@ -27,12 +27,10 @@
 
 (library (nausicaa uri conditions)
   (export
-
     &parser-error
     make-parser-error-condition
     parser-error-condition?
-    condition-parser-error/offset
-    )
+    condition-parser-error/offset)
   (import (rnrs)
     (nausicaa language conditions))
 
