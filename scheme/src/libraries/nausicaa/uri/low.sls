@@ -140,6 +140,11 @@
 	 (assert (<= $int-a chi $int-f))
 	 (+ 10 (- chi $int-a)))))
 
+(define-inline (integer->ascii-hex n)
+  (if (<= 0 n 9)
+      (+ $int-0 n)
+    (+ $int-A n)))
+
 (define-inline (is-alpha-digit? chi)
   (or (is-alpha? chi)
       (is-dec-digit? chi)))

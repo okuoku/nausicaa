@@ -47,6 +47,11 @@
 (define-auxiliary-syntaxes
   source-bytevector)
 
+(define-inline (integer->ascii-hex n)
+  (if (<= 0 n 9)
+      (+ 48 n)	      ;48 = #\0
+    (+ 65 (- n 10)))) ;65 = #\A
+
 
 (define-class <uri>
   (nongenerative nausicaa:uri:<uri>)
@@ -117,12 +122,18 @@
 		       (case o.host-type
 			 ((reg-name)
 			  (%put-bv (low.percent-encode o.host)))
-			 ((ip-literal)
+			 ((ipv4-address)
+			  (%put-bv (car o.host)))
+			 ((ipv6-address)
 			  (%put-u8 91) ;91 = #\[
-			  (%put-bv o.host)
+			  (%put-bv (car o.host))
 			  (%put-u8 93)) ;93 = #\]
-			 ((ipv4address)
-			  (%put-bv o.host))
+			 ((ipvfuture)
+			  (%put-u8 91)	;91 = #\[
+			  (%put-u8 118) ;118 = #\v
+			  (%put-u8 (integer->ascii-hex (car o.host)))
+			  (%put-bv (cdr o.host))
+			  (%put-u8 93)) ;93 = #\]
 			 (else
 			  (assertion-violation who "invalid host type" o o.host-type)))
 		       (when o.port
@@ -222,12 +233,18 @@
 		       (case o.host-type
 			 ((reg-name)
 			  (%put-bv (low.percent-encode o.host)))
-			 ((ip-literal)
+			 ((ipv4-address)
+			  (%put-bv (car o.host)))
+			 ((ipv6-address)
 			  (%put-u8 91) ;91 = #\[
-			  (%put-bv o.host)
+			  (%put-bv (car o.host))
 			  (%put-u8 93)) ;93 = #\]
-			 ((ipv4address)
-			  (%put-bv o.host))
+			 ((ipvfuture)
+			  (%put-u8 91)	;91 = #\[
+			  (%put-u8 118) ;118 = #\v
+			  (%put-u8 (integer->ascii-hex (car o.host)))
+			  (%put-bv (cdr o.host))
+			  (%put-u8 93)) ;93 = #\]
 			 (else
 			  (assertion-violation who "invalid host type" o o.host-type)))
 		       (when o.port

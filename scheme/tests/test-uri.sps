@@ -2311,6 +2311,22 @@
   (doit "http:./ciao")
   (doit "http:./ciao/hello/salut")
 
+;;; IPv4address
+
+  (doit "http://1.2.3.4/a/b/c")
+  (doit "http://10.20.30.40/a/b/c")
+
+;;; IPv6address
+
+  (doit "http://[1:2:3:4:5:6:7:8]/a/b/c")
+  (doit "http://[a:b:c:d:e:f:a:b]/a/b/c")
+  (doit "http://[1:2:3:4::172.30.67.254]/a/b/c")
+
+;;; ipvfuture
+
+  (doit "http://[v412345]/a/b/c")
+  (doit "http://[vF12345]/a/b/c")
+
   #t)
 
 
@@ -2371,6 +2387,22 @@
   (doit "./a///")
   (doit "./ciao")
   (doit "./ciao/hello/salut")
+
+;;; IPv4address
+
+  (doit "//1.2.3.4/a/b/c")
+  (doit "//10.20.30.40/a/b/c")
+
+;;; IPv6address
+
+  (doit "//[1:2:3:4:5:6:7:8]/a/b/c")
+  (doit "//[a:b:c:d:e:f:a:b]/a/b/c")
+  (doit "//[1:2:3:4::172.30.67.254]/a/b/c")
+
+;;; ipvfuture
+
+  (doit "//[v412345]/a/b/c")
+  (doit "//[vF12345]/a/b/c")
 
   #t)
 

@@ -1693,9 +1693,6 @@ value is @code{reg-name}.
 Host data represented as the second return value from @func{parse-host}
 and associated to the symbol above.
 
-@item host
-A bytevector representing the @code{host} component; it can be empty.
-
 @item port
 A bytevector representing the @code{port} component; false if the
 @code{port} is not present.
@@ -1937,15 +1934,16 @@ no @code{userinfo} component.
 
 
 @defcv {Mutable field} @aclass{uri} host-type
-A Scheme symbol among: @code{reg-name}, @code{ipv4address},
-@code{ip-literal}; represents the type of the @code{host} field.
+A Scheme symbol among: @code{reg-name}, @code{ipv4-address},
+@code{ipv6-address}, @code{ipvfuture}; when the host is empty: this
+value is @code{reg-name}.
 @end defcv
 
 
 @defcv {Mutable field} @aclass{uri} host
-The @code{host} component as a bytevector; if the @code{host-type} field
-is @code{reg-name} percent--encoded characters are decoded in this
-field.
+Host data represented as the second return value from @func{parse-host}
+and associated to the symbol above.  When @code{host-type} is
+@code{reg-name}: the value is a percent--decoded bytevector.
 @end defcv
 
 
@@ -2040,16 +2038,17 @@ no @code{userinfo} component.
 @end defcv
 
 
-@defcv {Mutable field} @aclass{relative-ref} host-type
-A Scheme symbol among: @code{reg-name}, @code{ipv4address},
-@code{ip-literal}; represents the type of the @code{host} field.
+@defcv {Mutable field} @aclass{uri} host-type
+A Scheme symbol among: @code{reg-name}, @code{ipv4-address},
+@code{ipv6-address}, @code{ipvfuture}; when the host is empty: this
+value is @code{reg-name}.
 @end defcv
 
 
-@defcv {Mutable field} @aclass{relative-ref} host
-The @code{host} component as a bytevector; if the @code{host-type} field
-is @code{reg-name} percent--encoded characters are decoded in this
-field.
+@defcv {Mutable field} @aclass{uri} host
+Host data represented as the second return value from @func{parse-host}
+and associated to the symbol above.  When @code{host-type} is
+@code{reg-name}: the value is a percent--decoded bytevector.
 @end defcv
 
 
