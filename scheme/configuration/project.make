@@ -439,34 +439,6 @@ endif
 json:
 	cd $(srcdir)/src/libraries/nausicaa/json && $(JSON_RUNNER) $(JSON_PROGRAM)
 
-
-#page
-## --------------------------------------------------------------------
-## Special rules: uri lexers and parser building.
-## --------------------------------------------------------------------
-
-URI_PROGRAM	= make-tables.sps
-URI_LIBPATH	= $(abspath $(nau_sls_BUILDDIR))
-
-ifeq (yes,$(nausicaa_ENABLE_VICARE))
-URI_ENV		= VICARE_LIBRARY_PATH=$(URI_LIBPATH):$(VICARE_LIBRARY_PATH)
-URI_RUNNER	= $(URI_ENV) $(VICARE) --debug --r6rs-script
-else ifeq (yes,$(nausicaa_ENABLE_MOSH))
-URI_ENV		= MOSH_LOADPATH=$(URI_LIBPATH):$(MOSH_LOADPATH)
-URI_RUNNER	= $(URI_ENV) $(MOSH)
-else ifeq (yes,$(nausicaa_ENABLE_PETITE))
-URI_ENV		= PETITE_LIBPATH=$(URI_LIBPATH):$(CHEZSCHEMELIBDIRS)
-URI_RUNNER	= export $(URI_ENV); $(PETITE) --libdirs $${PETITE_LIBPATH} --program
-else ifeq (yes,$(nausicaa_ENABLE_YPSILON))
-URI_ENV		= YPSILON_SITELIB=$(URI_LIBPATH):$(YPSILON_SITELIB)
-URI_RUNNER	= $(URI_ENV) $(YPSILON)
-endif
-
-.PHONY: uri
-
-uri:
-	cd $(srcdir)/src/libraries/nausicaa/uri && $(URI_RUNNER) $(URI_PROGRAM)
-
 #page
 ## --------------------------------------------------------------------
 ## Special rules: net-related lexers and parser building.
@@ -562,7 +534,6 @@ silex-all-tables:
 	$(MAKE) infix
 	$(MAKE) email
 	$(MAKE) json
-	$(MAKE) uri
 	$(MAKE) net
 	$(MAKE) r6rs-lexer
 #	$(MAKE) xml-lexer
