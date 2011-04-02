@@ -199,6 +199,18 @@
 ;;; --------------------------------------------------------------------
 ;;; compressed format (omitting zeros)
 
+  (check ;this is a wrong address spec, it must be ruled out with further validation
+      (parse-address "ff")
+    => '(255))
+
+  (check ;this is a wrong address spec, it must be ruled out with further validation
+      (parse-address "ff:ff")
+    => '(255 255))
+
+  (check
+      (parse-address "::")
+    => '(#f))
+
   (check
       (parse-address "::1")
     => '(#f 1))
@@ -256,6 +268,10 @@
 
 ;;; --------------------------------------------------------------------
 ;;; prefix, compressed format (omitting zeros)
+
+  (check
+      (parse-address "::/60")
+    => '(#f (60)))
 
   (check
       (parse-address "::1/60")
@@ -434,6 +450,22 @@
   (check
       (ipv6-address-parse "1:2:3::7:8")
     => '(1 2 3 0 0 0 7 8))
+
+  (check
+      (guard (E ((ipv6-address-parser-error-condition? E)
+;;;(display (condition-message E))(newline)
+		 #t)
+		(else #f))
+	(ipv6-address-parse "12"))
+    => #t)
+
+  (check
+      (guard (E ((ipv6-address-parser-error-condition? E)
+;;;(display (condition-message E))(newline)
+		 #t)
+		(else #f))
+	(ipv6-address-parse "12:34"))
+    => #t)
 
   (check
       (guard (E ((ipv6-address-parser-error-condition? E)

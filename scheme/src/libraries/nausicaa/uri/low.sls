@@ -40,9 +40,13 @@
     ;; parser functions
     parse-scheme		collect-hier-part
     parse-query			parse-fragment
-    parse-userinfo		parse-reg-name
-    parse-authority		parse-ip-literal
-    parse-ipvfuture		parse-port
+    parse-authority		parse-userinfo
+    parse-host
+    parse-reg-name		parse-ip-literal
+    parse-ipvfuture
+    parse-ipv4-address		parse-ipv6-address
+    parse-port
+
     (rename (collect-hier-part	collect-relative-part))
 
     parse-segment		parse-segment-nz
@@ -60,8 +64,12 @@
     ;; auxiliary syntaxes
     char-selector		string-result?)
   (import (nausicaa)
+    (rnrs mutable-strings)
     (nausicaa uri conditions)
-    (rnrs mutable-strings))
+    (prefix (nausicaa net helpers ipv4-address-lexer)  net.)
+    (prefix (nausicaa net helpers ipv4-address-parser) net.)
+    (prefix (nausicaa net ipv6-addresses)  net.)
+    (prefix (nausicaa silex lexer) lex.))
 
 
 ;;;; constants
@@ -122,6 +130,15 @@
   (or (is-dec-digit? chi)
       (<= $int-A chi $int-F)
       (<= $int-a chi $int-f)))
+
+(define-inline (ascii-hex->integer chi)
+  (cond ((<= $int-0 chi $int-9)
+	 (- chi $int-0))
+	((<= $int-A chi $int-F)
+	 (+ 10 (- chi $int-A)))
+	(else
+	 (assert (<= $int-a chi $int-f))
+	 (+ 10 (- chi $int-a)))))
 
 (define-inline (is-alpha-digit? chi)
   (or (is-alpha? chi)
@@ -739,6 +756,83 @@
 	    (else
 	     (return-failure))))))
 
+(define (parse-ipv4-address in-port)
+  ;;Accumulate  bytes   from  IN-PORT  while  they  are   valid  for  an
+  ;;"IPv4address"  component,  then  parse  them as  IPv4  address.   If
+  ;;successful return  two values: a bytevector  holding the accumulated
+  ;;bytes,  a list  holding the  octecs as  exact integers;  else return
+  ;;false and false.
+  ;;
+  ;;If successful:  leave the port position  to the byte  after last one
+  ;;read from the port; if an  error occurs: rewind the port position to
+  ;;the one before this function call.
+  ;;
+  ;;No validation is  performed on the first byte  after the address, if
+  ;;any.
+  ;;
+  (define-parser-macros in-port)
+  (define (%error)
+    (values (return-failure) #f))
+  (let ((bv (let-values (((host-port getter) (open-bytevector-output-port)))
+	      (let process-next-byte ((chi (get-u8 in-port)))
+		(cond ((eof-object? chi)
+		       (getter))
+		      ((or (is-dec-digit? chi) (= chi $int-dot))
+		       (put-u8 host-port chi)
+		       (process-next-byte (get-u8 in-port)))
+		      (else
+		       (set-position-back-one! chi)
+		       (getter)))))))
+    (if (zero? (bytevector-length bv))
+	(%error)
+      (let* ((IS	(lex.make-IS (lex.string: (to-string bv))))
+	     (lexer	(lex.make-lexer net.ipv4-address-lexer-table IS))
+	     (parser	(net.make-ipv4-address-parser))
+	     (result	(guard (E ((sentinel? E) #f)
+				  (else (raise E)))
+			  (parser lexer (lambda args (raise sentinel))))))
+	(if result
+	    (if (= 4 (length result))
+		(values bv result)
+	      (%error))
+	  (%error))))))
+
+(define (parse-ipv6-address in-port)
+  ;;Accumulate  bytes   from  IN-PORT  while  they  are   valid  for  an
+  ;;"IPv6address"  component,  then  parse  them as  IPv6  address.   If
+  ;;successful return  two values: a bytevector  holding the accumulated
+  ;;bytes,  a list  holding the  8 numeric  address components  as exact
+  ;;integers; else return false and false.
+  ;;
+  ;;If successful:  leave the port position  to the byte  after last one
+  ;;read from the port; if an  error occurs: rewind the port position to
+  ;;the one before this function call.
+  ;;
+  ;;No validation is  performed on the first byte  after the address, if
+  ;;any.
+  ;;
+  (define-parser-macros in-port)
+  (define (%error)
+    (values (return-failure) #f))
+  (let ((bv (let-values (((host-port getter) (open-bytevector-output-port)))
+	      (let process-next-byte ((chi (get-u8 in-port)))
+		(cond ((eof-object? chi)
+		       (getter))
+		      ((or (is-hex-digit? chi) (= chi $int-dot) (= chi $int-colon))
+		       (put-u8 host-port chi)
+		       (process-next-byte (get-u8 in-port)))
+		      (else
+		       (set-position-back-one! chi)
+		       (getter)))))))
+    (if (zero? (bytevector-length bv))
+	(%error)
+      (guard (E ((net.ipv6-address-parser-error-condition? E)
+		 (%error))
+		(else
+		 (set-position-start!)
+		 (raise E)))
+	(values bv (net.ipv6-address-parse (to-string bv)))))))
+
 (define (parse-ip-literal in-port)
   ;;Accumulate  bytes   from  IN-PORT  while  they  are   valid  for  an
   ;;"IP-literal" component  of a "host" component.  The  first byte must
@@ -802,7 +896,7 @@
 		(open-bytevector-output-port)
 	      (let process-next-byte ((chi (get-u8 in-port)))
 		(cond ((eof-object? chi)
-		       (values version-chi (getter)))
+		       (values (ascii-hex->integer version-chi) (getter)))
 		      ((or (is-unreserved? chi)
 			   (is-sub-delim? chi)
 			   (= chi $int-colon))
@@ -868,6 +962,56 @@
 	    ;;Invalid byte.
 	    (else
 	     (return-failure))))))
+
+(define (parse-host in-port)
+  ;;Accumulate  bytes from  IN-PORT while  they are  valid for  a "host"
+  ;;component;  parse the  accumulated bytes  as "host"  and  return two
+  ;;values,  the first being  one of  the Scheme  symbols: ipv4-address,
+  ;;ipv6-address, ipvfuture, reg-name.
+  ;;
+  ;;The second returned value depends upon the first:
+  ;;
+  ;;ipv4-address: the second value is  a pair, whose car is a bytevector
+  ;;holding the  accumulated input and  whose cdr is  a list of  4 exact
+  ;;integers representing the octets.
+  ;;
+  ;;ipv6-address: the second value is  a pair, whose car is a bytevector
+  ;;holding  the   accumulated  input  (without   the  enclosing  square
+  ;;brackets) and whose  cdr is a list of  8 exact integers representing
+  ;;the address components.
+  ;;
+  ;;ipvfuture:  the second value  is a  pair, whose  car is  the version
+  ;;number as  exact integer  in the range  [0, 15]  and whose cdr  is a
+  ;;possibly empty bytevector holding the accumulated input (without the
+  ;;enclosing square brackets).
+  ;;
+  ;;reg-name: the  second value is  a possibly empty  bytevector holding
+  ;;the accumulated bytes.
+  ;;
+  ;;If successful:  leave the port position  to the byte  after last one
+  ;;read from the port; if an  error occurs: rewind the port position to
+  ;;the one before this function call.
+  ;;
+  (define-parser-macros in-port)
+  (define (%error)
+    (values (return-failure) #f))
+  (let-values (((ipv4.bv ipv4.ell) (parse-ipv4-address in-port)))
+    (if ipv4.bv
+	(values 'ipv4-address (cons ipv4.bv ipv4.ell))
+      (let ((ip-literal.bv (parse-ip-literal in-port)))
+	(if ip-literal.bv
+	    (let ((ip-literal.port (open-bytevector-input-port ip-literal.bv)))
+	      (let-values (((ipv6.bv ipv6.ell) (parse-ipv6-address ip-literal.port)))
+		(if ipv6.bv
+		    (values 'ipv6-address (cons ipv6.bv ipv6.ell))
+		  (let-values (((ipvfuture.version ipvfuture.bv) (parse-ipvfuture ip-literal.port)))
+		    (if ipvfuture.version
+			(values 'ipvfuture (cons ipvfuture.version ipvfuture.bv))
+		      (%error))))))
+	  (let ((reg-name.bv (parse-reg-name in-port)))
+	    (if reg-name.bv
+		(values 'reg-name reg-name.bv)
+	      (values #f #f))))))))
 
 (define (parse-port in-port)
   ;;Accumulate  bytes from  IN-PORT while  they are  valid for  a "port"
@@ -1253,10 +1397,11 @@
   ;;userinfo:  a  bytevector representing  the  userinfo component,  not
   ;;including the ending at sign.
   ;;
-  ;;host-type: one of the symbols: reg-name, ip-literal, ipvfuture; when
-  ;;the host is empty: this value is reg-name.
+  ;;host-type: one of the symbols: reg-name, ipv4-address, ipv6-address,
+  ;;ipvfuture; when the host is empty: this value is reg-name.
   ;;
-  ;;host: a bytevector representing the host component; it can be empty.
+  ;;host:  host  data  represented  as  the  second  return  value  from
+  ;;PARSE-HOST.
   ;;
   ;;port:  a bytevector representing  the port  component; false  if the
   ;;port is not present.
@@ -1290,20 +1435,7 @@
 	 (host-position	(port-position in-port)))
     (let-values (((host-type host)
 		  (if auth-port
-		      (cond ((parse-reg-name auth-port)
-			     => (lambda (bv)
-				  (values 'reg-name bv)))
-			    ((parse-ip-literal auth-port)
-			     => (lambda (bv)
-				  (values 'ip-literal bv)))
-			    ((parse-ipvfuture auth-port)
-			     => (lambda (bv)
-				  (values 'ipvfuture bv)))
-			    (else
-			     (parser-error 'parse-uri
-			       "invalid host component while parsing URI"
-			       (+ host-position (port-position auth-port))
-			       in-port)))
+		      (parse-host auth-port)
 		    (values 'reg-name '#vu8()))))
       (let ((port (and auth-port (parse-port auth-port))))
 	(let-values (((path-type path)
@@ -1345,10 +1477,11 @@
   ;;userinfo:  a  bytevector representing  the  userinfo component,  not
   ;;including the ending at sign.
   ;;
-  ;;host-type: one of the symbols: reg-name, ip-literal, ipvfuture; when
-  ;;the host is empty: this value is reg-name.
+  ;;host-type: one of the symbols: reg-name, ipv4-address, ipv6-address,
+  ;;ipvfuture; when the host is empty: this value is reg-name.
   ;;
-  ;;host: a bytevector representing the host component; it can be empty.
+  ;;host:  host  data  represented  as  the  second  return  value  from
+  ;;PARSE-HOST.
   ;;
   ;;port:  a bytevector representing  the port  component; false  if the
   ;;port is not present.
@@ -1381,20 +1514,7 @@
 	 (host-position	(port-position in-port)))
     (let-values (((host-type host)
 		  (if auth-port
-		      (cond ((parse-reg-name auth-port)
-			     => (lambda (bv)
-				  (values 'reg-name bv)))
-			    ((parse-ip-literal auth-port)
-			     => (lambda (bv)
-				  (values 'ip-literal bv)))
-			    ((parse-ipvfuture auth-port)
-			     => (lambda (bv)
-				  (values 'ipvfuture bv)))
-			    (else
-			     (parser-error 'parse-uri
-			       "invalid host component while parsing relative-ref"
-			       (+ host-position (port-position auth-port))
-			       in-port)))
+		      (parse-host auth-port)
 		    (values 'reg-name '#vu8()))))
       (let ((port (and auth-port (parse-port auth-port))))
 	(let-values (((path-type path)

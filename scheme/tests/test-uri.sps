@@ -649,6 +649,184 @@
     => '("ciao%3dciao" "host"))
 
 ;;; --------------------------------------------------------------------
+;;; IPv4 address
+
+  (check
+      (receive (addr ell)
+	  (low.parse-ipv4-address (make-lexer-port ""))
+	addr)
+    => #f)
+
+  (check
+      (let*-values (((in-port)	(make-lexer-port "ciao"))
+		    ((addr ell)	(low.parse-ipv4-address in-port))
+		    ((rest)	(low.to-string (get-bytevector-some in-port))))
+	(list addr rest))
+    => '(#f "ciao"))
+
+  (check
+      (let*-values (((in-port)	(make-lexer-port "1."))
+		    ((addr ell)	(low.parse-ipv4-address in-port))
+		    ((rest)	(low.to-string (get-bytevector-some in-port))))
+	(list addr rest))
+    => '(#f "1."))
+
+  (check
+      (let*-values (((in-port)	(make-lexer-port "1.2"))
+		    ((addr ell)	(low.parse-ipv4-address in-port))
+		    ((rest)	(low.to-string (get-bytevector-some in-port))))
+	(list addr rest))
+    => '(#f "1.2"))
+
+  (check
+      (let*-values (((in-port)	(make-lexer-port "1.2.3"))
+		    ((addr ell)	(low.parse-ipv4-address in-port))
+		    ((rest)	(low.to-string (get-bytevector-some in-port))))
+	(list addr rest))
+    => '(#f "1.2.3"))
+
+  (check
+      (let*-values (((in-port)	(make-lexer-port "1.2.3.4.5"))
+		    ((addr ell)	(low.parse-ipv4-address in-port))
+		    ((rest)	(low.to-string (get-bytevector-some in-port))))
+	(list addr rest))
+    => '(#f "1.2.3.4.5"))
+
+  (check
+      (let*-values (((in-port)	(make-lexer-port "123ciao"))
+		    ((addr ell)	(low.parse-ipv4-address in-port))
+		    ((rest)	(low.to-string (get-bytevector-some in-port))))
+	(list addr rest))
+    => '(#f "123ciao"))
+
+  (check
+      (let*-values (((in-port)	(make-lexer-port "1.2.3.ciao"))
+		    ((addr ell)	(low.parse-ipv4-address in-port))
+		    ((rest)	(low.to-string (get-bytevector-some in-port))))
+	(list addr rest))
+    => '(#f "1.2.3.ciao"))
+
+  (check
+      (let*-values (((in-port)	(make-lexer-port "1.2.3.4"))
+		    ((addr ell)	(low.parse-ipv4-address in-port)))
+	(list ell (eof-object? (lookahead-u8 in-port))))
+    => '((1 2 3 4) #t))
+
+  (check
+      (let*-values (((in-port)	(make-lexer-port "1.2.3.4."))
+		    ((addr ell)	(low.parse-ipv4-address in-port))
+		    ((rest)	(low.to-string (get-bytevector-some in-port))))
+	(list addr rest))
+    => '(#f "1.2.3.4."))
+
+  (check
+      (let*-values (((in-port)	(make-lexer-port "191.223.376.434"))
+		    ((addr ell)	(low.parse-ipv4-address in-port))
+		    ((rest)	(low.to-string (get-bytevector-some in-port))))
+	(list addr rest))
+    => '(#f "191.223.376.434"))
+
+  (check
+      (let*-values (((in-port)	(make-lexer-port "191.223.76.255"))
+		    ((addr ell)	(low.parse-ipv4-address in-port)))
+	(list ell (eof-object? (lookahead-u8 in-port))))
+    => '((191 223 76 255) #t))
+
+  (check
+      (let*-values (((in-port)	(make-lexer-port "1.2.3.4/5"))
+		    ((addr ell)	(low.parse-ipv4-address in-port))
+		    ((rest)	(low.to-string (get-bytevector-some in-port))))
+	(list (low.to-string addr) ell rest))
+    => '("1.2.3.4" (1 2 3 4) "/5"))
+
+  (check
+      (let*-values (((in-port)	(make-lexer-port "1.2.3.4/ciao"))
+		    ((addr ell)	(low.parse-ipv4-address in-port))
+		    ((rest)	(low.to-string (get-bytevector-some in-port))))
+	(list ell rest))
+    => '((1 2 3 4) "/ciao"))
+
+  (check
+      (let*-values (((in-port)	(make-lexer-port "1.2.3.4:8080"))
+		    ((addr ell)	(low.parse-ipv4-address in-port))
+		    ((rest)	(low.to-string (get-bytevector-some in-port))))
+	(list ell rest))
+    => '((1 2 3 4) ":8080"))
+
+  (check
+      (let*-values (((in-port)	(make-lexer-port "1.2.3.4ciao"))
+		    ((addr ell)	(low.parse-ipv4-address in-port))
+		    ((rest)	(low.to-string (get-bytevector-some in-port))))
+	(list ell rest))
+    => '((1 2 3 4) "ciao"))
+
+;;; --------------------------------------------------------------------
+;;; IPv6 address
+
+  (check
+      (receive (addr ell)
+	  (low.parse-ipv6-address (make-lexer-port ""))
+	addr)
+    => #f)
+
+  (check
+      (let*-values (((in-port)	(make-lexer-port "ciao"))
+		    ((addr ell)	(low.parse-ipv6-address in-port))
+		    ((rest)	(low.to-string (get-bytevector-some in-port))))
+	(list addr rest))
+    => '(#f "ciao"))
+
+  (check
+      (let*-values (((in-port)	(make-lexer-port "1.2.3.ciao"))
+		    ((addr ell)	(low.parse-ipv6-address in-port))
+		    ((rest)	(low.to-string (get-bytevector-some in-port))))
+	(list addr rest))
+    => '(#f "1.2.3.ciao"))
+
+  (check
+      (let*-values (((in-port)	(make-lexer-port "1:2:3:4:5:6:7:8"))
+		    ((addr ell)	(low.parse-ipv6-address in-port)))
+	(list (low.to-string addr) ell (eof-object? (lookahead-u8 in-port))))
+    => '("1:2:3:4:5:6:7:8" (1 2 3 4 5 6 7 8) #t))
+
+  (check
+      (let*-values (((in-port)	(make-lexer-port "::1"))
+		    ((addr ell)	(low.parse-ipv6-address in-port)))
+	(list (low.to-string addr) ell (eof-object? (lookahead-u8 in-port))))
+    => '("::1" (0 0 0 0 0 0 0 1) #t))
+
+  (check
+      (let*-values (((in-port)	(make-lexer-port "1::"))
+		    ((addr ell)	(low.parse-ipv6-address in-port)))
+	(list (low.to-string addr) ell (eof-object? (lookahead-u8 in-port))))
+    => '("1::" (1 0 0 0 0 0 0 0) #t))
+
+  (check
+      (let*-values (((in-port)	(make-lexer-port "1:2::3"))
+		    ((addr ell)	(low.parse-ipv6-address in-port)))
+	(list (low.to-string addr) ell (eof-object? (lookahead-u8 in-port))))
+    => '("1:2::3" (1 2 0 0 0 0 0 3) #t))
+
+  (check
+      (let*-values (((in-port)	(make-lexer-port "1:2:3:4::172.30.67.254"))
+		    ((addr ell)	(low.parse-ipv6-address in-port)))
+	(list (low.to-string addr) ell (eof-object? (lookahead-u8 in-port))))
+    => '("1:2:3:4::172.30.67.254" (1 2 3 4 0 0 #xac1e #x43fe) #t))
+
+  (check
+      (let*-values (((in-port)	(make-lexer-port "::ffff:192.168.99.1"))
+		    ((addr ell)	(low.parse-ipv6-address in-port)))
+	(list (low.to-string addr) ell (eof-object? (lookahead-u8 in-port))))
+    => '("::ffff:192.168.99.1" (0 0 0 0 0 #xFFFF #xC0A8 #x6301) #t))
+
+  (check
+      (let*-values (((in-port)	(make-lexer-port "::1/60"))
+		    ((addr ell)	(low.parse-ipv6-address in-port))
+		    ((rest)	(low.to-string (get-bytevector-some in-port))))
+	(list (low.to-string addr) ell rest))
+    => '("::1" (0 0 0 0 0 0 0 1) "/60"))
+
+;;; --------------------------------------------------------------------
 ;;; IP-literal
 
   (check
@@ -699,7 +877,7 @@
 	  (lambda ()
 	    (low.parse-ipvfuture (make-lexer-port "v1")))
 	list)
-    => '(49 #vu8()))
+    => '(1 #vu8()))
 
   (check
       (call-with-values
@@ -707,7 +885,15 @@
 	    (low.parse-ipvfuture (make-lexer-port "v9ciao")))
 	(lambda (version bv)
 	  (list version (low.to-string bv))))
-    => '(57 "ciao"))
+    => '(9 "ciao"))
+
+  (check
+      (call-with-values
+	  (lambda ()
+	    (low.parse-ipvfuture (make-lexer-port "vFciao")))
+	(lambda (version bv)
+	  (list version (low.to-string bv))))
+    => '(15 "ciao"))
 
 ;;; --------------------------------------------------------------------
 ;;; reg-name
@@ -769,6 +955,63 @@
 	     (rest	(low.to-string (get-bytevector-some in-port))))
 	(list reg rest))
     => '("the-reg-name" "/ciao"))
+
+;;; --------------------------------------------------------------------
+;;; host
+
+  (check
+      (let-values (((kind data) (low.parse-host (make-lexer-port ""))))
+	(list kind data))
+    => '(reg-name #vu8()))
+
+  (check
+      (let*-values (((in-port)		(make-lexer-port "/"))
+		    ((kind data)	(low.parse-host in-port))
+		    ((rest)		(low.to-string (get-bytevector-some in-port))))
+	(list kind data rest))
+    => '(reg-name #vu8() "/"))
+
+  (check
+      (let*-values (((in-port)		(make-lexer-port ":80"))
+		    ((kind data)	(low.parse-host in-port))
+		    ((rest)		(low.to-string (get-bytevector-some in-port))))
+	(list kind data rest))
+    => '(reg-name #vu8() ":80"))
+
+  (check
+      (let*-values (((in-port)		(make-lexer-port "1.2.3.4:80"))
+		    ((kind data)	(low.parse-host in-port))
+		    ((rest)		(low.to-string (get-bytevector-some in-port))))
+	(list kind (low.to-string (car data)) (cdr data) rest))
+    => '(ipv4-address "1.2.3.4" (1 2 3 4) ":80"))
+
+  (check
+      (let*-values (((in-port)		(make-lexer-port "1.2.3.4/ciao"))
+  		    ((kind data)	(low.parse-host in-port))
+  		    ((rest)		(low.to-string (get-bytevector-some in-port))))
+  	(list kind (low.to-string (car data)) (cdr data) rest))
+    => '(ipv4-address "1.2.3.4" (1 2 3 4) "/ciao"))
+
+  (check
+      (let*-values (((in-port)		(make-lexer-port "[::ffff:192.168.99.1]:80"))
+  		    ((kind data)	(low.parse-host in-port))
+  		    ((rest)		(low.to-string (get-bytevector-some in-port))))
+  	(list kind (low.to-string (car data)) (cdr data) rest))
+    => '(ipv6-address "::ffff:192.168.99.1" (0 0 0 0 0 #xFFFF #xC0A8 #x6301) ":80"))
+
+  (check
+      (let*-values (((in-port)		(make-lexer-port "[::ffff:192.168.99.1]/ciao"))
+  		    ((kind data)	(low.parse-host in-port))
+  		    ((rest)		(low.to-string (get-bytevector-some in-port))))
+  	(list kind (low.to-string (car data)) (cdr data) rest))
+    => '(ipv6-address "::ffff:192.168.99.1" (0 0 0 0 0 #xFFFF #xC0A8 #x6301) "/ciao"))
+
+  (check
+      (let*-values (((in-port)		(make-lexer-port "[v9,ciao,ciao]/ciao"))
+  		    ((kind data)	(low.parse-host in-port))
+  		    ((rest)		(low.to-string (get-bytevector-some in-port))))
+  	(list kind (car data) (low.to-string (cdr data)) rest))
+    => '(ipvfuture 9 ",ciao,ciao" "/ciao"))
 
 ;;; --------------------------------------------------------------------
 ;;; port
@@ -1717,13 +1960,23 @@
 		(and authority		(low.to-string authority))
 		(and userinfo		(low.to-string userinfo))
 		host-type
-		(and host		(low.to-string host))
+		(and host
+		     (case host-type
+		       ((reg-name)
+			(low.to-string host))
+		       ((ipv4-address)
+			(cons (low.to-string (car host)) (cdr host)))
+		       ((ipv6-address)
+			(cons (low.to-string (car host)) (cdr host)))
+		       ((ipvfuture)
+			(cons (car host) (low.to-string (cdr host))))
+		       (else #f)))
 		(and port		(low.to-string port))
 		path-type
 		(map low.to-string path)
 		(and query		(low.to-string query))
 		(and fragment		(low.to-string fragment))))
-      => (quote expected-value)))
+      => (quasiquote expected-value)))
 
 ;;; whith scheme
 
@@ -1780,6 +2033,18 @@
 
     (doit "http://ciao.com:8080/a/b/c"
     	  ("http" "ciao.com:8080" #f reg-name "ciao.com" "8080" path-abempty ("a" "b" "c") #f #f))
+
+    (doit "http://1.2.3.4:8080/a/b/c"
+    	  ("http" "1.2.3.4:8080" #f ipv4-address ("1.2.3.4" . (1 2 3 4))
+	   "8080" path-abempty ("a" "b" "c") #f #f))
+
+    (doit "http://[1:2:3:4:5:6:7:8]:8080/a/b/c"
+    	  ("http" "[1:2:3:4:5:6:7:8]:8080" #f ipv6-address ("1:2:3:4:5:6:7:8" . (1 2 3 4 5 6 7 8))
+	   "8080" path-abempty ("a" "b" "c") #f #f))
+
+    (doit "http://[vEciao]:8080/a/b/c"
+    	  ("http" "[vEciao]:8080" #f ipvfuture (14 . "ciao")
+	   "8080" path-abempty ("a" "b" "c") #f #f))
 
 ;;; with authority, no scheme
 
@@ -1980,38 +2245,132 @@
   #t)
 
 
-(parametrise ((check-test-name	'class-output))
-
-  (define scheme	(low.to-bytevector "http"))
-  (define authority	(low.to-bytevector "www.spiffy.org"))
-  (define path		(map low.to-bytevector '("the" "path" "name")))
-  (define query		(low.to-bytevector "question=answer"))
-  (define fragment	(low.to-bytevector "anchor-point"))
-
-  (define uri-string	"http://www.spiffy.org/the/path/name?question%3Danswer#anchor-point")
-  (define uri-bv	(low.to-bytevector uri-string))
+(parametrise ((check-test-name	'class-uri))
 
   (define-syntax doit
     (syntax-rules ()
-      ((_ ?var ?expected . ?body)
-       (check
-	   (let (((?var uri.<uri>)
-		  (make uri.<uri>
-		    (uri.decoded-scheme		scheme)
-		    (uri.decoded-authority	authority)
-		    (uri.decoded-path		path)
-		    (uri.decoded-query		query)
-		    (uri.decoded-fragment	fragment))))
-	     . ?body)
-	 => ?expected))))
+      ((_ ?string)
+       (doit ?string ?string))
+      ((_ ?input-string ?expected-string)
+       (begin
+	 (check
+	     (let (((o uri.<uri>) (make uri.<uri>
+				    (uri.source-bytevector (low.to-bytevector ?input-string)))))
+	       o.string)
+	   => ?expected-string)
+	 (check
+	     (let (((o uri.<uri>) (make uri.<uri>
+				    (uri.source-bytevector (low.to-bytevector ?input-string)))))
+	       o.bytevector)
+	   => (low.to-bytevector ?expected-string))))))
 
 ;;; --------------------------------------------------------------------
 
-  (doit o uri-string
-	o.string)
+  (doit "http://www.spiffy.org/the/path/name?question%3Danswer#anchor-point")
 
-  (doit o uri-bv
-	o.bytevector)
+  (doit "ci:ao/")
+  (doit "ci:ao/a///")
+  (doit "ci:ao/ciao")
+  (doit "ci:ao/ciao/hello/salut")
+  (doit "http://")
+  (doit "http://?query")
+  (doit "http://#fragment")
+  (doit "http:///")
+  (doit "http:///?query" )
+  (doit "http:///ciao" )
+  (doit "http://ciao.com:8080")
+  (doit "http://ciao.com:8080/")
+  (doit "http://ciao.com/a/b/c")
+
+;;; with authority
+
+  (doit "http://")
+  (doit "http://#fragment")
+  (doit "http:///?query")
+  (doit "http:///ciao")
+  (doit "http://ciao.com:8080")
+  (doit "http://ciao.com:8080/")
+  (doit "http://ciao.com/a/b/c")
+
+;;; no authority, emtpy path
+
+  (doit "http:" "http://")
+  (doit "http:?query" "http://?query")
+  (doit "http:#fragment" "http://#fragment")
+
+;;; no authority, absolute path
+
+  (doit "http:/")
+  (doit "http:/ciao")
+  (doit "http:/ciao/hello/salut")
+
+;;; no authority, relative path rootless
+
+  (doit "http:./")
+  (doit "http:./a///")
+  (doit "http:./ciao")
+  (doit "http:./ciao/hello/salut")
+
+  #t)
+
+
+(parametrise ((check-test-name	'class-relative-ref))
+
+  (define-syntax doit
+    (syntax-rules ()
+      ((_ ?string)
+       (doit ?string ?string))
+      ((_ ?input-string ?expected-string)
+       (begin
+	 (check
+	     (let (((o uri.<relative-ref>) (make uri.<relative-ref>
+					     (uri.source-bytevector (low.to-bytevector ?input-string)))))
+	       o.string)
+	   => ?expected-string)
+	 (check
+	     (let (((o uri.<relative-ref>) (make uri.<relative-ref>
+					     (uri.source-bytevector (low.to-bytevector ?input-string)))))
+	       o.bytevector)
+	   => (low.to-bytevector ?expected-string))))))
+
+;;; --------------------------------------------------------------------
+
+;;; with authority, no scheme
+
+  (doit "//")
+  (doit "//?query")
+  (doit "//#fragment")
+  (doit "///")
+  (doit "///?query")
+  (doit "///#fragment")
+  (doit "///ciao")
+  (doit "//ciao.com")
+  (doit "//ciao.com:8080")
+  (doit "//marco@ciao.com:8080")
+  (doit "//ciao.com:8080/")
+  (doit "//ciao.com:8080/a")
+  (doit "//ciao.com/a/b/c")
+  (doit "//ciao.com:8080/a/b/c")
+
+;;; no authority, emtpy path
+
+  (doit "" "//")
+  (doit "?query" "//?query")
+  (doit "#fragment" "//#fragment")
+
+;;; no authority, absolute path
+
+  (doit "/")
+  (doit "/a///")
+  (doit "/ciao")
+  (doit "/ciao/hello/salut")
+
+;;; no authority, relative path rootless
+
+  (doit "./")
+  (doit "./a///")
+  (doit "./ciao")
+  (doit "./ciao/hello/salut")
 
   #t)
 

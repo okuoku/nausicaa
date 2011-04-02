@@ -30,6 +30,7 @@ the @uri{} components are available as Scheme strings.
                                 and bytevectors.
 * uri percent::                 Percent encoding of characters.
 * uri parser::                  @uri{} parser functions.
+* uri class::                   Class interfaces.
 @end menu
 
 @c page
@@ -734,6 +735,157 @@ preceded by nothing).
 @end defun
 
 
+@defun parse-ipv4-address @var{port}
+Accumulate bytes from @var{port} while they are valid for an
+@code{IPv4address} component, then parse them as IPv4 address.  If
+successful return two values: a bytevector holding the accumulated
+bytes, a list holding the octets as exact integers; else return false
+and false.
+
+If successful: leave the port position to the byte after last one read
+from the port; if an error occurs: rewind the port position to the one
+before this function call.
+
+No validation is performed on the first byte after the address, if any.
+
+@example
+(import (rnrs)
+  (prefix (nausicaa uri low) low.))
+
+(define (make-lexer-port S)
+  (open-bytevector-input-port (low.to-bytevector S)))
+
+(low.parse-ipv4-address (make-lexer-port "")) @result{} #f #f
+
+(let ((P (make-lexer-port "ciao")))
+  (low.parse-ipv4-address P)                 @result{} #f #f
+  (low.to-string (get-bytevector-some P)))   @result{} "ciao"
+
+(let ((P (make-lexer-port "1.2.3")))
+  (low.parse-ipv4-address P)                 @result{} #f #f
+  (low.to-string (get-bytevector-some P)))   @result{} "1.2.3"
+
+(let ((P (make-lexer-port "1.2.3.4.5")))
+  (low.parse-ipv4-address P)                 @result{} #f #f
+  (low.to-string (get-bytevector-some P)))   @result{} "1.2.3.4.5"
+
+(let ((P (make-lexer-port "123ciao")))
+  (low.parse-ipv4-address P)                 @result{} #f #f
+  (low.to-string (get-bytevector-some P)))   @result{} "123ciao"
+
+(let ((P (make-lexer-port "1.2.3.4")))
+  (receive (addr ell)
+      (low.parse-ipv4-address P)
+    (low.to-string addr)          @result{} "1.2.3.4"
+    ell)                          @result{} (1 2 3 4)
+  (eof-object? (lookahead-u8 P))  @result{} #t
+
+(let ((P (make-lexer-port "191.223.376.434")))
+  (low.parse-ipv4-address P)   @result{} #f #f
+  (low.to-string
+   (get-bytevector-some P)))   @result{} "191.223.376.434"
+
+(let ((P (make-lexer-port "191.223.76.255")))
+  (receive (addr ell)
+      (low.parse-ipv4-address P)
+    (low.to-string addr)          @result{} "191.223.76.255"
+    ell))                         @result{} (191 223 76 255)
+
+(let ((P (make-lexer-port "1.2.3.4/5")))
+  (receive (addr ell)
+      (low.parse-ipv4-address P)
+    (low.to-string addr))         @result{} "1.2.3.4"
+  (low.to-string
+   (get-bytevector-some P)))      @result{} "/5"
+
+(let ((P (make-lexer-port "1.2.3.4/ciao")))
+  (receive (addr ell)
+      (low.parse-ipv4-address P)
+    (low.to-string addr))         @result{} "1.2.3.4"
+  (low.to-string
+   (get-bytevector-some P)))      @result{} "/ciao"
+
+(let ((P (make-lexer-port "1.2.3.4:8080")))
+  (receive (addr ell)
+      (low.parse-ipv4-address P)
+    (low.to-string addr))         @result{} "1.2.3.4"
+  (low.to-string
+   (get-bytevector-some P)))      @result{} ":8080"
+
+(let ((P (make-lexer-port "1.2.3.4ciao")))
+  (receive (addr ell)
+      (low.parse-ipv4-address P)
+    (low.to-string addr))         @result{} "1.2.3.4"
+  (low.to-string
+   (get-bytevector-some P)))      @result{} "ciao"
+@end example
+@end defun
+
+
+@defun parse-ipv6-address @var{port}
+Accumulate bytes from @var{port} while they are valid for an
+@code{IPv6address} component, then parse them as IPv6 address.  If
+successful return two values: a bytevector holding the accumulated
+bytes, a list holding the 8 numeric address components as exact
+integers; else return false and false.
+
+If successful: leave the port position to the byte after last one read
+from the port; if an error occurs: rewind the port position to the one
+before this function call.
+
+No validation is performed on the first byte after the address, if any.
+
+@example
+(import (rnrs)
+  (prefix (nausicaa uri low) low.))
+
+(define (make-lexer-port S)
+  (open-bytevector-input-port (low.to-bytevector S)))
+
+(low.parse-ipv6-address (make-lexer-port "")) @result{} #f #f
+
+(let ((P (make-lexer-port "ciao")))
+  (low.parse-ipv6-address P)            @result{} #f #f
+  (low.to-string
+   (get-bytevector-some P)))            @result{} "ciao"
+
+(let ((P (make-lexer-port "1.2.3.ciao")))
+  (low.parse-ipv6-address P)            @result{} #f #f
+  (low.to-string
+   (get-bytevector-some P)))            @result{} "1.2.3.ciao"
+
+(let ((P (make-lexer-port "1:2:3:4:5:6:7:8")))
+  (low.parse-ipv6-address P))
+  @result{} "1:2:3:4:5:6:7:8" (1 2 3 4 5 6 7 8)
+
+(let ((P (make-lexer-port "::1")))
+  (low.parse-ipv6-address P))
+  @result{} "::1" (0 0 0 0 0 0 0 1)
+
+(let ((P (make-lexer-port "1::")))
+  (low.parse-ipv6-address P))
+  @result{} "1::" (1 0 0 0 0 0 0 0)
+
+(let ((P (make-lexer-port "1:2::3")))
+  (low.parse-ipv6-address P))
+  @result{} "1:2::3" (1 2 0 0 0 0 0 3)
+
+(let ((P (make-lexer-port "1:2:3:4::172.30.67.254")))
+  (low.parse-ipv6-address P))
+  @result{} "1:2:3:4::172.30.67.254" (1 2 3 4 0 0 #xac1e #x43fe)
+
+(let ((P (make-lexer-port "::ffff:192.168.99.1")))
+  (low.parse-ipv6-address P))
+  @result{} "::ffff:192.168.99.1" (0 0 0 0 0 #xFFFF #xC0A8 #x6301)
+
+(let ((P (make-lexer-port "::1/60")))
+  (low.parse-ipv6-address P) @result{} "::1" (0 0 0 0 0 0 0 1)
+  (low.to-string
+   (get-bytevector-some P))) @result{} "/60"
+@end example
+@end defun
+
+
 @defun parse-ip-literal @var{port}
 Accumulate bytes from @var{port} while they are valid for an
 @code{IP-literal} component in a @code{host} component.  The first byte
@@ -823,14 +975,21 @@ component cannot be of zero length inside the brackets.
     (lambda ()
       (low.parse-ipvfuture (make-lexer-port "v1")))
   list)
-@result{} (49 #vu8())
+@result{} (1 #vu8())
 
 (call-with-values
     (lambda ()
       (low.parse-ipvfuture (make-lexer-port "v9ciao")))
   (lambda (version bv)
     (list version (low.to-string bv))))
-@result{} (57 "ciao")
+@result{} (9 "ciao")
+
+(call-with-values
+    (lambda ()
+      (low.parse-ipvfuture (make-lexer-port "vFciao")))
+  (lambda (version bv)
+    (list version (low.to-string bv))))
+@result{} (15 "ciao")
 @end example
 @end defun
 
@@ -893,6 +1052,87 @@ Notice that an empty @code{reg-name} component is valid.
 (let ((P (make-lexer-port "the-reg-name/ciao")))
   (low.to-string (low.parse-reg-name P))    @result{} "the-reg-name"
   (low.to-string (get-bytevector-some P)))  @result{} "/ciao"
+@end example
+@end defun
+
+
+@defun parse-host @var{port}
+Accumulate bytes from @var{port} while they are valid for a @code{host}
+component; parse the accumulated bytes as @code{host} and return two
+values, the first being one of the Scheme symbols: @code{ipv4-address},
+@code{ipv6-address}, @code{ipvfuture}, @code{reg-name}.
+
+The second returned value depends upon the first:
+
+@table @code
+@item ipv4-address
+The second value is a pair, whose car is a bytevector holding the
+accumulated bytes and whose cdr is a list of 4 exact integers
+representing the octets.
+
+@item ipv6-address
+The second value is a pair, whose car is a bytevector holding the
+accumulated bytes (without the enclosing square brackets) and whose cdr
+is a list of 8 exact integers representing the address components.
+
+@item ipvfuture
+The second value is a pair, whose car is the version number as exact
+integer in the range @math{[0, 15]} and whose cdr is a possibly empty
+bytevector holding the accumulated bytes (without the enclosing square
+brackets, the @code{v} and the version byte).
+
+@item reg-name
+The second value is a possibly empty bytevector holding the accumulated
+bytes.
+@end table
+
+If successful: leave the port position to the byte after last one read
+from the port; if an error occurs: return false and false, rewind the
+port position to the one before this function call.
+
+@example
+(import (rnrs)
+  (prefix (nausicaa uri low) low.))
+
+(define (make-lexer-port S)
+  (open-bytevector-input-port (low.to-bytevector S)))
+
+(let ((P (make-lexer-port "/")))
+  (low.parse-host P)            @result{} reg-name #vu8()
+  (low.to-string
+   (get-bytevector-some P)))    @result{} "/"
+
+(let ((P (make-lexer-port ":80")))
+  (low.parse-host P)            @result{} reg-name #vu8()
+  (low.to-string
+   (get-bytevector-some P)))    @result{} ":80"
+
+(let ((P (make-lexer-port "1.2.3.4:80")))
+  (receive (kind data)
+      (low.parse-host P)
+    kind                        @result{} ipv4-address
+    (low.to-string (car data))  @result{} "1.2.3.4"
+    (cdr data))                 @result{} (1 2 3 4)
+  (low.to-string
+   (get-bytevector-some P)))    @result{} ":80"
+
+(let ((P (make-lexer-port "[::ffff:192.168.99.1]:80")))
+  (receive (kind data)
+      (low.parse-host P)
+    kind                        @result{} ipv6-address
+    (low.to-string (car data))  @result{} "::ffff:192.168.99.1"
+    (cdr data))                 @result{} (0 0 0 0 0 #xFFFF #xC0A8 #x6301)
+  (low.to-string
+   (get-bytevector-some P)))    @result{} ":80"
+
+(let ((P (make-lexer-port "[vF,ciao,ciao]/ciao")))
+  (receive (kind data)
+      (low.parse-host P)
+    kind                        @result{} ipvfuture
+    (car data)                  @result{} 15
+    (low.to-string (cdr data))) @result{} ",ciao,ciao"
+  (low.to-string
+   (get-bytevector-some P)))    @result{} "/ciao"
 @end example
 @end defun
 
@@ -1445,8 +1685,13 @@ A bytevector representing the @code{userinfo} component, not including
 the ending at sign; false if the @code{userinfo} is not present.
 
 @item host-type
-One of the symbols: @code{reg-name}, @code{ip-literal},
-@code{ipvfuture}; when the host is empty: this value is @code{reg-name}.
+One of the symbols: @code{reg-name}, @code{ipv4-address},
+@code{ipv6-address}, @code{ipvfuture}; when the host is empty: this
+value is @code{reg-name}.
+
+@item host
+Host data represented as the second return value from @func{parse-host}
+and associated to the symbol above.
 
 @item host
 A bytevector representing the @code{host} component; it can be empty.
@@ -1502,11 +1747,13 @@ A bytevector representing the @code{userinfo} component, not including
 the ending at sign; false if the @code{userinfo} is not present.
 
 @item host-type
-One of the symbols: @code{reg-name}, @code{ip-literal},
-@code{ipvfuture}; when the host is empty: this value is @code{reg-name}.
+One of the symbols: @code{reg-name}, @code{ipv4-address},
+@code{ipv6-address}, @code{ipvfuture}; when the host is empty: this
+value is @code{reg-name}.
 
 @item host
-A bytevector representing the @code{host} component; it can be empty.
+Host data represented as the second return value from @func{parse-host}
+and associated to the symbol above.
 
 @item port
 A bytevector representing the @code{port} component; false if the
@@ -1643,5 +1890,232 @@ All the non percent--encoded bytes are in the unreserved set defined by
 @rfc{} 3986.
 @end itemize
 @end defun
+
+@c page
+@node uri class
+@section Class interfaces
+
+
+@menu
+* uri class uri::               The @class{uri} class.
+* uri class relative-ref::      The @class{relative-ref} class.
+@end menu
+
+@c page
+@node uri class uri
+@subsection The @class{uri} class
+
+
+The following bindings are exported by the @library{nausicaa uri}
+library.
+
+
+@deftp Class @aclass{uri}
+Represents a parsed @code{URI} component.
+@end deftp
+
+
+@defcv {Mutable field} @aclass{uri} scheme
+The @code{scheme} component as a bytevector.  Remember that
+@code{scheme} is mandatory and does not contain percent--encoded
+characters.
+@end defcv
+
+
+@defcv {Mutable field} @aclass{uri} authority
+The @code{authority} component as a bytevector, or false if there is no
+@code{authority} component.  Percent--encoded characters are not decoded
+in this field.
+@end defcv
+
+
+@defcv {Mutable field} @aclass{uri} userinfo
+The @code{userinfo} component as a percent--decoded bytevector
+@strong{not} containing the trailing at character, or false if there is
+no @code{userinfo} component.
+@end defcv
+
+
+@defcv {Mutable field} @aclass{uri} host-type
+A Scheme symbol among: @code{reg-name}, @code{ipv4address},
+@code{ip-literal}; represents the type of the @code{host} field.
+@end defcv
+
+
+@defcv {Mutable field} @aclass{uri} host
+The @code{host} component as a bytevector; if the @code{host-type} field
+is @code{reg-name} percent--encoded characters are decoded in this
+field.
+@end defcv
+
+
+@defcv {Mutable field} @aclass{uri} port
+The @code{port} component as a bytevector, or false if no @code{port} is
+present.  Remember that @code{port} does not contain percent--encoded
+characters.
+@end defcv
+
+
+@defcv {Mutable field} @aclass{uri} path-type
+A Scheme symbol among: @code{path-abempty}, @code{path-empty},
+@code{path-rootless}, @code{path-absolute}; represents the type of the
+@code{path} field.
+@end defcv
+
+
+@defcv {Mutable field} @aclass{uri} path
+A possibly empty list holding percent--decoded bytevectors representing
+the path segments.
+@end defcv
+
+
+@defcv {Mutable field} @aclass{uri} query
+The @code{query} component as a percent--decoded bytevector @strong{not}
+containing the leading question mark, or false if there is no
+@code{query} component.
+@end defcv
+
+
+@defcv {Mutable field} @aclass{uri} fragment
+The @code{fragment} component as a percent--decoded bytevector
+@strong{not} containing the leading number sign, or false if there is no
+@code{fragment} component.
+@end defcv
+
+
+@defcv {Immutable virtual field} @aclass{uri} bytevector
+A bytevector representing the whole @uri{}.
+@end defcv
+
+
+@defcv {Immutable virtual field} @aclass{uri} string
+A string representing the whole @uri{}; it is built from the
+@code{bytevector} field with the @func{to-string} function.
+@end defcv
+
+
+@deffn Syntax make* @aclass{uri} @ameta{source-bytevector}
+Build and return a new @class{uri} instance holding fields from parsing
+@var{source-bytevector}; it relies on parsing with @func{parse-uri}.
+@end deffn
+
+
+@deffn Syntax make @aclass{uri} @ameta{clause} ...
+@deffnx {Auxiliary Syntax} source-bytevector @ameta{expr}
+Build and return a new @class{uri} instance holding fields from parsing
+@var{expr}, which must be a bytevector; it relies on parsing with
+@func{parse-uri}.
+@end deffn
+
+
+@deffn Syntax is-a? @var{expr} @aclass{uri}
+Return true if @var{expr} evaluates to an instance of @class{uri}.
+@end deffn
+
+@c page
+@node uri class relative-ref
+@subsection The @class{relative-ref} class
+
+
+The following bindings are exported by the @library{nausicaa uri}
+library.
+
+
+@deftp Class @aclass{relative-ref}
+Represents a parsed @code{relative-ref} component.
+@end deftp
+
+
+@defcv {Mutable field} @aclass{relative-ref} authority
+The @code{authority} component as a bytevector, or false if there is no
+@code{authority} component.  Percent--encoded characters are not decoded
+in this field.
+@end defcv
+
+
+@defcv {Mutable field} @aclass{relative-ref} userinfo
+The @code{userinfo} component as a percent--decoded bytevector
+@strong{not} containing the trailing at character, or false if there is
+no @code{userinfo} component.
+@end defcv
+
+
+@defcv {Mutable field} @aclass{relative-ref} host-type
+A Scheme symbol among: @code{reg-name}, @code{ipv4address},
+@code{ip-literal}; represents the type of the @code{host} field.
+@end defcv
+
+
+@defcv {Mutable field} @aclass{relative-ref} host
+The @code{host} component as a bytevector; if the @code{host-type} field
+is @code{reg-name} percent--encoded characters are decoded in this
+field.
+@end defcv
+
+
+@defcv {Mutable field} @aclass{relative-ref} port
+The @code{port} component as a bytevector, or false if no @code{port} is
+present.  Remember that @code{port} does not contain percent--encoded
+characters.
+@end defcv
+
+
+@defcv {Mutable field} @aclass{relative-ref} path-type
+A Scheme symbol among: @code{path-abempty}, @code{path-empty},
+@code{path-noscheme}, @code{path-absolute}; represents the type of the
+@code{path} field.
+@end defcv
+
+
+@defcv {Mutable field} @aclass{relative-ref} path
+A possibly empty list holding percent--decoded bytevectors representing
+the path segments.
+@end defcv
+
+
+@defcv {Mutable field} @aclass{relative-ref} query
+The @code{query} component as a percent--decoded bytevector @strong{not}
+containing the leading question mark, or false if there is no
+@code{query} component.
+@end defcv
+
+
+@defcv {Mutable field} @aclass{relative-ref} fragment
+The @code{fragment} component as a percent--decoded bytevector
+@strong{not} containing the leading number sign, or false if there is no
+@code{fragment} component.
+@end defcv
+
+
+@defcv {Immutable virtual field} @aclass{relative-ref} bytevector
+A bytevector representing the whole @uri{}.
+@end defcv
+
+
+@defcv {Immutable virtual field} @aclass{relative-ref} string
+A string representing the whole @uri{}; it is built from the
+@code{bytevector} field with the @func{to-string} function.
+@end defcv
+
+
+@deffn Syntax make* @aclass{relative-ref} @ameta{source-bytevector}
+Build and return a new @class{relative-ref} instance holding fields from
+parsing @var{source-bytevector}; it relies on parsing with
+@func{parse-uri}.
+@end deffn
+
+
+@deffn Syntax make @aclass{relative-ref} @ameta{clause} ...
+@deffnx {Auxiliary Syntax} source-bytevector @ameta{expr}
+Build and return a new @class{relative-ref} instance holding fields from
+parsing @var{expr}, which must be a bytevector; it relies on parsing
+with @func{parse-uri}.
+@end deffn
+
+
+@deffn Syntax is-a? @var{expr} @aclass{relative-ref}
+Return true if @var{expr} evaluates to an instance of
+@class{relative-ref}.
+@end deffn
 
 @c end of file
