@@ -125,7 +125,7 @@
     <time>-modified-julian-day
 
     )
-  (import (nausicaa)
+  (import (for (nausicaa) run expand)
     (rnrs mutable-strings)
     (nausicaa formations)
     (only (nausicaa language extensions) define-auxiliary-syntax)

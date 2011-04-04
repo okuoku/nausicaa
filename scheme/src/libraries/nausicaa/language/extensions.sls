@@ -177,6 +177,7 @@
 ;;;SOFTWARE.
 
 
+#!r6rs
 (library (nausicaa language extensions)
   (export
     and-let* begin0 begin0-let begin0-let* begin0-letrec
@@ -190,7 +191,7 @@
     define-syntax* define-auxiliary-syntax define-auxiliary-syntaxes
     define-for-expansion-evaluation include)
   (import (rnrs)
-    (nausicaa language compensations)
+    (for (nausicaa language compensations) expand)
     (only (nausicaa language auxiliary-syntaxes) <> <...>))
 
 

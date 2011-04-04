@@ -51,7 +51,7 @@
 
     queue->list		list->queue
     queue->vector	vector->queue)
-  (import (nausicaa)
+  (import (for (nausicaa) run expand)
     (rnrs mutable-pairs))
 
 

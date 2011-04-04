@@ -19,6 +19,7 @@ set -x
     --enable-use-sudo                           \
     --enable-mosh                               \
     --enable-petite                             \
+    --enable-racket                             \
     --enable-vicare                             \
     --disable-ypsilon                           \
     --enable-binfmt                             \

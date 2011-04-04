@@ -150,6 +150,9 @@ AC_DEFUN([NAUSICAA_SCHEME_PROGRAMS],
   if test "$nausicaa_ENABLE_PETITE" = yes ; then
     NAU_DS_PROGRAM([PETITE],[petite],[the Petite Chez Scheme executable])
   fi
+  if test "$nausicaa_ENABLE_RACKET" = yes ; then
+    NAU_DS_PROGRAM([RACKET],[plt-r6rs],[the Racket R6RS executable])
+  fi
   if test "$nausicaa_ENABLE_VICARE" = yes ; then
     NAU_DS_PROGRAM([VICARE],[vicare],[the Vicare Scheme executable])
   fi
@@ -172,6 +175,9 @@ AC_DEFUN([NAUSICAA_OPTIONS],
    NAU_DS_ENABLE_OPTION([nausicaa_ENABLE_PETITE],[petite],[no],
      [whether usage of Petite Chez Scheme is enabled],
      [disable usage of Petite Chez Scheme])
+   NAU_DS_ENABLE_OPTION([nausicaa_ENABLE_RACKET],[racket],[no],
+     [whether usage of Racket is enabled],
+     [disable usage of Racket])
    NAU_DS_ENABLE_OPTION([nausicaa_ENABLE_VICARE],[vicare],[yes],
      [whether usage of Vicare Scheme is enabled],
      [disable usage of Vicare Scheme])
@@ -360,6 +366,47 @@ AC_DEFUN([NAUSICAA_PETITE_CHECK_LIBRARY],
 
 dnl page
 dnl --------------------------------------------------------------------
+dnl Macros for Racket.
+dnl --------------------------------------------------------------------
+
+dnl 1 SCHEME_CODE
+dnl 2 ADDITIONAL_RACKET_OPTIONS
+dnl 3 AFTER_SHELL_CODE
+AC_DEFUN([NAUSICAA_WITH_OUTPUT_FROM_RACKET_SCRIPT],
+  [NAU_DS_WITH_TMPFILE([
+    nausicaa_ANSWER=`echo '$1' >"${ds_TMPFILE}"
+    "${RACKET}" "${ds_TMPFILE}" $2`],[$3])])
+
+dnl 1 OUTPUT_VARIABLE_COMPONENT_NAME
+dnl 2 LIBRARY_IMPORT_SPEC
+dnl 3 OPTIONAL_ACTION_IF_FOUND
+dnl 4 OPTIONAL_ACTION_IF_FOUND
+AC_DEFUN([NAUSICAA_RACKET_CHECK_LIBRARY],
+  [AC_MSG_CHECKING([availability of Racket library $2])
+   NAUSICAA_WITH_OUTPUT_FROM_RACKET_SCRIPT([#!r6rs
+   (import (rnrs) (rnrs eval (6)))
+     (with-exception-handler
+       (lambda (ex)
+         (display "no\n")
+         (exit))
+       (lambda ()
+         (environment (quote $2))
+         (display "yes\n")))],,
+     [AC_MSG_RESULT([$nausicaa_ANSWER])
+      AC_SUBST([HAS_RACKET_LIB_$1],[$nausicaa_ANSWER])
+      if test "$nausicaa_ANSWER" = yes ; then
+        dnl action if found.
+        :
+        $3
+      else
+        dnl action if not found.
+        :
+        AC_MSG_WARN([Racket Scheme could not find library '$2'])
+        $4
+      fi])])
+
+dnl page
+dnl --------------------------------------------------------------------
 dnl Macros for Vicare Scheme.
 dnl --------------------------------------------------------------------
 
@@ -456,6 +503,9 @@ AC_DEFUN([NAUSICAA_SCHEME_CHECK_LIBRARY],
    fi
    if test "$nausicaa_ENABLE_PETITE" = yes ; then
      NAUSICAA_PETITE_CHECK_LIBRARY([$1],[$2],[$3],[$4])
+   fi
+   if test "$nausicaa_ENABLE_RACKET" = yes ; then
+     NAUSICAA_RACKET_CHECK_LIBRARY([$1],[$2],[$3],[$4])
    fi
    if test "$nausicaa_ENABLE_VICARE" = yes ; then
      NAUSICAA_VICARE_CHECK_LIBRARY([$1],[$2],[$3],[$4])

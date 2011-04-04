@@ -1,14 +1,12 @@
 ;;; -*- coding: utf-8-unix -*-
 ;;;
 ;;;Part of: Nausicaa/Scheme
-;;;Contents: expand-time identifier properties
-;;;Date: Mon Nov  8, 2010
+;;;Contents: compatibility library for Racket
+;;;Date: Mon Apr  4, 2011
 ;;;
 ;;;Abstract
 ;;;
-;;;	The idea is taken from the compile-time values and properties of
-;;;	Chez  Scheme  (see  Chez's  manual, Section  11.4  "Compile-time
-;;;	Values and Properties").  No code comes from Chez.
+;;;
 ;;;
 ;;;Copyright (c) 2010, 2011 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
@@ -28,27 +26,16 @@
 
 
 #!r6rs
-(library (nausicaa language identifier-properties)
+(library (nausicaa language compat)
   (export
-    define-identifier-property
-    (rename (ip.define	define)
-	    (ip.set!	set!)
-	    (ip.ref	ref)
-	    (ip.table	table)))
+    * rational-valued? max
+    (rename (getenv get-environment-variable))
+    get-environment-variables)
   (import (rnrs)
-    ;;The  run phase specifier  is needed  to export  for run  the above
-    ;;bindings.
-    (for (prefix (nausicaa language identifier-properties helpers) ip.) run expand))
-
-  (define-syntax define-identifier-property
-    (lambda (stx)
-      (syntax-case stx ()
-	((_ ?subject ?key ?value)
-	 (begin
-	   (assert (identifier? #'?subject))
-	   (assert (identifier? #'?key))
-	   (ip.define #'?subject #'?key #'?value)
-	   #'(define dummy))))))
+    (only (racket base) getenv)
+    (nausicaa language unimplemented))
+  (define (get-environment-variables)
+    (raise-unimplemented-error 'get-environment-variables))
   )
 
 ;;; end of file

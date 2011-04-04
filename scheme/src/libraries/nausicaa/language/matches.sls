@@ -72,10 +72,10 @@
 	  :getter
 	  :free-identifier
 	  :bound-identifier)
-    (prefix (only (nausicaa language syntax-utilities)
-		  identifier-memq
-		  syntax->list)
-	    sx.)
+    (for (prefix (only (nausicaa language syntax-utilities)
+		       identifier-memq
+		       syntax->list)
+		 sx.) expand)
     (nausicaa language conditions))
 
 

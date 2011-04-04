@@ -8,7 +8,7 @@
 #
 #
 #
-# Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
+# Copyright (c) 2009-2011 Marco Maggi <marco.maggi-ipsu@poste.it>
 #
 # This program is  free software: you can redistribute  it and/or modify
 # it under the  terms of the GNU General Public  License as published by
@@ -33,6 +33,7 @@
 # nausicaa_ENABLE_LARCENY	= @nausicaa_ENABLE_LARCENY@
 nausicaa_ENABLE_MOSH		= @nausicaa_ENABLE_MOSH@
 nausicaa_ENABLE_PETITE		= @nausicaa_ENABLE_PETITE@
+nausicaa_ENABLE_RACKET		= @nausicaa_ENABLE_RACKET@
 nausicaa_ENABLE_VICARE		= @nausicaa_ENABLE_VICARE@
 nausicaa_ENABLE_YPSILON		= @nausicaa_ENABLE_YPSILON@
 
@@ -41,6 +42,7 @@ FIND		= @FIND@
 # LARCENY	= @LARCENY@
 MOSH		= @MOSH@
 PETITE		= @PETITE@
+RACKET		= @RACKET@
 VICARE		= @VICARE@
 YPSILON		= @YPSILON@
 
@@ -51,6 +53,7 @@ nau_sls_BUILDDIR	= $(builddir)/fasl.d
 nau_IMPLEMENTATIONS	= \
 	$(call ds-if-yes,$(nausicaa_ENABLE_MOSH),	m) \
 	$(call ds-if-yes,$(nausicaa_ENABLE_PETITE),	p) \
+	$(call ds-if-yes,$(nausicaa_ENABLE_RACKET),	r) \
 	$(call ds-if-yes,$(nausicaa_ENABLE_VICARE),	v) \
 	$(call ds-if-yes,$(nausicaa_ENABLE_YPSILON),	y)
 
@@ -250,6 +253,32 @@ pfasl-installed:
 #	test -f $(fasl_petite_COMPILE_SCRIPT) && $(fasl_petite_COMPILE_INST_RUN)
 
 ## --------------------------------------------------------------------
+## Racket compilation.
+
+# Compiled files will go in the user owned cache under "~/.racket".
+
+fasl_racket_COMPILE_SCRIPT	= $(nau_sls_SRCDIR)/compile-all.racket.sps
+ifeq (,$(strip $(PLTCOLLECTS)))
+fasl_racket_COMPILE_ENV		= PLTCOLLECTS=$(PWD)/$(nau_sls_BUILDDIR)
+else
+fasl_racket_COMPILE_ENV		= PLTCOLLECTS=$(PWD)/$(nau_sls_BUILDDIR):$(PLTCOLLECTS)
+endif
+fasl_racket_COMPILE_COMMAND	= $(RACKET) --compile
+fasl_racket_COMPILE_RUN		= $(fasl_racket_COMPILE_ENV)		\
+					$(fasl_racket_COMPILE_COMMAND)	\
+					$(fasl_racket_COMPILE_SCRIPT)
+fasl_racket_COMPILE_INST_RUN	= $(fasl_racket_COMPILE_COMMAND)	\
+					$(fasl_racket_COMPILE_SCRIPT)
+
+rfasl: sls
+	@echo; echo "--- Compiling for Racket"
+	test -f $(fasl_racket_COMPILE_SCRIPT) && $(fasl_racket_COMPILE_RUN)
+
+rfasl-installed:
+	@echo; echo "--- Compiling installed files for Racket"
+	test -f $(fasl_racket_COMPILE_SCRIPT) && $(fasl_racket_COMPILE_INST_RUN)
+
+## --------------------------------------------------------------------
 ## Vicare compilation.
 
 # Compiled files  will go in the  user owned cache  under "~/.vicare" or
@@ -346,7 +375,7 @@ endif
 ifdef LIBPATH
 nau_test_custom_LIBPATH	= $(LIBPATH):
 endif
-nau_test_PATH		= $(nau_test_custom_LIBPATH)$(nau_sls_BUILDDIR):$(nau_test_SRCDIR)
+nau_test_PATH		= $(nau_test_custom_LIBPATH)$(PWD)/$(nau_sls_BUILDDIR):$(PWD)/$(nau_test_SRCDIR)
 
 .PHONY: tests test check
 
@@ -467,6 +496,37 @@ ptest-installed:
 
 ifeq ($(strip $(nausicaa_ENABLE_PETITE)),yes)
 test tests check: ptest
+endif
+
+## ------------------------------------------------------------
+## Racket
+
+ifeq (,$(strip $(PLTCOLLECTS)))
+nau_rtest_ENV		= PLTCOLLECTS=$(nau_test_PATH)
+else
+nau_rtest_ENV		= PLTCOLLECTS=$(nau_test_PATH):$(PLTCOLLECTS)
+endif
+nau_rtest_ENV		+= $(nau_test_ENV)
+nau_rtest_PROGRAM	= $(RACKET)
+nau_rtest_RUN		= $(nau_rtest_ENV) $(nau_TIME_TESTS) $(nau_rtest_PROGRAM)
+
+nau_rtest_installed_ENV	= PLTCOLLECTS=$(nau_test_SRCDIR):$(PLTCOLLECTS)
+nau_rtest_installed_RUN	= $(nau_rtest_installed_ENV) $(nau_TIME_TESTS) $(nau_rtest_PROGRAM)
+
+.PHONY: rtest rtests rcheck rtest-installed
+
+rtest rtests rcheck:
+	@$(foreach f,$(nau_test_FILES),\
+		$(call nau_test_SEPARATOR,Racket,$(f)) $(nau_rtest_RUN) $(f);)
+
+rtest-installed:
+	@echo Running tests with installed Racket libraries
+	@echo $(nau_rtest_installed_ENV)
+	@$(foreach f,$(nau_test_FILES),\
+		$(call nau_test_SEPARATOR,Racket,$(f)) $(nau_rtest_installed_RUN) $(f);)
+
+ifeq ($(strip $(nausicaa_ENABLE_RACKET)),yes)
+test tests check: rtest
 endif
 
 ## ---------------------------------------------------------------------
@@ -654,6 +714,31 @@ pproof pproofs:
 
 ifeq ($(strip $(nausicaa_ENABLE_PETITE)),yes)
 proof proofs: pproof
+endif
+
+## ------------------------------------------------------------
+## Racket
+
+# ifeq (,$(strip $(PLTCOLLECTS)))
+# nau_rproof_ENV		= PLTCOLLECTS=$(nau_proof_PATH)
+# else
+# nau_rproof_ENV		= PLTCOLLECTS=$(nau_proof_PATH):$(PLTCOLLECTS)
+# endif
+nau_rproof_ENV		= PLTCOLLECTS=$(nau_proof_PATH):$(PLTCOLLECTS)
+nau_rproof_ENV		+= $(nau_proof_ENV)
+nau_rproof_PROGRAM	= $(RACKET)
+nau_rproof_RUN		= $(nau_rproof_ENV) $(nau_rproof_PROGRAM)
+
+.PHONY: rproof rproofs
+
+rproof rproofs:
+#ifeq ($(strip $(nausicaa_ENABLE_RACKET)),yes)
+	@$(foreach f,$(nau_proof_FILES),\
+		$(call nau_proof_SEPARATOR,Racket,$(f)) $(nau_rproof_RUN) $(f);)
+#endif
+
+ifeq ($(strip $(nausicaa_ENABLE_RACKET)),yes)
+proof proofs: rproof
 endif
 
 ## ---------------------------------------------------------------------

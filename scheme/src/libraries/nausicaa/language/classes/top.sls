@@ -29,7 +29,7 @@
 (library (nausicaa language classes top)
   (export <top> <top>-bindings)
   (import (rnrs)
-    (nausicaa language classes internal-auxiliary-syntaxes))
+    (for (nausicaa language classes internal-auxiliary-syntaxes) expand))
 
 
 (define <top>-rtd

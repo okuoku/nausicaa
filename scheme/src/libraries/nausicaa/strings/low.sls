@@ -102,6 +102,7 @@
 ;;;Copyright (c) 2008 Derick Eddington.  Ported to R6RS.
 
 
+#!r6rs
 (library (nausicaa strings low)
   (export
 

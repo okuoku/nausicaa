@@ -128,9 +128,9 @@
 	  inherit predicate maker maker-transformer setter getter bindings
 	  public-protocol maker-protocol superclass-protocol virtual-fields
 	  methods method method-syntax custom-maker mixins satisfies)
-    (nausicaa language extensions)
-    (for (prefix (nausicaa language classes properties) prop.)  expand)
-    (nausicaa language classes internal-auxiliary-syntaxes)
+    (for (nausicaa language extensions) run expand)
+    (for (prefix (nausicaa language classes properties) prop.) expand)
+    (for (nausicaa language classes internal-auxiliary-syntaxes) expand)
     (nausicaa language classes top))
 
 
@@ -493,573 +493,573 @@
 
 (define-syntax* (define-class stx)
   (define (main)
-    (define-values (class-identifier constructor-identifier predicate-identifier original-clauses)
-      (syntax-case stx ()
-	((_ (?name ?constructor ?predicate) ?clause ...)
-	 (sx.all-identifiers? #'(?name ?constructor ?predicate))
-	 (values #'?name #'?constructor #'?predicate (sx.unwrap #'(?clause ...))))
+    (let-values (((class-identifier constructor-identifier predicate-identifier original-clauses)
+		  (syntax-case stx ()
+		    ((_ (?name ?constructor ?predicate) ?clause ...)
+		     (sx.all-identifiers? #'(?name ?constructor ?predicate))
+		     (values #'?name #'?constructor #'?predicate (sx.unwrap #'(?clause ...))))
 
-	((_ ?name ?clause ...)
-	 (identifier? #'?name)
-	 (values #'?name
-		 (sx.syntax-maker-identifier #'?name)
-		 (sx.syntax-predicate-identifier #'?name)
-		 (sx.unwrap #'(?clause ...))))
+		    ((_ ?name ?clause ...)
+		     (identifier? #'?name)
+		     (values #'?name
+			     (sx.syntax-maker-identifier #'?name)
+			     (sx.syntax-predicate-identifier #'?name)
+			     (sx.unwrap #'(?clause ...))))
 
-	((_ ?name-spec . ?clauses)
-	 (%synner "invalid name specification in class definition" #'?name-spec))))
+		    ((_ ?name-spec . ?clauses)
+		     (%synner "invalid name specification in class definition" #'?name-spec)))))
 
-    (help.validate-class-clauses original-clauses %synner)
+      (help.validate-class-clauses original-clauses %synner)
 
-    (let*-values
-	;;The list of definition clauses joined with the requested mixin
-	;;clauses; the  list of requested  mixin identifiers to  be used
-	;;for inspection purposes.
-	;;
-	;;In the  original clauses  from the class  definition: separate
-	;;the MIXINS clauses from the other clauses.  For each requested
-	;;mixin: retrieve its clasuses,  specialise them and add them to
-	;;the non-MIXINS original clauses.
-	;;
-	(((clauses mixin-identifiers)
-	  (help.filter-and-compose-with-mixin-clauses original-clauses class-identifier
-						      help.validate-class-clauses %synner))
-
-	 ;;The superclass identifier or false; the inherit options: all
-	 ;;boolean values.
-	 ((superclass-identifier inherit-concrete-fields? inherit-virtual-fields?
-				 inherit-methods? inherit-setter-and-getter?)
-	  (%collect-clause/class/inherit clauses %synner))
-
-	 ;;An identifier representing the UID of the class.
-	 ((uid-symbol)
-	  (%collect-clause/nongenerative class-identifier clauses %synner))
-
-	 ;;A boolean establishing if the class type is sealed.
-	 ((sealed)
-	  (%collect-clause/sealed clauses %synner))
-
-	 ;;A boolean establishing if the class type is opaque.
-	 ((opaque)
-	  (%collect-clause/opaque clauses %synner))
-
-	 ;;A syntax object holding  an expression which evaluates to the
-	 ;;class' common  protocol function; it is false  if no protocol
-	 ;;clause was present.
-	 ((common-protocol)
-	  (%collect-clause/protocol clauses %synner))
-
-	 ;;A syntax  object holding  an expression which  evaluates to
-	 ;;the class' public protocol function.
-	 ((public-protocol)
-	  (%collect-clause/public-protocol clauses %synner))
-
-	 ;;A syntax  object holding  an expression which  evaluates to
-	 ;;the class' maker protocol function.
-	 ((maker-protocol)
-	  (%collect-clause/maker-protocol clauses %synner))
-
-	 ;;False  or  a  syntax  object holding  an  expression  which
-	 ;;evaluates to the class' superclass protocol function.
-	 ((superclass-protocol)
-	  (%collect-clause/superclass-protocol clauses %synner))
-
-	 ;;False or a syntax object holding the maker transformer.
-	 ((maker-transformer)
-	  (%collect-clause/maker-transformer clauses %synner))
-
-	 ;;False/false or: a syntax object holding a list of identifiers
-	 ;;representing the positional arguments  to the maker; a syntax
-	 ;;object holding a list  of maker clauses representing optional
-	 ;;arguments.
-	 ;;
-	 ;;*NOTE*:  when   no  maker  clause  is   present,  the  values
-	 ;;false/false *cannot* be matched by WITH-SYNTAX patterns like:
-	 ;;
-	 ;;    ((POS-ARG ...) maker-positional-args)
-	 ;;    ((OPT-ARG ...) maker-optional-args)
-	 ;;
-	 ;;so we must test the values first.
-	 ((maker-positional-args maker-optional-args)
-	  (%collect-clause/maker clauses %synner))
-
-	 ;;False or an identifier  representing the custom maker for the
-	 ;;class.
-	 ((custom-maker)
-	  (%collect-clause/custom-maker clauses %synner))
-
-	 ;;False or  the identifier of  the parent *record*  type (not
-	 ;;class type).
-	 ((parent-name)
-	  (%collect-clause/parent clauses %synner))
-
-	 ;;False/false  or  an  expression  evaluating to  the  parent
-	 ;;record type descriptor and  an expression evaluating to the
-	 ;;parent constructor descriptor.
-	 ((parent-rtd parent-cd)
-	  (%collect-clause/parent-rtd clauses %synner))
-
-	 ;;If a predicate clause  is present: an identifier representing
-	 ;;the custom  predicate for the class.  If  no predicate clause
-	 ;;is present:  set to the  PREDICATE-IDENTIFIER argument, which
-	 ;;is the result of parsing he class name above.
-	 ((custom-predicate)
-	  (%collect-clause/predicate predicate-identifier clauses %synner))
-
-	 ;;False or  an identifier  representing the setter  for the
-	 ;;class.
-	 ((setter)
-	  (%collect-clause/setter clauses %synner))
-
-	 ;;False or  an identifier  representing the getter  for the
-	 ;;class.
-	 ((getter)
-	  (%collect-clause/getter clauses %synner))
-
-	 ;;An identifier representing  the custom bindings macro for
-	 ;;the class.
-	 ((bindings-macro)
-	  (%collect-clause/bindings clauses %synner))
-
-	 ;;Null or  a validated list of concrete  fields having elements
-	 ;;with format:
-	 ;;
-	 ;;    (immutable <field name> <field accessor> <field getter> <field class> ...)
-	 ;;    (mutable   <field name> <field accessor> <field mutator> <field getter> <field class> ...)
-	 ;;
-	 ;;where  IMMUTABLE  and  MUTABLE  are  symbols  and  the  other
-	 ;;elements are identifiers.
-	 ((fields)
-	  (%collect-clause/fields class-identifier clauses %synner))
-
-	 ;;Null or  a validated list  of virtual fields  having elements
-	 ;;with format:
-	 ;;
-	 ;;    (immutable <field name> <field accessor> <field getter> <field class> ...)
-	 ;;    (mutable   <field name> <field accessor> <field mutator> <field getter> <field class> ...)
-	 ;;
-	 ;;where  IMMUTABLE and  MUTABLE are  symbols and  the other
-	 ;;elements are identifiers.
-	 ((virtual-fields)
-	  (%collect-clause/virtual-fields class-identifier clauses %synner))
-
-	 ;;Null or a validated  list of method specifications from the
-	 ;;METHODS clauses, having elements with format:
-	 ;;
-	 ;;	(<method name> <function or macro identifier>)
-	 ;;
-	 ((methods-from-methods)
-	  (%collect-clause/methods class-identifier clauses %synner))
-
-	 ;;Null/null or a validated list of method specifications from
-	 ;;the METHOD clauses, having elements with format:
-	 ;;
-	 ;;    (<method name> <function name>)
-	 ;;
-	 ;;and a list of definitions with the format:
-	 ;;
-	 ;;    (<definition> ...)
-	 ;;
-	 ;;in which each definition has one of the formats:
-	 ;;
-	 ;;    (define (<function name> . <args>) . <body>)
-	 ;;    (define <function name> <expression>)
-	 ;;
-	 ((methods method-definitions)
-	  (%collect-clause/method class-identifier clauses %synner #'define/with-class))
-
-	 ;;Null/null   or   a   validated   list  of   method   syntax
-	 ;;specifications  from   the  METHOD-SYNTAX  clauses,  having
-	 ;;elements with format:
-	 ;;
-	 ;;    (<method name> <macro identifier>)
-	 ;;
-	 ;;and a list of definitions with the format:
-	 ;;
-	 ;;    (<definition> ...)
-	 ;;
-	 ;;in which each definition has the format:
-	 ;;
-	 ;;    (define-syntax <macro identifier> <expression>)
-	 ;;
-	 ((syntax-methods syntax-definitions)
-	  (%collect-clause/method-syntax class-identifier clauses %synner))
-
-	 ;;Null or a list of satisfaction function identifiers.
-	 ;;
-	 ((satisfactions)
-	  (%collect-clause/satisfies clauses %synner))
-
-	 ;;The full list of method identifiers.
-	 ;;
-	 ((all-methods)
-	  (append methods methods-from-methods syntax-methods))
-
-	 ;;The full list of method definitions.
-	 ;;
-	 ((all-method-definitions)
-	  (append method-definitions syntax-definitions)))
       (let*-values
-	  (((superclass-identifier parent-rtd parent-cd)
-	    (help.normalise-class-inheritance superclass-identifier parent-name
-					      parent-rtd parent-cd %synner))
+	  ;;The  list of  definition clauses  joined with  the requested
+	  ;;mixin clauses; the list of requested mixin identifiers to be
+	  ;;used for inspection purposes.
+	  ;;
+	  ;;In the original clauses  from the class definition: separate
+	  ;;the  MIXINS  clauses  from  the  other  clauses.   For  each
+	  ;;requested mixin: retrieve  its clasuses, specialise them and
+	  ;;add them to the non-MIXINS original clauses.
+	  ;;
+	  (((clauses mixin-identifiers)
+	    (help.filter-and-compose-with-mixin-clauses original-clauses class-identifier
+							help.validate-class-clauses %synner))
 
-	   ;;If the parent  is a record, rather than  a class, there are
-	   ;;no superclass properties to be inspected.
+	   ;;The  superclass identifier or  false; the  inherit options:
+	   ;;all boolean values.
+	   ((superclass-identifier inherit-concrete-fields? inherit-virtual-fields?
+				   inherit-methods? inherit-setter-and-getter?)
+	    (%collect-clause/class/inherit clauses %synner))
+
+	   ;;An identifier representing the UID of the class.
+	   ((uid-symbol)
+	    (%collect-clause/nongenerative class-identifier clauses %synner))
+
+	   ;;A boolean establishing if the class type is sealed.
+	   ((sealed)
+	    (%collect-clause/sealed clauses %synner))
+
+	   ;;A boolean establishing if the class type is opaque.
+	   ((opaque)
+	    (%collect-clause/opaque clauses %synner))
+
+	   ;;A syntax  object holding  an expression which  evaluates to
+	   ;;the  class' common  protocol function;  it is  false  if no
+	   ;;protocol clause was present.
+	   ((common-protocol)
+	    (%collect-clause/protocol clauses %synner))
+
+	   ;;A syntax  object holding  an expression which  evaluates to
+	   ;;the class' public protocol function.
+	   ((public-protocol)
+	    (%collect-clause/public-protocol clauses %synner))
+
+	   ;;A syntax  object holding  an expression which  evaluates to
+	   ;;the class' maker protocol function.
+	   ((maker-protocol)
+	    (%collect-clause/maker-protocol clauses %synner))
+
+	   ;;False  or  a  syntax  object holding  an  expression  which
+	   ;;evaluates to the class' superclass protocol function.
+	   ((superclass-protocol)
+	    (%collect-clause/superclass-protocol clauses %synner))
+
+	   ;;False or a syntax object holding the maker transformer.
+	   ((maker-transformer)
+	    (%collect-clause/maker-transformer clauses %synner))
+
+	   ;;False/false or: a syntax object holding a list of identifiers
+	   ;;representing the positional arguments  to the maker; a syntax
+	   ;;object holding a list  of maker clauses representing optional
+	   ;;arguments.
 	   ;;
-	   ((the-parent-is-a-class? superclass-properties)
-	    (help.extract-super-properties-if-any superclass-identifier))
-
-	   ;;List of  identifiers representing  the field types  in both
-	   ;;this class and all its superclasses, if any.
+	   ;;*NOTE*:  when   no  maker  clause  is   present,  the  values
+	   ;;false/false *cannot* be matched by WITH-SYNTAX patterns like:
 	   ;;
-	   ((list-of-field-tags)
-	    (help.list-of-unique-field-types fields virtual-fields
-	   				     (if the-parent-is-a-class?
-	   					 (prop.class-list-of-field-tags superclass-properties)
-	   				       '())
-	   				     %synner))
-
-	   ;;A proper list  of identifiers representing the superclasses
-	   ;;of this  class.  The  first identifier in  the list  is the
-	   ;;direct  superclass, then  comes its  superclass and  so on.
-	   ;;The last element in the list is usually "<top>".
+	   ;;    ((POS-ARG ...) maker-positional-args)
+	   ;;    ((OPT-ARG ...) maker-optional-args)
 	   ;;
-	   ((list-of-superclasses)
-	    (if the-parent-is-a-class?
-	   	(cons superclass-identifier (prop.class-list-of-supers superclass-properties))
-	      '())))
+	   ;;so we must test the values first.
+	   ((maker-positional-args maker-optional-args)
+	    (%collect-clause/maker clauses %synner))
 
-	(let ((id (sx.duplicate-identifiers? (append (map cadr fields)
-							(map cadr virtual-fields)
-							(map car  all-methods)))))
-	  (when id
-	    (%synner "duplicate field names" id)))
+	   ;;False or an identifier  representing the custom maker for the
+	   ;;class.
+	   ((custom-maker)
+	    (%collect-clause/custom-maker clauses %synner))
 
-	(with-syntax
-	    ((THE-CLASS			class-identifier)
-	     (THE-SUPERCLASS		superclass-identifier)
-	     (THE-RTD			#'the-rtd)
-	     (THE-PARENT-CD		#'the-parent-cd)
-	     (THE-PUBLIC-CD		#'the-public-cd)
-	     (THE-PUBLIC-CONSTRUCTOR	constructor-identifier)
-	     (THE-MAKER-CONSTRUCTOR	#'the-maker-constructor)
-	     (THE-FROM-FIELDS-PROTOCOL	#'the-from-fields-protocol)
-	     (THE-COMMON-PROTOCOL	#'the-common-protocol)
-	     (THE-MAKER-PROTOCOL	#'the-maker-protocol)
-	     (THE-PREDICATE		predicate-identifier)
-	     (THE-MAKER			#'the-maker)
+	   ;;False or  the identifier of  the parent *record*  type (not
+	   ;;class type).
+	   ((parent-name)
+	    (%collect-clause/parent clauses %synner))
 
-	     (PARENT-RTD-FORM		parent-rtd)
-	     (PARENT-CD-FORM		parent-cd)
-	     (UID			uid-symbol)
-	     (SEALED			sealed)
-	     (OPAQUE			opaque)
-	     (COMMON-PROTOCOL		common-protocol)
-	     (PUBLIC-PROTOCOL		public-protocol)
-	     (MAKER-PROTOCOL		maker-protocol)
-	     (SUPERCLASS-PROTOCOL	superclass-protocol)
-	     (CUSTOM-PREDICATE		custom-predicate)
-	     (THE-CUSTOM-MAKER		custom-maker)
-	     ((METHOD-DEFINITION ...)	all-method-definitions)
-	     (INHERIT-CONCRETE-FIELDS?	inherit-concrete-fields?)
-	     (INHERIT-VIRTUAL-FIELDS?	inherit-virtual-fields?)
-	     (INHERIT-METHODS?		inherit-methods?)
-	     (INHERIT-SETTER-AND-GETTER? inherit-setter-and-getter?)
-	     (SETTER			setter)
-	     (GETTER			getter)
-	     (BINDINGS-MACRO		bindings-macro)
-	     (FIELD-SPECS		fields)
-	     (VIRTUAL-FIELD-SPECS	virtual-fields)
-	     (METHOD-SPECS		all-methods)
-	     ;;We need MUTABILITY and FIELD to build the RTD.
-	     (((MUTABILITY FIELD X ...) ...) fields)
-	     (LIST-OF-FIELD-TAGS	list-of-field-tags)
-	     (LIST-OF-SUPERCLASSES	list-of-superclasses)
-	     (MIXIN-IDENTIFIERS		mixin-identifiers)
-	     ((SATISFACTION ...)	satisfactions)
-	     (INPUT-FORM		stx))
+	   ;;False/false  or  an  expression  evaluating to  the  parent
+	   ;;record type descriptor and  an expression evaluating to the
+	   ;;parent constructor descriptor.
+	   ((parent-rtd parent-cd)
+	    (%collect-clause/parent-rtd clauses %synner))
+
+	   ;;If a predicate clause  is present: an identifier representing
+	   ;;the custom  predicate for the class.  If  no predicate clause
+	   ;;is present:  set to the  PREDICATE-IDENTIFIER argument, which
+	   ;;is the result of parsing he class name above.
+	   ((custom-predicate)
+	    (%collect-clause/predicate predicate-identifier clauses %synner))
+
+	   ;;False or  an identifier  representing the setter  for the
+	   ;;class.
+	   ((setter)
+	    (%collect-clause/setter clauses %synner))
+
+	   ;;False or  an identifier  representing the getter  for the
+	   ;;class.
+	   ((getter)
+	    (%collect-clause/getter clauses %synner))
+
+	   ;;An identifier representing  the custom bindings macro for
+	   ;;the class.
+	   ((bindings-macro)
+	    (%collect-clause/bindings clauses %synner))
+
+	   ;;Null or  a validated list of concrete  fields having elements
+	   ;;with format:
+	   ;;
+	   ;;    (immutable <field name> <field accessor> <field getter> <field class> ...)
+	   ;;    (mutable   <field name> <field accessor> <field mutator> <field getter> <field class> ...)
+	   ;;
+	   ;;where  IMMUTABLE  and  MUTABLE  are  symbols  and  the  other
+	   ;;elements are identifiers.
+	   ((fields)
+	    (%collect-clause/fields class-identifier clauses %synner))
+
+	   ;;Null or  a validated list  of virtual fields  having elements
+	   ;;with format:
+	   ;;
+	   ;;    (immutable <field name> <field accessor> <field getter> <field class> ...)
+	   ;;    (mutable   <field name> <field accessor> <field mutator> <field getter> <field class> ...)
+	   ;;
+	   ;;where  IMMUTABLE and  MUTABLE are  symbols and  the other
+	   ;;elements are identifiers.
+	   ((virtual-fields)
+	    (%collect-clause/virtual-fields class-identifier clauses %synner))
+
+	   ;;Null or a validated  list of method specifications from the
+	   ;;METHODS clauses, having elements with format:
+	   ;;
+	   ;;	(<method name> <function or macro identifier>)
+	   ;;
+	   ((methods-from-methods)
+	    (%collect-clause/methods class-identifier clauses %synner))
+
+	   ;;Null/null or a validated list of method specifications from
+	   ;;the METHOD clauses, having elements with format:
+	   ;;
+	   ;;    (<method name> <function name>)
+	   ;;
+	   ;;and a list of definitions with the format:
+	   ;;
+	   ;;    (<definition> ...)
+	   ;;
+	   ;;in which each definition has one of the formats:
+	   ;;
+	   ;;    (define (<function name> . <args>) . <body>)
+	   ;;    (define <function name> <expression>)
+	   ;;
+	   ((methods method-definitions)
+	    (%collect-clause/method class-identifier clauses %synner #'define/with-class))
+
+	   ;;Null/null   or   a   validated   list  of   method   syntax
+	   ;;specifications  from   the  METHOD-SYNTAX  clauses,  having
+	   ;;elements with format:
+	   ;;
+	   ;;    (<method name> <macro identifier>)
+	   ;;
+	   ;;and a list of definitions with the format:
+	   ;;
+	   ;;    (<definition> ...)
+	   ;;
+	   ;;in which each definition has the format:
+	   ;;
+	   ;;    (define-syntax <macro identifier> <expression>)
+	   ;;
+	   ((syntax-methods syntax-definitions)
+	    (%collect-clause/method-syntax class-identifier clauses %synner))
+
+	   ;;Null or a list of satisfaction function identifiers.
+	   ;;
+	   ((satisfactions)
+	    (%collect-clause/satisfies clauses %synner))
+
+	   ;;The full list of method identifiers.
+	   ;;
+	   ((all-methods)
+	    (append methods methods-from-methods syntax-methods))
+
+	   ;;The full list of method definitions.
+	   ;;
+	   ((all-method-definitions)
+	    (append method-definitions syntax-definitions)))
+	(let*-values
+	    (((superclass-identifier parent-rtd parent-cd)
+	      (help.normalise-class-inheritance superclass-identifier parent-name
+						parent-rtd parent-cd %synner))
+
+	     ;;If the parent  is a record, rather than  a class, there are
+	     ;;no superclass properties to be inspected.
+	     ;;
+	     ((the-parent-is-a-class? superclass-properties)
+	      (help.extract-super-properties-if-any superclass-identifier))
+
+	     ;;List of  identifiers representing  the field types  in both
+	     ;;this class and all its superclasses, if any.
+	     ;;
+	     ((list-of-field-tags)
+	      (help.list-of-unique-field-types fields virtual-fields
+					       (if the-parent-is-a-class?
+						   (prop.class-list-of-field-tags superclass-properties)
+						 '())
+					       %synner))
+
+	     ;;A proper list  of identifiers representing the superclasses
+	     ;;of this  class.  The  first identifier in  the list  is the
+	     ;;direct  superclass, then  comes its  superclass and  so on.
+	     ;;The last element in the list is usually "<top>".
+	     ;;
+	     ((list-of-superclasses)
+	      (if the-parent-is-a-class?
+		  (cons superclass-identifier (prop.class-list-of-supers superclass-properties))
+		'())))
+
+	  (let ((id (sx.duplicate-identifiers? (append (map cadr fields)
+						       (map cadr virtual-fields)
+						       (map car  all-methods)))))
+	    (when id
+	      (%synner "duplicate field names" id)))
+
 	  (with-syntax
-	      ;;Here we  try to  build and select  at expand time  what is
-	      ;;possible.
-	      (((FIELD-DEFINITION ...)	(%make-fields-accessors-and-mutators #'THE-RTD fields))
-	       (MAKER-DEFINITION	(%make-maker-definition #'THE-MAKER
+	      ((THE-CLASS			class-identifier)
+	       (THE-SUPERCLASS		superclass-identifier)
+	       (THE-RTD			#'the-rtd)
+	       (THE-PARENT-CD		#'the-parent-cd)
+	       (THE-PUBLIC-CD		#'the-public-cd)
+	       (THE-PUBLIC-CONSTRUCTOR	constructor-identifier)
+	       (THE-MAKER-CONSTRUCTOR	#'the-maker-constructor)
+	       (THE-FROM-FIELDS-PROTOCOL	#'the-from-fields-protocol)
+	       (THE-COMMON-PROTOCOL	#'the-common-protocol)
+	       (THE-MAKER-PROTOCOL	#'the-maker-protocol)
+	       (THE-PREDICATE		predicate-identifier)
+	       (THE-MAKER			#'the-maker)
+
+	       (PARENT-RTD-FORM		parent-rtd)
+	       (PARENT-CD-FORM		parent-cd)
+	       (UID			uid-symbol)
+	       (SEALED			sealed)
+	       (OPAQUE			opaque)
+	       (COMMON-PROTOCOL		common-protocol)
+	       (PUBLIC-PROTOCOL		public-protocol)
+	       (MAKER-PROTOCOL		maker-protocol)
+	       (SUPERCLASS-PROTOCOL	superclass-protocol)
+	       (CUSTOM-PREDICATE		custom-predicate)
+	       (THE-CUSTOM-MAKER		custom-maker)
+	       ((METHOD-DEFINITION ...)	all-method-definitions)
+	       (INHERIT-CONCRETE-FIELDS?	inherit-concrete-fields?)
+	       (INHERIT-VIRTUAL-FIELDS?	inherit-virtual-fields?)
+	       (INHERIT-METHODS?		inherit-methods?)
+	       (INHERIT-SETTER-AND-GETTER? inherit-setter-and-getter?)
+	       (SETTER			setter)
+	       (GETTER			getter)
+	       (BINDINGS-MACRO		bindings-macro)
+	       (FIELD-SPECS		fields)
+	       (VIRTUAL-FIELD-SPECS	virtual-fields)
+	       (METHOD-SPECS		all-methods)
+	       ;;We need MUTABILITY and FIELD to build the RTD.
+	       (((MUTABILITY FIELD X ...) ...) fields)
+	       (LIST-OF-FIELD-TAGS	list-of-field-tags)
+	       (LIST-OF-SUPERCLASSES	list-of-superclasses)
+	       (MIXIN-IDENTIFIERS		mixin-identifiers)
+	       ((SATISFACTION ...)	satisfactions)
+	       (INPUT-FORM		stx))
+	    (with-syntax
+		;;Here we  try to  build and select  at expand time  what is
+		;;possible.
+		(((FIELD-DEFINITION ...)	(%make-fields-accessors-and-mutators #'THE-RTD fields))
+		 (MAKER-DEFINITION	(%make-maker-definition #'THE-MAKER
 								#'THE-MAKER-CONSTRUCTOR
 								maker-positional-args
 								maker-optional-args
 								maker-transformer
 								#'THE-PUBLIC-CONSTRUCTOR))
-	       (FROM-FIELDS-CD-FORM	(%make-from-fields-cd-form the-parent-is-a-class?
+		 (FROM-FIELDS-CD-FORM	(%make-from-fields-cd-form the-parent-is-a-class?
 								   #'THE-RTD
 								   #'THE-SUPERCLASS
 								   #'THE-FROM-FIELDS-PROTOCOL))
-	       (COMMON-PROTOCOL-FORM	(or common-protocol	#'THE-FROM-FIELDS-PROTOCOL))
-	       (PUBLIC-PROTOCOL-FORM	(or public-protocol	#'THE-COMMON-PROTOCOL))
-	       (SUPERCLASS-PROTOCOL-FORM (or superclass-protocol	#'THE-COMMON-PROTOCOL))
-	       (MAKER-CD-FORM		(if maker-protocol
+		 (COMMON-PROTOCOL-FORM	(or common-protocol	#'THE-FROM-FIELDS-PROTOCOL))
+		 (PUBLIC-PROTOCOL-FORM	(or public-protocol	#'THE-COMMON-PROTOCOL))
+		 (SUPERCLASS-PROTOCOL-FORM (or superclass-protocol	#'THE-COMMON-PROTOCOL))
+		 (MAKER-CD-FORM		(if maker-protocol
 					    #'(make-record-constructor-descriptor
 					       THE-RTD THE-PARENT-CD THE-MAKER-PROTOCOL)
 					  #'THE-PUBLIC-CD))
-	       (SLOT-ACCESSOR-OF-TRANSFORMER
-		(help.make-fields-accessor-of-transformer class-identifier fields virtual-fields %synner))
-	       (SLOT-MUTATOR-OF-TRANSFORMER
-		(help.make-fields-mutator-of-transformer class-identifier fields virtual-fields %synner))
-	       (WITH-FIELD-CLASS-BINDINGS
-		(help.make-with-field-class-bindings fields virtual-fields %synner)))
-	    #'(begin
-		(define the-parent-rtd	PARENT-RTD-FORM)
-		(define THE-PARENT-CD	PARENT-CD-FORM)
-		(define THE-RTD
-		  (make-record-type-descriptor (quote THE-CLASS) the-parent-rtd
-					       (quote UID) SEALED OPAQUE
-					       (quote #((MUTABILITY FIELD) ...))))
+		 (SLOT-ACCESSOR-OF-TRANSFORMER
+		  (help.make-fields-accessor-of-transformer class-identifier fields virtual-fields %synner))
+		 (SLOT-MUTATOR-OF-TRANSFORMER
+		  (help.make-fields-mutator-of-transformer class-identifier fields virtual-fields %synner))
+		 (WITH-FIELD-CLASS-BINDINGS
+		  (help.make-with-field-class-bindings fields virtual-fields %synner)))
+	      #'(begin
+		  (define the-parent-rtd	PARENT-RTD-FORM)
+		  (define THE-PARENT-CD	PARENT-CD-FORM)
+		  (define THE-RTD
+		    (make-record-type-descriptor (quote THE-CLASS) the-parent-rtd
+						 (quote UID) SEALED OPAQUE
+						 (quote #((MUTABILITY FIELD) ...))))
 
-		(define THE-PREDICATE (record-predicate THE-RTD))
+		  (define THE-PREDICATE (record-predicate THE-RTD))
 
-		;;The protocol to use with the MAKE-FROM-FIELDS macro.
-		(define THE-FROM-FIELDS-PROTOCOL	(%make-default-protocol THE-RTD))
-		(define the-from-fields-cd	FROM-FIELDS-CD-FORM)
-		(define from-fields-constructor	(record-constructor the-from-fields-cd))
+		  ;;The protocol to use with the MAKE-FROM-FIELDS macro.
+		  (define THE-FROM-FIELDS-PROTOCOL	(%make-default-protocol THE-RTD))
+		  (define the-from-fields-cd	FROM-FIELDS-CD-FORM)
+		  (define from-fields-constructor	(record-constructor the-from-fields-cd))
 
-		;;The default protocol to use when the other protocols are
-		;;not defined.
-		(define THE-COMMON-PROTOCOL	COMMON-PROTOCOL-FORM)
+		  ;;The default protocol to use when the other protocols are
+		  ;;not defined.
+		  (define THE-COMMON-PROTOCOL	COMMON-PROTOCOL-FORM)
 
-		;;The protocol to use with the MAKE* macro.
-		(define the-public-protocol	PUBLIC-PROTOCOL-FORM)
-		(define THE-PUBLIC-CD		(make-record-constructor-descriptor
+		  ;;The protocol to use with the MAKE* macro.
+		  (define the-public-protocol	PUBLIC-PROTOCOL-FORM)
+		  (define THE-PUBLIC-CD		(make-record-constructor-descriptor
 						 THE-RTD THE-PARENT-CD the-public-protocol))
-		(define THE-PUBLIC-CONSTRUCTOR	(record-constructor THE-PUBLIC-CD))
+		  (define THE-PUBLIC-CONSTRUCTOR	(record-constructor THE-PUBLIC-CD))
 
-		;;The protocol to use with the MAKE macro.
-		(define THE-MAKER-PROTOCOL	MAKER-PROTOCOL)
-		(define the-maker-cd		MAKER-CD-FORM)
-		(define THE-MAKER-CONSTRUCTOR	(record-constructor the-maker-cd))
+		  ;;The protocol to use with the MAKE macro.
+		  (define THE-MAKER-PROTOCOL	MAKER-PROTOCOL)
+		  (define the-maker-cd		MAKER-CD-FORM)
+		  (define THE-MAKER-CONSTRUCTOR	(record-constructor the-maker-cd))
 
-		;;The  protocol to use  when the  instantiated class  is a
-		;;subclass of this one.
-		(define the-superclass-protocol	SUPERCLASS-PROTOCOL-FORM)
-		(define the-superclass-cd		(make-record-constructor-descriptor
+		  ;;The  protocol to use  when the  instantiated class  is a
+		  ;;subclass of this one.
+		  (define the-superclass-protocol	SUPERCLASS-PROTOCOL-FORM)
+		  (define the-superclass-cd		(make-record-constructor-descriptor
 							 THE-RTD THE-PARENT-CD the-superclass-protocol))
-		(define superclass-constructor	(record-constructor the-superclass-cd))
+		  (define superclass-constructor	(record-constructor the-superclass-cd))
 
-		;;This is memoized  because it is slow to  compute and not
-		;;always needed.
-		(define the-uid-list
-		  (let ((the-list #f))
-		    (lambda ()
-		      (or the-list
-			  (begin
-			    (set! the-list
-				  (cons (quote UID)
-					(if the-parent-rtd
-					    (map record-type-uid (record-parent-list the-parent-rtd))
-					  '())))
-			    the-list)))))
+		  ;;This is memoized  because it is slow to  compute and not
+		  ;;always needed.
+		  (define the-uid-list
+		    (let ((the-list #f))
+		      (lambda ()
+			(or the-list
+			    (begin
+			      (set! the-list
+				    (cons (quote UID)
+					  (if the-parent-rtd
+					      (map record-type-uid (record-parent-list the-parent-rtd))
+					    '())))
+			      the-list)))))
 
-		;;This is memoized  because it is slow to  compute and not
-		;;always needed.
-		(define the-parent-rtd-list
-		  (let ((the-list #f))
-		    (lambda ()
-		      (or the-list
-			  (begin
-			    (set! the-list (cons THE-RTD (if the-parent-rtd
-							     (record-parent-list the-parent-rtd)
-							   '())))
-			    the-list)))))
+		  ;;This is memoized  because it is slow to  compute and not
+		  ;;always needed.
+		  (define the-parent-rtd-list
+		    (let ((the-list #f))
+		      (lambda ()
+			(or the-list
+			    (begin
+			      (set! the-list (cons THE-RTD (if the-parent-rtd
+							       (record-parent-list the-parent-rtd)
+							     '())))
+			      the-list)))))
 
-		FIELD-DEFINITION ...
-		METHOD-DEFINITION ...
-		MAKER-DEFINITION
+		  FIELD-DEFINITION ...
+		  METHOD-DEFINITION ...
+		  MAKER-DEFINITION
 
-		(define-syntax THE-CLASS
-		  (lambda (stx)
-		    (syntax-case stx (:class-record-type-descriptor
-				      :class-type-uid
-				      :class-uid-list
-				      :from-fields-constructor-descriptor
-				      :is-a?
-				      :predicate
-				      :list-of-concrete-fields
-				      :list-of-methods
-				      :list-of-virtual-fields
-				      :make
-				      :make*
-				      :make-from-fields
-				      :parent-rtd-list
-				      :public-constructor-descriptor
-				      :superclass-constructor-descriptor
-				      :superclass-protocol
-				      :with-class-bindings-of
-				      :slot-accessor
-				      :slot-mutator)
+		  (define-syntax THE-CLASS
+		    (lambda (stx)
+		      (syntax-case stx (:class-record-type-descriptor
+					:class-type-uid
+					:class-uid-list
+					:from-fields-constructor-descriptor
+					:is-a?
+					:predicate
+					:list-of-concrete-fields
+					:list-of-methods
+					:list-of-virtual-fields
+					:make
+					:make*
+					:make-from-fields
+					:parent-rtd-list
+					:public-constructor-descriptor
+					:superclass-constructor-descriptor
+					:superclass-protocol
+					:with-class-bindings-of
+					:slot-accessor
+					:slot-mutator)
 
-		      ((_ :class-record-type-descriptor)
-		       #'THE-RTD)
+			((_ :class-record-type-descriptor)
+			 #'THE-RTD)
 
-		      ((_ :class-type-uid)
-		       #'(quote UID))
+			((_ :class-type-uid)
+			 #'(quote UID))
 
-		      ((_ :class-uid-list)
-		       #'(the-uid-list))
+			((_ :class-uid-list)
+			 #'(the-uid-list))
 
-		      ((_ :parent-rtd-list)
-		       #'(the-parent-rtd-list))
+			((_ :parent-rtd-list)
+			 #'(the-parent-rtd-list))
 
-		      ;; --------------------------------------------------
+			;; --------------------------------------------------
 
-		      ((_ :public-constructor-descriptor)
-		       #'THE-PUBLIC-CD)
+			((_ :public-constructor-descriptor)
+			 #'THE-PUBLIC-CD)
 
-		      ((_ :superclass-constructor-descriptor)
-		       #'the-superclass-cd)
+			((_ :superclass-constructor-descriptor)
+			 #'the-superclass-cd)
 
-		      ((_ :from-fields-constructor-descriptor)
-		       #'the-from-fields-cd)
+			((_ :from-fields-constructor-descriptor)
+			 #'the-from-fields-cd)
 
-		      ((_ :superclass-protocol)
-		       #'the-superclass-protocol)
+			((_ :superclass-protocol)
+			 #'the-superclass-protocol)
 
-		      ;; --------------------------------------------------
+			;; --------------------------------------------------
 
-		      ((_ :list-of-concrete-fields)
-		       #'(quote FIELD-SPECS))
+			((_ :list-of-concrete-fields)
+			 #'(quote FIELD-SPECS))
 
-		      ((_ :list-of-virtual-fields)
-		       #'(quote VIRTUAL-FIELD-SPECS))
+			((_ :list-of-virtual-fields)
+			 #'(quote VIRTUAL-FIELD-SPECS))
 
-		      ((_ :list-of-methods)
-		       #'(quote METHOD-SPECS))
+			((_ :list-of-methods)
+			 #'(quote METHOD-SPECS))
 
-		      ;; --------------------------------------------------
+			;; --------------------------------------------------
 
-		      ((_ :make ?arg (... ...))
-		       (if (syntax->datum #'THE-CUSTOM-MAKER)
-			   #'(THE-CUSTOM-MAKER ?arg (... ...))
-			 #'(THE-MAKER ?arg (... ...))))
+			((_ :make ?arg (... ...))
+			 (if (syntax->datum #'THE-CUSTOM-MAKER)
+			     #'(THE-CUSTOM-MAKER ?arg (... ...))
+			   #'(THE-MAKER ?arg (... ...))))
 
-		      ((_ :make* ?arg (... ...))
-		       #'(THE-PUBLIC-CONSTRUCTOR ?arg (... ...)))
+			((_ :make* ?arg (... ...))
+			 #'(THE-PUBLIC-CONSTRUCTOR ?arg (... ...)))
 
-		      ((_ :make-from-fields ?arg (... ...))
-		       #'(from-fields-constructor ?arg (... ...)))
+			((_ :make-from-fields ?arg (... ...))
+			 #'(from-fields-constructor ?arg (... ...)))
 
-		      ((_ :is-a? ?arg)
-		       #'(CUSTOM-PREDICATE ?arg))
+			((_ :is-a? ?arg)
+			 #'(CUSTOM-PREDICATE ?arg))
 
-		      ((_ :predicate)
-		       #'CUSTOM-PREDICATE)
+			((_ :predicate)
+			 #'CUSTOM-PREDICATE)
 
-		      ((_ :with-class-bindings-of
-			  (?use-dot-notation
-			   ?inherit-concrete-fields
-			   ?inherit-virtual-fields
-			   ?inherit-methods
-			   ?inherit-setter-and-getter)
-			  ?variable-name ?instance ?arg (... ...))
-		       (and (identifier? #'?variable-name)
-			    (for-all boolean? (syntax->datum #'(?use-dot-notation
-								?inherit-concrete-fields
-								?inherit-virtual-fields
-								?inherit-methods
-								?inherit-setter-and-getter))))
-		       #'(with-class-bindings
-			  (?use-dot-notation
-			   ?inherit-concrete-fields
-			   ?inherit-virtual-fields
-			   ?inherit-methods
-			   ?inherit-setter-and-getter)
-			  ?variable-name ?instance ?arg (... ...)))
-
-		      ((_ :slot-accessor ?slot-name)
-		       (identifier? #'?slot-name)
-		       #'(slot-accessor-of ?slot-name))
-
-		      ((_ :slot-mutator ?slot-name)
-		       (identifier? #'?slot-name)
-		       #'(slot-mutator-of ?slot-name))
-
-		      ((_ ?keyword . ?rest)
-		       (syntax-violation 'THE-CLASS
-			 "invalid class internal keyword"
-			 (syntax->datum stx)
-			 (syntax->datum #'?keyword)))
-		      )))
-
-		;;We  must set  the identifier  properties  of THE-CLASS
-		;;after  THE-CLASS itself has  been bound  to something,
-		;;else  it will  be seen  as an  unbound  identifier and
-		;;FREE-IDENTIFIER=? will get confused and not do what we
-		;;want.   (Especially when evaluating  class definitions
-		;;with an EVAL as we do in the test suite.)
-		;;
-		(define-for-expansion-evaluation
-		  (prop.struct-properties-define
-		   #'THE-CLASS (prop.make-class
-				(sx.syntax->list #'LIST-OF-SUPERCLASSES)
-				(sx.unwrap #'FIELD-SPECS)
-				(sx.unwrap #'VIRTUAL-FIELD-SPECS)
-				(sx.unwrap #'METHOD-SPECS)
-				(sx.syntax->list #'MIXIN-IDENTIFIERS)
-				(sx.syntax->list #'LIST-OF-FIELD-TAGS)))
-		  (help.detect-circular-tagging #'THE-CLASS #'INPUT-FORM)
-		  (SATISFACTION #'THE-CLASS) ...)
-
-		(define-syntax* (with-class-bindings stx)
-		  ;;This  macro defines  all the  syntaxes to  be  used by
-		  ;;WITH-CLASS in a single LET-SYNTAX form.
-		  ;;
-		  (define-inline (or-null bool form)
-		    (if (syntax->datum bool) form '()))
-		  (syntax-case stx ()
-		    ((_ (?use-dot-notation
-			 ?inherit-concrete-fields ?inherit-virtual-fields
-			 ?inherit-methods ?inherit-setter-and-getter)
-			?variable-name ?instance ?body0 ?body (... ...))
-		     (let ((use-dot-notation?	(syntax->datum #'?use-dot-notation)))
-		       (with-syntax
-			   ((((CVAR CVAL) (... ...))	;concrete fields
-			     (or-null #'?inherit-concrete-fields
-				      (make-field-bindings use-dot-notation?
-							   #'?variable-name #'?instance
-							   #'FIELD-SPECS synner)))
-			    (((VVAR VVAL) (... ...))	;virtual fields
-			     (or-null #'?inherit-virtual-fields
-				      (make-field-bindings use-dot-notation?
-							   #'?variable-name #'?instance
-							   #'VIRTUAL-FIELD-SPECS synner)))
-			    (((MVAR MVAL) (... ...))	;methods
-			     (or-null #'?inherit-methods
-				      (make-method-bindings use-dot-notation?
-							    #'?variable-name #'?instance
-							    #'METHOD-SPECS synner)))
-			    (((SVAR SVAL) (... ...))	;setter and getter
-			     (or-null #'?inherit-setter-and-getter
-				      (make-setter-getter-bindings #'?variable-name #'?instance
-								   #'SETTER #'GETTER))))
-			 #`(THE-SUPERCLASS
-			    :with-class-bindings-of
+			((_ :with-class-bindings-of
 			    (?use-dot-notation
-			     INHERIT-CONCRETE-FIELDS?
-			     INHERIT-VIRTUAL-FIELDS?
-			     INHERIT-METHODS?
-			     INHERIT-SETTER-AND-GETTER?)
-			    ?variable-name ?instance
-			    (let-syntax ((CVAR CVAL) (... ...)
-					 (VVAR VVAL) (... ...)
-					 (MVAR MVAL) (... ...)
-					 (SVAR SVAL) (... ...))
-			      (BINDINGS-MACRO THE-CLASS ?variable-name ?instance
-					      (with-field-class ?variable-name ?instance
-								WITH-FIELD-CLASS-BINDINGS
-								?body0 ?body (... ...)))))
-			 )))))
+			     ?inherit-concrete-fields
+			     ?inherit-virtual-fields
+			     ?inherit-methods
+			     ?inherit-setter-and-getter)
+			    ?variable-name ?instance ?arg (... ...))
+			 (and (identifier? #'?variable-name)
+			      (for-all boolean? (syntax->datum #'(?use-dot-notation
+								  ?inherit-concrete-fields
+								  ?inherit-virtual-fields
+								  ?inherit-methods
+								  ?inherit-setter-and-getter))))
+			 #'(with-class-bindings
+			    (?use-dot-notation
+			     ?inherit-concrete-fields
+			     ?inherit-virtual-fields
+			     ?inherit-methods
+			     ?inherit-setter-and-getter)
+			    ?variable-name ?instance ?arg (... ...)))
 
-		(define-syntax slot-accessor-of	SLOT-ACCESSOR-OF-TRANSFORMER)
-		(define-syntax slot-mutator-of	SLOT-MUTATOR-OF-TRANSFORMER)
+			((_ :slot-accessor ?slot-name)
+			 (identifier? #'?slot-name)
+			 #'(slot-accessor-of ?slot-name))
 
-		))))))
+			((_ :slot-mutator ?slot-name)
+			 (identifier? #'?slot-name)
+			 #'(slot-mutator-of ?slot-name))
+
+			((_ ?keyword . ?rest)
+			 (syntax-violation 'THE-CLASS
+			   "invalid class internal keyword"
+			   (syntax->datum stx)
+			   (syntax->datum #'?keyword)))
+			)))
+
+		  ;;We  must set  the identifier  properties  of THE-CLASS
+		  ;;after  THE-CLASS itself has  been bound  to something,
+		  ;;else  it will  be seen  as an  unbound  identifier and
+		  ;;FREE-IDENTIFIER=? will get confused and not do what we
+		  ;;want.   (Especially when evaluating  class definitions
+		  ;;with an EVAL as we do in the test suite.)
+		  ;;
+		  (define-for-expansion-evaluation
+		    (prop.struct-properties-define
+		     #'THE-CLASS (prop.make-class
+				  (sx.syntax->list #'LIST-OF-SUPERCLASSES)
+				  (sx.unwrap #'FIELD-SPECS)
+				  (sx.unwrap #'VIRTUAL-FIELD-SPECS)
+				  (sx.unwrap #'METHOD-SPECS)
+				  (sx.syntax->list #'MIXIN-IDENTIFIERS)
+				  (sx.syntax->list #'LIST-OF-FIELD-TAGS)))
+		    (help.detect-circular-tagging #'THE-CLASS #'INPUT-FORM)
+		    (SATISFACTION #'THE-CLASS) ...)
+
+		  (define-syntax* (with-class-bindings stx)
+		    ;;This  macro defines  all the  syntaxes to  be  used by
+		    ;;WITH-CLASS in a single LET-SYNTAX form.
+		    ;;
+		    (define-inline (or-null bool form)
+		      (if (syntax->datum bool) form '()))
+		    (syntax-case stx ()
+		      ((_ (?use-dot-notation
+			   ?inherit-concrete-fields ?inherit-virtual-fields
+			   ?inherit-methods ?inherit-setter-and-getter)
+			  ?variable-name ?instance ?body0 ?body (... ...))
+		       (let ((use-dot-notation?	(syntax->datum #'?use-dot-notation)))
+			 (with-syntax
+			     ((((CVAR CVAL) (... ...)) ;concrete fields
+			       (or-null #'?inherit-concrete-fields
+					(make-field-bindings use-dot-notation?
+							     #'?variable-name #'?instance
+							     #'FIELD-SPECS synner)))
+			      (((VVAR VVAL) (... ...)) ;virtual fields
+			       (or-null #'?inherit-virtual-fields
+					(make-field-bindings use-dot-notation?
+							     #'?variable-name #'?instance
+							     #'VIRTUAL-FIELD-SPECS synner)))
+			      (((MVAR MVAL) (... ...)) ;methods
+			       (or-null #'?inherit-methods
+					(make-method-bindings use-dot-notation?
+							      #'?variable-name #'?instance
+							      #'METHOD-SPECS synner)))
+			      (((SVAR SVAL) (... ...)) ;setter and getter
+			       (or-null #'?inherit-setter-and-getter
+					(make-setter-getter-bindings #'?variable-name #'?instance
+								     #'SETTER #'GETTER))))
+			   #`(THE-SUPERCLASS
+			      :with-class-bindings-of
+			      (?use-dot-notation
+			       INHERIT-CONCRETE-FIELDS?
+			       INHERIT-VIRTUAL-FIELDS?
+			       INHERIT-METHODS?
+			       INHERIT-SETTER-AND-GETTER?)
+			      ?variable-name ?instance
+			      (let-syntax ((CVAR CVAL) (... ...)
+					   (VVAR VVAL) (... ...)
+					   (MVAR MVAL) (... ...)
+					   (SVAR SVAL) (... ...))
+				(BINDINGS-MACRO THE-CLASS ?variable-name ?instance
+						(with-field-class ?variable-name ?instance
+								  WITH-FIELD-CLASS-BINDINGS
+								  ?body0 ?body (... ...)))))
+			   )))))
+
+		  (define-syntax slot-accessor-of	SLOT-ACCESSOR-OF-TRANSFORMER)
+		  (define-syntax slot-mutator-of	SLOT-MUTATOR-OF-TRANSFORMER)
+
+		  )))))))
 
   (define (%make-fields-accessors-and-mutators rtd-name fields)
     ;;Build and return a syntax object holding a list of the definitions

@@ -64,7 +64,7 @@
     merge
     :primary			:around
     :before			:after)
-  (import (rnrs)
+  (import (for (rnrs) run expand (meta 2))
     ;;See the source file for the customisable interface to types.
     (prefix (nausicaa language generics types) type.)
     (prefix (nausicaa language generics methods-table) mt.)

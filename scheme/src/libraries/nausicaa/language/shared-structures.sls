@@ -46,6 +46,7 @@
 ;;;implementation should supply this functionality.
 
 
+#!r6rs
 (library (nausicaa language shared-structures)
   (export
     read-with-shared-structure	write-with-shared-structure

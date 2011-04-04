@@ -36,8 +36,8 @@
 	  contract-violation?
 	  condition-contract-violation/subject)
   (import (rnrs)
-    (prefix (nausicaa configuration) config.)
-    (prefix (nausicaa language syntax-utilities) sx.)
+    (for (prefix (nausicaa configuration) config.) expand)
+    (for (prefix (nausicaa language syntax-utilities) sx.) expand)
     (only (nausicaa language extensions) define-syntax*)
     (for (nausicaa contracts helpers) run expand))
 
