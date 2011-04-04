@@ -19,9 +19,10 @@ for an introduction to @uri{}s see (@aurl{} last verified Thu Mar 24,
 @center @url{http://en.wikipedia.org/wiki/Uniform_Resource_Identifier}
 
 The purpose of @library{nausicaa uri} is to convert a @uri{}
-representation as bytevector into an instance of @class{uri} class (as
-defined by the library @library{nausicaa language classes}), in which
-the @uri{} components are available as Scheme strings.
+representation as bytevector into an instance of @class{uri} or
+@class{relative-ref} class (as defined by the library @library{nausicaa
+language classes}), in which the components are available as
+bytevectors.
 
 @menu
 * uri intro::                   Introduction to @uri{} elements.
@@ -31,6 +32,7 @@ the @uri{} components are available as Scheme strings.
 * uri percent::                 Percent encoding of characters.
 * uri parser::                  @uri{} parser functions.
 * uri class::                   Class interfaces.
+* uri misc::                    Miscellaneous functions.
 @end menu
 
 @c page
@@ -139,6 +141,34 @@ gen-delims    = ":" | "/" | "?" | "#" | "[" | "]" | "@@"
 sub-delims    = "!" | "$" | "&" | "'" | "(" | ")"
               | "*" | "+" | "," | ";" | "="
 @end smallexample
+
+Here are some notes on producing @uri{} references:
+
+@itemize
+@item
+Percent--encoded characters should be producedin upper case.
+
+@item
+The @code{scheme} component should be produced in lower case.
+
+@item
+The @code{host} component is case insensitive (including the @code{v}
+starting a @code{ipvfuture}), but should be producedin lower case.
+
+@item
+Quoting the @rfc{} regarding @code{host} components:
+
+@quotation
+Non--@ascii{} characters must first be encoded according to @utf{}-8,
+and then each octet of the corresponding @utf{}8 sequence must be
+percent--encoded to be represented as @uri{} characters.  @uri{}
+producing applications must not use percent--encoding in @code{host}
+unless it is used to represent a @utf{}-8 character sequence.
+@end quotation
+
+@item
+IPv6 addresses should be produced with hex digits in lower case.
+@end itemize
 
 @c page
 @node uri conditions
@@ -407,9 +437,9 @@ the one before this function call.
 @defun collect-hier-part @var{port}
 @defunx collect-relative-part @var{port}
 Accumulate bytes from @var{port} while they are acceptable for a
-@code{hier-part} component.  If @eof{} or a question mark or a number
-sign is found: return a bytevector holding the accumulated bytes,
-question mark or number sign excluded; else return false.
+@code{hier-part} component.  If @eof{} or a question mark or a
+number--sign is found: return a bytevector holding the accumulated
+bytes, question mark or number--sign excluded; else return false.
 
 Leave the port position to the byte after the last byte of the
 @code{hier-part}.  An empty @code{hier-part} is not accepted: if the
@@ -516,9 +546,9 @@ No validation is performed on the returned bytevector.
 @defun parse-query @var{port}
 Accumulate bytes from @var{port} while they are valid for a @code{query}
 @uri{} component; the first byte read from @var{port} must be a question
-mark.  If @eof{} or a number sign (@samp{#}) is read: return a
+mark.  If @eof{} or a number--sign (@samp{#}) is read: return a
 bytevector holding the accumulated bytes, starting question mark
-excluded and ending number sign excluded; else return false.
+excluded and ending number--sign excluded; else return false.
 
 If successful: leave the port position to the byte after the last byte
 of the @code{query} component; if an error occurs: rewind the port
@@ -556,14 +586,14 @@ followed by @eof{}).
 @defun parse-fragment @var{port}
 Accumulate bytes from @var{port} while they are valid for a
 @code{fragment} component; the first byte read from @var{port} must be a
-number sign.  If @eof{} is read: return a bytevector holding the
-accumulated bytes, starting number sign excluded; else return false.
+number--sign.  If @eof{} is read: return a bytevector holding the
+accumulated bytes, starting number--sign excluded; else return false.
 
 If successful: leave the port position to the byte after the last byte
 of the @code{fragment} component; if an error occurs: rewind the port
 position to the one before this function call.
 
-Notice that an empty @code{fragment} component is valid (a number sign
+Notice that an empty @code{fragment} component is valid (a number--sign
 followed by @eof{}).
 
 @example
@@ -613,8 +643,8 @@ Accumulate bytes from @var{port} while they are valid for an
 @code{relative-part} of a @code{relative-ref}.  The first two bytes read
 must represent, in @ascii{} encoding, two slash characters; after the
 two slashes, if @eof{} or a byte representing a slash, a question mark
-or a number sign is read: return a bytevector holding the accumulated
-bytes, ending slash, question mark or number sign excluded; else return
+or a number--sign is read: return a bytevector holding the accumulated
+bytes, ending slash, question mark or number--sign excluded; else return
 false.
 
 If successful: leave the port position to the byte after the last
@@ -676,15 +706,15 @@ component, equal to a @code{reg-name} component which can be empty.
 @defun parse-userinfo @var{port}
 Accumulate bytes from @var{port} while they are valid for an
 @code{userinfo} component in the @code{authority} component.  If a byte
-representing an at sign (@samp{@@}), in @ascii{} encoding, is read:
-return a bytevector holding the accumulated bytes, ending at sign
+representing a commercial at--sign (@samp{@@}), in @ascii{} encoding, is
+read: return a bytevector holding the accumulated bytes, ending at--sign
 excluded; else return false.
 
-If successful: leave the port position to the byte after the ending at
-sign; if an error occurs: rewind the port position to the one before
+If successful: leave the port position to the byte after the ending
+at--sign; if an error occurs: rewind the port position to the one before
 this function call.
 
-Notice that an empty @code{userinfo} component is valid (an at sign
+Notice that an empty @code{userinfo} component is valid (an at--sign
 preceded by nothing).
 
 @example
@@ -996,16 +1026,18 @@ component cannot be of zero length inside the brackets.
 
 @defun parse-reg-name @var{port}
 Accumulate bytes from @var{port} while they are valid for a
-@code{reg-name} component in a @code{host} component.  If @eof{} or a
-byte representing a colon, slash, question mark or number sign, in
-@ascii{} encoding, is read: return a bytevector holding the accumulated
-bytes, ending byte excluded; else return false.
+@code{reg-name} (registered name) component in a @code{host} component.
+If @eof{} or a byte representing a colon, slash, question mark or
+number--sign, in @ascii{} encoding, is read: return a bytevector holding
+the accumulated bytes, ending byte excluded; else return false.
 
 If successful: leave the port position to the byte after last one read
 from the port, ending colon or slash excluded; if an error occurs:
 rewind the port position to the one before this function call.
 
-Notice that an empty @code{reg-name} component is valid.
+Notice that an empty @code{reg-name} component is valid; also, a
+@code{reg-name} cannot be longer than @math{255} bytes: if it is, this
+function returns false.
 
 @example
 (import (rnrs)
@@ -1292,7 +1324,7 @@ input port drawing characters from a bytevector.
 
 @defun parse-path-empty @var{port}
 Parse a @code{path-empty} component.  Lookahead one byte from
-@var{port}: if it is @eof{} or a question mark or number sign in
+@var{port}: if it is @eof{} or a question mark or number--sign in
 @ascii{} encoding: return null; else return false.
 
 In any case leave the port position where it was before the function
@@ -1682,7 +1714,7 @@ the leading slashes; false if the @code{authority} is not present.
 
 @item userinfo
 A bytevector representing the @code{userinfo} component, not including
-the ending at sign; false if the @code{userinfo} is not present.
+the ending at--sign; false if the @code{userinfo} is not present.
 
 @item host-type
 One of the symbols: @code{reg-name}, @code{ipv4-address},
@@ -1741,7 +1773,7 @@ the leading slashes; false if the @code{authority} is not present.
 
 @item userinfo
 A bytevector representing the @code{userinfo} component, not including
-the ending at sign; false if the @code{userinfo} is not present.
+the ending at--sign; false if the @code{userinfo} is not present.
 
 @item host-type
 One of the symbols: @code{reg-name}, @code{ipv4-address},
@@ -1893,6 +1925,11 @@ All the non percent--encoded bytes are in the unreserved set defined by
 @section Class interfaces
 
 
+The class interface to @uri{} parsing and producing is really basic;
+this is because advanced handling of @uri{}s should be merged with
+requirements of specific @uri{} schemes, like @code{http:} and
+@code{file:}.
+
 @menu
 * uri class uri::               The @class{uri} class.
 * uri class relative-ref::      The @class{relative-ref} class.
@@ -1976,8 +2013,8 @@ containing the leading question mark, or false if there is no
 
 @defcv {Mutable field} @aclass{uri} fragment
 The @code{fragment} component as a percent--decoded bytevector
-@strong{not} containing the leading number sign, or false if there is no
-@code{fragment} component.
+@strong{not} containing the leading number--sign, or false if there is
+no @code{fragment} component.
 @end defcv
 
 
@@ -2081,8 +2118,8 @@ containing the leading question mark, or false if there is no
 
 @defcv {Mutable field} @aclass{relative-ref} fragment
 The @code{fragment} component as a percent--decoded bytevector
-@strong{not} containing the leading number sign, or false if there is no
-@code{fragment} component.
+@strong{not} containing the leading number--sign, or false if there is
+no @code{fragment} component.
 @end defcv
 
 
@@ -2116,5 +2153,36 @@ with @func{parse-uri}.
 Return true if @var{expr} evaluates to an instance of
 @class{relative-ref}.
 @end deffn
+
+@c page
+@node uri misc
+@section Miscellaneous functions
+
+
+@defun normalise-path @var{input}
+Normalise a list of bytevectors representing an absolute path;
+bytevectors holding single and double dots are removed.
+
+@example
+(import (rnrs)
+  (prefix (nausicaa uri low) low.))
+
+(define-syntax doit
+  (syntax-rules ()
+    ((_ ?input)
+     (map low.to-string
+       (low.normalise-path
+         (map low.to-bytevector
+           (quote ?input)))))))
+
+(doit ())       @result{} ()
+(doit ("a"))    @result{} ("a")
+(doit ("."))    @result{} ()
+(doit (".."))   @result{} ()
+(doit ("a" "b" "c" "." ".." ".." "g"))
+@result{} ("a" "g")
+@end example
+@end defun
+
 
 @c end of file

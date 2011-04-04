@@ -58,8 +58,8 @@
 
     parse-uri			parse-relative-ref
 
-    ;; validation
-    valid-component?
+    ;; miscellaneous
+    valid-component?		normalise-path
 
     ;; auxiliary syntaxes
     char-selector		string-result?)
@@ -84,6 +84,7 @@
 (define-constant $int-9		(char->integer #\9))
 
 (define-constant $int-v		(char->integer #\v))
+(define-constant $int-V		(char->integer #\V))
 
 (define-constant $int-percent		(char->integer #\%))
 (define-constant $int-minus		(char->integer #\-))
@@ -501,10 +502,11 @@
 
 (define (collect-hier-part in-port)
   ;;Accumulate  bytes  from IN-PORT  while  they  are  acceptable for  a
-  ;;"hier-part" URI  component.  If EOF or  a question mark  or a number
-  ;;sign is  found: return a  bytevector holding the  accumulated bytes,
-  ;;question mark or number sign excluded; else return false.  Leave the
-  ;;port position to the byte after the last byte of the "hier-part".
+  ;;"hier-part"  URI  component.   If  EOF  or  a  question  mark  or  a
+  ;;number-sign is  found: return  a bytevector holding  the accumulated
+  ;;bytes,  question mark  or number-sign  excluded; else  return false.
+  ;;Leave  the port  position to  the byte  after the  last byte  of the
+  ;;"hier-part".
   ;;
   ;;An empty hier-part is not accepted: if the first value from the port
   ;;is EOF, the return value is false.
@@ -533,9 +535,9 @@
 (define (parse-query in-port)
   ;;Accumulate bytes from IN-PORT while they are valid for a "query" URI
   ;;component; the first byte read from IN-PORT must be a question mark.
-  ;;If EOF  or a number  sign is read:  return a bytevector  holding the
-  ;;accumulated bytes, starting question mark excluded and ending number
-  ;;sign excluded; else return false.
+  ;;If EOF  or a  number-sign is read:  return a bytevector  holding the
+  ;;accumulated  bytes,  starting  question  mark  excluded  and  ending
+  ;;number-sign excluded; else return false.
   ;;
   ;;If successful:  leave the port position  to the byte  after the last
   ;;byte of the  "query" component; if an error  occurs: rewind the port
@@ -560,7 +562,7 @@
 	       (cond ((eof-object? chi)
 		      (getter))
 
-		     ;;A  number sign  terminates the  "query" component
+		     ;;A  number-sign terminates  the  "query" component
 		     ;;and starts a "fragment" component.
 		     ((= chi $int-number-sign)
 		      (set-position-back-one! chi)
@@ -600,15 +602,15 @@
 
 (define (parse-fragment in-port)
   ;;Accumulate bytes from IN-PORT while  they are valid for a "fragment"
-  ;;URI component;  the first  byte read from  IN-PORT must be  a number
-  ;;sign.  If EOF  is read: return a bytevector  holding the accumulated
-  ;;bytes, starting number sign excluded; else return false.
+  ;;URI  component;  the  first  byte   read  from  IN-PORT  must  be  a
+  ;;number-sign.   If  EOF is  read:  return  a  bytevector holding  the
+  ;;accumulated bytes, starting number-sign excluded; else return false.
   ;;
   ;;If successful:  leave the port position  to the byte  after the last
   ;;byte of  the "fragment"  component; if an  error occurs:  rewind the
   ;;port position to the one before this function call.
   ;;
-  ;;Notice that  an empty "fragment"  component is valid (a  number sign
+  ;;Notice that  an empty "fragment"  component is valid  (a number-sign
   ;;followed by EOF).
   ;;
   (define-parser-macros in-port)
@@ -668,8 +670,8 @@
   ;;"relative-part" of a "relative-ref".   The first two bytes read must
   ;;represent, in  ASCII encoding, two  slash characters; after  the two
   ;;slashes, if EOF or a byte representing a slash, a question mark or a
-  ;;number  sign is read:  return a  bytevector holding  the accumulated
-  ;;bytes,  ending slash, question  mark or  number sign  excluded; else
+  ;;number-sign  is read:  return a  bytevector holding  the accumulated
+  ;;bytes,  ending slash,  question mark  or number-sign  excluded; else
   ;;return false.
   ;;
   ;;If successful:  leave the port position  to the byte  after the last
@@ -709,15 +711,16 @@
 
 (define (parse-userinfo in-port)
   ;;Accumulate bytes from IN-PORT while they are valid for an "userinfo"
-  ;;component in  the "authority" component.  If a  byte representing an
-  ;;at sign, in ASCII encoding, is read: return a bytevector holding the
-  ;;accumulated bytes, ending at sign excluded; else return false.
+  ;;component in  the "authority" component.   If a byte  representing a
+  ;;commercial at-sign, in ASCII  encoding, is read: return a bytevector
+  ;;holding the accumulated bytes,  ending at-sign excluded; else return
+  ;;false.
   ;;
   ;;If successful: leave the port  position to the byte after the ending
-  ;;at sign;  if an error  occurs: rewind the  port position to  the one
+  ;;at-sign; if  an error  occurs: rewind the  port position to  the one
   ;;before this function call.
   ;;
-  ;;Notice  that an  empty "userinfo"  component  is valid  (an at  sign
+  ;;Notice  that an  empty  "userinfo" component  is  valid (an  at-sign
   ;;preceded by nothing).
   ;;
   (define-parser-macros in-port)
@@ -727,7 +730,7 @@
       (cond ((eof-object? chi)
 	     (return-failure))
 
-	    ;;An at sign terminates the "userinfo" component.
+	    ;;An at-sign terminates the "userinfo" component.
 	    ((= chi $int-at-sign)
 	     (getter))
 
@@ -893,7 +896,7 @@
   (define (%error)
     (values (return-failure) #f))
   (let ((chi (get-u8 in-port)))
-    (if (or (eof-object? chi) (not (= chi $int-v)))
+    (if (or (eof-object? chi) (not (or (= chi $int-v) (= chi $int-V))))
 	(%error)
       (let ((version-chi (get-u8 in-port)))
 	(if (is-hex-digit? version-chi)
@@ -914,7 +917,7 @@
 (define (parse-reg-name in-port)
   ;;Accumulate bytes from IN-PORT while  they are valid for a "reg-name"
   ;;component in the "host" component.   If EOF or a byte representing a
-  ;;colon, slash,  question mark  or number sign  in ASCII  encoding, is
+  ;;colon,  slash, question mark  or number-sign  in ASCII  encoding, is
   ;;read: return a bytevector holding the accumulated bytes, ending byte
   ;;excluded; else return false.
   ;;
@@ -922,51 +925,59 @@
   ;;read from the port; if an  error occurs: rewind the port position to
   ;;the one before this function call.
   ;;
-  ;;Notice that an empty "reg-name" component is valid.
+  ;;Notice  that  an  empty  "reg-name"  component  is  valid;  also,  a
+  ;;"reg-name" cannot be longer than  255 bytes: if it is, this function
+  ;;returns false.
   ;;
   (define-parser-macros in-port)
+  (define (%error)
+    (values (return-failure) #f))
   (receive (ou-port getter)
       (open-bytevector-output-port)
-    (let process-next-byte ((chi (get-u8 in-port)))
+    (let process-next-byte ((chi	(get-u8 in-port))
+  			    (count	0))
       (cond ((eof-object? chi)
-	     (getter))
+  	     (getter))
 
-	    ((or (= chi $int-colon)
-		 (= chi $int-slash)
-		 (= chi $int-question-mark)
-		 (= chi $int-number-sign))
-	     (set-position-back-one! chi)
-	     (getter))
+  	    ((= 255 count)
+  	     (return-failure))
 
-	    ;;Characters in the categories "unreserved" and "sub-delims"
-	    ;;are valid.
-	    ((or (is-unreserved? chi) (is-sub-delim? chi))
-	     (put-u8 ou-port chi)
-	     (process-next-byte (get-u8 in-port)))
+  	    ((or (= chi $int-colon)
+  		 (= chi $int-slash)
+  		 (= chi $int-question-mark)
+  		 (= chi $int-number-sign))
+  	     (set-position-back-one! chi)
+  	     (getter))
 
-	    ;;A percent-encoded sequence is valid.
-	    ((= chi $int-percent)
-	     (let ((chi1 (get-u8 in-port)))
-	       (cond ((eof-object? chi1)
-		      (return-failure))
-		     ((is-hex-digit? chi1)
-		      (let ((chi2 (get-u8 in-port)))
-			(cond ((eof-object? chi2)
-			       (return-failure))
-			      ((is-hex-digit? chi2)
-			       (put-u8 ou-port $int-percent)
-			       (put-u8 ou-port chi1)
-			       (put-u8 ou-port chi2)
-			       (process-next-byte (get-u8 in-port)))
-			      (else
-			       (return-failure)))))
-		     ;;Invalid byte in percent-encoded sequence.
-		     (else
-		      (return-failure)))))
+  	    ;;Characters in the categories "unreserved" and "sub-delims"
+  	    ;;are valid.
+  	    ((or (is-unreserved? chi) (is-sub-delim? chi))
+  	     (put-u8 ou-port chi)
+  	     (process-next-byte (get-u8 in-port) (+ 1 count)))
 
-	    ;;Invalid byte.
-	    (else
-	     (return-failure))))))
+  	    ;;A percent-encoded sequence is valid.
+  	    ((= chi $int-percent)
+  	     (let ((chi1 (get-u8 in-port)))
+  	       (cond ((eof-object? chi1)
+  		      (return-failure))
+  		     ((is-hex-digit? chi1)
+  		      (let ((chi2 (get-u8 in-port)))
+  			(cond ((eof-object? chi2)
+  			       (return-failure))
+  			      ((is-hex-digit? chi2)
+  			       (put-u8 ou-port $int-percent)
+  			       (put-u8 ou-port chi1)
+  			       (put-u8 ou-port chi2)
+  			       (process-next-byte (get-u8 in-port) (+ 1 count)))
+  			      (else
+  			       (return-failure)))))
+  		     ;;Invalid byte in percent-encoded sequence.
+  		     (else
+  		      (return-failure)))))
+
+  	    ;;Invalid byte.
+  	    (else
+  	     (return-failure))))))
 
 (define (parse-host in-port)
   ;;Accumulate  bytes from  IN-PORT while  they are  valid for  a "host"
@@ -1000,19 +1011,24 @@
   (define-parser-macros in-port)
   (define (%error)
     (values (return-failure) #f))
-  (let-values (((ipv4.bv ipv4.ell) (parse-ipv4-address in-port)))
-    (if ipv4.bv
-	(values 'ipv4-address (cons ipv4.bv ipv4.ell))
-      (let ((ip-literal.bv (parse-ip-literal in-port)))
-	(if ip-literal.bv
-	    (let ((ip-literal.port (open-bytevector-input-port ip-literal.bv)))
-	      (let-values (((ipv6.bv ipv6.ell) (parse-ipv6-address ip-literal.port)))
-		(if ipv6.bv
-		    (values 'ipv6-address (cons ipv6.bv ipv6.ell))
-		  (let-values (((ipvfuture.version ipvfuture.bv) (parse-ipvfuture ip-literal.port)))
-		    (if ipvfuture.version
-			(values 'ipvfuture (cons ipvfuture.version ipvfuture.bv))
-		      (%error))))))
+  ;;We start by looking for an  "IP-literal" even though it is the least
+  ;;probable; this is because once  we have verified that the first byte
+  ;;is not a  "[" we can come back from  PARSE-IP-LITERAL: this is quick
+  ;;compared to what PARSE-IPV4-ADDRESS  has to do.  PARSE-REG-NAME must
+  ;;be the last because it is a "catch all" parser function.
+  (let ((ip-literal.bv (parse-ip-literal in-port)))
+    (if ip-literal.bv
+	(let ((ip-literal.port (open-bytevector-input-port ip-literal.bv)))
+	  (let-values (((ipv6.bv ipv6.ell) (parse-ipv6-address ip-literal.port)))
+	    (if ipv6.bv
+		(values 'ipv6-address (cons ipv6.bv ipv6.ell))
+	      (let-values (((ipvfuture.version ipvfuture.bv) (parse-ipvfuture ip-literal.port)))
+		(if ipvfuture.version
+		    (values 'ipvfuture (cons ipvfuture.version ipvfuture.bv))
+		  (%error))))))
+      (let-values (((ipv4.bv ipv4.ell) (parse-ipv4-address in-port)))
+	(if ipv4.bv
+	    (values 'ipv4-address (cons ipv4.bv ipv4.ell))
 	  (let ((reg-name.bv (parse-reg-name in-port)))
 	    (if reg-name.bv
 		(values 'reg-name reg-name.bv)
@@ -1233,7 +1249,7 @@
 
 (define (parse-path-empty in-port)
   ;;Parse a "path-empty" component;  lookahead one byte from IN-PORT: if
-  ;;it  is EOF  or a  question mark  or number  sign in  ASCII encoding:
+  ;;it  is EOF  or a  question mark  or number-sign  in  ASCII encoding:
   ;;return null; else return false.
   ;;
   ;;In any case leave the port position where it was before the function
@@ -1400,7 +1416,7 @@
   ;;present.
   ;;
   ;;userinfo:  a  bytevector representing  the  userinfo component,  not
-  ;;including the ending at sign.
+  ;;including the ending at-sign.
   ;;
   ;;host-type: one of the symbols: reg-name, ipv4-address, ipv6-address,
   ;;ipvfuture; when the host is empty: this value is reg-name.
@@ -1480,7 +1496,7 @@
   ;;present.
   ;;
   ;;userinfo:  a  bytevector representing  the  userinfo component,  not
-  ;;including the ending at sign.
+  ;;including the ending at-sign.
   ;;
   ;;host-type: one of the symbols: reg-name, ipv4-address, ipv6-address,
   ;;ipvfuture; when the host is empty: this value is reg-name.
@@ -1590,6 +1606,21 @@
 		  (else
 		   (return #f)))))
       (set-port-position! port start-position))))
+
+
+(define (normalise-path input)
+  (let next-segment ((input	input)
+		     (output	'()))
+    (cond ((null? input)
+	   (reverse output))
+	  ((equal? '#vu8(46) (car input))
+	   (next-segment (cdr input) output))
+	  ((equal? '#vu8(46 46) (car input))
+	   (next-segment (cdr input) (if (null? output)
+					 output
+				       (cdr output))))
+	  (else
+	   (next-segment (cdr input) (cons (car input) output))))))
 
 
 ;;;; done

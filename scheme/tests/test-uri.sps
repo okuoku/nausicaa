@@ -895,12 +895,28 @@
 	  (list version (low.to-string bv))))
     => '(15 "ciao"))
 
+  (check
+      (call-with-values
+	  (lambda ()
+	    (low.parse-ipvfuture (make-lexer-port "VEciao")))
+	(lambda (version bv)
+	  (list version (low.to-string bv))))
+    => '(14 "ciao"))
+
 ;;; --------------------------------------------------------------------
 ;;; reg-name
 
   (check
       (low.to-string (low.parse-reg-name (make-lexer-port "")))
     => "")
+
+  (check	;no more than 255 chars
+      (low.to-string (low.parse-reg-name (make-lexer-port (make-string 255 #\a))))
+    => (make-string 255 #\a))
+
+  (check	;no more than 256 chars
+      (low.parse-reg-name (make-lexer-port (make-string 256 #\a)))
+    => #f)
 
   (check
       (let* ((in-port	(make-lexer-port ":80"))
@@ -2403,6 +2419,32 @@
 
   (doit "//[v412345]/a/b/c")
   (doit "//[vF12345]/a/b/c")
+
+  #t)
+
+
+(parametrise ((check-test-name	'normalise-path))
+
+  (define-syntax doit
+    (syntax-rules ()
+      ((_ ?input ?output)
+       (check
+	   (map low.to-string
+	     (low.normalise-path
+	      (map low.to-bytevector
+		(quote ?input))))
+	 => (quote ?output)))))
+
+  (doit () ())
+
+  (doit ("a") ("a"))
+
+  (doit (".") ())
+
+  (doit ("..") ())
+
+  (doit ("a" "b" "c" "." ".." ".." "g")
+	("a" "g"))
 
   #t)
 
