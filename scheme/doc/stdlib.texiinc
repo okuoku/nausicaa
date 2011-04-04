@@ -4591,7 +4591,7 @@ Read from @var{binary-input-port}, blocking as necessary, until a byte
 is available from @var{binary-input-port} or until an end of file is
 reached.  If a byte becomes available, @code{get-u8} returns the byte as
 an octet and updates @var{binary-input-port} to point just past that
-byte. If no input byte is seen before an end of file is reached, the
+byte.  If no input byte is seen before an end of file is reached, the
 end--of--file object is returned.
 @end deffn
 

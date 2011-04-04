@@ -7,7 +7,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2010, 2011 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -77,12 +77,12 @@
  (lalr.rules:
   '((ipv6-address
      (NUMBER double-colon-tail)		: (cons (string->number $1 16) $2)
-     (NUMBER tail)			: (cons (string->number $1 16) $2)
+     (NUMBER colon-tail)		: (cons (string->number $1 16) $2)
      (double-colon-tail)		: $1)
 
-    (tail
+    (colon-tail
      (COLON ipv4-address)		: $2
-     (COLON NUMBER tail)		: (cons (string->number $2 16) $3)
+     (COLON NUMBER colon-tail)		: (cons (string->number $2 16) $3)
      (COLON NUMBER double-colon-tail)	: (cons (string->number $2 16) $3)
      (prefix-length)			: $1
      ()					: '())

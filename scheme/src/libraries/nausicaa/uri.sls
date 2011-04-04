@@ -1,4 +1,4 @@
-;;; -*- coding: utf-8 -*-
+;;; -*- coding: utf-8-unix -*-
 ;;;
 ;;;Part of: Nausicaa/Scheme
 ;;;Contents: URI handling
@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2010, 2011 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -28,163 +28,260 @@
 #!r6rs
 (library (nausicaa uri)
   (export
-    <uri>
-    )
+    <uri> <relative-ref>
+
+    ;; auxiliary syntaxes
+    source-bytevector
+
+    ;; conditions
+    &parser-error
+    make-parser-error-condition			parser-error-condition?
+    condition-parser-error/offset)
   (import (nausicaa)
-    (prefix (nausicaa uri low) uri:))
+    (nausicaa uri conditions)
+    (prefix (nausicaa uri low) low.))
 
 
 ;;;; helpers
 
+(define-auxiliary-syntaxes
+  source-bytevector)
+
+(define-inline (integer->ascii-hex n)
+  (if (<= 0 n 9)
+      (+ 48 n)	      ;48 = #\0
+    (+ 65 (- n 10)))) ;65 = #\A
 
 
 (define-class <uri>
   (nongenerative nausicaa:uri:<uri>)
 
   (maker ()
-	 (:decoded-scheme	#f)
-	 (:decoded-authority	#f)
-	 (:decoded-path		#f)
-	 (:decoded-query	#f)
-	 (:decoded-fragment	#f)
+	 (source-bytevector	#f))
 
-	 (:encoded-scheme	#f)
-	 (:encoded-authority	#f)
-	 (:encoded-path		#f)
-	 (:encoded-query	#f)
-	 (:encoded-fragment	#f)
-	 )
+  (protocol
+   (lambda (make-top)
+     (lambda (source-bytevector)
+       (let-values (((scheme authority userinfo host-type host port path-type path query fragment)
+		     (low.parse-uri (open-bytevector-input-port source-bytevector))))
+	 (unless scheme
+	   (raise (condition (make-parser-error-condition 0)
+			     (make-who-condition 'make-<uri>)
+			     (make-message-condition "missing mandatory scheme component in URI")
+			     (make-irritants-condition (list source-bytevector)))))
+	 ((make-top) scheme authority
+	  (and userinfo (low.percent-decode userinfo))
+	  host-type (if (eq? host-type 'reg-name)
+			(low.percent-decode host)
+		      host)
+	  port path-type (map (lambda (p)
+				(low.percent-decode p))
+			   path)
+	  (and query (low.percent-decode query))
+	  (and fragment (low.percent-decode fragment)))))))
 
-  (protocol (lambda (make-top)
-	      (lambda (	;
-		       decoded-scheme decoded-authority decoded-path decoded-query decoded-fragment
-		       encoded-scheme encoded-authority encoded-path encoded-query encoded-fragment)
-		((make-top)
-		 #f ;cached-string
-		 #f ;cached-bytevector
-		 decoded-scheme decoded-authority decoded-path decoded-query decoded-fragment
-		 encoded-scheme encoded-authority encoded-path encoded-query encoded-fragment
-		 ))))
-
-  (fields (mutable cached-string)
-	  (mutable cached-bytevector))
-
-  (fields (mutable cached-decoded-scheme)
-	  (mutable cached-decoded-authority)
-	  (mutable cached-decoded-path)
-	  (mutable cached-decoded-query)
-	  (mutable cached-decoded-fragment))
-
-  (fields (mutable cached-encoded-scheme)
-	  (mutable cached-encoded-authority)
-	  (mutable cached-encoded-path)
-	  (mutable cached-encoded-query)
-	  (mutable cached-encoded-fragment))
-
-  (virtual-fields (immutable decoded-scheme)
-		  (immutable decoded-authority)
-		  (immutable decoded-path)
-		  (immutable decoded-query)
-		  (immutable decoded-fragment))
-
-  (virtual-fields (immutable encoded-scheme)
-		  (immutable encoded-authority)
-		  (immutable encoded-path)
-		  (immutable encoded-query)
-		  (immutable encoded-fragment))
+   (fields (mutable scheme)
+	   (mutable authority)
+	   (mutable userinfo)
+	   (mutable host-type)
+	   (mutable host)
+	   (mutable port)
+	   (mutable path-type)
+	   (mutable path)
+	   (mutable query)
+	   (mutable fragment))
 
   (virtual-fields (immutable string)
-		  (immutable bytevector))
-  )
-
-
-(let-syntax ((define-decoded-field (syntax-rules ()
-				     ((_ ?var ?name ?encoded ?decoded)
-				      (define (?name (?var <uri>))
-					(or ?decoded
-					    (and ?encoded
-						 (begin0-let ((bv (uri:percent-decode ?encoded)))
-						   (set! ?decoded bv)))))))))
-
-  (define-decoded-field o <uri>-decoded-scheme    o.cached-encoded-scheme    o.cached-decoded-scheme)
-  (define-decoded-field o <uri>-decoded-authority o.cached-encoded-authority o.cached-decoded-authority)
-  (define-decoded-field o <uri>-decoded-query     o.cached-encoded-query     o.cached-decoded-query)
-  (define-decoded-field o <uri>-decoded-fragment  o.cached-encoded-fragment  o.cached-decoded-fragment)
-
-  (define (<uri>-decoded-path (o <uri>))
-    (or o.cached-decoded-path
-	(and o.cached-encoded-path
-	     (begin0-let ((ell (map (lambda (bv)
-				      (uri:percent-decode bv))
-				 o.cached-encoded-path)))
-	       (set! o.cached-decoded-path ell)))))
-  )
-
-;;; --------------------------------------------------------------------
-
-(let-syntax ((define-encoded-field (syntax-rules ()
-				     ((_ ?var ?name ?encoded ?decoded)
-				      (define (?name (?var <uri>))
-					(or ?encoded
-					    (and ?decoded
-						 (begin0-let ((bv (uri:percent-encode ?decoded)))
-						   (set! ?encoded bv)))))))))
-
-  (define-encoded-field o <uri>-encoded-scheme    o.cached-encoded-scheme    o.cached-decoded-scheme)
-  (define-encoded-field o <uri>-encoded-authority o.cached-encoded-authority o.cached-decoded-authority)
-  (define-encoded-field o <uri>-encoded-query     o.cached-encoded-query     o.cached-decoded-query)
-  (define-encoded-field o <uri>-encoded-fragment  o.cached-encoded-fragment  o.cached-decoded-fragment)
-
-  (define (<uri>-encoded-path (o <uri>))
-    (or o.cached-encoded-path
-	(and o.cached-decoded-path
-	     (begin0-let ((ell (map (lambda (bv)
-				      (uri:percent-encode bv))
-				 o.cached-decoded-path)))
-	       (set! o.cached-encoded-path ell)))))
-  )
+		  (immutable bytevector)))
 
 
 (define (<uri>-string (o <uri>))
-  (or o.cached-string
-      (begin0-let ((out (utf8->string o.bytevector)))
-	(set! o.cached-string out))))
+  (low.to-string o.bytevector))
 
 (define (<uri>-bytevector (o <uri>))
-  (or o.cached-bytevector
-      (receive (port getter)
-	  (open-bytevector-output-port)
-	(let-syntax ((%put-bv	(syntax-rules ()
-				  ((_ ?thing)
-				   (put-bytevector port ?thing))))
-		     (%put-u8	(syntax-rules ()
-				  ((_ ?thing)
-				   (put-u8 port ?thing)))))
+  (define who '<uri>-bytevector)
+  (receive (port getter)
+      (open-bytevector-output-port)
+    (define-inline (%put-bv ?thing)
+      (put-bytevector port ?thing))
+    (define-inline (%put-u8 ?thing)
+      (put-u8 port ?thing))
 
-	  (when o.encoded-scheme
-	    (%put-bv o.encoded-scheme)
-	    (%put-u8 58)) ;58 = :
+    (%put-bv o.scheme)
+    (%put-u8 58) ;58 = #\:
 
-	  (when o.encoded-authority
-	    (%put-u8 47) ;47 = /
-	    (%put-u8 47)
-	    (%put-bv o.encoded-authority))
+    (let ((authority (receive (authority-port authority-getter)
+			 (open-bytevector-output-port)
+		       (define-inline (%put-bv ?thing)
+			 (put-bytevector authority-port ?thing))
+		       (define-inline (%put-u8 ?thing)
+			 (put-u8 authority-port ?thing))
+		       (when o.userinfo
+			 (%put-bv (low.percent-encode o.userinfo))
+			 (%put-u8 64)) ;64 = #\@
+		       (case o.host-type
+			 ((reg-name)
+			  (%put-bv (low.percent-encode o.host)))
+			 ((ipv4-address)
+			  (%put-bv (car o.host)))
+			 ((ipv6-address)
+			  (%put-u8 91) ;91 = #\[
+			  (%put-bv (car o.host))
+			  (%put-u8 93)) ;93 = #\]
+			 ((ipvfuture)
+			  (%put-u8 91)	;91 = #\[
+			  (%put-u8 118) ;118 = #\v
+			  (%put-u8 (integer->ascii-hex (car o.host)))
+			  (%put-bv (cdr o.host))
+			  (%put-u8 93)) ;93 = #\]
+			 (else
+			  (assertion-violation who "invalid host type" o o.host-type)))
+		       (when o.port
+			 (%put-u8 58) ;58 = #\:
+			 (%put-bv o.port))
+		       (authority-getter))))
+      (when (or (not (zero? (bytevector-length authority)))
+		(memq o.path-type '(path-abempty path-empty)))
+	(%put-u8 47) ;47 = #\/
+	(%put-u8 47) ;47 = #\/
+	(%put-bv authority)))
 
-	  (for-each (lambda (bv)
-		      (%put-u8 47) ;47 = /
-		      (%put-bv bv))
-	    o.encoded-path)
+    (unless (null? o.path)
+      (let ((first	(car o.path))
+	    (rest	(cdr o.path)))
+	(case o.path-type
+	  ((path-abempty path-absolute)
+	   (%put-u8 47) ;47 = /
+	   (%put-bv first))
+	  ((path-rootless)
+	   (%put-bv first))
+	  (else
+	   (assertion-violation who "invalid path type" o o.path-type)))
+	(for-each (lambda (bv)
+		    (%put-u8 47) ;47 = /
+		    (%put-bv bv))
+	  rest)))
 
-	  (when o.encoded-query
-	    (%put-u8 63) ;63 = ?
-	    (%put-bv o.encoded-query))
+    (when o.query
+      (%put-u8 63) ;63 = ?
+      (%put-bv (low.percent-encode o.query)))
 
-	  (when o.encoded-fragment
-	    (%put-u8 35) ;35 = #
-	    (%put-bv o.encoded-fragment))
+    (when o.fragment
+      (%put-u8 35) ;35 = #
+      (%put-bv (low.percent-encode o.fragment)))
 
-	  (begin0-let ((out (getter)))
-	    (set! o.cached-bytevector out))))))
+    (getter)))
+
+
+(define-class <relative-ref>
+  (nongenerative nausicaa:uri:<relative-ref>)
+
+  (maker ()
+	 (source-bytevector	#f))
+
+  (protocol
+   (lambda (make-top)
+     (lambda (source-bytevector)
+       (let-values (((authority userinfo host-type host port path-type path query fragment)
+		     (low.parse-relative-ref (open-bytevector-input-port source-bytevector))))
+	 ((make-top) authority
+	  (and userinfo (low.percent-decode userinfo))
+	  host-type (if (eq? host-type 'reg-name)
+			(low.percent-decode host)
+		      host)
+	  port path-type (map (lambda (p)
+				(low.percent-decode p))
+			   path)
+	  (and query (low.percent-decode query))
+	  (and fragment (low.percent-decode fragment)))))))
+
+   (fields (mutable authority)
+	   (mutable userinfo)
+	   (mutable host-type)
+	   (mutable host)
+	   (mutable port)
+	   (mutable path-type)
+	   (mutable path)
+	   (mutable query)
+	   (mutable fragment))
+
+  (virtual-fields (immutable string)
+		  (immutable bytevector)))
+
+
+(define (<relative-ref>-string (o <relative-ref>))
+  (low.to-string o.bytevector))
+
+(define (<relative-ref>-bytevector (o <relative-ref>))
+  (define who '<relative-ref>-bytevector)
+  (receive (port getter)
+      (open-bytevector-output-port)
+    (define-inline (%put-bv ?thing)
+      (put-bytevector port ?thing))
+    (define-inline (%put-u8 ?thing)
+      (put-u8 port ?thing))
+
+    (let ((authority (receive (authority-port authority-getter)
+			 (open-bytevector-output-port)
+		       (define-inline (%put-bv ?thing)
+			 (put-bytevector authority-port ?thing))
+		       (define-inline (%put-u8 ?thing)
+			 (put-u8 authority-port ?thing))
+		       (when o.userinfo
+			 (%put-bv (low.percent-encode o.userinfo))
+			 (%put-u8 64)) ;64 = #\@
+		       (case o.host-type
+			 ((reg-name)
+			  (%put-bv (low.percent-encode o.host)))
+			 ((ipv4-address)
+			  (%put-bv (car o.host)))
+			 ((ipv6-address)
+			  (%put-u8 91) ;91 = #\[
+			  (%put-bv (car o.host))
+			  (%put-u8 93)) ;93 = #\]
+			 ((ipvfuture)
+			  (%put-u8 91)	;91 = #\[
+			  (%put-u8 118) ;118 = #\v
+			  (%put-u8 (integer->ascii-hex (car o.host)))
+			  (%put-bv (cdr o.host))
+			  (%put-u8 93)) ;93 = #\]
+			 (else
+			  (assertion-violation who "invalid host type" o o.host-type)))
+		       (when o.port
+			 (%put-u8 58) ;58 = #\:
+			 (%put-bv o.port))
+		       (authority-getter))))
+      (when (or (not (zero? (bytevector-length authority)))
+		(memq o.path-type '(path-abempty path-empty)))
+	(%put-u8 47) ;47 = #\/
+	(%put-u8 47) ;47 = #\/
+	(%put-bv authority)))
+
+    (unless (null? o.path)
+      (let ((first	(car o.path))
+	    (rest	(cdr o.path)))
+	(case o.path-type
+	  ((path-abempty path-absolute)
+	   (%put-u8 47) ;47 = /
+	   (%put-bv first))
+	  ((path-noscheme)
+	   (%put-bv first))
+	  (else
+	   (assertion-violation who "invalid path type" o o.path-type)))
+	(for-each (lambda (bv)
+		    (%put-u8 47) ;47 = /
+		    (%put-bv bv))
+	  rest)))
+
+    (when o.query
+      (%put-u8 63) ;63 = ?
+      (%put-bv (low.percent-encode o.query)))
+
+    (when o.fragment
+      (%put-u8 35) ;35 = #
+      (%put-bv (low.percent-encode o.fragment)))
+
+    (getter)))
 
 
 ;;;; done

@@ -186,8 +186,11 @@ Utility wrapper for @func{with-exception-handler}, expands to:
         (cleanup)
         (raise E))
     (lambda ()
-      (begin0-let ((result ?body))
-        (cleanup)))))
+      (call-with-values
+          (lambda () @meta{body})
+        (lambda return-values
+          (cleanup)
+          (apply values return-values))))))
 @end example
 @end deffn
 

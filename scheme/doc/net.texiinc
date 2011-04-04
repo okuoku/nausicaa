@@ -480,6 +480,8 @@ here are some examples of address parsing:
 (parse-address "1:2:3:4:5:6:7:8")
 @result{} (1 2 3 4 5 6 7 8)
 
+(parse-address "1")             @result{} (1)
+(parse-address "::")            @result{} (#f)
 (parse-address "1::")           @result{} (1 #f)
 (parse-address "1::2")          @result{} (1 #f 2)
 (parse-address "1:2::3")        @result{} (1 2 #f 3)
@@ -509,6 +511,8 @@ here are some examples of address parsing:
 and here are some examples of address prefix parsing:
 
 @example
+(parse-address "1/60")          @result{} (1 (60))
+(parse-address "::/60")         @result{} (#f (60))
 (parse-address "::1/60")        @result{} (#f 1 (60))
 (parse-address "1::/60")        @result{} (1 #f (60))
 (parse-address "1::2/60")       @result{} (1 #f 2 (60))
@@ -544,6 +548,10 @@ The list must be processed and validated as follows:
 @item
 If the numeric address components are more than @math{8} the address is
 invalid.
+
+@item
+If the numeric address components are less than @math{8} and @false{} is
+not present: the address is invalid.
 
 @item
 If the @false{} value is present and the numeric address components are

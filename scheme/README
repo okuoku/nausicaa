@@ -108,7 +108,6 @@ csv	- rebuild the tables for the (csv) library
 infix	- rebuild the tables for the (infix) library
 email	- rebuild the tables for the email libraries
 json	- rebuild the tables for the json libraries
-uri	- rebuild the tables for the uri libraries
 net	- rebuild the tables for the net libraries
 r6rs-lexer - rebuild the tables for the R6RS lexer and parser
 xml-lexer - rebuild the tables for the XML lexer and parser

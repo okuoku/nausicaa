@@ -483,8 +483,11 @@
 	     (cleanup)
 	     (raise E))
 	 (lambda ()
-	   (begin0-let ((result ?body))
-	     (cleanup))))))))
+	   (call-with-values
+	       (lambda () ?body)
+	     (lambda return-values
+	       (cleanup)
+	       (apply values return-values)))))))))
 
 
 (define-syntax begin0

@@ -138,7 +138,5 @@
 
 * DONE armor
 * DONE contracts
-* TODO uri
-
-  Finish the parser.
+* DONE uri
 

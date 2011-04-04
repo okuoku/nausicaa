@@ -133,6 +133,10 @@ Revised^6 Report on the algorithmic language Scheme
 @acronym{CSV}
 @end macro
 
+@macro eof{}
+@acronym{EOF}
+@end macro
+
 @macro ieee{}
 @acronym{IEEE}
 @end macro
