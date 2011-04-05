@@ -29,7 +29,7 @@
 (import (for (nausicaa) run expand)
   (nausicaa checks)
   (nausicaa debugging)
-  (testlib records-lib)
+  (libtest records-lib)
   (rnrs eval))
 
 (check-set-mode! 'report-failed)

@@ -11,7 +11,7 @@
 ;;;
 ;;;	it will produce the "calc-test.l.sls" output file.
 ;;;
-;;;Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2009, 2010, 2011 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -95,25 +95,25 @@ cparen		\\)
 
 
 (define lexer-file	"calc.l")
-(define tree-file	"testlib/calc-tree-lexer.sls")
-(define code-file	"testlib/calc-code-lexer.sls")
-(define portable-file	"testlib/calc-portable-lexer.sls")
+(define tree-file	"libtest/calc-tree-lexer.sls")
+(define code-file	"libtest/calc-code-lexer.sls")
+(define portable-file	"libtest/calc-portable-lexer.sls")
 
 (define lp (open-string-input-port l))
 
 (lex (input-file: lexer-file) (output-file: tree-file)
-     (library-spec: "(testlib calc-tree-lexer)")
+     (library-spec: "(libtest calc-tree-lexer)")
      (table-name: 'calc-lexer-table/tree))
 
 
 (lex (input-string: l) (output-file: code-file)
      (lexer-format: 'code)
-     (library-spec: "(testlib calc-code-lexer)")
+     (library-spec: "(libtest calc-code-lexer)")
      (table-name: 'calc-lexer-table/code))
 
 (lex (input-port: lp) (output-file: portable-file)
      (lexer-format: 'portable)
-     (library-spec: "(testlib calc-portable-lexer)")
+     (library-spec: "(libtest calc-portable-lexer)")
      (table-name: 'calc-lexer-table/portable))
 
 ;;; end of file

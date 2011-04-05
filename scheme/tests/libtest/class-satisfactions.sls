@@ -27,7 +27,7 @@
 
 
 #!r6rs
-(library (testlib class-satisfactions)
+(library (libtest class-satisfactions)
   (export
     has-fields-a/b/c has-virtual-fields-a/b/c)
   (import (nausicaa)

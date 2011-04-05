@@ -29,7 +29,7 @@
 (import (nausicaa)
   (rnrs eval)
 ;;  (nausicaa language makers)
-  (prefix (makers-lib) lib.)	;this is in the tests directory
+  (prefix (libtest makers-lib) lib.)	;this is in the tests directory
   (nausicaa checks)
   (nausicaa language sentinel))
 
@@ -452,7 +452,7 @@
 
 (parametrise ((check-test-name	'library))
 
-;;; these tests make use of the makers from (makers-lib)
+;;; these tests make use of the makers from (libtest makers-lib)
 
   (check
       (lib.doit1)

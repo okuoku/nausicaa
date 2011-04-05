@@ -31,9 +31,9 @@
 
 #!r6rs
 (import (nausicaa)
-  (testlib calc-parser)
-  (testlib calc-parser-helper)
-  (testlib calc-parser-lexer)
+  (libtest calc-parser)
+  (libtest calc-parser-helper)
+  (libtest calc-parser-lexer)
   (prefix (nausicaa silex lexer) lex.)
   (nausicaa parser-tools)
   (nausicaa checks))

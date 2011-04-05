@@ -1,5 +1,5 @@
 #!r6rs
-(library (testlib calc-parser-lexer)
+(library (libtest calc-parser-lexer)
   (export
     calc-parser-lexer-table)
   (import (rnrs)

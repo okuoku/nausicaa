@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2010, 2011 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -26,7 +26,7 @@
 
 
 #!r6rs
-(library (testlib makers-lib)
+(library (libtest makers-lib)
   (export doit1 doit2 doit3 doit4 :alpha :beta :gamma)
   (import (rnrs)
     (nausicaa language makers))

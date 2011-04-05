@@ -1,5 +1,5 @@
 #!r6rs
-(library (testlib calc-tree-lexer)
+(library (libtest calc-tree-lexer)
   (export
     calc-lexer-table/tree)
   (import (rnrs)

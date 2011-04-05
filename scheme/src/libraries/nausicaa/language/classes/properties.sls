@@ -67,8 +67,7 @@
 	    (struct-list-of-field-tags		label-list-of-field-tags)))
   (import (rnrs)
     (prefix (nausicaa language identifier-properties) ip.)
-    (for (prefix (nausicaa language property-keywords) pk.) (meta -1))
-    (for (nausicaa language classes top) (meta -1)))
+    (for (prefix (nausicaa language property-keywords) pk.) (meta -1)))
 
 
 (define (struct-properties-ref identifier)
@@ -119,20 +118,6 @@
 
 
 ;;;; done
-
-;;This should be in  the top library; it is here to  circumvent a bug in
-;;Ikarus/Vicare precompiled  libraries which is causing  the property to
-;;be misteriously not  set when it is queried  from the helpers library;
-;;the bug shows itself only when running with precompiled libraries, not
-;;when running with a clean cache (Marco Maggi; Mon Jan 10, 2011).
-;;
-(struct-properties-define
- #'<top> (make-class '()   ;list of supers
-		     '()   ;field specs
-		     '()   ;virtual field specs
-		     '()   ;method specs
-		     '()   ;mixins
-		     '())) ;list of field tags
 
 )
 

@@ -29,7 +29,7 @@
   (nausicaa checks)
   (nausicaa silex)
   (nausicaa silex lexer)
-  (testlib silex-test))
+  (libtest silex-test))
 
 (check-set-mode! 'report-failed)
 (display "*** testing silex online\n")

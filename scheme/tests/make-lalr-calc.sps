@@ -12,7 +12,7 @@
 ;;;	with the  wrong number of  arguments may generate an  error that
 ;;;	will cause the calculator to crash.
 ;;;
-;;;Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2009, 2010, 2011 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;Copyright (c) 2004 Dominique Boucher
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
@@ -38,9 +38,9 @@
 
 ;;;; lexer
 
-(lex.lex (lex.output-file: "testlib/calc-parser-lexer.sls")
+(lex.lex (lex.output-file: "libtest/calc-parser-lexer.sls")
 	 (lex.counters: 'all)
-	 (lex.library-spec: "(testlib calc-parser-lexer)")
+	 (lex.library-spec: "(libtest calc-parser-lexer)")
 	 (lex.library-imports: '((nausicaa parser-tools lexical-token)
 				 (nausicaa parser-tools source-location)))
 	 (lex.table-name: 'calc-parser-lexer-table)
@@ -158,12 +158,12 @@ cparen		\\)
 
 (lalr-parser
 
- (output-file:		"testlib/calc-parser.sls")
+ (output-file:		"libtest/calc-parser.sls")
 		;output a parser, called calc-parser, in a separate file
 
  (parser-name:		'make-calc-parser)
- (library-spec:		'(testlib calc-parser))
- (library-imports:	'((testlib calc-parser-helper)
+ (library-spec:		'(libtest calc-parser))
+ (library-imports:	'((libtest calc-parser-helper)
 			  (rnrs eval)
 			  (nausicaa parser-tools lexical-token)
 			  (nausicaa parser-tools source-location)))

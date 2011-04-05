@@ -998,17 +998,19 @@
 		;;want.   (Especially when evaluating  class definitions
 		;;with an EVAL as we do in the test suite.)
 		;;
-		(define-for-expansion-evaluation
-		  (prop.struct-properties-define
-		   #'THE-CLASS (prop.make-class
-				(sx.syntax->list #'LIST-OF-SUPERCLASSES)
-				(sx.unwrap #'FIELD-SPECS)
-				(sx.unwrap #'VIRTUAL-FIELD-SPECS)
-				(sx.unwrap #'METHOD-SPECS)
-				(sx.syntax->list #'MIXIN-IDENTIFIERS)
-				(sx.syntax->list #'LIST-OF-FIELD-TAGS)))
-		  (help.detect-circular-tagging #'THE-CLASS #'INPUT-FORM)
-		  (SATISFACTION #'THE-CLASS) ...)
+		(define-syntax dummy
+		  (begin
+		    (prop.struct-properties-define
+		     #'THE-CLASS (prop.make-class
+				  (sx.syntax->list #'LIST-OF-SUPERCLASSES)
+				  (sx.unwrap #'FIELD-SPECS)
+				  (sx.unwrap #'VIRTUAL-FIELD-SPECS)
+				  (sx.unwrap #'METHOD-SPECS)
+				  (sx.syntax->list #'MIXIN-IDENTIFIERS)
+				  (sx.syntax->list #'LIST-OF-FIELD-TAGS)))
+		    (help.detect-circular-tagging #'THE-CLASS #'INPUT-FORM)
+		    (SATISFACTION #'THE-CLASS) ...
+		    values))
 
 		(define-syntax* (with-class-bindings stx)
 		  ;;This  macro defines  all the  syntaxes to  be  used by
@@ -1498,16 +1500,18 @@
 	    ;;when evaluating label definitions with an EVAL as we do in
 	    ;;the test suite.)
 	    ;;
-	    (define-for-expansion-evaluation
-	      (prop.struct-properties-define
-	       #'THE-LABEL (prop.make-label
-			    (sx.syntax->list #'LIST-OF-SUPERLABELS)
-			    (sx.unwrap #'VIRTUAL-FIELD-SPECS)
-			    (sx.unwrap #'METHOD-SPECS)
-			    (sx.syntax->list #'MIXIN-IDENTIFIERS)
-			    (sx.syntax->list #'LIST-OF-FIELD-TAGS)))
-	      (help.detect-circular-tagging #'THE-LABEL #'INPUT-FORM)
-	      (SATISFACTION #'THE-LABEL) ...)
+	    (define-syntax dummy
+	      (begin
+		(prop.struct-properties-define
+		 #'THE-LABEL (prop.make-label
+			      (sx.syntax->list #'LIST-OF-SUPERLABELS)
+			      (sx.unwrap #'VIRTUAL-FIELD-SPECS)
+			      (sx.unwrap #'METHOD-SPECS)
+			      (sx.syntax->list #'MIXIN-IDENTIFIERS)
+			      (sx.syntax->list #'LIST-OF-FIELD-TAGS)))
+		(help.detect-circular-tagging #'THE-LABEL #'INPUT-FORM)
+		(SATISFACTION #'THE-LABEL) ...
+		values))
 
 	    (define-syntax* (with-label-bindings stx)
 	      ;;This  macro  defines all  the  syntaxes  to  be used  by
@@ -1795,16 +1799,18 @@
 	       ;;functions,  nor  try  to  detect  circular  tagging  of
 	       ;;fields.
 	       ;;
-	       (define-for-expansion-evaluation
-		 (prop.struct-properties-define
-		  #'THE-MIXIN (prop.make-class
-			       (sx.syntax->list #'LIST-OF-SUPERCLASSES)
-			       (sx.unwrap #'FIELD-SPECS)
-			       (sx.unwrap #'VIRTUAL-FIELD-SPECS)
-			       (sx.unwrap #'METHOD-SPECS)
-			       (sx.syntax->list #'MIXIN-IDENTIFIERS)
-			       '() ;list-of-field-tags
-			       )))
+	       (define-syntax dummy
+		 (begin
+		   (prop.struct-properties-define
+		    #'THE-MIXIN (prop.make-class
+				 (sx.syntax->list #'LIST-OF-SUPERCLASSES)
+				 (sx.unwrap #'FIELD-SPECS)
+				 (sx.unwrap #'VIRTUAL-FIELD-SPECS)
+				 (sx.unwrap #'METHOD-SPECS)
+				 (sx.syntax->list #'MIXIN-IDENTIFIERS)
+				 '() ;list-of-field-tags
+				 ))
+		   values))
 	       )))))))
 
 

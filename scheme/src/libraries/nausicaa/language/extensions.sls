@@ -189,7 +189,7 @@
     with-accessor-and-mutator
     define-inline define-values define-constant define-constant-values
     define-syntax* define-auxiliary-syntax define-auxiliary-syntaxes
-    define-for-expansion-evaluation include)
+    include)
   (import (rnrs)
     (for (nausicaa language compensations) expand)
     (only (nausicaa language auxiliary-syntaxes) <> <...>))
@@ -593,7 +593,7 @@
       ((_ (?name ?stx) ?body0 ?body ...)
        (and (identifier? #'?name) (identifier? #'?stx))
        (with-syntax ((SYNNER (datum->syntax #'?name 'synner))
-		     (ALIAS  (datum->syntax #'?name 'ಠ_ಠ)))
+		     (ALIAS  (datum->syntax #'?name ' _ )))
 	 #'(define-syntax ?name
 	     (lambda (?stx)
 	       (define SYNNER
@@ -623,15 +623,23 @@
     ((_ . ?args)
      (define-auxiliary-syntax . ?args))))
 
-(define-syntax define-for-expansion-evaluation
-  (syntax-rules ()
-    ((_ ?form ...)
-     (begin
-       (define-syntax the-macro
-	 (lambda (stx)
-	   ?form ...
-	   #'(define dummy)))
-       (the-macro)))))
+;;This is commented out because a better way to do:
+;;
+;;  (define-for-expansion-evaluation <body>)
+;;
+;;is:
+;;
+;;  (define-syntax dummy (begin <body> values))
+;;
+;; (define-syntax define-for-expansion-evaluation
+;;   (syntax-rules ()
+;;     ((_ ?form ...)
+;;      (begin
+;;        (define-syntax the-macro
+;; 	 (lambda (stx)
+;; 	   ?form ...
+;; 	   #'(define dummy)))
+;;        (the-macro)))))
 
 
 (define-syntax include

@@ -676,26 +676,4 @@ definitions, like @code{fields} and @code{protocol} for
 @end defmac
 
 
-@deffn Syntax define-for-expansion-evaluation @var{form} ...
-Expand into a macro definition and its use as definition.  The purpose
-of this macro is to allow the evaluation of the @var{form} argument at
-expand time keeping the definition context in the body.  The following:
-
-@example
-(define-for-expansion-evaluation @var{form} ...)
-@end example
-
-@noindent
-expands to:
-
-@example
-(begin
-  (define-syntax the-macro
-    (lambda (stx)
-      ?form ...
-      #'(define dummy)))
-  (the-macro))
-@end example
-@end deffn
-
 @c end of file

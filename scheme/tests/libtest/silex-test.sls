@@ -25,7 +25,7 @@
 
 
 #!r6rs
-(library (testlib silex-test)
+(library (libtest silex-test)
   (export test-calc)
   (import (except (nausicaa) =)
     (only (rnrs) =)

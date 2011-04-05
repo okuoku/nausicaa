@@ -29,6 +29,7 @@
 (library (nausicaa language classes top)
   (export <top> <top>-bindings)
   (import (rnrs)
+    (for (prefix (nausicaa language classes properties) prop.) expand)
     (for (nausicaa language classes internal-auxiliary-syntaxes) expand))
 
 
@@ -98,21 +99,21 @@
     ((_ ?class-name ?variable-name ?instance . ?body)
      (begin . ?body))))
 
-;;This  should be  here but  is  instead in  (nausicaa language  classes
-;;properties); this is to  circumvent a bug in Ikarus/Vicare precompiled
-;;libraries which  is causing  the property to  be misteriously  not set
-;;when it is queried from the helpers library; the bug shows itself only
-;;when running with precompiled libraries, not when running with a clean
-;;cache (Marco Maggi; Mon Jan 10, 2011).
+;;Setting this property  fails with Ikarus/Vicare because of  a bug with
+;;precompiled  libraries; the bug  shows itself  only when  running with
+;;precompiled  libraries, not  when running  with a  clean  cache (Marco
+;;Maggi; Mon Jan 10, 2011).
 ;;
-;; (define-for-expansion-evaluation
-;;   (prop.struct-properties-define
-;;    #'<top> (prop.make-class '()	   ;list of supers
-;; 			    '()	   ;field specs
-;; 			    '()	   ;virtual field specs
-;; 			    '()	   ;method specs
-;; 			    '()	   ;mixins
-;; 			    '()))) ;list of field tags
+(define-syntax dummy
+  (begin
+    (prop.struct-properties-define
+     #'<top> (prop.make-class '()  ;list of supers
+			      '()  ;field specs
+			      '()  ;virtual field specs
+			      '()  ;method specs
+			      '()  ;mixins
+			      '()))
+    values)) ;list of field tags
 
 
 ;;;; done

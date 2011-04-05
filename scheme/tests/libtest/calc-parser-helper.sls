@@ -10,7 +10,7 @@
 ;;;	for the (lalr) library.  It is imported by "calc-parser.sls" and
 ;;;	"test-lalr.sps".
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2009, 2011 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -28,7 +28,7 @@
 
 
 #!r6rs
-(library (testlib calc-parser-helper)
+(library (libtest calc-parser-helper)
   (export
     table-of-variables
     evaluated-expressions)

@@ -26,7 +26,7 @@
 
 
 #!r6rs
-(library (testlib records-lib)
+(library (libtest records-lib)
   (export <alpha> <beta> <gamma>)
   (import (rnrs)
     (nausicaa language classes))
