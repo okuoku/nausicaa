@@ -1,3 +1,4 @@
+#!r6rs
 (library (nausicaa infix string-parser)
   (export make-infix-string-parser)
   (import

@@ -1,4 +1,5 @@
-(library (nausicaa silex action.l)
+#!r6rs
+(library (nausicaa silex action-l)
   (export
     action-tables)
   (import (rnrs)

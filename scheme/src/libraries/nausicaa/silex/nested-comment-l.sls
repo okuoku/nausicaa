@@ -1,4 +1,5 @@
-(library (nausicaa silex nested-comment.l)
+#!r6rs
+(library (nausicaa silex nested-comment-l)
   (export
     nested-comment-tables)
   (import (rnrs)

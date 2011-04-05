@@ -1,3 +1,4 @@
+#!r6rs
 (library (calc-parser-lexer)
   (export
     calc-parser-lexer-table)

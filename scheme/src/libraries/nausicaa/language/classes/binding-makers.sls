@@ -35,6 +35,10 @@
     make-method-bindings
     make-setter-getter-bindings)
   (import (rnrs)
+    (for (only (rnrs base) set!) (meta -1)) ;for its use in IDENTIFIER-SYNTAX
+    (for (only (nausicaa language auxiliary-syntaxes)
+	       mutable immutable)
+	 (meta -1))
     (prefix (nausicaa language syntax-utilities) sx.)
     (prefix (nausicaa language classes helpers) help.))
 
@@ -82,17 +86,17 @@
 	;;VARIABLE-ID.
 	(datum->syntax variable-id (syntax->datum field-stx))))
     (syntax-case clause-stx (mutable immutable)
-      ((mutable ?field ?accessor ?mutator ?field-class ...)
+      ((mutable ?field ?accessor ?mutator ?field-getter ?field-class ...)
        #`(#,(make-keyword #'?field)
 	  (identifier-syntax
 	   (_              (?accessor #,instance-id))
 	   ((set! _ ?expr) (?mutator  #,instance-id ?expr)))))
-      ((immutable ?field ?accessor ?field-class ...)
+      ((immutable ?field ?accessor ?field-getter ?field-class ...)
        #`(#,(make-keyword #'?field)
 	  (identifier-syntax
 	   (?accessor #,instance-id))))
       (_
-       (synner "invalid syntax in field clause" clause-stx))))
+       (synner "invalid syntax in field clause while generating field bindings" clause-stx))))
 
   (main))
 

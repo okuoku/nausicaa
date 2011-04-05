@@ -73,12 +73,12 @@
     (nausicaa language makers)
     (nausicaa silex lexer)
     (nausicaa silex semantic)
-    (nausicaa silex action.l)
-    (nausicaa silex class.l)
-    (nausicaa silex macro.l)
-    (nausicaa silex regexp.l)
-    (nausicaa silex string.l)
-    (nausicaa silex nested-comment.l))
+    (nausicaa silex action-l)
+    (nausicaa silex class-l)
+    (nausicaa silex macro-l)
+    (nausicaa silex regexp-l)
+    (nausicaa silex string-l)
+    (nausicaa silex nested-comment-l))
 
 
 ;;;; helpers
@@ -2171,7 +2171,7 @@
       (unwind-protect
 	  (begin
 	    (when library-spec
-	      (display (string-append "(library "
+	      (display (string-append "#!r6rs\n(library "
 				      (library-spec->string-spec library-spec)
 				      "\n"
 				      "  (export\n"

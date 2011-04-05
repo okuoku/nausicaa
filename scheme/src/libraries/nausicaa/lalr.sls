@@ -286,10 +286,12 @@
 	(cond (output-value
 	       (eval code (apply environment imports)))
 	      (output-port
+	       (display "#!r6rs\n" output-port)
 	       (pretty-print code output-port))
 	      (output-file
 	       (with-output-to-new-file output-file
 					(lambda (port)
+					  (display "#!r6rs\n" port)
 					  (pretty-print code port))))))))
 
 

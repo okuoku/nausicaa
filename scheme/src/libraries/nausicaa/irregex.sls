@@ -41,6 +41,7 @@
 ;;;   0.1: 2005/08/18 - simple NFA interpreter over abstract chunked strings
 
 
+#!r6rs
 (library (nausicaa irregex)
   (export
 

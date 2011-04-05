@@ -1,3 +1,4 @@
+#!r6rs
 (library (calc-portable-lexer)
   (export
     calc-lexer-table/portable)

@@ -25,6 +25,7 @@
 ;;;
 
 
+#!r6rs
 (library (nausicaa silex default-error-handler)
   (export silex-default-error-handler
 	  silex-default-eof-handler)

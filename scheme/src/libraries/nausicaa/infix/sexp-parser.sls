@@ -1,3 +1,4 @@
+#!r6rs
 (library (nausicaa infix sexp-parser)
   (export make-infix-sexp-parser)
   (import

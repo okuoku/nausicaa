@@ -43,9 +43,11 @@
    ((identifier)
     (generic-properties-ref identifier #f))
    ((identifier default)
+(write (ip.table identifier #'pk.generic-function))(newline)
     (ip.ref identifier #'pk.generic-function default))))
 
 (define (generic-properties-define identifier value)
+(write (list identifier value))(newline)
   (ip.define identifier #'pk.generic-function value))
 
 (define-record-type generic

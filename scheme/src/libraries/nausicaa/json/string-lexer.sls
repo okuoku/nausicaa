@@ -1,3 +1,4 @@
+#!r6rs
 (library (nausicaa json string-lexer)
   (export
     json-string-lexer-table)

@@ -1,3 +1,4 @@
+#!r6rs
 (library (nausicaa csv strings-lexer)
   (export
     csv-strings-table)

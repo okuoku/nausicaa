@@ -1,4 +1,5 @@
-(library (nausicaa silex string.l)
+#!r6rs
+(library (nausicaa silex string-l)
   (export
     string-tables)
   (import (rnrs)

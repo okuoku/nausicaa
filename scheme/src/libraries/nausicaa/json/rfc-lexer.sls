@@ -1,3 +1,4 @@
+#!r6rs
 (library (nausicaa json rfc-lexer)
   (export
     json-rfc-lexer-table)

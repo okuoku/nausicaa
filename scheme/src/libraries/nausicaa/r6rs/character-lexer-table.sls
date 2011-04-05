@@ -1,3 +1,4 @@
+#!r6rs
 (library (nausicaa r6rs character-lexer-table)
   (export
     r6rs-character-lexer-table)

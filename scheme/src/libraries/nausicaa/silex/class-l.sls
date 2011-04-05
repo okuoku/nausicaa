@@ -1,4 +1,5 @@
-(library (nausicaa silex class.l)
+#!r6rs
+(library (nausicaa silex class-l)
   (export
     class-tables)
   (import (rnrs)

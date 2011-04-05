@@ -1,3 +1,4 @@
+#!r6rs
 (library (calc-code-lexer)
   (export
     calc-lexer-table/code)

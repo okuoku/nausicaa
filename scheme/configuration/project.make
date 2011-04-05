@@ -297,7 +297,7 @@ silex-internals:
 	cd $(SILEX_SRCDIR) && $(SILEX_RUNNER) make-tables.sps
 
 silex-backup:
-	$(CP) $(SILEX_SRCDIR)/*.l.sls $(SILEX_SRCDIR)/backup
+	$(CP) $(SILEX_SRCDIR)/*-l.sls $(SILEX_SRCDIR)/backup
 
 silex: silex-test
 

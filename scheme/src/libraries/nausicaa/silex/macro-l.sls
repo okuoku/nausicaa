@@ -1,4 +1,5 @@
-(library (nausicaa silex macro.l)
+#!r6rs
+(library (nausicaa silex macro-l)
   (export
     macro-tables)
   (import (rnrs)

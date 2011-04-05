@@ -1,3 +1,4 @@
+#!r6rs
 (library (calc-tree-lexer)
   (export
     calc-lexer-table/tree)

@@ -1,46 +1,44 @@
 #!r6rs
-(library (nausicaa r6rs nested-comment-lexer-table)
+(library (nausicaa silex nested-comment-l)
   (export
-    r6rs-nested-comment-lexer-table)
+    nested-comment-tables)
   (import (rnrs)
 (nausicaa silex input-system)
-(nausicaa r6rs lexeme-processing)
-(nausicaa parser-tools lexical-token)
-(nausicaa parser-tools source-location)
+(nausicaa silex semantic)
 )
 
 ;
-; Table generated from the file nested-comment-lexer-table.l by SILex 1.0
+; Table generated from the file nested-comment.l by SILex 1.0
 ;
 
-(define r6rs-nested-comment-lexer-table
+(define nested-comment-tables
   (vector
    'all
    (lambda (yycontinue yygetc yyungetc)
      (lambda (yytext yyline yycolumn yyoffset)
-       			((eoi-token-maker)		yygetc yyungetc yytext yyline yycolumn yyoffset)
-       ))
-   (lambda (yycontinue yygetc yyungetc)
-     (lambda (yytext yyline yycolumn yyoffset)
-         		((lexical-error-token-maker)	yygetc yyungetc yytext yyline yycolumn yyoffset)
+       		(make-tok eof-tok		yytext yyline yycolumn)
 
 ;;; end of file
        ))
+   (lambda (yycontinue yygetc yyungetc)
+     (lambda (yytext yyline yycolumn yyoffset)
+       (assertion-violation #f "invalid token")
+       ))
    (vector
-    #f
+    #t
     (lambda (yycontinue yygetc yyungetc)
-      (lambda (yyline yycolumn yyoffset)
-      			'OPEN
-        ))
-    #f
-    (lambda (yycontinue yygetc yyungetc)
-      (lambda (yyline yycolumn yyoffset)
-       			'CLOSE
+      (lambda (yytext yyline yycolumn yyoffset)
+      		(make-tok open-comment-tok	yytext yyline yycolumn)
         ))
     #t
     (lambda (yycontinue yygetc yyungetc)
       (lambda (yytext yyline yycolumn yyoffset)
-      			(string-ref yytext 0)
+       		(make-tok close-comment-tok	yytext yyline yycolumn)
+        ))
+    #t
+    (lambda (yycontinue yygetc yyungetc)
+      (lambda (yytext yyline yycolumn yyoffset)
+      		(parse-ordinary-char		yytext yyline yycolumn)
         )))
    'code
    (lambda (<<EOF>>-pre-action
@@ -73,12 +71,14 @@
              (user-action-<<ERROR>> "" yyline yycolumn yyoffset)))
           (action-0
            (lambda (yyline yycolumn yyoffset)
-             (start-go-to-end)
-             (user-action-0 yyline yycolumn yyoffset)))
+             (let ((yytext (get-start-end-text)))
+               (start-go-to-end)
+               (user-action-0 yytext yyline yycolumn yyoffset))))
           (action-1
            (lambda (yyline yycolumn yyoffset)
-             (start-go-to-end)
-             (user-action-1 yyline yycolumn yyoffset)))
+             (let ((yytext (get-start-end-text)))
+               (start-go-to-end)
+               (user-action-1 yytext yyline yycolumn yyoffset))))
           (action-2
            (lambda (yyline yycolumn yyoffset)
              (let ((yytext (get-start-end-text)))
@@ -90,42 +90,42 @@
                (if c
                    (if (< c 36)
                        (if (< c 35)
-                           (state-3 action)
-                           (state-1 action))
+                           (state-1 action)
+                           (state-3 action))
                        (if (= c 124)
                            (state-2 action)
-                           (state-3 action)))
+                           (state-1 action)))
                    action))))
           (state-1
            (lambda (action)
              (end-go-to-point)
-             (let ((c (read-char)))
-               (if c
-                   (if (= c 124)
-                       (state-4 action-2)
-                       action-2)
-                   action-2))))
+             action-2))
           (state-2
            (lambda (action)
              (end-go-to-point)
              (let ((c (read-char)))
                (if c
                    (if (= c 35)
-                       (state-5 action-2)
+                       (state-4 action-2)
                        action-2)
                    action-2))))
           (state-3
            (lambda (action)
              (end-go-to-point)
-             action-2))
+             (let ((c (read-char)))
+               (if c
+                   (if (= c 124)
+                       (state-5 action-2)
+                       action-2)
+                   action-2))))
           (state-4
            (lambda (action)
              (end-go-to-point)
-             action-0))
+             action-1))
           (state-5
            (lambda (action)
              (end-go-to-point)
-             action-1))
+             action-0))
           (start-automaton
            (lambda ()
              (if (peek-char)

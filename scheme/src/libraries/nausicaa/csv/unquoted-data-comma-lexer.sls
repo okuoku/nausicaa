@@ -1,3 +1,4 @@
+#!r6rs
 (library (nausicaa csv unquoted-data-comma-lexer)
   (export
     csv-unquoted-data-table/comma)

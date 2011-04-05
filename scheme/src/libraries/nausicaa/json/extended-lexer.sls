@@ -1,3 +1,4 @@
+#!r6rs
 (library (nausicaa json extended-lexer)
   (export
     json-extended-lexer-table)

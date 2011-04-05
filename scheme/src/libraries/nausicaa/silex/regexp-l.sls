@@ -1,4 +1,5 @@
-(library (nausicaa silex regexp.l)
+#!r6rs
+(library (nausicaa silex regexp-l)
   (export
     regexp-tables)
   (import (rnrs)

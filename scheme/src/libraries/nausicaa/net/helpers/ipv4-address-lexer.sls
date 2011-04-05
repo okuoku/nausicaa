@@ -1,3 +1,4 @@
+#!r6rs
 (library (nausicaa net helpers ipv4-address-lexer)
   (export
     ipv4-address-lexer-table)
