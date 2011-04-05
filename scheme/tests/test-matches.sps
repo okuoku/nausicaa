@@ -1045,7 +1045,7 @@
     => '(1 2 10 4))
 
   (check	;setter vector
-      (let ((x '#(1 2 3)))
+      (let ((x (vector 1 2 3))) ;make a mutable vector
 	(match x (#(a (:setter b) c) (b 0)))
 	x)
     => '#(1 0 3))
