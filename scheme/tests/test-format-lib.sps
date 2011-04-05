@@ -159,6 +159,7 @@
 	(larceny	"ciao \"#<PROCEDURE display>\"")
 	(ikarus		"ciao \"#<procedure display>\"")
 	(petite		"ciao \"#<procedure display>\"")
+	(racket		"ciao \"#<procedure:r6rs:display>\"")
 	(vicare		"ciao \"#<procedure display>\"")
 	(mosh		(string-append "ciao \""
 				       (call-with-string-output-port
