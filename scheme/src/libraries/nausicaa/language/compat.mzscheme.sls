@@ -42,11 +42,17 @@
      (()	1)
      ((n)	n)
      ((n m)
-      (cond ((nan? n)	+nan.0)
-	    ((nan? m)	+nan.0)
-	    (else	(rnrs.* n m))))
+      (cond ((or (nan? (real-part n))
+		 (nan? (imag-part n)))
+	     +nan.0)
+	    ((or (nan? (real-part m))
+		 (nan? (imag-part m)))
+	     +nan.0)
+	    (else
+	     (rnrs.* n m))))
      ((n m . args)
       (* n (apply * m args)))))
+
   )
 
 ;;; end of file
