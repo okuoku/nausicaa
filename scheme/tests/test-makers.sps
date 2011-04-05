@@ -26,7 +26,7 @@
 
 
 #!r6rs
-(import (nausicaa)
+(import (for (nausicaa) run expand)
   (rnrs eval)
 ;;  (nausicaa language makers)
   (prefix (libtest makers-lib) lib.)	;this is in the tests directory

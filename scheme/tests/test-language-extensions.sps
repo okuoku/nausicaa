@@ -52,7 +52,7 @@
 
 
 #!r6rs
-(import (nausicaa)
+(import (for (nausicaa) run expand)
   (rnrs eval (6))
   (nausicaa checks))
 

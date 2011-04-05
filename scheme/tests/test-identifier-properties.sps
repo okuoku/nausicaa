@@ -26,7 +26,7 @@
 
 
 #!r6rs
-(import (nausicaa)
+(import (for (nausicaa) run expand)
   (prefix (nausicaa language identifier-properties) ip.)
   (nausicaa checks))
 

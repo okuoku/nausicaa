@@ -62,7 +62,7 @@
     <ipv4-address-prefix>-prefix-length
     <ipv4-address-prefix>-string
     )
-  (import (nausicaa)
+  (import (for (nausicaa) run expand)
     (nausicaa language sentinel)
     (nausicaa language makers)
     (nausicaa net helpers ipv4-address-lexer)

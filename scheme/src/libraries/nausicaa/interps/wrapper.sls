@@ -52,9 +52,10 @@
   (export elet)
   (import (rnrs)
     (only (nausicaa interps variables) define-variable)
-    (prefix (only (nausicaa language syntax-utilities)
-		  all-identifiers?)
-	    sx.))
+    (for (prefix (only (nausicaa language syntax-utilities)
+		       all-identifiers?)
+		 sx.)
+	 expand))
   (define-syntax elet
     (lambda (stx)
       (syntax-case stx ()

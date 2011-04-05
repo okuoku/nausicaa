@@ -31,11 +31,22 @@
     * rational-valued? max
     (rename (getenv get-environment-variable))
     get-environment-variables)
-  (import (rnrs)
+  (import (except (rnrs) *)
+    (prefix (only (rnrs) *) rnrs.)
     (only (racket base) getenv)
     (nausicaa language unimplemented))
   (define (get-environment-variables)
     (raise-unimplemented-error 'get-environment-variables))
+  (define *
+    (case-lambda
+     (()	1)
+     ((n)	n)
+     ((n m)
+      (cond ((nan? n)	+nan.0)
+	    ((nan? m)	+nan.0)
+	    (else	(rnrs.* n m))))
+     ((n m . args)
+      (* n (apply * m args)))))
   )
 
 ;;; end of file

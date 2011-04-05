@@ -7,7 +7,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2008-2010 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2008-2011 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -47,6 +47,7 @@
      (ikarus	#t)
      (larceny	#t)
      (mosh	#t)
+     (racket	#t)
      (vicare	#t)
      (ypsilon	#t)
      (petite	#t)

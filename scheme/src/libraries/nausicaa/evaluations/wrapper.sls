@@ -30,7 +30,7 @@
 ;;;	result  of previous evaluations;  so ELET  quotes them  to avoid
 ;;;	errors when evaluating.
 ;;;
-;;;Copyright (c) 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2010, 2011 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -51,9 +51,10 @@
 (library (nausicaa evaluations wrapper)
   (export elet)
   (import (rnrs)
-    (prefix (only (nausicaa language syntax-utilities)
-		  all-identifiers?)
-	    sx.))
+    (for (prefix (only (nausicaa language syntax-utilities)
+		       all-identifiers?)
+		 sx.)
+	 expand))
   (define-syntax elet
     (lambda (stx)
       (syntax-case stx ()
