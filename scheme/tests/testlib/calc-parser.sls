@@ -1,4 +1,5 @@
-(library (calc-parser)
+#!r6rs
+(library (testlib calc-parser)
   (export make-calc-parser)
   (import
     (rnrs)
@@ -6,7 +7,7 @@
     (nausicaa parser-tools source-location)
     (nausicaa parser-tools lexical-token)
     (nausicaa language sentinel)
-    (calc-parser-helper)
+    (testlib calc-parser-helper)
     (rnrs eval)
     (nausicaa parser-tools lexical-token)
     (nausicaa parser-tools source-location))

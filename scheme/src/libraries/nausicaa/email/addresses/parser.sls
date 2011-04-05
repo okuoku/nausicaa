@@ -1,3 +1,4 @@
+#!r6rs
 (library (nausicaa email addresses parser)
   (export make-address-parser)
   (import

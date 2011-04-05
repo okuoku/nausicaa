@@ -1,14 +1,14 @@
 ;;; -*- coding: utf-8-unix -*-
 ;;;
 ;;;Part of: Nausicaa/Scheme
-;;;Contents: condition objects for URI parsing and handling
-;;;Date: Thu Jun 24, 2010
+;;;Contents: auxiliary-keywords.sls
+;;;Date: Tue Apr  5, 2011
 ;;;
 ;;;Abstract
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2010, 2011 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (C) 2011 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -26,19 +26,9 @@
 
 
 #!r6rs
-(library (nausicaa uri conditions)
-  (export
-    &parser-error
-    make-parser-error-condition
-    parser-error-condition?
-    condition-parser-error/offset)
-  (import (rnrs)
-    (nausicaa language conditions))
-
-  (define-condition &parser-error
-    (parent &error)
-    (fields offset))
-
-  )
+(library (nausicaa contracts auxiliary-syntaxes)
+  (export ->)
+  (import (rnrs base))
+  (define-syntax -> (syntax-rules ())))
 
 ;;; end of file

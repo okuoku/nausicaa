@@ -1,3 +1,4 @@
+#!r6rs
 (library (nausicaa json sexp-parser)
   (export make-json-sexp-parser)
   (import

@@ -1,3 +1,4 @@
+#!r6rs
 (library (nausicaa r6rs parser-table)
   (export make-r6rs-parser)
   (import (rnrs) (nausicaa lalr lr-driver)

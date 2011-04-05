@@ -1,4 +1,4 @@
-(library (calc-tree-lexer)
+(library (testlib calc-tree-lexer)
   (export
     calc-lexer-table)
   (import (rnrs) (silex lexer))

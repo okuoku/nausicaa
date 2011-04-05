@@ -1,14 +1,16 @@
 ;;; -*- coding: utf-8-unix -*-
 ;;;
 ;;;Part of: Nausicaa/Scheme
-;;;Contents: condition objects for URI parsing and handling
-;;;Date: Thu Jun 24, 2010
+;;;Contents: helper library for the calc parser
+;;;Date: Sun Aug  2, 2009
 ;;;
 ;;;Abstract
 ;;;
+;;;	This is a helper library for the calc parser generated as a test
+;;;	for the (lalr) library.  It is imported by "calc-parser.sls" and
+;;;	"test-lalr.sps".
 ;;;
-;;;
-;;;Copyright (c) 2010, 2011 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -26,19 +28,15 @@
 
 
 #!r6rs
-(library (nausicaa uri conditions)
+(library (testlib calc-parser-helper)
   (export
-    &parser-error
-    make-parser-error-condition
-    parser-error-condition?
-    condition-parser-error/offset)
+    table-of-variables
+    evaluated-expressions)
   (import (rnrs)
-    (nausicaa language conditions))
-
-  (define-condition &parser-error
-    (parent &error)
-    (fields offset))
-
-  )
+    (nausicaa language parameters))
+  (define table-of-variables
+    (make-parameter #f))
+  (define evaluated-expressions
+    (make-parameter #f)))
 
 ;;; end of file

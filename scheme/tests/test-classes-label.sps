@@ -26,10 +26,10 @@
 
 
 #!r6rs
-(import (nausicaa)
+(import (for (nausicaa) run expand)
   (nausicaa checks)
   (nausicaa debugging)
-  (records-lib)
+  (testlib records-lib)
   (rnrs eval))
 
 (check-set-mode! 'report-failed)

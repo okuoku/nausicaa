@@ -52,6 +52,7 @@
 ;;;   distribution.
 
 
+#!r6rs
 (library (nausicaa armor base91)
   (export
 

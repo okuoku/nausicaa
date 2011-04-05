@@ -69,7 +69,7 @@
     string-token-maker			make-string-token
     nested-comment-token-maker		make-nested-comment-token
     )
-  (import (nausicaa)
+  (import (for (nausicaa) run expand)
     (nausicaa parser-tools lexical-token)
     (nausicaa parser-tools source-location)
     (nausicaa silex default-error-handler)

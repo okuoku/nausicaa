@@ -1,3 +1,4 @@
+#!r6rs
 (library (nausicaa email addresses domain-literals-lexer)
   (export
     domain-literals-table)

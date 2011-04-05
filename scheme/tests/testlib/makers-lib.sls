@@ -26,7 +26,7 @@
 
 
 #!r6rs
-(library (makers-lib)
+(library (testlib makers-lib)
   (export doit1 doit2 doit3 doit4 :alpha :beta :gamma)
   (import (rnrs)
     (nausicaa language makers))

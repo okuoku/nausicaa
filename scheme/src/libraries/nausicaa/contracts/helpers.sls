@@ -32,24 +32,12 @@
     ->
     build-variable-identifier-syntax
     build-function-identifier-syntax
-    assert-keyword-subject
-
-    &contract-violation
-    make-contract-violation-condition
-    (rename (contract-violation-condition? contract-violation?))
-    condition-contract-violation/subject)
+    assert-keyword-subject)
   (import (rnrs)
-    (nausicaa language conditions)
-    (prefix (nausicaa configuration) config.)
-    (only (nausicaa language extensions) define-auxiliary-syntaxes))
-
-(define-auxiliary-syntaxes
-  ->)
-
-
-(define-condition &contract-violation
-  (parent &assertion)
-  (fields subject))
+    (for (rnrs) (meta -1))
+    (for (nausicaa contracts conditions) (meta -1))
+    (for (nausicaa contracts auxiliary-syntaxes) (meta -1))
+    (prefix (nausicaa configuration) config.))
 
 
 (define (build-variable-identifier-syntax keyword-stx variable-stx predicate-stx)

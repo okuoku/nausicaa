@@ -1,3 +1,4 @@
+#!r6rs
 (library (nausicaa email addresses quoted-text-lexer)
   (export
     quoted-text-table)

@@ -162,9 +162,6 @@
   ;;SETTER-STX and  GETTER-STX must be  identifiers bound to  the setter
   ;;and getter function or macro.
   ;;
-  ;;SYNNER must be a function used to raise syntax violation errors with
-  ;;the context of the caller.
-  ;;
   (define (main)
     (append (if (not (syntax->datum Setter-stx))
 		'()

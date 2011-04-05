@@ -71,7 +71,7 @@
     <ipv6-address-prefix>-prefix-length
     <ipv6-address-prefix>-string
     )
-  (import (nausicaa)
+  (import (for (nausicaa) run expand)
     (nausicaa net helpers ipv6-address-lexer)
     (prefix (nausicaa net helpers ipv6-address-parser) parser.)
     (prefix (nausicaa silex lexer) lex.)

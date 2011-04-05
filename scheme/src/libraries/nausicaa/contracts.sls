@@ -39,7 +39,9 @@
     (for (prefix (nausicaa configuration) config.) expand)
     (for (prefix (nausicaa language syntax-utilities) sx.) expand)
     (only (nausicaa language extensions) define-syntax*)
-    (for (nausicaa contracts helpers) run expand))
+    (for (nausicaa contracts conditions) run expand)
+    (for (nausicaa contracts helpers) run expand)
+    (nausicaa contracts auxiliary-syntaxes))
 
 
 (define-syntax* (enforce-contracts stx)

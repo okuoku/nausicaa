@@ -29,7 +29,7 @@
 (import (nausicaa)
   (nausicaa checks)
   (nausicaa debugging)
-  (records-lib)
+  (testlib records-lib)
   (rnrs eval)
   (rnrs mutable-pairs))
 
@@ -42,7 +42,7 @@
 
 ;; (import (rnrs)
 ;;   (parameters)
-;;   (records-lib)
+;;   (testlib records-lib)
 ;;   (nausicaa language classes)
 ;;   (rnrs eval))
 
@@ -883,7 +883,7 @@
       #f)
     #f)
 
-;;; these tests use the record definitions from (records-lib)
+;;; these tests use the record definitions from (testlib records-lib)
 
   (check
       (let ((r (make <gamma> 1 2 3 4 5 6 7 8 9)))
@@ -1278,7 +1278,7 @@
 
     #f)
 
-;;; the following tests use the records from (records-lib)
+;;; the following tests use the records from (testlib records-lib)
 
   (let ()
     (define r (make <alpha> 123 #\a 1.0))
@@ -2271,14 +2271,14 @@
 
     #f)
 
-  (check	;use the records from (records-lib)
+  (check	;use the records from (testlib records-lib)
       (let/with-class (((r <gamma> <beta> <alpha>) (make <gamma> 1 2 3 4 5 6 7 8 9)))
 	(list r.a r.b r.c
 	      r.d r.e r.f
 	      r.g r.h r.i))
     => '(1 2 3 4 5 6 7 8 9))
 
-  (check	;use the records from (records-lib)
+  (check	;use the records from (testlib records-lib)
       (let/with-class (((r <gamma> <alpha>) (make <gamma> 1 2 3 4 5 6 7 8 9))
 		       ((s <beta>  <alpha>) (make <beta>  10 20 30 40 50 60)))
 	(list r.a r.g s.a s.d))
@@ -2391,14 +2391,14 @@
 
     #f)
 
-  (check	;use the records from (records-lib)
+  (check	;use the records from (testlib records-lib)
       (let*/with-class (((r <gamma> <beta> <alpha>) (make <gamma> 1 2 3 4 5 6 7 8 9)))
 	(list r.a r.b r.c
 	      r.d r.e r.f
 	      r.g r.h r.i))
     => '(1 2 3 4 5 6 7 8 9))
 
-  (check	;use the records from (records-lib)
+  (check	;use the records from (testlib records-lib)
       (let*/with-class (((r <gamma> <alpha>) (make <gamma> 1 2 3 4 5 6 7 8 9))
 			((s <beta>  <alpha>) (make <beta>  10 20 30 40 50 60)))
 	(list r.a r.g s.a s.d))
@@ -2518,14 +2518,14 @@
 
     #f)
 
-  (check	;use the records from (records-lib)
+  (check	;use the records from (testlib records-lib)
       (letrec/with-class (((r <gamma> <beta> <alpha>) (make <gamma> 1 2 3 4 5 6 7 8 9)))
 	(list r.a r.b r.c
 	      r.d r.e r.f
 	      r.g r.h r.i))
     => '(1 2 3 4 5 6 7 8 9))
 
-  (check	;use the records from (records-lib)
+  (check	;use the records from (testlib records-lib)
       (letrec/with-class (((r <gamma> <alpha>) (make <gamma> 1 2 3 4 5 6 7 8 9))
 			  ((s <beta>  <alpha>) (make <beta>  10 20 30 40 50 60)))
 	(list r.a r.g s.a s.d))
@@ -2678,14 +2678,14 @@
 
     #f)
 
-  (check	;use the records from (records-lib)
+  (check	;use the records from (testlib records-lib)
       (letrec*/with-class (((r <gamma> <beta> <alpha>) (make <gamma> 1 2 3 4 5 6 7 8 9)))
 	(list r.a r.b r.c
 	      r.d r.e r.f
 	      r.g r.h r.i))
     => '(1 2 3 4 5 6 7 8 9))
 
-  (check	;use the records from (records-lib)
+  (check	;use the records from (testlib records-lib)
       (letrec*/with-class (((r <gamma> <alpha>) (make <gamma> 1 2 3 4 5 6 7 8 9))
 			   ((s <beta>  <alpha>) (make <beta>  10 20 30 40 50 60)))
 	(list r.a r.g s.a s.d))
@@ -2954,7 +2954,7 @@
     #f)
 
 ;;; --------------------------------------------------------------------
-;;; use the records from (records-lib)
+;;; use the records from (testlib records-lib)
 
   (check
       (let ((r (make <gamma> 1 2 3 4 5 6 7 8 9))
@@ -2965,7 +2965,7 @@
 	(f r))
     => '(1 2 3 4 5 6 7 8 9))
 
-  (check	;use the records from (records-lib)
+  (check	;use the records from (testlib records-lib)
       (let ((r (make <gamma> 1 2 3 4 5 6 7 8 9))
 	    (s (make <beta>  10 20 30 40 50 60))
 	    (f (lambda/with-class ((r <gamma> <alpha>) (s <beta> <alpha>))
@@ -3073,7 +3073,7 @@
     #f)
 
 ;;; --------------------------------------------------------------------
-;;; use the records from (records-lib)
+;;; use the records from (testlib records-lib)
 
   (check
       (let ((r (make <gamma> 1 2 3 4 5 6 7 8 9)))
@@ -3084,7 +3084,7 @@
 	(f r))
     => '(1 2 3 4 5 6 7 8 9))
 
-  (check	;use the records from (records-lib)
+  (check	;use the records from (testlib records-lib)
       (let ((r (make <gamma> 1 2 3 4 5 6 7 8 9))
 	    (s (make <beta>  10 20 30 40 50 60)))
 	(define/with-class (f (r <gamma> <alpha>) (s <beta> <alpha>))
@@ -3269,7 +3269,7 @@
     #f)
 
 ;;; --------------------------------------------------------------------
-;;; use the records from (records-lib)
+;;; use the records from (testlib records-lib)
 
   (check
       (let ((r (make <gamma> 1 2 3 4 5 6 7 8 9))
@@ -3281,7 +3281,7 @@
 	(f r))
     => '(1 2 3 4 5 6 7 8 9))
 
-  (check	;use the records from (records-lib)
+  (check	;use the records from (testlib records-lib)
       (let ((r (make <gamma> 1 2 3 4 5 6 7 8 9))
 	    (s (make <beta>  10 20 30 40 50 60))
 	    (f (case-lambda/with-class
@@ -3508,9 +3508,9 @@
     #t)
 
 ;;; --------------------------------------------------------------------
-;;; The following tests use the hierarchy from the (records-lib) library
+;;; The following tests use the hierarchy from the (testlib records-lib) library
 
-  (let ((env (environment '(rnrs) '(nausicaa language classes) '(records-lib))))
+  (let ((env (environment '(rnrs) '(nausicaa language classes) '(testlib records-lib))))
 
     (check
 	(map record-type-uid (class-parent-rtd-list <alpha>))
@@ -3595,7 +3595,7 @@
 
 (parametrise ((check-test-name 'macro-makers))
 
-;;; These tests make use of the record types exported by (records-lib).
+;;; These tests make use of the record types exported by (testlib records-lib).
 
   (let ((a (make <alpha>
 	     1 2 3))
@@ -3625,7 +3625,7 @@
 
 (parametrise ((check-test-name 'predicates))
 
-;;; These tests make use of the record types exported by (records-lib).
+;;; These tests make use of the record types exported by (testlib records-lib).
 
   (let ((a (make <alpha>
 	     1 2 3))
@@ -3929,7 +3929,7 @@
     #f)
 
 ;;; --------------------------------------------------------------------
-;;; These tests make use of the record types exported by (records-lib).
+;;; These tests make use of the record types exported by (testlib records-lib).
 
   (let ((a (make <alpha>
   	     1 2 3))
@@ -4018,7 +4018,7 @@
       (record-type-uid (record-type-of (current-output-port)))
     => (record-type-uid (class-record-type-descriptor <output-port>)))
 
-  (check
+ (check
       (record-type-uid (record-type-of (make-message-condition "ciao")))
     => (record-type-uid (record-type-descriptor &message)))
 

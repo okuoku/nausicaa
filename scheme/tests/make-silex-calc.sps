@@ -95,25 +95,25 @@ cparen		\\)
 
 
 (define lexer-file	"calc.l")
-(define tree-file	"calc-tree-lexer.sls")
-(define code-file	"calc-code-lexer.sls")
-(define portable-file	"calc-portable-lexer.sls")
+(define tree-file	"testlib/calc-tree-lexer.sls")
+(define code-file	"testlib/calc-code-lexer.sls")
+(define portable-file	"testlib/calc-portable-lexer.sls")
 
 (define lp (open-string-input-port l))
 
 (lex (input-file: lexer-file) (output-file: tree-file)
-     (library-spec: "(calc-tree-lexer)")
+     (library-spec: "(testlib calc-tree-lexer)")
      (table-name: 'calc-lexer-table/tree))
 
 
 (lex (input-string: l) (output-file: code-file)
      (lexer-format: 'code)
-     (library-spec: "(calc-code-lexer)")
+     (library-spec: "(testlib calc-code-lexer)")
      (table-name: 'calc-lexer-table/code))
 
 (lex (input-port: lp) (output-file: portable-file)
      (lexer-format: 'portable)
-     (library-spec: "(calc-portable-lexer)")
+     (library-spec: "(testlib calc-portable-lexer)")
      (table-name: 'calc-lexer-table/portable))
 
 ;;; end of file

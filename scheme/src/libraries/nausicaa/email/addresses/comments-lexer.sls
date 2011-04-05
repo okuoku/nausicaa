@@ -1,3 +1,4 @@
+#!r6rs
 (library (nausicaa email addresses comments-lexer)
   (export
     comments-table)

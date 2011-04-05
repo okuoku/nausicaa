@@ -25,6 +25,7 @@
 ;;;
 
 
+#!r6rs
 (library (nausicaa lists xlists)
   (export <xlist>)
   (import (nausicaa)

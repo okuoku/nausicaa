@@ -41,7 +41,7 @@
 		  (begin . ?body)
 		  #t)
 	       (environment '(nausicaa)
-			    '(for (class-satisfactions) expand)
+			    '(for (testlib class-satisfactions) expand)
 			    '(for (prefix (nausicaa language classes properties)
 					  prop.)
 				  expand)))
@@ -49,7 +49,7 @@
 
 
 (parametrise ((check-test-name	'fields)
-	      (debugging	#f))
+	      (debugging	#t))
 
   (test 	;satisfies has fields
    (define-class <alpha>
@@ -69,7 +69,7 @@
 		   (satisfies has-fields-a/b/c))
 		 #t)
 	      (environment '(nausicaa)
-			   '(for (class-satisfactions) expand))))
+			   '(for (testlib class-satisfactions) expand))))
     => 'b)
 
 ;;; --------------------------------------------------------------------
@@ -81,7 +81,7 @@
 		 (satisfies has-virtual-fields-a/b/c))
 	       #t)
 	    (environment '(nausicaa)
-			 '(for (class-satisfactions) expand)))
+			 '(for (testlib class-satisfactions) expand)))
     => #t)
 
   (check	;wrong has fields
@@ -97,7 +97,7 @@
 		   (satisfies has-virtual-fields-a/b/c))
 		 #t)
 	      (environment '(nausicaa)
-			   '(for (class-satisfactions) expand))))
+			   '(for (testlib class-satisfactions) expand))))
     => 'b)
 
   #t)

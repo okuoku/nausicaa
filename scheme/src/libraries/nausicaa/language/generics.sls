@@ -200,7 +200,13 @@
 		    (synner "invalid arguments to generic function")))))
 	     ;;Remember that  first we bind ?NAME and  then we associate
 	     ;;properties to it.
-	     (define-for-expansion-evaluation
+	     (define-syntax dummy
+	       (begin
+		 (prop.generic-properties-define #'?name
+						 (prop.make-generic (sx.unwrap #'NUMBER-OF-ARGUMENTS)
+								    (sx.unwrap #'METHODS-ARGUMENTS)))
+		 (lambda (x) x)))
+	     #;(define-for-expansion-evaluation
 	       (prop.generic-properties-define #'?name
 					       (prop.make-generic (sx.unwrap #'NUMBER-OF-ARGUMENTS)
 								  (sx.unwrap #'METHODS-ARGUMENTS))))

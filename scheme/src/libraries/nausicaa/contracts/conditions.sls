@@ -1,16 +1,14 @@
 ;;; -*- coding: utf-8-unix -*-
 ;;;
 ;;;Part of: Nausicaa/Scheme
-;;;Contents: helper library for the calc parser
-;;;Date: Sun Aug  2, 2009
+;;;Contents: condition definitions for contracts
+;;;Date: Tue Apr  5, 2011
 ;;;
 ;;;Abstract
 ;;;
-;;;	This is a helper library for the calc parser generated as a test
-;;;	for the (lalr) library.  It is imported by "calc-parser.sls" and
-;;;	"test-lalr.sps".
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;
+;;;Copyright (C) 2011 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -27,15 +25,19 @@
 ;;;
 
 
-(library (calc-parser-helper)
+#!r6rs
+(library (nausicaa contracts conditions)
   (export
-    table-of-variables
-    evaluated-expressions)
+    &contract-violation
+    make-contract-violation-condition
+    (rename (contract-violation-condition? contract-violation?))
+    condition-contract-violation/subject)
   (import (rnrs)
-    (nausicaa language parameters))
-  (define table-of-variables
-    (make-parameter #f))
-  (define evaluated-expressions
-    (make-parameter #f)))
+    (nausicaa language conditions))
+
+  (define-condition &contract-violation
+    (parent &assertion)
+    (fields subject))
+  )
 
 ;;; end of file

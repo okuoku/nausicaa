@@ -27,7 +27,7 @@
 
 
 #!r6rs
-(library (class-satisfactions)
+(library (testlib class-satisfactions)
   (export
     has-fields-a/b/c has-virtual-fields-a/b/c)
   (import (nausicaa)
@@ -52,7 +52,7 @@
       (()
        (unless (and a b c)
 	 (%synner "missing required field"
-		  (cond ((not a) 'a) ((not b) 'b) ((not c) 'c)))))
+		  (cond ((not a) #'a) ((not b) #'b) ((not c) #'c)))))
       (((mutability ?name . ?rest) . ?specs)
        (case (syntax->datum #'?name)
 	 ((a)
@@ -86,7 +86,7 @@
       (()
        (unless (and a b c)
 	 (%synner "missing required field"
-		  (cond ((not a) 'a) ((not b) 'b) ((not c) 'c)))))
+		  (cond ((not a) #'a) ((not b) #'b) ((not c) #'c)))))
       (((mutability ?name . ?rest) . ?specs)
        (case (syntax->datum #'?name)
 	 ((a)

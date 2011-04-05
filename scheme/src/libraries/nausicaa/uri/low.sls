@@ -63,7 +63,7 @@
 
     ;; auxiliary syntaxes
     char-selector		string-result?)
-  (import (nausicaa)
+  (import (for (nausicaa) run expand)
     (rnrs mutable-strings)
     (nausicaa uri conditions)
     (prefix (nausicaa net helpers ipv4-address-lexer)  net.)

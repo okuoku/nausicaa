@@ -38,9 +38,9 @@
 
 ;;;; lexer
 
-(lex.lex (lex.output-file: "calc-parser-lexer.sls")
+(lex.lex (lex.output-file: "testlib/calc-parser-lexer.sls")
 	 (lex.counters: 'all)
-	 (lex.library-spec: "(calc-parser-lexer)")
+	 (lex.library-spec: "(testlib calc-parser-lexer)")
 	 (lex.library-imports: '((nausicaa parser-tools lexical-token)
 				 (nausicaa parser-tools source-location)))
 	 (lex.table-name: 'calc-parser-lexer-table)
@@ -158,12 +158,12 @@ cparen		\\)
 
 (lalr-parser
 
- (output-file:		"calc-parser.sls")
+ (output-file:		"testlib/calc-parser.sls")
 		;output a parser, called calc-parser, in a separate file
 
  (parser-name:		'make-calc-parser)
- (library-spec:		'(calc-parser))
- (library-imports:	'((calc-parser-helper)
+ (library-spec:		'(testlib calc-parser))
+ (library-imports:	'((testlib calc-parser-helper)
 			  (rnrs eval)
 			  (nausicaa parser-tools lexical-token)
 			  (nausicaa parser-tools source-location)))

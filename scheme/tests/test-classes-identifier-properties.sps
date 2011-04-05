@@ -28,8 +28,7 @@
 #!r6rs
 (import (nausicaa)
   (rnrs eval)
-  (nausicaa checks)
-  (prefix (nausicaa language classes properties) prop.))
+  (nausicaa checks))
 
 (check-set-mode! 'report-failed)
 (display "*** testing class identifier properties\n")
@@ -44,7 +43,7 @@
 		   (prop.class? (prop.struct-properties-ref #'<top>))))
 	       (doit))
 	    (environment '(nausicaa)
-			 '(prefix (nausicaa language classes properties) prop.)))
+			 '(for (prefix (nausicaa language classes properties) prop.) expand)))
     => #t)
 
   #t)
@@ -61,7 +60,7 @@
 		     #`(quote #,(prop.class-list-of-supers P)))))
 	       (doit))
 	    (environment '(nausicaa)
-			 '(prefix (nausicaa language classes properties) prop.)))
+			 '(for (prefix (nausicaa language classes properties) prop.) expand)))
     => '(<top>))
 
   (check
@@ -75,7 +74,7 @@
 			       (prop.struct-properties-ref #'<beta2>)))))
 	       (doit))
 	    (environment '(nausicaa)
-			 '(prefix (nausicaa language classes properties) prop.)))
+			 '(for (prefix (nausicaa language classes properties) prop.) expand)))
     => '(<alpha2> <top>))
 
   (check
@@ -93,7 +92,7 @@
 			       (prop.struct-properties-ref #'<gamma3>)))))
 	       (doit))
 	    (environment '(nausicaa)
-			 '(prefix (nausicaa language classes properties) prop.)))
+			 '(for (prefix (nausicaa language classes properties) prop.) expand)))
     => '(<delta3> <beta3> <alpha3> <top>))
 
   #t)
@@ -110,7 +109,7 @@
 			       (prop.struct-properties-ref #'<alpha4>)))))
 	       (doit))
 	    (environment '(nausicaa)
-			 '(prefix (nausicaa language classes properties) prop.)))
+			 '(for (prefix (nausicaa language classes properties) prop.) expand)))
     => '())
 
   (check	;untagged fields
@@ -123,7 +122,7 @@
 			       (prop.struct-properties-ref #'<alpha5>)))))
 	       (doit))
 	    (environment '(nausicaa)
-			 '(prefix (nausicaa language classes properties) prop.)))
+			 '(for (prefix (nausicaa language classes properties) prop.) expand)))
     => '())
 
   (check	;single tagged field
@@ -136,7 +135,7 @@
 			       (prop.struct-properties-ref #'<alpha6>)))))
 	       (doit))
 	    (environment '(nausicaa)
-			 '(prefix (nausicaa language classes properties) prop.)))
+			 '(for (prefix (nausicaa language classes properties) prop.) expand)))
     => '(<pair>))
 
   (check	;single tagged field, multiple tags
@@ -149,7 +148,7 @@
 			       (prop.struct-properties-ref #'<alpha7>)))))
 	       (doit))
 	    (environment '(nausicaa)
-			 '(prefix (nausicaa language classes properties) prop.)))
+			 '(for (prefix (nausicaa language classes properties) prop.) expand)))
     => '(<pair> <list>))
 
   (check	;multiple tagged field, multiple tags
@@ -163,7 +162,7 @@
 			       (prop.struct-properties-ref #'<alpha8>)))))
 	       (doit))
 	    (environment '(nausicaa)
-			 '(prefix (nausicaa language classes properties) prop.)))
+			 '(for (prefix (nausicaa language classes properties) prop.) expand)))
     => '(<vector> <number> <pair> <list>))
 
   (check	;inheritance, multiple tagged field, multiple tags
@@ -179,7 +178,7 @@
 			       (prop.struct-properties-ref #'<beta9>)))))
 	       (doit))
 	    (environment '(nausicaa)
-			 '(prefix (nausicaa language classes properties) prop.)))
+			 '(for (prefix (nausicaa language classes properties) prop.) expand)))
     => '(<vector> <number> <pair> <list>))
 
   (check	;inheritance, multiple tagged field, multiple tags
@@ -196,7 +195,7 @@
 			       (prop.struct-properties-ref #'<beta10>)))))
 	       (doit))
 	    (environment '(nausicaa)
-			 '(prefix (nausicaa language classes properties) prop.)))
+			 '(for (prefix (nausicaa language classes properties) prop.) expand)))
     => '(<vector> <number> <pair> <list>))
 
   (check	;inheritance, multiple tagged field, multiple tags
@@ -213,7 +212,7 @@
 			       (prop.struct-properties-ref #'<beta11>)))))
 	       (doit))
 	    (environment '(nausicaa)
-			 '(prefix (nausicaa language classes properties) prop.)))
+			 '(for (prefix (nausicaa language classes properties) prop.) expand)))
     => '(<integer> <vector> <number> <pair> <list>))
 
   (check	;inheritance, multiple tagged field, multiple tags
@@ -231,7 +230,7 @@
 			       (prop.struct-properties-ref #'<beta12>)))))
 	       (doit))
 	    (environment '(nausicaa)
-			 '(prefix (nausicaa language classes properties) prop.)))
+			 '(for (prefix (nausicaa language classes properties) prop.) expand)))
     => '(<complex> <integer> <vector> <number> <pair> <list>))
 
   (check	;inheritance, multiple tagged field, multiple tags
@@ -251,7 +250,7 @@
 			       (prop.struct-properties-ref #'<delta13>)))))
 	       (doit))
 	    (environment '(nausicaa)
-			 '(prefix (nausicaa language classes properties) prop.)))
+			 '(for (prefix (nausicaa language classes properties) prop.) expand)))
     => '(<complex> <integer> <vector> <number> <pair> <list>))
 
   #t)

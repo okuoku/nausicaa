@@ -214,7 +214,7 @@
 
 
 (parametrise ((check-test-name	'errors)
-	      (debugging	#f))
+	      (debugging	#t))
 
   (check	;empty mixin definition
       (guard (E ((syntax-violation? E)
