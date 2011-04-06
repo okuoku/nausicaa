@@ -158,6 +158,10 @@ programming  language.  It  is the  creation of  Taro Minowa
 implementation  of the Scheme  programming language.   It is
 produced by Cadence Research Systems.
 
+  Racket  is distribution  of languages  and  libraries with
+support for  R6RS.  It is the  work of many  people (see the
+website).
+
   Vicare is  an experimental fork  of Ikarus.  Ikarus  is an
 almost   R6RS  compliant   implementation   of  the   Scheme
 programming  language.   It  is  the creation  of  Abdulaziz
@@ -213,6 +217,10 @@ Mosh Scheme can be downloaded from:
 Petite Chez Scheme can be downloaded from:
 
 		  <http://www.scheme.com/>
+
+Racket can be downloaded from:
+
+		 <http://racket-lang.org/>
 
 Vicare Scheme can be downloaded from:
 

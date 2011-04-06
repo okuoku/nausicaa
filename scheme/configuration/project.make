@@ -230,6 +230,18 @@ endif
 
 ## ------------------------------------------------------------
 
+ifeq ($(strip $(nausicaa_ENABLE_RACKET)),yes)
+.PHONY: test-racket-compat
+
+test-racket-compat:
+	PLTCOLLECTS=$(PWD)/$(srcdir):$(PLTCOLLECTS) \
+	$(RACKET) $(test_compat_SCRIPT)
+
+test-compat: test-racket-compat
+endif
+
+## ------------------------------------------------------------
+
 ifeq ($(strip $(nausicaa_ENABLE_VICARE)),yes)
 .PHONY: test-vicare-compat
 

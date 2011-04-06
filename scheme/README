@@ -21,8 +21,8 @@ Topics
 This package distributes a  set of Scheme libraries defining
 an   augmented  R6RS   Scheme   language  and   implementing
 miscellaneous core features  for a Scheme system.  Currently
-it  attempts  to  support  Mosh,  Petite  Chez,  Vicare  and
-Ypsilon.
+it attempts  to support Mosh,  Petite Chez (no  FFI), Racket
+(no FFI), Vicare and Ypsilon.
 
   For  a general introduction  of the  Nausicaa distribution
 see the file "README.nausicaa".
@@ -72,6 +72,7 @@ must use the following options for the "configure" script:
 
   --enable-mosh		enables Mosh Scheme
   --enable-petite	enables Petite Scheme
+  --enable-racket	enables Racket
   --enable-vicare	enables Vicare Scheme
   --enable-ypsilon	enables Ypsilon Scheme
 
@@ -80,6 +81,7 @@ the following options:
 
   --disable-mosh	disables Mosh Scheme
   --disable-petite	disables Petite Scheme
+  --disable-racket	disables Racket
   --disable-vicare	disables Vicare Scheme
   --disable-ypsilon	disables Ypsilon Scheme
 
@@ -156,6 +158,7 @@ them:
 
     $ make test-mosh-compat
     $ make test-petite-compat
+    $ make test-racket-compat
     $ make test-vicare-compat
     $ make test-ypsilon-compat
 
@@ -171,6 +174,7 @@ the following makefile rules:
 
 mtest-installed		- run test for Mosh
 ptest-installed		- run test for Petite Chez Scheme
+rtest-installed		- run test for Racket
 vtest-installed		- run test for Vicare
 ytest-installed		- run test for Ypsilon
 

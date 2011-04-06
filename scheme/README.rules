@@ -35,13 +35,17 @@ mfasl - Compile the  package libraries for  Mosh Scheme; the
 pfasl - Does nothing  because Petite  Chez Scheme  does  not
         compile the libraries.
 
+rfasl - Compile  the  package libraries  for  Racket;  the
+        compiled files will end in a directory "compiled" on
+        the side of the source file.
+
 vfasl - Compile the package libraries for Vicare Scheme; the
 	compiled  files will end  in the  currently selected
 	Vicare cache ("~/.vicare" by default).
 
 yfasl - Compile  the package  libraries for  Ypsilon Scheme;
         the  compiled  files   will  end  in  the  currently
-        selected Mosh cache ("~/.mosh" by default).
+        selected Ypsilon cache ("~/.ypsilon" by default).
 
 fasl -	Compile the package's  libraries for all the enabled
 	Scheme   implementations.   It   is   equivalent  to
@@ -56,6 +60,10 @@ mfasl-installed -
         end in the  currently selected Mosh cache ("~/.mosh"
         by  default).
 
+rfasl-installed -
+	Compile the package's  libraries for Racket in their
+        installation location.
+
 vfasl-installed -
 	Compile the package's libraries for Vicare Scheme in
 	their installation location; the compiled files will
@@ -65,8 +73,8 @@ vfasl-installed -
 yfasl-installed -
 	Compile the package  libraries for Ypsilon Scheme in
         their installation location; the compiled files will
-        end in the  currently selected Mosh cache ("~/.mosh"
-        by default).
+        end   in  the   currently  selected   Ypsilon  cache
+        ("~/.ypsilon" by default).
 
 fasl-installed -
 	Compile the package's  libraries for all the enabled
@@ -86,6 +94,8 @@ mtest - Test the package libraries for Mosh Scheme.
 
 ptest - Test the package libraries for Petite Chez Scheme.
 
+rtest - Test the package libraries for Racket.
+
 vtest - Test the package libraries for Vicare Scheme.
 
 ytest - Test the package libraries for Ypsilon Scheme.
@@ -103,6 +113,10 @@ mtest-installed -
 ptest-installed -
 	Test the package's  libraries for Petite Chez Scheme
 	in their installation location.
+
+rtest-installed -
+	Test  the package's  libraries for  Racket  in their
+	installation location.
 
 vtest-installed -
 	Test  the package's libraries  for Vicare  Scheme in
