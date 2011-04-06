@@ -39,6 +39,11 @@ rfasl - Compile  the  package libraries  for  Racket;  the
         compiled files will end in a directory "compiled" on
         the side of the source file.
 
+rfasl-lang -
+	Compile the only the  libraries of the core language
+	Racket; this  special rule exists  because compiling
+	all the libraries takes time.
+
 vfasl - Compile the package libraries for Vicare Scheme; the
 	compiled  files will end  in the  currently selected
 	Vicare cache ("~/.vicare" by default).
