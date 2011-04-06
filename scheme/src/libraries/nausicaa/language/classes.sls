@@ -124,7 +124,7 @@
     (for (prefix (nausicaa language classes helpers) help.)	expand)
     (for (nausicaa language classes binding-makers)		expand)
     (for (nausicaa language classes clause-parsers)		expand)
-    (for (prefix (nausicaa language sentinel) sentinel.)	expand)
+    (prefix (nausicaa language sentinel) sentinel.)
     (nausicaa language makers)
     (only (nausicaa language auxiliary-syntaxes)
 	  parent sealed opaque parent-rtd nongenerative

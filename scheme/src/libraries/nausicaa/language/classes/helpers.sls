@@ -42,6 +42,7 @@
     list-of-unique-field-types
     detect-circular-tagging)
   (import (rnrs)
+    (for (rnrs) (meta -1))
     (nausicaa language classes internal-auxiliary-syntaxes)
     (prefix (nausicaa language classes properties) prop.)
     (prefix (only (nausicaa language syntax-utilities)

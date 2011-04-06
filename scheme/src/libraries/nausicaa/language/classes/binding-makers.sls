@@ -35,7 +35,7 @@
     make-method-bindings
     make-setter-getter-bindings)
   (import (rnrs)
-    (for (only (rnrs base) set!) (meta -1)) ;for its use in IDENTIFIER-SYNTAX
+    (for (rnrs base) (meta -1))
     (for (only (nausicaa language auxiliary-syntaxes)
 	       mutable immutable)
 	 (meta -1))

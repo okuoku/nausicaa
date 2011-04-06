@@ -26,7 +26,7 @@
 
 
 #!r6rs
-(import (nausicaa)
+(import (for (nausicaa) run expand)
   (nausicaa checks)
   (nausicaa debugging)
   (libtest records-lib)
@@ -750,6 +750,7 @@
   (let ()
 
     (define-class <alpha>
+      (nongenerative a1)
       (fields (mutable a)
 	      (immutable b)
 	      c))
@@ -774,6 +775,7 @@
   (check
       (eval '(letrec ()
   	       (define-class <alpha>
+		 (nongenerative a2)
   		 (fields (mutable a)
   			 (immutable b)
   			 c))
@@ -790,6 +792,7 @@
   (let ()
 
     (define-class <alpha>
+      (nongenerative a3)
       (fields (mutable a access-a mutate-a)))
 
     (check
@@ -808,6 +811,7 @@
   (let ()
 
     (define-class <alpha>
+      (nongenerative a4)
       (fields (immutable a access-a)))
 
     (check
@@ -823,6 +827,7 @@
   (let ()	;one field
 
     (define-class <alpha>
+      (nongenerative a5)
       (fields (mutable a)))
 
     (define r (make-<alpha> 123))
@@ -848,6 +853,7 @@
 
   (let ()	;more fields
     (define-class <alpha>
+      (nongenerative a6)
       (fields (mutable a)
 	      (mutable b)))
 
@@ -905,9 +911,11 @@
   (let ()	;fields
 
     (define-class <alpha>
+      (nongenerative a7)
       (fields a b z))
 
     (define-class <beta>
+      (nongenerative b1)
       (inherit <alpha>)
       (fields c d z))
 
@@ -937,6 +945,7 @@
   (check	;multiple FIELDS is fine
       (let ()
 	(define-class <alpha>
+	  (nongenerative a8)
 	  (fields a b)
 	  (fields c d))
 	#t)

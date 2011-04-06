@@ -70,7 +70,7 @@
     %collect-clause/satisfies
     )
   (import (rnrs)
-    (for (only (rnrs base) define-syntax) (meta -1))
+    (for (only (rnrs base) define define-syntax) (meta -1))
     (nausicaa language gensym)
     (prefix (only (nausicaa language syntax-utilities)
 		  all-identifiers?
