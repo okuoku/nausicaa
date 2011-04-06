@@ -134,7 +134,7 @@
 	  methods method method-syntax custom-maker mixins satisfies)
     (for (nausicaa language extensions) run expand)
     (for (prefix (nausicaa language classes properties) prop.) expand)
-    (for (nausicaa language classes internal-auxiliary-syntaxes) expand)
+    (nausicaa language classes internal-auxiliary-syntaxes)
     (nausicaa language classes top))
 
 

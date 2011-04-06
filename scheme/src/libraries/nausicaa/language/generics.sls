@@ -533,7 +533,11 @@
 (define-syntax* (add-method stx)
   (define (%register-method generic-id arg-type-ids)
     (let* ((prop (or (prop.generic-properties-ref generic-id)
-		     (synner "invalid identifier as generic function name" generic-id)))
+		     #;(synner "invalid identifier as generic function name" generic-id)
+		     (syntax-violation 'add-method
+		       "invalid identifier as generic function name"
+		       (syntax->datum stx)
+		       (syntax->datum generic-id))))
 	   (arg-type-ids	(sx.unwrap arg-type-ids))
 	   (gf-num-of-args	(prop.generic-number-of-arguments prop))
 	   (mt-num-of-args	(length arg-type-ids)))

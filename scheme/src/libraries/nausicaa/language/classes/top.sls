@@ -30,7 +30,7 @@
   (export <top> <top>-bindings)
   (import (rnrs)
     (for (prefix (nausicaa language classes properties) prop.) expand)
-    (for (nausicaa language classes internal-auxiliary-syntaxes) expand))
+    (nausicaa language classes internal-auxiliary-syntaxes))
 
 
 (define <top>-rtd

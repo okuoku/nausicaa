@@ -23,9 +23,10 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
+#!r6rs
 (import (rnrs)
 
-  ;; Core libraries
+;;; core libraries
   (only (nausicaa language cond-expand))
   (only (nausicaa language unimplemented))
   (only (nausicaa language conditions))
@@ -49,7 +50,7 @@
   (only (nausicaa mutable-pairs))
   (only (nausicaa mutable-strings))
 
-  ;; Basic libraries
+;;; basic libraries
   (only (nausicaa generics object-to-string))
   (only (nausicaa profiling))
   (only (nausicaa enumerations))
@@ -90,7 +91,7 @@
   (only (nausicaa queues))
   (only (nausicaa stacks))
 
-  ;;High level libraries.
+;;; high level libraries
   (only (nausicaa combinators))
   (only (nausicaa irregex))
   (only (nausicaa pregexp))

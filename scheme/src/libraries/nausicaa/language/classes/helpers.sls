@@ -43,7 +43,6 @@
     detect-circular-tagging)
   (import (rnrs)
     (for (rnrs) (meta -1))
-    (nausicaa language classes internal-auxiliary-syntaxes)
     (prefix (nausicaa language classes properties) prop.)
     (prefix (only (nausicaa language syntax-utilities)
 		  delete-duplicate-identifiers
@@ -57,6 +56,7 @@
     (prefix (only (nausicaa language classes clause-parsers)
 		  %collect-clause/mixins)
 	    parser.)
+    (for (nausicaa language classes internal-auxiliary-syntaxes) (meta -1))
     (for (only (nausicaa language auxiliary-syntaxes)
 	       parent sealed opaque parent-rtd nongenerative
 	       protocol fields mutable immutable

@@ -48,7 +48,9 @@
     (let ((property-table (identifier-alist-ref $table-of-property-tables key #f)))
       (set! $table-of-property-tables
 	    (if property-table
-		(identifier-alist-replace key (identifier-alist-new subject value property-table)
+		(identifier-alist-replace key
+					  (identifier-alist-replace subject value property-table)
+					  #;(identifier-alist-new subject value property-table)
 					  $table-of-property-tables)
 	      (identifier-alist-cons key `((,subject . ,value))
 				     $table-of-property-tables)))))
