@@ -1,0 +1,14 @@
+-*- coding: utf-8-unix -*-
+
+* Scheme Implementations
+
+** Vicare
+
+   Identifier properties do not  work correctly.  When the libraries are
+   loaded from  source: the  tests work; when  they are loaded  from the
+   precompiled cache: the tests fail.
+
+** Ypsilon
+
+   Fails because of hygiene problems.
+
