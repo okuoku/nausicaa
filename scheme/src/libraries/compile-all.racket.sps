@@ -151,6 +151,8 @@
 ;;; (only (nausicaa xml markups lexer))
 ;;; (only (nausicaa xml markups parser))
 
+;;;FFI is unsupported for Racket
+
 ;;   (only (nausicaa ffi))
 
 ;;   (only (nausicaa ffi memory))
