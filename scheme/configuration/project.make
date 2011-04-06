@@ -266,6 +266,23 @@ endif
 
 #page
 ## --------------------------------------------------------------------
+## Special compilation rules.
+## --------------------------------------------------------------------
+
+fasl_racket_COMPILE_LANG_SCRIPT	= $(nau_sls_SRCDIR)/compile-lang.racket.sps
+
+fasl_racket_COMPILE_LANG_RUN	= $(fasl_racket_COMPILE_ENV)		\
+					$(fasl_racket_COMPILE_COMMAND)	\
+					$(fasl_racket_COMPILE_LANG_SCRIPT)
+
+.PHONY: rfasl-lang
+
+rfasl-lang: sls
+	@echo; echo "--- Compiling basic language for Racket"
+	test -f $(fasl_racket_COMPILE_LANG_SCRIPT) && $(fasl_racket_COMPILE_LANG_RUN)
+
+#page
+## --------------------------------------------------------------------
 ## Special test rules.
 ## --------------------------------------------------------------------
 
