@@ -58,7 +58,7 @@
 ;;;(write (condition-message E))(newline)
 		 #t)
 		(else E))
-	(low.to-bytevector "ciaoλ"))
+	(low.to-bytevector "ciao\x1FF;"))
     => #t)
 
   #t)
@@ -1447,9 +1447,9 @@
 
   (check
       (let* ((in-port	(make-lexer-port "?ciao"))
-	     (path	(low.parse-path-empty in-port))
-	     (query	(low.to-string (low.parse-query in-port))))
-	(vector path query))
+  	     (path	(low.parse-path-empty in-port))
+  	     (query	(low.to-string (low.parse-query in-port))))
+  	(vector path query))
     => '#(() "ciao"))
 
   (check
@@ -1482,82 +1482,82 @@
 
   (check
       (let* ((in-port	(make-lexer-port "?query"))
-	     (path	(low.parse-path-abempty in-port))
-	     (query	(low.to-string (low.parse-query in-port))))
-	(list path query (lookahead-u8 in-port)))
+  	     (path	(low.parse-path-abempty in-port))
+  	     (query	(low.to-string (low.parse-query in-port))))
+  	(list path query (lookahead-u8 in-port)))
     => `(() "query" ,(eof-object)))
 
   (check
       (let* ((in-port	(make-lexer-port "#fragment"))
-	     (path	(low.parse-path-abempty in-port))
-	     (fragment	(low.to-string (low.parse-fragment in-port))))
-	(list path fragment (lookahead-u8 in-port)))
+  	     (path	(low.parse-path-abempty in-port))
+  	     (fragment	(low.to-string (low.parse-fragment in-port))))
+  	(list path fragment (lookahead-u8 in-port)))
     => `(() "fragment" ,(eof-object)))
 
   (check
       (let* ((in-port	(make-lexer-port "/ciao"))
-	     (path	(map low.to-string (low.parse-path-abempty in-port))))
-	(list path (lookahead-u8 in-port)))
+  	     (path	(map low.to-string (low.parse-path-abempty in-port))))
+  	(list path (lookahead-u8 in-port)))
     => `(("ciao") ,(eof-object)))
 
   (check
       (let* ((in-port	(make-lexer-port "/ciao?query"))
-	     (path	(map low.to-string (low.parse-path-abempty in-port)))
-	     (query	(low.to-string (low.parse-query in-port))))
-	(list path query (lookahead-u8 in-port)))
+  	     (path	(map low.to-string (low.parse-path-abempty in-port)))
+  	     (query	(low.to-string (low.parse-query in-port))))
+  	(list path query (lookahead-u8 in-port)))
     => `(("ciao") "query" ,(eof-object)))
 
   (check
       (let* ((in-port	(make-lexer-port "/ciao#fragment"))
-	     (path	(map low.to-string (low.parse-path-abempty in-port)))
-	     (fragment	(low.to-string (low.parse-fragment in-port))))
-	(list path fragment (lookahead-u8 in-port)))
+  	     (path	(map low.to-string (low.parse-path-abempty in-port)))
+  	     (fragment	(low.to-string (low.parse-fragment in-port))))
+  	(list path fragment (lookahead-u8 in-port)))
     => `(("ciao") "fragment" ,(eof-object)))
 
   (check
       (let* ((in-port	(make-lexer-port "/ciao/hello"))
-	     (path	(map low.to-string (low.parse-path-abempty in-port))))
-	(list path (lookahead-u8 in-port)))
+  	     (path	(map low.to-string (low.parse-path-abempty in-port))))
+  	(list path (lookahead-u8 in-port)))
     => `(("ciao" "hello") ,(eof-object)))
 
   (check
       (let* ((in-port	(make-lexer-port "/ciao/hello/salut"))
-	     (path	(map low.to-string (low.parse-path-abempty in-port))))
-	(list path (lookahead-u8 in-port)))
+  	     (path	(map low.to-string (low.parse-path-abempty in-port))))
+  	(list path (lookahead-u8 in-port)))
     => `(("ciao" "hello" "salut") ,(eof-object)))
 
   (check
       (let* ((in-port	(make-lexer-port "/ciao/hello/"))
-	     (path	(map low.to-string (low.parse-path-abempty in-port))))
-	(list path (lookahead-u8 in-port)))
+  	     (path	(map low.to-string (low.parse-path-abempty in-port))))
+  	(list path (lookahead-u8 in-port)))
     => `(("ciao" "hello" "") ,(eof-object)))
 
   (check
       (let* ((in-port	(make-lexer-port "/ciao/hello/salut?query"))
-	     (path	(map low.to-string (low.parse-path-abempty in-port)))
-	     (query	(low.to-string (low.parse-query in-port))))
-	(list path query (lookahead-u8 in-port)))
+  	     (path	(map low.to-string (low.parse-path-abempty in-port)))
+  	     (query	(low.to-string (low.parse-query in-port))))
+  	(list path query (lookahead-u8 in-port)))
     => `(("ciao" "hello" "salut") "query" ,(eof-object)))
 
   (check
       (let* ((in-port	(make-lexer-port "/ciao/hello/salut/?query"))
-	     (path	(map low.to-string (low.parse-path-abempty in-port)))
-	     (query	(low.to-string (low.parse-query in-port))))
-	(list path query (lookahead-u8 in-port)))
+  	     (path	(map low.to-string (low.parse-path-abempty in-port)))
+  	     (query	(low.to-string (low.parse-query in-port))))
+  	(list path query (lookahead-u8 in-port)))
     => `(("ciao" "hello" "salut" "") "query" ,(eof-object)))
 
   (check
       (let* ((in-port	(make-lexer-port "/ciao/hello/salut#fragment"))
-	     (path	(map low.to-string (low.parse-path-abempty in-port)))
-	     (fragment	(low.to-string (low.parse-fragment in-port))))
-	(list path fragment (lookahead-u8 in-port)))
+  	     (path	(map low.to-string (low.parse-path-abempty in-port)))
+  	     (fragment	(low.to-string (low.parse-fragment in-port))))
+  	(list path fragment (lookahead-u8 in-port)))
     => `(("ciao" "hello" "salut") "fragment" ,(eof-object)))
 
   (check
       (let* ((in-port	(make-lexer-port "/ciao/hello/salut/#fragment"))
-	     (path	(map low.to-string (low.parse-path-abempty in-port)))
-	     (fragment	(low.to-string (low.parse-fragment in-port))))
-	(list path fragment (lookahead-u8 in-port)))
+  	     (path	(map low.to-string (low.parse-path-abempty in-port)))
+  	     (fragment	(low.to-string (low.parse-fragment in-port))))
+  	(list path fragment (lookahead-u8 in-port)))
     => `(("ciao" "hello" "salut" "") "fragment" ,(eof-object)))
 
   (check
@@ -1573,88 +1573,88 @@
 
   (check
       (let* ((in-port	(make-lexer-port "ciao"))
-	     (path	(low.parse-path-absolute in-port))
-	     (rest	(low.to-string (get-bytevector-some in-port))))
-	(list path rest))
+  	     (path	(low.parse-path-absolute in-port))
+  	     (rest	(low.to-string (get-bytevector-some in-port))))
+  	(list path rest))
     => '(#f "ciao"))
 
   (check
       (let* ((in-port	(make-lexer-port "/"))
-	     (path	(map low.to-string (low.parse-path-absolute in-port))))
-	(list path (lookahead-u8 in-port)))
+  	     (path	(map low.to-string (low.parse-path-absolute in-port))))
+  	(list path (lookahead-u8 in-port)))
     => `(("") ,(eof-object)))
 
   (check
       (let* ((in-port	(make-lexer-port "//"))
-	     (path	(low.parse-path-absolute in-port))
-	     (rest	(low.to-string (get-bytevector-some in-port))))
-	(list path rest))
+  	     (path	(low.parse-path-absolute in-port))
+  	     (rest	(low.to-string (get-bytevector-some in-port))))
+  	(list path rest))
     => `(#f "//"))
 
   (check
       (let* ((in-port	(make-lexer-port "/ciao"))
-	     (path	(map low.to-string (low.parse-path-absolute in-port))))
-	(list path (lookahead-u8 in-port)))
+  	     (path	(map low.to-string (low.parse-path-absolute in-port))))
+  	(list path (lookahead-u8 in-port)))
     => `(("ciao") ,(eof-object)))
 
   (check
       (let* ((in-port	(make-lexer-port "/ciao/hello"))
-	     (path	(map low.to-string (low.parse-path-absolute in-port))))
-	(list path (lookahead-u8 in-port)))
+  	     (path	(map low.to-string (low.parse-path-absolute in-port))))
+  	(list path (lookahead-u8 in-port)))
     => `(("ciao" "hello") ,(eof-object)))
 
   (check
       (let* ((in-port	(make-lexer-port "/ciao/hello/salut"))
-	     (path	(map low.to-string (low.parse-path-absolute in-port))))
-	(list path (lookahead-u8 in-port)))
+  	     (path	(map low.to-string (low.parse-path-absolute in-port))))
+  	(list path (lookahead-u8 in-port)))
     => `(("ciao" "hello" "salut") ,(eof-object)))
 
   (check
       (let* ((in-port	(make-lexer-port "/ciao/hello/"))
-	     (path	(map low.to-string (low.parse-path-absolute in-port))))
-	(list path (lookahead-u8 in-port)))
+  	     (path	(map low.to-string (low.parse-path-absolute in-port))))
+  	(list path (lookahead-u8 in-port)))
     => `(("ciao" "hello" "") ,(eof-object)))
 
   (check
       (let* ((in-port	(make-lexer-port "/?query"))
-	     (path	(map low.to-string (low.parse-path-absolute in-port)))
-	     (query	(low.to-string (low.parse-query in-port))))
-	(list path query (lookahead-u8 in-port)))
+  	     (path	(map low.to-string (low.parse-path-absolute in-port)))
+  	     (query	(low.to-string (low.parse-query in-port))))
+  	(list path query (lookahead-u8 in-port)))
     => `(("") "query" ,(eof-object)))
 
   (check
       (let* ((in-port	(make-lexer-port "/ciao/hello?query"))
-	     (path	(map low.to-string (low.parse-path-absolute in-port)))
-	     (query	(low.to-string (low.parse-query in-port))))
-	(list path query (lookahead-u8 in-port)))
+  	     (path	(map low.to-string (low.parse-path-absolute in-port)))
+  	     (query	(low.to-string (low.parse-query in-port))))
+  	(list path query (lookahead-u8 in-port)))
     => `(("ciao" "hello") "query" ,(eof-object)))
 
   (check
       (let* ((in-port	(make-lexer-port "/ciao/hello/?query"))
-	     (path	(map low.to-string (low.parse-path-absolute in-port)))
-	     (query	(low.to-string (low.parse-query in-port))))
-	(list path query (lookahead-u8 in-port)))
+  	     (path	(map low.to-string (low.parse-path-absolute in-port)))
+  	     (query	(low.to-string (low.parse-query in-port))))
+  	(list path query (lookahead-u8 in-port)))
     => `(("ciao" "hello" "") "query" ,(eof-object)))
 
   (check
       (let* ((in-port	(make-lexer-port "/#fragment"))
-	     (path	(map low.to-string (low.parse-path-absolute in-port)))
-	     (fragment	(low.to-string (low.parse-fragment in-port))))
-	(list path fragment (lookahead-u8 in-port)))
+  	     (path	(map low.to-string (low.parse-path-absolute in-port)))
+  	     (fragment	(low.to-string (low.parse-fragment in-port))))
+  	(list path fragment (lookahead-u8 in-port)))
     => `(("") "fragment" ,(eof-object)))
 
   (check
       (let* ((in-port	(make-lexer-port "/ciao/hello#fragment"))
-	     (path	(map low.to-string (low.parse-path-absolute in-port)))
-	     (fragment	(low.to-string (low.parse-fragment in-port))))
-	(list path fragment (lookahead-u8 in-port)))
+  	     (path	(map low.to-string (low.parse-path-absolute in-port)))
+  	     (fragment	(low.to-string (low.parse-fragment in-port))))
+  	(list path fragment (lookahead-u8 in-port)))
     => `(("ciao" "hello") "fragment" ,(eof-object)))
 
   (check
       (let* ((in-port	(make-lexer-port "/ciao/hello/#fragment"))
-	     (path	(map low.to-string (low.parse-path-absolute in-port)))
-	     (fragment	(low.to-string (low.parse-fragment in-port))))
-	(list path fragment (lookahead-u8 in-port)))
+  	     (path	(map low.to-string (low.parse-path-absolute in-port)))
+  	     (fragment	(low.to-string (low.parse-fragment in-port))))
+  	(list path fragment (lookahead-u8 in-port)))
     => `(("ciao" "hello" "") "fragment" ,(eof-object)))
 
 ;;; --------------------------------------------------------------------
@@ -1666,115 +1666,115 @@
 
   (check
       (let* ((in-port	(make-lexer-port "ciao"))
-	     (path	(map low.to-string (low.parse-path-noscheme in-port))))
-	(list path (lookahead-u8 in-port)))
+  	     (path	(map low.to-string (low.parse-path-noscheme in-port))))
+  	(list path (lookahead-u8 in-port)))
     => `(("ciao") ,(eof-object)))
 
   (check
       (let* ((in-port	(make-lexer-port "/"))
-	     (path	(low.parse-path-noscheme in-port))
-	     (char	(integer->char (get-u8 in-port))))
-	(list path char))
+  	     (path	(low.parse-path-noscheme in-port))
+  	     (char	(integer->char (get-u8 in-port))))
+  	(list path char))
     => '(#f #\/))
 
   (check
       (let* ((in-port	(make-lexer-port "/ciao"))
-	     (path	(low.parse-path-noscheme in-port))
-	     (rest	(low.to-string (get-bytevector-some in-port))))
-	(list path rest))
+  	     (path	(low.parse-path-noscheme in-port))
+  	     (rest	(low.to-string (get-bytevector-some in-port))))
+  	(list path rest))
     => '(#f "/ciao"))
 
   (check
       (let* ((in-port	(make-lexer-port "ciao/hello"))
-	     (path	(map low.to-string (low.parse-path-noscheme in-port))))
-	(list path (lookahead-u8 in-port)))
+  	     (path	(map low.to-string (low.parse-path-noscheme in-port))))
+  	(list path (lookahead-u8 in-port)))
     => `(("ciao" "hello") ,(eof-object)))
 
   (check
       (let* ((in-port	(make-lexer-port "ciao/hello/salut"))
-	     (path	(map low.to-string (low.parse-path-noscheme in-port))))
-	(list path (lookahead-u8 in-port)))
+  	     (path	(map low.to-string (low.parse-path-noscheme in-port))))
+  	(list path (lookahead-u8 in-port)))
     => `(("ciao" "hello" "salut") ,(eof-object)))
 
   (check
       (let* ((in-port	(make-lexer-port "ciao/"))
-	     (path	(map low.to-string (low.parse-path-noscheme in-port))))
-	(list path (lookahead-u8 in-port)))
+  	     (path	(map low.to-string (low.parse-path-noscheme in-port))))
+  	(list path (lookahead-u8 in-port)))
     => `(("ciao" "") ,(eof-object)))
 
   (check
       (let* ((in-port	(make-lexer-port "ciao/hello/"))
-	     (path	(map low.to-string (low.parse-path-noscheme in-port))))
-	(list path (lookahead-u8 in-port)))
+  	     (path	(map low.to-string (low.parse-path-noscheme in-port))))
+  	(list path (lookahead-u8 in-port)))
     => `(("ciao" "hello" "") ,(eof-object)))
 
   (check
       (let* ((in-port	(make-lexer-port "ciao/he:llo"))
-	     (path	(map low.to-string (low.parse-path-noscheme in-port))))
-	(list path (lookahead-u8 in-port)))
+  	     (path	(map low.to-string (low.parse-path-noscheme in-port))))
+  	(list path (lookahead-u8 in-port)))
     => `(("ciao" "he:llo") ,(eof-object)))
 
   (check
       (let* ((in-port	(make-lexer-port "ci:ao/hello"))
-	     (path	(low.parse-path-noscheme in-port))
-	     (rest	(low.to-string (get-bytevector-some in-port))))
-	(list path rest))
+  	     (path	(low.parse-path-noscheme in-port))
+  	     (rest	(low.to-string (get-bytevector-some in-port))))
+  	(list path rest))
     => `(#f "ci:ao/hello"))
 
   (check
       (let* ((in-port	(make-lexer-port "?ciao"))
-	     (path	(low.parse-path-noscheme in-port))
-	     (query	(low.to-string (low.parse-query in-port))))
-	(list path query))
+  	     (path	(low.parse-path-noscheme in-port))
+  	     (query	(low.to-string (low.parse-query in-port))))
+  	(list path query))
     => '(#f "ciao"))
 
   (check
       (let* ((in-port	(make-lexer-port "hello?ciao"))
-	     (path	(map low.to-string (low.parse-path-noscheme in-port)))
-	     (query	(low.to-string (low.parse-query in-port))))
-	(list path query))
+  	     (path	(map low.to-string (low.parse-path-noscheme in-port)))
+  	     (query	(low.to-string (low.parse-query in-port))))
+  	(list path query))
     => '(("hello") "ciao"))
 
   (check
       (let* ((in-port	(make-lexer-port "hello/salut?ciao"))
-	     (path	(map low.to-string (low.parse-path-noscheme in-port)))
-	     (query	(low.to-string (low.parse-query in-port))))
-	(list path query))
+  	     (path	(map low.to-string (low.parse-path-noscheme in-port)))
+  	     (query	(low.to-string (low.parse-query in-port))))
+  	(list path query))
     => '(("hello" "salut") "ciao"))
 
   (check
       (let* ((in-port	(make-lexer-port "hello/salut/?ciao"))
-	     (path	(map low.to-string (low.parse-path-noscheme in-port)))
-	     (query	(low.to-string (low.parse-query in-port))))
-	(list path query))
+  	     (path	(map low.to-string (low.parse-path-noscheme in-port)))
+  	     (query	(low.to-string (low.parse-query in-port))))
+  	(list path query))
     => '(("hello" "salut" "") "ciao"))
 
   (check
       (let* ((in-port	(make-lexer-port "#ciao"))
-	     (path	(low.parse-path-noscheme in-port))
-	     (fragment	(low.to-string (low.parse-fragment in-port))))
-	(list path fragment))
+  	     (path	(low.parse-path-noscheme in-port))
+  	     (fragment	(low.to-string (low.parse-fragment in-port))))
+  	(list path fragment))
     => '(#f "ciao"))
 
   (check
       (let* ((in-port	(make-lexer-port "hello#ciao"))
-	     (path	(map low.to-string (low.parse-path-noscheme in-port)))
-	     (fragment	(low.to-string (low.parse-fragment in-port))))
-	(list path fragment))
+  	     (path	(map low.to-string (low.parse-path-noscheme in-port)))
+  	     (fragment	(low.to-string (low.parse-fragment in-port))))
+  	(list path fragment))
     => '(("hello") "ciao"))
 
   (check
       (let* ((in-port	(make-lexer-port "hello/salut#ciao"))
-	     (path	(map low.to-string (low.parse-path-noscheme in-port)))
-	     (fragment	(low.to-string (low.parse-fragment in-port))))
-	(list path fragment))
+  	     (path	(map low.to-string (low.parse-path-noscheme in-port)))
+  	     (fragment	(low.to-string (low.parse-fragment in-port))))
+  	(list path fragment))
     => '(("hello" "salut") "ciao"))
 
   (check
       (let* ((in-port	(make-lexer-port "hello/salut/#ciao"))
-	     (path	(map low.to-string (low.parse-path-noscheme in-port)))
-	     (fragment	(low.to-string (low.parse-fragment in-port))))
-	(list path fragment))
+  	     (path	(map low.to-string (low.parse-path-noscheme in-port)))
+  	     (fragment	(low.to-string (low.parse-fragment in-port))))
+  	(list path fragment))
     => '(("hello" "salut" "") "ciao"))
 
 ;;; --------------------------------------------------------------------
@@ -1786,114 +1786,114 @@
 
   (check
       (let* ((in-port	(make-lexer-port "ciao"))
-	     (path	(map low.to-string (low.parse-path-rootless in-port))))
-	(list path (lookahead-u8 in-port)))
+  	     (path	(map low.to-string (low.parse-path-rootless in-port))))
+  	(list path (lookahead-u8 in-port)))
     => `(("ciao") ,(eof-object)))
 
   (check
       (let* ((in-port	(make-lexer-port "/"))
-	     (path	(low.parse-path-rootless in-port))
-	     (char	(integer->char (get-u8 in-port))))
-	(list path char))
+  	     (path	(low.parse-path-rootless in-port))
+  	     (char	(integer->char (get-u8 in-port))))
+  	(list path char))
     => '(#f #\/))
 
   (check
       (let* ((in-port	(make-lexer-port "/ciao"))
-	     (path	(low.parse-path-rootless in-port))
-	     (rest	(low.to-string (get-bytevector-some in-port))))
-	(list path rest))
+  	     (path	(low.parse-path-rootless in-port))
+  	     (rest	(low.to-string (get-bytevector-some in-port))))
+  	(list path rest))
     => '(#f "/ciao"))
 
   (check
       (let* ((in-port	(make-lexer-port "ciao/hello"))
-	     (path	(map low.to-string (low.parse-path-rootless in-port))))
-	(list path (lookahead-u8 in-port)))
+  	     (path	(map low.to-string (low.parse-path-rootless in-port))))
+  	(list path (lookahead-u8 in-port)))
     => `(("ciao" "hello") ,(eof-object)))
 
   (check
       (let* ((in-port	(make-lexer-port "ciao/hello/salut"))
-	     (path	(map low.to-string (low.parse-path-rootless in-port))))
-	(list path (lookahead-u8 in-port)))
+  	     (path	(map low.to-string (low.parse-path-rootless in-port))))
+  	(list path (lookahead-u8 in-port)))
     => `(("ciao" "hello" "salut") ,(eof-object)))
 
   (check
       (let* ((in-port	(make-lexer-port "ciao/hel:lo"))
-	     (path	(map low.to-string (low.parse-path-rootless in-port))))
-	(list path (lookahead-u8 in-port)))
+  	     (path	(map low.to-string (low.parse-path-rootless in-port))))
+  	(list path (lookahead-u8 in-port)))
     => `(("ciao" "hel:lo") ,(eof-object)))
 
   (check
       (let* ((in-port	(make-lexer-port "ci:ao/hel:lo"))
-	     (path	(map low.to-string (low.parse-path-rootless in-port))))
-	(list path (lookahead-u8 in-port)))
+  	     (path	(map low.to-string (low.parse-path-rootless in-port))))
+  	(list path (lookahead-u8 in-port)))
     => `(("ci:ao" "hel:lo") ,(eof-object)))
 
   (check
       (let* ((in-port	(make-lexer-port "ciao/"))
-	     (path	(map low.to-string (low.parse-path-rootless in-port))))
-	(list path (lookahead-u8 in-port)))
+  	     (path	(map low.to-string (low.parse-path-rootless in-port))))
+  	(list path (lookahead-u8 in-port)))
     => `(("ciao" "") ,(eof-object)))
 
   (check
       (let* ((in-port	(make-lexer-port "ciao/hello/"))
-	     (path	(map low.to-string (low.parse-path-rootless in-port))))
-	(list path (lookahead-u8 in-port)))
+  	     (path	(map low.to-string (low.parse-path-rootless in-port))))
+  	(list path (lookahead-u8 in-port)))
     => `(("ciao" "hello" "") ,(eof-object)))
 
   (check
       (let* ((in-port	(make-lexer-port "?ciao"))
-	     (path	(low.parse-path-rootless in-port))
-	     (query	(low.to-string (low.parse-query in-port))))
-	(list path query))
+  	     (path	(low.parse-path-rootless in-port))
+  	     (query	(low.to-string (low.parse-query in-port))))
+  	(list path query))
     => '(#f "ciao"))
 
   (check
       (let* ((in-port	(make-lexer-port "hello?ciao"))
-	     (path	(map low.to-string (low.parse-path-rootless in-port)))
-	     (query	(low.to-string (low.parse-query in-port))))
-	(list path query))
+  	     (path	(map low.to-string (low.parse-path-rootless in-port)))
+  	     (query	(low.to-string (low.parse-query in-port))))
+  	(list path query))
     => '(("hello") "ciao"))
 
   (check
       (let* ((in-port	(make-lexer-port "hello/salut?ciao"))
-	     (path	(map low.to-string (low.parse-path-rootless in-port)))
-	     (query	(low.to-string (low.parse-query in-port))))
-	(list path query))
+  	     (path	(map low.to-string (low.parse-path-rootless in-port)))
+  	     (query	(low.to-string (low.parse-query in-port))))
+  	(list path query))
     => '(("hello" "salut") "ciao"))
 
   (check
       (let* ((in-port	(make-lexer-port "hello/salut/?ciao"))
-	     (path	(map low.to-string (low.parse-path-rootless in-port)))
-	     (query	(low.to-string (low.parse-query in-port))))
-	(list path query))
+  	     (path	(map low.to-string (low.parse-path-rootless in-port)))
+  	     (query	(low.to-string (low.parse-query in-port))))
+  	(list path query))
     => '(("hello" "salut" "") "ciao"))
 
   (check
       (let* ((in-port	(make-lexer-port "#ciao"))
-	     (path	(low.parse-path-rootless in-port))
-	     (fragment	(low.to-string (low.parse-fragment in-port))))
-	(list path fragment))
+  	     (path	(low.parse-path-rootless in-port))
+  	     (fragment	(low.to-string (low.parse-fragment in-port))))
+  	(list path fragment))
     => '(#f "ciao"))
 
   (check
       (let* ((in-port	(make-lexer-port "hello#ciao"))
-	     (path	(map low.to-string (low.parse-path-rootless in-port)))
-	     (fragment	(low.to-string (low.parse-fragment in-port))))
-	(list path fragment))
+  	     (path	(map low.to-string (low.parse-path-rootless in-port)))
+  	     (fragment	(low.to-string (low.parse-fragment in-port))))
+  	(list path fragment))
     => '(("hello") "ciao"))
 
   (check
       (let* ((in-port	(make-lexer-port "hello/salut#ciao"))
-	     (path	(map low.to-string (low.parse-path-rootless in-port)))
-	     (fragment	(low.to-string (low.parse-fragment in-port))))
-	(list path fragment))
+  	     (path	(map low.to-string (low.parse-path-rootless in-port)))
+  	     (fragment	(low.to-string (low.parse-fragment in-port))))
+  	(list path fragment))
     => '(("hello" "salut") "ciao"))
 
   (check
       (let* ((in-port	(make-lexer-port "hello/salut/#ciao"))
-	     (path	(map low.to-string (low.parse-path-rootless in-port)))
-	     (fragment	(low.to-string (low.parse-fragment in-port))))
-	(list path fragment))
+  	     (path	(map low.to-string (low.parse-path-rootless in-port)))
+  	     (fragment	(low.to-string (low.parse-fragment in-port))))
+  	(list path fragment))
     => '(("hello" "salut" "") "ciao"))
 
   #t)
