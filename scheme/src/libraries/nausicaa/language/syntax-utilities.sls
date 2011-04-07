@@ -55,7 +55,9 @@
     ;; clauses helpers
     validate-list-of-clauses		validate-definition-clauses
     filter-clauses			discard-clauses)
-  (import (rnrs))
+  (import (rnrs)
+    (for (only (rnrs base) quote quasiquote) (meta -1))
+    (for (only (rnrs syntax-case) syntax quasisyntax) (meta -1)))
 
 
 (define-enumeration enum-unwrap-options
