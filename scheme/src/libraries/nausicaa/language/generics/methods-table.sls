@@ -47,6 +47,7 @@
     more-specific-signature?
     merge-methods-alists)
   (import (rnrs)
+;;;(nausicaa language pretty-print)
     (rnrs mutable-pairs (6))
     (only (nausicaa symbols-tree)
 	  tree-cons
@@ -80,16 +81,16 @@
     ;;We could automatically generate  most of the identifier arguments,
     ;;we do not do it for hygiene sake.
     ;;
-    ((_ ?generic-function ?table-name ?table-add ?cache-store ?cache-ref ?init)
+    ((_ ?generic-function ?table-name ?table-add ?cache-name ?cache-store ?cache-ref ?init)
      (begin
        (define ?table-name ?init)
-       (define cache '()) ;symbols tree
+       (define ?cache-name '()) ;symbols tree
        (define (?cache-store signature methods)
-	 (set! cache (tree-cons signature methods cache)))
+	 (set! ?cache-name (tree-cons signature methods ?cache-name)))
        (define (?cache-ref signature)
-	 (treeq cache signature #f))
+	 (treeq ?cache-name signature #f))
        (define (?table-add signature closure)
-	 (set! cache '())
+	 (set! ?cache-name '())
 	 (set! ?table-name (add-method-to-methods-alist ?table-name signature closure)))
        ))))
 

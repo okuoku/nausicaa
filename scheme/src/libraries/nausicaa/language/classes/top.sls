@@ -99,11 +99,6 @@
     ((_ ?class-name ?variable-name ?instance . ?body)
      (begin . ?body))))
 
-;;Setting this property  fails with Ikarus/Vicare because of  a bug with
-;;precompiled  libraries; the bug  shows itself  only when  running with
-;;precompiled  libraries, not  when running  with a  clean  cache (Marco
-;;Maggi; Mon Jan 10, 2011).
-;;
 (define-syntax dummy
   (begin
     (prop.struct-properties-define
@@ -113,6 +108,7 @@
 			      '()  ;method specs
 			      '()  ;mixins
 			      '()))
+;;;(write (prop.struct-properties-ref #'<top>))(newline)
     values)) ;list of field tags
 
 

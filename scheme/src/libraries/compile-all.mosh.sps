@@ -23,10 +23,6 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
-;;fix    tests:    matches,    language-extensions,    generics-starred,
-;;generics-ordinary,     format-lib,     ffi-memory-alloc,    contracts,
-;;classes-*,
-
 #!r6rs
 (import (rnrs)
 

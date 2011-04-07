@@ -1,3 +1,10 @@
+* mosh and nmosh
+
+  Fix tests with mosh: generics-ordinary, classes-identifier-properties.
+
+  Fix tests with  nmosh: matches, language-extensions, generics-starred,
+  generics-ordinary, format-lib, ffi-memory-alloc, contracts, classes-*.
+
 * documentation
 * nausicaa
 * DONE makers

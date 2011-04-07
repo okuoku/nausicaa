@@ -65,6 +65,7 @@
     :primary			:around
     :before			:after)
   (import (for (rnrs) run expand (meta 2))
+;;;(nausicaa language pretty-print)
     ;;See the source file for the customisable interface to types.
     (prefix (nausicaa language generics types) type.)
     (prefix (nausicaa language generics methods-table) mt.)
@@ -86,23 +87,8 @@
     (only (nausicaa language auxiliary-syntaxes)
 	  uid-list-of reverse-before-methods merge
 	  :primary :before :after :around)
-    (for (prefix (nausicaa language generics properties) prop.) expand))
-
-
-;;;; helpers
-
-(define-auxiliary-syntaxes
-  :number-of-arguments
-
-  :primary-methods-alist
-  :before-methods-alist
-  :after-methods-alist
-  :around-methods-alist
-
-  :primary-method-add
-  :before-method-add
-  :after-method-add
-  :around-method-add)
+    (for (prefix (nausicaa language generics properties) prop.) expand)
+    (nausicaa language generics auxiliary-syntaxes))
 
 
 ;;;; next method implementation
@@ -159,7 +145,7 @@
 	     (define number-of-arguments NUMBER-OF-ARGUMENTS)
 	     (mt.define-methods-table ?name
 				      the-methods-alist the-method-add
-				      the-cache-store the-cache-ref
+				      the-cache the-cache-store the-cache-ref
 				      (mt.merge-methods-alists (?generic :primary-methods-alist) ...))
 	     (define (implementation . arguments)
 	       (generic-function-implementation '?name the-methods-alist the-cache-store the-cache-ref
@@ -172,11 +158,14 @@
 		      (synner message #f))
 		     ((_ message subform)
 		      (syntax-violation '?name message (syntax->datum stx) (syntax->datum subform)))))
-		 (syntax-case stx (:primary-method-add :primary-methods-alist :number-of-arguments)
+		 (syntax-case stx (:primary-method-add :primary-methods-alist :number-of-arguments
+						       :primary-cache)
 		   ((_ :primary-method-add signature closure)
 		    #'(the-method-add signature closure))
 		   ((_ :primary-methods-alist)
 		    #'the-methods-alist)
+		   ((_ :primary-cache)
+		    #'the-cache)
 		   ((_ :number-of-arguments)
 		    #'number-of-arguments)
 		   ((_ key signature closure)
@@ -285,19 +274,19 @@
 	     (define number-of-arguments NUMBER-OF-ARGUMENTS)
 	     (mt.define-methods-table ?name
 				      primary-methods-alist primary-method-add
-				      primary-cache-store primary-cache-ref
+				      primary-cache primary-cache-store primary-cache-ref
 				      (mt.merge-methods-alists (?generic :primary-methods-alist) ...))
 	     (mt.define-methods-table ?name
 				      before-methods-alist before-method-add
-				      before-cache-store before-cache-ref
+				      before-cache before-cache-store before-cache-ref
 				      (mt.merge-methods-alists (?generic :before-methods-alist)  ...))
 	     (mt.define-methods-table ?name
 				      after-methods-alist after-method-add
-				      after-cache-store after-cache-ref
+				      after-cache after-cache-store after-cache-ref
 				      (mt.merge-methods-alists (?generic :after-methods-alist)   ...))
 	     (mt.define-methods-table ?name
 				      around-methods-alist around-method-add
-				      around-cache-store around-cache-ref
+				      around-cache around-cache-store around-cache-ref
 				      (mt.merge-methods-alists (?generic :around-methods-alist)  ...))
 	     (define reverse-before-methods ?reverse-before-methods)
 	     (define (implementation . arguments)
@@ -314,6 +303,8 @@
 						       :after-method-add :after-methods-alist
 						       :before-method-add :before-methods-alist
 						       :around-method-add :around-methods-alist
+						       :primary-cache :before-cache
+						       :after-cache :around-cache
 						       :number-of-arguments)
 		   ((_ :primary-method-add	signature closure)
 		    #'(primary-method-add	signature closure))
@@ -328,6 +319,11 @@
 		   ((_ :before-methods-alist)	#'before-methods-alist)
 		   ((_ :after-methods-alist)	#'after-methods-alist)
 		   ((_ :around-methods-alist)	#'around-methods-alist)
+
+		   ((_ :primary-cache)		#'primary-cache)
+		   ((_ :before-cache)		#'before-cache)
+		   ((_ :after-cache)		#'after-cache)
+		   ((_ :around-cache)		#'around-cache)
 
 		   ((_ :number-of-arguments)
 		    #'number-of-arguments)

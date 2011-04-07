@@ -27,6 +27,7 @@
 
 #!r6rs
 (import (nausicaa)
+  (for (prefix (nausicaa language classes properties) prop.) expand)
   (rnrs eval)
   (nausicaa checks))
 
@@ -34,9 +35,19 @@
 (display "*** testing class identifier properties\n")
 
 
-(parametrise ((check-test-name	'superclass-list))
+(parametrise ((check-test-name	'existence))
 
   (check
+      (let ()
+	(define-syntax doit
+	  (lambda (stx)
+	    (let ((thing (prop.struct-properties-ref #'<top>)))
+;;;(write thing)(newline)
+	      (prop.class? thing))))
+	(doit))
+    => #t)
+
+  (check	;the same as above, but inside EVAL
       (eval '(let ()
 	       (define-syntax doit
 		 (lambda (stx)
@@ -52,6 +63,17 @@
 (parametrise ((check-test-name	'superclass-list))
 
   (check
+      (let ()
+	(define-class <alpha1>
+	  (nongenerative superclass-list:<alpha1>))
+	(define-syntax doit
+	  (lambda (stx)
+	    (let ((P (prop.struct-properties-ref #'<alpha1>)))
+	      #`(quote #,(prop.class-list-of-supers P)))))
+	(doit))
+    => '(<top>))
+
+  (check	;the same as above, but inside EVAL
       (eval '(let ()
 	       (define-class <alpha1>)
 	       (define-syntax doit
@@ -64,6 +86,18 @@
     => '(<top>))
 
   (check
+      (let ()
+	(define-class <alpha2>)
+	(define-class <beta2>
+	  (inherit <alpha2>))
+	(define-syntax doit
+	  (lambda (stx)
+	    #`(quote #,(prop.class-list-of-supers
+			(prop.struct-properties-ref #'<beta2>)))))
+	(doit))
+    => '(<alpha2> <top>))
+
+  (check	;the same as above, but inside EVAL
       (eval '(let ()
 	       (define-class <alpha2>)
 	       (define-class <beta2>
@@ -78,6 +112,22 @@
     => '(<alpha2> <top>))
 
   (check
+      (let ()
+	(define-class <alpha3>)
+	(define-class <beta3>
+	  (inherit <alpha3>))
+	(define-class <delta3>
+	  (inherit <beta3>))
+	(define-class <gamma3>
+	  (inherit <delta3>))
+	(define-syntax doit
+	  (lambda (stx)
+	    #`(quote #,(prop.class-list-of-supers
+			(prop.struct-properties-ref #'<gamma3>)))))
+	(doit))
+    => '(<delta3> <beta3> <alpha3> <top>))
+
+  (check	;the same as above, but inside EVAL
       (eval '(let ()
 	       (define-class <alpha3>)
 	       (define-class <beta3>
