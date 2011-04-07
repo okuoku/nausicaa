@@ -269,17 +269,73 @@ endif
 ## Special compilation rules.
 ## --------------------------------------------------------------------
 
+## Racket
+
 fasl_racket_COMPILE_LANG_SCRIPT	= $(nau_sls_SRCDIR)/compile-lang.racket.sps
+fasl_racket_COMPILE_BASIC_SCRIPT= $(nau_sls_SRCDIR)/compile-basic.racket.sps
+fasl_racket_COMPILE_HIGH_SCRIPT	= $(nau_sls_SRCDIR)/compile-high.racket.sps
+
+fasl_racket_COMPILED_LANG_SCRIPTS = $(nau_sls_SRCDIR)/compiled/compile-lang_racket*
+fasl_racket_COMPILED_BASIC_SCRIPTS= $(nau_sls_SRCDIR)/compiled/compile-basic_racket*
+fasl_racket_COMPILED_HIGH_SCRIPTS = $(nau_sls_SRCDIR)/compiled/compile-high_racket*
 
 fasl_racket_COMPILE_LANG_RUN	= $(fasl_racket_COMPILE_ENV)		\
 					$(fasl_racket_COMPILE_COMMAND)	\
 					$(fasl_racket_COMPILE_LANG_SCRIPT)
+fasl_racket_COMPILE_BASIC_RUN	= $(fasl_racket_COMPILE_ENV)		\
+					$(fasl_racket_COMPILE_COMMAND)	\
+					$(fasl_racket_COMPILE_BASIC_SCRIPT)
+fasl_racket_COMPILE_HIGH_RUN	= $(fasl_racket_COMPILE_ENV)		\
+					$(fasl_racket_COMPILE_COMMAND)	\
+					$(fasl_racket_COMPILE_HIGH_SCRIPT)
 
-.PHONY: rfasl-lang
+.PHONY: rfasl-lang rfasl-basic rfasl-high
 
 rfasl-lang: sls
-	@echo; echo "--- Compiling basic language for Racket"
+	@echo; echo "--- Compiling language libraries for Racket"
+	@$(RM) $(fasl_racket_COMPILED_LANG_SCRIPTS)
 	test -f $(fasl_racket_COMPILE_LANG_SCRIPT) && $(fasl_racket_COMPILE_LANG_RUN)
+
+rfasl-basic: sls
+	@echo; echo "--- Compiling basic libraries for Racket"
+	@$(RM) $(fasl_racket_COMPILED_BASIC_SCRIPTS)
+	test -f $(fasl_racket_COMPILE_BASIC_SCRIPT) && $(fasl_racket_COMPILE_BASIC_RUN)
+
+rfasl-high: sls
+	@echo; echo "--- Compiling high libraries for Racket"
+	@$(RM) $(fasl_racket_COMPILED_HIGH_SCRIPTS)
+	test -f $(fasl_racket_COMPILE_HIGH_SCRIPT) && $(fasl_racket_COMPILE_HIGH_RUN)
+
+## --------------------------------------------------------------------
+## Mosh
+
+fasl_mosh_COMPILE_LANG_SCRIPT	= $(nau_sls_SRCDIR)/compile-lang.mosh.sps
+fasl_mosh_COMPILE_BASIC_SCRIPT	= $(nau_sls_SRCDIR)/compile-basic.mosh.sps
+fasl_mosh_COMPILE_HIGH_SCRIPT	= $(nau_sls_SRCDIR)/compile-high.mosh.sps
+
+fasl_mosh_COMPILE_LANG_RUN	= $(fasl_mosh_COMPILE_ENV)		\
+					$(fasl_mosh_COMPILE_COMMAND)	\
+					$(fasl_mosh_COMPILE_LANG_SCRIPT)
+fasl_mosh_COMPILE_BASIC_RUN	= $(fasl_mosh_COMPILE_ENV)		\
+					$(fasl_mosh_COMPILE_COMMAND)	\
+					$(fasl_mosh_COMPILE_BASIC_SCRIPT)
+fasl_mosh_COMPILE_HIGH_RUN	= $(fasl_mosh_COMPILE_ENV)		\
+					$(fasl_mosh_COMPILE_COMMAND)	\
+					$(fasl_mosh_COMPILE_HIGH_SCRIPT)
+
+.PHONY: mfasl-lang mfasl-basic mfasl-high
+
+mfasl-lang: sls
+	@echo; echo "--- Compiling language libraries for Mosh"
+	test -f $(fasl_mosh_COMPILE_LANG_SCRIPT) && $(fasl_mosh_COMPILE_LANG_RUN)
+
+mfasl-basic: sls
+	@echo; echo "--- Compiling basic libraries for Mosh"
+	test -f $(fasl_mosh_COMPILE_BASIC_SCRIPT) && $(fasl_mosh_COMPILE_BASIC_RUN)
+
+mfasl-high: sls
+	@echo; echo "--- Compiling high libraries for Mosh"
+	test -f $(fasl_mosh_COMPILE_HIGH_SCRIPT) && $(fasl_mosh_COMPILE_HIGH_RUN)
 
 #page
 ## --------------------------------------------------------------------

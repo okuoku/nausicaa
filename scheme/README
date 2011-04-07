@@ -101,7 +101,11 @@ to install the files under a temporary location; example:
 described  in the  Nausicaa documentation.   Refer to  it to
 build binary distribution archives.
 
-  There are  special makefile  rules to rebuild  source code
+
+4.1 Special make rules
+----------------------
+
+There  are special  makefile  rules to  rebuild source  code
 files, mostly lexer and parser tables:
 
 silex	- rebuild the tests for the (silex) lexer
@@ -117,6 +121,29 @@ xml-lexer - rebuild the tables for the XML lexer and parser
   The special  makefile rule "libdist" will  create a source
 libraries  only  archive  under the  "$(builddir)/libdist.d"
 directory.
+
+  The following  rules compile a subset of  the libraries in
+the build directory; they exist to ease development.
+
+rfasl-lang -
+	Compile the libraries  of the Nausicaa language with
+	Racket.
+
+rfasl-basic -
+	Compile the basic libraries with Racket.
+
+rfasl-high -
+	Compile the high level libraries with Racket.
+
+mfasl-lang -
+	Compile the libraries  of the Nausicaa language with
+	Mosh.
+
+mfasl-basic -
+	Compile the basic libraries with Mosh.
+
+mfasl-high -
+	Compile the high level libraries with Mosh.
 
 
 5. Testing

@@ -1,13 +1,13 @@
 ;;;
 ;;;Part of: Nausicaa/Scheme
-;;;Contents: compile script for Mosh
-;;;Date: Mon May  3, 2010
+;;;Contents: compile script for high level libraries with Mosh
+;;;Date: Thu Apr  7, 2011
 ;;;
 ;;;Abstract
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2010, 2011 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2011 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -23,77 +23,8 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
-;;fix    tests:    matches,    language-extensions,    generics-starred,
-;;generics-ordinary,     format-lib,     ffi-memory-alloc,    contracts,
-;;classes-*,
-
 #!r6rs
 (import (rnrs)
-
-;;; core libraries
-  (only (nausicaa language cond-expand))
-  (only (nausicaa language unimplemented))
-  (only (nausicaa language conditions))
-  (only (nausicaa language extensions))
-  (only (nausicaa language parameters))
-  (only (nausicaa language pretty-print))
-  (only (nausicaa language shared-structures))
-  (only (nausicaa language sentinel))
-  (only (nausicaa language getenv))
-  (only (nausicaa configuration))
-  (only (nausicaa contracts))
-  (only (nausicaa language assertions))
-  (only (nausicaa language makers))
-  (only (nausicaa language identifier-properties))
-  (only (nausicaa language classes))
-  (only (nausicaa language generics))
-  (only (nausicaa language deferred-exceptions))
-  (only (nausicaa language compensations))
-  (only (nausicaa language matches))
-  (only (nausicaa))
-  (only (nausicaa mutable-pairs))
-  (only (nausicaa mutable-strings))
-
-;;; basic libraries
-  (only (nausicaa generics object-to-string))
-  (only (nausicaa profiling))
-  (only (nausicaa enumerations))
-  (only (nausicaa lists))
-  (only (nausicaa one-dimension-cc))
-  (only (nausicaa one-dimension-co))
-  (only (nausicaa char-sets))
-  (only (nausicaa char-sets blocks))
-  (only (nausicaa char-sets categories))
-  (only (nausicaa asciis))
-  (only (nausicaa bytevectors u8))
-  (only (nausicaa strings))
-  (only (nausicaa strings xstrings))
-  (only (nausicaa streams))
-  (only (nausicaa vectors))
-  (only (nausicaa vectors xvectors))
-  (only (nausicaa bytevectors u8))
-  (only (nausicaa debugging))
-  (only (nausicaa checks))
-  (only (nausicaa loops))
-  (only (nausicaa formations))
-  (only (nausicaa randomisations))
-  (only (nausicaa randomisations vectors))
-  (only (nausicaa randomisations strings))
-  (only (nausicaa randomisations distributions))
-  (only (nausicaa randomisations borosh))
-  (only (nausicaa comparisons))
-  (only (nausicaa arrays))
-  (only (nausicaa msgcat))
-  (only (nausicaa times-and-dates))
-
-  (only (nausicaa variables))
-  (only (nausicaa keywords))
-
-  (only (nausicaa object-properties))
-  (only (nausicaa cleanup-handlers))
-
-  (only (nausicaa queues))
-  (only (nausicaa stacks))
 
 ;;; high level libraries
   (only (nausicaa combinators))
