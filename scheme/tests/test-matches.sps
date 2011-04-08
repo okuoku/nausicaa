@@ -29,6 +29,7 @@
 (import (nausicaa)
   (nausicaa checks)
   (for (only (nausicaa language syntax-utilities) unwrap) expand)
+  (for (prefix (libtest matches-auxiliary-syntaxes) ax.) run (meta -1))
   (rnrs eval))
 
 (check-set-mode! 'report-failed)
@@ -1091,21 +1092,16 @@
 
 (parametrise ((check-test-name 'identifiers))
 
-  (define-auxiliary-syntaxes
-    alpha beta)
-
-;;; --------------------------------------------------------------------
-
   (check
-      (match #'alpha
-	((:free-identifier #'alpha)
+      (match #'ax.alpha
+	((:free-identifier #'ax.alpha)
 	 #t)
 	(_ #f))
     => #t)
 
   (check
       (match #'beta
-	((:free-identifier #'alpha)
+	((:free-identifier #'ax.alpha)
 	 #t)
 	(_ #f))
     => #f)
@@ -1113,15 +1109,15 @@
 ;;; --------------------------------------------------------------------
 
   (check
-      (match #'alpha
-	((:bound-identifier #'alpha)
+      (match #'ax.alpha
+	((:bound-identifier #'ax.alpha)
 	 #t)
 	(_ #f))
     => #t)
 
   (check
       (match #'beta
-	((:bound-identifier #'alpha)
+	((:bound-identifier #'ax.alpha)
 	 #t)
 	(_ #f))
     => #f)
@@ -1132,25 +1128,23 @@
 (parametrise ((check-test-name	'transformers))
 
   (let ()
-    (define-auxiliary-syntaxes
-      alpha beta delta gamma rho)
 
     (define-syntax doit
       (lambda (stx)
 	(match (unwrap stx)
 	  ((_ ?clause)
 	   (match ?clause
-	     (((:free-identifier #'alpha) ?a)
+	     (((:free-identifier #'ax.alpha) ?a)
 	      #`(list 'alpha #,?a))
 
-	     (((:free-identifier #'beta) ?clause)
+	     (((:free-identifier #'ax.beta) ?clause)
 	      (match ?clause
 		(((:free-identifier #'delta) ?d)
 		 #`(list 'beta 'delta #,?d))
-		(((:free-identifier #'gamma) ?g)
+		(((:free-identifier #'ax.gamma) ?g)
 		 #`(list 'beta 'gamma #,?g))))
 
-	     (((:free-identifier #'rho) ?r)
+	     (((:free-identifier #'ax.rho) ?r)
 	      #`(list 'rho #,?r)))))))
 
     (check
